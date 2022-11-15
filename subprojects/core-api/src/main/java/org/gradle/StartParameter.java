@@ -36,6 +36,7 @@ import org.gradle.initialization.DistributionInitScriptFinder;
 import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 
@@ -43,7 +44,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -200,6 +200,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         currentDir = layoutParameters.getCurrentDir();
         projectDir = layoutParameters.getProjectDir();
         gradleUserHomeDir = layoutParameters.getGradleUserHomeDir();
+        setTaskNames(null);
     }
 
     /**
@@ -330,9 +331,9 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public void setTaskNames(@Nullable Iterable<String> taskNames) {
         if (taskNames == null) {
-            this.taskRequests = emptyList();
+            this.taskRequests = Collections.singletonList(new RunDefaultTasksExecutionRequest());
         } else {
-            this.taskRequests = Arrays.asList(new DefaultTaskExecutionRequest(taskNames));
+            this.taskRequests = Collections.singletonList(DefaultTaskExecutionRequest.of(taskNames));
         }
     }
 
@@ -964,5 +965,16 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     @Incubating
     public void setWelcomeMessageConfiguration(WelcomeMessageConfiguration welcomeMessageConfiguration) {
         this.welcomeMessageConfiguration = welcomeMessageConfiguration;
+    }
+
+    /**
+     * Returns true if configuration caching has been requested. Note that the configuration cache may not necessarily be used even when requested, for example
+     * it may be disabled due to the presence of configuration cache problems. It is also currently not used during an IDE import/sync.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public boolean isConfigurationCacheRequested() {
+        return false;
     }
 }

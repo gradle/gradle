@@ -16,6 +16,8 @@
 
 package org.gradle.integtests
 
+import org.gradle.api.attributes.Usage
+import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
@@ -26,7 +28,7 @@ import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 import static org.hamcrest.CoreMatchers.startsWith
 
-class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
+class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
 
     @UnsupportedWithConfigurationCache
     def taskCanAccessTaskGraph() {
@@ -197,7 +199,10 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def excludesTasksWhenExcludePatternSpecified() {
-        settingsFile << "include 'sub'"
+        settingsFile << """
+            include 'sub'
+            rootProject.name = 'root'
+        """
         buildFile << """
             task a
             task b(dependsOn: a)
@@ -224,7 +229,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             // Project defaults
             executer.withArguments("-x", "b").run().assertTasksExecuted(":a", ":c", ":d", ":sub:c", ":sub:d")
             // Unknown task
-            executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"))
+            executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project 'root' and its subprojects."))
         }
     }
 
@@ -294,18 +299,6 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @Issue("https://issues.gradle.org/browse/GRADLE-2022")
-    def tryingToInstantiateTaskDirectlyFailsWithGoodErrorMessage() {
-        buildFile << """
-            new DefaultTask()
-        """
-        expect:
-        2.times {
-            fails "tasks"
-            failure.assertHasCause("Task of type 'org.gradle.api.DefaultTask' has been instantiated directly which is not supported")
-        }
-    }
-
     def "sensible error message for circular task dependency"() {
         buildFile << """
             task a(dependsOn: 'b')
@@ -338,6 +331,42 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         2.times {
             succeeds 'c', 'd'
             result.assertTasksExecutedInOrder(any(':d', ':b', ':a'), ':c')
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21962")
+    def "honours mustRunAfter task ordering declared via dependency resolution"() {
+        settingsFile << """
+            include('a')
+            include('b')
+        """
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            subprojects {
+                configurations.create("implementation") {
+                    attributes.attribute(${Usage.name}.USAGE_ATTRIBUTE, objects.named(${Usage.name}, "test"))
+                }
+            }
+            project('a') {
+                task producer(type: FileProducer) {
+                    output = layout.buildDirectory.file("out.txt")
+                }
+                artifacts { implementation producer.output }
+            }
+            project('b') {
+                dependencies {
+                    implementation project(':a')
+                }
+                task resolve {
+                    mustRunAfter configurations.implementation
+                    doLast {  }
+                }
+            }
+        """
+        expect:
+        2.times {
+            succeeds 'resolve', 'producer'
+            result.assertTasksExecutedInOrder(':a:producer', ':b:resolve')
         }
     }
 

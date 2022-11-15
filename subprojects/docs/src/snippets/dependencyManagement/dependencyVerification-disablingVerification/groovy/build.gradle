@@ -29,9 +29,10 @@ configurations {
 // end::disabling-one-configuration[]
 
 tasks.register("checkDependencies") {
-    inputs.files(configurations.myPluginClasspath)
+    FileCollection classpath = configurations.myPluginClasspath
+    inputs.files(classpath)
     doLast {
-        println(configurations.myPluginClasspath.files)
+        println(classpath.files)
     }
 }
 

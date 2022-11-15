@@ -53,6 +53,7 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -140,8 +141,14 @@ public abstract class AvailableJavaHomes {
         return result;
     }
 
+    @Nullable
     public static Jvm getAvailableJdk(final Spec<? super JvmInstallationMetadata> filter) {
         return Iterables.getFirst(getAvailableJdks(filter), null);
+    }
+
+    @Nullable
+    private static Jvm getSupportedJdk(final Spec<? super JvmInstallationMetadata> filter) {
+        return getAvailableJdk(it -> isSupportedVersion(it) && filter.isSatisfiedBy(it));
     }
 
     private static boolean isSupportedVersion(JvmInstallationMetadata jvmInstallation) {
@@ -153,24 +160,52 @@ public abstract class AvailableJavaHomes {
      */
     @Nullable
     public static Jvm getDifferentJdk() {
-        return getAvailableJdk(element -> !element.getJavaHome().toFile().equals(Jvm.current().getJavaHome()) && isSupportedVersion(element));
+        return getSupportedJdk(element -> !isCurrentJavaHome(element));
     }
 
     /**
-     * Returns a JDK is that has a different Java version to the current one, and which is supported by the Gradle version under test.
+     * Returns a JDK that has a different Java home than the current one, and which is supported by the Gradle version under test.
+     */
+    @Nullable
+    public static Jvm getDifferentJdk(final Spec<? super JvmInstallationMetadata> filter) {
+        return getSupportedJdk(element -> !isCurrentJavaHome(element) && filter.isSatisfiedBy(element));
+    }
+
+    /**
+     * Returns a JDK that has a different Java version to the current one, and which is supported by the Gradle version under test.
      */
     @Nullable
     public static Jvm getDifferentVersion() {
-        return getAvailableJdk(element -> !element.getLanguageVersion().equals(Jvm.current().getJavaVersion()) && isSupportedVersion(element));
+        return getSupportedJdk(element -> !element.getLanguageVersion().equals(Jvm.current().getJavaVersion()));
+    }
+
+    /**
+     * Returns a JDK that has a different Java version to the current one, and which is supported by the Gradle version under test.
+     */
+    @Nullable
+    public static Jvm getDifferentVersion(final Spec<? super JvmInstallationMetadata> filter) {
+        return getSupportedJdk(element -> !element.getLanguageVersion().equals(Jvm.current().getJavaVersion()) && filter.isSatisfiedBy(element));
+    }
+
+    /**
+     * Returns a JDK that has a different Java version to the current one and to the provided one,
+     * and which is supported by the Gradle version under test.
+     */
+    @Nullable
+    public static Jvm getDifferentVersion(JavaVersion excludeVersion) {
+        return getSupportedJdk(element -> !element.getLanguageVersion().equals(Jvm.current().getJavaVersion()) && !element.getLanguageVersion().equals(excludeVersion));
     }
 
     /**
      * Returns a JDK that has a different Java home to the current one, is supported by the Gradle version under tests and has a valid JRE.
      */
     public static Jvm getDifferentJdkWithValidJre() {
-        return AvailableJavaHomes.getAvailableJdk(jvm -> !jvm.getJavaHome().equals(Jvm.current().getJavaHome().toPath())
-            && isSupportedVersion(jvm)
+        return getSupportedJdk(jvm -> !isCurrentJavaHome(jvm)
             && Jvm.discovered(jvm.getJavaHome().toFile(), null, jvm.getLanguageVersion()).getJre() != null);
+    }
+
+    private static boolean isCurrentJavaHome(JvmInstallationMetadata metadata) {
+        return metadata.getJavaHome().toFile().equals(Jvm.current().getJavaHome());
     }
 
     /**
@@ -190,6 +225,14 @@ public abstract class AvailableJavaHomes {
         }
         // Use the JDK instead
         return jvm.getJavaHome();
+    }
+
+    public static JvmInstallationMetadata getJvmInstallationMetadata(Jvm jvm) {
+        Path targetJavaHome = jvm.getJavaHome().toPath();
+        return INSTALLATIONS.get().stream()
+            .filter(it -> it.getJavaHome().equals(targetJavaHome))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("No JVM installation found for " + jvm));
     }
 
     private static Jvm jvmFromMetadata(JvmInstallationMetadata metadata) {

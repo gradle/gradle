@@ -16,7 +16,6 @@
 package org.gradle.api.initialization.dsl;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.provider.Property;
@@ -80,17 +79,6 @@ public interface VersionCatalogBuilder extends Named {
     String version(String alias, String version);
 
     /**
-     * Entry point for registering an alias for a library.
-     *
-     * @param alias the alias identifier
-     * @return a builder for this alias
-     * @deprecated Use {@link #library(String, String, String)}, {@link #library(String, String)}
-     * and {@link #plugin(String, String)} instead. Will be removed in Gradle 8.
-     */
-    @Deprecated
-    AliasBuilder alias(String alias);
-
-    /**
      * Entry point for registering a library alias.
      *
      * @param alias the alias of the library
@@ -141,39 +129,6 @@ public interface VersionCatalogBuilder extends Named {
      * Returns the name of the extension configured by this builder
      */
     String getLibrariesExtensionName();
-
-    /**
-     * Allows configuring an alias
-     *
-     * @since 7.0
-     * @deprecated With the removal of {@link #alias(String)}, this class will no longer needed.
-     */
-    @Incubating
-    @Deprecated
-    interface AliasBuilder {
-        /**
-         * Sets GAV coordinates for this alias
-         * @param groupArtifactVersion the GAV coordinates, in the group:artifact:version form
-         */
-        void to(String groupArtifactVersion);
-
-        /**
-         * Sets the group and name of this alias
-         * @param group the group
-         * @param name the name (or artifact id)
-         * @return a builder to configure the version
-         */
-        LibraryAliasBuilder to(String group, String name);
-
-        /**
-         * Sets the plugin id this alias will reference
-         * @param id the plugin id
-         * @return a builder to configure the plugin
-         *
-         * @since 7.2
-         */
-        PluginAliasBuilder toPluginId(String id);
-    }
 
     /**
      * Allows configuring the version of a library

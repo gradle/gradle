@@ -18,9 +18,9 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class GroovyCompileTest extends Specification {
+class GroovyCompileTest extends AbstractProjectBuilderSpec {
 
     def 'javaLauncher is annotated with @Nested and @Optional'() {
         given:
@@ -29,5 +29,13 @@ class GroovyCompileTest extends Specification {
         expect:
         launcherMethod.isAnnotationPresent(Nested)
         launcherMethod.isAnnotationPresent(Optional)
+    }
+
+    def "incremental compilation is disabled and incrementalAfterFailure is enabled by default"() {
+        def groovyCompile = project.tasks.create("compileGroovy", GroovyCompile)
+
+        expect:
+        !groovyCompile.options.incremental
+        groovyCompile.options.incrementalAfterFailure.get() == true
     }
 }

@@ -30,6 +30,7 @@ import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
+import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -78,6 +79,7 @@ import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.metaobject.BeanDynamicObject
 import org.gradle.internal.metaobject.DynamicObject
@@ -118,6 +120,10 @@ class ProblemReportingCrossProjectModelAccess(
 
     override fun getAllprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
         return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
+    }
+
+    override fun gradleInstanceForProject(referrerProject: ProjectInternal, gradle: GradleInternal): GradleInternal {
+        return CrossProjectConfigurationReportingGradle.from(gradle, referrerProject)
     }
 
     private
@@ -271,8 +277,13 @@ class ProblemReportingCrossProjectModelAccess(
             delegate.status = status
         }
 
+        @AllowUsingApiForExternalUse
         override fun getChildProjects(): MutableMap<String, Project> {
             return delegate.childProjects
+        }
+
+        override fun getChildProjectsUnchecked(): MutableMap<String, Project> {
+            return delegate.childProjectsUnchecked
         }
 
         override fun setProperty(name: String, value: Any?) {
@@ -675,6 +686,11 @@ class ProblemReportingCrossProjectModelAccess(
         override fun dependencies(configureClosure: Closure<*>) {
             onAccess()
             delegate.dependencies(configureClosure)
+        }
+
+        override fun getDependencyFactory(): DependencyFactory {
+            onAccess()
+            return delegate.dependencyFactory
         }
 
         override fun buildscript(configureClosure: Closure<*>) {

@@ -351,10 +351,12 @@ The answer is - you need to provide a properties file in the JAR's `META-INF/gra
 
 === Example: Wiring for a custom plugin
 
+Given a plugin with ID `org.example.greeting` and implementation class `org.example.GreetingPlugin`:
+
 [source,properties]
 .src/main/resources/META-INF/gradle-plugins/org.example.greeting.properties
 ----
-include::{snippetsPath}/plugins/customPlugin/groovy/plugin/src/main/resources/META-INF/gradle-plugins/org.example.greeting.properties[]
+implementation-class=org.example.GreetingPlugin
 ----
 
 Notice that the properties filename matches the plugin id and is placed in the resources folder, and that the `implementation-class` property identifies the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] implementation class.

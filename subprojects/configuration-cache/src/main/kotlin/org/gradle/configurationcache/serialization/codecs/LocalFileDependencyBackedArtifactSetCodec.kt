@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-@file:Suppress("DEPRECATION")
-
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.Action
@@ -23,7 +21,6 @@ import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformParameters
-import org.gradle.api.artifacts.transform.VariantTransform
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
@@ -177,6 +174,10 @@ class RecordingVariantSet(
     }
 
     override fun getVariants(): Set<ResolvedVariant> {
+        return setOf(this)
+    }
+
+    override fun getAllVariants(): Set<ResolvedVariant> {
         return setOf(this)
     }
 
@@ -366,11 +367,6 @@ object NoOpTransformedVariantFactory : TransformedVariantFactory {
 
 private
 object EmptyVariantTransformRegistry : VariantTransformRegistry {
-    @Deprecated("Deprecated in Java", ReplaceWith("throw UnsupportedOperationException(\"Should not be called\")"))
-    override fun registerTransform(registrationAction: Action<in VariantTransform>) {
-        throw UnsupportedOperationException("Should not be called")
-    }
-
     override fun <T : TransformParameters?> registerTransform(actionType: Class<out TransformAction<T>>, registrationAction: Action<in org.gradle.api.artifacts.transform.TransformSpec<T>>) {
         throw UnsupportedOperationException("Should not be called")
     }

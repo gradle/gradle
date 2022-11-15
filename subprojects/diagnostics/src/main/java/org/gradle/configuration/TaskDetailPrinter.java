@@ -15,24 +15,15 @@
  */
 package org.gradle.configuration;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.tasks.options.OptionDescriptor;
-import org.gradle.api.internal.tasks.options.OptionReader;
-import org.gradle.execution.TaskSelection;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,48 +32,46 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 import static org.gradle.util.internal.CollectionUtils.collect;
-import static org.gradle.util.internal.CollectionUtils.filter;
 import static org.gradle.util.internal.CollectionUtils.sort;
 
 @NonNullApi
 public class TaskDetailPrinter {
     private final String taskPath;
-    private final TaskSelection selection;
+    private final List<TaskDetails> tasks;
     private static final String INDENT = "     ";
-    private final OptionReader optionReader;
 
-    public TaskDetailPrinter(String taskPath, TaskSelection selection, OptionReader optionReader) {
+    public TaskDetailPrinter(String taskPath, List<TaskDetails> tasks) {
         this.taskPath = taskPath;
-        this.selection = selection;
-        this.optionReader = optionReader;
+        this.tasks = tasks;
     }
 
     public void print(StyledTextOutput output) {
-        final List<Task> tasks = sort(selection.getTasks());
-
         output.text("Detailed task information for ").withStyle(UserInput).println(taskPath);
-        final ListMultimap<Class<?>, Task> classListMap = groupTasksByType(tasks);
+        final Map<String, List<TaskDetails>> detailsByTaskType = groupTasksByType(this.tasks);
 
-        final Set<Class<?>> classes = classListMap.keySet();
-        boolean multipleClasses = classes.size() > 1;
-        final List<Class<?>> sortedClasses = sort(classes, Comparator.comparing(Class::getSimpleName));
-        for (Class<?> clazz : sortedClasses) {
+        final Set<String> typeNames = detailsByTaskType.keySet();
+        boolean multipleTaskTypes = typeNames.size() > 1;
+        final List<String> sortedTaskTypes = sort(typeNames);
+        for (String taskType : sortedTaskTypes) {
             output.println();
-            final List<Task> tasksByType = classListMap.get(clazz);
+            final List<TaskDetails> tasksByType = detailsByTaskType.get(taskType);
+            final TaskDetails anyTask = tasksByType.iterator().next();
+            String shortTypeName = anyTask.getShortTypeName();
             final LinePrefixingStyledTextOutput pathOutput = createIndentedOutput(output, INDENT);
             pathOutput.println(tasksByType.size() > 1 ? "Paths" : "Path");
-            for (Task task : tasksByType) {
+            for (TaskDetails task : tasksByType) {
                 pathOutput.withStyle(UserInput).println(task.getPath());
             }
 
             output.println();
             final LinePrefixingStyledTextOutput typeOutput = createIndentedOutput(output, INDENT);
             typeOutput.println("Type");
-            typeOutput.withStyle(UserInput).text(clazz.getSimpleName());
-            typeOutput.println(" (" + clazz.getName() + ")");
+            typeOutput.withStyle(UserInput).text(shortTypeName);
+            typeOutput.println(" (" + taskType + ")");
 
             printlnCommandlineOptions(output, tasksByType);
 
@@ -92,53 +81,37 @@ public class TaskDetailPrinter {
             output.println();
             printTaskGroup(output, tasksByType);
 
-            if (multipleClasses) {
+            if (multipleTaskTypes) {
                 output.println();
                 output.println("----------------------");
             }
         }
     }
 
-    private ListMultimap<Class<?>, Task> groupTasksByType(List<Task> tasks) {
-        final Set<Class<?>> taskTypes = new TreeSet<>(Comparator.comparing(Class::getSimpleName));
-        taskTypes.addAll(collect(tasks, this::getDeclaredTaskType));
-
-        ListMultimap<Class<?>, Task> tasksGroupedByType = ArrayListMultimap.create();
-        for (final Class<?> taskType : taskTypes) {
-            tasksGroupedByType.putAll(taskType, filter(tasks, element -> getDeclaredTaskType(element).equals(taskType)));
-        }
-        return tasksGroupedByType;
+    private Map<String, List<TaskDetails>> groupTasksByType(Collection<TaskDetails> tasks) {
+        return tasks.stream().collect(Collectors.groupingBy(TaskDetails::getTaskType, LinkedHashMap::new, Collectors.toList()));
     }
 
-    private Class<?> getDeclaredTaskType(Task original) {
-        Class<?> clazz = new DslObject(original).getDeclaredType();
-        if (clazz.equals(DefaultTask.class)) {
-            return org.gradle.api.Task.class;
-        } else {
-            return clazz;
-        }
+    private void printTaskDescription(StyledTextOutput output, List<TaskDetails> tasks) {
+        printTaskAttribute(output, "Description", tasks, TaskDetails::getDescription);
     }
 
-    private void printTaskDescription(StyledTextOutput output, List<Task> tasks) {
-        printTaskAttribute(output, "Description", tasks, Task::getDescription);
+    private void printTaskGroup(StyledTextOutput output, List<TaskDetails> tasks) {
+        printTaskAttribute(output, "Group", tasks, TaskDetails::getGroup);
     }
 
-    private void printTaskGroup(StyledTextOutput output, List<Task> tasks) {
-        printTaskAttribute(output, "Group", tasks, Task::getGroup);
-    }
-
-    private void printTaskAttribute(StyledTextOutput output, String attributeHeader, List<Task> tasks, Transformer<String, Task> transformer) {
+    private void printTaskAttribute(StyledTextOutput output, String attributeHeader, List<TaskDetails> tasks, Transformer<String, TaskDetails> transformer) {
         int count = collect(tasks, new HashSet<>(), transformer).size();
         final LinePrefixingStyledTextOutput attributeOutput = createIndentedOutput(output, INDENT);
         if (count == 1) {
             // all tasks have the same value
             attributeOutput.println(attributeHeader);
-            final Task task = tasks.iterator().next();
+            final TaskDetails task = tasks.iterator().next();
             String value = transformer.transform(task);
             attributeOutput.println(value == null ? "-" : value);
         } else {
             attributeOutput.println(attributeHeader + "s");
-            for (Task task : tasks) {
+            for (TaskDetails task : tasks) {
                 attributeOutput.withStyle(UserInput).text("(" + task.getPath() + ") ");
                 String value = transformer.transform(task);
                 attributeOutput.println(value == null ? "-" : value);
@@ -146,10 +119,10 @@ public class TaskDetailPrinter {
         }
     }
 
-    private void printlnCommandlineOptions(StyledTextOutput output, List<Task> tasks) {
-        List<OptionDescriptor> allOptions = new ArrayList<>();
-        for (Task task : tasks) {
-            allOptions.addAll(optionReader.getOptions(task));
+    private void printlnCommandlineOptions(StyledTextOutput output, List<TaskDetails> tasks) {
+        List<TaskDetails.OptionDetails> allOptions = new ArrayList<>();
+        for (TaskDetails task : tasks) {
+            allOptions.addAll(task.getOptions());
         }
         if (!allOptions.isEmpty()) {
             output.println();
@@ -182,9 +155,9 @@ public class TaskDetailPrinter {
         }
     }
 
-    private Map<String, Set<String>> optionToAvailableValues(List<OptionDescriptor> allOptions) {
+    private Map<String, Set<String>> optionToAvailableValues(List<TaskDetails.OptionDetails> allOptions) {
         Map<String, Set<String>> result = new LinkedHashMap<>();
-        for (OptionDescriptor optionDescriptor : allOptions) {
+        for (TaskDetails.OptionDetails optionDescriptor : allOptions) {
             if (result.containsKey(optionDescriptor.getName())) {
                 Collection<String> commonValues = Sets.intersection(optionDescriptor.getAvailableValues(), result.get(optionDescriptor.getName()));
                 result.put(optionDescriptor.getName(), new TreeSet<>(commonValues));
@@ -195,9 +168,9 @@ public class TaskDetailPrinter {
         return result;
     }
 
-    private Map<String, String> optionToDescription(List<OptionDescriptor> allOptions) {
+    private Map<String, String> optionToDescription(List<TaskDetails.OptionDetails> allOptions) {
         Map<String, String> result = new HashMap<>();
-        for (OptionDescriptor optionDescriptor : allOptions) {
+        for (TaskDetails.OptionDetails optionDescriptor : allOptions) {
             result.put(optionDescriptor.getName(), optionDescriptor.getDescription());
         }
         return result;

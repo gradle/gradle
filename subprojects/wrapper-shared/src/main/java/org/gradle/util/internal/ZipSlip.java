@@ -43,8 +43,19 @@ public class ZipSlip {
         return name.isEmpty()
             || name.startsWith("/")
             || name.startsWith("\\")
-            || name.contains("..")
+            || containsDirectoryNavigation(name)
             || (name.contains(":") && isWindows());
+    }
+
+    private static boolean containsDirectoryNavigation(String name) {
+        if (!name.contains("..")) {
+            return false;
+        }
+        // We have a .. but if not before a file separator or at the end, it is OK
+        return name.endsWith("\\..")
+            || name.contains("..\\")
+            || name.endsWith("/..")
+            || name.contains("../");
     }
 
     private static boolean isWindows() {

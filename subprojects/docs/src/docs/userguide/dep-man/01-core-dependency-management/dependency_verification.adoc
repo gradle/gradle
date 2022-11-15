@@ -514,8 +514,6 @@ If the `gradle/verification-keyring.gpg` or `gradle/verification-keyring.keys` f
 
 Note that the plain text file will be ignored if there's already a `.gpg` file (the binary version takes precedence).
 
-The keys are automatically deduplicated and sorted before exporting in order to cause minimal differences between exports.
-
 You can generate the binary version using GPG, for example issuing the following commands (syntax may depend on the tool you use):
 
 [source,bash]
@@ -572,6 +570,18 @@ If you use git and use the binary version, make sure to make it treat this file 
 ----
 *.gpg           binary
 ----
+
+====
+
+You can also ask Gradle to export all trusted keys without updating the verification metadata file:
+
+----
+./gradlew --export-keys
+----
+
+[NOTE]
+====
+This command disables signature verification, similar to `--write-verification-metadata`.
 ====
 
 [[sec:bootstrapping-signature-verification]]

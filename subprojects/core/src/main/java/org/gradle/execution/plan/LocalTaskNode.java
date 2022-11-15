@@ -16,7 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -36,6 +35,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * A {@link TaskNode} implementation for a task in the current build.
@@ -44,16 +44,17 @@ public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
     private final WorkValidationContext validationContext;
     private final ResolveMutationsNode resolveMutationsNode;
+    private boolean hasVisitedMutationsNode;
     private Set<Node> lifecycleSuccessors;
 
     private boolean isolated;
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
 
-    public LocalTaskNode(TaskInternal task, NodeValidator nodeValidator, WorkValidationContext workValidationContext) {
+    public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext, Function<LocalTaskNode, ResolveMutationsNode> resolveNodeFactory) {
         this.task = task;
         this.validationContext = workValidationContext;
-        resolveMutationsNode = new ResolveMutationsNode(this, nodeValidator);
+        this.resolveMutationsNode = resolveNodeFactory.apply(this);
     }
 
     /**
@@ -103,21 +104,6 @@ public class LocalTaskNode extends TaskNode {
         return true;
     }
 
-    @Override
-    public boolean isCanCancel() {
-        FinalizerGroup finalizerGroup = getFinalizerGroup();
-        if (finalizerGroup != null) {
-            // TODO(mlopatkin) what if this node is some dependency of a finalizer and its group is a CompositeNodeGroup and not just a FinalizerGroup?
-            for (Node node : finalizerGroup.getFinalizedNodes()) {
-                // Cannot cancel this node if something it finalizes has started
-                if (node.isExecuting() || node.isExecuted()) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     public TaskProperties getTaskProperties() {
         return taskProperties;
     }
@@ -128,12 +114,10 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    public void prepareForExecution(Action<Node> monitor) {
-        ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
-    }
-
-    @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
+        // Make sure it has been configured
+        ((TaskContainerInternal) task.getProject().getTasks()).prepareForExecution(task);
+
         for (Node targetNode : getDependencies(dependencyResolver)) {
             addDependencySuccessor(targetNode);
         }
@@ -147,7 +131,7 @@ public class LocalTaskNode extends TaskNode {
             addFinalizerNode((TaskNode) targetNode);
         }
         for (Node targetNode : getMustRunAfter(dependencyResolver)) {
-            addMustSuccessor((TaskNode) targetNode);
+            addMustSuccessor(targetNode);
         }
         for (Node targetNode : getShouldRunAfter(dependencyResolver)) {
             addShouldSuccessor(targetNode);
@@ -184,9 +168,7 @@ public class LocalTaskNode extends TaskNode {
         final MutationInfo mutations = getMutationInfo();
         outputFilePropertySpecs.forEach(spec -> {
             File outputLocation = spec.getOutputFile();
-            if (outputLocation != null) {
-                mutations.outputPaths.add(outputLocation.getAbsolutePath());
-            }
+            mutations.outputPaths.add(outputLocation.getAbsolutePath());
             mutations.hasOutputs = true;
         });
     }
@@ -205,8 +187,16 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
+    public boolean hasPendingPreExecutionNodes() {
+        return !hasVisitedMutationsNode;
+    }
+
+    @Override
     public void visitPreExecutionNodes(Consumer<? super Node> visitor) {
-        visitor.accept(resolveMutationsNode);
+        if (!hasVisitedMutationsNode) {
+            visitor.accept(resolveMutationsNode);
+            hasVisitedMutationsNode = true;
+        }
     }
 
     public Node getPrepareNode() {
@@ -224,7 +214,7 @@ public class LocalTaskNode extends TaskNode {
     @Override
     public void cancelExecution(Consumer<Node> completionAction) {
         super.cancelExecution(completionAction);
-        if (!resolveMutationsNode.isComplete()) {
+        if (resolveMutationsNode.isRequired()) {
             resolveMutationsNode.cancelExecution(completionAction);
         }
     }

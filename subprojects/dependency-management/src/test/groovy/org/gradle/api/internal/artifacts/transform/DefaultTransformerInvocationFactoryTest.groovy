@@ -37,20 +37,20 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.Try
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
-import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.TestExecutionHistoryStore
 import org.gradle.internal.execution.WorkInputListeners
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
-import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
-import org.gradle.internal.execution.fingerprint.impl.FingerprinterRegistration
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
+import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
+import org.gradle.internal.execution.impl.FingerprinterRegistration
+import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.execution.timeout.TimeoutHandler
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -88,7 +88,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def executionHistoryStore = new TestExecutionHistoryStore()
     def virtualFileSystem = TestFiles.virtualFileSystem()
     def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.fileSystem())
 
     def transformationWorkspaceServices = new TestTransformationWorkspaceServices(immutableTransformsStoreDirectory, executionHistoryStore)
 
@@ -130,6 +130,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def buildOutputCleanupRegistry = Mock(BuildOutputCleanupRegistry)
     def outputSnapshotter = new DefaultOutputSnapshotter(fileCollectionSnapshotter)
     def deleter = TestFiles.deleter()
+    def validationWarningRecorder = Mock(ValidateStep.ValidationWarningRecorder)
     def executionEngine = new ExecutionGradleServices().createExecutionEngine(
         buildCacheController,
         cancellationToken,
@@ -147,12 +148,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         outputSnapshotter,
         new DefaultOverlappingOutputDetector(),
         Mock(TimeoutHandler),
-        { String behavior ->
-            DeprecationLogger.deprecateBehaviour(behavior)
-                .willBeRemovedInGradle8()
-                .undocumented()
-                .nagUser()
-        },
+        validationWarningRecorder,
         virtualFileSystem,
         documentationRegistry
     )
@@ -206,8 +202,12 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         @Override
-        ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, InputChanges inputChanges) {
-            return ImmutableList.copyOf(transformationAction.apply(inputArtifactProvider.get().asFile, outputDir))
+        TransformationResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, InputChanges inputChanges) {
+            def builder = TransformationResult.builderFor(inputArtifactProvider.get().asFile, outputDir)
+            transformationAction.apply(inputArtifactProvider.get().asFile, outputDir).each {
+                builder.addOutput(it) { }
+            }
+            return builder.build()
         }
 
         @Override
@@ -308,8 +308,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), inputFingerprinter)
         then:
         transformerInvocations == 1
-        1 * artifactTransformListener.beforeTransformerInvocation(_, _)
-        1 * artifactTransformListener.afterTransformerInvocation(_, _)
+        0 * _
     }
 
     def "re-runs transform when previous execution failed"() {
@@ -519,6 +518,6 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         TransformationSubject subject,
         InputFingerprinter inputFingerprinter
     ) {
-        return invoker.createInvocation(transformer, inputArtifact, dependencies, subject, inputFingerprinter).invoke()
+        return invoker.createInvocation(transformer, inputArtifact, dependencies, subject, inputFingerprinter).completeAndGet()
     }
 }

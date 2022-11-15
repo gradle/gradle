@@ -471,7 +471,7 @@ class DefaultJvmMetadataDetectorTest extends Specification {
                 def actualValue = actualProperties[it.systemPropertyKey]
                 // write conditionally to simulate wrong number of outputs
                 if (actualValue != null) {
-                    output.println(actualValue)
+                    output.println(MetadataProbe.MARKER_PREFIX + actualValue)
                 }
             }
             Mock(ExecResult)

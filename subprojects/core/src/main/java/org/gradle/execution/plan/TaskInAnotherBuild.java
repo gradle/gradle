@@ -76,7 +76,7 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
         };
     }
 
-    private IncludedBuildTaskResource.State taskState = IncludedBuildTaskResource.State.Waiting;
+    private IncludedBuildTaskResource.State taskState = IncludedBuildTaskResource.State.Scheduled;
     private final Path taskIdentityPath;
     private final String taskPath;
     private final BuildIdentifier targetBuild;
@@ -105,6 +105,21 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
     }
 
     @Override
+    protected ExecutionState getInitialState() {
+        switch (getTarget().getTaskState()) {
+            case Scheduled:
+            case NotScheduled:
+                return null;
+            case Success:
+                return ExecutionState.EXECUTED;
+            case Failed:
+                return ExecutionState.FAILED_DEPENDENCY;
+            default:
+                throw new IllegalStateException();
+        }
+    }
+
+    @Override
     public Set<Node> getLifecycleSuccessors() {
         return Collections.emptySet();
     }
@@ -118,9 +133,7 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
 
     @Override
     public void prepareForExecution(Action<Node> monitor) {
-        IncludedBuildTaskResource target = getTarget();
-        target.queueForExecution();
-        target.onComplete(() -> monitor.execute(this));
+        getTarget().onComplete(() -> monitor.execute(this));
     }
 
     @Nullable
@@ -150,6 +163,7 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
 
     @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
+        getTarget().queueForExecution();
     }
 
     @Override
@@ -164,11 +178,12 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
             taskState = getTarget().getTaskState();
         }
         switch (taskState) {
-            case Waiting:
+            case Scheduled:
                 return DependenciesState.NOT_COMPLETE;
             case Success:
                 return DependenciesState.COMPLETE_AND_SUCCESSFUL;
             case Failed:
+            case NotScheduled:
                 return DependenciesState.COMPLETE_AND_NOT_SUCCESSFUL;
             default:
                 throw new IllegalArgumentException();
@@ -181,8 +196,9 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
     }
 
     @Override
-    protected String nodeSpecificHealthDiagnostics() {
-        return "taskState=" + taskState + ", " + getTarget().healthDiagnostics();
+    protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
+        super.nodeSpecificHealthDiagnostics(builder);
+        builder.append(", taskState=").append(taskState).append(", ").append(getTarget().healthDiagnostics());
     }
 
     @Override

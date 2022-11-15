@@ -652,7 +652,7 @@ class ComponentAttributeMatcherTest extends Specification {
                 return [preferred]
             }
 
-            candidates
+            null
         }
 
         @Override
@@ -661,8 +661,8 @@ class ComponentAttributeMatcherTest extends Specification {
         }
 
         @Override
-        PrecedenceResult orderByPrecedence(ImmutableAttributes requested) {
-            return new PrecedenceResult(IntStream.range(0, requested.keySet().size()).boxed().collect(Collectors.toList()))
+        PrecedenceResult orderByPrecedence(Collection<Attribute<?>> requested) {
+            return new PrecedenceResult(IntStream.range(0, requested.size()).boxed().collect(Collectors.toList()))
         }
     }
 }

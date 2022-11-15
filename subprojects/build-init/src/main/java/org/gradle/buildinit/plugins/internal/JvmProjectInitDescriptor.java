@@ -271,6 +271,8 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                 break;
             case KOTLINTEST:
                 buildScriptBuilder.testImplementationDependency("Use the Kotlin JUnit 5 integration.", "org.jetbrains.kotlin:kotlin-test-junit5");
+                // TODO: Make this work with JUnit 5.6.0 again, see https://github.com/gradle/gradle/issues/13955
+                buildScriptBuilder.testImplementationDependency("Use the JUnit 5 integration.", "org.junit.jupiter:junit-jupiter-engine:" + libraryVersionProvider.getVersion("junit-jupiter"));
 
                 buildScriptBuilder.taskMethodInvocation(
                         "Use JUnit Platform for unit tests.",

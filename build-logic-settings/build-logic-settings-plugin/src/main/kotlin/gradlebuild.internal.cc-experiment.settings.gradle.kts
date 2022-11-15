@@ -49,10 +49,8 @@ val unsupportedTasksPredicate: (Task) -> Boolean = { task: Task ->
             "quickCheck",
         ) -> true
         task.name.endsWith("Wrapper") -> true
-        task.name in listOf("docs", "stageDocs", "docsTest", "serveDocs") -> true
+        task.name in listOf("docs", "stageDocs", "serveDocs") -> true
         task.name.startsWith("userguide") -> true
-        task.name.contains("Sample") -> true
-        task.name.contains("Snippet") -> true
         task.name == "samplesMultiPage" -> true
         task.typeSimpleName in listOf(
             "KtsProjectGeneratorTask",

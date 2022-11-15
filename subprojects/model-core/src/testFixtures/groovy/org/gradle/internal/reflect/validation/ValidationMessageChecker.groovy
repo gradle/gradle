@@ -166,12 +166,16 @@ trait ValidationMessageChecker {
     )
     String incorrectUseOfInputAnnotation(@DelegatesTo(value = IncorrectUseOfInputAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(IncorrectUseOfInputAnnotation, 'incorrect_use_of_input_annotation', spec)
-        config.description("has @Input annotation used on property of type '${config.propertyType}'")
+        def incorrectUseOfInputAnnotation = config.description("has @Input annotation used on property of type '${config.propertyType}'")
             .reason("A property of type '${config.propertyType}' annotated with @Input cannot determine how to interpret the file")
-            .solution("Annotate with @InputFile for regular files")
-            .solution("Annotate with @InputDirectory for directories")
-            .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
-            .render()
+        if (config.propertyType == "DirectoryProperty" || config.propertyType == "Directory") {
+            return incorrectUseOfInputAnnotation.solution("Annotate with @InputDirectory for directories").render()
+        } else {
+            return incorrectUseOfInputAnnotation.solution("Annotate with @InputFile for regular files")
+                .solution("Annotate with @InputFiles for collections of files")
+                .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
+                .render()
+        }
     }
 
     @ValidationTestFor(
@@ -183,17 +187,6 @@ trait ValidationMessageChecker {
             .reason("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")
             .solution("Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath")
             .render()
-    }
-
-    @ValidationTestFor(
-        ValidationProblemId.UNRESOLVABLE_INPUT
-    )
-    String unresolvableInput(@DelegatesTo(value = UnresolvableInput, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}, boolean renderSolutions = true) {
-        def config = display(UnresolvableInput, 'unresolvable_input', spec)
-        config.description("cannot be resolved: ${config.conversionProblem}")
-            .reason("An input file collection couldn't be resolved, making it impossible to determine task inputs")
-            .solution("Consider using Task.dependsOn instead")
-            .render(renderSolutions)
     }
 
     @ValidationTestFor(
@@ -371,26 +364,9 @@ trait ValidationMessageChecker {
     }
 
     @ValidationTestFor(
-        ValidationProblemId.NOT_CACHEABLE_WITHOUT_REASON
-    )
-    String notCacheableWithoutReason(@DelegatesTo(value = NotCacheableWithoutReason, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        def config = display(NotCacheableWithoutReason, "disable_caching_by_default", spec)
-        config.description("must be annotated either with ${config.cacheableAnnotation} or with @DisableCachingByDefault.")
-            .reason("The ${config.workType} author should make clear why a ${config.workType} is not cacheable.")
-            .solution("Add @DisableCachingByDefault(because = ...)")
-            .solution("Add ${config.cacheableAnnotation}.")
-
-        config.otherAnnotations.each { annotation ->
-            config.solution("Add ${annotation}.")
-        }
-
-        config.render()
-    }
-
-    @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
-    String dummyValidationProblem(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
+    String dummyValidationProblem(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
         display(SimpleMessage, 'dummy') {
             type(onType).property(onProperty)
             description(desc)
@@ -401,7 +377,7 @@ trait ValidationMessageChecker {
     @ValidationTestFor(
         ValidationProblemId.TEST_PROBLEM
     )
-    String dummyValidationProblemWithLink(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test') {
+    String dummyValidationProblemWithLink(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
         display(SimpleMessage, 'dummy') {
             type(onType).property(onProperty)
             description(desc)
@@ -441,7 +417,8 @@ trait ValidationMessageChecker {
                                                                    String section = 'sec:up_to_date_checks') {
         String asSingleLine = convertToSingleLine(message)
         String deprecationMessage = asSingleLine + (asSingleLine.endsWith(" ") ? '' : ' ') +
-            "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
+            "This behavior has been deprecated. " +
+            "This behavior is scheduled to be removed in Gradle 9.0. " +
             "Execution optimizations are disabled to ensure correctness. " +
             "See https://docs.gradle.org/current/userguide/${docId}.html#${section} for more details."
         executer.expectDocumentedDeprecationWarning(deprecationMessage)

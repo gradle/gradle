@@ -363,7 +363,6 @@ project(":b") {
         executedAndNotSkipped ":a:yJar"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports project dependency that refers to an unknown artifact"() {
         given:
         file('settings.gradle') << """
@@ -394,7 +393,7 @@ project(":b") {
         fails ':b:test'
 
         and:
-        failure.assertHasCause("Could not resolve all files for configuration ':b:compile'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':b:compile'.")
         failure.assertHasCause("Could not find b.jar (project :a).")
     }
 

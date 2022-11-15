@@ -26,12 +26,9 @@ import org.gradle.initialization.exception.ExceptionAnalyser
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildModelControllerServices
 import org.gradle.internal.build.BuildStateRegistry
-import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
-import org.gradle.internal.buildtree.BuildTreeModelAction
+import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeState
-import org.gradle.internal.buildtree.BuildTreeWorkGraph
-import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -44,13 +41,13 @@ class DefaultRootBuildStateTest extends Specification {
     def controller = Mock(BuildLifecycleController)
     def gradle = Mock(GradleInternal)
     def listenerManager = Mock(ListenerManager)
-    def enterprisePluginManager = Mock(GradleEnterprisePluginManager)
     def lifecycleListener = Mock(RootBuildLifecycleListener)
     def action = Mock(Function)
     def buildTree = Mock(BuildTreeState)
     def buildDefinition = Mock(BuildDefinition)
     def exceptionAnalyzer = Mock(ExceptionAnalyser)
-    def workGraph = Mock(BuildTreeWorkGraph)
+    def buildTreeController = Mock(BuildTreeLifecycleController)
+    def buildTreeControllerFactory = Mock(BuildTreeLifecycleControllerFactory)
     DefaultRootBuildState build
 
     def setup() {
@@ -62,17 +59,17 @@ class DefaultRootBuildStateTest extends Specification {
         services.add(exceptionAnalyzer)
         services.add(controller)
         services.add(factory)
-        services.add(Stub(BuildTreeWorkGraphController))
         services.add(Stub(DocumentationRegistry))
         services.add(Stub(DefaultDeploymentRegistry))
         services.add(Stub(BuildStateRegistry))
-        services.add(new TestBuildTreeLifecycleControllerFactory(workGraph))
+        services.add(buildTreeControllerFactory)
 
+        _ * buildTreeControllerFactory.createRootBuildController(_, _, _) >> buildTreeController
         _ * controller.gradle >> gradle
         _ * gradle.services >> services
         _ * buildTree.services >> services
 
-        build = new DefaultRootBuildState(buildDefinition, buildTree, listenerManager, enterprisePluginManager)
+        build = new DefaultRootBuildState(buildDefinition, buildTree, listenerManager)
     }
 
     def "has identifier"() {
@@ -129,35 +126,7 @@ class DefaultRootBuildStateTest extends Specification {
         1 * lifecycleListener.afterStart()
 
         and:
-        1 * controller.populateWorkGraph(_, _)
-        1 * workGraph.runWork() >> ExecutionResult.succeeded()
-        1 * controller.finishBuild(null) >> ExecutionResult.succeeded()
-
-        and:
-        1 * lifecycleListener.beforeComplete()
-        0 * lifecycleListener._
-    }
-
-    def "configures and finishes build when requested by action"() {
-        def modelAction = Mock(BuildTreeModelAction)
-
-        when:
-        def result = build.run(action)
-
-        then:
-        result == '<result>'
-
-        and:
-        1 * action.apply(!null) >> { BuildTreeLifecycleController controller ->
-            controller.fromBuildModel(false, modelAction)
-        }
-        1 * modelAction.fromBuildModel(_) >> '<result>'
-
-        and:
-        1 * lifecycleListener.afterStart()
-
-        and:
-        1 * controller.finishBuild(null) >> ExecutionResult.succeeded()
+        1 * buildTreeController.scheduleAndRunTasks()
 
         and:
         1 * lifecycleListener.beforeComplete()
@@ -200,8 +169,7 @@ class DefaultRootBuildStateTest extends Specification {
         1 * lifecycleListener.afterStart()
 
         and:
-        1 * workGraph.runWork() >> ExecutionResult.failed(failure)
-        1 * controller.finishBuild(_) >> ExecutionResult.succeeded()
+        1 * buildTreeController.scheduleAndRunTasks() >> { throw failure }
 
         and:
         1 * lifecycleListener.beforeComplete()
@@ -213,8 +181,6 @@ class DefaultRootBuildStateTest extends Specification {
         action.apply(!null) >> { BuildTreeLifecycleController controller ->
             controller.scheduleAndRunTasks()
         }
-        1 * workGraph.runWork() >> ExecutionResult.succeeded()
-        1 * controller.finishBuild(null) >> ExecutionResult.succeeded()
 
         build.run(action)
 

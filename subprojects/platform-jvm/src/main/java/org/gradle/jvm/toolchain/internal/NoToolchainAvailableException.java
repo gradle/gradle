@@ -21,7 +21,7 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 public class NoToolchainAvailableException extends GradleException {
 
-    public NoToolchainAvailableException(JavaToolchainSpec filter, boolean autoDetect, boolean autoDownload) {
-        super("No compatible toolchains found for request filter: " + filter.getDisplayName() + " (auto-detect " + autoDetect + ", auto-download " + autoDownload + ")");
+    public NoToolchainAvailableException(JavaToolchainSpec specification, boolean autoDetect, boolean autoDownload) {
+        super("No compatible toolchains found for request specification: " + specification.getDisplayName() + " (auto-detect " + autoDetect + ", auto-download " + autoDownload + ").");
     }
 }

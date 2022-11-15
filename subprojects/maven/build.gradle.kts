@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":dependency-management"))
     implementation(project(":file-collections"))
     implementation(project(":logging"))
+    implementation(project(":messaging"))
     implementation(project(":model-core"))
     implementation(project(":plugin-use"))
     implementation(project(":plugins"))

@@ -14,17 +14,16 @@ plugins {
 description = "Provides a platform dependency to align all distribution versions"
 
 val antVersion = "1.10.11"
-val archunitVersion = "0.20.1"
-val asmVersion = "9.2"
+val archunitVersion = "1.0.0-rc1"
+val asmVersion = "9.3"
 val awsS3Version = "1.11.948"
 val bouncycastleVersion = "1.68"
-val googleApiVersion = "1.25.0" // See usage before attempting to upgrade
 val jacksonVersion = "2.13.3"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
 val junit5Version = "5.8.2"
 val mavenVersion = "3.6.3"
-val nativePlatformVersion = "0.22-milestone-23"
+val nativePlatformVersion = "0.22-milestone-24"
 val slf4jVersion = "1.7.30"
 val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
 val tomljVersion = "1.0.0"
@@ -64,12 +63,15 @@ dependencies {
         api(libs.commonsLang3)          { version { strictly("3.12.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.fastutil)              { version { strictly("8.5.2") }}
-        api(libs.gcs)                   { version { strictly("v1-rev171-1.25.0") }}
-        api(libs.googleApiClient)       { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
-        api(libs.googleHttpClient)      { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
-        api(libs.googleHttpClientJackson2) { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
-        api(libs.googleOauthClient)     { version { strictly(googleApiVersion); because("our GCS version requires 1.25.0") }}
-        api(libs.gradleProfiler)        { version { strictly("0.18.0") }}
+        api(libs.gradleProfiler)        { version { strictly("0.19.0") }}
+        api(libs.gradleEnterpriseTestAnnotation) { version { strictly("1.0") }}
+        api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
+        api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
+        api(libs.guava)                 { version { strictly("31.1-jre"); because("our Google API Client version requires 31.1-jre")  }}
+        api(libs.googleHttpClientGson)  { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2")  }}
+        api(libs.googleHttpClientApacheV2) { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2")  }}
+        api(libs.googleHttpClient)      { version { strictly("1.42.2"); because("our Google API Client version requires 1.42.2") }}
+        api(libs.googleOauthClient)     { version { strictly("1.34.1"); because("our Google API Client version requires 1.34.1") }}
         api(libs.groovy)                { version { strictly(libs.groovyVersion) }}
         api(libs.groovyAnt)             { version { strictly(libs.groovyVersion) }}
         api(libs.groovyAstbuilder)      { version { strictly(libs.groovyVersion) }}
@@ -84,7 +86,6 @@ dependencies {
         api(libs.groovyTest)            { version { strictly(libs.groovyVersion) }}
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
         api(libs.gson)                  { version { strictly("2.8.9") }}
-        api(libs.guava)                 { version { strictly("30.1.1-jre") }}
         api(libs.hamcrest)              { version { strictly("1.3"); because("2.x changes the API") }}
         api(libs.hikariCP)              { version { strictly("4.0.2") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
@@ -133,7 +134,7 @@ dependencies {
         api(libs.plist)                 { version { strictly("1.21") }}
         api(libs.servletApi)            { version { strictly("3.1.0") }}
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}
-        api(libs.snakeyaml)             { version { strictly("1.28") }}
+        api(libs.snakeyaml)             { version { strictly("1.32") }}
         api(libs.testng)                { version { strictly("6.3.1"); because("later versions break test cross-version test filtering") }}
         api(libs.tomlj)                 { version { strictly(tomljVersion) }}
         api(libs.trove4j)               { version { strictly("1.0.20200330") }}
@@ -175,8 +176,8 @@ dependencies {
         api(libs.samplesCheck)          { version { strictly("1.0.0") }}
         api(libs.snappy)                { version { strictly("0.4") }}
         api(libs.socksProxy)            { version { strictly("2.0.0") }}
-        api(libs.spock)                 { version { strictly("2.2-M2-groovy-3.0") }}
-        api(libs.spockJUnit4)           { version { strictly("2.2-M2-groovy-3.0") }}
+        api(libs.spock)                 { version { strictly("2.3-groovy-3.0") }}
+        api(libs.spockJUnit4)           { version { strictly("2.3-groovy-3.0") }}
         api(libs.sshdCore)              { version { strictly(sshdVersion) }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}

@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -37,7 +36,6 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
     private final LocalComponentProvider provider;
     private final LocalComponentInAnotherBuildProvider otherBuildProvider;
-    private final ProjectArtifactSetResolver projectArtifactSetResolver;
     private final Map<ProjectComponentIdentifier, CalculatedValueContainer<LocalComponentGraphResolveState, ?>> projects = new ConcurrentHashMap<>();
 
     public DefaultLocalComponentRegistry(
@@ -45,15 +43,13 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
         ProjectStateRegistry projectStateRegistry,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         LocalComponentProvider provider,
-        LocalComponentInAnotherBuildProvider otherBuildProvider,
-        ProjectArtifactSetResolver projectArtifactSetResolver
+        LocalComponentInAnotherBuildProvider otherBuildProvider
     ) {
         this.thisBuild = thisBuild;
         this.projectStateRegistry = projectStateRegistry;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.provider = provider;
         this.otherBuildProvider = otherBuildProvider;
-        this.projectArtifactSetResolver = projectArtifactSetResolver;
     }
 
     @Override
@@ -77,9 +73,9 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
         @Override
         public LocalComponentGraphResolveState calculateValue(NodeExecutionContext context) {
             if (isLocalProject(projectState.getComponentIdentifier())) {
-                return new DefaultLocalComponentGraphResolveState(provider.getComponent(projectState), projectArtifactSetResolver);
+                return provider.getComponent(projectState);
             } else {
-                return new DefaultLocalComponentGraphResolveState(otherBuildProvider.getComponent(projectState), projectArtifactSetResolver);
+                return otherBuildProvider.getComponent(projectState);
             }
         }
 

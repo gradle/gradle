@@ -42,6 +42,8 @@ import static org.objectweb.asm.Opcodes.V1_1;
 
 class MetadataProbe {
 
+    public static final String MARKER_PREFIX = "GRADLE_PROBE_VALUE:";
+
     private final Supplier<byte[]> probeClass = Suppliers.memoize(() -> createProbeClass());
 
     public File writeClass(File outputDirectory) {
@@ -91,6 +93,10 @@ class MetadataProbe {
     }
 
     private static void dumpProperty(MethodVisitor mv, String property) {
+        mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
+        mv.visitLdcInsn(MARKER_PREFIX);
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "print", "(Ljava/lang/String;)V", false);
+
         mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
         mv.visitLdcInsn(property);
         mv.visitLdcInsn("unknown");

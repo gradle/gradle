@@ -27,8 +27,6 @@ import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.testDistributionEnabled
-import gradlebuild.buildscan.tasks.ExtractCheckstyleBuildScanData
-import gradlebuild.buildscan.tasks.ExtractCodeNarcBuildScanData
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.operations.BuildOperationDescriptor
@@ -45,6 +43,7 @@ import java.net.InetAddress
 import java.net.URLEncoder
 
 plugins {
+    id("gradlebuild.collect-failed-tasks")
     id("gradlebuild.cache-miss-monitor")
     id("gradlebuild.module-identity")
 }
@@ -71,8 +70,6 @@ if (project.predictiveTestSelectionEnabled.orNull == true) {
     buildScan?.tag("PTS")
 }
 
-extractCheckstyleAndCodenarcData()
-
 extractWatchFsData()
 
 if (logicalBranch.orNull != buildBranch.orNull) {
@@ -81,33 +78,6 @@ if (logicalBranch.orNull != buildBranch.orNull) {
 
 if ((project.gradle as GradleInternal).services.get(BuildType::class.java) != BuildType.TASKS) {
     buildScan?.tag("SYNC")
-}
-
-fun extractCheckstyleAndCodenarcData() {
-    val extractCheckstyleBuildScanData by tasks.registering(ExtractCheckstyleBuildScanData::class) {
-        rootDir.set(layout.projectDirectory)
-        buildScanExt = buildScan
-    }
-
-    val extractCodeNarcBuildScanData by tasks.registering(ExtractCodeNarcBuildScanData::class) {
-        rootDir.set(layout.projectDirectory)
-        buildScanExt = buildScan
-    }
-
-    allprojects {
-        tasks.withType<Checkstyle>().configureEach {
-            finalizedBy(extractCheckstyleBuildScanData)
-            extractCheckstyleBuildScanData {
-                xmlOutputs.from(reports.xml.outputLocation)
-            }
-        }
-        tasks.withType<CodeNarc>().configureEach {
-            finalizedBy(extractCodeNarcBuildScanData)
-            extractCodeNarcBuildScanData {
-                xmlOutputs.from(reports.xml.outputLocation)
-            }
-        }
-    }
 }
 
 fun isEc2Agent() = InetAddress.getLocalHost().hostName.startsWith("ip-")
@@ -135,7 +105,7 @@ fun Project.extractCiData() {
             tag("CODEQL")
         }
     }
-    if (isTeamCity && !isKillLeakingProcessesStep() && !isPromotionBuild) {
+    if (isTeamCity && !isPromotionBuild) {
         // don't overwrite the nightly version in promotion build
         buildScan {
             buildScanPublished {
@@ -144,8 +114,6 @@ fun Project.extractCiData() {
         }
     }
 }
-
-fun Project.isKillLeakingProcessesStep() = gradle.startParameter.taskNames.contains("killExistingProcessesStartedByGradle")
 
 fun BuildScanExtension.whenEnvIsSet(envName: String, action: BuildScanExtension.(envValue: String) -> Unit) {
     val envValue: String? = environmentVariable(envName).orNull

@@ -36,7 +36,7 @@ class JUnitClassInJarDetectionIntegrationTest extends JUnitMultiVersionIntegrati
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation '${dependencyNotation}' }
+            dependencies { ${dependencyNotation.collect { "testImplementation '$it'" }.join('\n')} }
         """.stripIndent()
     }
 

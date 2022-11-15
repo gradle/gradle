@@ -19,7 +19,7 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.remote.Address;
 
 /**
- * Opens a server connection for clients to connect to to communicate with a daemon.
+ * Opens a server connection for clients to connect to communicate with a daemon.
  * <p>
  * A server connector should only be used by one daemon, and has a single use lifecycle.
  * Implementations must be threadsafe so that start/stop can be called from different threads.

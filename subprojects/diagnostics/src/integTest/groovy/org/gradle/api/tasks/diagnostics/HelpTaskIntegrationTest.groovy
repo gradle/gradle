@@ -461,11 +461,29 @@ BUILD SUCCESSFUL"""
     def "error message contains possible candidates"() {
         buildFile.text = """
         task aTask
-"""
+        """
         when:
         fails "help", "--task", "bTask"
         then:
         failure.assertHasCause("Task 'bTask' not found in root project '${testDirectory.getName()}'. Some candidates are: 'aTask', 'tasks'")
+
+        when:
+        run "help", "--task", "aTask"
+        then:
+        output.contains "Detailed task information for aTask"
+
+        when:
+        fails "help", "--task", "bTask"
+        then:
+        failure.assertHasCause("Task 'bTask' not found in root project '${testDirectory.getName()}'. Some candidates are: 'aTask', 'tasks'")
+
+        when:
+        buildFile << """
+        task bTask
+        """
+        run "help", "--task", "bTask"
+        then:
+        output.contains "Detailed task information for bTask"
     }
 
     def "tasks can be defined by camelCase matching"() {
@@ -506,6 +524,7 @@ BUILD SUCCESSFUL"""
         failure.assertHasCause("Unknown command-line option '--tasssk'.")
         failure.assertHasResolutions(
             "Run gradle help --task :help to get task usage details.",
+            "Run with --stacktrace option to get the stack trace.",
             "Run with --info or --debug option to get more log output.",
             "Run with --scan to get full insights.",
         )

@@ -17,7 +17,6 @@
 package org.gradle.execution.plan;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 
 /**
  * <p>Represents the reason why a node is included in the work graph. In general, nodes are included in the graph because they are either a "root node" or they are reachable from one or more "root nodes"
@@ -53,6 +52,11 @@ public abstract class NodeGroup {
         }
 
         @Override
+        public NodeGroup reachableFrom(OrdinalGroup newOrdinal) {
+            return newOrdinal;
+        }
+
+        @Override
         public boolean isReachableFromEntryPoint() {
             return false;
         }
@@ -68,33 +72,12 @@ public abstract class NodeGroup {
         return null;
     }
 
-    /**
-     * Returns the sequence of nodes which must complete before the given node can start. The given node must belong to this group.
-     * The returned sequence is not exhaustive, i.e. it doesn't mean that the given node can start even if all nodes in it are
-     * completed.
-     *
-     * @param node the node to check successors for
-     */
-    public Iterable<? extends Node> getSuccessorsFor(Node node) {
-        return Collections.emptyList();
-    }
-
-    /**
-     * Returns the sequence of nodes which must complete before the given node can start. The given node must belong to this group.
-     * The returned sequence is not exhaustive, i.e. it doesn't mean that the given node can start even if all nodes in it are
-     * completed.
-     *
-     * The returned sequence is a reverse of the result of {@link #getSuccessorsFor(Node)}.
-     *
-     * @param node the node to check successors for
-     * @see #getSuccessorsFor(Node)
-     */
-    public Iterable<? extends Node> getSuccessorsInReverseOrderFor(Node node) {
-        return Collections.emptyList();
-    }
-
     public Node.DependenciesState checkSuccessorsCompleteFor(Node node) {
         return Node.DependenciesState.COMPLETE_AND_SUCCESSFUL;
+    }
+
+    public boolean isCanCancel() {
+        return true;
     }
 
     public void addMember(Node node) {
@@ -103,5 +86,16 @@ public abstract class NodeGroup {
     public void removeMember(Node node) {
     }
 
+    /**
+     * Sets the ordinal of this group, without affecting reachability and other state of this group.
+     */
     public abstract NodeGroup withOrdinalGroup(OrdinalGroup newOrdinal);
+
+    /**
+     * Merges the ordinal group and reachability from the given group.
+     */
+    public abstract NodeGroup reachableFrom(OrdinalGroup newOrdinal);
+
+    public void onNodeStart(Node finalizer, Node node) {
+    }
 }

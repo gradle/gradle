@@ -31,7 +31,7 @@ import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
  * </ul>
  */
 @Incubating
-public class CPlugin implements Plugin<Project> {
+public abstract class CPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(NativeComponentPlugin.class);

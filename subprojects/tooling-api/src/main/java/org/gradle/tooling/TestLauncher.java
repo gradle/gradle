@@ -206,5 +206,5 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * @since 7.6
      */
     @Incubating
-    TestLauncher withTestsFor(Action<TestSpec> testSpec);
+    TestLauncher withTestsFor(Action<TestSpecs> testSpec);
 }

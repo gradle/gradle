@@ -264,7 +264,7 @@ task checkDeps
         succeeds "check"
     }
 
-    def "warns if using a configuration as a dependency"() {
+    def "fails if using a configuration as a dependency"() {
         given:
         buildFile << """
             configurations {
@@ -279,12 +279,9 @@ task checkDeps
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Adding a Configuration as a dependency is a confusing behavior which isn't recommended."
-            + " This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0."
-            + " If you're interested in inheriting the dependencies from the Configuration you are adding, you should use Configuration#extendsFrom instead."
-            + " See https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom(org.gradle.api.artifacts.Configuration[]) for more details.")
+        fails "dependencies", '--configuration', 'conf'
 
         then:
-        succeeds "dependencies", '--configuration', 'conf'
+        result.hasErrorOutput("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.")
     }
 }

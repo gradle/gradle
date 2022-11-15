@@ -225,21 +225,6 @@ abstract class AbstractClassChangeIncrementalCompilationIntegrationTest extends 
         outputs.deletedClasses 'A', 'A$InnerA' //inner class is also deleted
     }
 
-    def "detects deletion of a source base class that leads to compilation failure but keeps old files"() {
-        def a = source "class A {}"
-        source "class B extends A {}"
-
-        outputs.snapshot { run language.compileTaskName }
-
-        when:
-        assert a.delete()
-        then:
-        fails language.compileTaskName
-        outputs.noneRecompiled()
-        // We keep old classes since we support incremental compilation after failure
-        outputs.deletedClasses()
-    }
-
     def "detects change of an isolated source class with an inner class"() {
         source """class A {
             class InnerA {}

@@ -159,33 +159,33 @@ class ModuleSelectorsTest extends Specification {
 
     def "sorts selectors for faster selection"() {
         given:
-        def dyn1 = dynamicSelector()
-        def dyn2 = dynamicSelector()
+        def dynamic1 = dynamicSelector()
+        def dynamic2 = dynamicSelector()
         def latest = latestSelector()
-        def v1 = prefer('1.0')
-        def v2 = prefer('2.0')
-        def v3 = prefer('3.0')
-        def v4 = require("2.0")
-        def v5 = require("3.0")
+        def prefer10 = prefer('1.0')
+        def prefer20 = prefer('2.0')
+        def prefer30 = prefer('3.0')
+        def require20 = require("2.0")
+        def require30 = require("3.0")
         def fromLock = fromLock('1.0')
 
         expect:
-        sort([v3, v1, v2]) == [v3, v2, v1]
+        sort([prefer30, prefer10, prefer20]) == [prefer30, prefer20, prefer10]
 
         and:
-        sort([v3, v1, v2, v4]) == [v4, v3, v2, v1]
+        sort([prefer30, prefer10, prefer20, require20]) == [require20, prefer30, prefer20, prefer10]
 
         and:
-        sort([v3, v1, v2, v4, v5]) == [v5, v4, v3, v2, v1]
+        sort([prefer30, prefer10, prefer20, require20, require30]) == [require30, require20, prefer30, prefer20, prefer10]
 
         and:
-        sort([v3, dyn1, v1]) == [v3, v1, dyn1]
+        sort([prefer30, dynamic1, prefer10]) == [prefer30, prefer10, dynamic1]
 
         and:
-        sort([dyn1, v1, fromLock, dyn2]) == [fromLock, v1, dyn1, dyn2]
+        sort([dynamic1, prefer10, fromLock, dynamic2]) == [fromLock, prefer10, dynamic1, dynamic2]
 
         and:
-        sort([v1, fromLock, dyn1, latest]) == [fromLock, latest, v1, dyn1]
+        sort([prefer10, fromLock, dynamic1, latest]) == [fromLock, latest, prefer10, dynamic1]
 
     }
 

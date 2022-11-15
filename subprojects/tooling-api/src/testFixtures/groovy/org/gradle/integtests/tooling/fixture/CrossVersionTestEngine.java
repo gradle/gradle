@@ -278,9 +278,14 @@ class ToolingApiClassloaderDiscoveryRequest extends DelegatingDiscoveryRequest {
         return ToolingApiClassLoaderProvider.getToolingApiClassLoader(getToolingApi(toolingApiVersionToLoad), testClass);
     }
 
-    private ToolingApiDistribution getToolingApi(String versionToTestAgainst) {
+    private ToolingApiDistribution getToolingApi(final String versionToTestAgainst) {
         if (toolingApi == null) {
-            toolingApi = new ToolingApiDistributionResolver().withDefaultRepository().resolve(versionToTestAgainst);
+            toolingApi = ToolingApiDistributionResolver.use(new ToolingApiDistributionResolver.ResolverAction<ToolingApiDistribution>() {
+                @Override
+                public ToolingApiDistribution run(ToolingApiDistributionResolver resolver) {
+                    return resolver.withDefaultRepository().resolve(versionToTestAgainst);
+                }
+            });
         }
         return toolingApi;
     }

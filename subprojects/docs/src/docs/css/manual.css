@@ -390,7 +390,7 @@ p a > code:hover { color: rgba(0, 0, 0, 0.9); }
 #toc ul { font-family: "Open Sans", "DejaVu Sans", sans-serif; list-style-type: none; }
 #toc li { line-height: 1.3334; margin-top: 0.3334em; }
 #toc a { text-decoration: none; }
-#toc a:active { text-decoration: underline; }
+#toc a:active { text-decoration: underline;}
 
 #toctitle { color: #7a2518; font-size: 1.2em; }
 
@@ -1666,7 +1666,7 @@ div.screenshot {
 }
 
 .docs-navigation a.active {
-    text-decoration: underline;
+    color: #06A0CE; 
     outline: 0;
     border: none;
     -moz-outline-style: none;

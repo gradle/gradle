@@ -42,6 +42,7 @@ enum class DocumentationSection(val anchor: String) {
     RequirementsExternalProcess("config_cache:requirements:external_processes"),
     RequirementsTaskAccess("config_cache:requirements:task_access"),
     RequirementsSysPropEnvVarRead("config_cache:requirements:reading_sys_props_and_env_vars"),
+    RequirementsSafeCredentials("config_cache:requirements:safe_credentials"),
     RequirementsUseProjectDuringExecution("config_cache:requirements:use_project_during_execution")
 }
 

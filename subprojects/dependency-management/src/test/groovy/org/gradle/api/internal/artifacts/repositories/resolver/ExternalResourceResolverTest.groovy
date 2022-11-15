@@ -29,7 +29,7 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.ArtifactResolveException
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
+import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileStore
@@ -41,7 +41,7 @@ import spock.lang.Specification
 class ExternalResourceResolverTest extends Specification {
     String name = "TestResolver"
     ExternalResourceRepository repository = Mock()
-    BuildableArtifactResolveResult artifactResult = Mock()
+    BuildableArtifactFileResolveResult artifactResult = Mock()
     BuildableModuleComponentMetaDataResolveResult metadataResult = Mock()
     ModuleComponentArtifactIdentifier artifactIdentifier = Stub() {
         getDisplayName() >> '<some-artifact>'

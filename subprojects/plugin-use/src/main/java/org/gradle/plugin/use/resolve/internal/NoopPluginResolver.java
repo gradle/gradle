@@ -41,7 +41,7 @@ public class NoopPluginResolver implements PluginResolver {
         }
     }
 
-    public static class NoopPlugin implements Plugin<Object> {
+    public static abstract class NoopPlugin implements Plugin<Object> {
         @Override
         public void apply(Object target) {
             // do nothing

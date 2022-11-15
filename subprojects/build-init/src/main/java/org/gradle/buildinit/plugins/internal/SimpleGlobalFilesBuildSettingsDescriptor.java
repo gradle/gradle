@@ -20,7 +20,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGenerator {
-    final static String PLUGINS_BUILD_LOCATION = "gradle/plugins";
+    final static String PLUGINS_BUILD_LOCATION = "build-logic";
 
     private final DocumentationRegistry documentationRegistry;
     private final BuildScriptBuilderFactory scriptBuilderFactory;

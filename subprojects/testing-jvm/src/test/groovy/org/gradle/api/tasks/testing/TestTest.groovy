@@ -16,18 +16,28 @@
 
 package org.gradle.api.tasks.testing
 
-import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
-import spock.lang.Specification
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.AbstractProperty
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 
-class TestTest extends Specification {
+class TestTest extends AbstractProjectBuilderSpec {
 
-    def 'javaLauncher is annotated with @Nested and @Optional'() {
-        given:
-        def launcherMethod = Test.class.getMethod('getJavaLauncher', [] as Class[])
+    def 'fails if custom executable does not exist'() {
+        def task = project.tasks.create("test", Test)
+        task.testClassesDirs = TestFiles.fixed(new File("tmp"))
+        task.binaryResultsDirectory.fileValue(new File("out"))
+        def invalidExecutable = "invalidExecutable"
 
-        expect:
-        launcherMethod.isAnnotationPresent(Nested)
-        launcherMethod.isAnnotationPresent(Optional)
+        when:
+        task.executable = invalidExecutable
+        task.javaLauncher.get()
+
+        then:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
+        cause.message.contains("The configured executable does not exist")
+        cause.message.contains(invalidExecutable)
     }
 }

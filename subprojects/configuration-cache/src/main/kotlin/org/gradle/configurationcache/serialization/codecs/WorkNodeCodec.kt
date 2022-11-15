@@ -32,11 +32,11 @@ import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.execution.plan.ActionNode
 import org.gradle.execution.plan.CompositeNodeGroup
 import org.gradle.execution.plan.FinalizerGroup
+import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeGroup
 import org.gradle.execution.plan.OrdinalGroup
 import org.gradle.execution.plan.OrdinalGroupFactory
-import org.gradle.execution.plan.TaskInAnotherBuild
 import org.gradle.execution.plan.TaskNode
 
 
@@ -64,9 +64,12 @@ class WorkNodeCodec(
         val nodeCount = nodes.size
         writeSmallInt(nodeCount)
         val scheduledNodeIds = HashMap<Node, Int>(nodeCount)
-        nodes.forEachIndexed { nodeId, node ->
+        nodes.forEach { node ->
             write(node)
-            scheduledNodeIds[node] = nodeId
+            scheduledNodeIds[node] = scheduledNodeIds.size
+            if (node is LocalTaskNode) {
+                scheduledNodeIds[node.prepareNode] = scheduledNodeIds.size
+            }
         }
         nodes.forEach { node ->
             writeSuccessorReferencesOf(node, scheduledNodeIds)
@@ -79,9 +82,13 @@ class WorkNodeCodec(
         val nodeCount = readSmallInt()
         val nodes = ArrayList<Node>(nodeCount)
         val nodesById = HashMap<Int, Node>(nodeCount)
-        for (nodeId in 0 until nodeCount) {
+        for (i in 0 until nodeCount) {
             val node = readNode()
-            nodesById[nodeId] = node
+            nodesById[nodesById.size] = node
+            if (node is LocalTaskNode) {
+                node.prepareNode.require()
+                nodesById[nodesById.size] = node.prepareNode
+            }
             nodes.add(node)
         }
         nodes.forEach { node ->
@@ -95,10 +102,7 @@ class WorkNodeCodec(
     suspend fun ReadContext.readNode(): Node {
         val node = readNonNull<Node>()
         node.require()
-        if (node !is TaskInAnotherBuild) {
-            // we want TaskInAnotherBuild dependencies to be processed later, so that the node is connected to its target task
-            node.dependenciesProcessed()
-        }
+        node.dependenciesProcessed()
         return node
     }
 
@@ -110,21 +114,26 @@ class WorkNodeCodec(
                     writeSmallInt(0)
                     writeSmallInt(group.ordinal)
                 }
+
                 is FinalizerGroup -> {
                     writeSmallInt(1)
                     writeSmallInt(nodesById.getValue(group.node))
                     writeNodeGroup(group.delegate, nodesById)
                 }
+
                 is CompositeNodeGroup -> {
                     writeSmallInt(2)
+                    writeBoolean(group.isReachableFromEntryPoint)
                     writeNodeGroup(group.ordinalGroup, nodesById)
                     writeCollection(group.finalizerGroups) {
                         writeNodeGroup(it, nodesById)
                     }
                 }
+
                 NodeGroup.DEFAULT_GROUP -> {
                     writeSmallInt(3)
                 }
+
                 else -> throw IllegalArgumentException()
             }
         }
@@ -138,16 +147,20 @@ class WorkNodeCodec(
                     val ordinal = readSmallInt()
                     ordinalGroups.group(ordinal)
                 }
+
                 1 -> {
                     val finalizerNode = nodesById.getValue(readSmallInt()) as TaskNode
                     val delegate = readNodeGroup(nodesById)
                     FinalizerGroup(finalizerNode, delegate)
                 }
+
                 2 -> {
+                    val reachableFromCommandLine = readBoolean()
                     val ordinalGroup = readNodeGroup(nodesById)
                     val groups = readCollectionInto(::HashSet) { readNodeGroup(nodesById) as FinalizerGroup }
-                    CompositeNodeGroup(ordinalGroup, groups)
+                    CompositeNodeGroup(reachableFromCommandLine, ordinalGroup, groups)
                 }
+
                 3 -> NodeGroup.DEFAULT_GROUP
                 else -> throw IllegalArgumentException()
             }.also {
@@ -216,8 +229,8 @@ class WorkNodeCodec(
         scheduledNodeIds: Map<Node, Int>
     ) {
         for (successor in successors) {
-            // Discard should/must run after relationships to nodes that are not scheduled to run
-            scheduledNodeIds[successor]?.let { successorId ->
+            if (successor.isRequired) {
+                val successorId = scheduledNodeIds.getValue(successor)
                 writeSmallInt(successorId)
             }
         }

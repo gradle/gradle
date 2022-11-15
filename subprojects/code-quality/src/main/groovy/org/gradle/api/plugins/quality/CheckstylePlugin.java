@@ -43,7 +43,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/checkstyle_plugin.html">Checkstyle plugin reference</a>
  */
-public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
+public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
     public static final String DEFAULT_CHECKSTYLE_VERSION = "8.45.1";
     private static final String CONFIG_DIR_NAME = "config/checkstyle";
@@ -105,6 +105,7 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         taskMapping.map("maxErrors", (Callable<Integer>) () -> extension.getMaxErrors());
         taskMapping.map("maxWarnings", (Callable<Integer>) () -> extension.getMaxWarnings());
         task.getConfigDirectory().convention(extension.getConfigDirectory());
+        task.getEnableExternalDtdLoad().convention(extension.getEnableExternalDtdLoad());
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {

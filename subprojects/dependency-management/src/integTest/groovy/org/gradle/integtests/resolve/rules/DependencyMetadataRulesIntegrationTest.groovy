@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
@@ -792,7 +791,6 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         succeeds 'dependencies'
     }
 
-    @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "can make #thing strict"() {
         given:
         repository {
@@ -856,7 +854,6 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         "dependency constraints" | true
     }
 
-    @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "can add rejections to #thing"() {
         given:
         repository {

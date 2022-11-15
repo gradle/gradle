@@ -49,7 +49,7 @@ class BuildableDOMCategory extends DOMCategory {
         DomBuilder builder = new DomBuilder(parent.ownerDocument, null)
         cl.delegate = builder
         cl.call()
-        def firstChild = parent.firstChild
+        def firstChild = parent.getFirstChild()
         builder.elements.each { element ->
             parent.insertBefore(element, firstChild)
         }

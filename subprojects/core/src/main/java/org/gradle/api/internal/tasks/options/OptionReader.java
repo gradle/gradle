@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.options;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.reflect.JavaMethod;
@@ -54,7 +55,7 @@ public class OptionReader {
         new BuiltInOptionElement(
             "Causes the task to be re-run even if up-to-date.",
             "rerun",
-            task -> task.getOutputs().upToDateWhen(taskSpec -> false)
+            task -> task.getOutputs().upToDateWhen(Specs.satisfyNone())
         )
     ).collect(Collectors.toMap(BuiltInOptionElement::getOptionName, Function.identity(), (a, b) -> a, LinkedHashMap::new));
 

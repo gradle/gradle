@@ -34,9 +34,7 @@ class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
         //given
         testResources.dir.create {
             additionalCustomSources {}
-            additionalCustomTestSources {}
             additionalCustomResources {}
-            additionalCustomTestResources {}
             additionalCustomGeneratedResources {}
             muchBetterOutputDir {}
             muchBetterTestOutputDir {}
@@ -64,10 +62,8 @@ idea {
         contentRoot = file('customModuleContentRoot')
 
         sourceDirs += file('additionalCustomSources')
-        testSourceDirs += file('additionalCustomTestSources')
         resourceDirs += file('additionalCustomResources')
         resourceDirs += file('additionalCustomGeneratedResources')
-        testResourceDirs += file('additionalCustomTestResources')
         generatedSourceDirs += file('additionalCustomGeneratedResources')
         excludeDirs += file('excludeMePlease')
 
@@ -95,8 +91,8 @@ idea {
 
         //then
         def iml = parseImlFile('customImlFolder/foo')
-        ['additionalCustomSources', 'additionalCustomTestSources',
-         'additionalCustomResources', 'additionalCustomTestResources',
+        ['additionalCustomSources',
+         'additionalCustomResources',
          'additionalCustomGeneratedResources',
          'src/main/java'].each { expectedSrcFolder ->
             assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) }
@@ -104,7 +100,6 @@ idea {
         ['additionalCustomResources', 'additionalCustomGeneratedResources'].each { expectedSrcFolder ->
             assert iml.component.content.sourceFolder.find { it.@url.text().contains(expectedSrcFolder) && it.@type.text() == 'java-resource'}
         }
-        assert iml.component.content.sourceFolder.find { it.@url.text().contains('additionalCustomTestResources') && it.@type == 'java-test-resource' }
         assert iml.component.content.sourceFolder.find { it.@url.text().contains('additionalCustomGeneratedResources') && it.@generated.text() == 'true'}
 
         ['customModuleContentRoot', 'CUSTOM_VARIABLE'].each {
@@ -868,4 +863,5 @@ dependencies {
         assert dependencies.libraries.size() == 1
         dependencies.assertHasLibrary('PROVIDED', 'foo-1.0.jar')
     }
+
 }

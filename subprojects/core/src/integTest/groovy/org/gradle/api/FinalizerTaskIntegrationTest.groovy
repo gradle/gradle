@@ -25,29 +25,104 @@ import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 
 class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
+    def setup() {
+        buildFile '''
+            class BreakingTask extends DefaultTask {
+                @TaskAction
+                def run() {}
+            }
+
+            tasks.withType(BreakingTask).configureEach { t ->
+                if (project.hasProperty("${t.name}.broken")) {
+                    t.doFirst { throw new RuntimeException("broken")}
+                }
+            }
+        '''
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21542")
+    def "finalizer can depend on a task that it finalizes"() {
+        given:
+        buildFile '''
+            task finalizer(type: BreakingTask) {
+              dependsOn "finalizerDep"
+            }
+
+            task finalizerDep(type: BreakingTask) {
+              finalizedBy finalizer
+            }
+
+            // Has to be ordered after the other tasks to trigger the issue
+            task thing(type: BreakingTask) {
+              finalizedBy finalizer
+            }
+        '''
+
+        expect:
+        2.times {
+            succeeds "thing"
+            result.assertTasksExecutedInOrder ":thing", ":finalizerDep", ":finalizer"
+        }
+        2.times {
+            fails "thing", "-Pthing.broken"
+            result.assertTasksExecutedInOrder ":thing", ":finalizerDep", ":finalizer"
+        }
+        2.times {
+            fails "thing", "-PfinalizerDep.broken"
+            result.assertTasksExecutedInOrder ":thing", ":finalizerDep"
+        }
+        2.times {
+            fails "thing", "-PfinalizerDep.broken", "--continue"
+            result.assertTasksExecutedInOrder ":thing", ":finalizerDep"
+        }
+        2.times {
+            fails "thing", "-Pfinalizer.broken"
+            result.assertTasksExecutedInOrder ":thing", ":finalizerDep", ":finalizer"
+        }
+    }
 
     def "finalizer can indirectly depend on the entry point finalized by it"() {
         given:
         buildFile '''
-            task finalizer {
+            task finalizer(type: BreakingTask) {
                 dependsOn 'finalizerDep'
             }
-            task finalizerDep {
+            task finalizerDep(type: BreakingTask) {
                 dependsOn 'entryPoint'
                 finalizedBy 'finalizer'
             }
-            task entryPoint {
+            task entryPoint(type: BreakingTask) {
                 dependsOn 'entryPointDep'
                 finalizedBy 'finalizer'
             }
-            task entryPointDep {
+            task entryPointDep(type: BreakingTask) {
             }
         '''
 
         expect:
         2.times {
             succeeds 'entryPoint'
-            result.assertTaskOrder ':entryPointDep', ':entryPoint', ':finalizerDep', ':finalizer'
+            result.assertTasksExecutedInOrder ':entryPointDep', ':entryPoint', ':finalizerDep', ':finalizer'
+        }
+        2.times {
+            fails 'entryPoint', '-PentryPoint.broken'
+            result.assertTasksExecutedInOrder ':entryPointDep', ':entryPoint'
+        }
+        2.times {
+            fails 'entryPoint', '-PentryPoint.broken', '--continue'
+            result.assertTasksExecutedInOrder ':entryPointDep', ':entryPoint'
+        }
+        2.times {
+            fails 'entryPoint', '-PentryPointDep.broken'
+            result.assertTasksExecutedInOrder ':entryPointDep'
+        }
+        2.times {
+            fails 'entryPoint', '-PentryPointDep.broken', '--continue'
+            result.assertTasksExecutedInOrder ':entryPointDep'
+        }
+        2.times {
+            fails 'entryPoint', '-PfinalizerDep.broken'
+            result.assertTasksExecutedInOrder ':entryPointDep', ':entryPoint', ':finalizerDep'
         }
     }
 
@@ -55,16 +130,55 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     def "finalizer task can depend on finalized task that is not an entry point task"() {
         given:
         buildFile '''
-            task finalizer {
+            task finalizer(type: BreakingTask) {
                 dependsOn 'finalizerDep'
             }
-            task finalizerDep {
+            task finalizerDep(type: BreakingTask) {
                 dependsOn 'finalizerDepDep'
                 finalizedBy 'finalizer'
             }
-            task finalizerDepDep {
+            task finalizerDepDep(type: BreakingTask) {
             }
-            task entryPoint {
+            task entryPoint(type: BreakingTask) {
+                finalizedBy 'finalizer'
+            }
+        '''
+
+        expect:
+        2.times {
+            succeeds 'entryPoint'
+            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep', ':finalizer'
+        }
+        2.times {
+            fails 'entryPoint', '-PentryPoint.broken'
+            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep', ':finalizer'
+        }
+        2.times {
+            fails 'entryPoint', '-PfinalizerDepDep.broken'
+            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep'
+        }
+        2.times {
+            fails 'entryPoint', '-PfinalizerDep.broken'
+            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep'
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21000")
+    @Ignore("https://github.com/gradle/gradle-private/issues/3574")
+    def "finalizer task can depend on finalized tasks where one is an entry point task and one is not"() {
+        given:
+        buildFile '''
+            task finalizer(type: BreakingTask) {
+                dependsOn 'finalizerDep'
+                dependsOn 'entryPoint'
+            }
+            task finalizerDep(type: BreakingTask) {
+                dependsOn 'finalizerDepDep'
+                finalizedBy 'finalizer'
+            }
+            task finalizerDepDep(type: BreakingTask) {
+            }
+            task entryPoint(type: BreakingTask) {
                 finalizedBy 'finalizer'
             }
         '''
@@ -74,31 +188,21 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
             succeeds 'entryPoint'
             result.assertTaskOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep', ':finalizer'
         }
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/21000")
-    def "finalizer task can depend on finalized tasks"() {
-        given:
-        buildFile '''
-            task finalizer {
-                dependsOn 'finalizerDep'
-                dependsOn 'entryPoint'
-            }
-            task finalizerDep {
-                dependsOn 'finalizerDepDep'
-                finalizedBy 'finalizer'
-            }
-            task finalizerDepDep {
-            }
-            task entryPoint {
-                finalizedBy 'finalizer'
-            }
-        '''
-
-        expect:
         2.times {
-            succeeds 'entryPoint'
-            result.assertTaskOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep', ':finalizer'
+            fails 'entryPoint', '-PentryPoint.broken'
+            result.assertTasksExecuted ':entryPoint'
+        }
+        2.times {
+            fails 'entryPoint', '-PentryPoint.broken', '--continue'
+            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep'
+        }
+        2.times {
+            fails 'entryPoint', '-PfinalizerDepDep.broken'
+            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep'
+        }
+        2.times {
+            fails 'entryPoint', '-PfinalizerDep.broken'
+            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep'
         }
     }
 
@@ -106,16 +210,16 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     def "finalizer task can depend on multiple finalized tasks"() {
         given:
         buildFile '''
-            task finalizer {
+            task finalizer(type: BreakingTask) {
                 dependsOn 'finalized1', 'finalized2'
             }
-            task finalized1 {
+            task finalized1(type: BreakingTask) {
                 finalizedBy 'finalizer'
             }
-            task finalized2 {
+            task finalized2(type: BreakingTask) {
                 finalizedBy 'finalizer'
             }
-            task entryPoint {
+            task entryPoint(type: BreakingTask) {
                 finalizedBy 'finalizer'
             }
         '''
@@ -125,30 +229,39 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
             succeeds 'entryPoint'
             result.assertTaskOrder ':entryPoint', any(':finalized1', ':finalized2'), ':finalizer'
         }
+        2.times {
+            fails 'entryPoint', '-PentryPoint.broken'
+            result.assertTaskOrder ':entryPoint', any(':finalized1', ':finalized2'), ':finalizer'
+        }
+        2.times {
+            fails 'entryPoint', '-Pfinalized1.broken', '--continue' // add --continue so that finalized2 always runs
+            result.assertTaskOrder ':entryPoint', any(':finalized1', ':finalized2')
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21125")
     def "task can be finalized by and dependency of multiple finalizers"() {
         given:
         buildFile '''
-            task finalizer1 {
+            task finalizer1(type: BreakingTask) {
+                dependsOn 'finalizerDep1'
+                mustRunAfter 'finalizer2'
+            }
+            task finalizer2(type: BreakingTask) {
                 dependsOn 'finalizerDep1'
             }
-            task finalizer2 {
-                dependsOn 'finalizerDep1'
-            }
-            task finalizerDep1 {
+            task finalizerDep1(type: BreakingTask) {
                 dependsOn 'finalizerDep2'
                 finalizedBy 'finalizer1'
             }
-            task finalizerDep2 {
+            task finalizerDep2(type: BreakingTask) {
                 dependsOn 'finalizerDep3'
                 finalizedBy 'finalizer2'
                 finalizedBy 'finalizer1'
             }
-            task finalizerDep3 {
+            task finalizerDep3(type: BreakingTask) {
             }
-            task entryPoint {
+            task entryPoint(type: BreakingTask) {
                 finalizedBy 'finalizer1'
                 finalizedBy 'finalizer2'
             }
@@ -157,7 +270,142 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'entryPoint'
-            result.assertTaskOrder ':entryPoint', ':finalizerDep3', ':finalizerDep2', ':finalizerDep1', ':finalizer2', ':finalizer1'
+            result.assertTaskOrder ':entryPoint', ':finalizerDep3', ':finalizerDep2', ':finalizerDep1', any(':finalizer2', ':finalizer1')
+        }
+        2.times {
+            fails 'entryPoint', '-PentryPoint.broken'
+            result.assertTaskOrder ':entryPoint', ':finalizerDep3', ':finalizerDep2', ':finalizerDep1', any(':finalizer2', ':finalizer1')
+        }
+        2.times {
+            fails 'entryPoint', '-PfinalizerDep3.broken'
+            result.assertTaskOrder ':entryPoint', ':finalizerDep3'
+        }
+        2.times {
+            fails 'entryPoint', '-PfinalizerDep2.broken'
+            result.assertTaskOrder ':entryPoint', ':finalizerDep3', ':finalizerDep2'
+        }
+        2.times {
+            fails 'entryPoint', '-PfinalizerDep1.broken'
+            result.assertTaskOrder ':entryPoint', ':finalizerDep3', ':finalizerDep2', ':finalizerDep1'
+        }
+        2.times {
+            fails 'entryPoint', '-Pfinalizer1.broken'
+            result.assertTaskOrder ':entryPoint', ':finalizerDep3', ':finalizerDep2', ':finalizerDep1', any(':finalizer2', ':finalizer1')
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21325")
+    def "finalizer can depend on finalized entry point task and have other dependencies that are finalized by tasks that finalize their own dependencies"() {
+        given:
+        buildFile '''
+            task assemble(type: BreakingTask) {
+                dependsOn "classes"
+            }
+            task generatePermissions(type: BreakingTask) {
+                dependsOn "classes"
+            }
+            task classes(type: BreakingTask) {
+                finalizedBy "assemble", "generatePermissions"
+                dependsOn "compileJava", "processResources"
+            }
+            task compileJava(type: BreakingTask) {
+            }
+            task processResources(type: BreakingTask) {
+                finalizedBy "assemble"
+            }
+        '''
+
+        expect:
+        2.times {
+            succeeds 'processResources'
+            result.assertTaskOrder ':processResources', ':compileJava', ':classes', any(':generatePermissions', ':assemble')
+        }
+        2.times {
+            fails 'processResources', '-PprocessResources.broken', '--continue' // add --continue to force compileJava to always run
+            result.assertTasksExecutedInOrder ':processResources', ':compileJava'
+        }
+        2.times {
+            fails 'processResources', '-Pclasses.broken'
+            result.assertTasksExecutedInOrder ':processResources', ':compileJava', ':classes'
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21325")
+    def "finalizer can have dependencies that are not reachable from first discovered finalized task and reachable from second discovered finalized task"() {
+        buildFile '''
+            task classes(type: BreakingTask) {
+            }
+
+            task jar(type: BreakingTask) {
+                dependsOn classes
+            }
+
+            task shadowJar(type: BreakingTask) {
+                // Finalized and also depends on some of the finalizer dependencies
+                finalizedBy 'copyJars'
+                dependsOn classes
+            }
+
+            task jarOne(type: BreakingTask) {
+                finalizedBy 'copyJars'
+            }
+
+            task lifecycleTwo(type: BreakingTask) {
+                dependsOn shadowJar
+            }
+
+            task entry(type: BreakingTask) {
+                // jarOne is ordered first, so will trigger the discovery of the dependencies of the finalizer
+                // lifecycleTwo is ordered second and also depends on some of these dependencies
+                dependsOn jarOne, lifecycleTwo
+            }
+
+            task copyJars(type: BreakingTask) {
+                dependsOn jar
+                dependsOn shadowJar
+            }
+        '''
+
+        expect:
+        2.times {
+            succeeds 'entry'
+            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo', ':entry'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
+        }
+        2.times {
+            fails 'entry', '-PjarOne.broken'
+            result.assertTaskExecuted(':jarOne')
+            result.assertTaskExecuted(':classes')
+            result.assertTaskExecuted(':shadowJar')
+            result.assertTaskExecuted(':jar')
+            result.assertTaskExecuted(':copyJars')
+            // lifecycleTwo may or may not run
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
+        }
+        2.times {
+            fails 'entry', '-PjarOne.broken', '--continue'
+            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
+        }
+        2.times {
+            fails 'entry', '-PlifecycleTwo.broken'
+            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
+        }
+        2.times {
+            fails 'entry', '-PshadowJar.broken', '--continue'
+            result.assertTasksExecuted ':classes', ':jar', ':shadowJar', ':jarOne'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar'
+        }
+        2.times {
+            succeeds 'jarOne', 'lifecycleTwo'
+            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
+        }
+        2.times {
+            fails 'jarOne', 'lifecycleTwo', '-PjarOne.broken', '--continue'
+            result.assertTasksExecuted ':jarOne', ':classes', ':shadowJar', ':jar', ':copyJars', ':lifecycleTwo'
+            result.assertTaskOrder any(':jarOne', ':shadowJar'), ':jar', ':copyJars'
         }
     }
 
@@ -299,7 +547,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    void 'finalizers for finalizers are executed when finalized is executed'() {
+    void 'finalizers for finalizers are executed when finalized task is executed'() {
         buildFile """
             task a {
                 finalizedBy 'b'
@@ -313,6 +561,102 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'a'
+            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/21346")
+    void 'finalizer can be finalized'() {
+        buildFile """
+            task a(type: BreakingTask) {
+                finalizedBy 'b'
+            }
+            task b(type: BreakingTask) {
+                finalizedBy 'c'
+            }
+            task c(type: BreakingTask)
+        """
+
+        expect:
+        2.times {
+            succeeds 'a'
+            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+        }
+        2.times {
+            fails 'a', '-Pa.broken'
+            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+        }
+        2.times {
+            fails 'a', '-Pb.broken'
+            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+        }
+        2.times {
+            fails 'a', '-Pc.broken'
+            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+        }
+    }
+
+    void 'finalizers for finalizers can have a common dependency'() {
+        buildFile """
+            task a(type: BreakingTask) {
+                finalizedBy 'b'
+            }
+            task b(type: BreakingTask) {
+                dependsOn 'd'
+                finalizedBy 'c'
+            }
+            task c(type: BreakingTask) {
+                dependsOn 'd'
+            }
+            task d(type: BreakingTask)
+        """
+
+        expect:
+        2.times {
+            succeeds 'a'
+            result.assertTasksExecutedInOrder ':a', ':d', ':b', ':c'
+        }
+        2.times {
+            fails 'a', '-Pa.broken'
+            result.assertTasksExecutedInOrder ':a', ':d', ':b', ':c'
+        }
+        2.times {
+            fails 'a', '-Pd.broken'
+            result.assertTasksExecutedInOrder ':a', ':d'
+        }
+        2.times {
+            fails 'a', '-Pb.broken'
+            result.assertTasksExecutedInOrder ':a', ':d', ':b', ':c'
+        }
+    }
+
+    void 'finalizer task can be used by multiple tasks that depend on one another'() {
+        buildFile """
+            task a(type: BreakingTask) {
+                finalizedBy 'c'
+            }
+            task b(type: BreakingTask) {
+                dependsOn 'a'
+                finalizedBy 'c'
+            }
+            task c(type: BreakingTask)
+        """
+
+        expect:
+        2.times {
+            succeeds 'b'
+            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+        }
+        2.times {
+            fails 'b', '-Pb.broken'
+            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+        }
+        2.times {
+            fails 'b', '-Pa.broken'
+            result.assertTasksExecutedInOrder ':a', ':c'
+        }
+        2.times {
+            fails 'b', '-Pc.broken'
             result.assertTasksExecutedInOrder ':a', ':b', ':c'
         }
     }
@@ -420,50 +764,43 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     void 'finalizedBy dependencies can run before finalized task to honour mustRunAfter constraints'() {
         given:
         buildFile '''
-            task dockerTest {
+            task dockerTest(type: BreakingTask) {
                 dependsOn 'dockerUp'     // dependsOn createContainer mustRunAfter removeContainer
                 finalizedBy 'dockerStop' // dependsOn removeContainer
             }
 
-            task dockerUp {
+            task dockerUp(type: BreakingTask) {
                 dependsOn 'createContainer'
             }
 
-            task dockerStop {
+            task dockerStop(type: BreakingTask) {
                 dependsOn 'removeContainer'
             }
 
-            task createContainer {
+            task createContainer(type: BreakingTask) {
                 mustRunAfter 'removeContainer'
             }
 
-            task removeContainer {
+            task removeContainer(type: BreakingTask) {
             }
         '''
 
         expect:
-        succeeds 'dockerTest'
-
-        and:
-        result.assertTasksExecutedInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest', ':dockerStop'
-    }
-
-    void 'finalizer task can be used by multiple tasks that depend on one another'() {
-        buildFile """
-            task a {
-                finalizedBy 'c'
-            }
-            task b {
-                dependsOn 'a'
-                finalizedBy 'c'
-            }
-            task c
-        """
-
-        expect:
         2.times {
-            succeeds 'b'
-            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+            succeeds 'dockerTest'
+            result.assertTasksExecutedInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest', ':dockerStop'
+        }
+        2.times {
+            fails 'dockerTest', '-PdockerTest.broken'
+            result.assertTasksExecutedInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest', ':dockerStop'
+        }
+        2.times {
+            fails 'dockerTest', '-PremoveContainer.broken'
+            result.assertTasksExecutedInOrder ':removeContainer'
+        }
+        2.times {
+            fails 'dockerTest', '-PremoveContainer.broken', '--continue'
+            result.assertTasksExecutedInOrder ':removeContainer', ':createContainer', ':dockerUp', ':dockerTest'
         }
     }
 

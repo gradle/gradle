@@ -21,11 +21,12 @@ import org.junit.Test
 
 
 class EnvironmentChangeTrackerTest {
-    @Test(expected = IllegalStateException::class)
-    fun `loading state after first update throws`() {
+    @Test
+    fun `can load state after capturing`() {
         val tracker = EnvironmentChangeTracker(DefaultUserCodeApplicationContext())
 
         tracker.systemPropertyRemoved("some.property")
+        tracker.getCachedState()
 
         tracker.loadFrom(emptyEnvironmentState())
     }

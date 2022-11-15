@@ -491,17 +491,6 @@ public interface DependencyHandler extends ExtensionAware {
     void artifactTypes(Action<? super ArtifactTypeContainer> configureAction);
 
     /**
-     * Registers an artifact transform.
-     *
-     * @deprecated use {@link #registerTransform(Class, Action)} instead.
-     * @see org.gradle.api.artifacts.transform.ArtifactTransform
-     * @since 3.5
-     */
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    void registerTransform(Action<? super org.gradle.api.artifacts.transform.VariantTransform> registrationAction);
-
-    /**
      * Registers an <a href="https://docs.gradle.org/current/userguide/artifact_transforms.html">artifact transform</a>.
      *
      * <p>

@@ -30,6 +30,7 @@ import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.DefaultListenerManager
@@ -58,6 +59,7 @@ class LibrariesSourceGeneratorTest extends Specification implements VersionCatal
     private final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     private GeneratedSource sources
+    final ObjectFactory objects = TestUtil.objectFactory()
     final ProviderFactory providerFactory = new DefaultProviderFactory(
         new DefaultValueSourceProviderFactory(
             new DefaultListenerManager(Scopes.Build),
@@ -333,8 +335,22 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
         sources.hasDependencyAlias('other', 'getOther', "This dependency was declared in ${escapedContext}")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20060")
+    def "no name conflicting of library accessors"() {
+        when:
+        generate {
+            library('com-company-libs-a', 'com.company:libs-a:1.0')
+            library('com-companylibs-b', 'com.companylibs:libs-b:1.0')
+        }
+
+        then:
+        sources.hasLibraryAccessor('ComCompanyLibraryAccessors')
+        sources.hasLibraryAccessor('ComCompanylibsLibraryAccessors')
+        sources.hasLibraryAccessor('ComCompanyLibsLibraryAccessors$1')
+    }
+
     private void generate(String className = 'Generated', @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = VersionCatalogBuilderInternal) Closure<Void> spec) {
-        DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("lib", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), TestUtil.providerFactory(), Stub(Supplier))
+        DefaultVersionCatalogBuilder builder = new DefaultVersionCatalogBuilder("lib", Interners.newStrongInterner(), Interners.newStrongInterner(), TestUtil.objectFactory(), Stub(Supplier))
         spec.delegate = builder
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()
@@ -365,6 +381,11 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
             if (javadoc) {
                 assert result.javadocContains(javadoc)
             }
+        }
+
+        void hasLibraryAccessor(String name) {
+            def result = Lookup.find(lines, "public static class $name extends SubDependencyFactory {")
+            assert result.match
         }
 
         void hasDependencyAlias(String name, String methodName = "get${toJavaName(name)}", String javadoc = null) {
@@ -404,7 +425,7 @@ ${nameClash { noIntro().kind('dependency bundles').inConflict('one.cool', 'oneCo
             def cl = new URLClassLoader([dstDir.toURI().toURL()] as URL[], this.class.classLoader)
             factory = cl.loadClass("org.test.$className")
             assert factory
-            factory.newInstance(model, providerFactory)
+            factory.newInstance(model, providerFactory, objects)
         }
     }
 

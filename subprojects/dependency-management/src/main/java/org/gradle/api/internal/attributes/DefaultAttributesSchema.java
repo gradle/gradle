@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.attributes;
 
-import com.google.common.base.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -241,7 +240,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
                 return Collections.singleton(requested);
             }
 
-            return candidates;
+            return null;
         }
 
         @Override
@@ -318,15 +317,15 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         }
 
         @Override
-        public PrecedenceResult orderByPrecedence(ImmutableAttributes requested) {
+        public PrecedenceResult orderByPrecedence(Collection<Attribute<?>> requested) {
             if (precedence.isEmpty() && producerSchema.getAttributeDisambiguationPrecedence().isEmpty()) {
                 // if no attribute precedence has been set anywhere, we can just iterate in order
-                return new PrecedenceResult(IntStream.range(0, requested.keySet().size()).boxed().collect(Collectors.toList()));
+                return new PrecedenceResult(IntStream.range(0, requested.size()).boxed().collect(Collectors.toList()));
             } else {
                 // Populate requested attribute -> position in requested attribute list
                 final Map<String, Integer> remaining = new LinkedHashMap<>();
                 int position = 0;
-                for (Attribute<?> requestedAttribute : requested.keySet()) {
+                for (Attribute<?> requestedAttribute : requested) {
                     remaining.put(requestedAttribute.getName(), position++);
                 }
                 List<Integer> sorted = new ArrayList<>(remaining.size());
@@ -357,7 +356,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(producerSchema);
+            return producerSchema.hashCode();
         }
     }
 

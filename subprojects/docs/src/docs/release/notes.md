@@ -1,4 +1,3 @@
-
 The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
@@ -7,33 +6,33 @@ This release features [1](), [2](), ... [n](), and more.
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
- THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+ THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+ The list is rendered as is, so use commas after each contributor's name, and a period at the end.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
 
-[altrisi](https://github.com/altrisi),
-[aSemy](https://github.com/aSemy),
-[Ashwin Pankaj](https://github.com/ashwinpankaj),
-[BJ Hargrave](https://github.com/bjhargrave),
-[Daniel Lin](https://github.com/ephemient),
-[David Morris](https://github.com/codefish1),
-[Edmund Mok](https://github.com/edmundmok),
-[Frosty-J](https://github.com/Frosty-J),
-[Gabriel Feo](https://github.com/gabrielfeo),
-[Jendrik Johannes](https://github.com/jjohannes),
-[John](https://github.com/goughy000),
-[Joseph Woolf](https://github.com/jsmwoolf),
-[Karl-Michael Schindler](https://github.com/kamischi),
-[Konstantin Gribov](https://github.com/grossws),
-[Leonardo Brondani Schenkel](https://github.com/lbschenkel),
-[Martin d'Anjou](https://github.com/martinda),
-[Sam Snyder](https://github.com/sambsnyd),
-[sll552](https://github.com/sll552),
-[teawithbrownsugar](https://github.com/teawithbrownsugar),
-[Thomas Broadley](https://github.com/tbroadley),
-[urdak](https://github.com/urdak),
-[Xin Wang](https://github.com/scaventz)
-
+[Andrei Nevedomskii](https://github.com/monosoul),
+[Björn Kautler](https://github.com/Vampire),
+[Clara Guerrero](https://github.com/cguerreros),
+[David Marin](https://github.com/dmarin),
+[Denis Buzmakov](https://github.com/bacecek),
+[Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy),
+[Dzmitry Neviadomski](https://github.com/nevack),
+[Eliezer Graber](https://github.com/eygraber),
+[Fedor Ihnatkevich](https://github.com/Jeffset),
+[Gabriel Rodriguez](https://github.com/gabrielrodriguez2746),
+[Guruprasad Bagade](https://github.com/prasad-333),
+[Herbert von Broeuschmeul](https://github.com/HvB),
+[Matthew Haughton](https://github.com/3flex),
+[Michael Torres](https://github.com/torresmi),
+[Pankaj Kumar](https://github.com/p1729),
+[Ricardo Jiang](https://github.com/RicardoJiang),
+[Siddardha Bezawada](https://github.com/SidB3),
+[Stephen Topley](https://github.com/stopley),
+[Victor Maldonado](https://github.com/vmmaldonadoz),
+[Vinay Potluri](https://github.com/vinaypotluri),
+[Jeff Gaston](https://github.com/mathjeff),
+[David Morris](https://github.com/codefish1).
 
 ## Upgrade instructions
 
@@ -44,6 +43,8 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
+
+## New features and usability improvements
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
@@ -73,193 +74,41 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-## New features and usability improvements
+#### PMD and CodeNarc tasks execute in parallel by default
+The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process and therefore their tasks may now run in parallel within one project.
 
-### Improvements for IDE integrators
+In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
 
-#### Tooling API progress events expose difference between test assertion failures and test framework failures
+#### CodeNarc Plugin automatically detects appropriate version for current Groovy runtime
 
-Gradle 7.6 introduces new failure types for the `Failure` interface returned by [FailureResult.getFailures()](javadoc/org/gradle/tooling/events/FailureResult.html#getFailures--): TestAssertionFailure and TestFrameworkFailure.
-IDEs can now easily distinguish between different failures using standard progress event listeners.
-Moreover, `TestAssertionFailure` exposes the expected and actual values if the used test framework supply such information.
+The [CodeNarc](https://codenarc.org/) project now publishes separate versions for use with Groovy 4.
+Gradle still currently ships with Groovy 3.
+To ensure future compatibility, the [CodeNarcPlugin](userguide/codenarc_plugin.html) now automatically detects the appropriate version of CodeNarc for the current Groovy runtime.
+You can still explicitly specify a CodeNarc version with the `toolVersion` property on the [CodeNarcExtension](dsl/org.gradle.api.plugins.quality.CodeNarcExtension.html#org.gradle.api.plugins.quality.CodeNarcExtension).
 
-#### Task execution with TestLauncher
+#### Introduced `projectInternalView()` dependency for test suites with access to project internals
+The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now
+supports depending on the internal view of the current project at compile-time.
+Previously it was only possible to depend on the current project's API. This allows
+test suites to access project internals that are not declared on
+the `api` or `compileOnlyApi` configurations. This functionality can be useful when
+testing internal classes that use dependencies which are not exposed as part of a
+project's API, like those declared on the `implementation` and `compileOnly` configurations.
 
-The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients to execute any tasks along with the selected tasks.
+For example, the following snippet uses the new `projectInternalView()` API to define a
+test suite with access to project internals:
 
-```
-ProjectConnection connection = ...
-connection.newTestLauncher()
-          .withTaskAndTestClasses("integTest", ["org.MyTest"])
-          .forTasks("startDB")
-          .run()
-```
-
-Note, that the task execution only works if the target Gradle version is >=7.6.
-
-#### Fine-grained test selection with TestLauncher
-
-The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients to select test classes, methods, packages and patterns with a new API.
-
-```
-TestLauncher testLauncher = projectConnection.newTestLauncher();
-testLauncher.withTestsFor(spec -> {
-    spec.forTaskPath(":test")
-        .includePackage("org.pkg")
-        .includeClass("com.TestClass")
-        .includeMethod("com.TestClass")
-        .includePattern("io.*")
-}).run();
-```
-
-Note, that the new test selection interface only works if the target Gradle version is >=7.6.
-
-### Improvements to the `init` plugin
-
-#### Use included build for convention plugins (incubating)
-
-When generating builds using the `init` task and opting in to using incubating features, convention plugins are now located in an included build under the `gradle/plugins` directory instead of in `buildSrc`.
-
-#### Improved Maven Conversion
-
-The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration when converting a Maven project. This sharply reduces the number of compilation errors resulting from the automatic conversion utility. See the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion) for more information.
-
-<a name="configuration-cache-improvements"></a>
-### Configuration cache improvements
-
-The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds.
-
-#### New compatible tasks
-
-The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are now compatible with the configuration cache.
-
-### Resolvable configurations report displays attribute precedence order
-
-The `resolvableConfigurations` reporting task will now print the order that [attribute disambiguation rules](userguide/variant_attributes.html#sec:abm_disambiguation_rules) will be checked when resolving project dependencies.  These rules are used if multiple variants of a dependency are available with different compatible values for a requested attribute, and no exact match.  Disambiguation rules will be run on all attributes with multiple compatible matches in this order to select a single matching variant.
-
-```
---------------------------------------------------
-Disambiguation Rules
---------------------------------------------------
-The following Attributes have disambiguation rules defined.
-
-    - flavor
-    - org.gradle.category (1)
-    - org.gradle.dependency.bundling (5)
-    - org.gradle.jvm.environment (6)
-    - org.gradle.jvm.version (3)
-    - org.gradle.libraryelements (4)
-    - org.gradle.plugin.api-version
-    - org.gradle.usage (2)
-
-(#): Attribute disambiguation precedence
-```
-
-### Configurable wrapper download network timeout
-
-It is now possible to configure the network timeout for downloading the wrapper files.
-The default value is 10000ms and can be changed in several ways:
-
-From the command line:
-```shell
-gradle wrapper --network-timeout=30000
-```
-
-In your build scripts or convention plugins:
 ```kotlin
-tasks.wrapper {
-    networkTimeout.set(30000)
-}
-```
-
-Or in `gradle/wrapper/gradle-wrapper.properties`:
-```properties
-networkTimeout=30000
-```
-
-See the [user manual](userguide/gradle_wrapper.html#sec:adding_wrapper) for more information.
-
-### Command-line improvements
-
-#### Tasks can be re-run selectively 
-
-A new built-in `--rerun` option is now available for every task. The effect is similar to `--rerun-tasks`, but it forces a rerun only on the specific task to which it was directly applied. For example, you can force tests to run ignoring up-to-date checks like this:
-```
-gradle test --rerun
-```
-
-See the [documentation](userguide/command_line_interface.html#sec:builtin_task_options) for more information.
-
-### Improvements for plugin authors
-
-#### Integer task options
-
-It is now possible to pass integer task options declared as `Property<Integer>` from the command line.
-
-For example, the following task option:
-```java
-@Option(option = "integer-option", description = "Your description")
-public abstract Property<Integer> getIntegerOption();
-```
-
-can be passed from the command line as follows:
-```shell
-gradle myCustomTask --integer-option=123
-```
-
-### JVM language support improvements
-
-#### Java and Groovy incremental compilation after a failure
-
-Gradle already supports [Java incremental compilation](userguide/java_plugin.html#sec:incremental_compile) by default and [Groovy incremental compilation](userguide/groovy_plugin.html#sec:incremental_groovy_compilation) as an opt-in experimental feature.
-In previous versions after a compilation failure the next compilation was not incremental but a full recompilation instead.
-With this version, Java and Groovy incremental compilation will work incrementally also after a failure.
-This improves experience with compilation when working iteratively on some Java or Groovy code, e.g. when iteratively running compile or test tasks from an IDE.
-
-#### Better test compatibility with Java 9+
-
-When running on Java 9+, Gradle no longer opens the `java.base/java.util` and `java.base/java.lang` JDK modules for all `Test` tasks. In some cases, this would cause code to pass during testing but fail at runtime.  
-
-This change may cause new test failures and warnings. When running on Java 16+, code performing reflection on JDK internals will now fail tests. When running on Java 9-15, illegal access warnings will appear in logs. While this change may break some existing builds, most failures are likely to uncover suppressed issues which would have only been detected at runtime.
-
-For a detailed description on how to mitigate this change, please see the [upgrade guide for details](userguide/upgrading_version_7.html#removes_implicit_add_opens_for_test_workers).
-
-### Options for debugging the JVM over network with Java 9+
-
-A Java test or application child process started by Gradle may [run with debugging options](userguide/java_testing.html#sec:debugging_java_tests) that make it accept debugger client 
-connections over the network.
-If the debugging options only specify a port for the server socket but not the host address, the Java versions 9 and above will only listen on the loopback network interface, that is, 
-they will only accept connections from the same machine. Older Java versions accept connections through all interfaces in this case.
-
-In this release, a new property `host` is added to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html) for specifying the debugger host address along with the port. 
-On Java 9 and above, a special host address value `*` can be used to make the debugger server listen on all network interfaces. Otherwise, the host address should be
-one of the addresses of the current machine's network interfaces.
-
-Similarly, a new Gradle property `org.gradle.debug.host` is now supported for [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic) 
-accepting connections via network on Java 9+.
-
-### Reason messages in task predicates
-
-It is now possible to provide a reason message in conditionally disabling a task using a [`Task.onlyIf` predicate](userguide/more_about_tasks.html#sec:using_a_predicate).
-```groovy
-tasks.named("slowBenchmark") {
-    onlyIf("slow benchmarks are enabled with my.build.benchmark.slow") { 
-        providers.gradleProperty("my.build.benchmark.slow").map { it.toBoolean() }.getOrElse(false)
+testing {
+    suites {
+        val unitLikeTestSuite by registering(JvmTestSuite::class) {
+            useJUnitJupiter()
+            dependencies {
+                implementation(projectInternalView())
+            }
+        }
     }
 }
-```
-
-These reason messages are reported in the console with the `--info` logging level.
-This might be helpful in finding out why a particular task is skipped.
-
-```
-gradle slowBenchmark -Pmy.build.benchmark.slow=false --info
-```
-
-```
-> Task :slowBenchmark SKIPPED
-Skipping task ':slowBenchmark' as task onlyIf 'slow benchmarks are enabled with my.build.benchmark.slow' is false.
-:slowBenchmark (Thread[included builds,5,main]) completed. Took 0.001 secs.
 ```
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -274,9 +123,35 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### Promoted features in the Tooling API
+
+- The `GradleConnector.disconnect()` method is now considered stable.
+
+### Promoted features in the antlr plugin
+
+- The `AntlrSourceDirectorySet` interface is now considered stable.
+
+### Promoted features in the ear plugin
+
+- The `Ear.getAppDirectory()` method is now considered stable.
+
+### Promoted features in the eclipse plugin
+
+- The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
+
+### Promoted features in the groovy plugin
+
+The following type and method are now considered stable:
+- `GroovySourceDirectorySet`
+- `GroovyCompileOptions.getDisabledGlobalASTTransformations()`
+
+### Promoted features in the scala plugin
+
+- The `ScalaSourceDirectorySet` interface is now considered stable.
+
+### Promoted features in the war plugin
+
+- The `War.getWebAppDirectory()` method is now considered stable.
 
 ## Fixed issues
 

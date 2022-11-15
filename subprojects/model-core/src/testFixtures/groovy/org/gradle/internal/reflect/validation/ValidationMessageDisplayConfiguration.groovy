@@ -30,6 +30,7 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
 
     String typeName
     String property
+    String propertyType
     String section
     String documentationId = "validation_problems"
     boolean includeLink = false
@@ -56,6 +57,11 @@ class ValidationMessageDisplayConfiguration<T extends ValidationMessageDisplayCo
 
     T property(String name) {
         property = name
+        this
+    }
+
+    T propertyType(String propertyType) {
+        this.propertyType = propertyType
         this
     }
 

@@ -36,11 +36,6 @@ public class JpmsConfiguration {
         "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED" // required by PreferenceCleaningGroovySystemLoader
     ));
 
-    public static final List<String> GRADLE_WORKER_JPMS_ARGS = Collections.unmodifiableList(Arrays.asList(
-        "--add-opens=java.base/java.util=ALL-UNNAMED", // required by native platform: WrapperProcess.getEnv
-        "--add-opens=java.base/java.lang=ALL-UNNAMED" // required by ClassLoaderUtils
-    ));
-
     public static final List<String> GRADLE_DAEMON_JPMS_ARGS;
 
     static {

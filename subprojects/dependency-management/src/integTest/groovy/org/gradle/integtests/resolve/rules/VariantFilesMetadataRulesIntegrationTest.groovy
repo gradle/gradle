@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -202,7 +201,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "using a non-existing base throws and error"() {
         given:
         repository {
@@ -275,13 +273,13 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org.test:moduleA:1.0') {
-                    variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar',
+                    variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.compile-view': 'java-internal', 'org.gradle.libraryelements': 'jar',
                                             'org.gradle.category': 'documentation', 'org.gradle.docstype': 'all-files'])
                     artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'jar')
                     artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'pom')
                     if (hasModuleFile) { artifact(group: 'org.test', name: 'moduleA', version: '1.0', type: 'module') }
                     module('org.test:moduleB:1.0') {
-                        variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar',
+                        variant(allFilesVariant, ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.compile-view': 'java-internal', 'org.gradle.libraryelements': 'jar',
                                                 'org.gradle.category': 'documentation', 'org.gradle.docstype': 'all-files'])
                         artifact(group: 'org.test', name: 'moduleB', version: '1.0', type: 'jar')
                         artifact(group: 'org.test', name: 'moduleB', version: '1.0', type: 'pom')
@@ -397,7 +395,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "cannot add file with the same name multiple times"() {
         def dependencyDeclaration = (useMaven() || gradleMetadataPublished)
             ? "'org.test:moduleA:1.0'" // variant matching

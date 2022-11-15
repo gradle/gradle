@@ -142,11 +142,6 @@ _Depends on_: all tasks that generate the artifacts attached to the named — _
 +
 Assembles the artifacts for the specified configuration. This rule is added by the Base Plugin.
 
-`upload__ConfigName__` — _task rule_, type: link:{groovyDslPath}/org.gradle.api.tasks.Upload.html[Upload]::
-_Depends on_: all tasks that generate the artifacts attached to the named — _ConfigName_ — configuration
-+
-Assembles and uploads the artifacts in the specified configuration. This rule is added by the Base Plugin.
-
 The following diagram shows the relationships between these tasks.
 
 .Java plugin - tasks
@@ -501,9 +496,13 @@ To help you understand how incremental compilation works, the following provides
 [[sec:incremental_compilation_known_issues]]
 === Known issues
 
-* If a compile task fails due to a compile error, it will do a full compilation again the next time it is invoked.
 * If you are using an annotation processor that reads resources (e.g. a configuration file), you need to declare those resources as an input of the compile task.
 * If a resource file is changed, Gradle will trigger a full recompilation.
+* Using a custom `executable` or `javaHome` deactivates some optimizations.
+    The compile task does not use incremental build immediately after a compile error or if a Java constant changes.
+    Use <<toolchains.adoc#toolchains, toolchains>> instead if possible.
+* Having a source structure that does not match the package names, while legal for compilation, might end up causing trouble in the toolchain.
+    Even more if annotation processing and <<build_cache.adoc#build_cache,caching>> are involved.
 
 [[sec:incremental_annotation_processing]]
 == Incremental annotation processing

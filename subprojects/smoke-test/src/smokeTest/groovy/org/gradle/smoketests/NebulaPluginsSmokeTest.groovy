@@ -52,8 +52,8 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         runner('build').build()
     }
 
+    @Ignore("Plugin incompatible with plugin-publish 1.0.0 and Gradle 8 - enable static check for this when removing ignore, see below - https://github.com/nebula-plugins/nebula-plugin-plugin/issues/71")
     @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
-    @ToBeFixedForConfigurationCache(because = "Gradle.addBuildListener and TaskExecutionGraph.addTaskExecutionListener")
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
@@ -76,17 +76,17 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         then:
         runner('groovydoc')
             .expectDeprecationWarning(
-                "Internal API configureDocumentationVariantWithArtifact (no FileResolver) has been deprecated." +
-                    " This is scheduled to be removed in Gradle 8.0." +
-                    " Please use configureDocumentationVariantWithArtifact (with FileResolver) instead." +
-                    " Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#lazypublishartifact_fileresolver",
+                "The Report.destination property has been deprecated." +
+                " This is scheduled to be removed in Gradle 9.0." +
+                " Please use the outputLocation property instead." +
+                " See https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report:destination for more details.",
                 ""
             )
             .build()
     }
 
-    @Ignore("Waiting for Groovy3 compatibility https://github.com/gradle/gradle/issues/16358")
     @Issue('https://plugins.gradle.org/plugin/nebula.lint')
+    @ToBeFixedForConfigurationCache(because = "Invocation of 'Task.project' by task ':autoLintGradle' at execution time")
     def 'nebula lint plugin'() {
         given:
         buildFile << """
@@ -250,7 +250,8 @@ testImplementation('junit:junit:4.7')""")
     Map<String, Versions> getPluginsToValidate() {
         [
             'nebula.dependency-recommender': Versions.of(TestedVersions.nebulaDependencyRecommender),
-            'nebula.plugin-plugin': Versions.of(TestedVersions.nebulaPluginPlugin),
+            // Enable back once compatible, see @Ignore above
+//            'nebula.plugin-plugin': Versions.of(TestedVersions.nebulaPluginPlugin),
             'nebula.lint': Versions.of(TestedVersions.nebulaLint),
             'nebula.dependency-lock': TestedVersions.nebulaDependencyLock,
             'nebula.resolution-rules': Versions.of(TestedVersions.nebulaResolutionRules)

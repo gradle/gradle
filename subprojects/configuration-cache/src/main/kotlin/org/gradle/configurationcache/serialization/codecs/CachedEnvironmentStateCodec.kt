@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.serialization.codecs
 
-import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
@@ -25,7 +24,6 @@ import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.withPropertyTrace
 import org.gradle.configurationcache.serialization.writeCollection
 import org.gradle.configurationcache.services.EnvironmentChangeTracker
-import java.io.IOException
 
 
 internal
@@ -40,10 +38,6 @@ object CachedEnvironmentStateCodec : Codec<EnvironmentChangeTracker.CachedEnviro
                 try {
                     write(update.key)
                     write(update.value)
-                } catch (passThrough: IOException) {
-                    throw passThrough
-                } catch (passThrough: ConfigurationCacheProblemsException) {
-                    throw passThrough
                 } catch (error: Exception) {
                     onError(error) {
                         text("failed to write system property ")

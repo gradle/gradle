@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
@@ -24,6 +23,5 @@ import org.gradle.api.file.SourceDirectorySet;
  *
  * @since 7.1
  */
-@Incubating
 public interface ScalaSourceDirectorySet extends SourceDirectorySet {
 }

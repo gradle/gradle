@@ -26,7 +26,7 @@ import org.gradle.test.fixtures.encoding.Identifier
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
-class IvySpecificComponentMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
+class IvySpecificComponentMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {
         buildFile <<
@@ -55,7 +55,7 @@ task resolve {
         repository {
             'org.test:projectA:1.0' {
                 withModule {
-                    withExtraInfo((ns('foo')): "fooValue", (ns('bar')): "barValue")
+                    withExtraInfo((IvySpecificComponentMetadataRulesIntegrationTest.ns('foo')): "fooValue", (IvySpecificComponentMetadataRulesIntegrationTest.ns('bar')): "barValue")
                     withBranch('someBranch')
                     withStatus('release')
                 }
@@ -105,11 +105,12 @@ resolve.doLast { assert IvyRule.ruleInvoked }
         repository {
             'org.test:projectA:1.0' {
                 withModule {
-                    withExtraInfo((ns('foo')): "fooValue", (new NamespaceId('http://some.other.ns', 'foo')): "barValue")
+                    withExtraInfo((IvySpecificComponentMetadataRulesIntegrationTest.ns('foo')): "fooValue", (new NamespaceId('http://some.other.ns', 'foo')): "barValue")
                 }
             }
         }
 
+        def lines = buildFile.readLines().size()
         buildFile << """
 class IvyRule implements ComponentMetadataRule {
 
@@ -139,7 +140,7 @@ dependencies {
 
         then:
         failure.assertHasDescription("Execution failed for task ':resolve'.")
-        failure.assertHasLineNumber(53)
+        failure.assertHasLineNumber(lines + 6)
         failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
         failure.assertHasCause("Could not resolve org.test:projectA:1.0.")
         failure.assertHasCause("Cannot get extra info element named 'foo' by name since elements with this name were found from multiple namespaces (http://my.extra.info/foo, http://some.other.ns).  Use get(String namespace, String name) instead.")
@@ -201,7 +202,7 @@ resolve.doLast { assert IvyRule.ruleInvoked }
         repository {
             'org.test:projectA:1.0' {
                 withModule {
-                    withExtraInfo((ns('foo')): "fooValue", (ns('bar')): "barValue")
+                    withExtraInfo((IvySpecificComponentMetadataRulesIntegrationTest.ns('foo')): "fooValue", (IvySpecificComponentMetadataRulesIntegrationTest.ns('bar')): "barValue")
                     withBranch("someBranch")
                     withStatus("release")
                 }
@@ -265,7 +266,7 @@ resolve.doLast { assert ruleInvoked }
         repository {
             'org.test:projectA:1.0' {
                 withModule {
-                    withExtraInfo((ns('foo')): "fooValue", (ns('bar')): "barValue")
+                    withExtraInfo((IvySpecificComponentMetadataRulesIntegrationTest.ns('foo')): "fooValue", (IvySpecificComponentMetadataRulesIntegrationTest.ns('bar')): "barValue")
                     withBranch('someBranch')
                     withStatus('release')
                 }
@@ -343,7 +344,7 @@ resolve.doLast { assert ruleInvoked }
         repository {
             'org.test:projectA:1.0' {
                 withModule {
-                    withExtraInfo((ns('foo')): "fooValueChanged", (ns('bar')): "barValueChanged")
+                    withExtraInfo((IvySpecificComponentMetadataRulesIntegrationTest.ns('foo')): "fooValueChanged", (IvySpecificComponentMetadataRulesIntegrationTest.ns('bar')): "barValueChanged")
                     withBranch('differentBranch')
                     withStatus('milestone')
                     publishWithChangedContent()
@@ -374,4 +375,16 @@ resolve.doLast { assert ruleInvoked }
         assert file("metadata").text == "{{http://my.extra.info/bar}bar=barValueChanged, {http://my.extra.info/foo}foo=fooValueChanged}\ndifferentBranch\nmilestone"
     }
 
+    private static NamespaceId ns(String name) {
+        return new NamespaceId("http://my.extra.info/${name}", name)
+    }
+
+    private static String declareNS(String name) {
+        "(new javax.xml.namespace.QName('http://my.extra.info/${name}', '${name}'))"
+    }
+
+    private static String sq(String input) {
+        // escape the input for use in a single-quoted string
+        input.replace('\\', '\\\\').replace('\'', '\\\'')
+    }
 }

@@ -30,7 +30,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -85,9 +85,8 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/java_gradle_plugin.html">Gradle plugin development reference</a>
  */
-@SuppressWarnings({"deprecation", "DeprecatedIsStillUsed"})
 @NonNullApi
-public class JavaGradlePluginPlugin implements Plugin<Project> {
+public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
     static final String API_CONFIGURATION = JavaPlugin.API_CONFIGURATION_NAME;
     static final String JAR_TASK = "jar";
@@ -210,8 +209,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private static boolean excludeGradleApi(ComponentIdentifier componentId) {
         if (componentId instanceof OpaqueComponentIdentifier) {
-            DependencyFactory.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
-            return classPathNotation != DependencyFactory.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
+            DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
+            return classPathNotation != DependencyFactoryInternal.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
         }
         return true;
     }

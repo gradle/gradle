@@ -17,14 +17,18 @@
 package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
+import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 
 import javax.annotation.Nullable
 
 class AndroidTestProject implements TestProject {
 
     private static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
-    private static final String AGP_STABLE_TARGET_VERSION = "4.1"
-    private static final String AGP_LATEST_TARGET_VERSION = "4.2"
+    private static final KotlinGradlePluginVersions KGP_VERSIONS = new KotlinGradlePluginVersions()
+    private static final String AGP_STABLE_TARGET_VERSION = "7.3"
+    private static final String AGP_LATEST_TARGET_VERSION = "7.3"
+    // AGP 7.3+ support only KGP 1.6.20+
+    private static final String KGP_STABLE_TARGET_VERSION = "1.6.21"
     public static final LARGE_ANDROID_BUILD = new AndroidTestProject(
         templateName: 'largeAndroidBuild'
     )
@@ -60,6 +64,14 @@ class AndroidTestProject implements TestProject {
 
     @Override
     void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
+    }
+
+    static void useStableKotlinVersion(CrossVersionPerformanceTestRunner runner) {
+        runner.args.add("-DkotlinVersion=$KGP_STABLE_TARGET_VERSION")
+    }
+
+    static void useLatestKotlinVersion(CrossVersionPerformanceTestRunner runner) {
+        runner.args.add("-DkotlinVersion=${KGP_VERSIONS.getLatests().last()}")
     }
 
     static void useStableAgpVersion(CrossVersionPerformanceTestRunner runner) {

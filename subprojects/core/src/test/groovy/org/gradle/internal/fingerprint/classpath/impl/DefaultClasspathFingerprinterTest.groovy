@@ -45,7 +45,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
         intern(_) >> { String s -> s }
     }
     def fileSystemAccess = TestFiles.fileSystemAccess()
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.fileSystem())
     TestInMemoryPersistentIndexedCache<HashCode, HashCode> resourceHashesCache = new TestInMemoryPersistentIndexedCache<>(new HashCodeSerializer())
     def cacheService = new DefaultResourceSnapshotterCacheService(resourceHashesCache)
     def fingerprinter = new DefaultClasspathFingerprinter(

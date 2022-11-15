@@ -142,7 +142,7 @@ import java.util.Set;
  * }
  * </pre>
  */
-public class EclipseClasspath {
+public abstract class EclipseClasspath {
     private Iterable<SourceSet> sourceSets;
 
     private Collection<Configuration> plusConfigurations = new ArrayList<Configuration>();
@@ -389,7 +389,6 @@ public class EclipseClasspath {
      *
      * @since 6.8
      */
-    @Incubating
     public Property<Boolean> getContainsTestFixtures() {
         return containsTestFixtures;
     }

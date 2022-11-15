@@ -12,6 +12,7 @@ import configurations.PerformanceTestsPass
 import configurations.SmokeTests
 import configurations.buildReportTab
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
 import model.CIBuildModel
 import model.FlameGraphGeneration
 import model.FunctionalTestBucketProvider
@@ -98,7 +99,7 @@ class StageProject(
                 buildType(PartialTrigger("All Specific Builds for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_SpecificBuilds", model, specificBuildTypes))
             }
             if (performanceTests.size > 1) {
-                buildType(PartialTrigger("All Performance Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_PerformanceTests", model, performanceTests))
+                buildType(createPerformancePartialTrigger(model, stage))
             }
         }
 
@@ -124,6 +125,22 @@ class StageProject(
         val performanceTestProject = AutomaticallySplitPerformanceTestProject(model, performanceTestBucketProvider, stage, performanceTestCoverage)
         subProject(performanceTestProject)
         return PerformanceTestsPass(model, performanceTestProject).also(this::buildType)
+    }
+
+    private
+    fun createPerformancePartialTrigger(model: CIBuildModel, stage: Stage): PartialTrigger<PerformanceTestsPass> {
+        val performancePartialTrigger = PartialTrigger("All Performance Tests for ${stage.stageName.stageName}", "Stage_${stage.stageName.id}_PerformanceTests", model, performanceTests)
+        performanceTests.forEach { performanceTestTrigger ->
+            // The space removal is necessary - otherwise it doesn't show
+            val artifactDirName = performanceTestTrigger.name.replace(" ", "")
+            performancePartialTrigger.dependencies {
+                artifacts(performanceTestTrigger) {
+                    id = "artifact_dependency_${performancePartialTrigger.uuid}_${(performanceTestTrigger.id as RelativeId).relativeId}"
+                    artifactRules = "**/* => $artifactDirName"
+                }
+            }
+        }
+        return performancePartialTrigger
     }
 
     private fun createFlameGraphs(model: CIBuildModel, stage: Stage, flameGraphSpec: FlameGraphGeneration): PerformanceTestsPass {

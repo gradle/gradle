@@ -15,7 +15,7 @@
 [[build_cache]]
 = Build Cache
 
-TIP: Want to learn the tips and tricks top engineering teams use to keep builds fast and performant? https://gradle.com/training/build-cache-deep-dive/?bid=docs-build-cache[Register here] for our Build Cache Training.
+TIP: Want to learn the tips and tricks top engineering teams use to keep builds fast and performant? https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache Training.
 
 [[sec:build_cache_intro]]
 == Overview
@@ -150,7 +150,6 @@ Currently, the following built-in Gradle tasks are cacheable:
     link:{groovyDslPath}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc],
     link:{groovyDslPath}/org.gradle.api.plugins.quality.Pmd.html[Pmd]
 * JaCoCo:
-    link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoMerge.html[JacocoMerge],
     link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html[JacocoReport]
 * Other tasks:
     link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask],
@@ -281,7 +280,11 @@ The built-in local build cache, link:{groovyDslPath}/org.gradle.caching.local.Di
 By default, this directory resides in the Gradle user home directory, but its location is configurable.
 
 Gradle will periodically clean-up the local cache directory by removing entries that have not been used recently to conserve disk space.
+How often Gradle will perform this clean-up is configurable as shown in the example below.
 Note that cache entries are cleaned-up regardless of the project they were produced by.
+If different projects configure this clean-up to run at different periods, the shortest period will clean-up cache entries for all projects.
+Therefore it is recommended to configure this setting globally in the <<init_scripts.adoc#sec:using_an_init_script,init script>>.
+The <<sec:build_cache_configure_use_cases, Configuration use-cases>> section has an example of putting cache configuration in the init script.
 
 For more details on the configuration options refer to the DSL documentation of link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache].
 Here is an example of the configuration.
@@ -430,4 +433,4 @@ Using a different build cache backend to store build outputs (which is not cover
 your own logic for connecting to your custom build cache backend.
 To this end, custom build cache types can be registered via link:{javadocPath}/org/gradle/caching/configuration/BuildCacheConfiguration.html#registerBuildCacheService-java.lang.Class-java.lang.Class-[BuildCacheConfiguration.registerBuildCacheService(java.lang.Class, java.lang.Class)].
 
-link:https://gradle.com/build-cache[Gradle Enterprise] includes a high-performance, easy to install and operate, shared build cache backend.
+link:https://gradle.com/gradle-enterprise-solutions/build-cache/[Gradle Enterprise] includes a high-performance, easy to install and operate, shared build cache backend.

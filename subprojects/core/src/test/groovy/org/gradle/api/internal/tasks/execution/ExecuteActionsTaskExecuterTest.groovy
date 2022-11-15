@@ -43,8 +43,8 @@ import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.WorkValidationContext
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
-import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
+import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputsCleaner
 import org.gradle.internal.execution.history.OverlappingOutputDetector
@@ -82,6 +82,7 @@ import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.snapshot.impl.ClassImplementationSnapshot
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.internal.work.AsyncWorkTracker
@@ -94,7 +95,6 @@ import static org.gradle.api.internal.file.TestFiles.deleter
 import static org.gradle.api.internal.file.TestFiles.fileCollectionFactory
 import static org.gradle.api.internal.file.TestFiles.fileSystem
 import static org.gradle.api.internal.file.TestFiles.fileSystemAccess
-import static org.gradle.api.internal.file.TestFiles.genericFileTreeSnapshotter
 import static org.gradle.api.internal.file.TestFiles.virtualFileSystem
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS
@@ -117,6 +117,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def previousState = Stub(PreviousExecutionState) {
         getInputProperties() >> ImmutableSortedMap.of()
         getInputFileProperties() >> ImmutableSortedMap.of()
+        getImplementation() >> Stub(ClassImplementationSnapshot)
 
         getOutputFilesProducedByWork() >> ImmutableSortedMap.of()
     }
@@ -130,7 +131,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
     def virtualFileSystem = virtualFileSystem()
     def fileSystemAccess = fileSystemAccess(virtualFileSystem)
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, genericFileTreeSnapshotter(), fileSystem())
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, fileSystem())
     def outputSnapshotter = new DefaultOutputSnapshotter(fileCollectionSnapshotter)
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
     def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {
@@ -213,7 +214,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         executionContext.getTaskExecutionMode() >> TaskExecutionMode.INCREMENTAL
         executionContext.getTaskProperties() >> taskProperties
         executionContext.getValidationContext() >> validationContext
-        executionContext.getValidationAction() >> { { historyMaintained, c -> } as TaskExecutionContext.ValidationAction }
+        executionContext.getValidationAction() >> { { c -> } as TaskExecutionContext.ValidationAction }
         executionHistoryStore.load("task") >> Optional.of(previousState)
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
     }

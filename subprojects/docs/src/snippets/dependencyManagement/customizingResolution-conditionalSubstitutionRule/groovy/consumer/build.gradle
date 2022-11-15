@@ -31,7 +31,10 @@ dependencies {
 }
 
 tasks.register('showJarFiles') {
+    def rootDir = project.rootDir
+    def compileClasspath = configurations.compileClasspath
+
     doLast {
-        configurations.compileClasspath.each { println it.path - rootDir.path }
+        compileClasspath.files.each { println it.path - rootDir.path }
     }
 }

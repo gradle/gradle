@@ -6,6 +6,7 @@ description = "Adds support for building Groovy projects"
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":build-option"))
     implementation(project(":logging"))
     implementation(project(":process-services"))
     implementation(project(":worker-processes"))

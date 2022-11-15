@@ -46,17 +46,6 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scopes.Project.class)
 public interface WorkerExecutor {
-    /**
-     * Submits a piece of work to be executed asynchronously.
-     *
-     * Execution of the work may begin immediately.
-     *
-     * Work configured with {@link IsolationMode#PROCESS} will execute in an idle daemon that meets the requirements set
-     * in the {@link WorkerConfiguration}.  If no idle daemons are available, a new daemon will be started.  Any errors
-     * will be thrown from {@link #await()} or from the surrounding task action if {@link #await()} is not used.
-     */
-    @Deprecated
-    void submit(Class<? extends Runnable> actionClass, Action<? super WorkerConfiguration> configAction);
 
     /**
      * Creates a {@link WorkQueue} to submit work for asynchronous execution with no isolation.

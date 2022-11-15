@@ -21,6 +21,7 @@ import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -47,6 +48,7 @@ import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -382,6 +384,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return A map from child project name to child project. Returns an empty map if this project does not have
      *         any children.
      */
+    @ForExternalUse // See ProjectInternal#getChildProjects
     Map<String, Project> getChildProjects();
 
     /**
@@ -1316,33 +1319,45 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void allprojects(@DelegatesTo(Project.class) Closure configureClosure);
 
     /**
-     * Adds an action to execute immediately before this project is evaluated.
+     * <p>Adds an action to call immediately before this project is evaluated.</p>
+     * <p>Passes the project to the action as a parameter. Actions passed to this
+     * method execute in the same order they were passed.</p>
+     *
+     * <p>If the project has already been evaluated, the action never executes.</p>
+     * <p>If you call this method within a <code>beforeEvaluate</code> action, the passed action never executes.</p>
      *
      * @param action the action to execute.
      */
     void beforeEvaluate(Action<? super Project> action);
 
     /**
-     * Adds an action to execute immediately after this project is evaluated.
+     * <p>Adds an action to call immediately after this project is evaluated.</p>
+     * <p>Passes the project to the
+     * action as a parameter. Actions passed to this method execute in the same order they were passed.
+     * A parent project may add an action to its child projects to further configure those projects based
+     * on their state after their build files run.</p>
+     *
+     * <p>If the project has already been evaluated, this method fails.</p>
+     * <p>If you call this method within an <code>afterEvaluate</code> action, the passed action executes after all
+     * previously added <code>afterEvaluate</code> actions finish executing.</p>
      *
      * @param action the action to execute.
      */
     void afterEvaluate(Action<? super Project> action);
 
     /**
-     * <p>Adds a closure to be called immediately before this project is evaluated. The project is passed to the closure
-     * as a parameter.</p>
+     * <p>Adds a closure to call immediately before this project is evaluated.</p>
+     *
+     * @see Project#beforeEvaluate(Action)
      *
      * @param closure The closure to call.
      */
     void beforeEvaluate(Closure closure);
 
     /**
-     * <p>Adds a closure to be called immediately after this project has been evaluated. The project is passed to the
-     * closure as a parameter. Such a listener gets notified when the build file belonging to this project has been
-     * executed. A parent project may for example add such a listener to its child project. Such a listener can further
-     * configure those child projects based on the state of the child projects after their build files have been
-     * run.</p>
+     * <p>Adds a closure to call immediately after this project is evaluated.</p>
+     *
+     * @see Project#afterEvaluate(Action)
      *
      * @param closure The closure to call.
      */
@@ -1540,6 +1555,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure the closure to use to configure the dependencies.
      */
     void dependencies(Closure configureClosure);
+
+    /**
+     * Provides access to methods to create various kinds of {@link org.gradle.api.artifacts.Dependency Dependency} instances.
+     *
+     * @return the dependency factory. Never returns null.
+     * @since 7.6
+     */
+    @Incubating
+    DependencyFactory getDependencyFactory();
 
     /**
      * Returns the build script handler for this project. You can use this handler to query details about the build

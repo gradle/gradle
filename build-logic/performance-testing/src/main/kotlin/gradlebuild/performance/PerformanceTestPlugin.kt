@@ -93,7 +93,8 @@ object Config {
     const val performanceTestReportsDir = "performance-tests/report"
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
-    const val androidStudioVersion = "2021.1.1.19"
+    // Android Studio Electric Eel (2022.1.1) Beta 2
+    const val androidStudioVersion = "2022.1.1.12"
     val defaultAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
 }
 
@@ -263,9 +264,8 @@ class PerformanceTestPlugin : Plugin<Project> {
         plugins.withType<IdeaPlugin> {
             configure<IdeaModel> {
                 module {
-                    testSourceDirs = testSourceDirs + performanceTestSourceSet.java.srcDirs
-                    testSourceDirs = testSourceDirs + performanceTestSourceSet.groovy.srcDirs
-                    testResourceDirs = testResourceDirs + performanceTestSourceSet.resources.srcDirs
+                    testSources.from(performanceTestSourceSet.java.srcDirs, performanceTestSourceSet.groovy.srcDirs)
+                    testResources.from(performanceTestSourceSet.resources.srcDirs)
                 }
             }
         }

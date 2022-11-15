@@ -18,13 +18,20 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-import org.gradle.api.internal.artifacts.type.ArtifactTypeRegistry;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
-public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadata> extends AbstractComponentGraphResolveState<T> {
-    public DefaultComponentGraphResolveState(T metadata) {
-        super(metadata);
+import java.util.Set;
+import java.util.stream.Collectors;
+
+public class DefaultComponentGraphResolveState<T extends ComponentGraphResolveMetadata, S extends ComponentResolveMetadata> extends AbstractComponentGraphResolveState<T, S> {
+    public DefaultComponentGraphResolveState(T graphMetadata, S artifactMetadata) {
+        super(graphMetadata, artifactMetadata);
+    }
+
+    public static ComponentGraphResolveState of(ModuleComponentResolveMetadata metadata) {
+        return new DefaultComponentGraphResolveState<>(metadata, metadata);
     }
 
     @Override
@@ -35,26 +42,39 @@ public class DefaultComponentGraphResolveState<T extends ComponentResolveMetadat
     @Override
     public VariantArtifactResolveState prepareForArtifactResolution(VariantGraphResolveMetadata variant) {
         ConfigurationMetadata configurationMetadata = (ConfigurationMetadata) variant;
-        return new DefaultVariantArtifactResolveState(getMetadata(), configurationMetadata);
+        return new DefaultVariantArtifactResolveState(getMetadata(), getArtifactMetadata(), configurationMetadata);
     }
 
     private static class DefaultVariantArtifactResolveState implements VariantArtifactResolveState {
-        private final ComponentResolveMetadata component;
-        private final ConfigurationMetadata configuration;
+        private final ComponentGraphResolveMetadata graphMetadata;
+        private final ComponentResolveMetadata artifactMetadata;
+        private final ConfigurationMetadata graphSelectedVariant;
 
-        public DefaultVariantArtifactResolveState(ComponentResolveMetadata componentMetadata, ConfigurationMetadata configuration) {
-            this.component = componentMetadata;
-            this.configuration = configuration;
+        public DefaultVariantArtifactResolveState(ComponentGraphResolveMetadata graphMetadata, ComponentResolveMetadata artifactMetadata, ConfigurationMetadata graphSelectedVariant) {
+            this.graphMetadata = graphMetadata;
+            this.artifactMetadata = artifactMetadata;
+            this.graphSelectedVariant = graphSelectedVariant;
         }
 
         @Override
         public ComponentArtifactMetadata resolveArtifact(IvyArtifactName artifact) {
-            return configuration.artifact(artifact);
+            return graphSelectedVariant.artifact(artifact);
         }
 
         @Override
-        public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ArtifactTypeRegistry artifactTypeRegistry, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            return artifactSelector.resolveArtifacts(component, configuration, exclusions, overriddenAttributes);
+        public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
+            // We do not currently cache ResolvedVariants for external modules
+            return artifactSelector.resolveArtifacts(artifactMetadata, null, this::buildAllVariants, graphSelectedVariant.getVariants(), exclusions, overriddenAttributes);
+        }
+
+        private Set<? extends VariantResolveMetadata> buildAllVariants() {
+            final Set<? extends VariantResolveMetadata> allVariants;
+            if (graphMetadata.getVariantsForGraphTraversal().isPresent()) {
+                allVariants = graphMetadata.getVariantsForGraphTraversal().get().stream().map(ModuleConfigurationMetadata.class::cast).flatMap(variant -> variant.getVariants().stream()).collect(Collectors.toSet());
+            } else {
+                allVariants = graphSelectedVariant.getVariants();
+            }
+            return allVariants;
         }
     }
 }

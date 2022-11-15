@@ -31,7 +31,8 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, arch: Arch = Arch.
     """.trimIndent()
     detectHangingBuilds = false
     requirements {
-        requiresNoEc2Agent()
+        requiresNotEc2Agent()
+        requiresNotSharedHost()
     }
     params {
         param("env.JPROFILER_HOME", os.jprofilerHome)
@@ -74,6 +75,7 @@ fun BuildSteps.killGradleProcessesStep(os: Os) {
         name = "KILL_GRADLE_PROCESSES"
         executionMode = BuildStep.ExecutionMode.ALWAYS
         scriptContent = os.killAllGradleProcesses
+        skipConditionally()
     }
 }
 
@@ -87,6 +89,7 @@ fun BuildSteps.substDirOnWindows(os: Os) {
                 subst p: /d
                 subst p: "%teamcity.build.checkoutDir%"
             """.trimIndent()
+            skipConditionally()
         }
         cleanBuildLogicBuild("P:/build-logic-commons")
         cleanBuildLogicBuild("P:/build-logic")
@@ -99,6 +102,7 @@ fun BuildSteps.removeSubstDirOnWindows(os: Os) {
             name = "REMOVE_VIRTUAL_DISK_FOR_PERF_TEST"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = """dir p: && subst p: /d"""
+            skipConditionally()
         }
         cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic-commons")
         cleanBuildLogicBuild("%teamcity.build.checkoutDir%/build-logic")

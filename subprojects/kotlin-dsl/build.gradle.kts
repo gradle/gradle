@@ -122,3 +122,7 @@ packageCycles {
 }
 
 testFilesCleanup.reportOnly.set(true)
+
+strictCompile {
+    ignoreDeprecations()
+}

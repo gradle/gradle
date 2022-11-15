@@ -2095,38 +2095,6 @@ Found the following transforms:
         failure.assertHasCause("Bad registration")
     }
 
-    def "provides useful error message when configuration value cannot be serialized"() {
-        when:
-        buildFile << """
-            // Not serializable
-            class CustomType {
-                String toString() { return "<custom>" }
-            }
-
-            class Custom extends ArtifactTransform {
-                Custom(CustomType value) { }
-                List<File> transform(File input) { [] }
-            }
-
-            dependencies {
-                registerTransform {
-                    from.attribute(usage, 'any')
-                    to.attribute(usage, 'any')
-                    artifactTransform(Custom) { params(new CustomType()) }
-                }
-            }
-"""
-        then:
-        executer.expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
-        fails "help"
-
-        and:
-        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
-        failure.assertHasCause("Could not register artifact transform Custom (from {usage=any} to {usage=any})")
-        failure.assertHasCause("Could not isolate value [<custom>] of type Object[]")
-        failure.assertHasCause("Could not serialize value of type CustomType")
-    }
-
     def "provides useful error message when parameter value cannot be isolated for #type transform"() {
         mavenRepo.module("test", "a", "1.3").publish()
         settingsFile << "include 'lib'"
@@ -2630,29 +2598,6 @@ Found the following transforms:
         output.contains("> Dependency: task ':app:dependent' -> task ':app:resolve'")
         output.contains("> Transform lib1.jar (project :lib) with FileSizer")
         output.contains("> Task :app:resolve")
-    }
-
-    def "emits deprecation warning when old style transform is registered"() {
-        buildFile << """
-            dependencies {
-                registerTransform {
-                    from.attribute(artifactType, 'jar')
-                    to.attribute(artifactType, 'size')
-                    artifactTransform(OldStyleTransform)
-                }
-            }
-
-            class OldStyleTransform extends ArtifactTransform {
-                List<File> transform(File input) {
-                    return []
-                }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 8.0. Implement TransformAction instead.")
-        then:
-        succeeds "help"
     }
 
     def declareTransform(String transformImplementation) {

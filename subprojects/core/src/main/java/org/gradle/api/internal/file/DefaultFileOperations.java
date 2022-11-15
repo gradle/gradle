@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
 import org.gradle.api.UncheckedIOException;
@@ -51,7 +52,6 @@ import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
@@ -183,34 +183,24 @@ public class DefaultFileOperations implements FileOperations {
         Provider<ReadableResourceInternal> resource = providers.provider(() -> {
             if (tarPath instanceof ReadableResourceInternal) {
                 return (ReadableResourceInternal) tarPath;
-            } else if (tarPath instanceof ReadableResource) {
-                // custom type
-                return new UnknownBackingFileReadableResource((ReadableResource) tarPath);
             } else {
                 File tarFile = file(tarPath);
                 return new LocalResourceAdapter(new LocalFileStandInExternalResource(tarFile, fileSystem));
             }
         });
 
-        if (tarPath instanceof ReadableResource) {
-            boolean hasBackingFile = tarPath instanceof ReadableResourceInternal
-                && ((ReadableResourceInternal) tarPath).getBackingFile() != null;
-            if (!hasBackingFile) {
-                DeprecationLogger.deprecateAction("Using tarTree() on a resource without a backing file")
-                    .withAdvice("Convert the resource to a file and then pass this file to tarTree(). For converting the resource to a file you can use a custom task or declare a dependency.")
-                    .willBecomeAnErrorInGradle8()
-                    .withUpgradeGuideSection(7, "tar_tree_no_backing_file")
-                    .nagUser();
-            }
-        }
-
-        TarFileTree tarTree = new TarFileTree(fileProvider, resource.map(MaybeCompressedFileResource::new), getExpandDir(), fileSystem, directoryFileTreeFactory, streamHasher, fileHasher);
+        TarFileTree tarTree = new TarFileTree(fileProvider, resource.map(MaybeCompressedFileResource::new), getExpandDir(), fileSystem, directoryFileTreeFactory, fileHasher);
         return new FileTreeAdapter(tarTree, patternSetFactory);
     }
 
     private Provider<File> asFileProvider(Object path) {
         if (path instanceof ReadableResource) {
-            return providers.provider(() -> null);
+            boolean hasBackingFile = path instanceof ReadableResourceInternal
+                && ((ReadableResourceInternal) path).getBackingFile() != null;
+            if (!hasBackingFile) {
+                throw new InvalidUserCodeException("Cannot use tarTree() on a resource without a backing file.");
+            }
+            return providers.provider(() -> ((ReadableResourceInternal) path).getBackingFile());
         }
         if (path instanceof Provider) {
             ProviderInternal<?> provider = (ProviderInternal<?>) path;

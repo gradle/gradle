@@ -15,7 +15,7 @@
 [[build_environment]]
 = Build Environment
 
-TIP: Interested in configuring your Build Cache to speed up builds? https://gradle.com/training/build-cache-deep-dive/?bid=docs-build-environment[Register here] for our Build Cache training session to learn some of the tips and tricks top engineering teams are using to increase build speed.
+TIP: Interested in configuring your Build Cache to speed up builds? https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn some of the tips and tricks top engineering teams are using to increase build speed.
 
 [.lead]
 Gradle provides multiple mechanisms for configuring behavior of Gradle itself and specific projects. The following is a reference for using these mechanisms.
@@ -116,11 +116,11 @@ Specifies the scheduling priority for the Gradle daemon and all processes launch
 _Default is `normal`._
 
 `org.gradle.vfs.verbose=(true,false)`::
-Configures verbose logging when <<gradle_daemon.adoc#sec:daemon_watch_fs,watching the file system>>.
+Configures verbose logging when <<file_system_watching.adoc#sec:daemon_watch_fs,watching the file system>>.
 _Default is `false`._
 
 `org.gradle.vfs.watch=(true,false)`::
-Toggles <<gradle_daemon.adoc#sec:daemon_watch_fs,watching the file system>>.
+Toggles <<file_system_watching.adoc#sec:daemon_watch_fs,watching the file system>>.
 When enabled Gradle re-uses information it collects about the file system between builds.
 _Enabled by default on operating systems where Gradle supports this feature._
 

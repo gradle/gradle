@@ -19,6 +19,8 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
+import org.gradle.api.internal.cache.DefaultCacheConfigurations;
 import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal;
 import org.gradle.api.internal.changedetection.state.GradleUserHomeScopeFileTimeStampInspector;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -39,6 +41,7 @@ import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.DefaultGlobalCacheLocations;
 import org.gradle.cache.internal.FileContentCacheFactory;
+import org.gradle.cache.internal.GradleUserHomeCacheCleanupActionDecorator;
 import org.gradle.cache.internal.GradleUserHomeCleanupServices;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
@@ -111,6 +114,10 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         for (PluginServiceRegistry plugin : globalServices.getAll(PluginServiceRegistry.class)) {
             plugin.registerGradleUserHomeServices(registration);
         }
+    }
+
+    GradleUserHomeCacheCleanupActionDecorator createCacheCleanupEnablement(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
+        return new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeDirProvider);
     }
 
     CacheRepository createCacheRepository(GlobalCacheDir globalCacheDir, CacheFactory cacheFactory) {
@@ -222,5 +229,9 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
 
     TimeoutHandler createTimeoutHandler(ExecutorFactory executorFactory, CurrentBuildOperationRef currentBuildOperationRef) {
         return new DefaultTimeoutHandler(executorFactory.createScheduled("execution timeouts", 1), currentBuildOperationRef);
+    }
+
+    protected CacheConfigurationsInternal createCachesConfiguration(ObjectFactory objectFactory) {
+        return new DefaultCacheConfigurations(objectFactory);
     }
 }

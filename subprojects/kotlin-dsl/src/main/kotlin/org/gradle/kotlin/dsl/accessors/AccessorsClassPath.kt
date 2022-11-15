@@ -24,11 +24,12 @@ import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType.NON_INCREMENTAL
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
+import org.gradle.internal.execution.UnitOfWork.InputBehavior.NON_INCREMENTAL
+import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
+import org.gradle.internal.execution.UnitOfWork.InputVisitor
+import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
 import org.gradle.internal.file.TreeType.DIRECTORY
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
@@ -88,7 +89,7 @@ class ProjectAccessorsClassPathGenerator @Inject constructor(
                 workspaceProvider
             )
             val result = executionEngine.createRequest(work).execute()
-            result.executionResult.get().output as AccessorsClassPath
+            result.execution.get().output as AccessorsClassPath
         }
     }
 
@@ -132,11 +133,11 @@ class GenerateProjectAccessors(
         return object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
 
-            override fun getOutput() = loadRestoredOutput(workspace)
+            override fun getOutput() = loadAlreadyProducedOutput(workspace)
         }
     }
 
-    override fun loadRestoredOutput(workspace: File) = AccessorsClassPath(
+    override fun loadAlreadyProducedOutput(workspace: File) = AccessorsClassPath(
         DefaultClassPath.of(getClassesOutputDir(workspace)),
         DefaultClassPath.of(getSourcesOutputDir(workspace))
     )
@@ -160,7 +161,7 @@ class GenerateProjectAccessors(
         visitor.visitInputFileProperty(
             CLASSPATH_INPUT_PROPERTY,
             NON_INCREMENTAL,
-            FileValueSupplier(
+            InputFileValueSupplier(
                 classPath,
                 ClasspathNormalizer::class.java,
                 DirectorySensitivity.IGNORE_DIRECTORIES,
@@ -172,8 +173,8 @@ class GenerateProjectAccessors(
     override fun visitOutputs(workspace: File, visitor: UnitOfWork.OutputVisitor) {
         val sourcesOutputDir = getSourcesOutputDir(workspace)
         val classesOutputDir = getClassesOutputDir(workspace)
-        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir))
-        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, DIRECTORY, classesOutputDir, fileCollectionFactory.fixed(classesOutputDir))
+        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(sourcesOutputDir, fileCollectionFactory.fixed(sourcesOutputDir)))
+        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, DIRECTORY, OutputFileValueSupplier.fromStatic(classesOutputDir, fileCollectionFactory.fixed(classesOutputDir)))
     }
 }
 

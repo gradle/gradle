@@ -39,7 +39,7 @@ import java.util.TreeMap;
  * from the command-line.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class PropertyReportTask extends AbstractProjectBasedReportTask<PropertyReportTask.PropertyReportModel> {
+public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<PropertyReportTask.PropertyReportModel> {
 
     private PropertyReportRenderer renderer = new PropertyReportRenderer();
     private final Property<String> property = getProject().getObjects().property(String.class);

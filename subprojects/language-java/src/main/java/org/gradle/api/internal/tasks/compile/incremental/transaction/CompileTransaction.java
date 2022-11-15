@@ -83,7 +83,7 @@ public class CompileTransaction {
     /**
      * Executes the function that is wrapped in the transaction. Function accepts a work result,
      * that has a result of a stash operation. If some files were stashed, then work will be marked as "did work".
-     *
+     * <p>
      * Execution steps: <br>
      * 1. At start create empty temporary directories or make sure they are empty <br>
      * 2. Stash all files that should be deleted from compiler destination directories to a temporary directories <br>
@@ -102,7 +102,9 @@ public class CompileTransaction {
             moveCompileOutputToOriginalFolders(stagedOutputs);
             return result;
         } catch (CompilationFailedException t) {
-            rollbackStash(stashResult.stashedFiles);
+            if (spec.getCompileOptions().supportsIncrementalCompilationAfterFailure()) {
+                rollbackStash(stashResult.stashedFiles);
+            }
             throw t;
         } finally {
             restoreSpecOutputs(stagedOutputs);

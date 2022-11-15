@@ -15,20 +15,14 @@
  */
 package org.gradle.api.internal.catalog;
 
-import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
-import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
-import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependency;
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 
-public abstract class DependencyBundleValueSource implements ValueSource<ExternalModuleDependencyBundle, DependencyBundleValueSource.Params> {
+public abstract class DependencyBundleValueSource implements ValueSource<List<DependencyModel>, DependencyBundleValueSource.Params> {
 
     interface Params extends ValueSourceParameters {
         Property<String> getBundleName();
@@ -37,25 +31,14 @@ public abstract class DependencyBundleValueSource implements ValueSource<Externa
     }
 
     @Override
-    public ExternalModuleDependencyBundle obtain() {
+    public List<DependencyModel> obtain() {
         String bundle = getParameters().getBundleName().get();
         DefaultVersionCatalog config = getParameters().getConfig().get();
         BundleModel bundleModel = config.getBundle(bundle);
         return bundleModel.getComponents().stream()
             .map(config::getDependencyData)
-            .map(this::createDependency)
-            .collect(Collectors.toCollection(DefaultBundle::new));
+            .collect(Collectors.toList());
 
-    }
-
-    private DefaultMinimalDependency createDependency(DependencyModel data) {
-        ImmutableVersionConstraint version = data.getVersion();
-        return new DefaultMinimalDependency(
-            DefaultModuleIdentifier.newId(data.getGroup(), data.getName()), new DefaultMutableVersionConstraint(version)
-        );
-    }
-
-    private static class DefaultBundle extends ArrayList<MinimalExternalModuleDependency> implements ExternalModuleDependencyBundle {
     }
 
 }

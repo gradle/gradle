@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalCo
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentInAnotherBuildProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactSetResolver
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectInternal
@@ -43,8 +42,6 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnabl
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.configurationcache.services.DefaultEnvironment
-import org.gradle.execution.DefaultTaskSchedulingPreparer
-import org.gradle.execution.ExcludedTaskFilteringProjectsPreparer
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.TaskExecutionPreparer
@@ -136,10 +133,9 @@ class DefaultBuildModelControllerServices(
             stateTransitionControllerFactory: StateTransitionControllerFactory
         ): BuildModelController {
             val projectsPreparer: ProjectsPreparer = gradle.services.get()
-            val taskSchedulingPreparer = DefaultTaskSchedulingPreparer(ExcludedTaskFilteringProjectsPreparer(gradle.services.get()))
             val settingsPreparer: SettingsPreparer = gradle.services.get()
             val taskExecutionPreparer: TaskExecutionPreparer = gradle.services.get()
-            return VintageBuildModelController(gradle, projectsPreparer, taskSchedulingPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)
+            return VintageBuildModelController(gradle, projectsPreparer, settingsPreparer, taskExecutionPreparer, stateTransitionControllerFactory)
         }
     }
 
@@ -184,11 +180,10 @@ class DefaultBuildModelControllerServices(
             calculatedValueContainerFactory: CalculatedValueContainerFactory,
             cache: BuildTreeConfigurationCache,
             provider: LocalComponentProvider,
-            otherBuildProvider: LocalComponentInAnotherBuildProvider,
-            projectArtifactSetResolver: ProjectArtifactSetResolver
+            otherBuildProvider: LocalComponentInAnotherBuildProvider
         ): LocalComponentRegistry {
             val effectiveProvider = ConfigurationCacheAwareLocalComponentProvider(provider, cache)
-            return VintageModelProvider().createLocalComponentRegistry(currentBuild, projectStateRegistry, calculatedValueContainerFactory, effectiveProvider, otherBuildProvider, projectArtifactSetResolver)
+            return VintageModelProvider().createLocalComponentRegistry(currentBuild, projectStateRegistry, calculatedValueContainerFactory, effectiveProvider, otherBuildProvider)
         }
     }
 
@@ -213,10 +208,9 @@ class DefaultBuildModelControllerServices(
             projectStateRegistry: ProjectStateRegistry,
             calculatedValueContainerFactory: CalculatedValueContainerFactory,
             provider: LocalComponentProvider,
-            otherBuildProvider: LocalComponentInAnotherBuildProvider,
-            projectArtifactSetResolver: ProjectArtifactSetResolver
+            otherBuildProvider: LocalComponentInAnotherBuildProvider
         ): LocalComponentRegistry {
-            return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, projectStateRegistry, calculatedValueContainerFactory, provider, otherBuildProvider, projectArtifactSetResolver)
+            return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, projectStateRegistry, calculatedValueContainerFactory, provider, otherBuildProvider)
         }
     }
 }

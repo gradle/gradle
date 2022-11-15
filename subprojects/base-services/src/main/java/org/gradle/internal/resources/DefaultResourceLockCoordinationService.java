@@ -17,31 +17,26 @@
 package org.gradle.internal.resources;
 
 import com.google.common.base.Supplier;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 public class DefaultResourceLockCoordinationService implements ResourceLockCoordinationService, Closeable {
     private final Object lock = new Object();
     private final Set<Action<ResourceLock>> releaseHandlers = new LinkedHashSet<Action<ResourceLock>>();
-    private final ThreadLocal<List<ResourceLockState>> currentState = new ThreadLocal<List<ResourceLockState>>() {
-        @Override
-        protected List<ResourceLockState> initialValue() {
-            return Lists.newArrayList();
-        }
-    };
+    private Thread currentOwner;
+    private DefaultResourceLockState currentState;
 
     @Override
     public void close() throws IOException {
@@ -101,23 +96,25 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
 
     @Override
     public boolean withStateLock(Transformer<ResourceLockState.Disposition, ResourceLockState> stateLockAction) {
-        while (true) {
+        synchronized (lock) {
             DefaultResourceLockState resourceLockState = new DefaultResourceLockState();
-            ResourceLockState.Disposition disposition;
-            synchronized (lock) {
-                try {
-                    currentState.get().add(resourceLockState);
+            DefaultResourceLockState previous = startOperation(resourceLockState);
+            try {
+                while (true) {
+                    ResourceLockState.Disposition disposition;
                     disposition = stateLockAction.transform(resourceLockState);
-
                     switch (disposition) {
                         case RETRY:
                             resourceLockState.releaseLocks();
                             maybeNotifyStateChange(resourceLockState);
+                            resourceLockState.reset();
+                            finishOperation(previous);
                             try {
                                 lock.wait();
                             } catch (InterruptedException e) {
                                 throw UncheckedException.throwAsUncheckedException(e);
                             }
+                            startOperation(resourceLockState);
                             break;
                         case FINISHED:
                             maybeNotifyStateChange(resourceLockState);
@@ -128,24 +125,45 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                         default:
                             throw new IllegalArgumentException("Unhandled disposition type: " + disposition.name());
                     }
-                } catch (Throwable t) {
-                    resourceLockState.releaseLocks();
-                    throw UncheckedException.throwAsUncheckedException(t);
-                } finally {
-                    currentState.get().remove(resourceLockState);
                 }
+            } catch (Throwable t) {
+                resourceLockState.releaseLocks();
+                throw UncheckedException.throwAsUncheckedException(t);
+            } finally {
+                finishOperation(previous);
             }
+        }
+    }
+
+    private DefaultResourceLockState startOperation(DefaultResourceLockState newState) {
+        if (currentOwner == null) {
+            currentOwner = Thread.currentThread();
+        } else if (currentOwner != Thread.currentThread()) {
+            throw new IllegalStateException("Another thread holds the state lock.");
+        }
+        DefaultResourceLockState previousState = currentState;
+        this.currentState = newState;
+        return previousState;
+    }
+
+    private void finishOperation(@Nullable DefaultResourceLockState previous) {
+        if (currentOwner != Thread.currentThread()) {
+            throw new IllegalStateException("Another thread holds the state lock.");
+        }
+        currentState = previous;
+        if (currentState == null) {
+            currentOwner = null;
         }
     }
 
     @Override
     public ResourceLockState getCurrent() {
-        List<ResourceLockState> current = currentState.get();
-        if (!current.isEmpty()) {
-            int numStates = current.size();
-            return current.get(numStates - 1);
-        } else {
-            return null;
+        synchronized (lock) {
+            if (currentOwner != Thread.currentThread()) {
+                return null;
+            } else {
+                return currentState;
+            }
         }
     }
 
@@ -210,6 +228,16 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                     rollback = false;
                 }
             }
+        }
+
+        public void reset() {
+            if (lockedResources != null) {
+                lockedResources.clear();
+            }
+            if (unlockedResources != null) {
+                unlockedResources.clear();
+            }
+            rollback = false;
         }
     }
 

@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.util.Arrays;
 import java.util.EnumMap;
 
 
@@ -131,7 +132,10 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     }
 
     private JvmInstallationMetadata parseExecOutput(File jdkPath, String probeResult) {
-        String[] split = probeResult.split(System.getProperty("line.separator"));
+        String[] split = Arrays.stream(probeResult.split(System.getProperty("line.separator")))
+                .filter(line -> line.startsWith(MetadataProbe.MARKER_PREFIX))
+                .map(line -> line.substring(MetadataProbe.MARKER_PREFIX.length()))
+                .toArray(String[]::new);
         if (split.length != ProbedSystemProperty.values().length - 1) { // -1 because of Z_ERROR
             final String errorMessage = "Unexpected command output: \n" + probeResult;
             logger.info("Failed to parse JVM installation metadata output at '" + jdkPath + "'. " + errorMessage);
@@ -156,8 +160,7 @@ public class DefaultJvmMetadataDetector implements JvmMetadataDetector {
     }
 
     private File writeProbeClass(File tmpDir) {
-        File probe = new MetadataProbe().writeClass(tmpDir);
-        return probe;
+        return new MetadataProbe().writeClass(tmpDir);
     }
 
 }

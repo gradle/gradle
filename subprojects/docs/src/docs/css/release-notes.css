@@ -12,7 +12,7 @@
 .table-of-contents ul li:before,
 .topic ul li:before {
   color: #02303A;
-  content: '\00276F';
+  content: '\002022';
   font: 0.9em bold sans-serif;
   margin-left: -1em;
   margin-right: 0.4em;

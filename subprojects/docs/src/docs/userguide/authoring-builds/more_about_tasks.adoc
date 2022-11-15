@@ -365,7 +365,7 @@ Gradle offers multiple ways to skip the execution of a task.
 [[sec:using_a_predicate]]
 === Using a predicate
 
-You can use the `onlyIf()` method to attach a predicate to a task. The task's actions are only executed if the predicate evaluates to true. You implement the predicate as a closure. The closure is passed the task as a parameter, and should return true if the task should execute and false if the task should be skipped. The predicate is evaluated just before the task is due to be executed.
+You can use link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(org.gradle.api.specs.Spec)[`Task.onlyIf`] to attach a predicate to a task. The task's actions are only executed if the predicate evaluates to true. The predicate is passed the task as a parameter, and should return true if the task should execute and false if the task should be skipped. The predicate is evaluated just before the task is executed.
 Passing an optional reason string to `onlyIf()` is useful for explaining why the task is skipped.
 
 .Skipping a task using a predicate
@@ -533,7 +533,7 @@ include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskC
 .Output of `gradle processTemplates` (run again)
 ----
 > gradle processTemplates
-include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithInputOutputAnnotationsUpToDate.out[]
+include::{snippetsPath}/tasks/incrementalBuild-customTaskClass/tests/customTaskClassWithInputOutputAnnotationsUpToDateWithoutCC.out[]
 ----
 ====
 
@@ -840,7 +840,7 @@ Specifically, they never can be:
 * executed in parallel with other tasks, even if <<multi_project_configuration_and_execution.adoc#sec:parallel_execution,parallel execution>> is enabled,
 * executed incrementally.
 
-The in-memory representation of the file system state (aka _<<gradle_daemon.adoc#sec:daemon_watch_fs,Virtual File System>>)_ is also invalidated before an invalid task is executed.
+The in-memory representation of the file system state (aka _<<file_system_watching.adoc#sec:daemon_watch_fs,Virtual File System>>)_ is also invalidated before an invalid task is executed.
 ====
 
 [[sec:task_input_output_runtime_api]]
@@ -862,7 +862,15 @@ This runtime API is provided through a couple of aptly named properties that are
 
 These objects have methods that allow you to specify files, directories and values which constitute the task’s inputs and outputs.
 In fact, the runtime API has almost feature parity with the annotations.
-All it lacks is an equivalent for `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`.
+
+It lacks equivalents for 
+
+* `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`
+* `@link:{javadocPath}/org/gradle/api/tasks/Classpath.html[Classpath]`
+* `@link:{javadocPath}/org/gradle/api/tasks/CompileClasspath.html[CompileClasspath]`
+* `@link:{javadocPath}/org/gradle/api/tasks/LocalState.html[LocalState]`
+* `@link:{javadocPath}/org/gradle/api/tasks/ReplacedBy.html[ReplacedBy]`
+* `@link:{javadocPath}/org/gradle/api/tasks/Internal.html[Internal]`
 
 Let’s take the template processing example from before and see how it would look as an ad-hoc task that uses the runtime API:
 

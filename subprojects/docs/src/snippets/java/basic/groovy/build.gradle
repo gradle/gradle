@@ -83,7 +83,10 @@ javadoc {
 
 
 // tag::skip-tests-condition[]
-test.onlyIf("mySkipTests property is not set") { !project.hasProperty('mySkipTests') }
+def skipTestsProvider = providers.gradleProperty('mySkipTests')
+test.onlyIf("mySkipTests property is not set") {
+    !skipTestsProvider.present
+}
 // end::skip-tests-condition[]
 
 // tag::java-compiler-options[]

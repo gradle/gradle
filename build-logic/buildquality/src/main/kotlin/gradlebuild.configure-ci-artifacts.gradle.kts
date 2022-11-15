@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import gradlebuild.basics.BuildEnvironment
-import gradlebuild.cleanup.tasks.KillLeakingJavaProcesses
 import gradlebuild.docs.FindBrokenInternalLinks
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.performance.tasks.PerformanceTest
@@ -26,7 +25,6 @@ if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors"
     val globalExtension = rootProject.extensions.getByType<TestFilesCleanupBuildServiceRootExtension>()
     project.gradle.taskGraph.whenReady {
         val allTasks = this@whenReady.allTasks
-        globalExtension.cleanupRunnerStep.set(allTasks.filterIsInstance<KillLeakingJavaProcesses>().isNotEmpty())
         val taskPathToReports = allTasks.associate { it.path to it.customReports() + it.attachedReportLocations() }.filter { it.value.isNotEmpty() }
         globalExtension.taskPathToReports.set(taskPathToReports)
     }
@@ -45,7 +43,7 @@ fun Task.customReports(): List<File> = when (this) {
 }
 
 fun Task.attachedReportLocations() = when (this) {
-    is JapicmpTask -> listOf(richReport.destinationDir.resolve(richReport.reportName))
+    is JapicmpTask -> listOf(richReport.get().destinationDir.get().asFile.resolve(richReport.get().reportName.get()))
     is PerformanceTest -> listOf(reportDir.parentFile)
     else -> emptyList()
 }

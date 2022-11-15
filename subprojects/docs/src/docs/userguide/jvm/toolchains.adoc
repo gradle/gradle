@@ -34,7 +34,7 @@ include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",fil
 include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin/",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=toolchain]"]
 ====
 
-Executing the build (e.g. using `gradle check`) will now handle several things for you and others running your build
+Executing the build (e.g. using `gradle check`) will now handle several things for you and others running your build:
 
 1. Setup all compile, test and javadoc tasks to use the defined toolchain which may be different than the one Gradle itself uses
 2. Gradle detects <<#sec:auto_detection,locally installed JVMs>>
@@ -62,7 +62,8 @@ include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradl
 
 If the vendor you want to target is not a known vendor, you can still restrict the toolchain to those matching the `java.vendor` system property of the available toolchains.
 
-Given the snippet below, only toolchain are taken into accounts whose `java.vendor` property contains the given match string. Matching is done case-insensitive.
+The following snippet uses filtering to include a subset of available toolchains. This example only includes toolchains whose `java.vendor` property contains the given match string.
+The matching is done in a case-insensitive manner.
 
 ====
 include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-vendor]"]
@@ -92,6 +93,23 @@ include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradl
 The Java major version, the vendor (if specified) and implementation (if specified)
 will be tracked as an input for compilation and test execution.
 ====
+
+[[sec:configuring_toolchain_specifications]]
+=== Configuring toolchain specifications
+
+Gradle allows configuring multiple properties that affect the selection of a toolchain, such as language version or vendor.
+Even though these properties can be configured independently, the configuration must follow certain rules in order to form a _valid_ specification.
+
+A `JavaToolchainSpec` is considered _valid_ in two cases:
+
+1. when no properties have been set, i.e. the specification is _empty_;
+2. when `languageVersion` has been set, optionally followed by setting any other property.
+
+In other words, if a vendor or an implementation are specified, they must be accompanied by the language version.
+Gradle distinguishes between toolchain specifications that configure the language version and the ones that do not.
+A specification without a language version, in most cases, would be treated as a one that selects the toolchain of the current build.
+
+Usage of _invalid_ instances of `JavaToolchainSpec` results in a build error since Gradle 8.0.
 
 
 == Specify custom toolchains for individual tasks
@@ -183,29 +201,35 @@ In order to disable auto-detection, you can use the `org.gradle.java.installatio
 * Or put `org.gradle.java.installations.auto-detect=false` into your `gradle.properties` file.
 
 [[sec:provisioning]]
-== Auto Provisioning
+== Auto-Provisioning
 
-If Gradle can't find a locally available toolchain which matches the requirements of the build, it will automatically try to download it from Adoptium or AdoptOpenJDK.
-By default, it will request a HotSpot JDK matching the current operating system and architecture.
-Provisioned JDKs are installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>.
+If Gradle can't find a locally available toolchain that matches the requirements of the build, it can automatically download one.
+By default, Gradle downloads an Adoptium or AdoptOpenJDK that matches the current operating system and architecture.
+Gradle installs these JDKs in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>.
+For further details see the <<#sub:download_repositories,Toolchain Download Repositories>> section below.
 
 [NOTE]
 ====
-Gradle will only download JDK versions for GA releases.
+Gradle only downloads JDK versions for GA releases.
 There is no support for downloading early access versions.
 ====
 
-Once a provisioned JDK has been installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>> it becomes one of the JDKs visible to <<#sec:auto_detection,auto detection>>
+Once installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>, a provisioned JDK becomes one of the JDKs visible to <<#sec:auto_detection,auto-detection>>
 and can be used by any subsequent builds, just like any other JDK installed on the system.
 Since auto-provisioning only kicks in when auto-detection fails to find a matching JDK, auto-provisioning can only download new JDKs and is in no way involved in updating any of the already installed ones.
 None of the auto-provisioned JDKs will ever be revisited and automatically updated by auto-provisioning, even if there is a newer minor version available for them.
 
-By default, the public https://api.adoptium.net/[Adoptium] and https://api.adoptopenjdk.net/[AdoptOpenJDK APIs] are used to determine and download a matching JDK. Gradle will try Adoptium first, and if it fails to find a matching JDK, it will try AdoptOpenJDK.
+[[sub:adoptium_and_adopt_open_jdk]]
+=== Default toolchain resolvers
+
+Gradle uses the public https://api.adoptium.net/[Adoptium] and https://api.adoptopenjdk.net/[AdoptOpenJDK] APIs
+by default to determine and download a matching JDK.
+Gradle first attempts to download a JDK from Adoptium. If Adoptium does not provide a matching JDK, Gradle attempts to download from AdoptOpenJDK.
 
 [WARNING]
 ====
 Due to changes in AdoptOpenJDK and the migration to https://adoptium.net/[Eclipse Adoptium], the endpoint now serves JDKs from https://adoptium.net/[Eclipse Adoptium] or https://developer.ibm.com/languages/java/semeru-runtimes/[IBM Semeru] and no longer builds from AdoptOpenJDK.
-Using `JvmVendorSpec.ADOPTOPENJDK` and having it resolved through auto provisioning will result in a deprecation warning.
+Using `JvmVendorSpec.ADOPTOPENJDK` and having it resolved through auto-provisioning results in a deprecation warning.
 ====
 
 In case you want to use another server that is compatible with v3 of the AdoptOpenJDK API, you can point Gradle to use a different host.
@@ -221,6 +245,38 @@ You can also override the Adoptium API host with `org.gradle.jvm.toolchain.insta
 ====
 Only secure protocols like `https` are accepted.
 This is required to make sure no one can tamper with the download in flight.
+====
+
+[[sub:download_repositories]]
+=== Toolchain Download Repositories
+
+Starting in Gradle 7.6, you can configure arbitrary toolchain repositories.
+For details on writing plugins for toolchain provisioning, consult the <<toolchain_plugins.adoc#toolchain_plugins,Toolchain Resolver Plugins>> page.
+
+[IMPORTANT]
+====
+When you configure a toolchain repository, Gradle no longer uses the built-in default Adoptium and OpenJDK toolchain respositories.
+====
+
+Consider two toolchain resolver plugins:
+
+* One contains a resolver named `AzulResolver`, which downloads toolchains from Azul.
+* The other contains a resolver named `AdoptiumResolver`, which duplicates the built-in AdoptiumJDK toolchain repository by downloading toolchains from AdoptiumJDK.
+
+The following example uses these toolchain resolvers in a build via the `toolchainManagement` block in the settings file:
+
+====
+include::sample[dir="snippets/java/toolchain-management/groovy/",files="settings.gradle[tags=toolchain-management]"]
+include::sample[dir="snippets/java/toolchain-management/kotlin/",files="settings.gradle.kts[tags=toolchain-management]"]
+====
+<1> In the `toolchainManagement` block, the `jvm` block contains configuration for Java toolchains.
+<2> The `javaRepositories` block defines named Java toolchain repository configurations. Use the `resolverClass` property to link these configurations to plugins.
+<3> You can configure toolchain repositories with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options>> used for dependency management.
+<4> Toolchain declaration order matters. Gradle downloads from the first repository that provides a match, starting with the first repository in the list.
+
+[WARNING]
+====
+The `jvm` block in `toolchainManagement` only resolves after applying a toolchain resolver plugin.
 ====
 
 [[sub:viewing_toolchains]]
@@ -307,16 +363,16 @@ org.gradle.java.installations.paths=/custom/path/jdk1.8,/shared/jre11
 
 [NOTE]
 ====
-Custom toolchains are not prioritized over <<sec:auto_detection,auto-detected>> ones. If auto-detection is turned on, custom toolchains
-can still be specified but all they will do is to extend the set of detected JRE/JDK locations. Among these locations, one will be picked
-according to the <<sec:precedence,Toolchain Precedence Rules>>.
+Gradle does not prioritize custom toolchains over <<sec:auto_detection,auto-detected>> toolchains.
+If you enable auto-detection in your build, custom toolchains extend the set of toolchain locations.
+Gradle picks a toolchain according to the <<sec:precedence,Toolchain Precedence Rules>>.
 ====
 
 [[sec:precedence]]
 == Precedence
 
-Gradle will sort all the JDK/JRE installations matching the toolchain specification of the build and will pick the first one. Sorting
-is done based on the following rules:
+Gradle will sort all the JDK/JRE installations matching the toolchain specification of the build and will pick the first one.
+Sorting is done based on the following rules:
 
 . the installation currently running Gradle is preferred over any other
 . JDK installations are preferred over JRE ones
@@ -340,12 +396,17 @@ is done based on the following rules:
 . installation paths take precedence according to their lexicographic ordering (last resort criteria for deterministically deciding
 between installations of the same type, from the same vendor and with the same version)
 
-All these rules are applied as multilevel sorting criteria, *in the order they are shown*. Let's illustrate with an example. Let's
-say that the only criteria we have added to our toolchain specification is that we want Java version 17 and that on our local machine
-following matching installations have been detected: Oracle JRE v17.0.0, Oracle JDK v17.0.1, Microsoft JDK 17.0.0, Microsoft JRE 17.0.1,
-Microsoft JDK 17.0.1. Let's also assume that Gradle is being run by an installation with a different major version, so it's not a match
-of the toolchain specification (the point being that otherwise that installation would have priority over every other one and our example
-would be less informative).
+All these rules are applied as multilevel sorting criteria, *in the order shown*.
+Let's illustrate with an example.
+A toolchain specification requests Java version 17. Gradle detects the following matching installations:
+
+* Oracle JRE v17.0.0
+* Oracle JDK v17.0.1
+* Microsoft JDK 17.0.0
+* Microsoft JRE 17.0.1
+* Microsoft JDK 17.0.1
+
+Assume that Gradle runs on a major Java version other than 17. Otherwise, that installation would have priority.
 
 When we apply the above rules to sort this set we will end up with following ordering:
 
@@ -355,11 +416,11 @@ When we apply the above rules to sort this set we will end up with following ord
 . Microsoft JRE v17.0.1
 . Oracle JRE v17.0.1
 
-The JREs end up last after applying the rule of preferring JDKs over JREs. Then in both categories the Microsoft installations
-end up first after applying the rule of preferring that vendor over Oracle. Then the two Microsoft JDKs get ordered further
-by the rule saying that we prefer higher version numbers over lower ones. Applying any more rules won't change the final order.
+Gradle prefers JDKs over JREs, so the JREs come last.
+Gradle prefers the Microsoft vendor over Oracle, so the Microsoft installations come first.
+Gradle prefers higher version numbers, so JDK 17.0.1 comes before JDK 17.0.0.
 
-The installation that will be picked is the first one, the Microsoft JDK 17.0.1.
+So Gradle picks the first match in this order: Microsoft JDK 17.0.1.
 
 [[sec:plugins]]
 == Toolchains for plugin authors

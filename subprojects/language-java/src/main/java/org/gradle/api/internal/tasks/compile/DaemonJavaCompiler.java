@@ -55,10 +55,16 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
 
     @Override
     protected DaemonForkOptions toDaemonForkOptions(JavaCompileSpec spec) {
+        if (!(spec instanceof ForkingJavaCompileSpec)) {
+            throw new IllegalArgumentException(String.format("Expected a %s, but got %s", ForkingJavaCompileSpec.class.getSimpleName(), spec.getClass().getSimpleName()));
+        }
+
+        File executable = Jvm.forHome(((ForkingJavaCompileSpec) spec).getJavaHome()).getJavaExecutable();
+
         MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(forkOptions);
         javaForkOptions.setWorkingDir(daemonWorkingDir);
-        javaForkOptions.setExecutable(findSuitableExecutable(spec));
+        javaForkOptions.setExecutable(executable);
 
         ClassPath compilerClasspath = classPathRegistry.getClassPath("JAVA-COMPILER");
         FlatClassLoaderStructure classLoaderStructure = new FlatClassLoaderStructure(new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()));
@@ -68,16 +74,6 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
             .withClassLoaderStructure(classLoaderStructure)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
-    }
-
-    private File findSuitableExecutable(JavaCompileSpec spec) {
-        final MinimalJavaCompilerDaemonForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
-        if (forkOptions.getExecutable() != null) {
-            return new File(forkOptions.getExecutable());
-        } else if (forkOptions.getJavaHome() != null) {
-            return Jvm.forHome(forkOptions.getJavaHome()).getJavaExecutable();
-        }
-        return Jvm.current().getJavaExecutable();
     }
 
     public static class JavaCompilerParameters extends CompilerParameters {

@@ -663,44 +663,6 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
-    def "nags when not using a library name ending with 'Libs'"() {
-        settingsFile << """
-            dependencyResolutionManagement {
-                versionCatalogs {
-                    notLibsEnding {
-                        library("myLib", "org.gradle.test", "lib").version {
-                            require "1.0"
-                        }
-                    }
-                }
-            }
-        """
-        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
-        buildFile << """
-            apply plugin: 'java-library'
-
-            dependencies {
-                implementation notLibsEnding.myLib
-            }
-        """
-
-        when:
-        lib.pom.expectGet()
-        lib.artifact.expectGet()
-
-        then:
-        run ':checkDeps'
-
-        then:
-        executer.expectDeprecationWarning("The name of version catalogs must end with 'Libs' to reduce chances of extension conflicts.")
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module('org.gradle.test:lib:1.0')
-            }
-        }
-
-    }
-
     def "extension can be used in any subproject"() {
         settingsFile << """
             dependencyResolutionManagement {
@@ -1884,6 +1846,7 @@ Second: 1.1"""
         """
 
         when:
+        executer.withStacktraceEnabled()
         fails "help"
 
         then:
@@ -1916,6 +1879,7 @@ Second: 1.1"""
         """
 
         when:
+        executer.withStacktraceEnabled()
         fails "help"
 
         then:
@@ -2233,52 +2197,5 @@ Second: 1.1"""
         "versions.myVersion" | "1.0"
         "plugins.myPlugin"   | "org.gradle.test:1.0"
         "bundles.myBundle"   | "[org.gradle.test:lib:3.0.5]"
-    }
-
-    def "findDependency is deprecated"() {
-        given:
-        settingsFile << """
-            dependencyResolutionManagement {
-                versionCatalogs {
-                    libs {
-                        library("myLib", "org.gradle.test:lib:3.0.5")
-                    }
-                }
-            }
-        """
-
-        buildFile << """
-            def depProvider = project.extensions.getByType(VersionCatalogsExtension).named("libs").findDependency("myLib").orElse(null)
-            assert(depProvider != null)
-            assert("org.gradle.test:lib:3.0.5" == depProvider.get().toString())
-        """
-
-        executer.expectDocumentedDeprecationWarning("The VersionCatalog.findDependency(String) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the findLibrary(String) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#version_catalog_deprecations")
-
-        expect:
-        succeeds ':help'
-    }
-
-    def "getDependencyAliases is deprecated"() {
-        given:
-        settingsFile << """
-            dependencyResolutionManagement {
-                versionCatalogs {
-                    libs {
-                        library("myLib", "org.gradle.test:lib:3.0.5")
-                    }
-                }
-            }
-        """
-
-        buildFile << """
-            def aliases = project.extensions.getByType(VersionCatalogsExtension).named("libs").dependencyAliases
-            assert(aliases == ["myLib"])
-        """
-
-        executer.expectDocumentedDeprecationWarning("The VersionCatalog.getDependencyAliases() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the getLibraryAliases() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#version_catalog_deprecations")
-
-        expect:
-        succeeds ':help'
     }
 }

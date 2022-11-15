@@ -48,7 +48,7 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }
         }
-        killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", true)
+        killProcessStep("KILL_PROCESSES_STARTED_BY_GRADLE", os, arch)
     }
 
     steps {

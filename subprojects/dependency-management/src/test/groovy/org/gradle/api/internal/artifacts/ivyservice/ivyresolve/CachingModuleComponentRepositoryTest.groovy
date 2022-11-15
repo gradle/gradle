@@ -38,7 +38,7 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
+import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
@@ -73,7 +73,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         }
 
         def file = new File("local")
-        def result = Stub(BuildableArtifactResolveResult) {
+        def result = Stub(BuildableArtifactFileResolveResult) {
             getFile() >> file
             getFailure() >> null
         }

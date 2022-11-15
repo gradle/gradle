@@ -33,12 +33,10 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskPropertyTestUtils
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
@@ -48,6 +46,7 @@ import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.internal.snapshot.impl.ImplementationValue
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TestUtil
 import org.gradle.work.InputChanges
 
 import java.util.concurrent.Callable
@@ -58,13 +57,10 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.BrokenTaskWithInputDir
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.BrokenTaskWithInputFiles
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.NamedBean
-import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskOverridingDeprecatedIncrementalChangesActions
-import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskOverridingInputChangesActions
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskUsingInputChanges
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithBooleanInput
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithBridgeMethod
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithDestroyable
-import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithIncrementalAction
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInheritedMethod
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInput
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInputDir
@@ -72,9 +68,7 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithInputFiles
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithJavaBeanCornerCaseProperties
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithLocalState
-import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMixedMultipleIncrementalActions
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultiParamAction
-import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleIncrementalActions
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleInputChangesActions
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleMethods
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithMultipleProperties
@@ -93,11 +87,7 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputDirs
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputFile
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOutputFiles
-import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedActions
-import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions
-import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedIncrementalAndInputChangesActions
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverloadedInputChangesActions
-import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverriddenIncrementalAction
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverriddenInputChangesAction
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithOverriddenMethod
 import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTasks.TaskWithProtectedMethod
@@ -178,20 +168,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         thrown(RuntimeException)
     }
 
-    @SuppressWarnings("GrDeprecatedAPIUsage")
-    def createsContextualActionForIncrementalTaskAction() {
-        given:
-        def action = Mock(Action)
-        def task = expectTaskCreated(TaskWithIncrementalAction, action)
-
-        when:
-        execute(task)
-
-        then:
-        1 * action.execute(_ as IncrementalTaskInputs)
-        0 * _
-    }
-
     def createsContextualActionForInputChangesTaskAction() {
         given:
         def action = Mock(Action)
@@ -202,62 +178,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
 
         then:
         1 * action.execute(_ as InputChanges)
-        0 * _
-    }
-
-    @SuppressWarnings("GrDeprecatedAPIUsage")
-    def createsContextualActionForOverriddenIncrementalTaskAction() {
-        given:
-        def action = Mock(Action)
-        def superAction = Mock(Action)
-        def task = expectTaskCreated(TaskWithOverriddenIncrementalAction, action, superAction)
-
-        when:
-        execute(task)
-
-        then:
-        1 * action.execute(_ as IncrementalTaskInputs)
-        0 * _
-    }
-
-    @SuppressWarnings("GrDeprecatedAPIUsage")
-    def "uses IncrementalTaskInputsMethod when it is overriden"() {
-        given:
-        def changesAction = Mock(Action)
-        def task = expectTaskCreated(TaskOverridingDeprecatedIncrementalChangesActions, changesAction)
-
-        when:
-        execute(task)
-
-        then:
-        1 * changesAction.execute(_ as InputChanges)
-        1 * changesAction.execute(_ as IncrementalTaskInputs)
-        0 * _
-    }
-
-    def "uses InputChanges method when two actions are present on the same class"() {
-        given:
-        def changesAction = Mock(Action)
-        def task = expectTaskCreated(TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions, changesAction)
-
-        when:
-        execute(task)
-
-        then:
-        1 * changesAction.execute(_ as InputChanges)
-        0 * _
-    }
-
-    def "uses overridden InputChanges when two actions are present on the base class"() {
-        given:
-        def changesAction = Mock(Action)
-        def task = expectTaskCreated(TaskOverridingInputChangesActions, changesAction)
-
-        when:
-        execute(task)
-
-        then:
-        1 * changesAction.execute(_ as InputChanges)
         0 * _
     }
 
@@ -293,16 +213,12 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         e.message == failureMessage
 
         where:
-        type                                                | failureMessage
-        TaskWithMultipleIncrementalActions                  | "Cannot have multiple @TaskAction methods accepting an InputChanges or IncrementalTaskInputs parameter."
-        TaskWithStaticMethod                                | "Cannot use @TaskAction annotation on static method TaskWithStaticMethod.doStuff()."
-        TaskWithMultiParamAction                            | "Cannot use @TaskAction annotation on method TaskWithMultiParamAction.doStuff() as this method takes multiple parameters."
-        TaskWithSingleParamAction                           | "Cannot use @TaskAction annotation on method TaskWithSingleParamAction.doStuff() because int is not a valid parameter to an action method."
-        TaskWithOverloadedActions                           | "Cannot use @TaskAction annotation on multiple overloads of method TaskWithOverloadedActions.doStuff()"
-        TaskWithOverloadedInputChangesActions               | "Cannot use @TaskAction annotation on multiple overloads of method TaskWithOverloadedInputChangesActions.doStuff()"
-        TaskWithOverloadedIncrementalAndInputChangesActions | "Cannot use @TaskAction annotation on multiple overloads of method TaskWithOverloadedIncrementalAndInputChangesActions.doStuff()"
-        TaskWithMultipleInputChangesActions                 | "Cannot have multiple @TaskAction methods accepting an InputChanges or IncrementalTaskInputs parameter."
-        TaskWithMixedMultipleIncrementalActions             | "Cannot have multiple @TaskAction methods accepting an InputChanges or IncrementalTaskInputs parameter."
+        type                                  | failureMessage
+        TaskWithStaticMethod                  | "Cannot use @TaskAction annotation on static method TaskWithStaticMethod.doStuff()."
+        TaskWithMultiParamAction              | "Cannot use @TaskAction annotation on method TaskWithMultiParamAction.doStuff() as this method takes multiple parameters."
+        TaskWithSingleParamAction             | "Cannot use @TaskAction annotation on method TaskWithSingleParamAction.doStuff() because int is not a valid parameter to an action method."
+        TaskWithOverloadedInputChangesActions | "Cannot use @TaskAction annotation on multiple overloads of method TaskWithOverloadedInputChangesActions.doStuff()"
+        TaskWithMultipleInputChangesActions   | "Cannot have multiple @TaskAction methods accepting an InputChanges parameter."
     }
 
     def "works for #type.simpleName"() {
@@ -1011,9 +927,15 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         T task = AbstractTask.injectIntoNewInstance(project, TaskIdentity.create(name, type, project), new Callable<T>() {
             T call() throws Exception {
                 if (params.length > 0) {
+                    // TODO: This should be using objectFactory too because that more closely matches what the production code does.
+                    // The test code is more lenient because this just assumes the first constructor is the correct one.
+                    // This allows us to pass null to the constructor scenarios where the production code would not allow it.
+                    // To switch to objectFactory, we would need to rewrite the tests to no longer pass null as a parameter.
+                    // return TestUtil.newInstance(type, params)
+                    assert type.constructors.size() == 1
                     return type.cast(type.constructors[0].newInstance(params))
                 } else {
-                    return JavaReflectionUtil.newInstance(type)
+                    return TestUtil.newInstance(type)
                 }
             }
         })

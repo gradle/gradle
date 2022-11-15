@@ -44,7 +44,8 @@ class ProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec im
 
                 configurations {
                     broken {
-                        canBeResolved = true
+                        canBeConsumed = true
+                        canBeResolved = false
                         attributes.attribute(color, 'orange')
                         outgoing {
                             artifact(b.flatMap { it.output })

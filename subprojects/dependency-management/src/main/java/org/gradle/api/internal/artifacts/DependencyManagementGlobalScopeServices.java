@@ -203,7 +203,6 @@ class DependencyManagementGlobalScopeServices {
             ),
             instantiationScheme
         );
-        InstantiationScheme legacyInstantiationScheme = instantiatorFactory.injectScheme();
-        return new ArtifactTransformActionScheme(instantiationScheme, inspectionScheme, legacyInstantiationScheme);
+        return new ArtifactTransformActionScheme(instantiationScheme, inspectionScheme);
     }
 }

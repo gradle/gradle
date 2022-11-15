@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import com.gradle.enterprise.gradleplugin.testselection.PredictiveTestSelectionExtension
 import gradlebuild.archtest.PackageCyclesExtension
 
 plugins {
@@ -48,7 +49,7 @@ testing {
         create("archTest", JvmTestSuite::class) {
             useJUnitJupiter()
             dependencies {
-                implementation(project)
+                implementation(project.dependencies.create(project))
                 notForAccessorGeneration {
                     implementation(project.dependencies.platform(project(":distributions-dependencies")))
                     implementation(project(":internal-architecture-testing"))
@@ -60,6 +61,10 @@ testing {
                         testClassesDirs += sharedArchTestClasses.filter { it.isDirectory }
                         classpath += sourceSets.main.get().output.classesDirs
                         systemProperty("package.cycle.exclude.patterns", packageCyclesExtension.excludePatterns.get().joinToString(","))
+                        configure<PredictiveTestSelectionExtension> {
+                            // PTS doesn't work well with architecture tests which scan all classes
+                            enabled.set(false)
+                        }
                     }
                 }
             }
