@@ -16,11 +16,11 @@
 
 package org.gradle.integtests.resolve.api
 
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
-    def "default usage for new configuration created without role is to allow anything"() {
+    // region Roleless (Implicit LEGACY Role) Configurations
+    def "default usage for roleless configuration is to allow anything"() {
         given:
         buildFile << """
             configurations {
@@ -43,6 +43,79 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         succeeds('checkConfUsage')
     }
 
+    def "can prevent usage mutation of roleless configurations"() {
+        given:
+        buildFile << """
+            configurations {
+                custom {
+                    assert canBeResolved == true
+                    preventUsageMutation()
+                    canBeResolved = false
+                }
+            }
+        """
+
+        expect:
+        fails 'help'
+
+        and:
+        assertUsageLockedFailure('custom')
+    }
+
+    def "can prevent usage mutation of roleless configuration #configuration added by java plugin meant for consumption"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            configurations {
+                $configuration {
+                    assert canBeConsumed == true
+                    preventUsageMutation()
+                    canBeConsumed = false
+                }
+            }
+        """
+
+        expect:
+        fails 'help'
+
+        and:
+        assertUsageLockedFailure(configuration, 'Intended Consumable')
+
+        where:
+        configuration << ['runtimeElements', 'apiElements']
+    }
+
+    def "can prevent usage mutation of roleless configuration #configuration added by java plugin meant for resolution"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            configurations {
+                $configuration {
+                    assert canBeResolved == true
+                    preventUsageMutation()
+                    canBeResolved = false
+                }
+            }
+        """
+
+        expect:
+        fails 'help'
+
+        and:
+        assertUsageLockedFailure(configuration, 'Intended Resolvable')
+
+        where:
+        configuration << ['runtimeClasspath', 'compileClasspath']
+    }
+    // endregion Roleless (Implicit LEGACY Role) Configurations
+
+    // region Role-Based Configurations
     def "usage allowed for role-based configuration #role is as intended"() {
         given:
         buildFile << """
@@ -64,42 +137,43 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         succeeds('checkConfUsage')
 
         where:
-        role            | createRoleCall            || consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
-        'consumable'    | "consumable('custom')"    || true        | false         | false             | false                 | false                 | false
-        'resolvable'    | "resolvable('custom')"    || false       | true          | false             | false                 | false                 | false
-        'bucket'        | "bucket('custom')"        || false       | false         | true              | false                 | false                 | false
-//        true        | true          | true              | false                 | true                  | true                          || ConfigurationRoles.DEPRECATED_CONSUMABLE
-//        true        | true          | true              | true                  | false                 | true                          || ConfigurationRoles.DEPRECATED_RESOLVABLE
+        role                    | createRoleCall                    || consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
+        'consumable'            | "consumable('custom')"            || true        | false         | false             | false                 | false                 | false
+        'resolvable'            | "resolvable('custom')"            || false       | true          | false             | false                 | false                 | false
+        'bucket'                | "bucket('custom')"                || false       | false         | true              | false                 | false                 | false
+        'deprecated consumable' | "deprecatedConsumable('custom')"  || true        | true          | true              | false                 | true                  | true
+        'deprecated resolvable' | "deprecatedResolvable('custom')"  || true        | true          | true              | true                  | false                 | true
     }
+    // endregion Role-Based Configurations
 
-    def "can prevent usage mutation of default legacy role"() {
+    // region Custom Roles
+    def "can create custom role"() {
         given:
         buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+
+            ConfigurationRole customRole = ConfigurationRole.forUsage('custom', true, true, false, false, false, false)
+            configurations.createWithRole('custom', customRole)
+
             configurations {
                 custom {
-                    preventUsageMutation()
-                    canBeResolved = false
+                    assert configurations.custom.canBeConsumed
+                    assert configurations.custom.canBeResolved
+                    assert !configurations.custom.canBeDeclaredAgainst
+                    assert !configurations.custom.deprecatedForConsumption
+                    assert !configurations.custom.deprecatedForResolution
+                    assert !configurations.custom.deprecatedForDeclarationAgainst
                 }
             }
         """
 
         expect:
-        fails 'help'
-
-        and:
-        failure.assertHasCause("Cannot change the allowed usage of configuration: 'configuration ':custom'', as it has been locked.")
+        succeeds 'help'
     }
+    // endregion Custom Roles
 
-//    def "warns if explicitly using a deprecated role"() {
-//        given:
-//        buildFile << """
-//            configurations.legacy('custom')
-//        """
-//
-//        when:
-//        executer.expectDocumentedDeprecationWarning("The configuration role: Legacy is deprecated and should no longer be used. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_configurations_should_not_be_used")
-//
-//        then:
-//        succeeds 'help'
-//    }
+    private void assertUsageLockedFailure(String configurationName, String roleName = null) {
+        String suffix = roleName ? "as it was locked upon creation to the role: '$roleName'." : "as it has been locked."
+        failure.assertHasCause("Cannot change the allowed usage of configuration ':$configurationName', $suffix")
+    }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,12 +58,20 @@ public interface ConfigurationRole {
      * @return a role with matching usage characteristics
      */
     static ConfigurationRole forUsage(boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
+        return forUsage(RoleDescriber.CUSTOM_ROLE_NAME, consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated);
+    }
+
+    static ConfigurationRole forUsage(String name, boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
+        return forUsage(name, consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated, null);
+    }
+
+    static ConfigurationRole forUsage(String name, boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated, @Nullable String description) {
         return ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated)
                 .map(ConfigurationRole.class::cast)
                 .orElse(new ConfigurationRole() {
                     @Override
                     public String getName() {
-                        return RoleDescriber.CUSTOM_ROLE_NAME;
+                        return name;
                     }
 
                     @Override
@@ -93,6 +102,15 @@ public interface ConfigurationRole {
                     @Override
                     public boolean isDeclarationAgainstDeprecated() {
                         return declarationAgainstDeprecated;
+                    }
+
+                    @Override
+                    public String describe() {
+                        if (description != null) {
+                            return description;
+                        } else {
+                            return RoleDescriber.describeRole(this);
+                        }
                     }
                 });
     }

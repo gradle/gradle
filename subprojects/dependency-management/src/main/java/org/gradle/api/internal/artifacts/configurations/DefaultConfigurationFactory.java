@@ -113,7 +113,7 @@ public class DefaultConfigurationFactory {
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        return create(name, configurationsProvider, resolutionStrategyFactory, rootComponentMetadataBuilder, ConfigurationRoles.LEGACY);
+        return create(name, configurationsProvider, resolutionStrategyFactory, rootComponentMetadataBuilder, ConfigurationRoles.LEGACY, false);
     }
 
     /**
@@ -124,7 +124,8 @@ public class DefaultConfigurationFactory {
         ConfigurationsProvider configurationsProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         RootComponentMetadataBuilder rootComponentMetadataBuilder,
-        ConfigurationRole role
+        ConfigurationRole role,
+        boolean lockUsage
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
                 listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
@@ -152,7 +153,8 @@ public class DefaultConfigurationFactory {
                 domainObjectCollectionFactory,
                 calculatedValueContainerFactory,
                 this,
-                role
+                role,
+                lockUsage
         );
     }
 }
