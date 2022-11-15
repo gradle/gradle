@@ -39,6 +39,7 @@ import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
@@ -286,14 +287,14 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
         @Inject
         public DefaultElementsConfigurationBuilder(String name, JvmPluginServices jvmEcosystemUtilities, ConfigurationContainerInternal configurations, SoftwareComponentContainer components, TaskContainer tasks) {
-            super(name, jvmEcosystemUtilities, configurations);
+            super(name, jvmEcosystemUtilities, (RoleBasedConfigurationContainerInternal) configurations);
             this.components = components;
             this.tasks = tasks;
         }
 
         @Override
         Configuration build() {
-            Configuration cnf = configurations.maybeCreateWithRole(name, ConfigurationRoles.INTENDED_CONSUMABLE, false, true);
+            Configuration cnf = ((RoleBasedConfigurationContainerInternal) configurations).maybeCreateWithRole(name, ConfigurationRoles.INTENDED_CONSUMABLE, false, true);
             if (description != null) {
                 cnf.setDescription(description);
             }
@@ -433,7 +434,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         @Inject
         public DefaultResolvableConfigurationBuilder(String name,
                                                      JvmPluginServices jvmEcosystemUtilities,
-                                                     ConfigurationContainerInternal configurations) {
+                                                     RoleBasedConfigurationContainerInternal configurations) {
             super(name, jvmEcosystemUtilities, configurations);
         }
 

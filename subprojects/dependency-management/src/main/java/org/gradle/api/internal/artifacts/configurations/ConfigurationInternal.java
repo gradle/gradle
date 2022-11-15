@@ -175,10 +175,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
         }
     }
 
-    default boolean isUsageConsistentWithRoleAtCreation() {
-        return ConfigurationContainerInternal.RoleAssigner.isUsageConsistentWithRole(this, getRoleAtCreation());
-    }
-
     interface VariantVisitor {
         // The artifacts to use when this configuration is used as a configuration
         void visitArtifacts(Collection<? extends PublishArtifact> artifacts);
