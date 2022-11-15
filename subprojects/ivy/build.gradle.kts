@@ -14,10 +14,6 @@ dependencies {
     implementation(project(":file-collections"))
     implementation(project(":resources"))
     implementation(project(":publish"))
-    implementation(project(":plugins")) {
-        because("For JavaPlatformPlugin")
-    }
-    implementation(project(":platform-jvm"))
     implementation(project(":plugin-use"))
     implementation(project(":dependency-management"))
 

@@ -50,7 +50,6 @@ dependencies {
 }
 
 strictCompile {
-    ignoreRawTypes() // raw types used in public API
     ignoreDeprecations() // most of this project has been deprecated
 }
 
