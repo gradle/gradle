@@ -39,14 +39,19 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         when:
         succeeds('foo')
 
-        def loadBuildBuildOperation = buildOperations.first(LoadBuildBuildOperationType)
-        def evaluateSettingsBuildOperation = buildOperations.first(EvaluateSettingsBuildOperationType)
-        def configureBuildBuildOperations = buildOperations.first(ConfigureBuildBuildOperationType)
-        def loadProjectsBuildOperation = buildOperations.first(LoadProjectsBuildOperationType)
+        def loadBuildBuildOperation = buildOperations.only(LoadBuildBuildOperationType)
+        def evaluateSettingsBuildOperation = buildOperations.only(EvaluateSettingsBuildOperationType)
+        def configureBuildBuildOperations = buildOperations.only(ConfigureBuildBuildOperationType)
+        def loadProjectsBuildOperation = buildOperations.only(LoadProjectsBuildOperationType)
+        def buildIdentifiedEvents = buildOperations.progress(BuildIdentifiedProgressDetails)
+        def projectsIdentifiedEvents = buildOperations.progress(ProjectsIdentifiedProgressDetails)
 
         then:
         loadBuildBuildOperation.details.buildPath == ":"
         loadBuildBuildOperation.result.isEmpty()
+
+        buildIdentifiedEvents.size() == 1
+        buildIdentifiedEvents[0].details.buildPath == ':'
 
         evaluateSettingsBuildOperation.details.buildPath == ":"
         evaluateSettingsBuildOperation.result.isEmpty()
@@ -58,6 +63,9 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         loadProjectsBuildOperation.details.buildPath == ":"
         loadProjectsBuildOperation.result.rootProject.projectDir == settingsFile.parent
         buildOperations.first('Configure build').id == loadProjectsBuildOperation.parentId
+
+        projectsIdentifiedEvents.size() == 1
+        projectsIdentifiedEvents[0].details.rootProject.projectDir == settingsFile.parent
     }
 
     def "operations are fired for complex nest of builds"() {
@@ -144,7 +152,8 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
 
         then:
         def loadBuildBuildOperations = buildOperations.all(LoadBuildBuildOperationType)
-        loadBuildBuildOperations*.details.buildPath == [
+
+        def loadOrder = [
             ":",
             ":nested",
             ":nested-nested",
@@ -161,6 +170,7 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
             ":buildSrc",
             ":buildSrc:buildSrc",
         ]
+        loadBuildBuildOperations*.details.buildPath == loadOrder
         loadBuildBuildOperations*.details.includedBy == [
             null,
             ":",
@@ -179,12 +189,12 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
             ":buildSrc",
         ]
 
-        def evaluateSettingsBuildOperations = buildOperations.all(EvaluateSettingsBuildOperationType)
-        evaluateSettingsBuildOperations*.details.buildPath == [
+        def buildIdentifiedEvents = buildOperations.progress(BuildIdentifiedProgressDetails)
+        buildIdentifiedEvents*.details.buildPath == [
             ":",
             ":nested",
-            ":nested-nested",
             ":nested-cli",
+            ":nested-nested",
             ":nested-cli-nested",
             ":nested-nested:buildSrc",
             ":nested-nested:buildSrc:buildSrc",
@@ -197,6 +207,9 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
             ":buildSrc",
             ":buildSrc:buildSrc",
         ]
+
+        def evaluateSettingsBuildOperations = buildOperations.all(EvaluateSettingsBuildOperationType)
+        evaluateSettingsBuildOperations*.details.buildPath == loadOrder
 
         def configureOrder = [
                 ":",
@@ -220,6 +233,8 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         configureBuildBuildOperations*.details.buildPath == configureOrder
         def loadProjectsBuildOperations = buildOperations.all(LoadProjectsBuildOperationType)
         loadProjectsBuildOperations*.details.buildPath == configureOrder
+        def projectsIdentifiedEvents = buildOperations.progress(ProjectsIdentifiedProgressDetails)
+        projectsIdentifiedEvents*.details.buildPath == configureOrder
 
         def dirs = configureOrder
             .collect { it.substring(1) } // strip leading :
