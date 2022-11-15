@@ -75,4 +75,27 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
         plugin.assertAutoApplied(output, false)
     }
 
+    def "is not auto-applied when added to classpath via buildscript block"() {
+        given:
+        def pluginArtifactId = "com.gradle.enterprise:com.gradle.enterprise.gradle.plugin:${plugin.runtimeVersion}"
+        settingsFile << """
+            buildscript {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+                dependencies {
+                    classpath("${pluginArtifactId}")
+                }
+            }
+
+            apply plugin: 'com.gradle.enterprise'
+        """
+
+        when:
+        succeeds "t", "--scan"
+
+        then:
+        plugin.assertAutoApplied(output, false)
+    }
+
 }
