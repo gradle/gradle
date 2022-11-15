@@ -268,7 +268,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         succeeds ":resolve"
 
         then:
-        outputContains("Transforming test-1.3.jar to test-1.3.jar.txt")
+        outputContains("Transforming test1-1.3.jar to test1-1.3.jar.txt")
         outputContains("Transforming a.jar to a.jar.txt")
         outputContains("Transforming b.jar to b.jar.txt")
     }
