@@ -17,7 +17,9 @@
 package org.gradle.initialization;
 
 /**
- * Fired after a build in the tree is discovered and before any other build operations reference that build are executed.
+ * Fired once a build in the tree is discovered and before any other build operations reference that build are executed.
+ *
+ * @since 8.0
  */
 public interface BuildIdentifiedProgressDetails {
     String getBuildPath();

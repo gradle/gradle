@@ -19,6 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.initialization.LoadProjectsBuildOperationType
+import org.gradle.initialization.ProjectsIdentifiedProgressDetails
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
@@ -235,62 +236,96 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCacheRun "help"
 
         then:
-        def event = fixture.first(LoadProjectsBuildOperationType)
-        event.result.rootProject.name == 'thing'
-        event.result.rootProject.path == ':'
-        event.result.rootProject.children.size() == 3 // All projects are created when storing
+        def op1 = fixture.only(LoadProjectsBuildOperationType)
+        op1.result.rootProject.name == 'thing'
+        op1.result.rootProject.path == ':'
+        op1.result.rootProject.children.size() == 3 // All projects are created when storing
+
+        def events1 = fixture.progress(ProjectsIdentifiedProgressDetails)
+        events1.size() == 1
+        events1[0].details.rootProject.name == 'thing'
+        events1[0].details.rootProject.path == ':'
+        events1[0].details.rootProject.children.size() == 3
 
         when:
         configurationCacheRun "help"
 
         then:
-        def event2 = fixture.first(LoadProjectsBuildOperationType)
-        event2.result.rootProject.name == 'thing'
-        event2.result.rootProject.path == ':'
-        event2.result.rootProject.projectDir == testDirectory.absolutePath
-        event2.result.rootProject.children.empty // None of the child projects are created when loading, as they have no tasks scheduled
+        def op2 = fixture.only(LoadProjectsBuildOperationType)
+        op2.result.rootProject.name == 'thing'
+        op2.result.rootProject.path == ':'
+        op2.result.rootProject.projectDir == testDirectory.absolutePath
+        op2.result.rootProject.children.empty // None of the child projects are created when loading, as they have no tasks scheduled
+
+        def events2 = fixture.progress(ProjectsIdentifiedProgressDetails)
+        events2.size() == 1
+        events2[0].details.rootProject.name == 'thing'
+        events2[0].details.rootProject.path == ':'
+        events2[0].details.rootProject.projectDir == testDirectory.absolutePath
+        events2[0].details.rootProject.children.empty
 
         when:
         configurationCacheRun ":a:thing"
 
         then:
-        def event3 = fixture.first(LoadProjectsBuildOperationType)
-        event3.result.rootProject.name == 'thing'
-        event3.result.rootProject.children.size() == 3 // All projects are created when storing
+        def op3 = fixture.only(LoadProjectsBuildOperationType)
+        op3.result.rootProject.name == 'thing'
+        op3.result.rootProject.children.size() == 3 // All projects are created when storing
+
+        def events3 = fixture.progress(ProjectsIdentifiedProgressDetails)
+        events3.size() == 1
+        events3[0].details.rootProject.name == 'thing'
+        events3[0].details.rootProject.children.size() == 3
 
         when:
         configurationCacheRun ":a:thing"
 
         then:
-        def event4 = fixture.first(LoadProjectsBuildOperationType)
-        event4.result.rootProject.name == 'thing'
-        event4.result.rootProject.path == ':'
-        event4.result.rootProject.projectDir == testDirectory.absolutePath
-        event4.result.rootProject.children.size() == 1 // Only project a is created when loading
-        def project1 = event4.result.rootProject.children.first()
+        def op4 = fixture.only(LoadProjectsBuildOperationType)
+        op4.result.rootProject.name == 'thing'
+        op4.result.rootProject.path == ':'
+        op4.result.rootProject.projectDir == testDirectory.absolutePath
+        op4.result.rootProject.children.size() == 1 // Only project a is created when loading
+        def project1 = op4.result.rootProject.children.first()
         project1.name == 'a'
         project1.path == ':a'
         project1.projectDir == file('a').absolutePath
         project1.children.empty
 
+        def events4 = fixture.progress(ProjectsIdentifiedProgressDetails)
+        events4.size() == 1
+        events4[0].details.rootProject.name == 'thing'
+        events4[0].details.rootProject.path == ':'
+        events4[0].details.rootProject.children.size() == 1
+        def project2 = events4[0].details.rootProject.children.first()
+        project2.name == 'a'
+        project2.path == ':a'
+        project2.projectDir == file('a').absolutePath
+        project2.children.empty
+
         when:
         configurationCacheRun ":a:b:thing"
 
         then:
-        def event5 = fixture.first(LoadProjectsBuildOperationType)
-        event5.result.rootProject.name == 'thing'
-        event5.result.rootProject.children.size() == 3 // All projects are created when storing
+        def op5 = fixture.only(LoadProjectsBuildOperationType)
+        op5.result.rootProject.name == 'thing'
+        op5.result.rootProject.children.size() == 3 // All projects are created when storing
+
+        def events5 = fixture.progress(ProjectsIdentifiedProgressDetails)
+        events5.size() == 1
+        events5[0].details.rootProject.name == 'thing'
+        events5[0].details.rootProject.children.size() == 3
 
         when:
         configurationCacheRun ":a:b:thing"
 
         then:
-        def event6 = fixture.first(LoadProjectsBuildOperationType)
-        event6.result.rootProject.name == 'thing'
-        event6.result.rootProject.path == ':'
-        event6.result.rootProject.projectDir == testDirectory.absolutePath
-        event6.result.rootProject.children.size() == 1
-        def project3 = event6.result.rootProject.children.first()
+        def op6 = fixture.only(LoadProjectsBuildOperationType)
+        op6.result.rootProject.name == 'thing'
+        op6.result.rootProject.path == ':'
+        op6.result.rootProject.projectDir == testDirectory.absolutePath
+        op6.result.rootProject.children.size() == 1
+        def project3 = op6.result.rootProject.children.first()
         project3.name == 'a'
         project3.path == ':a'
         project3.projectDir == file('a').absolutePath
@@ -299,6 +334,21 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         project4.name == 'b'
         project4.path == ':a:b'
         project4.projectDir == file('custom').absolutePath
+
+        def events6 = fixture.progress(ProjectsIdentifiedProgressDetails)
+        events6.size() == 1
+        events6[0].details.rootProject.name == 'thing'
+        events6[0].details.rootProject.path == ':'
+        events6[0].details.rootProject.children.size() == 1
+        def project5 = events6[0].details.rootProject.children.first()
+        project5.name == 'a'
+        project5.path == ':a'
+        project5.projectDir == file('a').absolutePath
+        project5.children.size() == 1
+        def project6 = project5.children.first()
+        project6.name == 'b'
+        project6.path == ':a:b'
+        project6.projectDir == file('custom').absolutePath
     }
 
     def "does not configure build when task graph is already cached for requested tasks"() {

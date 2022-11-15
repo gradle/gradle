@@ -74,6 +74,7 @@ import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -133,7 +134,7 @@ class ConfigurationCacheState(
         val gradle = state.build.gradle
         val buildOperationExecutor = gradle.serviceOf<BuildOperationExecutor>()
         fireConfigureBuild(buildOperationExecutor, gradle) {
-            fireLoadProjects(buildOperationExecutor, gradle)
+            fireLoadProjects(buildOperationExecutor, gradle.serviceOf(), gradle)
             state.children.forEach(::configureBuild)
             fireConfigureProject(buildOperationExecutor, gradle)
         }
@@ -742,8 +743,8 @@ class ConfigurationCacheState(
      * Fire _Load projects_ build operation required by build scans to determine the build's project structure (and build load time).
      **/
     private
-    fun fireLoadProjects(buildOperationExecutor: BuildOperationExecutor, gradle: GradleInternal) {
-        NotifyingBuildLoader({ _, _ -> }, buildOperationExecutor).load(gradle.settings, gradle)
+    fun fireLoadProjects(buildOperationExecutor: BuildOperationExecutor, emitter: BuildOperationProgressEventEmitter, gradle: GradleInternal) {
+        NotifyingBuildLoader({ _, _ -> }, buildOperationExecutor, emitter).load(gradle.settings, gradle)
     }
 
     /**
