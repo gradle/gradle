@@ -515,7 +515,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             // Wait for any dependencies of this node that have not started yet
             for (Node successor : node.getDependencySuccessors()) {
                 if (successor.isRequired()) {
-                    waitingForNode(successor, "other node completed");
+                    waitingForNode(successor, "other node completed", node);
                 }
             }
         }
@@ -594,15 +594,19 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     }
 
     private void maybeWaitingForNewNode(Node node, String whenAdded) {
+        // Add some diagnostics to track down sporadic issue
+        if (node instanceof OrdinalNode) {
+            diagnosticEvents.add(new NodeAdded(node, whenAdded, readyNodes.nodes.contains(node)));
+        }
         if (node.getDependencyPredecessors().isEmpty()) {
-            waitingForNode(node, whenAdded);
+            waitingForNode(node, whenAdded, null);
         }
     }
 
-    private void waitingForNode(Node node, String whenAdded) {
+    private void waitingForNode(Node node, String whenAdded, @Nullable Node waitingDueTo) {
         // Add some diagnostics to track down sporadic issue
         if (node instanceof OrdinalNode) {
-            diagnosticEvents.add(new WaitingForNode(node, whenAdded, node.getState(), node.getDependencySuccessors().size(), readyNodes.nodes.contains(node)));
+            diagnosticEvents.add(new WaitingForNode(node, waitingDueTo, whenAdded, readyNodes.nodes.contains(node)));
         }
         waitingToStartNodes.add(node);
     }
@@ -738,24 +742,45 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         String message();
     }
 
-    private static class WaitingForNode implements DiagnosticEvent {
-        private final Node node;
-        private final String whenAdded;
-        private final Node.ExecutionState state;
-        private final int dependencyCount;
-        private final boolean readyNode;
+    private static abstract class AbstractNodeEvent implements DiagnosticEvent {
+        final Node node;
+        final String whenAdded;
+        final Node.ExecutionState state;
+        final int dependencyCount;
+        final boolean readyNode;
 
-        public WaitingForNode(Node node, String whenAdded, Node.ExecutionState state, int dependencyCount, boolean readyNode) {
+        public AbstractNodeEvent(Node node, String whenAdded, boolean readyNode) {
             this.node = node;
             this.whenAdded = whenAdded;
-            this.state = state;
-            this.dependencyCount = dependencyCount;
+            this.state = node.getState();
+            this.dependencyCount = node.getDependencySuccessors().size();
             this.readyNode = readyNode;
+        }
+    }
+
+    private static class NodeAdded extends AbstractNodeEvent {
+        public NodeAdded(Node node, String whenAdded, boolean readyNode) {
+            super(node, whenAdded, readyNode);
         }
 
         @Override
         public String message() {
-            return String.format("node added to waiting-for-set: %s, when: %s, state: %s, dependencies: %s, is ready node? %s", node, whenAdded, state, dependencyCount, readyNode);
+            return String.format("node added to plan: %s, when: %s, state: %s, dependencies: %s, is ready node? %s", node, whenAdded, state, dependencyCount, readyNode);
+        }
+    }
+
+    private static class WaitingForNode extends AbstractNodeEvent {
+        @Nullable
+        private final Node waitingDueTo;
+
+        public WaitingForNode(Node node, @Nullable Node waitingDueTo, String whenAdded, boolean readyNode) {
+            super(node, whenAdded, readyNode);
+            this.waitingDueTo = waitingDueTo;
+        }
+
+        @Override
+        public String message() {
+            return String.format("node added to waiting-for-set: %s, when: %s, due-to: %s, state: %s, dependencies: %s, is ready node? %s", node, whenAdded, waitingDueTo, state, dependencyCount, readyNode);
         }
     }
 }
