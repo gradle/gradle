@@ -149,6 +149,12 @@ fun MethodVisitor.loadByteArray(byteArray: ByteArray) {
 
 
 internal
+fun MethodVisitor.ICONST_0() {
+    visitInsn(Opcodes.ICONST_0)
+}
+
+
+internal
 fun MethodVisitor.NEW(type: InternalName) {
     visitTypeInsn(Opcodes.NEW, type)
 }

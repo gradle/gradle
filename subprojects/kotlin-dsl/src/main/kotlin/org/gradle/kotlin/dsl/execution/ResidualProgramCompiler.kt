@@ -43,6 +43,7 @@ import org.gradle.kotlin.dsl.support.bytecode.ASTORE
 import org.gradle.kotlin.dsl.support.bytecode.CHECKCAST
 import org.gradle.kotlin.dsl.support.bytecode.DUP
 import org.gradle.kotlin.dsl.support.bytecode.GETSTATIC
+import org.gradle.kotlin.dsl.support.bytecode.ICONST_0
 import org.gradle.kotlin.dsl.support.bytecode.INVOKEINTERFACE
 import org.gradle.kotlin.dsl.support.bytecode.INVOKESPECIAL
 import org.gradle.kotlin.dsl.support.bytecode.INVOKESTATIC
@@ -157,7 +158,7 @@ class ResidualProgramCompiler(
 
     private
     fun mightBeLargerThan64KB(secondStageScriptText: String) =
-        // We use a simple heuristic to avoid converting the string to bytes
+    // We use a simple heuristic to avoid converting the string to bytes
         // if all code points were in UTF32, 16K code points would require 64K bytes
         secondStageScriptText.length >= 16 * 1024
 
@@ -287,6 +288,22 @@ class ResidualProgramCompiler(
                 "id",
                 "(Ljava/lang/String;)Lorg/gradle/plugin/use/PluginDependencySpec;"
             )
+            if (spec.version != null) {
+                LDC(spec.version)
+                INVOKEINTERFACE(
+                    InternalName("org/gradle/plugin/use/PluginDependencySpec"),
+                    "version",
+                    "(Ljava/lang/String;)Lorg/gradle/plugin/use/PluginDependencySpec;"
+                )
+            }
+            if (!spec.apply) {
+                ICONST_0()
+                INVOKEINTERFACE(
+                    InternalName("org/gradle/plugin/use/PluginDependencySpec"),
+                    "apply",
+                    "(Z)Lorg/gradle/plugin/use/PluginDependencySpec;"
+                )
+            }
             POP()
         }
         POP()

@@ -18,6 +18,8 @@ package org.gradle.kotlin.dsl.execution
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens.CLOSING_QUOTE
+import org.jetbrains.kotlin.lexer.KtTokens.DOT
+import org.jetbrains.kotlin.lexer.KtTokens.FALSE_KEYWORD
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
 import org.jetbrains.kotlin.lexer.KtTokens.LBRACE
 import org.jetbrains.kotlin.lexer.KtTokens.LPAR
@@ -26,6 +28,7 @@ import org.jetbrains.kotlin.lexer.KtTokens.RBRACE
 import org.jetbrains.kotlin.lexer.KtTokens.REGULAR_STRING_PART
 import org.jetbrains.kotlin.lexer.KtTokens.RPAR
 import org.jetbrains.kotlin.lexer.KtTokens.SEMICOLON
+import org.jetbrains.kotlin.lexer.KtTokens.TRUE_KEYWORD
 import org.jetbrains.kotlin.lexer.KtTokens.WHITE_SPACE_OR_COMMENT_BIT_SET
 
 
@@ -50,86 +53,160 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
 
     val pluginRequests = mutableListOf<ResidualProgram.PluginRequestSpec>()
     var pluginId = ""
+    var version: String? = null
+    var apply: Boolean? = null
     var state = InterpreterState.START
     fun newStatement() {
+        pluginRequests.add(ResidualProgram.PluginRequestSpec(pluginId, version, apply ?: true))
         pluginId = ""
+        version = null
+        apply = null
         state = InterpreterState.ID
     }
     while (tokenType != null) {
         when (tokenType) {
             in WHITE_SPACE_OR_COMMENT_BIT_SET -> {
                 // detect newline separators between statements
-                if (state == InterpreterState.NEXT_ID && tokenSequence.contains('\n')) {
+                if (state == InterpreterState.AFTER_ID && tokenSequence.contains('\n')) {
                     newStatement()
                 }
             }
 
             else -> {
                 when (state) {
-                    InterpreterState.START -> {
-                        if (tokenType != LBRACE) {
-                            return expecting("{")
-                        }
-                        state = InterpreterState.ID
+                    InterpreterState.START -> when (tokenType) {
+                        LBRACE -> state = InterpreterState.ID
+                        else -> expecting("{")
                     }
 
-                    InterpreterState.ID -> {
-                        state = when {
-                            tokenType == RBRACE -> InterpreterState.END
-                            tokenType == SEMICOLON -> InterpreterState.ID
-                            tokenType != IDENTIFIER || tokenText != "id" -> return expecting("id")
-                            else -> InterpreterState.OPEN_CALL
-                        }
+                    InterpreterState.ID -> when {
+                        tokenType == RBRACE -> state = InterpreterState.END
+                        tokenType == SEMICOLON -> state = InterpreterState.ID
+                        tokenType == IDENTIFIER && tokenText == "id" -> state = InterpreterState.ID_OPEN_CALL
+                        else -> return expecting("id")
                     }
 
-                    InterpreterState.NEXT_ID -> {
-                        when (tokenType) {
-                            RBRACE -> state = InterpreterState.END
-                            SEMICOLON -> newStatement()
+                    InterpreterState.AFTER_ID -> {
+                        if (tokenType == DOT) {
+                            advance()
+                        }
+                        when {
+                            tokenType == IDENTIFIER && tokenText == "version" -> state = InterpreterState.VERSION_OPEN_CALL
+                            tokenType == IDENTIFIER && tokenText == "apply" -> state = InterpreterState.APPLY_OPEN_CALL
+                            tokenType == SEMICOLON -> newStatement()
+                            tokenType == RBRACE -> {
+                                newStatement()
+                                state = InterpreterState.END
+                            }
+
                             else -> return expecting(";")
                         }
                     }
 
-                    InterpreterState.OPEN_CALL -> {
-                        if (tokenType != LPAR) {
-                            return expecting("(")
-                        }
-                        state = InterpreterState.PLUGIN_ID_START
+                    InterpreterState.ID_OPEN_CALL -> when (tokenType) {
+                        LPAR -> state = InterpreterState.PLUGIN_ID_START
+                        else -> expecting("(")
                     }
 
-                    InterpreterState.PLUGIN_ID_START -> {
-                        if (tokenType != OPEN_QUOTE) {
-                            return expecting("<plugin id string>")
-                        }
-                        state = InterpreterState.PLUGIN_ID_STRING
+                    InterpreterState.PLUGIN_ID_START -> when (tokenType) {
+                        OPEN_QUOTE -> state = InterpreterState.PLUGIN_ID_STRING
+                        else -> expecting("<plugin id string>")
                     }
 
-                    InterpreterState.PLUGIN_ID_STRING -> {
-                        when {
-                            tokenType != REGULAR_STRING_PART -> {
-                                return expecting("<plugin id string>")
-                            }
-
-                            else -> {
-                                pluginId = tokenText
-                                state = InterpreterState.PLUGIN_ID_END
-                            }
+                    InterpreterState.PLUGIN_ID_STRING -> when {
+                        tokenType != REGULAR_STRING_PART -> return expecting("<plugin id string>")
+                        else -> {
+                            pluginId = tokenText
+                            state = InterpreterState.PLUGIN_ID_END
                         }
                     }
 
-                    InterpreterState.PLUGIN_ID_END -> {
-                        if (tokenType != CLOSING_QUOTE) {
-                            return expecting("<plugin id string>")
-                        }
-                        pluginRequests.add(ResidualProgram.PluginRequestSpec(pluginId))
-                        state = InterpreterState.CLOSE_CALL
+                    InterpreterState.PLUGIN_ID_END -> when (tokenType) {
+                        CLOSING_QUOTE -> state = InterpreterState.ID_CLOSE_CALL
+                        else -> return expecting("<plugin id string>")
                     }
 
-                    InterpreterState.CLOSE_CALL -> {
-                        if (tokenType != RPAR) {
-                            return expecting(")")
+                    InterpreterState.ID_CLOSE_CALL -> when {
+                        tokenType != RPAR -> return expecting(")")
+                        else -> state = InterpreterState.AFTER_ID
+                    }
+
+                    InterpreterState.APPLY_OPEN_CALL -> when (tokenType) {
+                        FALSE_KEYWORD -> {
+                            apply = false
+                            state = InterpreterState.AFTER_ID
                         }
-                        state = InterpreterState.NEXT_ID
+
+                        TRUE_KEYWORD -> {
+                            apply = true
+                            state = InterpreterState.AFTER_ID
+                        }
+
+                        LPAR -> state = InterpreterState.APPLY_BOOL_CALL
+                        else -> return expecting("(")
+                    }
+
+                    InterpreterState.APPLY_BOOL_CALL -> when (tokenType) {
+                        FALSE_KEYWORD -> {
+                            apply = false
+                            state = InterpreterState.APPLY_CLOSE_CALL
+                        }
+
+                        TRUE_KEYWORD -> {
+                            apply = true
+                            state = InterpreterState.APPLY_CLOSE_CALL
+                        }
+
+                        else -> return expecting("true or false")
+                    }
+
+                    InterpreterState.APPLY_CLOSE_CALL -> when (tokenType) {
+                        RPAR -> state = InterpreterState.AFTER_ID
+                        else -> return expecting(")")
+                    }
+
+                    InterpreterState.VERSION_OPEN_CALL -> when (tokenType) {
+                        OPEN_QUOTE -> state = InterpreterState.VERSION_INFIX_STRING
+                        LPAR -> state = InterpreterState.VERSION_START
+                        else -> return expecting("(")
+                    }
+
+                    InterpreterState.VERSION_START -> when (tokenType) {
+                        OPEN_QUOTE -> state = InterpreterState.VERSION_STRING
+                        else -> expecting("<version string>")
+                    }
+
+                    InterpreterState.VERSION_STRING -> when (tokenType) {
+                        REGULAR_STRING_PART -> {
+                            version = tokenText
+                            state = InterpreterState.VERSION_END
+                        }
+
+                        else -> return expecting("<version string>")
+                    }
+
+                    InterpreterState.VERSION_END -> when (tokenType) {
+                        CLOSING_QUOTE -> state = InterpreterState.VERSION_CLOSE_CALL
+                        else -> expecting("<version string>")
+                    }
+
+                    InterpreterState.VERSION_CLOSE_CALL -> when (tokenType) {
+                        RPAR -> state = InterpreterState.AFTER_ID
+                        else -> return expecting(")")
+                    }
+
+                    InterpreterState.VERSION_INFIX_STRING -> when (tokenType) {
+                        REGULAR_STRING_PART -> {
+                            version = tokenText
+                            state = InterpreterState.VERSION_INFIX_END
+                        }
+
+                        else -> return expecting("<version string>")
+                    }
+
+                    InterpreterState.VERSION_INFIX_END -> when (tokenType) {
+                        CLOSING_QUOTE -> state = InterpreterState.AFTER_ID
+                        else -> expecting("<version string>")
                     }
 
                     InterpreterState.END -> {
@@ -152,12 +229,22 @@ private
 enum class InterpreterState {
     START,
     ID,
-    OPEN_CALL,
+    ID_OPEN_CALL,
     PLUGIN_ID_START,
     PLUGIN_ID_STRING,
     PLUGIN_ID_END,
-    CLOSE_CALL,
-    NEXT_ID,
+    ID_CLOSE_CALL,
+    AFTER_ID,
+    APPLY_OPEN_CALL,
+    APPLY_BOOL_CALL,
+    APPLY_CLOSE_CALL,
+    VERSION_OPEN_CALL,
+    VERSION_START,
+    VERSION_STRING,
+    VERSION_END,
+    VERSION_INFIX_STRING,
+    VERSION_INFIX_END,
+    VERSION_CLOSE_CALL,
     END,
 }
 
