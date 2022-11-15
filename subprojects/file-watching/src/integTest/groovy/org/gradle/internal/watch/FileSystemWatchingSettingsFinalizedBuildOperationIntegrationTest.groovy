@@ -18,7 +18,6 @@ package org.gradle.internal.watch
 
 import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProgressDetails
 
 @LocalOnly
@@ -58,14 +57,6 @@ class FileSystemWatchingSettingsFinalizedBuildOperationIntegrationTest extends A
     }
 
     List<FileSystemWatchingSettingsFinalizedProgressDetails> events() {
-        List<BuildOperationRecord.Progress> events = []
-        operations.walk {
-            events.addAll(it.progress.findAll {
-                FileSystemWatchingSettingsFinalizedProgressDetails.isAssignableFrom(it.detailsType)
-            })
-        }
-        events.collect {
-            { -> it.details.enabled } as FileSystemWatchingSettingsFinalizedProgressDetails
-        }
+        return operations.progress(FileSystemWatchingSettingsFinalizedProgressDetails).details
     }
 }
