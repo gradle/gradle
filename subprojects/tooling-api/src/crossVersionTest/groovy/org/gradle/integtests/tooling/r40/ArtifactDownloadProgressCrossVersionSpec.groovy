@@ -19,10 +19,12 @@ package org.gradle.integtests.tooling.r40
 import org.gradle.integtests.tooling.fixture.AbstractHttpCrossVersionSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.test.fixtures.Flaky
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 
 class ArtifactDownloadProgressCrossVersionSpec extends AbstractHttpCrossVersionSpec {
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3638")
     @TargetGradleVersion(">=5.7")
     def "generates events for downloading artifacts"() {
         given:
