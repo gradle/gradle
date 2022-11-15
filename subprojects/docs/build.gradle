@@ -616,6 +616,7 @@ tasks.named("docsTest") { task ->
         if (!javaVersion.java9Compatible) {
             excludeTestsMatching "org.gradle.docs.samples.*.java-modules-*.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.incubating-java-modules-*.sample"
+            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-application*.sample'
             excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-library-module*.sample'
             excludeTestsMatching 'org.gradle.docs.samples.*.snippet-testing-patch-module*.sample'
         }
