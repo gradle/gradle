@@ -50,7 +50,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class DefaultConfigurationContainer extends AbstractValidatingNamedDomainObjectContainer<Configuration>
-    implements ConfigurationContainerInternal, ConfigurationsProvider {
+    implements RoleBasedConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
 
     @SuppressWarnings("deprecation")
@@ -195,9 +195,9 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockRole) {
+    public ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockUsage) {
         roleToCreate = role;
-        lockUsageAtCreation = lockRole;
+        lockUsageAtCreation = lockUsage;
         return (ConfigurationInternal) create(name);
     }
 }
