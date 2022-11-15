@@ -17,11 +17,13 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.Action;
+import org.gradle.api.Buildable;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
@@ -32,6 +34,7 @@ import java.io.File;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 @ServiceScope(Scope.Global.class)
 public interface FileCollectionFactory {
@@ -53,6 +56,17 @@ public interface FileCollectionFactory {
      * The collection is live, so that the contents are queried as required on query of the collection.
      */
     FileCollectionInternal create(TaskDependency builtBy, MinimalFileSet contents);
+
+    /**
+     * Creates a {@link FileCollection} with the given contents, and visiting its task dependencies (the tasks that it is built by) in the specified way.
+     * <p>
+     * The collection is live, so that the contents are queried as required on query of the collection.
+     *
+     * @param contents The file set contents for the constructed file collection
+     * @param visitTaskDependencies The implementation of visiting dependencies for the constructed file collection's {@link Buildable#getBuildDependencies()}
+     * @see org.gradle.api.internal.tasks.TaskDependencyFactory#visitingDependencies(Consumer)
+     */
+    FileCollectionInternal create(MinimalFileSet contents, Consumer<? super TaskDependencyResolveContext> visitTaskDependencies);
 
     /**
      * Creates an empty {@link FileCollection}

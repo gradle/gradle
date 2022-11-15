@@ -87,10 +87,11 @@ class DefaultConfigurationContainerTest extends Specification {
         TestFiles.fileCollectionFactory(),
         buildOperationExecutor,
         new PublishArtifactNotationParserFactory(
-            instantiator,
-            metaDataProvider,
-            taskResolver,
-            TestFiles.resolver(),
+                instantiator,
+                metaDataProvider,
+                taskResolver,
+                TestFiles.resolver(),
+                TestFiles.taskDependencyFactory(),
         ),
         immutableAttributesFactory,
         documentationRegistry,
@@ -98,7 +99,8 @@ class DefaultConfigurationContainerTest extends Specification {
         projectStateRegistry,
         Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
-        calculatedValueContainerFactory
+        calculatedValueContainerFactory,
+        TestFiles.taskDependencyFactory()
     )
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
         instantiator,

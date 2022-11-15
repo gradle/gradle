@@ -129,7 +129,7 @@ public abstract class DistributionPlugin implements Plugin<Project> {
             task.with(childSpec);
         });
 
-        PublishArtifact archiveArtifact = new LazyPublishArtifact(archiveTask, ((ProjectInternal) project).getFileResolver());
+        PublishArtifact archiveArtifact = new LazyPublishArtifact(archiveTask, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(archiveArtifact);
     }
 

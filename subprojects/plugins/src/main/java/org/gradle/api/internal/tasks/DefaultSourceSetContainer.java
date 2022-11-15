@@ -34,10 +34,11 @@ public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObje
     private final ObjectFactory objectFactory;
     private final FileResolver fileResolver;
     private final FileCollectionFactory fileCollectionFactory;
+    private final TaskDependencyFactory taskDependencyFactory;
     private final Instantiator instantiator;
 
     @Inject
-    public DefaultSourceSetContainer(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public DefaultSourceSetContainer(FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(SourceSet.class, instantiator, new Namer<SourceSet>() {
             @Override
             public String determineName(SourceSet ss) {
@@ -46,6 +47,7 @@ public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObje
         }, collectionCallbackActionDecorator);
         this.fileResolver = fileResolver;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
     }
@@ -53,7 +55,7 @@ public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObje
     @Override
     protected SourceSet doCreate(String name) {
         DefaultSourceSet sourceSet = instantiator.newInstance(DefaultSourceSet.class, name, objectFactory);
-        sourceSet.setClasses(instantiator.newInstance(DefaultSourceSetOutput.class, sourceSet.getDisplayName(), fileResolver, fileCollectionFactory));
+        sourceSet.setClasses(instantiator.newInstance(DefaultSourceSetOutput.class, sourceSet.getDisplayName(), taskDependencyFactory, fileResolver, fileCollectionFactory));
         return sourceSet;
     }
 

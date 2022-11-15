@@ -60,7 +60,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                 containsString("Learn more about Gradle by exploring our samples at")))
 
         expect:
-        succeeds 'help'
+        succeeds 'properties'
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -85,7 +85,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                 containsString(BuildScriptBuilder.getIncubatingApisWarning())))
 
         expect:
-        succeeds 'help'
+        succeeds 'properties'
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS

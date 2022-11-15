@@ -38,7 +38,6 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def 'recompiles only the Swift source files that have changed'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
@@ -69,7 +68,6 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledFile(main)
     }
 
-    @ToBeFixedForConfigurationCache
     def 'adding a new file only compiles new file'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
@@ -94,7 +92,6 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledFile(newFile)
     }
 
-    @ToBeFixedForConfigurationCache
     def 'adding a new file that overlaps with an existing type fails'() {
         given:
         def app = new SwiftApp()
@@ -135,7 +132,6 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
-    @ToBeFixedForConfigurationCache
     def 'removing an isolated file does not rebuild anything'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [".o"])
