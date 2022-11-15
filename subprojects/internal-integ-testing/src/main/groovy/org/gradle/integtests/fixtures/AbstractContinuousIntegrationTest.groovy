@@ -200,6 +200,9 @@ ${result.error}
         if (gradle.isRunning() && !endOfBuildReached) {
             throw new RuntimeException("""Timeout waiting for build to complete. Output:
 $lastOutput
+
+Error: 
+${gradle.errorOutput}
 """)
         }
 
