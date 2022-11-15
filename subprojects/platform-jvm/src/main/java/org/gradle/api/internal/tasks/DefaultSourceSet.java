@@ -256,6 +256,7 @@ public abstract class DefaultSourceSet implements SourceSet {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public SourceSet java(@Nullable Closure configureClosure) {
         configure(configureClosure, getJava());
         return this;
@@ -278,6 +279,7 @@ public abstract class DefaultSourceSet implements SourceSet {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public SourceSet resources(@Nullable Closure configureClosure) {
         configure(configureClosure, getResources());
         return this;
