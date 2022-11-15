@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.assignment.internal
 
+
 object KotlinDslAssignment {
 
     const val ASSIGNMENT_SYSTEM_PROPERTY = "org.gradle.experimental.kotlin.assignment"

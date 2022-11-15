@@ -23,9 +23,10 @@ import java.util.Properties
 import kotlin.script.dependencies.Environment
 import kotlin.script.templates.ScriptTemplateAdditionalCompilerArgumentsProvider
 
+
 @Suppress("DEPRECATION")
-class KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider(additionalArguments: Iterable<String> = emptyList())
-    : ScriptTemplateAdditionalCompilerArgumentsProvider(additionalArguments) {
+class KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider(additionalArguments: Iterable<String> = emptyList()) :
+    ScriptTemplateAdditionalCompilerArgumentsProvider(additionalArguments) {
 
     override fun getAdditionalCompilerArguments(environment: Environment?): Iterable<String> {
         environment ?: return emptyList()
@@ -40,7 +41,8 @@ class KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider(additionalArg
         }
     }
 
-    private fun File.isKotlinDslAssignmentEnabled(): Boolean {
+    private
+    fun File.isKotlinDslAssignmentEnabled(): Boolean {
         if (!this.exists()) return false
         return FileInputStream(this).use {
             val properties = Properties().apply {
