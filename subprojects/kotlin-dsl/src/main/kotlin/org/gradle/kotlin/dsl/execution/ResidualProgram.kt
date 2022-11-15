@@ -95,5 +95,5 @@ sealed class ResidualProgram {
         override fun toString(): String = javaClass.simpleName
     }
 
-    data class PluginRequestSpec(val id: String)
+    data class PluginRequestSpec(val id: String, val version: String? = null, val apply: Boolean = true)
 }

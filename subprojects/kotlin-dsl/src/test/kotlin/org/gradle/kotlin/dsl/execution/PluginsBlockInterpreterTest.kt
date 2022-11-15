@@ -34,6 +34,89 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
+    fun `single plugin id version`() {
+        assertStaticInterpretationOf(
+            """id("plugin-id") version "1.0"""",
+            PluginRequestSpec("plugin-id", version = "1.0")
+        )
+    }
+
+    @Test
+    fun `single plugin id version()`() {
+        assertStaticInterpretationOf(
+            """id("plugin-id") version("1.0")""",
+            PluginRequestSpec("plugin-id", version = "1.0")
+        )
+    }
+
+    @Test
+    fun `single plugin id dot version()`() {
+        assertStaticInterpretationOf(
+            """id("plugin-id").version("1.0")""",
+            PluginRequestSpec("plugin-id", version = "1.0")
+        )
+    }
+
+    @Test
+    fun `single plugin id apply`() {
+        assertStaticInterpretationOf(
+            """id("plugin-id") apply false""",
+            PluginRequestSpec("plugin-id", apply = false)
+        )
+    }
+
+    @Test
+    fun `single plugin id apply()`() {
+        assertStaticInterpretationOf(
+            """id("plugin-id") apply(false)""",
+            PluginRequestSpec("plugin-id", apply = false)
+        )
+    }
+
+    @Test
+    fun `single plugin id dot apply()`() {
+        assertStaticInterpretationOf(
+            """id("plugin-id").apply(false)""",
+            PluginRequestSpec("plugin-id", apply = false)
+        )
+    }
+
+    @Test
+    fun `single plugin id version apply`() {
+        assertStaticInterpretationOf(
+            """id("plugin-id") version "1.0" apply false""",
+            PluginRequestSpec("plugin-id", version = "1.0", apply = false)
+        )
+    }
+
+    @Test
+    fun `single plugin id dot version() dot apply()`() {
+        assertStaticInterpretationOf(
+            """id("plugin-id").version("1.0").apply(false)""",
+            PluginRequestSpec("plugin-id", version = "1.0", apply = false)
+        )
+    }
+
+
+    @Test
+    fun `single plugin id mixed version apply`() {
+        assertStaticInterpretationOf(
+            """id("plugin-id").version("1.0").apply(true) version "3.0" apply false""",
+            PluginRequestSpec("plugin-id", version = "3.0", apply = false)
+        )
+    }
+
+    @Test
+    fun `single plugin id apply syntax error`() {
+        assertDynamicInterpretationOf("""id("plugin-id") apply "1.0"""")
+    }
+
+    @Test
+    fun `single plugin id version syntax error`() {
+        assertDynamicInterpretationOf("""id("plugin-id") version false""")
+    }
+
+    @Test
     fun `multiple plugin ids`() {
         assertStaticInterpretationOf(
             """
