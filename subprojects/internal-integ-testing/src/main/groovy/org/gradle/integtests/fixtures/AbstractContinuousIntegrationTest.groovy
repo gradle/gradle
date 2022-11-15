@@ -147,7 +147,10 @@ ${result.error}
         executer.withStdinPipe()
             .withTasks(tasks)
             .withForceInteractive(true)
+            .withArgument("--info")
             .withArgument("--full-stacktrace")
+            .withArgument("--console")
+            .withArgument("plain")
         if (!withoutContinuousArg) {
             executer.withArgument("--continuous")
         }
