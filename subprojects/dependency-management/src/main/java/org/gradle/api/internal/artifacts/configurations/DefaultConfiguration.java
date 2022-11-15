@@ -384,6 +384,27 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.defaultConfigurationFactory = defaultConfigurationFactory;
 
         this.roleAtCreation = roleAtCreation;
+
+        this.canBeConsumed = roleAtCreation.isConsumable();
+        this.canBeResolved = roleAtCreation.isResolvable();
+        this.canBeDeclaredAgainst = roleAtCreation.isDeclarableAgainst();
+
+        // Calling these during construction is not ideal, but we'd have to call the deprecateForConsumption(), etc.
+        // methods anyway even if replicated the code inside these methods here, so at least this keeps a single
+        // code path for the deprecation.
+        this.setDeprecatedForConsumption(roleAtCreation.isConsumptionDeprecated());
+        this.setDeprecatedForResolution(roleAtCreation.isResolutionDeprecated());
+        this.setDeprecatedForDeclarationAgainst(roleAtCreation.isDeclarationAgainstDeprecated());
+
+//        if (lockRole) {
+//            configuration.preventUsageMutation();
+//        }
+//        if (ConfigurationRoles.getDeprecatedRoles().contains(role)) {
+//            DeprecationLogger.deprecateBehaviour("The configuration role: " + role.getName() + " is deprecated and should no longer be used.")
+//                    .willBecomeAnErrorInGradle9()
+//                    .withUpgradeGuideSection(8, "deprecated_configurations_should_not_be_used")
+//                    .nagUser();
+//        }
     }
 
     private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
