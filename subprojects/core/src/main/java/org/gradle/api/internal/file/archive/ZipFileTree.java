@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.file.archive;
 
-import org.apache.tools.zip.ZipEntry;
-import org.apache.tools.zip.ZipFile;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
@@ -94,9 +94,9 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         try (ZipFile zip = new ZipFile(zipFile)) {
             // The iteration order of zip.getEntries() is based on the hash of the zip entry. This isn't much use
             // to us. So, collect the entries in a map and iterate over them in alphabetical order.
-            Iterator<ZipEntry> sortedEntries = entriesSortedByName(zip);
+            Iterator<ZipArchiveEntry> sortedEntries = entriesSortedByName(zip);
             while (!stopFlag.get() && sortedEntries.hasNext()) {
-                ZipEntry entry = sortedEntries.next();
+                ZipArchiveEntry entry = sortedEntries.next();
                 DetailsImpl details = new DetailsImpl(zipFile, expandedDir, entry, zip, stopFlag, chmod);
                 if (entry.isDirectory()) {
                     visitor.visitDir(details);
@@ -105,15 +105,15 @@ public class ZipFileTree extends AbstractArchiveFileTree {
                 }
             }
         } catch (Exception e) {
-            throw new GradleException(format("Could not expand %s.", getDisplayName()), e);
+            throw new GradleException(format("Cannot expand %s.", getDisplayName()), e);
         }
     }
 
-    private Iterator<ZipEntry> entriesSortedByName(ZipFile zip) {
-        Map<String, ZipEntry> entriesByName = new TreeMap<>();
-        Enumeration<ZipEntry> entries = zip.getEntries();
+    private Iterator<ZipArchiveEntry> entriesSortedByName(ZipFile zip) {
+        Map<String, ZipArchiveEntry> entriesByName = new TreeMap<>();
+        Enumeration<ZipArchiveEntry> entries = zip.getEntries();
         while (entries.hasMoreElements()) {
-            ZipEntry entry = entries.nextElement();
+            ZipArchiveEntry entry = entries.nextElement();
             entriesByName.put(entry.getName(), entry);
         }
         return entriesByName.values().iterator();
@@ -133,12 +133,12 @@ public class ZipFileTree extends AbstractArchiveFileTree {
     private static class DetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
         private final File originalFile;
         private final File expandedDir;
-        private final ZipEntry entry;
+        private final ZipArchiveEntry entry;
         private final ZipFile zip;
         private final AtomicBoolean stopFlag;
         private File file;
 
-        public DetailsImpl(File originalFile, File expandedDir, ZipEntry entry, ZipFile zip, AtomicBoolean stopFlag, Chmod chmod) {
+        public DetailsImpl(File originalFile, File expandedDir, ZipArchiveEntry entry, ZipFile zip, AtomicBoolean stopFlag, Chmod chmod) {
             super(chmod);
             this.originalFile = originalFile;
             this.expandedDir = expandedDir;

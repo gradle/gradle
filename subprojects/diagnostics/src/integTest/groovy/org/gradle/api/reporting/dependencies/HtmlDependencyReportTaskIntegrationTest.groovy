@@ -602,8 +602,7 @@ rootProject.name = 'root'
     }
 
     @ToBeFixedForConfigurationCache
-    void "excludes fully deprecated configurations"() {
-        executer.expectDeprecationWarning()
+    void "excludes directly undeclarable configurations"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
 
         file("build.gradle") << """
@@ -613,24 +612,49 @@ rootProject.name = 'root'
                maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                compile.deprecateForDeclaration('implementation')
-                compile.deprecateForConsumption { builder ->
-                    builder.willBecomeAnErrorInGradle8().withUpgradeGuideSection(8, "foo")
+                undeclarable {
+                    canBeDeclaredAgainst = false
                 }
-                compile.deprecateForResolution('compileClasspath')
-            }
-            dependencies {
-                compile 'foo:foo:1.0'
             }
         """
 
         when:
         run "htmlDependencyReport"
         def json = readGeneratedJson("root")
-        def compileConfiguration = json.project.configurations.find { it.name == "compile" }
+        def undeclarableConfiguration = json.project.configurations.find { it.name == "undeclarable" }
 
         then:
-        !compileConfiguration
+        !undeclarableConfiguration
+    }
+
+    @ToBeFixedForConfigurationCache
+    void "includes indirectly declarable configurations"() {
+        mavenRepo.module("foo", "foo", '1.0').publish()
+
+        file("build.gradle") << """
+            apply plugin : 'project-report'
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                declarable {
+                    canBeDeclaredAgainst = true
+                }
+                undeclarable {
+                    canBeDeclaredAgainst = false
+                    extendsFrom(declarable)
+                }
+            }
+        """
+
+        when:
+        run "htmlDependencyReport"
+        def json = readGeneratedJson("root")
+        def undeclarableConfiguration = json.project.configurations.find { it.name == "undeclarable" }
+
+        then:
+        undeclarableConfiguration
     }
 
     private def readGeneratedJson(fileNameWithoutExtension) {

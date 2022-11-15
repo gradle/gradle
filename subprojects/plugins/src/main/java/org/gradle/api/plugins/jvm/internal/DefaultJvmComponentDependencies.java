@@ -19,16 +19,18 @@ package org.gradle.api.plugins.jvm.internal;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
+import org.gradle.api.attributes.CompileView;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmComponentDependencies;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.component.external.model.TestFixturesSupport;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.inject.Inject;
 
@@ -83,6 +85,13 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
     }
 
     @Override
+    public ProjectDependency projectInternalView() {
+        return (ProjectDependency) project().attributes(attrs -> {
+            attrs.attribute(CompileView.VIEW_ATTRIBUTE, getObjectFactory().named(CompileView.class, CompileView.JAVA_INTERNAL));
+        });
+    }
+
+    @Override
     public <D extends ModuleDependency> D platform(D dependency) {
         dependency.endorseStrictVersions();
         dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.REGULAR_PLATFORM)));
@@ -92,7 +101,9 @@ public abstract class DefaultJvmComponentDependencies implements JvmComponentDep
     @Override
     public <D extends ModuleDependency> D enforcedPlatform(D dependency) {
         if (dependency instanceof ExternalDependency) {
-            DeprecationLogger.whileDisabled(() -> ((ExternalDependency)dependency).setForce(true));
+            AbstractExternalModuleDependency externalDependency = (AbstractExternalModuleDependency) dependency;
+            MutableVersionConstraint constraint = (MutableVersionConstraint) externalDependency.getVersionConstraint();
+            constraint.strictly(externalDependency.getVersion());
         }
         dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, getObjectFactory().named(Category.class, Category.ENFORCED_PLATFORM)));
         return dependency;

@@ -21,6 +21,7 @@ import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -167,6 +168,9 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
                 }
                 if (serviceClass.isAssignableFrom(ProviderFactory.class)) {
                     return allServices.find(ProviderFactory.class);
+                }
+                if (serviceClass.isAssignableFrom(BuildServiceRegistry.class)) {
+                    return allServices.find(BuildServiceRegistry.class);
                 }
                 for (Class<?> whiteListedService : additionalWhiteListedServices) {
                     if (serviceClass.isAssignableFrom(whiteListedService)) {

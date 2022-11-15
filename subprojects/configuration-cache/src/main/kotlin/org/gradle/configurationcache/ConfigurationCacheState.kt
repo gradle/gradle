@@ -26,6 +26,7 @@ import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
+import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer
@@ -73,6 +74,7 @@ import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -132,7 +134,7 @@ class ConfigurationCacheState(
         val gradle = state.build.gradle
         val buildOperationExecutor = gradle.serviceOf<BuildOperationExecutor>()
         fireConfigureBuild(buildOperationExecutor, gradle) {
-            fireLoadProjects(buildOperationExecutor, gradle)
+            fireLoadProjects(buildOperationExecutor, gradle.serviceOf(), gradle)
             state.children.forEach(::configureBuild)
             fireConfigureProject(buildOperationExecutor, gradle)
         }
@@ -175,7 +177,6 @@ class ConfigurationCacheState(
             StoredBuildTreeState(
                 storedBuilds = storedBuilds(),
                 requiredBuildServicesPerBuild = buildEventListeners
-                    .filterIsInstance<BuildServiceProvider<*, *>>()
                     .groupBy { it.buildIdentifier }
             )
         )
@@ -542,7 +543,7 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeBuildEventListenerSubscriptions(listeners: List<Provider<*>>) {
         writeCollection(listeners) { listener ->
             when (listener) {
-                is BuildServiceProvider<*, *> -> {
+                is RegisteredBuildServiceProvider<*, *> -> {
                     writeBoolean(true)
                     write(listener.buildIdentifier)
                     writeString(listener.name)
@@ -710,13 +711,12 @@ class ConfigurationCacheState(
     fun buildEventListenersOf(gradle: GradleInternal) =
         gradle.serviceOf<BuildEventListenerRegistryInternal>()
             .subscriptions
+            .filterIsInstance<RegisteredBuildServiceProvider<*, *>>()
             .filter(::isRelevantBuildEventListener)
 
     private
-    fun isRelevantBuildEventListener(provider: Provider<*>?) = when (provider) {
-        is BuildServiceProvider<*, *> -> provider.buildIdentifier.name != BUILD_SRC
-        else -> true
-    }
+    fun isRelevantBuildEventListener(provider: RegisteredBuildServiceProvider<*, *>) =
+        provider.buildIdentifier.name != BUILD_SRC
 
     private
     fun BuildStateRegistry.buildServiceRegistrationOf(buildId: BuildIdentifier) =
@@ -743,8 +743,8 @@ class ConfigurationCacheState(
      * Fire _Load projects_ build operation required by build scans to determine the build's project structure (and build load time).
      **/
     private
-    fun fireLoadProjects(buildOperationExecutor: BuildOperationExecutor, gradle: GradleInternal) {
-        NotifyingBuildLoader({ _, _ -> }, buildOperationExecutor).load(gradle.settings, gradle)
+    fun fireLoadProjects(buildOperationExecutor: BuildOperationExecutor, emitter: BuildOperationProgressEventEmitter, gradle: GradleInternal) {
+        NotifyingBuildLoader({ _, _ -> }, buildOperationExecutor, emitter).load(gradle.settings, gradle)
     }
 
     /**
@@ -754,6 +754,7 @@ class ConfigurationCacheState(
     fun fireLoadBuild(preparer: () -> Unit, gradle: GradleInternal) {
         BuildOperationFiringSettingsPreparer(
             { preparer() },
+            gradle.serviceOf(),
             gradle.serviceOf(),
             gradle.serviceOf<BuildDefinition>().fromBuild
         ).prepareSettings(gradle)

@@ -67,15 +67,12 @@ class ForcingUsingStrictlyPlatformAlignmentTest extends AbstractAlignmentSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:core:2.9.4", "org:core:2.7.9") {
-                    forced()
-                }
+                edge("org:core:2.9.4", "org:core:2.7.9")
                 edge("org:databind:{strictly 2.7.9}", "org:databind:2.7.9") {
                     module('org:annotations:2.7.9')
                     module('org:core:2.7.9')
                 }
                 edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
-                    forced()
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }

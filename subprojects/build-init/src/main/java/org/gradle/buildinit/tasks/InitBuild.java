@@ -52,7 +52,7 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
  * Generates a Gradle project structure.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class InitBuild extends DefaultTask {
+public abstract class InitBuild extends DefaultTask {
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);

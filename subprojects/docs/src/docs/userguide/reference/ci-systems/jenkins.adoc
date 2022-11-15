@@ -1,7 +1,7 @@
 [[build_jenkins]]
 = Executing Gradle builds on Jenkins
 
-TIP: Top engineering teams using Jenkins have been able to reduce CI build time by up to 90% by using the Gradle Build Cache. https://gradle.com/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how your team can achieve similar results.
+TIP: Top engineering teams using Jenkins have been able to reduce CI build time by up to 90% by using the Gradle Build Cache. https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how your team can achieve similar results.
 
 Building Gradle projects doesn't stop with the developer's machine.
 https://en.wikipedia.org/wiki/Continuous_integration[Continuous Integration] (CI) has been a long-established practice for running a build for every single change committed to version control to tighten the feedback loop.

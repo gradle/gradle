@@ -32,7 +32,7 @@ public enum IsolationMode {
      */
     NONE,
     /**
-     * Isolate the work in it's own classloader, use in-process workers.
+     * Isolate the work in its own classloader, use in-process workers.
      */
     CLASSLOADER,
     /**

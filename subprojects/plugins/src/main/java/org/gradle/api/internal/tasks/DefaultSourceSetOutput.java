@@ -16,28 +16,26 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Buildable;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetOutput;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
-public class DefaultSourceSetOutput extends CompositeFileCollection implements SourceSetOutput {
+public abstract class DefaultSourceSetOutput extends CompositeFileCollection implements SourceSetOutput {
     private final ConfigurableFileCollection outputDirectories;
     private Object resourcesDir;
 
@@ -45,13 +43,13 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     private final ConfigurableFileCollection dirs;
     private final ConfigurableFileCollection generatedSourcesDirs;
     private final FileResolver fileResolver;
-    private final FileCollectionFactory fileCollectionFactory;
 
     private DirectoryContribution resourcesContributor;
 
-    public DefaultSourceSetOutput(String sourceSetDisplayName, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+    @Inject
+    public DefaultSourceSetOutput(String sourceSetDisplayName, TaskDependencyFactory taskDependencyFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+        super(taskDependencyFactory);
         this.fileResolver = fileResolver;
-        this.fileCollectionFactory = fileCollectionFactory;
 
         this.classesDirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " classesDirs");
 
@@ -61,10 +59,6 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
         this.dirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " dirs");
 
         this.generatedSourcesDirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " generatedSourcesDirs");
-
-        // Legacy behavior. We want to remove this eventually. Building classesDirs does not require
-        // building the entire source set.
-        classesDirs.builtBy(new LegacyBuildable(this));
     }
 
     @Override
@@ -89,28 +83,6 @@ public class DefaultSourceSetOutput extends CompositeFileCollection implements S
     @Override
     public ConfigurableFileCollection getClassesDirs() {
         return classesDirs;
-    }
-
-    /**
-     * Equivalent to {@link #getClassesDirs()} except it does not carry the dependency on {@code this}.
-     */
-    public FileCollection getClassesDirsInternal() {
-        String name = "legacy filtering wrapper for " + classesDirs;
-        return ((DefaultConfigurableFileCollection) fileCollectionFactory.configurableFiles(name))
-            .setTaskDependencyFilter(dependency -> !(dependency instanceof LegacyBuildable))
-            .from(classesDirs);
-    }
-
-    private static class LegacyBuildable implements Buildable {
-        private final Buildable delegate;
-        private LegacyBuildable(Buildable delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public TaskDependency getBuildDependencies() {
-            return delegate.getBuildDependencies();
-        }
     }
 
     /**

@@ -57,7 +57,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  * @see Pmd
  * @see <a href="https://docs.gradle.org/current/userguide/pmd_plugin.html">PMD plugin reference</a>
  */
-public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
+public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     public static final String DEFAULT_PMD_VERSION = "6.48.0";
     private static final String PMD_ADDITIONAL_AUX_DEPS_CONFIGURATION = "pmdAux";

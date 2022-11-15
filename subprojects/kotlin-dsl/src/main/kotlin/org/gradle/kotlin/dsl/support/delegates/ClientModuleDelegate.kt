@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
-import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ModuleVersionSelector
@@ -103,10 +102,6 @@ abstract class ClientModuleDelegate : ClientModule {
 
     override fun setTransitive(transitive: Boolean): ModuleDependency =
         delegate.setTransitive(transitive)
-
-    override fun setForce(force: Boolean): ExternalDependency =
-        @Suppress("deprecation")
-        delegate.setForce(force)
 
     override fun contentEquals(dependency: Dependency): Boolean =
         delegate.contentEquals(dependency)

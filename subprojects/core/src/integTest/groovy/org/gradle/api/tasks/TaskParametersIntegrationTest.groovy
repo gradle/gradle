@@ -150,7 +150,10 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
                 @OutputDirectory File outputs1
                 @OutputDirectory File outputs2
 
-                @TaskAction void action() {}
+                @TaskAction void action() {
+                    new File(outputs1, "output1.txt").text = "output1"
+                    new File(outputs2, "output2.txt").text = "output2"
+                }
             }
         """
 
@@ -188,6 +191,7 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
         then:
         executedAndNotSkipped ':test'
         outputContains "Output property 'outputs1' file ${file("build/output1")} has been removed."
+        outputContains "Output property 'outputs1' file ${file("build/output1/output1.txt")} has been removed."
         outputContains "Output property 'outputs2' file ${file("build/output2")} has been removed."
 
         when:
@@ -974,9 +978,9 @@ task someTask(type: SomeTask) {
         """
         def inputFile = file('input.txt')
         inputFile.text = "input"
-        def expectedCounts = [inputFile: 3, outputFile: 2, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
+        def expectedCounts = [inputFile: 3, outputFile: 2, nestedInput: 4, inputValue: 1, nestedInputValue: 1]
         def expectedIncrementalCounts = expectedCounts
-        def expectedUpToDateCounts = [inputFile: 2, outputFile: 1, nestedInput: 3, inputValue: 1, nestedInputValue: 1]
+        def expectedUpToDateCounts = [inputFile: 2, outputFile: 1, nestedInput: 4, inputValue: 1, nestedInputValue: 1]
         def arguments = ["assertInputCounts"] + expectedCounts.collect { name, count -> "-P${name}Count=${count}" }
         def incrementalBuildArguments = ["assertInputCounts"] + expectedIncrementalCounts.collect { name, count -> "-P${name}Count=${count}" }
         def upToDateArguments = ["assertInputCounts"] + expectedUpToDateCounts.collect { name, count -> "-P${name}Count=${count}" }

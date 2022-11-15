@@ -33,6 +33,7 @@ import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.idea.internal.IdeaModuleMetadata;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
@@ -116,7 +117,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * }
  * </pre>
  */
-public class IdeaProject implements IdeWorkspace {
+public abstract class IdeaProject implements IdeWorkspace {
     private final org.gradle.api.Project project;
     private final XmlFileContentMerger ipr;
     private final ProjectStateRegistry projectPathRegistry;
@@ -132,6 +133,7 @@ public class IdeaProject implements IdeWorkspace {
     private Set<ProjectLibrary> projectLibraries = Sets.newLinkedHashSet();
     private PathFactory pathFactory;
 
+    @Inject
     public IdeaProject(org.gradle.api.Project project, XmlFileContentMerger ipr) {
         this.project = project;
         this.ipr = ipr;
