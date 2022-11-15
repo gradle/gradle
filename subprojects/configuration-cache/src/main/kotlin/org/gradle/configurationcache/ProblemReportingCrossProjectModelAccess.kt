@@ -80,6 +80,7 @@ import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
 import org.gradle.internal.logging.StandardOutputCapture
@@ -130,6 +131,10 @@ class ProblemReportingCrossProjectModelAccess(
 
     override fun taskDependencyUsageTracker(referrerProject: ProjectInternal): TaskDependencyUsageTracker {
         return ReportingTaskDependencyUsageTracker(referrerProject, coupledProjectsListener, problems, userCodeContext)
+    }
+
+    override fun taskGraphForProject(referrerProject: ProjectInternal, taskGraph: TaskExecutionGraphInternal): TaskExecutionGraphInternal {
+        return CrossProjectConfigurationReportingTaskExecutionGraph(taskGraph, referrerProject, problems, this, coupledProjectsListener, userCodeContext)
     }
 
     private
