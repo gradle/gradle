@@ -480,6 +480,100 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "graph.filteredTasks"                | [":b:compileJava", "-x:classes"] | false
     }
 
+    def "reports cross-project model access on #kind lookup in the parent project using `#expr`"() {
+        settingsFile << """
+            include("a")
+        """
+        file("build.gradle") << """
+            $setExpr
+        """
+        file("a/build.gradle") << """
+            println($expr)
+        """
+
+        when:
+        configurationCacheFails(":a:help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a")
+            problem("Build file 'a/build.gradle': Project ':a' cannot dynamically look up a $kind in the parent project ':'")
+        }
+
+        where:
+        kind       | setExpr         | expr
+        "property" | "ext.foo = 1"   | "foo"
+        "property" | "ext.foo = 1"   | "hasProperty('foo')"
+        "property" | "ext.foo = 1"   | "property('foo')"
+        "property" | "ext.foo = 1"   | "findProperty('foo')"
+        "property" | "ext.foo = 1"   | "getProperty('foo')"
+        "property" | "ext.foo = 1"   | "properties"
+        "method"   | "def foo() { }" | "foo()"
+    }
+
+    def 'no duplicate problems reported for dynamic property lookup in transitive parents'() {
+        settingsFile << """
+            include(":sub")
+            include(":sub:sub-a")
+            include(":sub:sub-b")
+        """
+        buildFile << """
+            ext.foo = "fooValue"
+        """
+        file("sub/sub-a/build.gradle") << """
+            println(foo)
+        """
+        file("sub/sub-b/build.gradle") << """
+            println(foo)
+        """
+
+        when:
+        configurationCacheFails(":sub:sub-a:help", ":sub:sub-b:help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":sub", ":sub:sub-a", ":sub:sub-b")
+            problem("Build file 'sub/sub-a/build.gradle': Project ':sub:sub-a' cannot dynamically look up a property in the parent project ':sub'")
+            problem("Build file 'sub/sub-b/build.gradle': Project ':sub:sub-b' cannot dynamically look up a property in the parent project ':sub'")
+        }
+    }
+
+    def 'user code in dynamic property lookup triggers a new isolation problem'() {
+        settingsFile << """
+            include(":sub")
+            include(":sub:sub-sub")
+        """
+        buildFile << """
+            ext.foo = "fooValue"
+        """
+        file("sub/build.gradle") << """
+            abstract class Unusual {
+                Project p
+                @Inject Unusual(Project p) { this.p = p }
+                Object getBar() {
+                    // TODO: p.foo is not covered yet!
+                    p.property("foo")
+                }
+            }
+
+            // Convention plugin members are exposed as members of the project
+            convention.plugins['unusual'] = objects.newInstance(Unusual)
+        """
+        file("sub/sub-sub/build.gradle") << """
+            println(bar)
+        """
+
+        when:
+        configurationCacheFails(":sub:sub-sub:help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":sub", ":sub:sub-sub")
+            problem("Build file 'sub/sub-sub/build.gradle': Project ':sub' cannot dynamically look up a property in the parent project ':'")
+            problem("Build file 'sub/sub-sub/build.gradle': Project ':sub:sub-sub' cannot dynamically look up a property in the parent project ':sub'")
+        }
+    }
+
     def "build script can query basic details of projects in allprojects block"() {
         settingsFile << """
             rootProject.name = "root"
