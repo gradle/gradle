@@ -32,6 +32,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -417,5 +418,50 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         outputContains 'probe(classloader2) => 4'
         outputContains 'probe(classloader2) => 5'
         outputContains 'probe(classloader2) => 6'
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/22337")
+    def "build service can be used as input of value source obtained at configuration time"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            abstract class EmptyService implements BuildService<${BuildServiceParameters.name}.None> {
+                int getValue() {
+                    return 42
+                }
+            }
+
+            abstract class ServiceValueSource implements ValueSource<Integer, Params> {
+                interface Params extends ValueSourceParameters {
+                    Property<EmptyService> getService()
+                }
+                @Override
+                Integer obtain(){
+                    return parameters.service.get().value
+                }
+            }
+            def serviceProvider = gradle.sharedServices.registerIfAbsent("counter", EmptyService) {}
+            def valueSource = providers.of(ServiceValueSource) {
+                parameters {
+                    service = serviceProvider
+                }
+            }.get()
+
+            task check {
+                doLast {
+                    println "valueSource = " + valueSource
+                }
+            }
+        """)
+
+        when:
+        configurationCacheRun "check"
+
+        then:
+        outputContains("valueSource = 42")
+        // TODO(https://github.com/gradle/gradle/issues/22337) A clear error message should be provided at store time
+        configurationCache.assertStateStored()
+        expect:
+        configurationCacheFails "check"
     }
 }
