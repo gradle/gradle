@@ -762,6 +762,8 @@ tasks.named("docsTest") { task ->
                 "snippet-ivy-publish-quickstart_groovy_publishingIvyPublishSingle.sample",
                 "snippet-ivy-publish-quickstart_kotlin_publishingIvyPublishLifecycle.sample",
                 "snippet-ivy-publish-quickstart_kotlin_publishingIvyPublishSingle.sample",
+                "snippet-plugins-publishing_groovy_publishToIvy.sample",
+                "snippet-plugins-publishing_kotlin_publishToIvy.sample",
                 "snippet-tooling-api-custom-model_groovy_sanityCheck.sample",
 
                 // TODO(https://github.com/gradle/gradle/issues/21717)
