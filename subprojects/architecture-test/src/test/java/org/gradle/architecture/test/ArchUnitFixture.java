@@ -264,7 +264,7 @@ public interface ArchUnitFixture {
             Stream<JavaClass> ownerAndSupertypes = Stream.of(
                 Stream.of(input.getOwner()),
                 input.getOwner().getAllRawSuperclasses().stream(),
-                input.getOwner().getRawInterfaces().stream()
+                input.getOwner().getAllRawInterfaces().stream()
             ).flatMap(Function.identity());
 
             return ownerAndSupertypes.anyMatch(classInHierarchy ->
