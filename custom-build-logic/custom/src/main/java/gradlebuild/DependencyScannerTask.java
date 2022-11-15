@@ -73,9 +73,15 @@ public abstract class DependencyScannerTask extends DefaultTask {
     @TaskAction
     public void run() {
 
-        Map<File, AnalyzingArtifactTransform.DependencyAnalysis> data = new TreeMap<>();
+//        Map<File, AnalyzingArtifactTransform.DependencyAnalysis> data = new TreeMap<>();
 //        getAnalyzedClasspath().get().getIncoming().artifactView(configuration -> {}).getArtifacts().getArtifacts().forEach((ResolvedArtifactResult artifact) -> {
 //            File file = artifact.getFile();
+
+        // Map from a class name to the artifact it is defined in.
+        Map<String, File> artifactMap = new TreeMap<>();
+
+        // A map from a given class to all the classes it depends on.
+        Map<String, ClassData> dependencyMap = new TreeMap<>();
         getAnalyzedClasspath().get().getFiles().forEach(file -> {
             AnalyzingArtifactTransform.DependencyAnalysis analysis;
             try {
@@ -87,47 +93,25 @@ public abstract class DependencyScannerTask extends DefaultTask {
             }
 
             // SHOULD GO HERE VVVVV
-            if (data.put(file, analysis) != null) {
-                throw new RuntimeException("Oh no!");
-            }
-        });
-
-        // Map from a class name to the artifact it is defined in.
-        Map<String, File> artifactMap = new TreeMap<>();
-
-        // A map from a given class to all the classes it depends on.
-        Map<String, ClassData> dependencyMap = new TreeMap<>();
-        Set<String> duplicateClasses = new TreeSet<>();
-        data.forEach((artifact, depAnalysis) -> {
-
-            // THIS CODE ^^^
-            depAnalysis.getAnalyses().forEach(classAnalysis -> {
+            analysis.getAnalyses().forEach(classAnalysis -> {
                 Set<String> dependencyClasses = new TreeSet<>(classAnalysis.getPrivateClassDependencies());
                 dependencyClasses.addAll(classAnalysis.getAccessibleClassDependencies());
 
                 String className = classAnalysis.getClassName();
                 ClassData classData = new ClassData();
                 classData.dependencyClasses = dependencyClasses;
-                classData.artifact = artifact;
+                classData.artifact = file;
 
                 ClassData oldData;
                 if ((oldData = dependencyMap.put(className, classData)) != null) {
-                    duplicateClasses.add(className);
                     LOGGER.warn("Duplicate: " + className);
-                    LOGGER.warn("\t" + artifact + " " + oldData.artifact);
+                    LOGGER.warn("\t" + file + " " + oldData.artifact);
                 } else {
                     // Only track the artifact of the first time we see a class
-                    artifactMap.put(className, artifact);
+                    artifactMap.put(className, file);
                 }
             });
         });
-
-//        dependencyMap.get("org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework$TestClassProcessorFactoryImpl").dependencyClasses
-//            .remove("org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework");
-//        dependencyMap.get("org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework$TestClassProcessorFactoryImpl").dependencyClasses
-//            .remove("org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework");
-//        dependencyMap.get("org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework$JUnitPlatformTestClassProcessorFactory").dependencyClasses
-//            .remove("org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework");
 
         Map<String, Set<String>> reverseDependencyMap = new TreeMap<>();
         dependencyMap.forEach((k, v) -> v.dependencyClasses.forEach(dep ->

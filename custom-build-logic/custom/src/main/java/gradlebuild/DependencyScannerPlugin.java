@@ -16,16 +16,25 @@
 
 package gradlebuild;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Exec;
 import org.gradle.api.tasks.TaskProvider;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.Collections;
 
 public abstract class DependencyScannerPlugin implements Plugin<Project> {
@@ -52,8 +61,8 @@ public abstract class DependencyScannerPlugin implements Plugin<Project> {
         dependencyAnalysis.getDependencies().add(project.getDependencies().create(project));
 
         // Per-project config:
-        dependencyAnalysis.getDependencies().add(
-            project.getDependencies().project(Collections.singletonMap("path", ":testing-jvm-infrastructure")));
+//        dependencyAnalysis.getDependencies().add(
+//            project.getDependencies().project(Collections.singletonMap("path", ":testing-jvm-infrastructure")));
 
         // For some reason the platform dependency isn't inherited from the project dependency.
         dependencyAnalysis.getDependencies().add(project.getDependencies().platform(
@@ -79,9 +88,40 @@ public abstract class DependencyScannerPlugin implements Plugin<Project> {
         project.getDependencies().getArtifactTypes().getByName(ArtifactTypeDefinition.JAR_TYPE).getAttributes()
             .attribute(analyzed, false);
 
-//        JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
-//        SourceSet main = java.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-//
+
+
+
+        TaskProvider<D3GraphWriterTask> d3 = project.getTasks().register("renderD3Json", D3GraphWriterTask.class, task -> {
+            task.getAnalyzedClasspath().set(dependencyAnalysisClasspath);
+        });
+
+        TaskProvider<Task> html = project.getTasks().register("generateD3Html", task -> {
+
+            Provider<RegularFile> outputFile = project.getLayout().getBuildDirectory().file("force-graph.html");
+            task.getOutputs().file(outputFile);
+
+            task.dependsOn(d3.get());
+
+            task.doLast(t -> {
+                try(InputStream input = DependencyScannerPlugin.class.getResource("force-graph.html").openStream()) {
+                    try (OutputStream output = Files.newOutputStream(outputFile.get().getAsFile().toPath())) {
+                        input.transferTo(output);
+                    }
+                } catch (IOException e) {
+                    throw new GradleException("Failed to write HTML", e);
+                }
+            });
+        });
+
+
+
+
+
+
+//        setupDygraph(project, dependencyAnalysisClasspath);
+    }
+
+    private void setupDygraph(Project project, Configuration dependencyAnalysisClasspath) {
         TaskProvider<DependencyScannerTask> scanOutputs = project.getTasks().register("scanOutputs", DependencyScannerTask.class, task -> {
             task.getAnalyzedClasspath().set(dependencyAnalysisClasspath);
 //            task.getAnalyzedClasspath().set(dependencyAnalysisClasspath.getIncoming().getArtifacts().getResolvedArtifacts());
@@ -94,7 +134,5 @@ public abstract class DependencyScannerPlugin implements Plugin<Project> {
             task.executable("/opt/homebrew/bin/dot");
         });
         viz.get().dependsOn(scanOutputs);
-
-//        scanOutputs.get().dependsOn(main.getCompileTaskName("java"));
     }
 }

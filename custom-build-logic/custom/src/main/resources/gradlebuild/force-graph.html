@@ -1,0 +1,33 @@
+<head>
+    <style> body { margin: 0; } </style>
+    <script src="//unpkg.com/force-graph"></script>
+</head>
+
+<body>
+<div id="graph"></div>
+<script>
+    fetch('force-graph.json').then(res => res.json()).then(data => {
+      const Graph = ForceGraph()
+      (document.getElementById('graph'))
+        .graphData(data)
+        .nodeId('id')
+<!--        .nodeVal('val')-->
+        .nodeLabel('id')
+
+        .nodeRelSize(8)
+        .nodeAutoColorBy('group')
+<!--.nodeColor('color')-->
+        .linkSource('source')
+        .linkTarget('target')
+<!--        .d3AlphaDecay(0)-->
+        .d3VelocityDecay(0.15)
+        .cooldownTime(60000)
+        .linkColor(() => 'rgb(255, 255, 255, 0.2)')
+<!--        .linkVisibility(false)-->
+        .zoom(0.1)
+        .backgroundColor('black')
+        .linkDirectionalArrowLength(6)
+<!--        .enablePointerInteraction(false);-->
+    });
+  </script>
+</body>
