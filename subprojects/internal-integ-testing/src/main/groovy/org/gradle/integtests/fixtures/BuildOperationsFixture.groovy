@@ -70,15 +70,14 @@ class BuildOperationsFixture extends BuildOperationTreeQueries {
         return tree.all(type, predicate)
     }
 
-    <T extends BuildOperationType<?, ?>> BuildOperationRecord one(Class<T> type, Spec<? super BuildOperationRecord> predicate = Specs.satisfyAll()) {
-        def result = tree.all(type, predicate)
-        assert result.size() == 1
-        return result.first()
-    }
-
     @Override
     BuildOperationRecord first(Pattern displayName) {
         return tree.first(displayName)
+    }
+
+    @Override
+    List<BuildOperationRecord> all() {
+        return tree.all()
     }
 
     @Override

@@ -192,8 +192,8 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         buildIdentifiedEvents.size() == 4
         buildIdentifiedEvents[0].details.buildPath == ':'
         buildIdentifiedEvents[1].details.buildPath == ':buildB'
-        buildIdentifiedEvents[2].details.buildPath == ':buildSrc'
-        buildIdentifiedEvents[3].details.buildPath == ':buildB:buildSrc'
+        buildIdentifiedEvents[2].details.buildPath == ':buildB:buildSrc'
+        buildIdentifiedEvents[3].details.buildPath == ':buildSrc'
 
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 4

@@ -403,6 +403,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected BuildLoader createBuildLoader(
         GradleProperties gradleProperties,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOperationProgressEventEmitter emitter,
         ListenerManager listenerManager
     ) {
         return new NotifyingBuildLoader(
@@ -411,7 +412,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new InstantiatingBuildLoader(),
                 listenerManager.getBroadcaster(FileResourceListener.class)
             ),
-            buildOperationExecutor
+            buildOperationExecutor,
+            emitter
         );
     }
 

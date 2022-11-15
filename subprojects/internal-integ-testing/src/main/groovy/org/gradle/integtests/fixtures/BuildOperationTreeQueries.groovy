@@ -60,6 +60,8 @@ abstract class BuildOperationTreeQueries {
 
     abstract BuildOperationRecord first(Pattern displayName)
 
+    abstract List<BuildOperationRecord> all();
+
     List<BuildOperationRecord> all(String displayName) {
         return all(Pattern.compile(Pattern.quote(displayName)))
     }
@@ -128,9 +130,7 @@ abstract class BuildOperationTreeQueries {
     }
 
     List<BuildOperationRecord.Progress> progress(Class<?> clazz) {
-        def matches = []
-        walk { matches.addAll(it.progress( clazz ) ) }
-        return matches
+        return all().collect { it.progress(clazz) }.flatten()
     }
 
     void walk(Action<? super BuildOperationRecord> action) {
