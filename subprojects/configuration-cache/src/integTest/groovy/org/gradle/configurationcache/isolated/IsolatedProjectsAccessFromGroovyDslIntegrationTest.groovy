@@ -398,6 +398,88 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         "addProjectEvaluationListener" | "removeProjectEvaluationListener"
     }
 
+    def "task graph should track cross-project model access in listeners with `#statement`"() {
+        file("settings.gradle") << "include('a')"
+        file("build.gradle") << """
+            class MyListener implements TaskExecutionGraphListener {
+                void graphPopulated(TaskExecutionGraph graph) {
+                    graph.hasTask(":x:unknown")
+                }
+            }
+            $statement
+        """
+
+        when:
+        configurationCacheFails(":help", ":a:help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a")
+            problem("Build file 'build.gradle': Project ':' cannot access the tasks in the task graph that were created by other projects")
+            failureCauseContains("Project ':' cannot access the tasks in the task graph that were created by other projects; tried to access ':x:unknown'")
+        }
+
+        where:
+        statement                                                                                       | _
+        "gradle.taskGraph.whenReady { graph -> graph.hasTask(':x:unknown') }"                           | _
+        "gradle.taskGraph.addTaskExecutionGraphListener(new MyListener())"                              | _
+    }
+
+    def "checking cross-project model access in task graph call `#statement` with #tasksToRun, should succeed: #shouldSucceed"() {
+        settingsFile << """
+            include("b")
+        """
+        file("build.gradle") << """
+            plugins {
+                id("java")
+            }
+        """
+        file("b/build.gradle") << """
+            plugins {
+                id("java")
+            }
+            dependencies {
+                implementation(project(":"))
+            }
+
+            gradle.taskGraph.whenReady { graph ->
+                $statement
+            }
+        """
+
+        when:
+        if (shouldSucceed) {
+            configurationCacheRun(*tasksToRun)
+        } else {
+            configurationCacheFails(*tasksToRun)
+        }
+
+        then:
+        if (shouldSucceed) {
+            fixture.assertStateStored {
+                projectsConfigured(":", ":b")
+            }
+        } else {
+            fixture.assertStateStoredAndDiscarded {
+                projectsConfigured(":", ":b")
+                problem("Build file 'b/build.gradle': Project ':b' cannot access the tasks in the task graph that were created by other projects")
+            }
+        }
+
+        where:
+        statement                            | tasksToRun                       | shouldSucceed
+        "graph.hasTask(':b:bTask')"          | [":b:help"]                      | true
+        "graph.hasTask(':b:help')"           | [":b:help"]                      | true
+        "graph.hasTask(':help')"             | [":b:help"]                      | false
+        "graph.hasTask(':x:unknown')"        | [":b:help"]                      | false
+        "graph.allTasks"                     | [":b:help"]                      | false
+        "graph.allTasks"                     | [":b:help", ":help"]             | false
+        "graph.getDependencies(help)"        | [":b:help"]                      | false
+        "graph.getDependencies(compileJava)" | [":b:compileJava"]               | false
+        "graph.filteredTasks"                | [":b:compileJava"]               | false
+        "graph.filteredTasks"                | [":b:compileJava", "-x:classes"] | false
+    }
+
     def "build script can query basic details of projects in allprojects block"() {
         settingsFile << """
             rootProject.name = "root"
