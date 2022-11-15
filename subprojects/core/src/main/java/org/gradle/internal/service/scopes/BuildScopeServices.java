@@ -184,6 +184,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -402,6 +403,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected BuildLoader createBuildLoader(
         GradleProperties gradleProperties,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOperationProgressEventEmitter emitter,
         ListenerManager listenerManager
     ) {
         return new NotifyingBuildLoader(
@@ -410,7 +412,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new InstantiatingBuildLoader(),
                 listenerManager.getBroadcaster(FileResourceListener.class)
             ),
-            buildOperationExecutor
+            buildOperationExecutor,
+            emitter
         );
     }
 
@@ -519,12 +522,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected SettingsPreparer createSettingsPreparer(SettingsLoaderFactory settingsLoaderFactory, BuildOperationExecutor buildOperationExecutor, BuildDefinition buildDefinition) {
+    protected SettingsPreparer createSettingsPreparer(SettingsLoaderFactory settingsLoaderFactory, BuildOperationExecutor buildOperationExecutor, BuildOperationProgressEventEmitter emitter, BuildDefinition buildDefinition) {
         return new BuildOperationFiringSettingsPreparer(
             new DefaultSettingsPreparer(
                 settingsLoaderFactory
             ),
             buildOperationExecutor,
+            emitter,
             buildDefinition.getFromBuild());
     }
 

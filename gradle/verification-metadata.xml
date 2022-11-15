@@ -597,16 +597,6 @@
             <pgp value="31bae2e51d95e0f8ad9b7bcc40a3c4432bd7308c"/>
          </artifact>
       </component>
-      <component group="com.gradle.publish" name="plugin-publish-plugin" version="0.14.0">
-         <artifact name="plugin-publish-plugin-0.14.0.jar">
-            <sha256 value="e5f60ab215d43f2614872bac5fdf9aaae3fd734bd67e93bf11a40007ec78d3f2" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="com.gradle.publish" name="plugin-publish-plugin" version="1.0.0">
-         <artifact name="plugin-publish-plugin-1.0.0.jar">
-            <sha256 value="34b81aba1dc0b18f9a35b0a28e800b460b6df105dcb92893c3a0e78276bd756c" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="com.h2database" name="h2" version="1.4.192">
          <artifact name="h2-1.4.192.jar">
             <pgp value="0cfa413799e2464c7d7e26220a4b343f2a55fdae"/>

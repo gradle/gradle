@@ -53,16 +53,15 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
             ${mavenCentralRepository()}
 
-            task checkConfiguration {
-                dependsOn test
+            tasks.test {
                 doLast {
-                    assert test.testFramework instanceof ${JUnitTestFramework.canonicalName}
-                    assert configurations.testRuntimeClasspath.files.empty
+                    assert testFramework instanceof ${JUnitTestFramework.canonicalName}
+                    assert classpath.empty
                 }
             }
         """
         expect:
-        succeeds("checkConfiguration")
+        succeeds("test")
     }
 
     def "configuring test framework on built-in test suite is honored in task and dependencies with JUnit"() {
@@ -81,17 +80,16 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task checkConfiguration {
-                dependsOn test
+            tasks.test {
                 doLast {
-                    assert test.testFramework instanceof ${JUnitTestFramework.canonicalName}
-                    assert configurations.testRuntimeClasspath.files.size() == 2
-                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-${DefaultJvmTestSuite.TestingFramework.JUNIT4.getDefaultVersion()}.jar" }
+                    assert testFramework instanceof ${JUnitTestFramework.canonicalName}
+                    assert classpath.size() == 2
+                    assert classpath.any { it.name == "junit-${DefaultJvmTestSuite.TestingFramework.JUNIT4.getDefaultVersion()}.jar" }
                 }
             }
         """
         expect:
-        succeeds("checkConfiguration")
+        succeeds("test")
     }
 
     def "configuring test framework on built-in test suite is honored in task and dependencies with JUnit and explicit version"() {
@@ -110,17 +108,16 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task checkConfiguration {
-                dependsOn test
+            tasks.test {
                 doLast {
-                    assert test.testFramework instanceof ${JUnitTestFramework.canonicalName}
-                    assert configurations.testRuntimeClasspath.files.size() == 2
-                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-4.12.jar" }
+                    assert testFramework instanceof ${JUnitTestFramework.canonicalName}
+                    assert classpath.size() == 2
+                    assert classpath.any { it.name == "junit-4.12.jar" }
                 }
             }
         """
         expect:
-        succeeds("checkConfiguration")
+        succeeds("test")
     }
 
     def "configuring test framework on built-in test suite using a Provider is honored in task and dependencies with JUnit and explicit version"() {
@@ -141,17 +138,16 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task checkConfiguration {
-                dependsOn test
+            tasks.test {
                 doLast {
-                    assert test.testFramework instanceof ${JUnitTestFramework.canonicalName}
-                    assert configurations.testRuntimeClasspath.files.size() == 2
-                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-4.12.jar" }
+                    assert testFramework instanceof ${JUnitTestFramework.canonicalName}
+                    assert classpath.size() == 2
+                    assert classpath.any { it.name == "junit-4.12.jar" }
                 }
             }
         """
         expect:
-        succeeds("checkConfiguration")
+        succeeds("test")
     }
 
     def "configuring test framework on built-in test suite is honored in task and dependencies with JUnit Jupiter"() {
@@ -170,18 +166,17 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task checkConfiguration {
-                dependsOn test
+            tasks.test {
                 doLast {
                     assert test.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.testRuntimeClasspath.files.size() == 8
-                    assert configurations.testRuntimeClasspath.files.any { it.name =~ /junit-platform-launcher-.*.jar/ }
-                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
+                    assert classpath.size() == 8
+                    assert classpath.any { it.name =~ /junit-platform-launcher-.*.jar/ }
+                    assert classpath.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
         """
         expect:
-        succeeds("checkConfiguration")
+        succeeds("test")
     }
 
     def "configuring test framework on built-in test suite is honored in task and dependencies with JUnit Jupiter with explicit version"() {
@@ -200,17 +195,16 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task checkConfiguration {
-                dependsOn test
+            tasks.test {
                 doLast {
-                    assert test.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.testRuntimeClasspath.files.size() == 9
-                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-jupiter-5.7.2.jar" }
+                    assert testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
+                    assert classpath.size() == 9
+                    assert classpath.any { it.name == "junit-jupiter-5.7.2.jar" }
                 }
             }
         """
         expect:
-        succeeds("checkConfiguration")
+        succeeds("test")
     }
 
     def "configuring test framework on built-in test suite using a Provider is honored in task and dependencies with JUnit Jupiter with explicit version"() {
@@ -231,17 +225,16 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task checkConfiguration {
-                dependsOn test
+            tasks.test {
                 doLast {
-                    assert test.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.testRuntimeClasspath.files.size() == 9
-                    assert configurations.testRuntimeClasspath.files.any { it.name == "junit-jupiter-5.7.2.jar" }
+                    assert testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
+                    assert classpath.size() == 9
+                    assert classpath.any { it.name == "junit-jupiter-5.7.2.jar" }
                 }
             }
         """
         expect:
-        succeeds("checkConfiguration")
+        succeeds("test")
     }
 
     def "conventional test framework on custom test suite is JUnit Jupiter"() {
@@ -258,18 +251,17 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task checkConfiguration {
-                dependsOn integTest
+            tasks.integTest {
                 doLast {
-                    assert integTest.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.integTestRuntimeClasspath.files.size() == 8
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name =~ /junit-platform-launcher-.*.jar/ }
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
+                    assert testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
+                    assert classpath.size() == 8
+                    assert classpath.any { it.name =~ /junit-platform-launcher-.*.jar/ }
+                    assert classpath.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
                 }
             }
         """
         expect:
-        succeeds("checkConfiguration")
+        succeeds("integTest")
     }
 
     def "configuring test framework on custom test suite is honored in task and dependencies with #testingFrameworkDeclaration"() {
@@ -288,16 +280,15 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task checkConfiguration {
-                dependsOn integTest
+            tasks.integTest {
                 doLast {
-                    assert integTest.testFramework instanceof ${testingFrameworkType.canonicalName}
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "${testingFrameworkDep}" }
+                    assert testFramework instanceof ${testingFrameworkType.canonicalName}
+                    assert classpath.any { it.name == "${testingFrameworkDep}" }
                 }
             }
         """
         expect:
-        succeeds("checkConfiguration")
+        succeeds("integTest")
 
         where: // When testing a custom version, this should be a different version that the default
         testingFrameworkDeclaration  | testingFrameworkType       | testingFrameworkDep
@@ -332,16 +323,15 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task checkConfiguration {
-                dependsOn integTest
+            tasks.integTest {
                 doLast {
-                    assert integTest.testFramework instanceof ${testingFrameworkType.canonicalName}
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "$testingFrameworkDep" }
+                    assert testFramework instanceof ${testingFrameworkType.canonicalName}
+                    assert classpath.any { it.name == "$testingFrameworkDep" }
                 }
             }
         """
         expect:
-        succeeds("checkConfiguration")
+        succeeds("integTest")
 
         where: // When testing a custom version, this should be a different version that the default
         testingFrameworkMethod       | testingFrameworkVersion      | testingFrameworkType       | testingFrameworkDep
@@ -370,28 +360,6 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task checkConfigurationIsJupiter {
-                dependsOn integTest
-                doLast {
-                    assert integTest.testFramework instanceof ${JUnitPlatformTestFramework.canonicalName}
-                    assert configurations.integTestRuntimeClasspath.files.size() == 8
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name =~ /junit-platform-launcher-.*.jar/ }
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-jupiter-${DefaultJvmTestSuite.TestingFramework.JUNIT_JUPITER.getDefaultVersion()}.jar" }
-                }
-            }
-            task checkConfigurationIsJUnit {
-                dependsOn integTest
-                doLast {
-                    assert test.testFramework instanceof ${JUnitTestFramework.canonicalName}
-                    assert configurations.integTestRuntimeClasspath.files.size() == 2
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-4.13.2.jar" }
-                }
-            }
-        """
-        expect:
-        succeeds("checkConfigurationIsJupiter")
-
-        buildFile << """
             testing {
                 suites {
                     integTest {
@@ -399,9 +367,17 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
+
+            tasks.integTest {
+                doLast {
+                    assert testFramework instanceof ${JUnitTestFramework.canonicalName}
+                    assert classpath.size() == 2
+                    assert classpath.any { it.name == "junit-4.13.2.jar" }
+                }
+            }
         """
-        // Now we're using JUnit again
-        succeeds("checkConfigurationIsJUnit")
+        expect:
+        succeeds("integTest")
     }
 
     def "task configuration overrules test suite configuration"() {
@@ -642,14 +618,170 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task checkConfiguration {
-                dependsOn integTest
+            tasks.integTest {
                 doLast {
-                    assert configurations.integTestRuntimeClasspath.files.any { it.name == "junit-4.12.jar" }
+                    assert classpath.any { it.name == "junit-4.12.jar" }
                 }
             }
         """
         expect:
-        succeeds("checkConfiguration")
+        succeeds("integTest")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20846")
+    def "when tests are NOT run they are NOT configured"() {
+        given: "a build which will throw an exception upon configuring test tasks"
+        file("build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            tasks.withType(Test).configureEach {
+                throw new RuntimeException('Configuring tests failed')
+            }
+        """
+
+        and: "containing a class to compile"
+        file("src/main/java/org/test/App.java") << """
+            public class App {
+                public String getGreeting() {
+                    return "Hello World!";
+                }
+            }
+        """
+
+        and: "containing a test"
+        file("src/test/java/org/test/MyTest.java") << """
+            package org.test;
+
+            import org.junit.*;
+
+            public class MyTest {
+                @Test
+                public void testSomething() {
+                    App classUnderTest = new App();
+                    Assert.assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
+                }
+            }
+        """
+
+        expect: "compilation does not configure tests"
+        succeeds("compileJava")
+
+        and: "running tests fails due to configuring tests"
+        fails("test")
+        failure.assertHasErrorOutput("Configuring tests failed")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20846")
+    def "when tests are NOT run they are NOT configured - even when adding an implementation dep"() {
+        given: "a build which will throw an exception upon configuring test tasks"
+        file("build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation 'com.google.guava:guava:30.1.1-jre'
+            }
+
+            tasks.withType(Test).configureEach {
+                throw new RuntimeException('Configuring tests failed')
+            }
+        """
+
+        and: "containing a class to compile"
+        file("src/main/java/org/test/App.java") << """
+            public class App {
+                public String getGreeting() {
+                    return "Hello World!";
+                }
+            }
+        """
+
+        and: "containing a test"
+        file("src/test/java/org/test/MyTest.java") << """
+            package org.test;
+
+            import org.junit.*;
+
+            public class MyTest {
+                @Test
+                public void testSomething() {
+                    App classUnderTest = new App();
+                    Assert.assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
+                }
+            }
+        """
+
+        expect: "compilation does NOT configure tests"
+        succeeds("compileJava")
+
+        and: "running tests fails due to configuring tests"
+        fails("test")
+        failure.assertHasErrorOutput("Configuring tests failed")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20846")
+    def "when tests are NOT run they are NOT configured - even when adding an implementation dep to the integration test suite"() {
+        given: "a build which will throw an exception upon configuring test tasks"
+        file("build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+
+            ${mavenCentralRepository()}
+
+            tasks.withType(Test).configureEach {
+                throw new RuntimeException('Configuring tests failed')
+            }
+
+            testing {
+                suites {
+                    integrationTest(JvmTestSuite) {
+                        useJUnit()
+                    }
+                }
+            }
+
+            dependencies {
+                integrationTestImplementation 'com.google.guava:guava:30.1.1-jre'
+            }
+        """
+
+        and: "containing a class to compile"
+        file("src/main/java/org/test/App.java") << """
+            public class App {
+                public String getGreeting() {
+                    return "Hello World!";
+                }
+            }
+        """
+
+        and: "containing an integration test"
+        file("src/integrationTest/java/org/test/MyTest.java") << """
+            package org.test;
+
+            import org.junit.*;
+
+            public class MyTest {
+                @Test
+                public void testSomething() {
+                    App classUnderTest = new App();
+                    Assert.assertNotNull(classUnderTest.getGreeting(), "app should have a greeting");
+                }
+            }
+        """
+
+        expect: "compilation does NOT configure tests"
+        succeeds("compileJava")
+
+        and: "running integration tests fails due to configuring tests"
+        fails("integrationTest")
+        failure.assertHasErrorOutput("Configuring tests failed")
     }
 }

@@ -2,9 +2,17 @@ plugins {
     id('java')
 }
 
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.apache.commons:commons-lang3:3.11'
+}
+
 // tag::copy[]
 tasks.register('copyFiles', Copy) {
-    println ">> Compilation deps: ${configurations.compileClasspath.files}"
+    println ">> Compilation deps: ${configurations.compileClasspath.files.name}"
     into(layout.buildDirectory.dir('output'))
     from(configurations.compileClasspath)
 }
