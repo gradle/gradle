@@ -18,6 +18,7 @@ package org.gradle.vcs.internal
 
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
+import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -83,6 +84,11 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         loadOps[1].displayName == "Load build (:buildB)"
         loadOps[1].details.buildPath == ":buildB"
         loadOps[1].parentId == resolve.id
+
+        def buildIdentifiedEvents = operations.progress(BuildIdentifiedProgressDetails)
+        buildIdentifiedEvents.size() == 2
+        buildIdentifiedEvents[0].details.buildPath == ':'
+        buildIdentifiedEvents[1].details.buildPath == ':buildB'
 
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2
