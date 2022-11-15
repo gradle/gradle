@@ -116,10 +116,10 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
     // endregion Roleless (Implicit LEGACY Role) Configurations
 
     // region Role-Based Configurations
-    def "usage allowed for role-based configuration #role is as intended"() {
+    def "intended usage is allowed for role-based configuration #role"() {
         given:
         buildFile << """
-            configurations.$createRoleCall
+            configurations.$customRoleBasedConf
 
             tasks.register('checkConfUsage') {
                 doLast {
@@ -137,17 +137,44 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         succeeds('checkConfUsage')
 
         where:
-        role                    | createRoleCall                    || consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
+        role                    | customRoleBasedConf               || consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
         'consumable'            | "consumable('custom')"            || true        | false         | false             | false                 | false                 | false
         'resolvable'            | "resolvable('custom')"            || false       | true          | false             | false                 | false                 | false
         'bucket'                | "bucket('custom')"                || false       | false         | true              | false                 | false                 | false
         'deprecated consumable' | "deprecatedConsumable('custom')"  || true        | true          | true              | false                 | true                  | true
         'deprecated resolvable' | "deprecatedResolvable('custom')"  || true        | true          | true              | true                  | false                 | true
     }
+
+    def "can prevent usage mutation of role-based configuration #role"() {
+        given:
+        buildFile << """
+            configurations.$customRoleBasedConf
+
+            configurations.custom {
+                preventUsageMutation()
+                canBeResolved = !canBeResolved
+            }
+        """
+        executer.noDeprecationChecks()
+
+        expect:
+        fails 'help'
+
+        and:
+        assertUsageLockedFailure('custom', displayName)
+
+        where:
+        role                    | customRoleBasedConf               | displayName
+        'consumable'            | "consumable('custom')"            | 'Intended Consumable'
+        'resolvable'            | "resolvable('custom')"            | 'Intended Resolvable'
+        'bucket'                | "bucket('custom')"                | 'Intended Bucket'
+        'deprecated consumable' | "deprecatedConsumable('custom')"  | 'Deprecated Consumable'
+        'deprecated resolvable' | "deprecatedResolvable('custom')"  | 'Deprecated Resolvable'
+    }
     // endregion Role-Based Configurations
 
     // region Custom Roles
-    def "can create custom role"() {
+    def "can create configuration with custom role"() {
         given:
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
@@ -157,18 +184,42 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 custom {
-                    assert configurations.custom.canBeConsumed
-                    assert configurations.custom.canBeResolved
-                    assert !configurations.custom.canBeDeclaredAgainst
-                    assert !configurations.custom.deprecatedForConsumption
-                    assert !configurations.custom.deprecatedForResolution
-                    assert !configurations.custom.deprecatedForDeclarationAgainst
+                    assert canBeConsumed
+                    assert canBeResolved
+                    assert !canBeDeclaredAgainst
+                    assert !deprecatedForConsumption
+                    assert !deprecatedForResolution
+                    assert !deprecatedForDeclarationAgainst
                 }
             }
         """
 
         expect:
         succeeds 'help'
+    }
+
+    def "can prevent usage mutation for configuration with custom role"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+
+            ConfigurationRole customRole = ConfigurationRole.forUsage('custom', true, true, false, false, false, false)
+            configurations.createWithRole('custom', customRole)
+
+            configurations {
+                custom {
+                    assert canBeConsumed
+                    preventUsageMutation()
+                    canBeConsumed = false
+                }
+            }
+        """
+
+        expect:
+        fails 'help'
+
+        and:
+        assertUsageLockedFailure('custom', 'custom')
     }
     // endregion Custom Roles
 
