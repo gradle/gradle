@@ -24,6 +24,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.File
 
+
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
 
@@ -177,7 +178,8 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         build("myTask")
     }
 
-    private fun withBuildScriptWithAssignment(): File {
+    private
+    fun withBuildScriptWithAssignment(): File {
         val outputFilePath = "${projectRoot.absolutePath}/build/myTask/hello-world.txt"
         withBuildScript("""
             abstract class MyTask : DefaultTask() {
@@ -201,7 +203,8 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         return File(outputFilePath)
     }
 
-    private fun withSettingsWithAssignment() {
+    private
+    fun withSettingsWithAssignment() {
         withSettings("""
             import org.gradle.kotlin.dsl.support.serviceOf
             data class Container(val property: Property<String>)
@@ -214,7 +217,8 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         )
     }
 
-    private fun withInitScriptWithAssignment(): File {
+    private
+    fun withInitScriptWithAssignment(): File {
         return withFile(
             "init.gradle.kts",
             """
@@ -225,11 +229,12 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
                     property = "Hello world"
                 }
                 println("Init property value: " + container.property.get())
-                """.trimIndent()
+            """.trimIndent()
         )
     }
 
-    private fun withAssignmentOverloadEnabled(enabled: Boolean = true) {
+    private
+    fun withAssignmentOverloadEnabled(enabled: Boolean = true) {
         withFile("gradle.properties", "systemProp.$ASSIGNMENT_SYSTEM_PROPERTY=$enabled")
     }
 }
