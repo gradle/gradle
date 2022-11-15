@@ -43,7 +43,7 @@ import javax.inject.Inject;
  * @since 1.3
  * @see <a href="https://docs.gradle.org/current/userguide/publishing_setup.html#publishing_overview">Publishing reference</a>
  */
-public class PublishingPlugin implements Plugin<Project> {
+public abstract class PublishingPlugin implements Plugin<Project> {
 
     public static final String PUBLISH_TASK_GROUP = "publishing";
     public static final String PUBLISH_LIFECYCLE_TASK_NAME = "publish";

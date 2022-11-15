@@ -20,24 +20,28 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.function.Supplier;
 
-class TasksFromProjectDependencies extends AbstractTaskDependency {
+class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
     private final String taskName;
-    private final Supplier<DependencySet> dependencies;
+    private final TaskDependencyContainerInternal taskDependencyDelegate;
 
-    public TasksFromProjectDependencies(String taskName, Supplier<DependencySet> dependencies) {
+    public TasksFromProjectDependencies(String taskName, Supplier<DependencySet> dependencies, TaskDependencyFactory taskDependencyFactory) {
         this.taskName = taskName;
-        this.dependencies = dependencies;
+        this.taskDependencyDelegate = taskDependencyFactory.visitingDependencies(
+            context -> resolveProjectDependencies(context, dependencies.get().withType(ProjectDependency.class))
+        );
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        resolveProjectDependencies(context, dependencies.get().withType(ProjectDependency.class));
+        taskDependencyDelegate.visitDependencies(context);
     }
 
     void resolveProjectDependencies(TaskDependencyResolveContext context, Set<ProjectDependency> projectDependencies) {
@@ -53,5 +57,15 @@ class TasksFromProjectDependencies extends AbstractTaskDependency {
 
     public String getTaskName() {
         return taskName;
+    }
+
+    @Override
+    public Set<? extends Task> getDependencies(@Nullable Task task) {
+        return taskDependencyDelegate.getDependencies(task);
+    }
+
+    @Override
+    public Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task) {
+        return taskDependencyDelegate.getDependenciesForInternalUse(task);
     }
 }

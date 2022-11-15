@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ResolvedFileCollectionVisito
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.Scopes;
@@ -32,8 +33,10 @@ import java.util.Set;
 @ServiceScope(Scopes.BuildSession.class)
 public class ArtifactSetToFileCollectionFactory {
     private final BuildOperationExecutor buildOperationExecutor;
+    private final TaskDependencyFactory taskDependencyFactory;
 
-    public ArtifactSetToFileCollectionFactory(BuildOperationExecutor buildOperationExecutor) {
+    public ArtifactSetToFileCollectionFactory(TaskDependencyFactory taskDependencyFactory, BuildOperationExecutor buildOperationExecutor) {
+        this.taskDependencyFactory = taskDependencyFactory;
         this.buildOperationExecutor = buildOperationExecutor;
     }
 
@@ -44,7 +47,7 @@ public class ArtifactSetToFileCollectionFactory {
      * Over time, this should be merged with the FileCollection implementation in DefaultConfiguration
      */
     public FileCollectionInternal asFileCollection(ResolvedArtifactSet artifacts) {
-        return new AbstractFileCollection() {
+        return new AbstractFileCollection(taskDependencyFactory) {
             @Override
             public String getDisplayName() {
                 return "files";

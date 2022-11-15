@@ -45,7 +45,7 @@ import java.util.List;
  * @since 4.5
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class XCTest extends AbstractTestTask {
+public abstract class XCTest extends AbstractTestTask {
     private final DirectoryProperty workingDirectory;
     private final DirectoryProperty testInstallDirectory;
     private final RegularFileProperty runScriptFile;

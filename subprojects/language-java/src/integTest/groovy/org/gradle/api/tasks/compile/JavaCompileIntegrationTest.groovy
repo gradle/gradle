@@ -94,7 +94,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                     implementation project(':a')
                 }
             }
-"""
+        """
 
         file("a/src/main/resources/Foo.java") << "public class Foo {}"
 

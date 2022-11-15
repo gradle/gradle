@@ -28,6 +28,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
+import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
@@ -83,7 +84,7 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION
  * Compiles Groovy source files, and optionally, Java source files.
  */
 @CacheableTask
-public class GroovyCompile extends AbstractCompile implements HasCompileOptions {
+public abstract class GroovyCompile extends AbstractCompile implements HasCompileOptions {
     private FileCollection groovyClasspath;
     private final ConfigurableFileCollection astTransformationClasspath;
     private final CompileOptions compileOptions;
@@ -134,8 +135,15 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         checkGroovyClasspathIsNonEmpty();
         warnIfCompileAvoidanceEnabled();
         GroovyJavaJointCompileSpec spec = createSpec();
+        maybeDisableIncrementalCompilationAfterFailure(spec);
         WorkResult result = getCompiler(spec, inputChanges).execute(spec);
         setDidWork(result.getDidWork());
+    }
+
+    private void maybeDisableIncrementalCompilationAfterFailure(GroovyJavaJointCompileSpec spec) {
+        if (CommandLineJavaCompileSpec.class.isAssignableFrom(spec.getClass())) {
+            spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(false);
+        }
     }
 
     /**

@@ -19,16 +19,17 @@ package org.gradle.api.tasks.compile
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertNull
+import static org.junit.Assert.assertTrue
+
 class CompileOptionsTest extends Specification {
     static final TEST_DEBUG_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
-    static final TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
 
     CompileOptions compileOptions
 
     def setup()  {
-        compileOptions = new CompileOptions(TestUtil.objectFactory())
-        compileOptions.debugOptions = [optionMap: {TEST_DEBUG_OPTION_MAP}] as DebugOptions
-        compileOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as ForkOptions
+        compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
     }
 
     @SuppressWarnings("GrDeprecatedAPIUsage")
@@ -52,19 +53,14 @@ class CompileOptionsTest extends Specification {
         compileOptions.debugOptions != null
     }
 
-    def "fork"() {
+    def testFork() {
         compileOptions.fork = false
-        boolean forkUseCalled = false
-
-        compileOptions.forkOptions = [define: {Map args ->
-            forkUseCalled = true
-            assert args == TEST_FORK_OPTION_MAP
-        }] as ForkOptions
+        assertNull(compileOptions.forkOptions.memoryMaximumSize)
 
         expect:
-        compileOptions.fork(TEST_FORK_OPTION_MAP).is(compileOptions)
-        compileOptions.fork
-        forkUseCalled
+        compileOptions.fork([memoryMaximumSize: '1g'])
+        assertTrue(compileOptions.fork)
+        assertEquals(compileOptions.forkOptions.memoryMaximumSize, '1g')
     }
 
     def "debug"() {

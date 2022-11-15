@@ -4,9 +4,10 @@ plugins {
 
 // tag::customAction[]
 tasks.jar {
+    val runtimeClasspath: FileCollection = configurations.runtimeClasspath.get()
     doFirst {
         manifest {
-            val classPath = configurations.runtimeClasspath.get().map { it.name }.joinToString(" ")
+            val classPath = runtimeClasspath.map { it.name }.joinToString(" ")
             attributes("Class-Path" to classPath)
         }
     }

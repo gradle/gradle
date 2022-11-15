@@ -59,7 +59,7 @@ import java.util.Set;
  * @see org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  * @since 2.13
  */
-public class GradlePluginDevelopmentExtension {
+public abstract class GradlePluginDevelopmentExtension {
 
     private final Property<String> website;
 

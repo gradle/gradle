@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
+import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
@@ -76,6 +77,12 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         loadOps[2].displayName == "Load build (:buildB:buildSrc)"
         loadOps[2].details.buildPath == ":buildB:buildSrc"
         loadOps[2].parentId == buildSrcOps[0].id
+
+        def buildIdentifiedEvents = operations.progress(BuildIdentifiedProgressDetails)
+        buildIdentifiedEvents.size() == 3
+        buildIdentifiedEvents[0].details.buildPath == ':'
+        buildIdentifiedEvents[1].details.buildPath == ':buildB'
+        buildIdentifiedEvents[2].details.buildPath == ':buildB:buildSrc'
 
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 3
@@ -180,6 +187,13 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         loadOps[3].displayName == "Load build (:buildSrc)"
         loadOps[3].details.buildPath == ":buildSrc"
         loadOps[3].parentId == buildSrcOps[1].id
+
+        def buildIdentifiedEvents = operations.progress(BuildIdentifiedProgressDetails)
+        buildIdentifiedEvents.size() == 4
+        buildIdentifiedEvents[0].details.buildPath == ':'
+        buildIdentifiedEvents[1].details.buildPath == ':buildB'
+        buildIdentifiedEvents[2].details.buildPath == ':buildB:buildSrc'
+        buildIdentifiedEvents[3].details.buildPath == ':buildSrc'
 
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 4
