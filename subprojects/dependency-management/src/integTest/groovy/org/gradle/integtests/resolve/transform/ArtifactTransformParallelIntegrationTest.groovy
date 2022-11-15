@@ -224,7 +224,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
     @RepeatUntilFailure(maxAttempts = 500)
     @Timeout(10)
     def "transformations are applied in parallel for a mix of external and file dependency artifacts"() {
-        def m1 = mavenRepo.module("test", "test", "1.3").publish()
+        def m1 = mavenRepo.module("test", "test1", "1.3").publish()
         m1.artifactFile.text = "1234"
         def m2 = mavenRepo.module("test", "test2", "2.3").publish()
         m2.artifactFile.text = "12"
@@ -245,7 +245,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             }
             dependencies {
                 compile files([a, b])
-                compile 'test:test:1.3'
+                compile 'test:test1:1.3'
                 compile files(c)
                 compile 'test:test2:2.3'
                 compile 'test:test3:3.3'
@@ -257,12 +257,12 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                 inputs.files(artifacts.artifactFiles)
 
                 doLast {
-                    assert artifacts.artifactFiles.collect { it.name } == ['a.jar.txt', 'b.jar.txt', 'c.jar.txt', 'test-1.3.jar.txt', 'test2-2.3.jar.txt', 'test3-3.3.jar.txt']
+                    assert artifacts.artifactFiles.collect { it.name } == ['a.jar.txt', 'b.jar.txt', 'c.jar.txt', 'test1-1.3.jar.txt', 'test2-2.3.jar.txt', 'test3-3.3.jar.txt']
                 }
             }
         """
 
-        server.expectConcurrent("a.jar", "b.jar", "c.jar", "test-1.3.jar", "test2-2.3.jar", "test3-3.3.jar")
+        server.expectConcurrent("a.jar", "b.jar", "c.jar", "test1-1.3.jar", "test2-2.3.jar", "test3-3.3.jar")
 
         when:
         succeeds ":resolve"
