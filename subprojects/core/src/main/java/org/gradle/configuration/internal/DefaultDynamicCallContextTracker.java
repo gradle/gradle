@@ -33,13 +33,13 @@ public class DefaultDynamicCallContextTracker implements DynamicCallContextTrack
 
     @Override
     public void enterDynamicCall(@Nonnull Object entryPoint) {
-        stateByThread.get().entryPointsStack.push(entryPoint);
+        currentEntryPointStack().push(entryPoint);
         enterListeners.forEach(listener -> listener.accept(entryPoint));
     }
 
     @Override
     public void leaveDynamicCall(@Nonnull Object entryPoint) {
-        Stack<Object> entryPointsStack = stateByThread.get().entryPointsStack;
+        Stack<Object> entryPointsStack = currentEntryPointStack();
         Object top = entryPointsStack.peek();
         if (top != entryPoint) {
             throw new IllegalStateException(
@@ -58,5 +58,9 @@ public class DefaultDynamicCallContextTracker implements DynamicCallContextTrack
     @Override
     public void onLeave(Consumer<Object> listener) {
         leaveListeners.add(listener);
+    }
+
+    private Stack<Object> currentEntryPointStack() {
+        return stateByThread.get().entryPointsStack;
     }
 }
