@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.RepeatUntilFailure
+import spock.lang.Timeout
 
 class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -219,6 +221,8 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         outputContains("Transforming c.jar to c.jar.txt")
     }
 
+    @RepeatUntilFailure(maxAttempts = 500)
+    @Timeout(10)
     def "transformations are applied in parallel for a mix of external and file dependency artifacts"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
