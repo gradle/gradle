@@ -15,10 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
@@ -34,26 +30,24 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
     ConfigurationInternal resolvable(String name, boolean lockRole);
     ConfigurationInternal bucket(String name, boolean lockRole);
 
+    default ConfigurationInternal consumable(String name) {
+        return consumable(name, false);
+    }
+
+    default ConfigurationInternal resolvable(String name) {
+        return resolvable(name, false);
+    }
+
+    default ConfigurationInternal bucket(String name) {
+        return bucket(name, false);
+    }
+
     /**
      * Creates a new configuration in the same manner as {@link #create(String)}, and then
      * immediately assigns it a role by setting internal status flags to mark possible usage options
      * for the configuration.
      */
     ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockRole);
-
-    /**
-     * If it does not already exist, creates a new configuration in the same manner as {@link #maybeCreate(String)}, and then
-     * immediately assigns it a role by setting internal status flags to mark possible usage options
-     * for the configuration.
-     *
-     * If the configuration already exists, this method will <strong>NOT</strong>> change anything about it,
-     * including its role.
-     *
-     * This method will <strong>NOT</strong> verify that the given role matches an existing configuration's current usage.
-     */
-    default ConfigurationInternal maybeCreateWithRole(String name, ConfigurationRole role) {
-        return maybeCreateWithRole(name, role, true, false);
-    }
 
     /**
      * If it does not already exist, creates a new configuration in the same manner as {@link #maybeCreate(String)}, and then
@@ -73,37 +67,6 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
             }
             return configuration;
         }
-    }
-
-    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, Closure<? super Configuration> configureClosure) throws InvalidUserDataException {
-        return createWithRole(name, role, true, configureClosure);
-    }
-
-    /**
-     * Creates a new configuration in the same manner as {@link #create(String, Closure)}, and then
-     * immediately assigns it a role by setting internal status flags to mark possible usage options
-     * for the configuration.
-     */
-    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockRole, Closure<? super Configuration> configureClosure) throws InvalidUserDataException {
-        ConfigurationInternal configuration = (ConfigurationInternal) create(name, configureClosure);
-        RoleAssigner.assignRoleAtCreation(configuration, role, lockRole);
-        return configuration;
-    }
-
-    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, Action<? super Configuration> configureAction) throws InvalidUserDataException {
-        return createWithRole(name, role, true, configureAction);
-    }
-
-    /**
-     * Creates a new configuration in the same manner as {@link #create(String, Action)}, and then
-     * immediately assigns it a role by setting internal status flags to mark possible usage options
-     * for the configuration.
-     */
-    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockRole, Action<? super Configuration> configureAction) throws InvalidUserDataException {
-        ConfigurationInternal configuration = (ConfigurationInternal) create(name);
-        configureAction.execute(configuration);
-        RoleAssigner.assignRoleAtCreation(configuration, role, lockRole);
-        return configuration;
     }
 
     abstract class RoleAssigner {

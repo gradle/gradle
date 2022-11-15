@@ -235,15 +235,15 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String sourceSetName = sourceSet.toString();
 
-        Configuration implementationConfiguration = configurations.maybeCreateWithRole(implementationConfigurationName, ConfigurationRoles.INTENDED_BUCKET);
+        Configuration implementationConfiguration = configurations.bucket(implementationConfigurationName, false);
         implementationConfiguration.setVisible(false);
         implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
 
-        Configuration compileOnlyConfiguration = configurations.maybeCreateWithRole(compileOnlyConfigurationName, ConfigurationRoles.INTENDED_BUCKET);
+        Configuration compileOnlyConfiguration = configurations.bucket(compileOnlyConfigurationName, false);
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
-        ConfigurationInternal compileClasspathConfiguration = configurations.maybeCreateWithRole(compileClasspathConfigurationName, ConfigurationRoles.INTENDED_RESOLVABLE);
+        ConfigurationInternal compileClasspathConfiguration = configurations.resolvable(compileClasspathConfigurationName, false);
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
@@ -259,11 +259,11 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
 
-        Configuration runtimeOnlyConfiguration = configurations.maybeCreateWithRole(runtimeOnlyConfigurationName, ConfigurationRoles.INTENDED_BUCKET);
+        Configuration runtimeOnlyConfiguration = configurations.maybeCreateWithRole(runtimeOnlyConfigurationName, ConfigurationRoles.INTENDED_BUCKET, false, true);
         runtimeOnlyConfiguration.setVisible(false);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
-        Configuration runtimeClasspathConfiguration = configurations.maybeCreateWithRole(runtimeClasspathConfigurationName, ConfigurationRoles.INTENDED_RESOLVABLE);
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreateWithRole(runtimeClasspathConfigurationName, ConfigurationRoles.INTENDED_RESOLVABLE, false, true);
         runtimeClasspathConfiguration.setVisible(false);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, implementationConfiguration);

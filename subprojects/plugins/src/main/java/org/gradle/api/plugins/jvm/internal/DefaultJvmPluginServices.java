@@ -293,7 +293,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
         @Override
         Configuration build() {
-            Configuration cnf = configurations.maybeCreateWithRole(name, ConfigurationRoles.INTENDED_CONSUMABLE);
+            Configuration cnf = configurations.maybeCreateWithRole(name, ConfigurationRoles.INTENDED_CONSUMABLE, false, true);
             if (description != null) {
                 cnf.setDescription(description);
             }
