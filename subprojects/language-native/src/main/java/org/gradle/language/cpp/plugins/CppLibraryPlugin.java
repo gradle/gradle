@@ -167,7 +167,7 @@ public abstract class CppLibraryPlugin implements Plugin<Project> {
                     task.getArchiveClassifier().set("cpp-api-headers");
                     task.getArchiveFileName().set("cpp-api-headers.zip");
                 });
-                library.getMainPublication().addArtifact(new LazyPublishArtifact(headersZip, ((ProjectInternal) project).getFileResolver()));
+                library.getMainPublication().addArtifact(new LazyPublishArtifact(headersZip, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory()));
             });
 
             library.getBinaries().realizeNow();

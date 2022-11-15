@@ -73,6 +73,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.artifacts.ExternalDependency",
+            "member": "Method org.gradle.api.artifacts.ExternalDependency.setForce(boolean)",
+            "acceptation": "Removed deprecated components in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.artifacts.ResolvedArtifact",
             "member": "Method org.gradle.api.artifacts.ResolvedArtifact.getExtension()",
             "acceptation": "Method always could return null",
@@ -222,6 +230,46 @@
             "acceptation": "Legacy ArtifactTransform API has been removed",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field JAVA_API_CLASSES",
+            "acceptation": "Removing deprecated fields for Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field JAVA_API_JARS",
+            "acceptation": "Removing deprecated fields for Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field JAVA_RUNTIME_CLASSES",
+            "acceptation": "Removing deprecated fields for Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field JAVA_RUNTIME_JARS",
+            "acceptation": "Removing deprecated fields for Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.attributes.Usage",
+            "member": "Field JAVA_RUNTIME_RESOURCES",
+            "acceptation": "Removing deprecated fields for Gradle 8.0",
+            "changes": [
+                "Field has been removed"
             ]
         },
         {
@@ -1258,14 +1306,6 @@
         },
         {
             "type": "org.gradle.api.tasks.testing.AbstractTestTask",
-            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getBinResultsDir()",
-            "acceptation": "Deprecated method removed",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
             "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.setBinResultsDir(java.io.File)",
             "acceptation": "Deprecated method removed",
             "changes": [
@@ -1398,6 +1438,14 @@
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
             "changes": [
                 "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ClientModuleScope",
+            "member": "Class org.gradle.kotlin.dsl.ClientModuleScope",
+            "acceptation": "Removed deprecated components in Gradle 8.0",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.ClientModuleDelegate.setForce(boolean)"
             ]
         },
         {
@@ -2094,6 +2142,126 @@
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
             "changes": [
                 "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.ForkMode",
+            "member": "Class org.gradle.workers.ForkMode",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.ForkMode",
+            "member": "Field ALWAYS",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.ForkMode",
+            "member": "Field AUTO",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.ForkMode",
+            "member": "Field NEVER",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.ForkMode",
+            "member": "Method org.gradle.workers.ForkMode.valueOf(java.lang.String)",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.ForkMode",
+            "member": "Method org.gradle.workers.ForkMode.values()",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.WorkerConfiguration",
+            "member": "Class org.gradle.workers.WorkerConfiguration",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.WorkerConfiguration",
+            "member": "Method org.gradle.workers.WorkerConfiguration.classpath(java.lang.Iterable)",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.WorkerConfiguration",
+            "member": "Method org.gradle.workers.WorkerConfiguration.getClasspath()",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.WorkerConfiguration",
+            "member": "Method org.gradle.workers.WorkerConfiguration.getForkMode()",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.WorkerConfiguration",
+            "member": "Method org.gradle.workers.WorkerConfiguration.getIsolationMode()",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.WorkerConfiguration",
+            "member": "Method org.gradle.workers.WorkerConfiguration.setClasspath(java.lang.Iterable)",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.WorkerConfiguration",
+            "member": "Method org.gradle.workers.WorkerConfiguration.setDisplayName(java.lang.String)",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.WorkerConfiguration",
+            "member": "Method org.gradle.workers.WorkerConfiguration.setForkMode(org.gradle.workers.ForkMode)",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.workers.WorkerConfiguration",
+            "member": "Method org.gradle.workers.WorkerConfiguration.setIsolationMode(org.gradle.workers.IsolationMode)",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {

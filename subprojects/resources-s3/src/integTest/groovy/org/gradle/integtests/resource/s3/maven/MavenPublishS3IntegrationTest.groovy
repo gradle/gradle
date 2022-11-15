@@ -36,6 +36,7 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         settingsFile << 'rootProject.name = "publishS3Test"'
 
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
+        executer.withStackTraceChecksDisabled()
     }
 
     def "can publish to a S3 Maven repository bucket=#bucket"() {

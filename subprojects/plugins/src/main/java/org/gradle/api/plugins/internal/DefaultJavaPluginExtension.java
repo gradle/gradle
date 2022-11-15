@@ -213,14 +213,14 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        configureDocumentationVariantWithArtifact(JAVADOC_ELEMENTS_CONFIGURATION_NAME, null, JAVADOC, ImmutableList.of(), main.getJavadocJarTaskName(), tasks.named(main.getJavadocTaskName()), findJavaComponent(components), configurations, tasks, objectFactory, project.getFileResolver());
+        configureDocumentationVariantWithArtifact(JAVADOC_ELEMENTS_CONFIGURATION_NAME, null, JAVADOC, ImmutableList.of(), main.getJavadocJarTaskName(), tasks.named(main.getJavadocTaskName()), findJavaComponent(components), configurations, tasks, objectFactory, project.getFileResolver(), project.getTaskDependencyFactory());
     }
 
     public void withSourcesJar() {
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        configureDocumentationVariantWithArtifact(SOURCES_ELEMENTS_CONFIGURATION_NAME, null, SOURCES, ImmutableList.of(), main.getSourcesJarTaskName(), main.getAllSource(), findJavaComponent(components), configurations, tasks, objectFactory, project.getFileResolver());
+        configureDocumentationVariantWithArtifact(SOURCES_ELEMENTS_CONFIGURATION_NAME, null, SOURCES, ImmutableList.of(), main.getSourcesJarTaskName(), main.getAllSource(), findJavaComponent(components), configurations, tasks, objectFactory, project.getFileResolver(), project.getTaskDependencyFactory());
     }
 
     public ModularitySpec getModularity() {

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
@@ -37,19 +36,12 @@ public class JavaCompileExecutableUtils {
         ForkOptions forkOptions = task.getOptions().getForkOptions();
         File customJavaHome = forkOptions.getJavaHome();
         if (customJavaHome != null) {
-            return new SpecificInstallationToolchainSpec(objectFactory, customJavaHome);
+            return SpecificInstallationToolchainSpec.fromJavaHome(objectFactory, customJavaHome);
         }
 
         String customExecutable = forkOptions.getExecutable();
         if (customExecutable != null) {
-            File executable = new File(customExecutable);
-            if (executable.exists()) {
-                // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
-                File parentJavaHome = executable.getParentFile().getParentFile();
-                return new SpecificInstallationToolchainSpec(objectFactory, parentJavaHome);
-            } else {
-                throw new InvalidUserDataException("The configured executable does not exist (" + executable.getAbsolutePath() + ")");
-            }
+            return SpecificInstallationToolchainSpec.fromJavaExecutable(objectFactory, customExecutable);
         }
 
         return null;

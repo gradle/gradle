@@ -36,6 +36,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.model.ObjectFactory;
@@ -237,7 +238,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     ObjectFactory createObjectFactory(
         InstantiatorFactory instantiatorFactory, ServiceRegistry services, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
-        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory,
+        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
         DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
     ) {
         return new DefaultObjectFactory(
@@ -247,6 +248,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
             patternSetFactory,
             propertyFactory,
             filePropertyFactory,
+            taskDependencyFactory,
             fileCollectionFactory,
             domainObjectCollectionFactory);
     }

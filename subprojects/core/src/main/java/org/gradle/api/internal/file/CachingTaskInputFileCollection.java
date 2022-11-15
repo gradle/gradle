@@ -51,7 +51,7 @@ public class CachingTaskInputFileCollection extends DefaultConfigurableFileColle
             if (cachedValue == null) {
                 ImmutableSet.Builder<File> files = ImmutableSet.builder();
                 super.visitChildren(files::addAll);
-                this.cachedValue = new FileCollectionAdapter(new ListBackedFileSet(files.build()), patternSetFactory);
+                this.cachedValue = new FileCollectionAdapter(new ListBackedFileSet(files.build()), taskDependencyFactory, patternSetFactory);
             }
             visitor.accept(cachedValue);
         } else {

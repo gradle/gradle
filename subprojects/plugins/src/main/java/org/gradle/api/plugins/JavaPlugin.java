@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.VerificationType;
+import org.gradle.api.attributes.CompileView;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
@@ -48,7 +49,6 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.testing.base.TestingExtension;
 
@@ -245,6 +245,8 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
     private static final String SOURCE_ELEMENTS_VARIANT_NAME = "mainSourceElements";
 
+    private static final String COMPILE_ELEMENTS_CONFIGURATION_NAME = "compileElements";
+
     private final ObjectFactory objectFactory;
     private final SoftwareComponentFactory softwareComponentFactory;
     private final JvmPluginServices jvmServices;
@@ -338,7 +340,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
             test.shouldRunAfter(project.getTasks().withType(Jar.class));
         });
 
-        PublishArtifact jarArtifact = new LazyPublishArtifact(jarTaskProvider, ((ProjectInternal) project).getFileResolver());
+        PublishArtifact jarArtifact = new LazyPublishArtifact(jarTaskProvider, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(jarArtifact);
         return jarArtifact;
     }
@@ -357,13 +359,12 @@ public abstract class JavaPlugin implements Plugin<Project> {
         Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
         Configuration runtimeOnlyConfiguration = configurations.getByName(RUNTIME_ONLY_CONFIGURATION_NAME);
 
-        final DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(RUNTIME_ELEMENTS_CONFIGURATION_NAME,
+        final Configuration runtimeElementsConfiguration = jvmServices.createOutgoingElements(RUNTIME_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(mainSourceSet)
                 .providesRuntime()
                 .withDescription("Elements of runtime for main.")
                 .extendsFrom(implementationConfiguration, runtimeOnlyConfiguration));
         defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
-        runtimeElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME, RUNTIME_ONLY_CONFIGURATION_NAME);
 
         // Configure variants
         addJarArtifactToConfiguration(runtimeElementsConfiguration, jarArtifact);
@@ -374,16 +375,32 @@ public abstract class JavaPlugin implements Plugin<Project> {
     }
 
     private Configuration createApiElements(SourceSet mainSourceSet, PublishArtifact jarArtifact) {
-        final DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) jvmServices.createOutgoingElements(API_ELEMENTS_CONFIGURATION_NAME,
+        final Configuration apiElementsConfiguration = jvmServices.createOutgoingElements(API_ELEMENTS_CONFIGURATION_NAME,
             builder -> builder.fromSourceSet(mainSourceSet)
                 .providesApi()
                 .withDescription("API elements for main."));
-        apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
+        apiElementsConfiguration.getAttributes().attribute(CompileView.VIEW_ATTRIBUTE, objectFactory.named(CompileView.class, CompileView.JAVA_API));
 
         // Configure variants
         addJarArtifactToConfiguration(apiElementsConfiguration, jarArtifact);
 
         return apiElementsConfiguration;
+    }
+
+    private void createCompileElements(Project project, SourceSet mainSourceSet, PublishArtifact jarArtifact) {
+        ConfigurationContainer configurations = project.getConfigurations();
+        Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
+        Configuration compileOnly = configurations.getByName(COMPILE_ONLY_CONFIGURATION_NAME);
+
+        final Configuration compileElementsConfiguration = jvmServices.createOutgoingElements(COMPILE_ELEMENTS_CONFIGURATION_NAME,
+            builder -> builder.fromSourceSet(mainSourceSet)
+                .providesApi()
+                .withDescription("Compile elements for main.")
+                .extendsFrom(implementationConfiguration, compileOnly));
+        compileElementsConfiguration.getAttributes().attribute(CompileView.VIEW_ATTRIBUTE, objectFactory.named(CompileView.class, CompileView.JAVA_INTERNAL));
+
+        // Configure variants
+        addJarArtifactToConfiguration(compileElementsConfiguration, jarArtifact);
     }
 
     private void createSourceElements(Project project, SourceSet mainSourceSet) {
@@ -410,6 +427,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         final Configuration runtimeElementsConfiguration = createRuntimeElements(project, mainSourceSet, jarArtifact);
         final Configuration apiElementsConfiguration = createApiElements(mainSourceSet, jarArtifact);
         createSourceElements(project, mainSourceSet);
+        createCompileElements(project, mainSourceSet, jarArtifact);
 
         // Register the main "Java" component
         AdhocComponentWithVariants java = softwareComponentFactory.adhoc("java");
