@@ -25,6 +25,8 @@ import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+
 public class BuildScriptProcessor implements ProjectConfigureAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildScriptProcessor.class);
     private final ScriptPluginFactory configurerFactory;
@@ -43,7 +45,11 @@ public class BuildScriptProcessor implements ProjectConfigureAction {
         if (LOGGER.isInfoEnabled()) {
             LOGGER.info("Evaluating {} using {}.", project, project.getBuildScriptSource().getDisplayName());
         }
-        listenerManager.getBroadcaster(FileResourceListener.class).fileObserved(project.getBuildscript().getSourceFile());
+
+        File buildScriptSourceFile = project.getBuildscript().getSourceFile();
+        if (buildScriptSourceFile != null) {
+            listenerManager.getBroadcaster(FileResourceListener.class).fileObserved(buildScriptSourceFile);
+        }
 
         final Timer clock = Time.startTimer();
         try {
