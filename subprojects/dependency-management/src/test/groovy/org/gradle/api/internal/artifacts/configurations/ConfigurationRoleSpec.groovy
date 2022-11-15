@@ -69,6 +69,23 @@ class ConfigurationRoleSpec extends Specification {
         true        | false         | true              | false                 | true                  | false
     }
 
+    def "custom role can be given custom description"() {
+        when:
+        def customRole = ConfigurationRole.forUsage('custom', consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated, 'custom description')
+
+        then:
+        customRole !in ConfigurationRoles.values()
+        customRole.name == 'custom'
+        customRole.describe() == 'custom description'
+
+        where:
+        consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
+        false       | false         | false             | false                 | false                 | false
+        true        | true          | true              | true                  | true                  | true
+        true        | false         | true              | true                  | false                 | true
+        true        | false         | true              | false                 | true                  | false
+    }
+
     def "roles can describe themselves #role"() {
         expect:
         assertDescriptionContains(role, usages)
