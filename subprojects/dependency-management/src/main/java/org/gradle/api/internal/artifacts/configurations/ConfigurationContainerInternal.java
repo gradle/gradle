@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 public interface ConfigurationContainerInternal extends ConfigurationContainer {
     @Override
@@ -42,12 +41,27 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
         return bucket(name, false);
     }
 
+    ConfigurationInternal deprecatedConsumable(String name, boolean lockRole);
+    ConfigurationInternal deprecatedResolvable(String name, boolean lockRole);
+
+    default ConfigurationInternal deprecatedConsumable(String name) {
+        return deprecatedConsumable(name, false);
+    }
+
+    default ConfigurationInternal deprecatedResolvable(String name) {
+        return deprecatedResolvable(name, false);
+    }
+
     /**
      * Creates a new configuration in the same manner as {@link #create(String)}, and then
      * immediately assigns it a role by setting internal status flags to mark possible usage options
      * for the configuration.
      */
     ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockRole);
+
+    default ConfigurationInternal createWithRole(String name, ConfigurationRole role) {
+        return createWithRole(name, role, false);
+    }
 
     /**
      * If it does not already exist, creates a new configuration in the same manner as {@link #maybeCreate(String)}, and then
@@ -71,28 +85,6 @@ public interface ConfigurationContainerInternal extends ConfigurationContainer {
 
     abstract class RoleAssigner {
         private RoleAssigner() { /* not instantiable */ }
-
-        /**
-         * Assigns a usage role to a configuration at creation time, by setting internal usage flags (e.g. {@link ConfigurationInternal#isCanBeResolved()})
-         * and/or marking such usages as deprecated.
-         */
-        private static void assignRoleAtCreation(ConfigurationInternal configuration, ConfigurationRole role, boolean lockRole) {
-            configuration.setCanBeConsumed(role.isConsumable());
-            configuration.setCanBeResolved(role.isResolvable());
-            configuration.setCanBeDeclaredAgainst(role.isDeclarableAgainst());
-            configuration.setDeprecatedForConsumption(role.isConsumptionDeprecated());
-            configuration.setDeprecatedForResolution(role.isResolutionDeprecated());
-            configuration.setDeprecatedForDeclarationAgainst(role.isDeclarationAgainstDeprecated());
-            if (lockRole) {
-                configuration.preventUsageMutation();
-            }
-            if (ConfigurationRoles.getDeprecatedRoles().contains(role)) {
-                DeprecationLogger.deprecateBehaviour("The configuration role: " + role.getName() + " is deprecated and should no longer be used.")
-                        .willBecomeAnErrorInGradle9()
-                        .withUpgradeGuideSection(8, "deprecated_configurations_should_not_be_used")
-                        .nagUser();
-            }
-        }
 
         public static boolean isUsageConsistentWithRole(ConfigurationInternal configuration, ConfigurationRole role) {
             return (role.isConsumable() == configuration.isCanBeConsumed())

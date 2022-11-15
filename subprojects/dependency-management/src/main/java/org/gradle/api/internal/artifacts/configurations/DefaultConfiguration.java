@@ -307,7 +307,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             domainObjectCollectionFactory,
             calculatedValueContainerFactory,
             defaultConfigurationFactory,
-            ConfigurationRoles.LEGACY
+            ConfigurationRoles.LEGACY,
+            false
         );
     }
 
@@ -337,7 +338,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             DomainObjectCollectionFactory domainObjectCollectionFactory,
             CalculatedValueContainerFactory calculatedValueContainerFactory,
             DefaultConfigurationFactory defaultConfigurationFactory,
-            ConfigurationRole roleAtCreation
+            ConfigurationRole roleAtCreation,
+            boolean lockUsage
     ) {
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
@@ -395,10 +397,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.setDeprecatedForConsumption(roleAtCreation.isConsumptionDeprecated());
         this.setDeprecatedForResolution(roleAtCreation.isResolutionDeprecated());
         this.setDeprecatedForDeclarationAgainst(roleAtCreation.isDeclarationAgainstDeprecated());
+        if (lockUsage) {
+            preventUsageMutation();
+        }
 
-//        if (lockRole) {
-//            configuration.preventUsageMutation();
-//        }
 //        if (ConfigurationRoles.getDeprecatedRoles().contains(role)) {
 //            DeprecationLogger.deprecateBehaviour("The configuration role: " + role.getName() + " is deprecated and should no longer be used.")
 //                    .willBecomeAnErrorInGradle9()
@@ -1694,19 +1696,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             // Don't print role message for legacy role - users might not have actively chosen this role
             if (roleAtCreation != null && roleAtCreation != ConfigurationRoles.LEGACY) {
                 throw new GradleException(
-                        String.format("Cannot change the allowed usage of: %s, as it was locked upon creation to the role: '%s'.\n" +
+                        String.format("Cannot change the allowed usage of %s, as it was locked upon creation to the role: '%s'.\n" +
                                 "This role permits the following usage:\n" +
                                 "%s\n" +
                                 "Ideally, each configuration should be used for a single purpose.",
                                 getDisplayName(), roleAtCreation.getName(), roleAtCreation.describe()));
             } else {
-                throw new GradleException(String.format("Cannot change the allowed usage of configuration: '%s', as it has been locked.", getDisplayName()));
+                throw new GradleException(String.format("Cannot change the allowed usage of %s, as it has been locked.", getDisplayName()));
             }
         }
     }
 
     private void logChangingUsage(String usage, boolean allowed) {
-        String msgTemplate = "Configuration '{}' allowed usage is changing: {}. Ideally, usage should be fixed upon creation.";
+        String msgTemplate = "Configuration {} allowed usage is changing: {}. Ideally, usage should be fixed upon creation.";
         if (warnOnChangingUsage) {
             LOGGER.warn(msgTemplate, getDisplayName(), describeChangingUsage(usage, allowed));
         } else {

@@ -53,13 +53,17 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     implements ConfigurationContainerInternal, ConfigurationsProvider {
     public static final String DETACHED_CONFIGURATION_DEFAULT_NAME = "detachedConfiguration";
 
+    @SuppressWarnings("deprecation")
+    private static final ConfigurationRole DEFAULT_ROLE_TO_CREATE = ConfigurationRoles.LEGACY;
+    private static final boolean DEFAULT_LOCK_USAGE_AT_CREATION = false;
+
     private final AtomicInteger detachedConfigurationDefaultNameCounter = new AtomicInteger(1);
     private final Factory<ResolutionStrategyInternal> resolutionStrategyFactory;
     private final DefaultRootComponentMetadataBuilder rootComponentMetadataBuilder;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
-    @SuppressWarnings("deprecation")
-    private ConfigurationRole roleToCreate = ConfigurationRoles.LEGACY;
+    private ConfigurationRole roleToCreate = DEFAULT_ROLE_TO_CREATE;
+    private boolean lockUsageAtCreation = DEFAULT_LOCK_USAGE_AT_CREATION;
 
     public DefaultConfigurationContainer(
         Instantiator instantiator,
@@ -86,19 +90,15 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.defaultConfigurationFactory = defaultConfigurationFactory;
     }
 
-    public void setRoleToCreate(ConfigurationRole roleToCreate) {
-        this.roleToCreate = roleToCreate;
-    }
-
-    @SuppressWarnings("deprecation")
     @Override
     protected Configuration doCreate(String name) {
         try {
-            DefaultConfiguration configuration = newConfiguration(name, this, rootComponentMetadataBuilder, roleToCreate);
+            DefaultConfiguration configuration = newConfiguration(name, this, rootComponentMetadataBuilder, roleToCreate, lockUsageAtCreation);
             configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
             return configuration;
         } finally {
-            roleToCreate = ConfigurationRoles.LEGACY;
+            roleToCreate = DEFAULT_ROLE_TO_CREATE;
+            lockUsageAtCreation = DEFAULT_LOCK_USAGE_AT_CREATION;
         }
     }
 
@@ -127,7 +127,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         String name = nextDetachedConfigurationName();
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
         @SuppressWarnings("deprecation")
-        DefaultConfiguration detachedConfiguration = newConfiguration(name, detachedConfigurationsProvider, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), ConfigurationRoles.LEGACY);
+        DefaultConfiguration detachedConfiguration = newConfiguration(name, detachedConfigurationsProvider, rootComponentMetadataBuilder.withConfigurationsProvider(detachedConfigurationsProvider), ConfigurationRoles.LEGACY, false);
         copyAllTo(detachedConfiguration, dependencies);
         detachedConfigurationsProvider.setTheOnlyConfiguration(detachedConfiguration);
         return detachedConfiguration;
@@ -144,8 +144,12 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         }
     }
 
-    private DefaultConfiguration newConfiguration(String name, ConfigurationsProvider detachedConfigurationsProvider, RootComponentMetadataBuilder componentMetadataBuilder, ConfigurationRole role) {
-        return defaultConfigurationFactory.create(name, detachedConfigurationsProvider, resolutionStrategyFactory, componentMetadataBuilder, role);
+    private DefaultConfiguration newConfiguration(String name,
+                                                  ConfigurationsProvider detachedConfigurationsProvider,
+                                                  RootComponentMetadataBuilder componentMetadataBuilder,
+                                                  ConfigurationRole role,
+                                                  boolean lockUsage) {
+        return defaultConfigurationFactory.create(name, detachedConfigurationsProvider, resolutionStrategyFactory, componentMetadataBuilder, role, lockUsage);
     }
 
     /**
@@ -178,13 +182,22 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return createWithRole(name, ConfigurationRoles.INTENDED_BUCKET, lockRole);
     }
 
+    @SuppressWarnings("deprecation")
+    @Override
+    public ConfigurationInternal deprecatedConsumable(String name, boolean lockRole) {
+        return createWithRole(name, ConfigurationRoles.DEPRECATED_CONSUMABLE, lockRole);
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public ConfigurationInternal deprecatedResolvable(String name, boolean lockRole) {
+        return createWithRole(name, ConfigurationRoles.DEPRECATED_RESOLVABLE, lockRole);
+    }
+
     @Override
     public ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockRole) {
         roleToCreate = role;
-        ConfigurationInternal configuration = (ConfigurationInternal) create(name);
-        if (lockRole) {
-            configuration.preventUsageMutation();
-        }
-        return configuration;
+        lockUsageAtCreation = lockRole;
+        return (ConfigurationInternal) create(name);
     }
 }
