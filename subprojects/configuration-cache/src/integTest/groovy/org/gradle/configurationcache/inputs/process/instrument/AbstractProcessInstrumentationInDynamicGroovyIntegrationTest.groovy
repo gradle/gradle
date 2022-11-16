@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.inputs.process
+package org.gradle.configurationcache.inputs.process.instrument
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project

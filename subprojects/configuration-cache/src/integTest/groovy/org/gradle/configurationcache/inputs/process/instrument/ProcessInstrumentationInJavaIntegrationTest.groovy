@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.inputs.process
+package org.gradle.configurationcache.inputs.process.instrument
 
 class ProcessInstrumentationInJavaIntegrationTest extends AbstractProcessInstrumentationIntegrationTest {
     def "#title is intercepted in java build code"(VarInitializer varInitializer) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.inputs.process
+package org.gradle.configurationcache.inputs.process.instrument
 
 class ProcessInstrumentationInStaticGroovyIntegrationTest extends AbstractProcessInstrumentationIntegrationTest {
      def "#title is intercepted in static groovy build script"(VarInitializer varInitializer) {
