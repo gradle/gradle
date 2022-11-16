@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.execution
 import org.gradle.kotlin.dsl.execution.ResidualProgram.PluginRequestSpec
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.instanceOf
 import org.junit.Test
 
 
@@ -135,7 +134,7 @@ class PluginsBlockInterpreterTest {
                 id("plugin-id-2")
             """,
             PluginRequestSpec("plugin-id-1"),
-            PluginRequestSpec("plugin-id-2")
+            PluginRequestSpec("plugin-id-2"),
         )
     }
 
@@ -147,7 +146,7 @@ class PluginsBlockInterpreterTest {
                 ;
             """,
             PluginRequestSpec("plugin-id-1"),
-            PluginRequestSpec("plugin-id-2")
+            PluginRequestSpec("plugin-id-2"),
         )
     }
 
@@ -164,6 +163,224 @@ class PluginsBlockInterpreterTest {
             PluginRequestSpec("plugin-id-2"),
             PluginRequestSpec("org.jetbrains.kotlin.jvm", version = "1.0", apply = false),
             PluginRequestSpec("plugin-id-3", version = "2.0"),
+        )
+    }
+
+    @Test
+    fun `comment - line only`() {
+        assertStaticInterpretationOf("// line comment\n")
+    }
+
+    @Test
+    fun `comment - line`() {
+        assertStaticInterpretationOf(
+            """
+                // line comment
+                id("plugin-id-1")
+                // line comment
+                id("plugin-id-2")
+                // line comment
+            """,
+            PluginRequestSpec("plugin-id-1"),
+            PluginRequestSpec("plugin-id-2"),
+        )
+    }
+
+    @Test
+    fun `comment - block only`() {
+        assertStaticInterpretationOf("/* block comment */")
+    }
+
+    @Test
+    fun `comment - block`() {
+        assertStaticInterpretationOf(
+            """
+                /* block comment */
+                id("plugin-id-1")
+                /* block comment */
+                id("plugin-id-2")
+                /* block comment */
+            """,
+            PluginRequestSpec("plugin-id-1"),
+            PluginRequestSpec("plugin-id-2"),
+        )
+    }
+
+    @Test
+    fun `comment - block inline`() {
+        assertStaticInterpretationOf(
+            """
+                /* block comment */ id("plugin-id-1")
+                id /* block comment */ ( "plugin-id-2")
+                id( /* block comment */ "plugin-id-3")
+                id("plugin-id-4" /* block comment */ )
+                id("plugin-id-5") /* block comment */
+                id("plugin-id-6") /* block comment */ .version("1.0")
+                id("plugin-id-7"). /* block comment */ version("1.0")
+                id("plugin-id-8") /* block comment */ version "1.0"
+                id("plugin-id-9") version /* block comment */ "1.0"
+            """,
+            PluginRequestSpec("plugin-id-1"),
+            PluginRequestSpec("plugin-id-2"),
+            PluginRequestSpec("plugin-id-3"),
+            PluginRequestSpec("plugin-id-4"),
+            PluginRequestSpec("plugin-id-5"),
+            PluginRequestSpec("plugin-id-6", version = "1.0"),
+            PluginRequestSpec("plugin-id-7", version = "1.0"),
+            PluginRequestSpec("plugin-id-8", version = "1.0"),
+            PluginRequestSpec("plugin-id-9", version = "1.0"),
+        )
+    }
+
+    @Test
+    fun `comment - block multiline`() {
+        assertStaticInterpretationOf(
+            """
+
+                /* multiline
+                block
+                comment */ id("plugin-id-1")
+
+                id /* multiline
+                block
+                comment */ ("plugin-id-2")
+
+                id( /* multiline
+                block
+                comment */ "plugin-id-3")
+
+                id("plugin-id-4" /* multiline
+                block
+                comment */ )
+
+                id("plugin-id-5") /* multiline
+                block
+                comment */
+
+                id("plugin-id-6") /* multiline
+                block
+                comment */ .version("1.0")
+
+                id("plugin-id-7"). /* multiline
+                block
+                comment */ version("1.0")
+
+                id("plugin-id-8") /* multiline
+                block
+                comment */ version "1.0"
+
+                id("plugin-id-9") version /* multiline
+                block
+                comment */ "1.0"
+            """,
+            PluginRequestSpec("plugin-id-1"),
+            PluginRequestSpec("plugin-id-2"),
+            PluginRequestSpec("plugin-id-3"),
+            PluginRequestSpec("plugin-id-4"),
+            PluginRequestSpec("plugin-id-5"),
+            PluginRequestSpec("plugin-id-6", version = "1.0"),
+            PluginRequestSpec("plugin-id-7", version = "1.0"),
+            PluginRequestSpec("plugin-id-8", version = "1.0"),
+            PluginRequestSpec("plugin-id-9", version = "1.0"),
+        )
+    }
+
+    @Test
+    fun `comment - kdoc only`() {
+        assertStaticInterpretationOf("/** kdoc comment */")
+    }
+
+    @Test
+    fun `comment - kdoc`() {
+        assertStaticInterpretationOf(
+            """
+                /** kdoc comment */
+                id("plugin-id-1")
+                /** kdoc comment */
+                id("plugin-id-2")
+                /** kdoc comment */
+            """,
+            PluginRequestSpec("plugin-id-1"),
+            PluginRequestSpec("plugin-id-2"),
+        )
+    }
+
+    @Test
+    fun `comment - kdoc inline`() {
+        assertStaticInterpretationOf(
+            """
+                /** kdoc comment */ id("plugin-id-1")
+                id /** kdoc comment */ ( "plugin-id-2")
+                id( /** kdoc comment */ "plugin-id-3")
+                id("plugin-id-4" /** kdoc comment */ )
+                id("plugin-id-5") /** kdoc comment */
+                id("plugin-id-6") /** kdoc comment */ .version("1.0")
+                id("plugin-id-7"). /** kdoc comment */ version("1.0")
+                id("plugin-id-8") /** kdoc comment */ version "1.0"
+                id("plugin-id-9") version /** kdoc comment */ "1.0"
+            """,
+            PluginRequestSpec("plugin-id-1"),
+            PluginRequestSpec("plugin-id-2"),
+            PluginRequestSpec("plugin-id-3"),
+            PluginRequestSpec("plugin-id-4"),
+            PluginRequestSpec("plugin-id-5"),
+            PluginRequestSpec("plugin-id-6", version = "1.0"),
+            PluginRequestSpec("plugin-id-7", version = "1.0"),
+            PluginRequestSpec("plugin-id-8", version = "1.0"),
+            PluginRequestSpec("plugin-id-9", version = "1.0"),
+        )
+    }
+
+    @Test
+    fun `comment - kdoc multiline`() {
+        assertStaticInterpretationOf(
+            """
+
+                /** multiline
+                kdoc
+                comment */ id("plugin-id-1")
+
+                id /** multiline
+                kdoc
+                comment */ ("plugin-id-2")
+
+                id( /** multiline
+                kdoc
+                comment */ "plugin-id-3")
+
+                id("plugin-id-4" /** multiline
+                kdoc
+                comment */ )
+
+                id("plugin-id-5") /** multiline
+                kdoc
+                comment */
+
+                id("plugin-id-6") /** multiline
+                kdoc
+                comment */ .version("1.0")
+
+                id("plugin-id-7"). /** multiline
+                kdoc
+                comment */ version("1.0")
+
+                id("plugin-id-8") /** multiline
+                kdoc
+                comment */ version "1.0"
+
+                id("plugin-id-9") version /** multiline
+                kdoc
+                comment */ "1.0"
+            """,
+            PluginRequestSpec("plugin-id-1"),
+            PluginRequestSpec("plugin-id-2"),
+            PluginRequestSpec("plugin-id-3"),
+            PluginRequestSpec("plugin-id-4"),
+            PluginRequestSpec("plugin-id-5"),
+            PluginRequestSpec("plugin-id-6", version = "1.0"),
+            PluginRequestSpec("plugin-id-7", version = "1.0"),
+            PluginRequestSpec("plugin-id-8", version = "1.0"),
+            PluginRequestSpec("plugin-id-9", version = "1.0"),
         )
     }
 

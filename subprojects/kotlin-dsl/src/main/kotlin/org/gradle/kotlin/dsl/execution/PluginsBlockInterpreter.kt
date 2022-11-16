@@ -17,7 +17,9 @@
 package org.gradle.kotlin.dsl.execution
 
 import org.jetbrains.kotlin.lexer.KotlinLexer
+import org.jetbrains.kotlin.lexer.KtTokens.BLOCK_COMMENT
 import org.jetbrains.kotlin.lexer.KtTokens.CLOSING_QUOTE
+import org.jetbrains.kotlin.lexer.KtTokens.DOC_COMMENT
 import org.jetbrains.kotlin.lexer.KtTokens.DOT
 import org.jetbrains.kotlin.lexer.KtTokens.FALSE_KEYWORD
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
@@ -66,6 +68,10 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
     }
     while (tokenType != null) {
         when (tokenType) {
+
+            BLOCK_COMMENT -> Unit
+            DOC_COMMENT -> Unit
+
             in WHITE_SPACE_OR_COMMENT_BIT_SET -> {
                 // detect newline separators between statements
                 if (state == InterpreterState.AFTER_ID && tokenSequence.contains('\n')) {
@@ -93,10 +99,8 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                     }
 
                     InterpreterState.AFTER_ID -> {
-                        if (tokenType == DOT) {
-                            advance()
-                        }
                         state = when (tokenType) {
+                            DOT -> state
                             SEMICOLON -> newStatement()
                             RBRACE -> {
                                 newStatement()
