@@ -21,11 +21,14 @@ import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 public interface PropertyMetadata {
     String getPropertyName();
 
     boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
+
+    <T extends Annotation> Optional<T> getAnnotation(Class<T> annotationType);
 
     @Nullable
     Annotation getAnnotationForCategory(AnnotationCategory category);

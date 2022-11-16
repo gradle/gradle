@@ -17,31 +17,32 @@
 package org.gradle.internal.reflect.annotations.impl;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 
 import javax.annotation.Nonnull;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMetadata {
     private final String propertyName;
     private final Method method;
-    private final ImmutableMap<AnnotationCategory, Annotation> annotations;
-    private final ImmutableSet<Class<? extends Annotation>> annotationTypes;
+    private final ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory;
+    private final ImmutableMap<Class<? extends Annotation>, Annotation> annotationsByType;
 
-    public DefaultPropertyAnnotationMetadata(String propertyName, Method method, ImmutableMap<AnnotationCategory, Annotation> annotations) {
+    public DefaultPropertyAnnotationMetadata(String propertyName, Method method, ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory) {
         this.propertyName = propertyName;
         this.method = method;
-        this.annotations = annotations;
-        this.annotationTypes = collectAnnotationTypes(annotations);
+        this.annotationsByCategory = annotationsByCategory;
+        this.annotationsByType = collectAnnotationsByType(annotationsByCategory);
     }
 
-    private static ImmutableSet<Class<? extends Annotation>> collectAnnotationTypes(ImmutableMap<AnnotationCategory, Annotation> annotations) {
-        ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builderWithExpectedSize(annotations.size());
+    private static ImmutableMap<Class<? extends Annotation>, Annotation> collectAnnotationsByType(ImmutableMap<AnnotationCategory, Annotation> annotations) {
+        ImmutableMap.Builder<Class<? extends Annotation>, Annotation> builder = ImmutableMap.builderWithExpectedSize(annotations.size());
         for (Annotation value : annotations.values()) {
-            builder.add(value.annotationType());
+            builder.put(value.annotationType(), value);
         }
         return builder.build();
     }
@@ -58,12 +59,17 @@ public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMeta
 
     @Override
     public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-        return annotationTypes.contains(annotationType);
+        return annotationsByType.containsKey(annotationType);
+    }
+
+    @Override
+    public <T extends Annotation> Optional<T> getAnnotation(Class<T> annotationType) {
+        return Optional.ofNullable(Cast.uncheckedCast(annotationsByType.get(annotationType)));
     }
 
     @Override
     public ImmutableMap<AnnotationCategory, Annotation> getAnnotations() {
-        return annotations;
+        return annotationsByCategory;
     }
 
     @Override
