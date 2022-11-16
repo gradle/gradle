@@ -271,11 +271,76 @@ class PluginsBlockInterpreterTest {
         )
     }
 
+
+    @Test
+    fun `syntax error - kotlin() without parens`() {
+        assertDynamicInterpretationOf(
+            """kotlin "plugin-id"""",
+            "Expecting (, got '\"'"
+        )
+    }
+
+    @Test
+    fun `syntax error - kotlin() with not a string`() {
+        assertDynamicInterpretationOf(
+            """kotlin(false)""",
+            "Expecting <kotlin plugin module string>, got 'false'"
+        )
+    }
+
+    @Test
+    fun `syntax error - kotlin() with empty string`() {
+        assertDynamicInterpretationOf(
+            """kotlin("")""",
+            "Expecting <kotlin plugin module string>, got '\"'"
+        )
+    }
+
+    @Test
+    fun `syntax error - kotlin() with unclosed string`() {
+        assertDynamicInterpretationOf(
+            """kotlin("plugin-id-1) ; kotlin("plugin-id-2")"""",
+            "Expecting ), got 'plugin'"
+        )
+    }
+
+    @Test
+    fun `syntax error - kotlin() with unclosed parens`() {
+        assertDynamicInterpretationOf(
+            """kotlin("plugin-id-1" ; kotlin("plugin-id-2")"""",
+            "Expecting ), got ';'"
+        )
+    }
+
     @Test
     fun `syntax error - kotlin() with misplaced semicolon`() {
         assertDynamicInterpretationOf(
-            """kotlin("jvm";)""",
+            """kotlin("plugin-id-1";)""",
             "Expecting ), got ';'"
+        )
+    }
+
+    @Test
+    fun `syntax error - kotlin() apply with not a boolean`() {
+        assertDynamicInterpretationOf(
+            """kotlin("plugin-id") apply "1.0"""",
+            "Expecting (, got '\"'"
+        )
+    }
+
+    @Test
+    fun `syntax error - kotlin() version with not a string`() {
+        assertDynamicInterpretationOf(
+            """kotlin("plugin-id") version false""",
+            "Expecting (, got 'false'"
+        )
+    }
+
+    @Test
+    fun `syntax error - kotlin() kotlin() on the same line`() {
+        assertDynamicInterpretationOf(
+            """kotlin("plugin-id-1") kotlin("plugin-id-2")""",
+            "Expecting version or apply, got 'kotlin'"
         )
     }
 
