@@ -20,9 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
-import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.Flaky
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
@@ -66,7 +64,6 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "foo", " 1"]
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3636")
     @IgnoreIf({ !CommandLineIntegrationSpec.debugPortIsFree() || GradleContextualExecuter.embedded })
     def "can debug with org.gradle.debug=true"() {
         given:

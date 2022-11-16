@@ -16,22 +16,16 @@
 
 package org.gradle.api.tasks
 
-import com.gradle.enterprise.testing.annotations.LocalOnly
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
-import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.Flaky
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Issue
 
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/3612")
-@LocalOnly(because = "https://github.com/gradle/gradle-private/issues/3612")
 class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
