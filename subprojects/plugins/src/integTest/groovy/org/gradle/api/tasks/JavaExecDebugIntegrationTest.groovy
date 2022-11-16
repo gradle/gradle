@@ -95,18 +95,20 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20644")
-    def "can debug Java exec with socket server debugger (server = true) on #hostKind host with task :#taskName"() {
-        def address = nonLoopbackAddress()
-        Assume.assumeNotNull(address)
+    def "can debug Java exec with socket server debugger (server = true) on explicitly any host with task :#taskName"() {
+        Assume.assumeTrue("Java 8 defaults to any host", Jvm.current().javaVersion.isJava9Compatible())
 
-        debugClient.host = address
+        def jdwpHost = nonLoopbackAddress()
+        Assume.assumeNotNull(jdwpHost)
+
+        debugClient.host = jdwpHost
 
         sampleProject """
             debugOptions {
                 enabled = true
                 server = true
                 suspend = true
-                ${jdwpHost != null ? "host = '$jdwpHost'" : ""}
+                host = '*'
                 port = $debugClient.port
             }
         """
@@ -124,9 +126,40 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         handle.waitForFinish()
 
         where:
-        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test'].collectMany { [it] * 2 }
-        jdwpHost << [Jvm.current().javaVersion.isJava9Compatible() ? "*" : null, nonLoopbackAddress()] * 3
-        hostKind << [Jvm.current().javaVersion.isJava9Compatible() ? "star" : "default", "exact IP"] * 3
+        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test']
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20644")
+    def "can debug Java exec with socket server debugger (server = true) on via host with task :#taskName"() {
+        def jdwpHost = nonLoopbackAddress()
+        Assume.assumeNotNull(jdwpHost)
+
+        debugClient.host = jdwpHost
+
+        sampleProject """
+            debugOptions {
+                enabled = true
+                server = true
+                suspend = true
+                host = '$jdwpHost'
+                port = $debugClient.port
+            }
+        """
+
+        when:
+        def handle = executer.withTasks(taskName).start()
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains('Listening for transport dt_socket at address')
+        }
+
+        then:
+        debugClient.connect().dispose()
+
+        then:
+        handle.waitForFinish()
+
+        where:
+        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
     /** To test attaching the debugger via a non-loopback network interface, we need to choose an IP address of such an interface. */
