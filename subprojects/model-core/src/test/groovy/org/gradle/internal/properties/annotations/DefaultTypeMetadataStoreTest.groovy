@@ -317,7 +317,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def properties = typeMetadata.propertiesMetadata
         properties*.propertyName as List == ["classpathInputFiles", "classpathOnly", "inputFilesClasspath"]
         properties*.propertyType as List == [InputFiles, InputFiles, InputFiles]
-        properties*.getAnnotationForCategory(NORMALIZATION)*.annotationType() as List == [annotation, annotation, annotation]
+        properties*.getAnnotationForCategory(NORMALIZATION)*.get()*.annotationType() as List == [annotation, annotation, annotation]
         collectProblems(typeMetadata).empty
 
         where:

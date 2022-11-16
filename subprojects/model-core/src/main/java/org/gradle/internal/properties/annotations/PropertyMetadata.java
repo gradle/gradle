@@ -18,7 +18,6 @@ package org.gradle.internal.properties.annotations;
 
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Optional;
@@ -30,8 +29,7 @@ public interface PropertyMetadata {
 
     <T extends Annotation> Optional<T> getAnnotation(Class<T> annotationType);
 
-    @Nullable
-    Annotation getAnnotationForCategory(AnnotationCategory category);
+    Optional<Annotation> getAnnotationForCategory(AnnotationCategory category);
 
     boolean hasAnnotationForCategory(AnnotationCategory category);
 

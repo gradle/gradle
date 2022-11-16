@@ -25,8 +25,6 @@ import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
-import java.util.Optional;
-
 class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public ValidationProblemPropertyAnnotationHandler() {
         super(ValidationProblem.class, Kind.OTHER, ImmutableSet.of());
@@ -54,7 +52,8 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
     }
 
     private Severity annotationValue(PropertyMetadata propertyMetadata) {
-        return Optional.ofNullable((ValidationProblem) propertyMetadata.getAnnotationForCategory(AnnotationCategory.TYPE))
+        return propertyMetadata.getAnnotationForCategory(AnnotationCategory.TYPE)
+            .map(ValidationProblem.class::cast)
             .map(ValidationProblem::value)
             .orElse(Severity.WARNING);
     }
