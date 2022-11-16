@@ -24,7 +24,7 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.proc
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.runtimeExec
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stringArrayExecute
 
-class ExternalProcessInInitScriptIntegrationTest extends AbstractExternalProcessIntegrationTest {
+class ProcessInInitScriptIntegrationTest extends AbstractProcessIntegrationTest {
     @Ignore("init scripts are evaluated too early for feature flag to take effect")
     def "using #snippetsFactory.summary in initialization script #file is a problem"() {
         given:
