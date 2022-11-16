@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 class ZincScalaCompilerOutputNormalizerTest extends Specification {
     OutputNormalizer outputNormalizer = new ZincScalaCompilerOutputNormalizer()
-    ExecutionMetadata executionMetadata = new ExecutionMetadata(new File('building-scala'), [:])
+    ExecutionMetadata executionMetadata = new ExecutionMetadata(new File('building-scala-applications'), [:])
 
     String expected = """
 > Task :app:compileJava NO-SOURCE
