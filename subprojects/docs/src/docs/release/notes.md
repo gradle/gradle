@@ -4,7 +4,7 @@ The Gradle team is excited to announce Gradle @version@.
 This release includes [building and running code with Java 19](#java19),
 a flag to [rerun tasks individually](#individual-rerun),
 a new [strongly-typed dependencies block](#strongly-typed-dependencies) for JVM test suites,
-and a [Service Provider Interface (SPI) for Java Toolchains](#toolchain-spi).
+and a [pluggable system for Java Toolchains provisioning](#toolchain-provision).
 
 As always there are also performance improvements like enhancements to the [configuration cache](#configuration) and
 [incremental compilation](#incremental-compilation-after-failure).
@@ -167,11 +167,12 @@ testing {
 For more information about the test suite `dependencies` block, see
 [Differences Between Test Suite and Top-Level Dependencies](userguide/jvm_test_suite_plugin.html#differences_between_the_test_suite_dependencies_and_the_top_level_dependencies_blocks).
 
-<a name="toolchain-spi"></a>
+<a name="toolchain-provision"></a>
 #### Added support for Java Toolchain downloads from arbitrary repositories
 
 Starting in Gradle 7.6, Gradle can download JVM [toolchains](userguide/toolchains.html) from arbitrary repositories.
-By default, Gradle downloads toolchains from Adoptium/AdoptOpenJDK. You can now override the default providers with repositories of your choice using a toolchain resolver plugin.
+By default, Gradle downloads toolchains from Adoptium/AdoptOpenJDK.
+You can now override the default providers with repositories of your choice using a toolchain resolver plugin.
 
 For example, the following uses custom plugins that provide `AzulResolver` and `AdoptiumResolver` to add custom toolchains for Adoptium and Azul:
 
