@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.api
 
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
@@ -41,6 +42,31 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds('checkConfUsage')
+    }
+
+    def "can create configuration named #configuration with same legacy behavior"() {
+        given:
+        buildFile << """
+            configurations {
+                $configuration {
+                    assert canBeConsumed
+                    assert canBeResolved
+                    assert canBeDeclaredAgainst
+                    assert !deprecatedForConsumption
+                    assert !deprecatedForResolution
+                    assert !deprecatedForDeclarationAgainst
+                }
+            }
+        """
+
+        expect:
+        succeeds 'help'
+
+        where:
+        configuration << ConfigurationRoles.values().collect {
+            def name = it.name.replace(' ', '')
+            return name[0].toLowerCase() + name[1..-1]
+        }
     }
 
     def "can prevent usage mutation of roleless configurations"() {
@@ -171,6 +197,41 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         'deprecated consumable' | "deprecatedConsumable('custom')"  | 'Deprecated Consumable'
         'deprecated resolvable' | "deprecatedResolvable('custom')"  | 'Deprecated Resolvable'
     }
+
+    def "exhaustively try all new role-based creation syntax"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
+
+            configurations {
+                consumable('consumable1')
+                resolvable('resolvable1')
+                bucket('bucket1')
+                deprecatedConsumable('deprecatedConsumable1')
+                deprecatedResolvable('deprecatedResolvable1')
+
+                consumable('consumable2', true)
+                resolvable('resolvable2', true)
+                bucket('bucket2', true)
+                deprecatedConsumable('deprecatedConsumable2', true)
+                deprecatedResolvable('deprecatedResolvable2', true)
+
+                createWithRole('consumable3', ConfigurationRoles.INTENDED_CONSUMABLE)
+                createWithRole('consumable4', ConfigurationRoles.INTENDED_CONSUMABLE, true)
+                createWithRole('consumable5', ConfigurationRoles.INTENDED_CONSUMABLE, true) {
+                    visible = false
+                }
+                createWithRole('consumable6', ConfigurationRoles.INTENDED_CONSUMABLE) {
+                    visible = false
+                }
+
+                maybeCreateWithRole('resolvable7', ConfigurationRoles.INTENDED_RESOLVABLE, true, true)
+            }
+        """
+
+        expect:
+        succeeds 'help'
+    }
     // endregion Role-Based Configurations
 
     // region Custom Roles
@@ -218,30 +279,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         assertUsageLockedFailure('custom', 'custom')
     }
     // endregion Custom Roles
-
-    // region Other
-    def "can create configuration named #configuration with same legacy behavior"() {
-        given:
-        buildFile << """
-            configurations {
-                $configuration {
-                    assert canBeConsumed
-                    assert canBeResolved
-                    assert canBeDeclaredAgainst
-                    assert !deprecatedForConsumption
-                    assert !deprecatedForResolution
-                    assert !deprecatedForDeclarationAgainst
-                }
-            }
-        """
-
-        expect:
-        succeeds 'help'
-
-        where:
-        configuration << ['consumable', 'resolvable', 'bucket', 'deprecatedConsumable', 'deprecatedResolvable']
-    }
-    // endregion Other
 
     private void assertUsageLockedFailure(String configurationName, String roleName = null) {
         String suffix = roleName ? "as it was locked upon creation to the role: '$roleName'." : "as it has been locked."
