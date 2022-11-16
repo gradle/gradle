@@ -206,7 +206,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         stdout.stdOut.contains("- Build ':':")
         stdout.stdOut.contains("- test node (state=SHOULD_RUN")
         stdout.stdOut.contains("- :task (state=SHOULD_RUN")
-        stdout.stdOut.contains("- Ordinal groups: group 0 entry nodes: [:task]")
+        stdout.stdOut.contains("- Ordinal groups: group 0 entry nodes: [:task (SHOULD_RUN)]")
     }
 
     def "fails when no further nodes can be selected across multiple builds"() {
@@ -239,11 +239,11 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         stdout.stdOut.contains("- Build ':':")
         stdout.stdOut.contains("- main build node (state=SHOULD_RUN")
         stdout.stdOut.contains("- :task (state=SHOULD_RUN")
-        stdout.stdOut.contains("- Ordinal groups: group 0 entry nodes: [:task]")
+        stdout.stdOut.contains("- Ordinal groups: group 0 entry nodes: [:task (SHOULD_RUN)]")
         stdout.stdOut.contains("- Build 'child':")
         stdout.stdOut.contains("- child build node (state=SHOULD_RUN")
         stdout.stdOut.contains("- :child:task (state=SHOULD_RUN")
-        stdout.stdOut.contains("- Ordinal groups: group 0 entry nodes: [:child:task]")
+        stdout.stdOut.contains("- group 0 entry nodes: [:child:task (SHOULD_RUN)]")
     }
 
     ExecutionResult<Void> scheduleAndRun(TreeServices services, Action<BuildTreeWorkGraph.Builder> action) {
