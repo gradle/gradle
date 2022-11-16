@@ -31,25 +31,25 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.internal.tasks.properties.TypeMetadata;
-import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
-import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.execution.InputFingerprinter;
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.properties.InputBehavior;
+import org.gradle.internal.properties.InputFilePropertyType;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadataStore;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
-import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.model.internal.type.ModelType;
@@ -114,25 +114,24 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         actionMetadata.visitValidationFailures(null, validationContext);
 
         // Should retain this on the metadata rather than calculate on each invocation
-        Class<? extends FileNormalizer> inputArtifactNormalizer = null;
-        Class<? extends FileNormalizer> dependenciesNormalizer = null;
+        Normalizer inputArtifactNormalizer = null;
+        Normalizer dependenciesNormalizer = null;
         DirectorySensitivity artifactDirectorySensitivity = DirectorySensitivity.DEFAULT;
         DirectorySensitivity dependenciesDirectorySensitivity = DirectorySensitivity.DEFAULT;
         LineEndingSensitivity artifactLineEndingSensitivity = LineEndingSensitivity.DEFAULT;
         LineEndingSensitivity dependenciesLineEndingSensitivity = LineEndingSensitivity.DEFAULT;
         for (PropertyMetadata propertyMetadata : actionMetadata.getPropertiesMetadata()) {
+            // Should ask the annotation handler to figure this out instead
             Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
+            NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
             if (propertyType.equals(InputArtifact.class)) {
-                // Should ask the annotation handler to figure this out instead
-                NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
-                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor, (propertyName, bean) -> {});
+                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor, bean -> {});
                 inputArtifactNormalizer = visitor.normalizer;
                 artifactDirectorySensitivity = visitor.directorySensitivity;
                 artifactLineEndingSensitivity = visitor.lineEndingSensitivity;
                 DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), inputArtifactNormalizer, cacheable, validationContext);
             } else if (propertyType.equals(InputArtifactDependencies.class)) {
-                NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
-                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor, (propertyName, bean) -> {});
+                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor, bean -> {});
                 dependenciesNormalizer = visitor.normalizer;
                 dependenciesDirectorySensitivity = visitor.directorySensitivity;
                 dependenciesLineEndingSensitivity = visitor.lineEndingSensitivity;
@@ -210,8 +209,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         }
     }
 
-    private static class NormalizerCollectingVisitor extends PropertyVisitor.Adapter {
-        private Class<? extends FileNormalizer> normalizer;
+    private static class NormalizerCollectingVisitor implements PropertyVisitor {
+        private Normalizer normalizer;
         private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
         private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;
 
@@ -219,10 +218,10 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         public void visitInputFileProperty(
                 String propertyName,
                 boolean optional,
-                UnitOfWork.InputBehavior behavior,
+                InputBehavior behavior,
                 DirectorySensitivity directorySensitivity,
                 LineEndingSensitivity lineEndingSensitivity,
-                @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                @Nullable Normalizer fileNormalizer,
                 PropertyValue value,
                 InputFilePropertyType filePropertyType
         ) {

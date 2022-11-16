@@ -23,12 +23,15 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.ResolvingValue;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
-import org.gradle.api.internal.tasks.TaskValidationContext;
-import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.Normalizer;
+import org.gradle.internal.properties.InputBehavior;
+import org.gradle.internal.properties.InputFilePropertyType;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
@@ -130,7 +133,7 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     @Override
-    public void validate(TaskValidationContext validationContext) {
+    public void validate(PropertyValidationContext validationContext) {
         for (ValidatingProperty validatingProperty : validatingProperties) {
             validatingProperty.validate(validationContext);
         }
@@ -156,7 +159,7 @@ public class DefaultTaskProperties implements TaskProperties {
         return destroyableFiles;
     }
 
-    private static class GetLocalStateVisitor extends PropertyVisitor.Adapter {
+    private static class GetLocalStateVisitor implements PropertyVisitor {
         private final String beanName;
         private final FileCollectionFactory fileCollectionFactory;
         private final List<Object> localState = new ArrayList<>();
@@ -176,7 +179,7 @@ public class DefaultTaskProperties implements TaskProperties {
         }
     }
 
-    private static class GetDestroyablesVisitor extends PropertyVisitor.Adapter {
+    private static class GetDestroyablesVisitor implements PropertyVisitor {
         private final String beanName;
         private final FileCollectionFactory fileCollectionFactory;
         private final List<Object> destroyables = new ArrayList<>();
@@ -196,21 +199,21 @@ public class DefaultTaskProperties implements TaskProperties {
         }
     }
 
-    private static class ValidationVisitor extends PropertyVisitor.Adapter implements OutputUnpacker.UnpackedOutputConsumer {
+    private static class ValidationVisitor implements OutputUnpacker.UnpackedOutputConsumer, PropertyVisitor {
         private final List<ValidatingProperty> taskPropertySpecs = new ArrayList<>();
 
         @Override
         public void visitInputFileProperty(
             String propertyName,
             boolean optional,
-            UnitOfWork.InputBehavior behavior,
+            InputBehavior behavior,
             DirectorySensitivity directorySensitivity,
             LineEndingSensitivity lineEndingSensitivity,
-            @Nullable Class<? extends FileNormalizer> fileNormalizer,
+            @Nullable Normalizer fileNormalizer,
             PropertyValue value,
             InputFilePropertyType filePropertyType
         ) {
-            taskPropertySpecs.add(new DefaultFinalizingValidatingProperty(propertyName, value, optional, filePropertyType.getValidationAction()));
+            taskPropertySpecs.add(new DefaultFinalizingValidatingProperty(propertyName, value, optional, ValidationActions.inputValidationActionFor(filePropertyType)));
         }
 
         @Override

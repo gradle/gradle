@@ -61,7 +61,7 @@ public class JavaModuleDetector {
 
     public FileCollection inferClasspath(boolean inferModulePath, FileCollection classpath) {
         if (classpath == null) {
-            return fileCollectionFactory.empty();
+            return FileCollectionFactory.empty();
         }
         if (!inferModulePath) {
             return classpath;
@@ -75,10 +75,10 @@ public class JavaModuleDetector {
 
     public FileCollection inferModulePath(boolean inferModulePath, FileCollection classpath) {
         if (classpath == null) {
-            return fileCollectionFactory.empty();
+            return FileCollectionFactory.empty();
         }
         if (!inferModulePath) {
-            return fileCollectionFactory.empty();
+            return FileCollectionFactory.empty();
         }
         return classpath.filter(modulePathFilter);
     }

@@ -29,8 +29,8 @@ import com.google.common.collect.SetMultimap;
 import org.gradle.api.Action;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
@@ -59,8 +59,8 @@ import java.util.stream.Stream;
 
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
-import static org.gradle.internal.reflect.AnnotationCategory.TYPE;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
+import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
 
 public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadataStore {
