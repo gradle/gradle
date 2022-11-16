@@ -18,12 +18,9 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -38,7 +35,6 @@ import org.gradle.api.internal.provider.ProviderResolutionStrategy;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
@@ -50,15 +46,11 @@ import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
 public class DefaultFileCollectionFactory implements FileCollectionFactory {
-    public static final String DEFAULT_COLLECTION_DISPLAY_NAME = "file collection";
-    public static final String DEFAULT_TREE_DISPLAY_NAME = "file tree";
-    private static final EmptyFileCollection EMPTY_COLLECTION = new EmptyFileCollection(DEFAULT_COLLECTION_DISPLAY_NAME);
     private final PathToFileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
@@ -102,7 +94,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     @Override
     public FileTreeInternal treeOf(List<? extends FileTreeInternal> fileTrees) {
         if (fileTrees.isEmpty()) {
-            return new EmptyFileTree();
+            return FileCollectionFactory.emptyTree();
         } else if (fileTrees.size() == 1) {
             return fileTrees.get(0);
         } else {
@@ -154,7 +146,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     private FileCollectionInternal resolving(String displayName, ProviderResolutionStrategy providerResolutionStrategy, Object sources) {
         if (isEmptyArray(sources)) {
-            return empty(displayName);
+            return FileCollectionFactory.empty(displayName);
         }
         return new ResolvingFileCollection(displayName, fileResolver, taskDependencyFactory, patternSetFactory, providerResolutionStrategy, sources);
     }
@@ -174,27 +166,17 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
             return (FileCollectionInternal) sources;
         }
         if (isEmptyArray(sources)) {
-            return empty();
+            return FileCollectionFactory.empty();
         }
-        return resolving(DEFAULT_COLLECTION_DISPLAY_NAME, providerResolutionStrategy, sources);
-    }
-
-    @Override
-    public FileCollectionInternal empty(String displayName) {
-        return new EmptyFileCollection(displayName);
-    }
-
-    @Override
-    public FileCollectionInternal empty() {
-        return EMPTY_COLLECTION;
+        return resolving(FileCollectionInternal.DEFAULT_COLLECTION_DISPLAY_NAME, providerResolutionStrategy, sources);
     }
 
     @Override
     public FileCollectionInternal fixed(File... files) {
         if (files.length == 0) {
-            return empty();
+            return FileCollectionFactory.empty();
         }
-        return fixed(DEFAULT_COLLECTION_DISPLAY_NAME, files);
+        return fixed(FileCollectionInternal.DEFAULT_COLLECTION_DISPLAY_NAME, files);
     }
 
     @Override
@@ -208,9 +190,9 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     @Override
     public FileCollectionInternal fixed(Collection<File> files) {
         if (files.isEmpty()) {
-            return empty();
+            return FileCollectionFactory.empty();
         }
-        return fixed(DEFAULT_COLLECTION_DISPLAY_NAME, files);
+        return fixed(FileCollectionInternal.DEFAULT_COLLECTION_DISPLAY_NAME, files);
     }
 
     @Override
@@ -224,78 +206,6 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     @Override
     public FileTreeInternal generated(Factory<File> tmpDir, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentWriter) {
         return new FileTreeAdapter(new GeneratedSingletonFileTree(tmpDir, fileName, fileGenerationListener, contentWriter, fileSystem), taskDependencyFactory, patternSetFactory);
-    }
-
-    private static final class EmptyFileCollection extends AbstractFileCollection {
-        private final String displayName;
-
-        public EmptyFileCollection(String displayName) {
-            this.displayName = displayName;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return displayName;
-        }
-
-        @Override
-        public Set<File> getFiles() {
-            return ImmutableSet.of();
-        }
-
-        @Override
-        protected void visitContents(FileCollectionStructureVisitor visitor) {
-        }
-
-        @Override
-        public FileTreeInternal getAsFileTree() {
-            return new EmptyFileTree();
-        }
-    }
-
-    private static final class EmptyFileTree extends AbstractFileTree {
-        @Override
-        public String getDisplayName() {
-            return DEFAULT_TREE_DISPLAY_NAME;
-        }
-
-        @Override
-        public Set<File> getFiles() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return true;
-        }
-
-        @Override
-        public FileTree matching(Closure filterConfigClosure) {
-            return this;
-        }
-
-        @Override
-        public FileTree matching(Action<? super PatternFilterable> filterConfigAction) {
-            return this;
-        }
-
-        @Override
-        public FileTreeInternal matching(PatternFilterable patterns) {
-            return this;
-        }
-
-        @Override
-        public FileTree visit(FileVisitor visitor) {
-            return this;
-        }
-
-        @Override
-        public void visitContentsAsFileTrees(Consumer<FileTreeInternal> visitor) {
-        }
-
-        @Override
-        protected void visitContents(FileCollectionStructureVisitor visitor) {
-        }
     }
 
     private static final class FixedFileCollection extends AbstractOpaqueFileCollection {

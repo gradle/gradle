@@ -963,47 +963,45 @@ task someTask(type: SomeTask) {
                 evaluationCountService = evaluationCount
             }
 
-            task assertInputCounts {
+            task printCounts {
                 dependsOn myTask
-                def propertyNames = ['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount']
-                def gradleProperties = propertyNames.collectEntries { [(it) : providers.gradleProperty(it)]}
                 doLast {
-                    ['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount'].each { name ->
+                    println(['outputFileCount', 'inputFileCount', 'inputValueCount', 'nestedInputCount', 'nestedInputValueCount'].collect { name ->
                         def actualCount = evaluationCount.get()."\$name"
-                        def expectedCount = gradleProperties[name].get() as Integer
-                        assert actualCount == expectedCount : name
-                    }
+                        return "\$name = \$actualCount"
+                    }.join(", "))
                 }
             }
         """
         def inputFile = file('input.txt')
         inputFile.text = "input"
-        def expectedCounts = [inputFile: 3, outputFile: 2, nestedInput: 4, inputValue: 1, nestedInputValue: 1]
-        def expectedIncrementalCounts = expectedCounts
-        def expectedUpToDateCounts = [inputFile: 2, outputFile: 1, nestedInput: 4, inputValue: 1, nestedInputValue: 1]
-        def arguments = ["assertInputCounts"] + expectedCounts.collect { name, count -> "-P${name}Count=${count}" }
-        def incrementalBuildArguments = ["assertInputCounts"] + expectedIncrementalCounts.collect { name, count -> "-P${name}Count=${count}" }
-        def upToDateArguments = ["assertInputCounts"] + expectedUpToDateCounts.collect { name, count -> "-P${name}Count=${count}" }
         def localCache = new TestBuildCache(file('cache-dir'))
         settingsFile << localCache.localCacheConfiguration()
 
-        expect:
-        succeeds(*arguments)
+        when:
+        succeeds("printCounts")
+        then:
         executedAndNotSkipped(':myTask')
+        outputContains("outputFileCount = 2, inputFileCount = 3, inputValueCount = 1, nestedInputCount = 4, nestedInputValueCount = 1")
 
         when:
         inputFile.text = "changed"
+        withBuildCache().succeeds("printCounts")
         then:
-        withBuildCache().succeeds(*incrementalBuildArguments)
         executedAndNotSkipped(':myTask')
-        and:
-        succeeds(*upToDateArguments)
+        outputContains("outputFileCount = 2, inputFileCount = 3, inputValueCount = 1, nestedInputCount = 4, nestedInputValueCount = 1")
+
+        when:
+        succeeds("printCounts")
+        then:
         skipped(':myTask')
+        outputContains("outputFileCount = 1, inputFileCount = 2, inputValueCount = 1, nestedInputCount = 4, nestedInputValueCount = 1")
 
         when:
         file('build').deleteDir()
+        withBuildCache().succeeds("printCounts")
         then:
-        withBuildCache().succeeds(*upToDateArguments)
         skipped(':myTask')
+        outputContains("outputFileCount = 1, inputFileCount = 2, inputValueCount = 1, nestedInputCount = 4, nestedInputValueCount = 1")
     }
 }

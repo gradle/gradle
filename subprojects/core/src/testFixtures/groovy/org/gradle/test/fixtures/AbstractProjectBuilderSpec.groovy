@@ -16,7 +16,6 @@
 
 package org.gradle.test.fixtures
 
-
 import org.gradle.api.Task
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
@@ -26,11 +25,11 @@ import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
-import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.execution.ProjectExecutionServices
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.WorkValidationContext
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
+import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.ProjectBuilderImpl

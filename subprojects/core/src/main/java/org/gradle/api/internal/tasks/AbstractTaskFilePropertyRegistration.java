@@ -41,7 +41,10 @@ public abstract class AbstractTaskFilePropertyRegistration implements TaskProper
     }
 
     public void setPropertyName(String propertyName) {
-        this.propertyName = TaskPropertyUtils.checkPropertyName(propertyName);
+        if (propertyName.isEmpty()) {
+            throw new IllegalArgumentException("Property name must not be empty string");
+        }
+        this.propertyName = propertyName;
     }
 
     public void setOptional(boolean optional) {

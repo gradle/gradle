@@ -18,7 +18,6 @@ package org.gradle.internal.execution.impl
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.FileNormalizer
 import org.gradle.internal.execution.FileCollectionFingerprinter
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.FileCollectionSnapshotter
@@ -31,6 +30,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.LineEndingSensitivity
+import org.gradle.internal.fingerprint.Normalizer
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
@@ -38,7 +38,7 @@ import spock.lang.Specification
 
 import java.util.function.Consumer
 
-import static org.gradle.internal.execution.UnitOfWork.InputBehavior.NON_INCREMENTAL
+import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL
 
 class DefaultInputFingerprinterTest extends Specification {
     def fingerprinter = Mock(FileCollectionFingerprinter)
@@ -55,6 +55,7 @@ class DefaultInputFingerprinterTest extends Specification {
     def fileInputSnapshot = Mock(FileSystemSnapshot)
     def fileInputSnapshotResult = Mock(FileCollectionSnapshotter.Result)
     def fileInputFingerprint = Mock(CurrentFileCollectionFingerprint)
+    def normalizer = Mock(Normalizer)
 
     def "visits properties"() {
         when:
@@ -63,7 +64,7 @@ class DefaultInputFingerprinterTest extends Specification {
             visitor.visitInputFileProperty(
                 "file",
                 NON_INCREMENTAL,
-                new InputFileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
+                new InputFileValueSupplier(fileInput, normalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
         }
 
         then:
@@ -90,11 +91,11 @@ class DefaultInputFingerprinterTest extends Specification {
             visitor.visitInputFileProperty(
                 "file",
                 NON_INCREMENTAL,
-                new InputFileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
+                new InputFileValueSupplier(fileInput, normalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
             visitor.visitInputFileProperty(
                 "archiveTree",
                 NON_INCREMENTAL,
-                new InputFileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { archiveTreeInput }))
+                new InputFileValueSupplier(fileInput, normalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { archiveTreeInput }))
         }
 
         then:
@@ -133,7 +134,7 @@ class DefaultInputFingerprinterTest extends Specification {
             visitor.visitInputFileProperty(
                 "file",
                 NON_INCREMENTAL,
-                new InputFileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { throw new RuntimeException("Shouldn't evaluate this") }))
+                new InputFileValueSupplier(fileInput, normalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { throw new RuntimeException("Shouldn't evaluate this") }))
         }
 
         then:
@@ -188,7 +189,7 @@ class DefaultInputFingerprinterTest extends Specification {
             visitor.visitInputFileProperty(
                 "file",
                 NON_INCREMENTAL,
-                new InputFileValueSupplier(fileInput, FileNormalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
+                new InputFileValueSupplier(fileInput, normalizer, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, { fileInput }))
         }
 
         then:
