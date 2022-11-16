@@ -17,8 +17,11 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.attributes.CompileView;
+import org.gradle.api.model.ObjectFactory;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -26,6 +29,8 @@ import javax.inject.Inject;
 /**
  * Universal APIs that are available for all {@code dependencies} blocks.
  *
+ * This API is <strong>incubating</strong> and is likely to change until it's made stable.
+ * These methods are not intended to be implemented by end users or plugin authors.
  * @since 7.6
  */
 @Incubating
@@ -41,6 +46,24 @@ public interface Dependencies {
     DependencyFactory getDependencyFactory();
 
     /**
+     * Injected service to create named objects.
+     *
+     * @return injected service
+     */
+    @Inject
+    ObjectFactory getObjectFactory();
+
+    /**
+     * The current project. You need to use {@link #project()} or {@link #project(String)} to add a {@link ProjectDependency}.
+     *
+     * @return current project
+     *
+     * @since 8.0
+     */
+    @Inject
+    Project getProject();
+
+    /**
      * Converts an absolute or relative path to a project into a {@link ProjectDependency}. Project paths are separated by colons.
      *
      * This method fails if the project cannot be found.
@@ -50,14 +73,18 @@ public interface Dependencies {
      *
      * @see org.gradle.api.Project#project(String)
      */
-    ProjectDependency project(String projectPath);
+    default ProjectDependency project(String projectPath) {
+        return getDependencyFactory().create(getProject().project(projectPath));
+    }
 
     /**
      * Returns the current project as a {@link ProjectDependency}.
      *
      * @return the current project as a dependency
      */
-    ProjectDependency project();
+    default ProjectDependency project() {
+        return getDependencyFactory().create(getProject());
+    }
 
     /**
      * Create a dependency on the current project's internal view. During compile-time, this dependency will
@@ -68,7 +95,13 @@ public interface Dependencies {
      *
      * @since 8.0
      */
-    ProjectDependency projectInternalView();
+    default ProjectDependency projectInternalView() {
+        ProjectDependency currentProject = project();
+        currentProject.attributes(attrs -> {
+            attrs.attribute(CompileView.VIEW_ATTRIBUTE, getObjectFactory().named(CompileView.class, CompileView.JAVA_INTERNAL));
+        });
+        return currentProject;
+    }
 
     /**
      * Create an {@link ExternalModuleDependency} from the given notation.
