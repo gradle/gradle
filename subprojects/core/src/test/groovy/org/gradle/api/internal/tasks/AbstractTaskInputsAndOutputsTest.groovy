@@ -27,8 +27,8 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
-import org.gradle.internal.fingerprint.Normalizer
 import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.properties.InputFilePropertyType
 import org.gradle.internal.properties.PropertyValue
@@ -92,14 +92,14 @@ abstract class AbstractTaskInputsAndOutputsTest extends AbstractProjectBuilderSp
         TaskPropertyUtils.visitProperties(walker, task, new PropertyVisitor() {
             @Override
             void visitInputFileProperty(
-                String propertyName,
-                boolean optional,
-                InputBehavior behavior,
-                DirectorySensitivity emptyDirectorySensitivity,
-                LineEndingSensitivity lineEndingNormalization,
-                @Nullable Normalizer fileNormalizer,
-                PropertyValue value,
-                InputFilePropertyType filePropertyType
+                    String propertyName,
+                    boolean optional,
+                    InputBehavior behavior,
+                    DirectorySensitivity emptyDirectorySensitivity,
+                    LineEndingSensitivity lineEndingNormalization,
+                    @Nullable FileNormalizer fileNormalizer,
+                    PropertyValue value,
+                    InputFilePropertyType filePropertyType
             ) {
                 inputFiles[propertyName] = value.call()
             }

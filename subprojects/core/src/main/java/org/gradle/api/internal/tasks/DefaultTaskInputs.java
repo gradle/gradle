@@ -33,8 +33,8 @@ import org.gradle.api.internal.tasks.properties.InputPropertySpec;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
@@ -204,7 +204,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 InputBehavior behavior,
                 DirectorySensitivity directorySensitivity,
                 LineEndingSensitivity lineEndingSensitivity,
-                @Nullable Normalizer fileNormalizer,
+                @Nullable FileNormalizer fileNormalizer,
                 PropertyValue value,
                 InputFilePropertyType filePropertyType
             ) {
@@ -247,7 +247,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                     InputBehavior behavior,
                     DirectorySensitivity directorySensitivity,
                     LineEndingSensitivity lineEndingSensitivity,
-                    @Nullable Normalizer fileNormalizer,
+                    @Nullable FileNormalizer fileNormalizer,
                     PropertyValue value, InputFilePropertyType filePropertyType
                 ) {
                     if (!TaskInputUnionFileCollection.this.skipWhenEmptyOnly || behavior.shouldSkipWhenEmpty()) {
@@ -273,7 +273,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             InputBehavior behavior,
             DirectorySensitivity directorySensitivity,
             LineEndingSensitivity lineEndingSensitivity,
-            @Nullable Normalizer fileNormalizer,
+            @Nullable FileNormalizer fileNormalizer,
             PropertyValue value,
             InputFilePropertyType filePropertyType
         ) {
