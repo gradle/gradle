@@ -20,11 +20,11 @@ package org.gradle.api.internal.artifacts.dsl.dependencies
 import org.gradle.api.artifacts.dsl.Dependencies
 import spock.lang.Specification
 
-class DependencyAdderExtensionModuleTest extends Specification {
+class DependenciesExtensionModuleTest extends Specification {
     def "can call module with a #map"() {
         def dependencies = Mock(Dependencies)
         when:
-        DependencyAdderExtensionModule.module(dependencies, map)
+        DependenciesExtensionModule.module(dependencies, map)
         then:
         1 * dependencies.module(group, name, version)
         0 * _._
@@ -40,7 +40,7 @@ class DependencyAdderExtensionModuleTest extends Specification {
         def map = [invalidKey: "value", group: "com.example", name: "example", version: "1.0"]
         def dependencies = Mock(Dependencies)
         when:
-        DependencyAdderExtensionModule.module(dependencies, map)
+        DependenciesExtensionModule.module(dependencies, map)
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "The map must not contain the following keys: [invalidKey]"
@@ -50,7 +50,7 @@ class DependencyAdderExtensionModuleTest extends Specification {
         def map = [group: "com.example", version: "1.0"]
         def dependencies = Mock(Dependencies)
         when:
-        DependencyAdderExtensionModule.module(dependencies, map)
+        DependenciesExtensionModule.module(dependencies, map)
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "The map must contain a name key."
