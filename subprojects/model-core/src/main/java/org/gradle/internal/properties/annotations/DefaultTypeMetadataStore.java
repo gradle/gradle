@@ -35,6 +35,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -232,6 +233,12 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         @Override
         public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
             return annotationMetadata.isAnnotationPresent(annotationType);
+        }
+
+        @Nullable
+        @Override
+        public <T extends Annotation> Optional<T> getAnnotation(Class<T> annotationType) {
+            return annotationMetadata.getAnnotation(annotationType);
         }
 
         @Nullable

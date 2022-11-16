@@ -24,7 +24,6 @@ import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
-import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.model.internal.type.ModelType;
@@ -47,11 +46,10 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        if (propertyMetadata.isAnnotationPresent(ServiceReference.class)) {
-            ServiceReference annotation = (ServiceReference) propertyMetadata.getAnnotationForCategory(AnnotationCategory.TYPE);
+        propertyMetadata.getAnnotation(ServiceReference.class).ifPresent(annotation -> {
             String serviceName = StringUtils.trimToNull(annotation.value());
             visitor.visitServiceReference(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, serviceName);
-        }
+        });
     }
 
     @Override
