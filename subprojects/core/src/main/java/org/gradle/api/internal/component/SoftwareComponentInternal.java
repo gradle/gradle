@@ -32,7 +32,7 @@ public interface SoftwareComponentInternal extends SoftwareComponent {
     // TODO: Should we name this `getVariants`? `ComponentWithVariants` already defines a `getVariants` which
     // returns a different type. There are existing classes (internally and in KGP) which implement both this class and
     // `ComponentWithVariants`.
-    default Set<SoftwareComponentVariant> getAllVariants() {
+    default Set<? extends SoftwareComponentVariant> getAllVariants() {
         // TODO Gradle 8.1: Add a deprecation nag here. Subclasses should implement this method
         // instead of getUsages. In 9.0, we'll remove the default implementation.
         return Collections.unmodifiableSet(getUsages());
@@ -55,17 +55,9 @@ public interface SoftwareComponentInternal extends SoftwareComponent {
      * should be removed once the above method is removed.
      */
     @SuppressWarnings("deprecation")
-    class UsageContextShim extends DefaultSoftwareComponentVariant implements UsageContext {
+    class UsageContextShim extends DelegatingSoftwareComponentVariant implements UsageContext {
         private UsageContextShim(SoftwareComponentVariant variant) {
-            super(
-                variant.getName(),
-                variant.getAttributes(),
-                variant.getArtifacts(),
-                variant.getDependencies(),
-                variant.getDependencyConstraints(),
-                variant.getCapabilities(),
-                variant.getGlobalExcludes()
-            );
+            super(variant);
         }
     }
 }

@@ -21,7 +21,7 @@ import java.util.Set;
 // getVariants() returns a list of child components.
 // This should be called something more like ComponentWithChildren.
 //
-// When publishing GMM, we will publish all variants of all child components as a "RemoteVariant"
+// When publishing GMM, we will publish all variants of all child components each as a "RemoteVariant"
 // RemoteVariants are "available-at" variants.
 
 // Presumably this is so you can have different dependencies for different variants,
@@ -37,7 +37,7 @@ In a way, each Maven component is acting like a variant. It has an artifact and 
 
 Kotlin MPP must use this to publish binaries from each target.
 
-Kotlin needs an API to publish components with multiple
+Users need an API to publish components with multiple different targets or artifacts.
 
 
 
