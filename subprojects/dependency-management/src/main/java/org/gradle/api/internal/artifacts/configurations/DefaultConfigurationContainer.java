@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
@@ -62,9 +63,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private final DefaultRootComponentMetadataBuilder rootComponentMetadataBuilder;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
 
-    private ConfigurationRole roleToCreate = DEFAULT_ROLE_TO_CREATE;
-    private boolean lockUsageAtCreation = DEFAULT_LOCK_USAGE_AT_CREATION;
-
     public DefaultConfigurationContainer(
         Instantiator instantiator,
         DependencySubstitutionRules globalDependencySubstitutionRules,
@@ -92,14 +90,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     protected Configuration doCreate(String name) {
-        try {
-            DefaultConfiguration configuration = newConfiguration(name, this, rootComponentMetadataBuilder, roleToCreate, lockUsageAtCreation);
-            configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
-            return configuration;
-        } finally {
-            roleToCreate = DEFAULT_ROLE_TO_CREATE;
-            lockUsageAtCreation = DEFAULT_LOCK_USAGE_AT_CREATION;
-        }
+        return doCreate(name, DEFAULT_ROLE_TO_CREATE, DEFAULT_LOCK_USAGE_AT_CREATION);
     }
 
     @Override
@@ -195,9 +186,18 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockUsage) {
-        roleToCreate = role;
-        lockUsageAtCreation = lockUsage;
-        return (ConfigurationInternal) create(name);
+    public ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockUsage, Action<? super ConfigurationInternal> configureAction) {
+        assertMutable("create(String, Action)");
+        assertCanAdd(name);
+        ConfigurationInternal object = doCreate(name, role, lockUsage);
+        add(object);
+        configureAction.execute(object);
+        return object;
+    }
+
+    private ConfigurationInternal doCreate(String name, ConfigurationRole role, boolean lockUsage) {
+        DefaultConfiguration configuration = newConfiguration(name, this, rootComponentMetadataBuilder, role, lockUsage);
+        configuration.addMutationValidator(rootComponentMetadataBuilder.getValidator());
+        return configuration;
     }
 }

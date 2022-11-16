@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.api.Action;
+import org.gradle.internal.Actions;
+
 /**
  * Extends {@link ConfigurationContainerInternal} with methods that can use {@link ConfigurationRole}s to
  * define the allowed usage of a configuration at creation time.
@@ -104,9 +107,37 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * @param name the name of the configuration
      * @param role the role defining the configuration's allowed usage
      * @param lockUsage {@code true} if the configuration's allowed usage should be locked to prevent any changes; {@code false} otherwise
+     * @param configureAction an action to run upon the configuration's creation to configure it
      * @return the new configuration
      */
-    ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockUsage);
+    ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockUsage, Action<? super ConfigurationInternal> configureAction);
+
+    /**
+     * Creates a new configuration in the same manner as {@link #create(String)} using the given role
+     * at creation.
+     *
+     * @param name the name of the configuration
+     * @param role the role defining the configuration's allowed usage
+     * @param lockUsage {@code true} if the configuration's allowed usage should be locked to prevent any changes; {@code false} otherwise
+     * @return the new configuration
+     */
+    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockUsage) {
+        return createWithRole(name, role, lockUsage, Actions.doNothing());
+    }
+
+    /**
+     * Creates a new configuration in the same manner as {@link #create(String)} using the given role
+     * at creation and configuring it with the given action, without automatically locking the configuration's allowed usage.
+     *
+     * @param name the name of the configuration
+     * @param role the role defining the configuration's allowed usage
+     * @param configureAction an action to run upon the configuration's creation to configure it
+     * @return the new configuration
+     */
+    default ConfigurationInternal createWithRole(String name, ConfigurationRole role, Action<? super ConfigurationInternal> configureAction) {
+        return createWithRole(name, role, false, configureAction);
+    }
+
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
