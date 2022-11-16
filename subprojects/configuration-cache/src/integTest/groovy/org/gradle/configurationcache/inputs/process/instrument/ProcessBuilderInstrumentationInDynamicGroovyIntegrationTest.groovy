@@ -16,9 +16,18 @@
 
 package org.gradle.configurationcache.inputs.process.instrument
 
-class ProcessInstrumentationInDynamicGroovyWithIndyIntegrationTest extends AbstractProcessInstrumentationInDynamicGroovyIntegrationTest {
+/**
+ * Test cases for {@code ProcessBuilder.start}.
+ */
+class ProcessBuilderInstrumentationInDynamicGroovyIntegrationTest extends AbstractProcessInstrumentationInDynamicGroovyIntegrationTest {
     @Override
-    boolean enableIndy() {
-        return true
+    def testCases() {
+        return [
+            // ProcessBuilder.start()
+            // varInitializer | processCreator | expectedPwdSuffix | expectedEnvVar
+            [fromStringArray(), "new ProcessBuilder(command).start()", "", ""],
+            [fromStringList(), "new ProcessBuilder(command).start()", "", ""],
+            [fromStringArray(), "new ProcessBuilder(command)?.start()", "", ""],
+        ]
     }
 }

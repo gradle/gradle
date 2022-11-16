@@ -16,9 +16,16 @@
 
 package org.gradle.configurationcache.inputs.process.instrument
 
-class ProcessInstrumentationInDynamicGroovyWithoutIndyIntegrationTest extends AbstractProcessInstrumentationInDynamicGroovyIntegrationTest {
+/**
+ * Test cases for single-argument {@code Runtime.exec}:
+ * <pre>
+ *     Runtime.getRuntime().exec("echo 123")
+ *     Runtime.getRuntime().exec(["echo", "123"])
+ * </pre>
+ */
+class RuntimeExec1InstrumentationInDynamicGroovyWithoutIndyIntegrationTest extends RuntimeExec1InstrumentationInDynamicGroovyWithIndyIntegrationTest {
     @Override
-    boolean enableIndy() {
-        return false
+    def indyModes() {
+        return [false]
     }
 }
