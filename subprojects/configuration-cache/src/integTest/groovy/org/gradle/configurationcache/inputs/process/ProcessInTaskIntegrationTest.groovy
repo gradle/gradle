@@ -32,7 +32,7 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.proc
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.runtimeExec
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stringArrayExecute
 
-class ExternalProcessInTaskIntegrationTest extends AbstractExternalProcessIntegrationTest {
+class ProcessInTaskIntegrationTest extends AbstractProcessIntegrationTest {
     def "using #snippetsFactory.summary in task configuration is a problem"() {
         given:
         settingsFileWithStableConfigurationCache()

@@ -19,7 +19,7 @@ package org.gradle.configurationcache.inputs.process
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-abstract class AbstractExternalProcessInstrumentationInDynamicGroovyIntegrationTest extends AbstractProcessInstrumentationIntegrationTest {
+abstract class AbstractProcessInstrumentationInDynamicGroovyIntegrationTest extends AbstractProcessInstrumentationIntegrationTest {
     abstract boolean enableIndy()
 
     def "#title is intercepted in groovy build script"(VarInitializer varInitializer) {

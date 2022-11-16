@@ -22,7 +22,7 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.proc
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.runtimeExec
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stringArrayExecute
 
-class ExternalProcessInBuildScriptIntegrationTest extends AbstractExternalProcessIntegrationTest {
+class ProcessInBuildScriptIntegrationTest extends AbstractProcessIntegrationTest {
     def "using #snippetsFactory.summary in #location.toLowerCase() #file is a problem"() {
         given:
         settingsFileWithStableConfigurationCache()

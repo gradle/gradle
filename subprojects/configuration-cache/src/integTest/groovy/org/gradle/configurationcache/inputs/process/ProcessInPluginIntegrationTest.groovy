@@ -31,7 +31,7 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.proc
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.runtimeExec
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stringArrayExecute
 
-class ExternalProcessInPluginIntegrationTest extends AbstractExternalProcessIntegrationTest {
+class ProcessInPluginIntegrationTest extends AbstractProcessIntegrationTest {
     def "using #snippetsFactory.summary in convention plugin #file is a problem"() {
         given:
         settingsFileWithStableConfigurationCache()

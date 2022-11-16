@@ -20,7 +20,7 @@ import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 import org.gradle.configurationcache.fixtures.ExternalProcessFixture
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 
-abstract class AbstractExternalProcessIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+abstract class AbstractProcessIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     ExternalProcessFixture execOperationsFixture = new ExternalProcessFixture(testDirectory)
 
     def settingsFileWithStableConfigurationCache() {
