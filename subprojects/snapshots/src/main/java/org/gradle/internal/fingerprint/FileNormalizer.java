@@ -20,7 +20,7 @@ public interface FileNormalizer {
     /**
      * Does the normalizer always ignore directories.
      */
-    boolean isIgnoreDirectories();
+    boolean isIgnoringDirectories();
 
     @Override
     String toString();
