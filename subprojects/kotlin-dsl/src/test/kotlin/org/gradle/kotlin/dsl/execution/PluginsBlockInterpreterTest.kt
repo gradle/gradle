@@ -26,7 +26,7 @@ import org.junit.Test
 class PluginsBlockInterpreterTest {
 
     @Test
-    fun `single plugin id`() {
+    fun `single plugin - id()`() {
         assertStaticInterpretationOf(
             """id("plugin-id")""",
             PluginRequestSpec("plugin-id")
@@ -34,7 +34,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin id version`() {
+    fun `single plugin - id() version`() {
         assertStaticInterpretationOf(
             """id("plugin-id") version "1.0"""",
             PluginRequestSpec("plugin-id", version = "1.0")
@@ -42,7 +42,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin id version()`() {
+    fun `single plugin - id() version()`() {
         assertStaticInterpretationOf(
             """id("plugin-id") version("1.0")""",
             PluginRequestSpec("plugin-id", version = "1.0")
@@ -50,7 +50,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin id dot version()`() {
+    fun `single plugin - id() dot version()`() {
         assertStaticInterpretationOf(
             """id("plugin-id").version("1.0")""",
             PluginRequestSpec("plugin-id", version = "1.0")
@@ -58,7 +58,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin id apply`() {
+    fun `single plugin - id() apply`() {
         assertStaticInterpretationOf(
             """id("plugin-id") apply false""",
             PluginRequestSpec("plugin-id", apply = false)
@@ -66,7 +66,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin id apply()`() {
+    fun `single plugin - id() apply()`() {
         assertStaticInterpretationOf(
             """id("plugin-id") apply(false)""",
             PluginRequestSpec("plugin-id", apply = false)
@@ -74,7 +74,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin id dot apply()`() {
+    fun `single plugin - id() dot apply()`() {
         assertStaticInterpretationOf(
             """id("plugin-id").apply(false)""",
             PluginRequestSpec("plugin-id", apply = false)
@@ -82,7 +82,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin id version apply`() {
+    fun `single plugin - id() version apply`() {
         assertStaticInterpretationOf(
             """id("plugin-id") version "1.0" apply false""",
             PluginRequestSpec("plugin-id", version = "1.0", apply = false)
@@ -90,7 +90,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin id dot version() dot apply()`() {
+    fun `single plugin - id() dot version() dot apply()`() {
         assertStaticInterpretationOf(
             """id("plugin-id").version("1.0").apply(false)""",
             PluginRequestSpec("plugin-id", version = "1.0", apply = false)
@@ -99,7 +99,7 @@ class PluginsBlockInterpreterTest {
 
 
     @Test
-    fun `single plugin id mixed version apply`() {
+    fun `single plugin - id mixed version apply`() {
         assertStaticInterpretationOf(
             """id("plugin-id").version("1.0").apply(true) version "3.0" apply false""",
             PluginRequestSpec("plugin-id", version = "3.0", apply = false)
@@ -107,17 +107,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin id apply syntax error`() {
-        assertDynamicInterpretationOf("""id("plugin-id") apply "1.0"""")
-    }
-
-    @Test
-    fun `single plugin id version syntax error`() {
-        assertDynamicInterpretationOf("""id("plugin-id") version false""")
-    }
-
-    @Test
-    fun `single plugin kotlin`() {
+    fun `single plugin - kotlin()`() {
         assertStaticInterpretationOf(
             """kotlin("jvm")""",
             PluginRequestSpec("org.jetbrains.kotlin.jvm")
@@ -125,7 +115,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin kotlin version apply false`() {
+    fun `single plugin - kotlin() version apply false`() {
         assertStaticInterpretationOf(
             """kotlin("jvm") version "1.0" apply false""",
             PluginRequestSpec("org.jetbrains.kotlin.jvm", version = "1.0", apply = false)
@@ -133,12 +123,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin kotlin syntax error`() {
-        assertDynamicInterpretationOf("""kotlin("jvm";)""")
-    }
-
-    @Test
-    fun `multiple plugin ids`() {
+    fun `multiple plugins - id()`() {
         assertStaticInterpretationOf(
             """
                 id("plugin-id-1")
@@ -150,7 +135,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `multiple plugin ids separated by semicolon`() {
+    fun `multiple plugins - id() separated by semicolon`() {
         assertStaticInterpretationOf(
             """
                 id("plugin-id-1") ; id("plugin-id-2")
@@ -162,7 +147,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `multiple plugin ids mixed syntax`() {
+    fun `multiple plugins - id() version apply mixed syntax`() {
         assertStaticInterpretationOf(
             """
                 id("plugin-id-1") apply false ; id("plugin-id-2")
@@ -178,20 +163,58 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `single plugin id syntax error`() {
+    fun `unsupported syntax - plugin spec accessor`() {
         assertDynamicInterpretationOf(
-            """
-                id("plugin-id-1";)
-            """
+            """java""",
+            "Expecting id or kotlin, got 'java'"
         )
     }
 
     @Test
-    fun `multiple plugin ids syntax error`() {
+    fun `unsupported syntax - version catalog alias`() {
         assertDynamicInterpretationOf(
-            """
-                id("plugin-id-1") id("plugin-id-2")
-            """
+            """alias(libs.plugins.jmh)""",
+            "Expecting id or kotlin, got 'alias'"
+        )
+    }
+
+    @Test
+    fun `syntax error - single plugin id`() {
+        assertDynamicInterpretationOf(
+            """id("plugin-id-1";)""",
+            "Expecting ), got ';'"
+        )
+    }
+
+    @Test
+    fun `syntax error - single plugin id apply`() {
+        assertDynamicInterpretationOf(
+            """id("plugin-id") apply "1.0"""",
+            "Expecting (, got '\"'"
+        )
+    }
+
+    @Test
+    fun `syntax error - single plugin id version`() {
+        assertDynamicInterpretationOf(
+            """id("plugin-id") version false""",
+            "Expecting (, got 'false'"
+        )
+    }
+
+    @Test
+    fun `syntax error - single plugin kotlin`() {
+        assertDynamicInterpretationOf(
+            """kotlin("jvm";)""",
+            "Expecting ), got ';'"
+        )
+    }
+
+    @Test
+    fun `syntax error - multiple plugin ids`() {
+        assertDynamicInterpretationOf(
+            """id("plugin-id-1") id("plugin-id-2")""",
+            "Expecting version or apply, got 'id'"
         )
     }
 
@@ -206,10 +229,12 @@ class PluginsBlockInterpreterTest {
     }
 
     private
-    fun assertDynamicInterpretationOf(pluginsBlock: String) {
+    fun assertDynamicInterpretationOf(pluginsBlock: String, reason: String = "BOOM") {
         assertThat(
             interpret(Program.Plugins(fragment("plugins", pluginsBlock))),
-            instanceOf(PluginsBlockInterpretation.Dynamic::class.java)
+            equalTo(
+                PluginsBlockInterpretation.Dynamic(reason)
+            )
         )
     }
 }
