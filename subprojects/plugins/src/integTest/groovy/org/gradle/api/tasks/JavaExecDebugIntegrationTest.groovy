@@ -164,10 +164,13 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
     /** To test attaching the debugger via a non-loopback network interface, we need to choose an IP address of such an interface. */
     private static final String nonLoopbackAddress() {
-        Collections.list(NetworkInterface.getNetworkInterfaces())
+        println("Looking at network interfaces")
+        def address = Collections.list(NetworkInterface.getNetworkInterfaces())
             .collectMany { it.isLoopback() ? [] : Collections.list(it.inetAddresses) }
             .find { it instanceof Inet4Address && !it.isLoopbackAddress() }
             ?.hostAddress
+        println("using address=$address")
+        return address
     }
 
     def "debug options overrides debug property with task :#taskName"() {
