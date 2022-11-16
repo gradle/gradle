@@ -1,4 +1,4 @@
  - Added support for Java 19.
  - Introduced `--rerun` flag for individual task rerun.
  - Improved dependency block for test suites to be strongly typed.
- - Added a service provider interface for Java toolchains provisioning.
+ - Added a pluggable system for Java toolchains provisioning.
