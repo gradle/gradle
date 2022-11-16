@@ -621,14 +621,10 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching 'org.gradle.docs.samples.*.snippet-testing-patch-module*.sample'
         }
 
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
-            excludeTestsMatching "org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution.sample"
-
-            if (OperatingSystem.current().windows) {
-                // Disable tests that suffer from charset issues under JDK 18 for now
-                excludeTestsMatching "org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv-model.sample"
-                excludeTestsMatching "org.gradle.docs.samples.*.snippet-model-rules-basic-rule-source-plugin_*_basicRuleSourcePlugin-model-task.sample"
-            }
+        if (OperatingSystem.current().windows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
+            // Disable tests that suffer from charset issues under JDK 18 for now
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv-model.sample"
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-model-rules-basic-rule-source-plugin_*_basicRuleSourcePlugin-model-task.sample"
         }
 
         if (!javaVersion.java11Compatible) {
@@ -639,6 +635,10 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*android-app.sample"
             // Umbrella build project contains also Android projects so it requires Java 11+
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects_*_umbrella-build.sample"
+        }
+
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution.sample"
         }
 
         if (OperatingSystem.current().macOsX && System.getProperty("os.arch") == "aarch64") {
