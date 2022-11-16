@@ -249,7 +249,7 @@ In precompiled script plugins, type safe Kotlin DSL accessor generation now fail
 
 Starting in Gradle 7.6, builds could enable this behavior with the `org.gradle.kotlin.dsl.precompiled.accessors.strict` system property. This behavior is now default. The property has been deprecated and its usage should be removed. You can find more information about this property <<upgrading_version_7.adoc#strict-kotlin-dsl-precompiled-scripts-accessors, below>>.
 
-==== Adding `jst.ejb` with the `eclipse wtp' plugin now removes the `jst.utility` facet
+==== Adding `jst.ejb` with the `eclipse wtp` plugin now removes the `jst.utility` facet
 
 The `eclipse wtp` plugin adds the `jst.utility` facet to java projects.
 Now, adding the `jst.ejb` facet implicitly removes the `jst.utility` facet:
@@ -669,9 +669,11 @@ If you are using TestNG, versions prior to `5.14.6` perform illegal reflection. 
 [[checkstyle_worker_api]]
 ==== Checkstyle tasks use toolchains and execute in parallel by default
 
-The <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle plugin>> now uses the Gradle worker API to run Checkstyle as an external worker process, so that multiple Checkstyle tasks may now run in parallel within a project.
+The <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle plugin>> now uses the Gradle worker API to run Checkstyle as an external worker process. Multiple Checkstyle tasks may now run in parallel within a project.
 
-Since Checkstyle runs as an external process you can control the memory via the `minHeapSize` and `maxHeapSize` properties on the Checkstyle tasks. In case of out of memory errors, increasing the max memory via the `maxHeapSize` property should solve the issue. By default, the process will start with `maxHeapSize` of 512MB. We also recommend to update Checkstyle to version 9.3 or later.
+Some projects will need to increase the amount of memory available to Checkstyle to avoid out of memory errors. You can <<checkstyle_plugin.adoc#sec:checkstyle_customize_memory,increase the maximum memory for the Checkstyle process>> by setting the `maxHeapSize` for the Checkstyle task. By default, the process will start with a maximum heap size of 512MB. 
+
+We also recommend to update Checkstyle to version 9.3 or later.
 
 ==== Missing files specified with relative paths when running Checkstyle
 
