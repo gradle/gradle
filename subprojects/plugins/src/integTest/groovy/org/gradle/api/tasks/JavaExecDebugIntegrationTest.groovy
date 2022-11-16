@@ -44,7 +44,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
     def "debug is disabled by default with task :#taskName"() {
         setup:
         sampleProject """
@@ -56,10 +55,9 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         succeeds(taskName)
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
+        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
     def "debug session fails without debugger with task :#taskName"() {
         setup:
         sampleProject """
@@ -74,10 +72,9 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         failure.error.contains('ERROR: transport error 202: connect failed:') || failure.error.contains('ERROR: transport error 202: handshake failed')
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
+        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
     def "can debug Java exec with socket listen type debugger (server = false) with task :#taskName"() {
         setup:
         sampleProject """
@@ -94,11 +91,10 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         succeeds(taskName)
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
+        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @Issue("20644")
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
+    @Issue("https://github.com/gradle/gradle/issues/20644")
     def "can debug Java exec with socket server debugger (server = true) on #hostKind host with task :#taskName"() {
         def address = nonLoopbackAddress()
         Assume.assumeNotNull(address)
@@ -128,9 +124,9 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         handle.waitForFinish()
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test'].collectMany { [it] * 2 }
-        jdwpHost << [Jvm.current().javaVersion.isJava9Compatible() ? "*" : null, nonLoopbackAddress()] * 4
-        hostKind << [Jvm.current().javaVersion.isJava9Compatible() ? "star" : "default", "exact IP"] * 4
+        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test'].collectMany { [it] * 2 }
+        jdwpHost << [Jvm.current().javaVersion.isJava9Compatible() ? "*" : null, nonLoopbackAddress()] * 3
+        hostKind << [Jvm.current().javaVersion.isJava9Compatible() ? "star" : "default", "exact IP"] * 3
     }
 
     /** To test attaching the debugger via a non-loopback network interface, we need to choose an IP address of such an interface. */
@@ -141,36 +137,6 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
             ?.hostAddress
     }
 
-    @Ignore
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
-    def "can debug Java exec with socket attach type debugger (server = true) with task :#taskName"() {
-        setup:
-        sampleProject """
-            debugOptions {
-                enabled = true
-                server = true
-                suspend = true
-                port = $debugClient.port
-            }
-        """
-
-        when:
-        def handle = executer.withTasks(taskName).start()
-        ConcurrentTestUtil.poll(60) {
-            assert handle.standardOutput.contains('Listening for transport dt_socket at address')
-        }
-
-        then:
-        debugClient.connect().dispose()
-
-        then:
-        handle.waitForFinish()
-
-        where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
-    }
-
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
     def "debug options overrides debug property with task :#taskName"() {
         setup:
         sampleProject """
@@ -186,10 +152,9 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         succeeds(taskName)
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
+        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
     def "if custom debug argument is passed to the build then debug options is ignored with task :#taskName"() {
         setup:
         sampleProject """
@@ -209,7 +174,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Debug configuration ignored in favor of the supplied JVM arguments: [-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=$debugClient.port]"
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
+        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
     private def sampleProject(String javaExecConfig) {
@@ -254,23 +219,12 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
                 $javaExecConfig
             }
 
-            task runProjectJavaExec {
-                doLast {
-                    project.javaexec {
-                        classpath = sourceSets.main.runtimeClasspath
-                        mainClass = "driver.Driver"
-
-                        $javaExecConfig
-                    }
-                }
-                dependsOn sourceSets.main.runtimeClasspath
-            }
-
             task runExecOperationsJavaExec {
                 def runClasspath = sourceSets.main.runtimeClasspath
                 dependsOn runClasspath
                 def execOps = services.get(ExecOperations)
                 doLast {
+                    // this is the same as project.javaexec
                     execOps.javaexec {
                         classpath = runClasspath
                         mainClass = "driver.Driver"
