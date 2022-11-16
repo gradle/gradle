@@ -167,6 +167,9 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
             if (assertInRole) {
                 RoleChecker.assertIsInRole(configuration, role);
             }
+            if (lockUsage) {
+                configuration.preventUsageMutation();
+            }
             return configuration;
         }
     }
@@ -177,7 +180,14 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
     abstract class RoleChecker {
         private RoleChecker() { /* not instantiable */ }
 
-        private static boolean isUsageConsistentWithRole(ConfigurationInternal configuration, ConfigurationRole role) {
+        /**
+         * Checks that the current allowed usage of a configuration is the same as that specified by a given role.
+         *
+         * @param configuration the configuration to check
+         * @param role the role to check against
+         * @return {@code true} if so; {@code false} otherwise
+         */
+        public static boolean isUsageConsistentWithRole(ConfigurationInternal configuration, ConfigurationRole role) {
             return (role.isConsumable() == configuration.isCanBeConsumed())
                     && (role.isResolvable() == configuration.isCanBeResolved())
                     && (role.isDeclarableAgainst() == configuration.isCanBeDeclaredAgainst())
@@ -186,26 +196,28 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
                     && (role.isDeclarationAgainstDeprecated() == configuration.isDeprecatedForDeclarationAgainst());
         }
 
+        /**
+         * Checks that the current allowed usage of a configuration is the same as that specified by a given role,
+         * and throws an exception with a message describing the differences if not.
+         *
+         * @param configuration the configuration to check
+         * @param role the role to check against
+         */
+        public static void assertIsInRole(ConfigurationInternal configuration, ConfigurationRole role) {
+            if (!isUsageConsistentWithRole(configuration, role)) {
+                throw new IllegalStateException(describeDifferenceFromRole(configuration, role));
+            }
+        }
+
         private static String describeDifferenceFromRole(ConfigurationInternal configuration, ConfigurationRole role) {
             if (!isUsageConsistentWithRole(configuration, role)) {
                 return "Usage for configuration: " + configuration.getName() + " is not consistent with the role: " + role.getName() + ".\n" +
                         "Expected that it is:\n" +
                         role.describe() + "\n" +
                         "But is actually is:\n" +
-                        "\tconsumable=" + configuration.isCanBeConsumed() +
-                        ", resolvable=" + configuration.isCanBeResolved() +
-                        ", declarableAgainst=" + configuration.isCanBeDeclaredAgainst() +
-                        ", deprecatedForConsumption=" + configuration.isDeprecatedForConsumption() +
-                        ", deprecatedForResolution=" + configuration.isDeprecatedForResolution() +
-                        ", deprecatedForDeclarationAgainst=" + configuration.isDeprecatedForDeclarationAgainst();
+                        ConfigurationRole.forConfiguration(configuration).describe();
             } else {
                 return "Usage for configuration: " + configuration.getName() + " is consistent with the role: " + role.getName() + ".";
-            }
-        }
-
-        private static void assertIsInRole(ConfigurationInternal configuration, ConfigurationRole role) {
-            if (!isUsageConsistentWithRole(configuration, role)) {
-                throw new IllegalStateException(describeDifferenceFromRole(configuration, role));
             }
         }
     }

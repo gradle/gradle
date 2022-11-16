@@ -225,7 +225,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean consumptionDeprecated = false;
     private boolean resolutionDeprecated = false;
     private boolean declarationDeprecated = false;
-    private boolean roleCanBeMutated = true;
+    private boolean usageCanBeMutated = true;
     private final ConfigurationRole roleAtCreation;
     private boolean warnOnChangingUsage = false; // Will be set to true/removed in Gradle 8.1
 
@@ -1687,12 +1687,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void preventUsageMutation() {
-        roleCanBeMutated = false;
+        usageCanBeMutated = false;
+    }
+
+    public boolean isUsageMutable() {
+        return usageCanBeMutated;
     }
 
     @SuppressWarnings("deprecation")
     private void assertUsageIsMutable() {
-        if (!roleCanBeMutated) {
+        if (!usageCanBeMutated) {
             // Don't print role message for legacy role - users might not have actively chosen this role
             if (roleAtCreation != null && roleAtCreation != ConfigurationRoles.LEGACY) {
                 throw new GradleException(

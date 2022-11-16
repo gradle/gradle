@@ -155,6 +155,9 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      */
     void preventUsageMutation();
 
+    /**
+     * Returns the role used to create this configuration and set its initial allowed usage.
+     */
     ConfigurationRole getRoleAtCreation();
 
     /**
