@@ -40,7 +40,7 @@ public class WebApplication implements SoftwareComponentInternal {
     }
 
     @Override
-    public Set<SoftwareComponentVariant> getAllVariants() {
+    public Set<? extends SoftwareComponentVariant> getAllVariants() {
         return Collections.singleton(variant);
     }
 }

@@ -88,7 +88,7 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
     }
 
     @Override
-    public Set<SoftwareComponentVariant> getAllVariants() {
+    public Set<? extends SoftwareComponentVariant> getAllVariants() {
         return variants;
     }
 

@@ -60,7 +60,7 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     }
 
     @Override
-    public Set<SoftwareComponentVariant> getAllVariants() {
+    public Set<? extends SoftwareComponentVariant> getAllVariants() {
         ImmutableSet.Builder<SoftwareComponentVariant> builder = new ImmutableSet.Builder<>();
         for (ConfigurationVariantMapping variant : variants.values()) {
             variant.collectVariants(builder);

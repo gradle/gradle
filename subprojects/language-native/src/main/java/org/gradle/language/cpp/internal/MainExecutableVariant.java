@@ -48,7 +48,7 @@ public class MainExecutableVariant implements SoftwareComponentInternal, Compone
     }
 
     @Override
-    public Set<SoftwareComponentVariant> getAllVariants() {
+    public Set<? extends SoftwareComponentVariant> getAllVariants() {
         return ImmutableSet.of();
     }
 }

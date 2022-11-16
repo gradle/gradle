@@ -54,7 +54,7 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
     }
 
     @Override
-    public Set<SoftwareComponentVariant> getAllVariants() {
+    public Set<? extends SoftwareComponentVariant> getAllVariants() {
         return ImmutableSet.of(new ConfigurationSoftwareComponentVariant(name, dependencies, attributeContainer, artifacts));
     }
 

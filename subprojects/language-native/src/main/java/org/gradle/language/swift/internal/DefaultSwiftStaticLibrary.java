@@ -125,7 +125,7 @@ public class DefaultSwiftStaticLibrary extends DefaultSwiftBinary implements Swi
     }
 
     @Override
-    public Set<SoftwareComponentVariant> getAllVariants() {
+    public Set<? extends SoftwareComponentVariant> getAllVariants() {
         Configuration linkElements = getLinkElements().get();
         Configuration runtimeElements = getRuntimeElements().get();
         return Sets.newHashSet(

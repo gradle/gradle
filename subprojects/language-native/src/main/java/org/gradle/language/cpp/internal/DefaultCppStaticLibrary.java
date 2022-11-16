@@ -114,7 +114,7 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
     }
 
     @Override
-    public Set<SoftwareComponentVariant> getAllVariants() {
+    public Set<? extends SoftwareComponentVariant> getAllVariants() {
         Configuration linkElements = getLinkElements().get();
         Configuration runtimeElements = getRuntimeElements().get();
         // TODO: Does a static library really have any runtime elements?
