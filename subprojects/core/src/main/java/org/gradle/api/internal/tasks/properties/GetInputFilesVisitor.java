@@ -73,7 +73,7 @@ public class GetInputFilesVisitor implements PropertyVisitor {
     }
 
     private DirectorySensitivity normalizeDirectorySensitivity(FileNormalizer normalizer, DirectorySensitivity directorySensitivity) {
-        return normalizer.isIgnoreDirectories()
+        return normalizer.isIgnoringDirectories()
             ? DirectorySensitivity.DEFAULT
             : directorySensitivity;
     }

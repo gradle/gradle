@@ -53,7 +53,7 @@ public enum InputNormalizer implements FileNormalizer {
     }
 
     @Override
-    public boolean isIgnoreDirectories() {
+    public boolean isIgnoringDirectories() {
         return ignoreDirectories;
     }
 

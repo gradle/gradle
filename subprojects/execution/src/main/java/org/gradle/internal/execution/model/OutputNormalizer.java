@@ -27,7 +27,7 @@ public enum OutputNormalizer implements FileNormalizer {
     INSTANCE;
 
     @Override
-    public boolean isIgnoreDirectories() {
+    public boolean isIgnoringDirectories() {
         return false;
     }
 
