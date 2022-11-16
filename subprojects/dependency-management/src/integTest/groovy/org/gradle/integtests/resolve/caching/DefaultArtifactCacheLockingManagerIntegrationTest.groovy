@@ -172,6 +172,44 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         findFiles(cacheDir, 'files-*/*').isEmpty()
     }
 
+    def "always cleans up resources and files not recently used from caches when configured"() {
+        given:
+        buildscriptWithDependency(snapshotModule)
+        withDownloadedResourcesRetentionInDays(HALF_DEFAULT_MAX_AGE_IN_DAYS)
+        alwaysCleanupCaches()
+
+        when:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        succeeds 'resolve'
+
+        then:
+        def resource = findFile(cacheDir, 'resources-*/**/maven-metadata.xml')
+        def files = findFiles(cacheDir, "files-*/**/*")
+        files.size() == 2
+        journal.assertExists()
+
+        when:
+        run '--stop' // ensure daemon does not cache file access times in memory
+
+        and:
+        writeLastFileAccessTimeToJournal(resource.parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+        writeLastFileAccessTimeToJournal(files[0].parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+        writeLastFileAccessTimeToJournal(files[1].parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+
+        and:
+        executer.withTasks('help').start().waitForFinish()
+
+        then:
+        resource.assertDoesNotExist()
+        files[0].assertDoesNotExist()
+        files[1].assertDoesNotExist()
+
+        and: // deletes empty parent directories
+        findFiles(cacheDir, 'resources-*/*').isEmpty()
+        findFiles(cacheDir, 'files-*/*').isEmpty()
+    }
+
     def "does not clean up resources and files when cache cleanup is disabled via #method"() {
         given:
         buildscriptWithDependency(snapshotModule)

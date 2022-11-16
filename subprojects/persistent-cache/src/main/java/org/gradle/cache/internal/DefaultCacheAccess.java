@@ -150,6 +150,25 @@ public class DefaultCacheAccess implements CacheCoordinator {
     }
 
     @Override
+    public void cleanup() {
+        if (cleanupAction != null && cleanupAction.requiresCleanup()) {
+            if (cacheAccessWorker != null) {
+                cacheAccessWorker.flush();
+            }
+
+            withOwnership(this::doCleanup);
+        }
+    }
+
+    private void doCleanup() {
+        try {
+            cleanupAction.cleanup();
+        } catch (Exception e) {
+            LOG.debug("Cache {} could not run cleanup action {}", cacheDisplayName, cleanupAction);
+        }
+    }
+
+    @Override
     public synchronized void close() {
         if (cacheAccessWorker != null) {
             cacheAccessWorker.stop();
@@ -159,29 +178,35 @@ public class DefaultCacheAccess implements CacheCoordinator {
             cacheUpdateExecutor.stop();
             cacheUpdateExecutor = null;
         }
+
+        withOwnership(() -> {
+            try {
+                crossProcessCacheAccess.close();
+                if (fileLockHeldByOwner != null) {
+                    fileLockHeldByOwner.run();
+                }
+                
+                if (cacheClosedCount != 1) {
+                    LOG.debug("Cache {} was closed {} times.", cacheDisplayName, cacheClosedCount);
+                }
+            } finally {
+                fileLockHeldByOwner = null;
+            }
+        });
+    }
+
+    void withOwnership(Runnable action) {
         stateLock.lock();
         try {
             // Take ownership
             takeOwnershipNow();
-            if (fileLockHeldByOwner != null) {
-                fileLockHeldByOwner.run();
-            }
-            crossProcessCacheAccess.close();
-            if (cleanupAction != null) {
-                try {
-                    if (cleanupAction.requiresCleanup()) {
-                        cleanupAction.cleanup();
-                    }
-                } catch (Exception e) {
-                    LOG.debug("Cache {} could not run cleanup action {}", cacheDisplayName, cleanupAction);
-                }
-            }
-            if (cacheClosedCount != 1) {
-                LOG.debug("Cache {} was closed {} times.", cacheDisplayName, cacheClosedCount);
+            try {
+                action.run();
+            } finally {
+                owner = null;
+                releaseOwnership();
             }
         } finally {
-            owner = null;
-            fileLockHeldByOwner = null;
             stateLock.unlock();
         }
     }

@@ -169,6 +169,7 @@ public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction
                 return true;
             }
             if (cacheDir.getVersion().isSnapshot() && markerFile.lastModified() < minimumTimestampProvider.forSnapshots()) {
+                // Keep at least one snapshot version for this base version
                 return cacheDirsWithSameBaseVersion.tailSet(cacheDir).size() > 1;
             }
             return false;
