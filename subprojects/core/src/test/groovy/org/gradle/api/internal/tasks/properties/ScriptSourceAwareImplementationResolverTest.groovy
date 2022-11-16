@@ -21,11 +21,11 @@ import org.gradle.util.internal.ClosureBackedAction
 import org.gradle.util.internal.ConfigureUtil
 import spock.lang.Specification
 
-class ScriptSourceAwareImplementationIdentifierTest extends Specification {
+class ScriptSourceAwareImplementationResolverTest extends Specification {
 
     def "correct implementation for #type coerced to Action is tracked"() {
         expect:
-        ScriptSourceAwareImplementationIdentifier.unwrapBean(implementation as Action) == implementation
+        ScriptSourceAwareImplementationResolver.unwrapBean(implementation as Action) == implementation
 
         where:
         type      | implementation
@@ -38,9 +38,9 @@ class ScriptSourceAwareImplementationIdentifierTest extends Specification {
         def closure = { it }
 
         expect:
-        ScriptSourceAwareImplementationIdentifier.unwrapBean(ConfigureUtil.configureUsing(closure)) == closure
+        ScriptSourceAwareImplementationResolver.unwrapBean(ConfigureUtil.configureUsing(closure)) == closure
 
         and:
-        ScriptSourceAwareImplementationIdentifier.unwrapBean(ClosureBackedAction.of(closure)) == closure
+        ScriptSourceAwareImplementationResolver.unwrapBean(ClosureBackedAction.of(closure)) == closure
     }
 }

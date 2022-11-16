@@ -18,6 +18,6 @@ package org.gradle.internal.properties.bean;
 
 import org.gradle.internal.snapshot.impl.ImplementationValue;
 
-public interface ImplementationIdentifier {
-    ImplementationValue identify(Object bean);
+public interface ImplementationResolver {
+    ImplementationValue resolveImplementation(Object bean);
 }

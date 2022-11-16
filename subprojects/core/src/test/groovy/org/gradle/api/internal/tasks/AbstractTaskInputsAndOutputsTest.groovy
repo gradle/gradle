@@ -22,7 +22,7 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
 import org.gradle.api.internal.tasks.properties.InputParameterUtils
-import org.gradle.api.internal.tasks.properties.bean.TestImplementationIdentifier
+import org.gradle.api.internal.tasks.properties.bean.TestImplementationResolver
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
@@ -60,7 +60,7 @@ abstract class AbstractTaskInputsAndOutputsTest extends AbstractProjectBuilderSp
         cacheFactory
     )
     def typeMetadataStore = new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
-    def walker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationIdentifier())
+    def walker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver())
 
     TaskInternal task
     TaskInputsInternal inputs
