@@ -158,7 +158,7 @@ class ResidualProgramCompiler(
 
     private
     fun mightBeLargerThan64KB(secondStageScriptText: String) =
-    // We use a simple heuristic to avoid converting the string to bytes
+        // We use a simple heuristic to avoid converting the string to bytes
         // if all code points were in UTF32, 16K code points would require 64K bytes
         secondStageScriptText.length >= 16 * 1024
 
