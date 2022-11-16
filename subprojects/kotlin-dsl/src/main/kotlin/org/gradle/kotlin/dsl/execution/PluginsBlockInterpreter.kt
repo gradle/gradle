@@ -83,7 +83,8 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                         tokenType == RBRACE -> state = InterpreterState.END
                         tokenType == SEMICOLON -> state = InterpreterState.ID
                         tokenType == IDENTIFIER && tokenText == "id" -> state = InterpreterState.ID_OPEN_CALL
-                        else -> return expecting("id")
+                        tokenType == IDENTIFIER && tokenText == "kotlin" -> state = InterpreterState.KOTLIN_ID_OPEN_CALL
+                        else -> return expecting("id or kotlin")
                     }
 
                     InterpreterState.AFTER_ID -> {
@@ -113,12 +114,13 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                         else -> expecting("<plugin id string>")
                     }
 
-                    InterpreterState.PLUGIN_ID_STRING -> when {
-                        tokenType != REGULAR_STRING_PART -> return expecting("<plugin id string>")
-                        else -> {
+                    InterpreterState.PLUGIN_ID_STRING -> when (tokenType) {
+                        REGULAR_STRING_PART -> {
                             pluginId = tokenText
                             state = InterpreterState.PLUGIN_ID_END
                         }
+
+                        else -> return expecting("<plugin id string>")
                     }
 
                     InterpreterState.PLUGIN_ID_END -> when (tokenType) {
@@ -129,6 +131,30 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                     InterpreterState.ID_CLOSE_CALL -> when {
                         tokenType != RPAR -> return expecting(")")
                         else -> state = InterpreterState.AFTER_ID
+                    }
+
+                    InterpreterState.KOTLIN_ID_OPEN_CALL -> when (tokenType) {
+                        LPAR -> state = InterpreterState.KOTLIN_ID_START
+                        else -> expecting("(")
+                    }
+
+                    InterpreterState.KOTLIN_ID_START -> when (tokenType) {
+                        OPEN_QUOTE -> state = InterpreterState.KOTLIN_ID_STRING
+                        else -> expecting("<kotlin plugin module string>")
+                    }
+
+                    InterpreterState.KOTLIN_ID_STRING -> when (tokenType) {
+                        REGULAR_STRING_PART -> {
+                            pluginId = "org.jetbrains.kotlin.$tokenText"
+                            state = InterpreterState.KOTLIN_ID_END
+                        }
+
+                        else -> return expecting("<kotlin plugin module string>")
+                    }
+
+                    InterpreterState.KOTLIN_ID_END -> when (tokenType) {
+                        CLOSING_QUOTE -> state = InterpreterState.ID_CLOSE_CALL
+                        else -> return expecting("<kotlin plugin module string>")
                     }
 
                     InterpreterState.APPLY_OPEN_CALL -> when (tokenType) {
@@ -233,6 +259,10 @@ enum class InterpreterState {
     PLUGIN_ID_START,
     PLUGIN_ID_STRING,
     PLUGIN_ID_END,
+    KOTLIN_ID_OPEN_CALL,
+    KOTLIN_ID_START,
+    KOTLIN_ID_STRING,
+    KOTLIN_ID_END,
     ID_CLOSE_CALL,
     AFTER_ID,
     APPLY_OPEN_CALL,

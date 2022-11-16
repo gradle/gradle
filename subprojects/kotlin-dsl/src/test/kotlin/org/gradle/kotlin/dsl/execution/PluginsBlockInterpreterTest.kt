@@ -117,6 +117,27 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
+    fun `single plugin kotlin`() {
+        assertStaticInterpretationOf(
+            """kotlin("jvm")""",
+            PluginRequestSpec("org.jetbrains.kotlin.jvm")
+        )
+    }
+
+    @Test
+    fun `single plugin kotlin version apply false`() {
+        assertStaticInterpretationOf(
+            """kotlin("jvm") version "1.0" apply false""",
+            PluginRequestSpec("org.jetbrains.kotlin.jvm", version = "1.0", apply = false)
+        )
+    }
+
+    @Test
+    fun `single plugin kotlin syntax error`() {
+        assertDynamicInterpretationOf("""kotlin("jvm";)""")
+    }
+
+    @Test
     fun `multiple plugin ids`() {
         assertStaticInterpretationOf(
             """
@@ -137,6 +158,22 @@ class PluginsBlockInterpreterTest {
             """,
             PluginRequestSpec("plugin-id-1"),
             PluginRequestSpec("plugin-id-2")
+        )
+    }
+
+    @Test
+    fun `multiple plugin ids mixed syntax`() {
+        assertStaticInterpretationOf(
+            """
+                id("plugin-id-1") apply false ; id("plugin-id-2")
+                kotlin("jvm") version "1.0" apply false
+                ;
+                id("plugin-id-3") version "2.0"
+            """,
+            PluginRequestSpec("plugin-id-1", apply = false),
+            PluginRequestSpec("plugin-id-2"),
+            PluginRequestSpec("org.jetbrains.kotlin.jvm", version = "1.0", apply = false),
+            PluginRequestSpec("plugin-id-3", version = "2.0"),
         )
     }
 
