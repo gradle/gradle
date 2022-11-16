@@ -59,20 +59,20 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        Annotation fileNormalization = propertyMetadata.getAnnotationForCategory(NORMALIZATION);
-        Normalizer normalizer;
-        if (fileNormalization == null) {
-            normalizer = null;
-        } else if (fileNormalization instanceof PathSensitive) {
-            PathSensitivity pathSensitivity = ((PathSensitive) fileNormalization).value();
-            normalizer = InputNormalizer.determineNormalizerForPathSensitivity(pathSensitivity);
-        } else if (fileNormalization instanceof Classpath) {
-            normalizer = InputNormalizer.RUNTIME_CLASSPATH;
-        } else if (fileNormalization instanceof CompileClasspath) {
-            normalizer = InputNormalizer.COMPILE_CLASSPATH;
-        } else {
-            throw new IllegalStateException("Unknown normalization annotation used: " + fileNormalization);
-        }
+        Normalizer normalizer = propertyMetadata.getAnnotationForCategory(NORMALIZATION)
+            .map(fileNormalization -> {
+                if (fileNormalization instanceof PathSensitive) {
+                    PathSensitivity pathSensitivity = ((PathSensitive) fileNormalization).value();
+                    return InputNormalizer.determineNormalizerForPathSensitivity(pathSensitivity);
+                } else if (fileNormalization instanceof Classpath) {
+                    return InputNormalizer.RUNTIME_CLASSPATH;
+                } else if (fileNormalization instanceof CompileClasspath) {
+                    return InputNormalizer.COMPILE_CLASSPATH;
+                } else {
+                    throw new IllegalStateException("Unknown normalization annotation used: " + fileNormalization);
+                }
+            })
+            .orElse(null);
         visitor.visitInputFileProperty(
             propertyName,
             propertyMetadata.isAnnotationPresent(Optional.class),

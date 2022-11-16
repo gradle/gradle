@@ -243,8 +243,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
         @Nullable
         @Override
-        public Annotation getAnnotationForCategory(AnnotationCategory category) {
-            return annotationMetadata.getAnnotations().get(category);
+        public Optional<Annotation> getAnnotationForCategory(AnnotationCategory category) {
+            return Optional.ofNullable(annotationMetadata.getAnnotations().get(category));
         }
 
         @Override
