@@ -59,7 +59,7 @@ class ConfigurationRoleSpec extends Specification {
 
         then:
         customRole !in ConfigurationRoles.values()
-        customRole.name == CUSTOM_ROLE_NAME
+        customRole.name == DEFAULT_CUSTOM_ROLE_NAME
 
         where:
         consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated

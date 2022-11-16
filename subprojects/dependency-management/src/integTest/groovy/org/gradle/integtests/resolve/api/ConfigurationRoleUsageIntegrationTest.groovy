@@ -139,6 +139,83 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         where:
         configuration << ['runtimeClasspath', 'compileClasspath']
     }
+
+    def "configurations created by buildSrc automatically can have usage changed"() {
+        given:
+        file("buildSrc/src/main/java/MyTask.java") << """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+
+            public abstract class MyTask extends DefaultTask {
+                @TaskAction
+                void run() {}
+            }
+        """
+
+        file("buildSrc/build.gradle") << """
+            configurations {
+                assert findByName('implementation')
+
+                implementation {
+                    canBeConsumed = !canBeConsumed
+                    canBeResolved = !canBeResolved
+                    canBeDeclaredAgainst = !canBeDeclaredAgainst
+                    deprecatedForConsumption = !deprecatedForConsumption
+                    deprecatedForResolution = !deprecatedForResolution
+                    deprecatedForDeclarationAgainst = !deprecatedForDeclarationAgainst
+                }
+            }
+        """
+
+        buildFile << """
+            tasks.register('myTask', MyTask)
+        """
+
+        expect:
+        succeeds 'myTask'
+    }
+
+    def "configurations can have usage changed from other projects"() {
+        given:
+        file("projectA/build.gradle") << """
+            plugins {
+                id 'java'
+            }
+        """
+
+        file("projectB/build.gradle") << """
+            plugins {
+                id 'java'
+            }
+        """
+
+        file("settings.gradle") << """
+            include 'projectA', 'projectB'
+        """
+
+        file("build.gradle") << """
+            subprojects {
+                afterEvaluate {
+                    configurations {
+                        println project.name
+                        assert findByName('implementation')
+
+                        implementation {
+                            canBeConsumed = !canBeConsumed
+                            canBeResolved = !canBeResolved
+                            canBeDeclaredAgainst = !canBeDeclaredAgainst
+                            deprecatedForConsumption = !deprecatedForConsumption
+                            deprecatedForResolution = !deprecatedForResolution
+                            deprecatedForDeclarationAgainst = !deprecatedForDeclarationAgainst
+                        }
+                    }
+                }
+            }
+        """
+
+        expect:
+        succeeds 'help'
+    }
     // endregion Roleless (Implicit LEGACY Role) Configurations
 
     // region Role-Based Configurations
@@ -226,6 +303,127 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 maybeCreateWithRole('resolvable7', ConfigurationRoles.INTENDED_RESOLVABLE, true, true)
+            }
+        """
+
+        expect:
+        succeeds 'help'
+    }
+
+    def "maybeCreateWithRole reuses existing roles"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
+
+            plugins {
+                id 'java'
+            }
+
+            configurations {
+                def existing = findByName('implementation')
+                def result = maybeCreateWithRole('implementation', ConfigurationRoles.LEGACY, false, false)
+                assert result == existing
+            }
+        """
+
+        expect:
+        succeeds 'help'
+    }
+
+    def "maybeCreateWithRole verifies usage of existing built-in roles when match is found, succeeding on match"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
+
+            plugins {
+                id 'java'
+            }
+
+            configurations {
+                assert findByName('implementation')
+                assert maybeCreateWithRole('implementation', ConfigurationRoles.LEGACY, false, true)
+            }
+        """
+
+        expect:
+        succeeds 'help'
+    }
+
+    def "maybeCreateWithRole verifies usage of existing built-in roles when match is found, failing on mismatch"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
+
+            plugins {
+                id 'java'
+            }
+
+            configurations {
+                assert findByName('implementation')
+                maybeCreateWithRole('implementation', ConfigurationRoles.INTENDED_RESOLVABLE, false, true)
+            }
+        """
+
+        expect:
+        fails 'help'
+        result.assertHasErrorOutput("""Usage for configuration: implementation is not consistent with the role: Intended Resolvable.
+  Expected that it is:
+  \tResolvable - this configuration can be resolved by this project to a set of files
+  But is actually is:
+  \tDeclarable Against - this configuration can have dependencies added to it""")
+    }
+
+    def "maybeCreateWithRole verifies usage of existing custom roles when match is found, failing on mismatch"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
+
+            configurations {
+                consumable('custom')
+                assert findByName('custom')
+                maybeCreateWithRole('custom', ConfigurationRoles.INTENDED_RESOLVABLE, false, true)
+            }
+        """
+
+        expect:
+        fails 'help'
+        result.assertHasErrorOutput("""Usage for configuration: custom is not consistent with the role: Intended Resolvable.
+  Expected that it is:
+  \tResolvable - this configuration can be resolved by this project to a set of files
+  But is actually is:
+  \tConsumable - this configuration can be selected by another project as a dependency""")
+    }
+
+    def "maybeCreateWithRole can lock new roles"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
+
+            configurations {
+                assert !findByName('custom')
+                def result = maybeCreateWithRole('custom', ConfigurationRoles.INTENDED_RESOLVABLE, true, false)
+                assert !result.isUsageMutable()
+            }
+        """
+
+        expect:
+        succeeds 'help'
+    }
+
+    def "maybeCreateWithRole can lock existing roles"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
+
+            plugins {
+                id 'java'
+            }
+
+            configurations {
+                def existing = findByName('implementation')
+                assert existing.isUsageMutable()
+                def result = maybeCreateWithRole('implementation', ConfigurationRoles.LEGACY, true, false)
+                assert !result.isUsageMutable()
             }
         """
 
