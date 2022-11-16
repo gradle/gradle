@@ -39,7 +39,16 @@ public enum CleanupFrequency {
         }
     },
     /**
-     * Disable cleanup completely.
+     * Trigger cleanup after every build session
+     */
+    ALWAYS() {
+        @Override
+        public boolean requiresCleanup(long lastCleanupTimestamp) {
+            return true;
+        }
+    },
+    /**
+     * Disable cleanup completely
      */
     NEVER() {
         @Override

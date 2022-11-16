@@ -61,6 +61,11 @@ public interface PersistentCache extends CacheAccess, Closeable, CleanableStore 
     <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters);
 
     /**
+     * Cleans up this cache, blocking until all operations are complete before cleaning.
+     */
+    void cleanup();
+
+    /**
      * Closes this cache, blocking until all operations are complete.
      */
     @Override

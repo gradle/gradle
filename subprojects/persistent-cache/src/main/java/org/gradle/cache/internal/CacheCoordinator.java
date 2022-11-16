@@ -34,4 +34,10 @@ public interface CacheCoordinator extends CacheAccess, Closeable {
     <K, V> PersistentIndexedCache<K, V> newCache(PersistentIndexedCacheParameters<K, V> parameters);
 
     <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters);
+
+    /**
+     * Cleans up the cache, if any cleanup action has been provided.  This blocks until all operations have completed
+     * before cleanup is invoked.
+     */
+    void cleanup();
 }
