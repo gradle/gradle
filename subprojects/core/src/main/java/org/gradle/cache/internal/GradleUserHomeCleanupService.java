@@ -67,9 +67,14 @@ public class GradleUserHomeCleanupService implements Stoppable {
                     deleter,
                     cacheConfigurations.getCleanupFrequency().get()
                 )
-            ));
+            )
+        );
         if (wasCleanedUp) {
-            execute(cleanupActionDecorator.decorate(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions)));
+            execute(
+                cleanupActionDecorator.decorate(
+                    new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions)
+                )
+            );
         }
     }
 

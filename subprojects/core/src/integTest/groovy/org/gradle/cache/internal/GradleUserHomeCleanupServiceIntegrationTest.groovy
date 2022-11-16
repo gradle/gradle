@@ -16,49 +16,274 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
-import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_30_DAYS
+import java.text.SimpleDateFormat
+import java.time.Instant
+
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.USED_TODAY
 
 class GradleUserHomeCleanupServiceIntegrationTest extends AbstractIntegrationSpec implements GradleUserHomeCleanupFixture {
+    private static final int HALF_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS = Math.max(1, CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS / 2 as int)
+    private static final int HALF_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS = Math.max(1, CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS / 2 as int)
 
-    def "cleans up unused version-specific cache directories and corresponding distributions"() {
+    private static final MarkerFileType NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_RELEASED_DISTS = MarkerFileType.notUsedWithinDays(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS)
+    private static final MarkerFileType NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_SNAPSHOT_DISTS = MarkerFileType.notUsedWithinDays(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS)
+    private static final MarkerFileType NOT_USED_WITHIN_HALF_MAX_DAYS_FOR_RELEASED_DISTS = MarkerFileType.notUsedWithinDays(HALF_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS)
+    private static final MarkerFileType NOT_USED_WITHIN_HALF_MAX_DAYS_FOR_SNAPSHOT_DISTS = MarkerFileType.notUsedWithinDays(HALF_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS)
+
+    def "cleans up unused version-specific cache directories and corresponding #type distributions"() {
         given:
         requireOwnGradleUserHomeDir() // because we delete caches and distributions
 
         and:
-        def oldButRecentlyUsedVersion = GradleVersion.version("1.4.5")
-        def oldButRecentlyUsedCacheDir = createVersionSpecificCacheDir(oldButRecentlyUsedVersion, USED_TODAY)
-        def oldButRecentlyUsedDist = createDistributionChecksumDir(oldButRecentlyUsedVersion).parentFile
-        def oldButRecentlyUsedCustomDist = createCustomDistributionChecksumDir("my-dist-1", oldButRecentlyUsedVersion).parentFile
+        def oldButRecentlyUsedGradleDist = versionedDistDirs(type.version("1.4.5"), USED_TODAY, "my-dist-1")
+        def oldNotRecentlyUsedGradleDist = versionedDistDirs(type.version("2.3.4"), daysToTriggerCleanup, "my-dist-2")
+        if (type == DistType.SNAPSHOT) {
+            // we need this so there is more than one snapshot distribution
+            versionedDistDirs(type.alternateVersion("2.3.4"), USED_TODAY, "my-dist-3")
+        }
 
-        def oldNotRecentlyUsedVersion = GradleVersion.version("2.3.4")
-        def oldNotRecentlyUsedCacheDir = createVersionSpecificCacheDir(oldNotRecentlyUsedVersion, NOT_USED_WITHIN_30_DAYS)
-        def oldNotRecentlyUsedDist = createDistributionChecksumDir(oldNotRecentlyUsedVersion).parentFile
-        def oldNotRecentlyUsedCustomDist = createCustomDistributionChecksumDir("my-dist-2", oldNotRecentlyUsedVersion).parentFile
-
-        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), NOT_USED_WITHIN_30_DAYS)
+        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), daysToTriggerCleanup)
         def currentDist = createDistributionChecksumDir(GradleVersion.current()).parentFile
 
         when:
         succeeds("help")
 
         then:
-        oldButRecentlyUsedCacheDir.assertExists()
-        oldButRecentlyUsedDist.assertExists()
-        oldButRecentlyUsedCustomDist.assertExists()
-
-        oldNotRecentlyUsedCacheDir.assertDoesNotExist()
-        oldNotRecentlyUsedDist.assertDoesNotExist()
-        oldNotRecentlyUsedCustomDist.assertDoesNotExist()
+        oldButRecentlyUsedGradleDist.assertAllDirsExist()
+        oldNotRecentlyUsedGradleDist.assertAllDirsDoNotExist()
 
         currentCacheDir.assertExists()
         currentDist.assertExists()
 
         getGcFile(currentCacheDir).assertExists()
+
+        where:
+        type              | daysToTriggerCleanup
+        DistType.RELEASED | NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_RELEASED_DISTS
+        DistType.SNAPSHOT | NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_SNAPSHOT_DISTS
+    }
+
+    def "cleans up unused version-specific cache directories and corresponding #type distributions when retention is configured"() {
+        given:
+        requireOwnGradleUserHomeDir() // because we delete caches and distributions
+        withCacheRetentionInDays(retentionInDays, "${type.name().toLowerCase()}Wrappers")
+
+        and:
+        def oldButRecentlyUsedGradleDist = versionedDistDirs(type.version("1.4.5"), USED_TODAY, "my-dist-1")
+        def oldNotRecentlyUsedGradleDist = versionedDistDirs(type.version("2.3.4"), daysToTriggerCleanup, "my-dist-2")
+        if (type == DistType.SNAPSHOT) {
+            // we need this so there is more than one snapshot distribution
+            versionedDistDirs(type.alternateVersion("2.3.4"), USED_TODAY, "my-dist-3")
+        }
+
+        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), daysToTriggerCleanup)
+        def currentDist = createDistributionChecksumDir(GradleVersion.current()).parentFile
+
+        when:
+        succeeds("help")
+
+        then:
+        oldButRecentlyUsedGradleDist.assertAllDirsExist()
+        oldNotRecentlyUsedGradleDist.assertAllDirsDoNotExist()
+
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
+
+        getGcFile(currentCacheDir).assertExists()
+
+        where:
+        type              | daysToTriggerCleanup                             | retentionInDays
+        DistType.RELEASED | NOT_USED_WITHIN_HALF_MAX_DAYS_FOR_RELEASED_DISTS | HALF_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS
+        DistType.SNAPSHOT | NOT_USED_WITHIN_HALF_MAX_DAYS_FOR_SNAPSHOT_DISTS | HALF_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS
+    }
+
+    def "does not clean up unused version-specific cache directories and corresponding #type distributions when cleanup is disabled"() {
+        given:
+        requireOwnGradleUserHomeDir() // because we delete caches and distributions
+        disableCacheCleanupViaDsl()
+
+        and:
+        def oldButRecentlyUsedGradleDist = versionedDistDirs(type.version("1.4.5"), USED_TODAY, "my-dist-1")
+        def oldNotRecentlyUsedGradleDist = versionedDistDirs(type.version("2.3.4"), daysToTriggerCleanup, "my-dist-2")
+        if (type == DistType.SNAPSHOT) {
+            // we need this so there is more than one snapshot distribution
+            versionedDistDirs(type.alternateVersion("2.3.4"), USED_TODAY, "my-dist-3")
+        }
+
+        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), daysToTriggerCleanup)
+        def currentDist = createDistributionChecksumDir(GradleVersion.current()).parentFile
+
+        when:
+        succeeds("help")
+
+        then:
+        oldButRecentlyUsedGradleDist.assertAllDirsExist()
+        oldNotRecentlyUsedGradleDist.assertAllDirsExist()
+
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
+
+        where:
+        type              | daysToTriggerCleanup
+        DistType.RELEASED | NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_RELEASED_DISTS
+        DistType.SNAPSHOT | NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_SNAPSHOT_DISTS
+    }
+
+    def "only cleans up unused version-specific cache directories and corresponding #type distributions once when default cleanup is used"() {
+        given:
+        requireOwnGradleUserHomeDir() // because we delete caches and distributions
+
+        and:
+        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), daysToTriggerCleanup)
+        def currentDist = createDistributionChecksumDir(GradleVersion.current()).parentFile
+
+        and:
+        succeeds("help")
+        def gcFile = getGcFile(currentCacheDir)
+        gcFile.assertExists()
+        def beforeTimestamp = gcFile.lastModified()
+
+        and:
+        def oldButRecentlyUsedGradleDist = versionedDistDirs(type.version("1.4.5"), USED_TODAY, "my-dist-1")
+        def oldNotRecentlyUsedGradleDist = versionedDistDirs(type.version("2.3.4"), daysToTriggerCleanup, "my-dist-2")
+        if (type == DistType.SNAPSHOT) {
+            // we need this so there is more than one snapshot distribution
+            versionedDistDirs(type.alternateVersion("2.3.4"), USED_TODAY, "my-dist-3")
+        }
+
+        when:
+        succeeds("help")
+
+        then:
+        oldButRecentlyUsedGradleDist.assertAllDirsExist()
+        oldNotRecentlyUsedGradleDist.assertAllDirsExist()
+
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
+
+        and:
+        gcFile.lastModified() == beforeTimestamp
+
+        where:
+        type              | daysToTriggerCleanup
+        DistType.RELEASED | NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_RELEASED_DISTS
+        DistType.SNAPSHOT | NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_SNAPSHOT_DISTS
+    }
+
+    def "always cleans up unused version-specific cache directories and corresponding #type distributions when configured"() {
+        given:
+        requireOwnGradleUserHomeDir() // because we delete caches and distributions
+        alwaysCleanupCaches()
+
+        and:
+        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), daysToTriggerCleanup)
+        def currentDist = createDistributionChecksumDir(GradleVersion.current()).parentFile
+        def gcFile = getGcFile(currentCacheDir)
+
+        and:
+        succeeds("help")
+        gcFile.assertExists()
+        def beforeTimestamp = gcFile.lastModified()
+
+        and:
+        def oldButRecentlyUsedGradleDist = versionedDistDirs(type.version("1.4.5"), USED_TODAY, "my-dist-1")
+        def oldNotRecentlyUsedGradleDist = versionedDistDirs(type.version("2.3.4"), daysToTriggerCleanup, "my-dist-2")
+        if (type == DistType.SNAPSHOT) {
+            // we need this so there is more than one snapshot distribution
+            versionedDistDirs(type.alternateVersion("2.3.4"), USED_TODAY, "my-dist-3")
+        }
+
+        when:
+        succeeds("help")
+
+        then:
+        oldButRecentlyUsedGradleDist.assertAllDirsExist()
+        oldNotRecentlyUsedGradleDist.assertAllDirsDoNotExist()
+
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
+
+        and:
+        gcFile.lastModified() > beforeTimestamp
+
+        where:
+        type              | daysToTriggerCleanup
+        DistType.RELEASED | NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_RELEASED_DISTS
+        DistType.SNAPSHOT | NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_SNAPSHOT_DISTS
+    }
+
+    private GradleDistDirs versionedDistDirs(String version, MarkerFileType lastUsed, String customDistName) {
+        def distVersion = GradleVersion.version(version)
+        return new GradleDistDirs(
+            createVersionSpecificCacheDir(distVersion, lastUsed),
+            createDistributionChecksumDir(distVersion).parentFile,
+            createCustomDistributionChecksumDir(customDistName, distVersion).parentFile
+        )
+    }
+
+    private static class GradleDistDirs {
+        private final TestFile cacheDir
+        private final TestFile distDir
+        private final TestFile customDistDir
+
+        GradleDistDirs(TestFile cacheDir, TestFile distDir, TestFile customDistDir) {
+            this.cacheDir = cacheDir
+            this.distDir = distDir
+            this.customDistDir = customDistDir
+        }
+
+        void assertAllDirsExist() {
+            cacheDir.assertExists()
+            distDir.assertExists()
+            customDistDir.assertExists()
+        }
+
+        void assertAllDirsDoNotExist() {
+            cacheDir.assertDoesNotExist()
+            distDir.assertDoesNotExist()
+            customDistDir.assertDoesNotExist()
+        }
+    }
+
+    private static enum DistType {
+        RELEASED() {
+            @Override
+            String version(String baseVersion) {
+                return baseVersion
+            }
+
+            @Override
+            String alternateVersion(String baseVersion) {
+                throw new UnsupportedOperationException()
+            }
+        },
+        SNAPSHOT() {
+            def formatter = new SimpleDateFormat("yyyyMMddHHmmssZ")
+            def now = Instant.now()
+
+            @Override
+            String version(String baseVersion) {
+                return baseVersion + '-' + formatter.format(Date.from(now))
+            }
+
+            @Override
+            String alternateVersion(String baseVersion) {
+                return baseVersion + '-' + formatter.format(Date.from(now.plusSeconds(60)))
+            }
+        }
+
+        abstract String version(String baseVersion)
+        abstract String alternateVersion(String baseVersion)
+
+        @Override
+        String toString() {
+            return name().toLowerCase()
+        }
     }
 
     @Override
