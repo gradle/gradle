@@ -26,6 +26,11 @@ import org.junit.Test
 class PluginsBlockInterpreterTest {
 
     @Test
+    fun `empty plugins block`() {
+        assertStaticInterpretationOf("")
+    }
+
+    @Test
     fun `single plugin - id()`() {
         assertStaticInterpretationOf(
             """id("plugin-id")""",
@@ -179,7 +184,63 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `syntax error - single plugin id`() {
+    fun `syntax error - starts with unknown identifier`() {
+        assertDynamicInterpretationOf(
+            """garbage""",
+            "Expecting id or kotlin, got 'garbage'"
+        )
+    }
+
+    @Test
+    fun `syntax error - starts with unexpected token`() {
+        assertDynamicInterpretationOf(
+            """.""",
+            "Expecting plugin spec, got '.'"
+        )
+    }
+
+    @Test
+    fun `syntax error - id() without parens`() {
+        assertDynamicInterpretationOf(
+            """id "plugin-id"""",
+            "Expecting (, got '\"'"
+        )
+    }
+
+    @Test
+    fun `syntax error - id() with not a string`() {
+        assertDynamicInterpretationOf(
+            """id(false)""",
+            "Expecting <plugin id string>, got 'false'"
+        )
+    }
+
+    @Test
+    fun `syntax error - id() with empty string`() {
+        assertDynamicInterpretationOf(
+            """id("")""",
+            "Expecting <plugin id string>, got '\"'"
+        )
+    }
+
+    @Test
+    fun `syntax error - id() with unclosed string`() {
+        assertDynamicInterpretationOf(
+            """id("plugin-id-1) ; id("plugin-id-2")"""",
+            "Expecting ), got 'plugin'"
+        )
+    }
+
+    @Test
+    fun `syntax error - id() with unclosed parens`() {
+        assertDynamicInterpretationOf(
+            """id("plugin-id-1" ; id("plugin-id-2")"""",
+            "Expecting ), got ';'"
+        )
+    }
+
+    @Test
+    fun `syntax error - id() with misplaced semicolon`() {
         assertDynamicInterpretationOf(
             """id("plugin-id-1";)""",
             "Expecting ), got ';'"
@@ -187,7 +248,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `syntax error - single plugin id apply`() {
+    fun `syntax error - id() apply with not a boolean`() {
         assertDynamicInterpretationOf(
             """id("plugin-id") apply "1.0"""",
             "Expecting (, got '\"'"
@@ -195,7 +256,7 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `syntax error - single plugin id version`() {
+    fun `syntax error - id() version with not a string`() {
         assertDynamicInterpretationOf(
             """id("plugin-id") version false""",
             "Expecting (, got 'false'"
@@ -203,18 +264,18 @@ class PluginsBlockInterpreterTest {
     }
 
     @Test
-    fun `syntax error - single plugin kotlin`() {
+    fun `syntax error - id() id() on the same line`() {
         assertDynamicInterpretationOf(
-            """kotlin("jvm";)""",
-            "Expecting ), got ';'"
+            """id("plugin-id-1") id("plugin-id-2")""",
+            "Expecting version or apply, got 'id'"
         )
     }
 
     @Test
-    fun `syntax error - multiple plugin ids`() {
+    fun `syntax error - kotlin() with misplaced semicolon`() {
         assertDynamicInterpretationOf(
-            """id("plugin-id-1") id("plugin-id-2")""",
-            "Expecting version or apply, got 'id'"
+            """kotlin("jvm";)""",
+            "Expecting ), got ';'"
         )
     }
 
