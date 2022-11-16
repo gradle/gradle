@@ -59,10 +59,6 @@ class MavenLocalModule extends MavenFileModule {
     }
 
     @Override
-    protected onPublish(TestFile file) {
-    }
-
-    @Override
     protected boolean publishesMetaDataFile() {
         version.endsWith("-SNAPSHOT")
     }

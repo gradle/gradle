@@ -105,7 +105,7 @@ class MavenLocalModuleTest extends Specification {
         mavenModule != null
     }
 
-    def "On publishing SHA1 and MD5 files are not created"() {
+    def "On publishing SHA1 and MD5 files are created"() {
         given:
         def pomTestFile = tmpDir.createFile("build/test/pom.xml")
 
@@ -114,7 +114,7 @@ class MavenLocalModuleTest extends Specification {
         def testFiles = Arrays.asList(pomTestFile.parentFile.listFiles())
 
         then:
-        !testFiles*.name.containsAll('pom.xml.md5', 'pom.xml.sha1')
+        testFiles*.name.containsAll('pom.xml.md5', 'pom.xml.sha1')
     }
 
     def "Get artifact file for non-snapshot"() {
@@ -164,7 +164,7 @@ class MavenLocalModuleTest extends Specification {
 
     def "Publish artifacts for non-snapshot"() {
         when:
-        MavenModule mavenModule = mavenLocalModule.publish()
+        MavenModule mavenModule = mavenLocalModule.withoutExtraChecksums().publish()
         def publishedFiles = Arrays.asList(testFile.listFiles())
 
         then:
@@ -176,7 +176,7 @@ class MavenLocalModuleTest extends Specification {
 
     def "Publish artifacts for unique snapshot"() {
         when:
-        MavenModule mavenModule = snapshotMavenLocalModule.publish()
+        MavenModule mavenModule = snapshotMavenLocalModule.withoutExtraChecksums().publish()
         def publishedFiles = Arrays.asList(testFile.listFiles())
 
         then:
@@ -192,7 +192,7 @@ class MavenLocalModuleTest extends Specification {
         snapshotMavenLocalModule.withNonUniqueSnapshots()
 
         when:
-        MavenModule mavenModule = snapshotMavenLocalModule.publish()
+        MavenModule mavenModule = snapshotMavenLocalModule.withoutExtraChecksums().publish()
         def publishedFiles = Arrays.asList(testFile.listFiles())
 
         then:
