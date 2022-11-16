@@ -56,12 +56,13 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
     var version: String? = null
     var apply: Boolean? = null
     var state = InterpreterState.START
-    fun newStatement() {
+    fun newStatement(): InterpreterState {
         pluginRequests.add(ResidualProgram.PluginRequestSpec(pluginId, version, apply ?: true))
         pluginId = ""
         version = null
         apply = null
         state = InterpreterState.ID
+        return state
     }
     while (tokenType != null) {
         when (tokenType) {
@@ -74,165 +75,173 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
 
             else -> {
                 when (state) {
-                    InterpreterState.START -> when (tokenType) {
-                        LBRACE -> state = InterpreterState.ID
-                        else -> expecting("{")
+                    InterpreterState.START -> state = when (tokenType) {
+                        LBRACE -> InterpreterState.ID
+                        else -> return expecting("{")
                     }
 
-                    InterpreterState.ID -> when {
-                        tokenType == RBRACE -> state = InterpreterState.END
-                        tokenType == SEMICOLON -> state = InterpreterState.ID
-                        tokenType == IDENTIFIER && tokenText == "id" -> state = InterpreterState.ID_OPEN_CALL
-                        tokenType == IDENTIFIER && tokenText == "kotlin" -> state = InterpreterState.KOTLIN_ID_OPEN_CALL
-                        else -> return expecting("id or kotlin")
+                    InterpreterState.ID -> state = when (tokenType) {
+                        RBRACE -> InterpreterState.END
+                        SEMICOLON -> InterpreterState.ID
+                        IDENTIFIER -> when (tokenText) {
+                            "id" -> InterpreterState.ID_OPEN_CALL
+                            "kotlin" -> InterpreterState.KOTLIN_ID_OPEN_CALL
+                            else -> return expecting("id or kotlin")
+                        }
+
+                        else -> return expecting("plugin spec")
                     }
 
                     InterpreterState.AFTER_ID -> {
                         if (tokenType == DOT) {
                             advance()
                         }
-                        when {
-                            tokenType == IDENTIFIER && tokenText == "version" -> state = InterpreterState.VERSION_OPEN_CALL
-                            tokenType == IDENTIFIER && tokenText == "apply" -> state = InterpreterState.APPLY_OPEN_CALL
-                            tokenType == SEMICOLON -> newStatement()
-                            tokenType == RBRACE -> {
+                        state = when (tokenType) {
+                            SEMICOLON -> newStatement()
+                            RBRACE -> {
                                 newStatement()
-                                state = InterpreterState.END
+                                InterpreterState.END
+                            }
+
+                            IDENTIFIER -> when (tokenText) {
+                                "version" -> InterpreterState.VERSION_OPEN_CALL
+                                "apply" -> InterpreterState.APPLY_OPEN_CALL
+                                else -> return expecting("version or apply")
                             }
 
                             else -> return expecting(";")
                         }
                     }
 
-                    InterpreterState.ID_OPEN_CALL -> when (tokenType) {
-                        LPAR -> state = InterpreterState.PLUGIN_ID_START
-                        else -> expecting("(")
-                    }
-
-                    InterpreterState.PLUGIN_ID_START -> when (tokenType) {
-                        OPEN_QUOTE -> state = InterpreterState.PLUGIN_ID_STRING
-                        else -> expecting("<plugin id string>")
-                    }
-
-                    InterpreterState.PLUGIN_ID_STRING -> when (tokenType) {
-                        REGULAR_STRING_PART -> {
-                            pluginId = tokenText
-                            state = InterpreterState.PLUGIN_ID_END
-                        }
-
-                        else -> return expecting("<plugin id string>")
-                    }
-
-                    InterpreterState.PLUGIN_ID_END -> when (tokenType) {
-                        CLOSING_QUOTE -> state = InterpreterState.ID_CLOSE_CALL
-                        else -> return expecting("<plugin id string>")
-                    }
-
-                    InterpreterState.ID_CLOSE_CALL -> when {
-                        tokenType != RPAR -> return expecting(")")
-                        else -> state = InterpreterState.AFTER_ID
-                    }
-
-                    InterpreterState.KOTLIN_ID_OPEN_CALL -> when (tokenType) {
-                        LPAR -> state = InterpreterState.KOTLIN_ID_START
-                        else -> expecting("(")
-                    }
-
-                    InterpreterState.KOTLIN_ID_START -> when (tokenType) {
-                        OPEN_QUOTE -> state = InterpreterState.KOTLIN_ID_STRING
-                        else -> expecting("<kotlin plugin module string>")
-                    }
-
-                    InterpreterState.KOTLIN_ID_STRING -> when (tokenType) {
-                        REGULAR_STRING_PART -> {
-                            pluginId = "org.jetbrains.kotlin.$tokenText"
-                            state = InterpreterState.KOTLIN_ID_END
-                        }
-
-                        else -> return expecting("<kotlin plugin module string>")
-                    }
-
-                    InterpreterState.KOTLIN_ID_END -> when (tokenType) {
-                        CLOSING_QUOTE -> state = InterpreterState.ID_CLOSE_CALL
-                        else -> return expecting("<kotlin plugin module string>")
-                    }
-
-                    InterpreterState.APPLY_OPEN_CALL -> when (tokenType) {
-                        FALSE_KEYWORD -> {
-                            apply = false
-                            state = InterpreterState.AFTER_ID
-                        }
-
-                        TRUE_KEYWORD -> {
-                            apply = true
-                            state = InterpreterState.AFTER_ID
-                        }
-
-                        LPAR -> state = InterpreterState.APPLY_BOOL_CALL
+                    InterpreterState.ID_OPEN_CALL -> state = when (tokenType) {
+                        LPAR -> InterpreterState.PLUGIN_ID_START
                         else -> return expecting("(")
                     }
 
-                    InterpreterState.APPLY_BOOL_CALL -> when (tokenType) {
+                    InterpreterState.PLUGIN_ID_START -> state = when (tokenType) {
+                        OPEN_QUOTE -> InterpreterState.PLUGIN_ID_STRING
+                        else -> return expecting("<plugin id string>")
+                    }
+
+                    InterpreterState.PLUGIN_ID_STRING -> state = when (tokenType) {
+                        REGULAR_STRING_PART -> {
+                            pluginId = tokenText
+                            InterpreterState.PLUGIN_ID_END
+                        }
+
+                        else -> return expecting("<plugin id string>")
+                    }
+
+                    InterpreterState.PLUGIN_ID_END -> state = when (tokenType) {
+                        CLOSING_QUOTE -> InterpreterState.ID_CLOSE_CALL
+                        else -> return expecting("<plugin id string>")
+                    }
+
+                    InterpreterState.ID_CLOSE_CALL -> state = when (tokenType) {
+                        RPAR -> InterpreterState.AFTER_ID
+                        else -> return expecting(")")
+                    }
+
+                    InterpreterState.KOTLIN_ID_OPEN_CALL -> state = when (tokenType) {
+                        LPAR -> InterpreterState.KOTLIN_ID_START
+                        else -> return expecting("(")
+                    }
+
+                    InterpreterState.KOTLIN_ID_START -> state = when (tokenType) {
+                        OPEN_QUOTE -> InterpreterState.KOTLIN_ID_STRING
+                        else -> return expecting("<kotlin plugin module string>")
+                    }
+
+                    InterpreterState.KOTLIN_ID_STRING -> state = when (tokenType) {
+                        REGULAR_STRING_PART -> {
+                            pluginId = "org.jetbrains.kotlin.$tokenText"
+                            InterpreterState.KOTLIN_ID_END
+                        }
+
+                        else -> return expecting("<kotlin plugin module string>")
+                    }
+
+                    InterpreterState.KOTLIN_ID_END -> state = when (tokenType) {
+                        CLOSING_QUOTE -> InterpreterState.ID_CLOSE_CALL
+                        else -> return expecting("<kotlin plugin module string>")
+                    }
+
+                    InterpreterState.APPLY_OPEN_CALL -> state = when (tokenType) {
                         FALSE_KEYWORD -> {
                             apply = false
-                            state = InterpreterState.APPLY_CLOSE_CALL
+                            InterpreterState.AFTER_ID
                         }
 
                         TRUE_KEYWORD -> {
                             apply = true
-                            state = InterpreterState.APPLY_CLOSE_CALL
+                            InterpreterState.AFTER_ID
+                        }
+
+                        LPAR -> InterpreterState.APPLY_BOOL_CALL
+                        else -> return expecting("(")
+                    }
+
+                    InterpreterState.APPLY_BOOL_CALL -> state = when (tokenType) {
+                        FALSE_KEYWORD -> {
+                            apply = false
+                            InterpreterState.APPLY_CLOSE_CALL
+                        }
+
+                        TRUE_KEYWORD -> {
+                            apply = true
+                            InterpreterState.APPLY_CLOSE_CALL
                         }
 
                         else -> return expecting("true or false")
                     }
 
-                    InterpreterState.APPLY_CLOSE_CALL -> when (tokenType) {
-                        RPAR -> state = InterpreterState.AFTER_ID
+                    InterpreterState.APPLY_CLOSE_CALL -> state = when (tokenType) {
+                        RPAR -> InterpreterState.AFTER_ID
                         else -> return expecting(")")
                     }
 
-                    InterpreterState.VERSION_OPEN_CALL -> when (tokenType) {
-                        OPEN_QUOTE -> state = InterpreterState.VERSION_INFIX_STRING
-                        LPAR -> state = InterpreterState.VERSION_START
+                    InterpreterState.VERSION_OPEN_CALL -> state = when (tokenType) {
+                        OPEN_QUOTE -> InterpreterState.VERSION_INFIX_STRING
+                        LPAR -> InterpreterState.VERSION_START
                         else -> return expecting("(")
                     }
 
-                    InterpreterState.VERSION_START -> when (tokenType) {
-                        OPEN_QUOTE -> state = InterpreterState.VERSION_STRING
-                        else -> expecting("<version string>")
+                    InterpreterState.VERSION_START -> state = when (tokenType) {
+                        OPEN_QUOTE -> InterpreterState.VERSION_STRING
+                        else -> return expecting("<version string>")
                     }
 
-                    InterpreterState.VERSION_STRING -> when (tokenType) {
+                    InterpreterState.VERSION_STRING -> state = when (tokenType) {
                         REGULAR_STRING_PART -> {
                             version = tokenText
-                            state = InterpreterState.VERSION_END
+                            InterpreterState.VERSION_END
                         }
 
                         else -> return expecting("<version string>")
                     }
 
-                    InterpreterState.VERSION_END -> when (tokenType) {
-                        CLOSING_QUOTE -> state = InterpreterState.VERSION_CLOSE_CALL
-                        else -> expecting("<version string>")
+                    InterpreterState.VERSION_END -> state = when (tokenType) {
+                        CLOSING_QUOTE -> InterpreterState.VERSION_CLOSE_CALL
+                        else -> return expecting("<version string>")
                     }
 
-                    InterpreterState.VERSION_CLOSE_CALL -> when (tokenType) {
-                        RPAR -> state = InterpreterState.AFTER_ID
+                    InterpreterState.VERSION_CLOSE_CALL -> state = when (tokenType) {
+                        RPAR -> InterpreterState.AFTER_ID
                         else -> return expecting(")")
                     }
 
-                    InterpreterState.VERSION_INFIX_STRING -> when (tokenType) {
+                    InterpreterState.VERSION_INFIX_STRING -> state = when (tokenType) {
                         REGULAR_STRING_PART -> {
                             version = tokenText
-                            state = InterpreterState.VERSION_INFIX_END
+                            InterpreterState.VERSION_INFIX_END
                         }
 
                         else -> return expecting("<version string>")
                     }
 
-                    InterpreterState.VERSION_INFIX_END -> when (tokenType) {
-                        CLOSING_QUOTE -> state = InterpreterState.AFTER_ID
-                        else -> expecting("<version string>")
+                    InterpreterState.VERSION_INFIX_END -> state = when (tokenType) {
+                        CLOSING_QUOTE -> InterpreterState.AFTER_ID
+                        else -> return expecting("<version string>")
                     }
 
                     InterpreterState.END -> {
