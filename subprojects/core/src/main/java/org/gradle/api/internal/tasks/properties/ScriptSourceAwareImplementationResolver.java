@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.codehaus.groovy.runtime.ConvertedClosure;
-import org.gradle.internal.properties.bean.ImplementationIdentifier;
+import org.gradle.internal.properties.bean.ImplementationResolver;
 import org.gradle.internal.scripts.ScriptOriginUtil;
 import org.gradle.internal.snapshot.impl.ImplementationValue;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -27,9 +27,10 @@ import org.gradle.util.internal.ConfigureUtil;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 
-public class ScriptSourceAwareImplementationIdentifier implements ImplementationIdentifier {
+public class ScriptSourceAwareImplementationResolver implements ImplementationResolver {
+
     @Override
-    public ImplementationValue identify(Object bean) {
+    public ImplementationValue resolveImplementation(Object bean) {
         Object unwrapped = unwrapBean(bean);
         String classIdentifier = ScriptOriginUtil.getOriginClassIdentifier(unwrapped);
         return new ImplementationValue(classIdentifier, unwrapped);
