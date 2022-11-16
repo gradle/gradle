@@ -180,17 +180,14 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
 
             ConfigurationRole customRole = ConfigurationRole.forUsage('custom', true, true, false, false, false, false)
-            configurations.createWithRole('custom', customRole)
 
-            configurations {
-                custom {
-                    assert canBeConsumed
-                    assert canBeResolved
-                    assert !canBeDeclaredAgainst
-                    assert !deprecatedForConsumption
-                    assert !deprecatedForResolution
-                    assert !deprecatedForDeclarationAgainst
-                }
+            configurations.createWithRole('custom', customRole) {
+                assert canBeConsumed
+                assert canBeResolved
+                assert !canBeDeclaredAgainst
+                assert !deprecatedForConsumption
+                assert !deprecatedForResolution
+                assert !deprecatedForDeclarationAgainst
             }
         """
 
@@ -204,10 +201,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
 
             ConfigurationRole customRole = ConfigurationRole.forUsage('custom', true, true, false, false, false, false)
-            configurations.createWithRole('custom', customRole)
 
             configurations {
-                custom {
+                createWithRole('custom', customRole) {
                     assert canBeConsumed
                     preventUsageMutation()
                     canBeConsumed = false
@@ -222,6 +218,30 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         assertUsageLockedFailure('custom', 'custom')
     }
     // endregion Custom Roles
+
+    // region Other
+    def "can create configuration named #configuration with same legacy behavior"() {
+        given:
+        buildFile << """
+            configurations {
+                $configuration {
+                    assert canBeConsumed
+                    assert canBeResolved
+                    assert canBeDeclaredAgainst
+                    assert !deprecatedForConsumption
+                    assert !deprecatedForResolution
+                    assert !deprecatedForDeclarationAgainst
+                }
+            }
+        """
+
+        expect:
+        succeeds 'help'
+
+        where:
+        configuration << ['consumable', 'resolvable', 'bucket', 'deprecatedConsumable', 'deprecatedResolvable']
+    }
+    // endregion Other
 
     private void assertUsageLockedFailure(String configurationName, String roleName = null) {
         String suffix = roleName ? "as it was locked upon creation to the role: '$roleName'." : "as it has been locked."
