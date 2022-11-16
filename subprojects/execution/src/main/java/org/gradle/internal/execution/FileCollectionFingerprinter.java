@@ -18,7 +18,7 @@ package org.gradle.internal.execution;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
-import org.gradle.internal.fingerprint.Normalizer;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import javax.annotation.Nullable;
@@ -27,7 +27,7 @@ public interface FileCollectionFingerprinter {
     /**
      * The type used to refer to this fingerprinter in the {@link FileCollectionFingerprinterRegistry}.
      */
-    Normalizer getNormalizer();
+    FileNormalizer getNormalizer();
 
     /**
      * Creates a fingerprint of the contents of the given collection.

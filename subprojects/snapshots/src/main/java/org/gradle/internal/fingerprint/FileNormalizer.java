@@ -16,7 +16,7 @@
 
 package org.gradle.internal.fingerprint;
 
-public interface Normalizer {
+public interface FileNormalizer {
     /**
      * Does the normalizer always ignore directories.
      */

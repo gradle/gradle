@@ -24,8 +24,8 @@ import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.properties.InputFilePropertyType;
 
 @NonNullApi
@@ -35,7 +35,7 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     private boolean skipWhenEmpty;
     private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
     private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;
-    private Normalizer normalizer = InputNormalizer.ABSOLUTE_PATH;
+    private FileNormalizer normalizer = InputNormalizer.ABSOLUTE_PATH;
 
     public DefaultTaskInputFilePropertyRegistration(StaticValue value, InputFilePropertyType filePropertyType) {
         super(value);
@@ -101,13 +101,13 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
     }
 
     @Override
-    public TaskInputFilePropertyBuilderInternal withInternalNormalizer(Normalizer normalizer) {
+    public TaskInputFilePropertyBuilderInternal withInternalNormalizer(FileNormalizer normalizer) {
         this.normalizer = normalizer;
         return this;
     }
 
     @Override
-    public Normalizer getNormalizer() {
+    public FileNormalizer getNormalizer() {
         return normalizer;
     }
 
