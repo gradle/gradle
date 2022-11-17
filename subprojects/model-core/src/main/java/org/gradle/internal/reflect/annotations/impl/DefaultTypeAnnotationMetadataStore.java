@@ -180,7 +180,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     @Override
     public TypeAnnotationMetadata getTypeAnnotationMetadata(Class<?> type) {
-        return cache.get(type, () -> createTypeAnnotationMetadata(type));
+        return cache.get(type, this::createTypeAnnotationMetadata);
     }
 
     private TypeAnnotationMetadata createTypeAnnotationMetadata(Class<?> type) {
