@@ -43,7 +43,9 @@ class GradleEnterprisePluginCheckInFixture {
     String artifactVersion = AutoAppliedGradleEnterprisePlugin.VERSION
 
     final String id = AutoAppliedGradleEnterprisePlugin.ID.id
-    final String className = "org.gradle.test.GradleEnterprisePlugin"
+    final String packageName = 'com.gradle.enterprise.gradleplugin'
+    final String simpleClassName = 'GradleEnterprisePlugin'
+    final String className = "${packageName}.${simpleClassName}"
 
     boolean doCheckIn = true
     protected boolean added
@@ -82,10 +84,11 @@ class GradleEnterprisePluginCheckInFixture {
         }
         added = true
         def builder = new PluginBuilder(projectDir.file('plugin-' + AutoAppliedGradleEnterprisePlugin.ID.id))
-        builder.addPluginSource(id, "GradleEnterprisePlugin", """
+        builder.packageName = packageName
+        builder.addPluginSource(id, simpleClassName, """
             package $builder.packageName
 
-            class GradleEnterprisePlugin implements $Plugin.name<$Settings.name> {
+            class ${simpleClassName} implements $Plugin.name<$Settings.name> {
                 void apply($Settings.name settings) {
                     println "gradleEnterprisePlugin.apply.runtimeVersion = $runtimeVersion"
 

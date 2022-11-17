@@ -98,4 +98,34 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
         plugin.assertAutoApplied(output, false)
     }
 
+    def "is auto-applied when --scan is used despite init script"() {
+        given:
+        def pluginArtifactId = "com.gradle:gradle-enterprise-gradle-plugin:${plugin.runtimeVersion}"
+        def initScript = file("build-scan-init.gradle") << """
+            initscript {
+                repositories {
+                    maven { url '${mavenRepo.uri}' }
+                }
+                dependencies {
+                    classpath("${pluginArtifactId}")
+                }
+            }
+            gradle.settingsEvaluated { settings ->
+                if (settings.pluginManager.hasPlugin('${plugin.id}')) {
+                    logger.lifecycle("${plugin.id} is already applied")
+                } else {
+                    logger.lifecycle("Applying ${plugin.className} via init script")
+                    settings.pluginManager.apply(initscript.classLoader.loadClass('${plugin.className}'))
+                }
+            }
+        """
+
+        when:
+        succeeds "t", "--scan", "--init-script", initScript.absolutePath
+
+        then:
+        plugin.assertAutoApplied(output, true)
+        outputContains("${plugin.id} is already applied")
+    }
+
 }
