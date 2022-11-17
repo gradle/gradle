@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.configurationcache.inputs.process
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -31,7 +31,7 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.proc
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.runtimeExec
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stringArrayExecute
 
-class ConfigurationCacheExternalProcessInPluginIntegrationTest extends AbstractConfigurationCacheExternalProcessIntegrationTest {
+class ProcessInPluginIntegrationTest extends AbstractProcessIntegrationTest {
     def "using #snippetsFactory.summary in convention plugin #file is a problem"() {
         given:
         settingsFileWithStableConfigurationCache()

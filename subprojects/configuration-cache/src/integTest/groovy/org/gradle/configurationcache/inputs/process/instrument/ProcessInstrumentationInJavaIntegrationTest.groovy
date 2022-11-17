@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.configurationcache.inputs.process.instrument
 
-class ConfigurationCacheExternalProcessInstrumentationInJavaIntegrationTest extends AbstractConfigurationCacheProcessInstrumentationIntegrationTest {
+class ProcessInstrumentationInJavaIntegrationTest extends AbstractProcessInstrumentationIntegrationTest {
     def "#title is intercepted in java build code"(VarInitializer varInitializer) {
         given:
         def cwd = testDirectory.file(expectedPwdSuffix)

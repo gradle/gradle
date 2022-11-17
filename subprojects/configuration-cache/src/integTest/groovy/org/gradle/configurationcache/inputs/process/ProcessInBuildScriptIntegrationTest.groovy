@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.configurationcache.inputs.process
 
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.exec
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.javaexec
@@ -22,7 +22,7 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.proc
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.runtimeExec
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stringArrayExecute
 
-class ConfigurationCacheExternalProcessInBuildScriptIntegrationTest extends AbstractConfigurationCacheExternalProcessIntegrationTest {
+class ProcessInBuildScriptIntegrationTest extends AbstractProcessIntegrationTest {
     def "using #snippetsFactory.summary in #location.toLowerCase() #file is a problem"() {
         given:
         settingsFileWithStableConfigurationCache()

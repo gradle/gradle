@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.configurationcache.inputs.process.instrument
 
-class ConfigurationCacheExternalProcessInstrumentationInKotlinIntegrationTest extends AbstractConfigurationCacheProcessInstrumentationIntegrationTest {
+class ProcessInstrumentationInKotlinIntegrationTest extends AbstractProcessInstrumentationIntegrationTest {
     def "#title is intercepted in kotlin build script"(VarInitializer varInitializer) {
         given:
         def cwd = testDirectory.file(expectedPwdSuffix)
