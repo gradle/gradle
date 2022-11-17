@@ -18,7 +18,7 @@ package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
-import org.gradle.internal.enterprise.impl.DefautGradleEnterprisePluginCheckInService
+import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
 
 class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSpec {
 
@@ -63,10 +63,10 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         applyPlugin()
 
         when:
-        succeeds "t", "-D${DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE}=true"
+        succeeds "t", "-D${DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE}=true"
 
         then:
-        plugin.assertUnsupportedMessage(output, DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE)
+        plugin.assertUnsupportedMessage(output, DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE)
     }
 
     def "checkin happens once for build with buildSrc"() {
@@ -85,5 +85,20 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
 
         then:
         plugin.serviceCreatedOnce(output)
+    }
+
+    def "shows warning message when unsupported Gradle Enterprise plugin version is used with configuration caching enabled"() {
+        given:
+        plugin.runtimeVersion = '3.11.4'
+        applyPlugin()
+
+        when:
+        succeeds("t", "--configuration-cache")
+
+        then:
+        plugin.notApplied(output)
+
+        and:
+        plugin.assertUnsupportedMessage(output, DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_PLUGIN_DUE_TO_GRADLE_8_AND_CONFIGURATION_CACHING_MESSAGE)
     }
 }

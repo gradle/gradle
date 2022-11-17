@@ -18,7 +18,7 @@ package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
-import org.gradle.internal.enterprise.impl.DefautGradleEnterprisePluginCheckInService
+import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.util.internal.VersionNumber
@@ -257,10 +257,10 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         applyPlugin()
 
         when:
-        succeeds "dummy", "--scan", "-D${DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE}=true"
+        succeeds "dummy", "--scan", "-D${DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE}=true"
 
         then:
-        fixture.assertUnsupportedMessage(output, DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE)
+        fixture.assertUnsupportedMessage(output, DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE)
         fixture.didNotIssuedNoPluginWarning(output)
     }
 
