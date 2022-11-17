@@ -115,8 +115,6 @@ public class DefaultConfigurationFactory {
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
         RootComponentMetadataBuilder rootComponentMetadataBuilder
     ) {
-        ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
-            listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
         return create(name, configurationsProvider, resolutionStrategyFactory, rootComponentMetadataBuilder, ConfigurationRoles.LEGACY, false);
     }
 
