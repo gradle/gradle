@@ -117,6 +117,7 @@ import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
@@ -263,9 +264,11 @@ class DependencyManagementBuildScopeServices {
     DefaultProjectDependencyFactory createProjectDependencyFactory(
         Instantiator instantiator,
         StartParameter startParameter,
-        ImmutableAttributesFactory attributesFactory) {
+        ImmutableAttributesFactory attributesFactory,
+        TaskDependencyFactory taskDependencyFactory
+    ) {
         NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
+        return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory, taskDependencyFactory);
     }
 
     DependencyFactoryInternal createDependencyFactory(

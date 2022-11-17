@@ -29,6 +29,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Factory;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -64,6 +65,7 @@ public class DefaultConfigurationFactory {
     private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
     public DefaultConfigurationFactory(
@@ -81,7 +83,8 @@ public class DefaultConfigurationFactory {
         ProjectStateRegistry projectStateRegistry,
         WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        TaskDependencyFactory taskDependencyFactory
     ) {
         this.instantiator = instantiator;
         this.resolver = resolver;
@@ -99,6 +102,7 @@ public class DefaultConfigurationFactory {
         this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     /**
@@ -153,6 +157,7 @@ public class DefaultConfigurationFactory {
                 domainObjectCollectionFactory,
                 calculatedValueContainerFactory,
                 this,
+                taskDependencyFactory,
                 role,
                 lockUsage
         );

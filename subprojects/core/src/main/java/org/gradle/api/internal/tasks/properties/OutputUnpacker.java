@@ -28,6 +28,9 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.properties.OutputFilePropertyType;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.util.internal.DeferredUtil;
 
 import java.io.File;
@@ -35,7 +38,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-public class OutputUnpacker extends PropertyVisitor.Adapter {
+public class OutputUnpacker implements PropertyVisitor {
 
     private final String ownerDisplayName;
     private final FileCollectionFactory fileCollectionFactory;

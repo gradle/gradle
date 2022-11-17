@@ -367,11 +367,17 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
         javaExecSpec.setDebug(enabled);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public JavaDebugOptions getDebugOptions() {
         return javaExecSpec.getDebugOptions();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void debugOptions(Action<JavaDebugOptions> action) {
         javaExecSpec.debugOptions(action);

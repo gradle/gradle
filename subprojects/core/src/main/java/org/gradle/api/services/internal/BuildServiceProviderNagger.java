@@ -45,7 +45,7 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
     }
 
     private static boolean isServiceRequiredBy(TaskInternal task, BuildServiceProvider<?, ?> provider) {
-        return task.getRequiredServices().contains(provider);
+        return task.getRequiredServices().isServiceRequired(provider);
     }
 
     private static void nagAboutUndeclaredUsageOf(BuildServiceProvider<?, ?> provider, TaskInternal task) {

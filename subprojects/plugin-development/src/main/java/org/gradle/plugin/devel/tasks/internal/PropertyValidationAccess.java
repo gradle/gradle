@@ -21,9 +21,6 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.api.Named;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.properties.AbstractPropertyNode;
-import org.gradle.api.internal.tasks.properties.TypeMetadata;
-import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.api.internal.tasks.properties.TypeScheme;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.provider.Provider;
@@ -32,7 +29,10 @@ import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
-import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadataStore;
+import org.gradle.internal.properties.bean.AbstractPropertyNode;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -137,10 +137,10 @@ public class PropertyValidationAccess {
             TypeMetadata typeMetadata = metadataStore.getTypeMetadata(rawType);
             if (!typeMetadata.hasAnnotatedProperties()) {
                 if (Map.class.isAssignableFrom(rawType)) {
-                    return new MapBeanTypeNode(parentNode, propertyName, Cast.uncheckedNonnullCast(beanType), typeMetadata);
+                    return new MapBeanTypeNode(parentNode, propertyName, Cast.uncheckedNonnullCast(beanType));
                 }
                 if (Iterable.class.isAssignableFrom(rawType)) {
-                    return new IterableBeanTypeNode(parentNode, propertyName, Cast.uncheckedNonnullCast(beanType), typeMetadata);
+                    return new IterableBeanTypeNode(parentNode, propertyName, Cast.uncheckedNonnullCast(beanType));
                 }
             }
             return new NestedBeanTypeNode(parentNode, propertyName, beanType, typeMetadata);
@@ -149,8 +149,8 @@ public class PropertyValidationAccess {
 
     private abstract static class BeanTypeNode<T> extends AbstractPropertyNode<TypeToken<?>> {
 
-        protected BeanTypeNode(@Nullable BeanTypeNode<?> parentNode, @Nullable String propertyName, TypeToken<? extends T> beanType, TypeMetadata typeMetadata) {
-            super(parentNode, propertyName, typeMetadata);
+        protected BeanTypeNode(@Nullable BeanTypeNode<?> parentNode, @Nullable String propertyName, TypeToken<? extends T> beanType) {
+            super(parentNode, propertyName);
             this.beanType = beanType;
         }
 
@@ -174,13 +174,15 @@ public class PropertyValidationAccess {
 
     private static class NestedBeanTypeNode extends BeanTypeNode<Object> {
 
+        private final TypeMetadata typeMetadata;
+
         public NestedBeanTypeNode(@Nullable BeanTypeNode<?> parentNode, @Nullable String parentPropertyName, TypeToken<?> beanType, TypeMetadata typeMetadata) {
-            super(parentNode, parentPropertyName, beanType, typeMetadata);
+            super(parentNode, parentPropertyName, beanType);
+            this.typeMetadata = typeMetadata;
         }
 
         @Override
         public void visit(Class<?> topLevelBean, TypeValidationContext validationContext, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
-            TypeMetadata typeMetadata = getTypeMetadata();
             typeMetadata.visitValidationFailures(getPropertyName(), validationContext);
             for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
                 String qualifiedPropertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
@@ -203,8 +205,8 @@ public class PropertyValidationAccess {
 
     private static class IterableBeanTypeNode extends BeanTypeNode<Iterable<?>> {
 
-        public IterableBeanTypeNode(@Nullable BeanTypeNode<?> parentNode, @Nullable String parentPropertyName, TypeToken<Iterable<?>> iterableType, TypeMetadata typeMetadata) {
-            super(parentNode, parentPropertyName, iterableType, typeMetadata);
+        public IterableBeanTypeNode(@Nullable BeanTypeNode<?> parentNode, @Nullable String parentPropertyName, TypeToken<Iterable<?>> iterableType) {
+            super(parentNode, parentPropertyName, iterableType);
         }
 
         private String determinePropertyName(TypeToken<?> nestedType) {
@@ -222,8 +224,8 @@ public class PropertyValidationAccess {
 
     private static class MapBeanTypeNode extends BeanTypeNode<Map<?, ?>> {
 
-        public MapBeanTypeNode(@Nullable BeanTypeNode<?> parentNode, @Nullable String parentPropertyName, TypeToken<Map<?, ?>> mapType, TypeMetadata typeMetadata) {
-            super(parentNode, parentPropertyName, mapType, typeMetadata);
+        public MapBeanTypeNode(@Nullable BeanTypeNode<?> parentNode, @Nullable String parentPropertyName, TypeToken<Map<?, ?>> mapType) {
+            super(parentNode, parentPropertyName, mapType);
         }
 
         @Override

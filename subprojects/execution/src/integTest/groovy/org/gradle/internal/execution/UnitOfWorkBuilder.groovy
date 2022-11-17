@@ -21,9 +21,9 @@ import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
@@ -35,7 +35,7 @@ import org.gradle.test.fixtures.file.TestFile
 import java.util.function.Consumer
 import java.util.function.Supplier
 
-import static org.gradle.internal.execution.UnitOfWork.InputBehavior.NON_INCREMENTAL
+import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL
 
 @CompileStatic
 class UnitOfWorkBuilder {
@@ -212,7 +212,7 @@ class UnitOfWorkBuilder {
                         NON_INCREMENTAL,
                         new UnitOfWork.InputFileValueSupplier(
                             entry.value,
-                            AbsolutePathInputNormalizer,
+                            InputNormalizer.ABSOLUTE_PATH,
                             DirectorySensitivity.DEFAULT,
                             LineEndingSensitivity.DEFAULT,
                             () -> TestFiles.fixed(entry.value)

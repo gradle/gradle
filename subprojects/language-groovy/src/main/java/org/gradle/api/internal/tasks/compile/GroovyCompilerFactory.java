@@ -18,7 +18,10 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerWorkerExecutor;
 import org.gradle.api.internal.tasks.compile.daemon.DaemonGroovyCompiler;
+import org.gradle.api.internal.tasks.compile.daemon.ClassloaderIsolatedCompilerWorkerExecutor;
+import org.gradle.api.internal.tasks.compile.daemon.ProcessIsolatedCompilerWorkerExecutor;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.initialization.ClassLoaderRegistry;
@@ -31,7 +34,6 @@ import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.IsolatedClassloaderWorkerFactory;
 import org.gradle.workers.internal.WorkerDaemonFactory;
-import org.gradle.workers.internal.WorkerFactory;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -63,13 +65,12 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     @Override
     public Compiler<GroovyJavaJointCompileSpec> newCompiler(GroovyJavaJointCompileSpec spec) {
         MinimalGroovyCompileOptions groovyOptions = spec.getGroovyCompileOptions();
-        WorkerFactory workerFactory;
-        if (groovyOptions.isFork()) {
-            workerFactory = workerDaemonFactory;
-        } else {
-            workerFactory = inProcessWorkerFactory;
-        }
-        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new DaemonGroovyCompiler(workerDirectoryProvider.getWorkingDirectory(), DaemonSideCompiler.class, classPathRegistry, workerFactory, classLoaderRegistry, forkOptionsFactory, jvmVersionDetector, actionExecutionSpecFactory);
+        CompilerWorkerExecutor compilerWorkerExecutor =
+            groovyOptions.isFork() ?
+                new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory) :
+                new ClassloaderIsolatedCompilerWorkerExecutor(inProcessWorkerFactory, actionExecutionSpecFactory);
+
+        Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new DaemonGroovyCompiler(workerDirectoryProvider.getWorkingDirectory(), DaemonSideCompiler.class, classPathRegistry, compilerWorkerExecutor, classLoaderRegistry, forkOptionsFactory, jvmVersionDetector);
         return new AnnotationProcessorDiscoveringCompiler<>(new NormalizingGroovyCompiler(groovyCompiler), processorDetector);
     }
 

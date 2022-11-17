@@ -80,7 +80,7 @@ public abstract class ScalaRuntime {
     public FileCollection inferScalaClasspath(final Iterable<File> classpath) {
         // alternatively, we could return project.getLayout().files(Runnable)
         // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
-        return new LazilyInitializedFileCollection() {
+        return new LazilyInitializedFileCollection(((ProjectInternal) project).getTaskDependencyFactory()) {
             @Override
             public String getDisplayName() {
                 return "Scala runtime classpath";

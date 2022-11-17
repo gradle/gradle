@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import org.gradle.internal.properties.PropertyValue;
+
 public class DefaultInputPropertySpec extends AbstractPropertySpec implements InputPropertySpec {
     private final PropertyValue value;
 
