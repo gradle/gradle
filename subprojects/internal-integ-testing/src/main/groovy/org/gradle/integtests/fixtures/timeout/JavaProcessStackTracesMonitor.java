@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.fixtures.timeout;
 
-import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -57,7 +56,6 @@ public class JavaProcessStackTracesMonitor {
     private static final Pattern WINDOWS_PID_PATTERN = Pattern.compile("([0-9]+)\\s*$");
     private static final Pattern UNIX_PID_PATTERN = Pattern.compile("([0-9]+)");
 
-    @Nullable
     private final File outputFile;
     private final PrintStream output;
 
