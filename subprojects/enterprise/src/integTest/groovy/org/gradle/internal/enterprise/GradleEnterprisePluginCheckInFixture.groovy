@@ -166,7 +166,7 @@ class GradleEnterprisePluginCheckInFixture {
 
         builder.addPlugin("", "com.gradle.build-scan", 'BuildScanPlugin')
 
-        builder.publishAs("com.gradle:gradle-enterprise-gradle-plugin:${artifactVersion}", mavenRepo, pluginBuildExecuter)
+        builder.publishAs("${AutoAppliedGradleEnterprisePlugin.GROUP}:${AutoAppliedGradleEnterprisePlugin.NAME}:${artifactVersion}", mavenRepo, pluginBuildExecuter)
     }
 
     void assertBuildScanRequest(String output, GradleEnterprisePluginConfig.BuildScanRequest buildScanRequest) {
