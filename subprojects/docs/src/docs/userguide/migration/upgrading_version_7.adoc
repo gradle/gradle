@@ -117,9 +117,9 @@ PMD has been updated to https://pmd.github.io/pmd-6.48.0/pmd_release_notes.html[
 When configuring an executable explicitly for link:{groovyDslPath}/org.gradle.api.tasks.compile.ForkOptions.html#org.gradle.api.tasks.compile.ForkOptions:executable[`JavaCompile`] or link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:executable[`Test`] tasks, Gradle will now emit an error if this executable does not exist.
 In the past, the task would be executed with the default toolchain or JVM running the build.
 
-==== Changes to dependency declarateions in Test Suites
+==== Changes to dependency declarations in Test Suites
 
-As part of the ongoing effort to improve Test Suites, dependency declarations using its nested `dependencies` block are <<jvm_test_suite_plugin.adoc#sec:differences_with_top_level_dependencies, now strongly typed>>.
+As part of the ongoing effort to evolve Test Suites, dependency declarations in the Test Suites `dependencies` block are <<jvm_test_suite_plugin.adoc#sec:differences_with_top_level_dependencies, now strongly typed>>.
 This will help make this incubating API more discoverable and easier to use in an IDE.
 
 In some cases, this requires syntax changes.
