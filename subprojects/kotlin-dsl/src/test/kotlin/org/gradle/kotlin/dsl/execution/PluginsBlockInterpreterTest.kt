@@ -607,6 +607,25 @@ class PluginsBlockInterpreterTest {
         )
     }
 
+    @Test
+    fun `syntax error - dot after dot`() {
+        assertDynamicInterpretationOf(
+            """id("plugin-id-1"). .version("1.0")""",
+            "Expecting version or apply, got '.'"
+        )
+    }
+
+    @Test
+    fun `syntax error - dot after dot on next line`() {
+        assertDynamicInterpretationOf(
+            """
+                id("plugin-id-1").
+                    .version("1.0")
+            """,
+            "Expecting version or apply, got '.'"
+        )
+    }
+
     private
     fun assertStaticInterpretationOf(pluginsBlock: String, vararg specs: PluginRequestSpec) {
         assertThat(
@@ -618,7 +637,7 @@ class PluginsBlockInterpreterTest {
     }
 
     private
-    fun assertDynamicInterpretationOf(pluginsBlock: String, reason: String = "BOOM") {
+    fun assertDynamicInterpretationOf(pluginsBlock: String, reason: String) {
         assertThat(
             interpret(Program.Plugins(fragment("plugins", pluginsBlock))),
             equalTo(

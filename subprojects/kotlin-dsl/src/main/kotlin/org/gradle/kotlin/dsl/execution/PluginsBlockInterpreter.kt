@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.jetbrains.kotlin.com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens.BLOCK_COMMENT
 import org.jetbrains.kotlin.lexer.KtTokens.CLOSING_QUOTE
@@ -53,6 +54,8 @@ sealed class PluginsBlockInterpretation {
 internal
 fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexer().run {
     start(program.fragment.blockString)
+
+    var previousTokenType: IElementType? = null
 
     val pluginRequests = mutableListOf<ResidualProgram.PluginRequestSpec>()
     var seenStatementSeparator = false
@@ -112,7 +115,11 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
 
                     InterpreterState.AFTER_ID -> {
                         state = when (tokenType) {
-                            DOT -> InterpreterState.AFTER_ID
+                            DOT -> {
+                                if (previousTokenType == DOT) return expecting("version or apply")
+                                InterpreterState.AFTER_ID
+                            }
+
                             SEMICOLON -> newPluginRequest()
                             RBRACE -> InterpreterState.END.also { newPluginRequest() }
                             IDENTIFIER -> {
@@ -244,6 +251,7 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                         return unknown("Unexpected token '$tokenText'")
                     }
                 }
+                previousTokenType = tokenType
             }
         }
         advance()
