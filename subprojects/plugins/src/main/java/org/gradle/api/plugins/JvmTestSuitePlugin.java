@@ -22,7 +22,6 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Category;
@@ -118,16 +117,13 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
         variant.setVisible(false);
         variant.setCanBeResolved(false);
         variant.setCanBeConsumed(true);
-        variant.extendsFrom(project.getConfigurations().getByName(suite.getSources().getImplementationConfigurationName()),
-            project.getConfigurations().getByName(suite.getSources().getRuntimeOnlyConfigurationName()));
-
 
         final ObjectFactory objects = project.getObjects();
         variant.attributes(attributes -> {
             attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
             attributes.attribute(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, objects.named(TestSuiteName.class, suite.getName()));
             attributes.attribute(TestSuiteTargetName.TEST_SUITE_TARGET_NAME_ATTRIBUTE, objects.named(TestSuiteTargetName.class, target.getName()));
-            attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, suite.getTestType().map(createNamedTestTypeAndVerifyUniqueness(project, suite)));
+            attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, suite.getTestType().map(tt -> createNamedTestTypeAndVerifyUniqueness(project, suite, tt)));
             attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.TEST_RESULTS));
         });
 
@@ -137,13 +133,11 @@ public abstract class JvmTestSuitePlugin implements Plugin<Project> {
         );
     }
 
-    private Transformer<TestSuiteType, String> createNamedTestTypeAndVerifyUniqueness(Project project, TestSuite suite) {
-        return tt -> {
-            final TestSuite other = testTypesInUse.putIfAbsent(tt, suite);
-            if (null != other) {
-                throw new BuildException("Could not configure suite: '" + suite.getName() + "'. Another test suite: '" + other.getName() + "' uses the type: '" + tt + "' and has already been configured in project: '" + project.getName() + "'.");
-            }
-            return project.getObjects().named(TestSuiteType.class, tt);
-        };
+    private TestSuiteType createNamedTestTypeAndVerifyUniqueness(Project project, TestSuite suite, String tt) {
+        final TestSuite other = testTypesInUse.putIfAbsent(tt, suite);
+        if (null != other) {
+            throw new BuildException("Could not configure suite: '" + suite.getName() + "'. Another test suite: '" + other.getName() + "' uses the type: '" + tt + "' and has already been configured in project: '" + project.getName() + "'.");
+        }
+        return project.getObjects().named(TestSuiteType.class, tt);
     }
 }

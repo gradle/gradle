@@ -20,12 +20,9 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.tasks.FileNormalizer;
-import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
-import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
-import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
-import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
+import org.gradle.internal.execution.model.InputNormalizer;
+import org.gradle.internal.fingerprint.Normalizer;
+import org.gradle.internal.properties.InputFilePropertyType;
 
 import javax.annotation.Nullable;
 import java.util.Iterator;
@@ -33,25 +30,12 @@ import java.util.Set;
 
 public class FileParameterUtils {
 
-    public static Class<? extends FileNormalizer> determineNormalizerForPathSensitivity(PathSensitivity pathSensitivity) {
-        switch (pathSensitivity) {
-            case NONE:
-                return IgnoredPathInputNormalizer.class;
-            case NAME_ONLY:
-                return NameOnlyInputNormalizer.class;
-            case RELATIVE:
-                return RelativePathInputNormalizer.class;
-            case ABSOLUTE:
-                return AbsolutePathInputNormalizer.class;
-            default:
-                throw new IllegalArgumentException("Unknown path sensitivity: " + pathSensitivity);
-        }
-    }
-
-    public static Class<? extends FileNormalizer> normalizerOrDefault(@Nullable Class<? extends FileNormalizer> fileNormalizer) {
+    public static Normalizer normalizerOrDefault(@Nullable Normalizer fileNormalizer) {
         // If this default is ever changed, ensure the documentation on PathSensitive is updated as well as this guide:
         // https://docs.gradle.org/current/userguide/build_cache_concepts.html#relocatability
-        return fileNormalizer == null ? AbsolutePathInputNormalizer.class : fileNormalizer;
+        return fileNormalizer == null
+            ? InputNormalizer.ABSOLUTE_PATH
+            : fileNormalizer;
     }
 
     /**

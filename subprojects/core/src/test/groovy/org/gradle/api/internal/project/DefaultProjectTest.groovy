@@ -63,13 +63,16 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.resources.ApiTextResourceAdapter
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.internal.tasks.TaskDependencyFactory
+import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.ScriptPluginFactory
+import org.gradle.configuration.internal.DynamicCallContextTracker
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
@@ -163,7 +166,7 @@ class DefaultProjectTest extends Specification {
     CrossProjectConfigurator crossProjectConfigurator = new BuildOperationCrossProjectConfigurator(buildOperationExecutor)
     ClassLoaderScope baseClassLoaderScope = new RootClassLoaderScope("root", getClass().classLoader, getClass().classLoader, new DummyClassLoaderCache(), Stub(ClassLoaderScopeRegistryListener))
     ClassLoaderScope rootProjectClassLoaderScope = baseClassLoaderScope.createChild("root-project")
-    ObjectFactory objectFactory = new DefaultObjectFactory(instantiatorMock, Stub(NamedObjectInstantiator), Stub(DirectoryFileTreeFactory),  TestFiles.patternSetFactory,  new DefaultPropertyFactory(Stub(PropertyHost)), Stub(FilePropertyFactory), Stub(FileCollectionFactory), Stub(DomainObjectCollectionFactory))
+    ObjectFactory objectFactory = new DefaultObjectFactory(instantiatorMock, Stub(NamedObjectInstantiator), Stub(DirectoryFileTreeFactory),  TestFiles.patternSetFactory,  new DefaultPropertyFactory(Stub(PropertyHost)), Stub(FilePropertyFactory), TestFiles.taskDependencyFactory(), Stub(FileCollectionFactory), Stub(DomainObjectCollectionFactory))
 
     def setup() {
         rootDir = new File("/path/root").absoluteFile
@@ -199,6 +202,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get((Type) SoftwareComponentContainer) >> softwareComponentsMock
         serviceRegistryMock.get((Type) InputNormalizationHandlerInternal) >> inputNormalizationHandler
         serviceRegistryMock.get(ProjectEvaluator) >> projectEvaluator
+        serviceRegistryMock.get(DynamicLookupRoutine) >> new DefaultDynamicLookupRoutine()
         serviceRegistryMock.getFactory(AntBuilder) >> antBuilderFactoryMock
         serviceRegistryMock.get((Type) ScriptHandlerInternal) >> scriptHandlerMock
         serviceRegistryMock.get((Type) LoggingManagerInternal) >> loggingManagerMock
@@ -225,6 +229,7 @@ class DefaultProjectTest extends Specification {
         serviceRegistryMock.get(DomainObjectCollectionFactory) >> TestUtil.domainObjectCollectionFactory()
         serviceRegistryMock.get(CrossProjectModelAccess) >> new DefaultCrossProjectModelAccess(projectRegistry)
         serviceRegistryMock.get(ObjectFactory) >> objectFactory
+        serviceRegistryMock.get(TaskDependencyFactory) >> DefaultTaskDependencyFactory.forProject(taskContainerMock, Mock(TaskDependencyUsageTracker))
         pluginManager.getPluginContainer() >> pluginContainer
 
         serviceRegistryMock.get((Type) DeferredProjectConfiguration) >> Stub(DeferredProjectConfiguration)
@@ -247,6 +252,7 @@ class DefaultProjectTest extends Specification {
 
         serviceRegistryMock.get((Type) ObjectFactory) >> Stub(ObjectFactory)
         serviceRegistryMock.get((Type) DependencyLockingHandler) >> Stub(DependencyLockingHandler)
+        serviceRegistryMock.get((Type) DynamicCallContextTracker) >> Stub(DynamicCallContextTracker)
 
         projectState = Mock(ProjectState)
         projectState.name >> 'root'

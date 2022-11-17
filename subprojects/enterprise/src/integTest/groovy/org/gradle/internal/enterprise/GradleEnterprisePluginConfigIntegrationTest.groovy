@@ -27,7 +27,7 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
     def plugin = new GradleEnterprisePluginCheckInFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
-        settingsFile << plugin.pluginManagement() << plugin.plugins()
+        settingsFile << plugin.pluginManagement()
         plugin.publishDummyPlugin(executer)
         buildFile << """
             task t
@@ -35,27 +35,44 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "has none requestedness if no switch present"() {
+        given:
+        settingsFile << plugin.plugins()
+
         when:
         succeeds "t"
 
         then:
         plugin.assertBuildScanRequest(output, NONE)
+        plugin.assertAutoApplied(output, false)
     }
 
     def "is requested with --scan"() {
+        given:
+        if (!autoApplied) {
+            settingsFile << plugin.plugins()
+        }
+
         when:
         succeeds "t", "--scan"
 
         then:
         plugin.assertBuildScanRequest(output, REQUESTED)
+        plugin.assertAutoApplied(output, autoApplied)
+
+        where:
+        autoApplied << [true, false]
     }
 
     def "is suppressed with --no-scan"() {
+        given:
+        settingsFile << plugin.plugins()
+
         when:
         succeeds "t", "--no-scan"
 
         then:
         plugin.assertBuildScanRequest(output, SUPPRESSED)
+        plugin.assertAutoApplied(output, false)
     }
 
 }

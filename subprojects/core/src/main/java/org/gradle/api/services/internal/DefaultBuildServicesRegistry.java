@@ -16,6 +16,7 @@
 
 package org.gradle.api.services.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
@@ -40,6 +41,9 @@ import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
@@ -101,26 +105,29 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
-    public SharedResource forService(Provider<? extends BuildService<?>> service) {
-        if (!(service instanceof BuildServiceProvider)) {
-            throw new IllegalArgumentException("The given provider is not a build service provider.");
+    public SharedResource forService(BuildServiceProvider<?, ?> service) {
+        String serviceName = service.getName();
+        DefaultServiceRegistration<?, ?> registration = uncheckedCast(findByName(serviceName));
+        if (registration == null) {
+            // no corresponding service registered
+            return null;
         }
-        BuildServiceProvider<?, ?> provider = (BuildServiceProvider<?, ?>) service;
-        DefaultServiceRegistration<?, ?> registration = getByName(provider.getName());
         return registration.asSharedResource(() -> {
             // Prevent further changes to registration
             registration.getMaxParallelUsages().finalizeValue();
             int maxUsages = registration.getMaxParallelUsages().getOrElse(-1);
 
             if (maxUsages > 0) {
-                leaseRegistry.registerSharedResource(provider.getName(), maxUsages);
+                leaseRegistry.registerSharedResource(serviceName, maxUsages);
             }
-            return new ServiceBackedSharedResource(provider.getName(), maxUsages, leaseRegistry);
+            return new ServiceBackedSharedResource(serviceName, maxUsages, leaseRegistry);
         });
     }
 
-    private DefaultServiceRegistration<?, ?> getByName(String name) {
-        return (DefaultServiceRegistration<?, ?>) withRegistrations(registrations -> registrations.getByName(name));
+    @Override
+    @Nullable
+    public BuildServiceRegistration<?, ?> findByName(String name) {
+        return withRegistrations(registrations -> registrations.findByName(name));
     }
 
     @Override
@@ -148,6 +155,30 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         });
     }
 
+    public List<ResourceLock> getSharedResources(Set<Provider<? extends BuildService<?>>> services) {
+        if (services.isEmpty()) {
+            return Collections.emptyList();
+        }
+        ImmutableList.Builder<ResourceLock> locks = ImmutableList.builder();
+        for (Provider<? extends BuildService<?>> service : services) {
+            if (!service.isPresent()) {
+                continue;
+            }
+            SharedResource resource = forService(asBuildServiceProvider(service));
+            if (resource != null && resource.getMaxUsages() > 0) {
+                locks.add(resource.getResourceLock());
+            }
+        }
+        return locks.build();
+    }
+
+    private BuildServiceProvider<?, ?> asBuildServiceProvider(Provider<? extends BuildService<?>> service) {
+        if (service instanceof BuildServiceProvider) {
+            return uncheckedCast(service);
+        }
+        throw new UnsupportedOperationException("Unexpected provider for a build service: " + service);
+    }
+
     @Nullable
     private <T extends BuildService<P>, P extends BuildServiceParameters> P instantiateParametersOf(Class<T> implementationType) {
         Class<P> parameterType = isolationScheme.parameterTypeFor(implementationType);
@@ -166,14 +197,23 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         });
     }
 
+    @Override
+    public BuildServiceProvider<?, ?> consume(String name, Class<? extends BuildService<?>> implementationType) {
+        return doConsume(name, uncheckedCast(implementationType));
+    }
+
+    private <T extends BuildService<BuildServiceParameters>> BuildServiceProvider<T, BuildServiceParameters> doConsume(String name, Class<T> implementationType) {
+        return new ConsumedBuildServiceProvider<>(buildIdentifier, name, implementationType, services);
+    }
+
     private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(
         String name,
         Class<T> implementationType,
         @Nullable P parameters,
-        Integer maxParallelUsages,
+        @Nullable Integer maxParallelUsages,
         NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations
     ) {
-        BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(
+        RegisteredBuildServiceProvider<T, P> provider = new RegisteredBuildServiceProvider<>(
             buildIdentifier,
             name,
             implementationType,
@@ -182,7 +222,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             instantiatorFactory.injectScheme(),
             isolatableFactory,
             services,
-            listener
+            listener,
+            maxParallelUsages
         );
 
         DefaultServiceRegistration<T, P> registration = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceRegistration.class, name, parameters, provider));
@@ -235,10 +276,10 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     public static abstract class DefaultServiceRegistration<T extends BuildService<P>, P extends BuildServiceParameters> implements BuildServiceRegistration<T, P> {
         private final String name;
         private final P parameters;
-        private final BuildServiceProvider<T, P> provider;
+        private final RegisteredBuildServiceProvider<T, P> provider;
         private SharedResource resourceWrapper;
 
-        public DefaultServiceRegistration(String name, P parameters, BuildServiceProvider<T, P> provider) {
+        public DefaultServiceRegistration(String name, P parameters, RegisteredBuildServiceProvider<T, P> provider) {
             this.name = name;
             this.parameters = parameters;
             this.provider = provider;
