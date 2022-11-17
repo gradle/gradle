@@ -37,7 +37,7 @@ import org.gradle.api.artifacts.dsl.GradleDependencies;
  * @since 7.3
  */
 @Incubating
-public interface JvmComponentDependencies extends PlatformDependencyModifiers, TestFixturesDependencyModifiers, GradleDependencies {
+public interface JvmComponentDependencies extends PlatformDependencyModifiers, TestFixturesDependencyModifiers, JvmDependencies, GradleDependencies {
     /**
      * Returns a {@link DependencyAdder} to add to the set of implementation dependencies.
      * <p>
