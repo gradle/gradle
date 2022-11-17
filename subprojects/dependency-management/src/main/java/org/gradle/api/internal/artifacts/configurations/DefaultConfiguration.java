@@ -405,13 +405,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (lockUsage) {
             preventUsageMutation();
         }
-
-//        if (ConfigurationRoles.getDeprecatedRoles().contains(role)) {
-//            DeprecationLogger.deprecateBehaviour("The configuration role: " + role.getName() + " is deprecated and should no longer be used.")
-//                    .willBecomeAnErrorInGradle9()
-//                    .withUpgradeGuideSection(8, "deprecated_configurations_should_not_be_used")
-//                    .nagUser();
-//        }
     }
 
     private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
