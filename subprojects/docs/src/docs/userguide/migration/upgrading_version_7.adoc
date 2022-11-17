@@ -117,13 +117,11 @@ PMD has been updated to https://pmd.github.io/pmd-6.48.0/pmd_release_notes.html[
 When configuring an executable explicitly for link:{groovyDslPath}/org.gradle.api.tasks.compile.ForkOptions.html#org.gradle.api.tasks.compile.ForkOptions:executable[`JavaCompile`] or link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:executable[`Test`] tasks, Gradle will now emit an error if this executable does not exist.
 In the past, the task would be executed with the default toolchain or JVM running the build.
 
-==== Strongly typed dependency declarations for Test Suites
+==== Added strongly typed dependency declarations to test suites
 
-The `dependencies` block used to configure Test Suites and located at `testing.suites.<MY_SUITE_NAME>.dependencies` continues to diverge from the top-level `dependencies` block.
-This is part of an ongoing effort to improve this `@Incubating` API to make it more discoverable and strongly typed.
-This change should have the benefit of making the `testing` DSL easier to work with in your IDE.
-
-On consequence of this is that buildsscripts which previously added project dependencies to a suite using:
+As part of the ongoing effort to improve the incubating Test Suites `dependencies` block, dependency declarations are now strongly typed.
+In some case, this requires syntax changes.
+For example, build scripts that previously added test suite dependencies with the following syntax:
 
 ```kotlin
 testing {
