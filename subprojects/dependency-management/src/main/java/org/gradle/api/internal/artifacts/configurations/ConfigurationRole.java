@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import org.gradle.internal.deprecation.DeprecationLogger;
+
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -62,7 +65,11 @@ public interface ConfigurationRole {
      * @return a role with matching usage characteristics
      */
     static ConfigurationRole forUsage(String name, boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated, @Nullable String description) {
-        return ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated)
+        if ((!consumable && consumptionDeprecated) || (!resolvable && resolutionDeprecated) || (!declarableAgainst && declarationAgainstDeprecated)) {
+            throw new IllegalArgumentException("Cannot create a role that deprecates a usage that is not allowed");
+        }
+
+        ConfigurationRole result = ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated)
                 .map(ConfigurationRole.class::cast)
                 .orElse(new ConfigurationRole() {
                     @Override
@@ -109,6 +116,16 @@ public interface ConfigurationRole {
                         }
                     }
                 });
+
+        if (Arrays.asList(ConfigurationRoles.values()).contains(result)) {
+            DeprecationLogger.deprecateBehaviour("Custom configuration roles are deprecated.")
+                    .withAdvice("Use one of the standard roles defined in ConfigurationRoles instead.")
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "custom_configuration_roles")
+                    .nagUser();
+        }
+
+        return result;
     }
 
     static ConfigurationRole forUsage(boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
