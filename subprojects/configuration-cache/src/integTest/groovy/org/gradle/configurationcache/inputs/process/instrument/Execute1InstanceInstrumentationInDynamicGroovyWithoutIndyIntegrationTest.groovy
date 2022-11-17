@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
-
-class ConfigurationCacheExternalProcessInstrumentationInDynamicGroovyWithIndyIntegrationTest extends AbstractConfigurationCacheExternalProcessInstrumentationInDynamicGroovyIntegrationTest {
+package org.gradle.configurationcache.inputs.process.instrument
+/**
+ * Test cases for single-argument String and String collection {@code execute} extension:
+ * <pre>
+ *     "echo 123".execute()
+ *     ["echo", "123"].execute()
+ * </pre>
+ */
+class Execute1InstanceInstrumentationInDynamicGroovyWithoutIndyIntegrationTest extends Execute1InstanceInstrumentationInDynamicGroovyWithIndyIntegrationTest {
     @Override
-    boolean enableIndy() {
-        return true
+    def indyModes() {
+        return [false]
     }
 }

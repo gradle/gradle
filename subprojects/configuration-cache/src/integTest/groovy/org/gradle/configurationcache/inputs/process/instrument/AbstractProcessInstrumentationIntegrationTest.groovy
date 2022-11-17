@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.configurationcache.inputs.process.instrument
 
+import org.gradle.configurationcache.AbstractConfigurationCacheIntegrationTest
 import org.gradle.process.ShellScript
 
-abstract class AbstractConfigurationCacheProcessInstrumentationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+/**
+ * Base class for all external process invocation instrumentation tests.
+ */
+abstract class AbstractProcessInstrumentationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     // Note that all tests use a relative path to the script because its absolute path may contain
     // spaces and it breaks logic String.execute which splits the given string at spaces without
     // any options to escape the space.

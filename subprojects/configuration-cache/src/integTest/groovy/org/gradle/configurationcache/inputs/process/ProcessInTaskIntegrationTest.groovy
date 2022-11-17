@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache
+package org.gradle.configurationcache.inputs.process
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
@@ -32,7 +32,7 @@ import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.proc
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.runtimeExec
 import static org.gradle.configurationcache.fixtures.ExternalProcessFixture.stringArrayExecute
 
-class ConfigurationCacheExternalProcessInTaskIntegrationTest extends AbstractConfigurationCacheExternalProcessIntegrationTest {
+class ProcessInTaskIntegrationTest extends AbstractProcessIntegrationTest {
     def "using #snippetsFactory.summary in task configuration is a problem"() {
         given:
         settingsFileWithStableConfigurationCache()
