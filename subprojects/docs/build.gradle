@@ -817,9 +817,6 @@ configurations {
     }
 }
 
-tasks.named('platformTest') {
-    dependsOn(tasks.named('checkSamples'))
-}
 tasks.named("check") {
     dependsOn(tasks.named('checkstyleApi'))
 }
