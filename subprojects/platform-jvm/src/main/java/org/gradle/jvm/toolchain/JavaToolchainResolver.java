@@ -23,8 +23,9 @@ import org.gradle.api.services.BuildServiceParameters;
 import java.util.Optional;
 
 /**
- * Interface that needs to be implemented by Toolchain SPI plugins, in order to
- * extend Gradle with the spec-to-URI logic required by Java toolchain auto-provisioning.
+ * Interface that needs to be implemented by Java toolchain provisioning plugins.
+ * <p>
+ * Plugin implementors have to provide the mapping from the Java toolchain request to a download information.
  *
  * @since 7.6
  */
