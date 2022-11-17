@@ -259,7 +259,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
         @Override
         public Method getGetterMethod() {
-            return annotationMetadata.getMethod();
+            return annotationMetadata.getGetter();
         }
 
         @Override
