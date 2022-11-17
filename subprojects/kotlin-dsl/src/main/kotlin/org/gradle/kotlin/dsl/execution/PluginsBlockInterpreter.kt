@@ -78,15 +78,8 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
 
             BLOCK_COMMENT -> Unit
             DOC_COMMENT -> Unit
-            EOL_COMMENT -> {
-                seenStatementSeparator = true
-            }
-
-            in WHITESPACES -> {
-                if (tokenSequence.contains('\n')) {
-                    seenStatementSeparator = true
-                }
-            }
+            EOL_COMMENT -> seenStatementSeparator = true
+            in WHITESPACES -> if (tokenSequence.contains('\n')) seenStatementSeparator = true
 
             else -> {
                 when (state) {
@@ -100,9 +93,7 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                         RBRACE -> InterpreterState.END
                         SEMICOLON -> InterpreterState.ID.also { if (pluginId != null) newPluginRequest() }
                         IDENTIFIER -> {
-                            if (pluginId != null && seenStatementSeparator) {
-                                newPluginRequest()
-                            }
+                            if (pluginId != null && seenStatementSeparator) newPluginRequest()
                             when (tokenText) {
                                 "id" -> InterpreterState.ID_OPEN_CALL
                                 "kotlin" -> InterpreterState.KOTLIN_ID_OPEN_CALL
@@ -113,39 +104,35 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                         else -> return expecting("plugin spec")
                     }
 
-                    InterpreterState.AFTER_ID -> {
-                        state = when (tokenType) {
-                            DOT -> {
-                                if (previousTokenType == DOT) return expecting("version or apply")
-                                InterpreterState.AFTER_ID
-                            }
-
-                            SEMICOLON -> newPluginRequest()
-                            RBRACE -> InterpreterState.END.also { newPluginRequest() }
-                            IDENTIFIER -> {
-                                when (tokenText) {
-                                    "version" -> InterpreterState.VERSION_OPEN_CALL
-                                    "apply" -> InterpreterState.APPLY_OPEN_CALL
-                                    "id" -> {
-                                        if (!seenStatementSeparator) {
-                                            return expecting("<statement separator>")
-                                        }
-                                        InterpreterState.ID_OPEN_CALL.also { if (pluginId != null) newPluginRequest() }
-                                    }
-
-                                    "kotlin" -> {
-                                        if (!seenStatementSeparator) {
-                                            return expecting("<statement separator>")
-                                        }
-                                        InterpreterState.KOTLIN_ID_OPEN_CALL.also { if (pluginId != null) newPluginRequest() }
-                                    }
-
-                                    else -> return expecting("version or apply")
-                                }
-                            }
-
-                            else -> return expecting(";")
+                    InterpreterState.AFTER_ID -> state = when (tokenType) {
+                        DOT -> {
+                            if (previousTokenType == DOT) return expecting("version or apply")
+                            InterpreterState.AFTER_ID
                         }
+
+                        SEMICOLON -> newPluginRequest()
+                        RBRACE -> InterpreterState.END.also { newPluginRequest() }
+                        IDENTIFIER -> {
+                            when (tokenText) {
+                                "version" -> InterpreterState.VERSION_OPEN_CALL
+                                "apply" -> InterpreterState.APPLY_OPEN_CALL
+                                "id" -> {
+                                    if (!seenStatementSeparator) return expecting("<statement separator>")
+                                    if (pluginId != null) newPluginRequest()
+                                    InterpreterState.ID_OPEN_CALL
+                                }
+
+                                "kotlin" -> {
+                                    if (!seenStatementSeparator) return expecting("<statement separator>")
+                                    if (pluginId != null) newPluginRequest()
+                                    InterpreterState.KOTLIN_ID_OPEN_CALL
+                                }
+
+                                else -> return expecting("version or apply")
+                            }
+                        }
+
+                        else -> return expecting(";")
                     }
 
                     InterpreterState.ID_OPEN_CALL -> state = when (tokenType) {
@@ -247,9 +234,7 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                         else -> return expecting("<version string>")
                     }
 
-                    InterpreterState.END -> {
-                        return unknown("Unexpected token '$tokenText'")
-                    }
+                    InterpreterState.END -> return unknown("Unexpected token '$tokenText'")
                 }
                 previousTokenType = tokenType
             }
