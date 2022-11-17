@@ -17,6 +17,7 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.NONE
 import static org.gradle.internal.enterprise.GradleEnterprisePluginConfig.BuildScanRequest.REQUESTED
@@ -77,14 +78,14 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
 
     def "is not auto-applied when added to classpath via buildscript block"() {
         given:
-        def pluginArtifactId = "com.gradle:gradle-enterprise-gradle-plugin:${plugin.runtimeVersion}"
+        def coordinates = "${groupId}:${artifactId}:${plugin.runtimeVersion}"
         settingsFile << """
             buildscript {
                 repositories {
                     maven { url '${mavenRepo.uri}' }
                 }
                 dependencies {
-                    classpath("${pluginArtifactId}")
+                    classpath("${coordinates}")
                 }
             }
 
@@ -96,6 +97,11 @@ class GradleEnterprisePluginConfigIntegrationTest extends AbstractIntegrationSpe
 
         then:
         plugin.assertAutoApplied(output, false)
+
+        where:
+        groupId                                 | artifactId
+        'com.gradle'                            | 'gradle-enterprise-gradle-plugin'
+        AutoAppliedGradleEnterprisePlugin.ID.id | "${AutoAppliedGradleEnterprisePlugin.ID.id}.gradle.plugin"
     }
 
     def "is auto-applied when --scan is used despite init script"() {
