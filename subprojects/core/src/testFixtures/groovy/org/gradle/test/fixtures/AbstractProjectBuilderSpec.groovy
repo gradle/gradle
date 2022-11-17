@@ -93,4 +93,24 @@ abstract class AbstractProjectBuilderSpec extends Specification {
         executionServices.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, taskExecutionContext)
         task.state.rethrowFailure()
     }
+
+    protected static boolean assertHasCause(Throwable t, String messagePrefix) {
+        if (t == null) {
+            return false
+        }
+
+        def cause = t
+        while (true) {
+            if (cause.getMessage().startsWith(messagePrefix)) {
+                return true
+            }
+            def nextCause = cause.cause
+            if (nextCause == null || nextCause === cause) {
+                break
+            }
+            cause = nextCause
+        }
+
+        return false
+    }
 }
