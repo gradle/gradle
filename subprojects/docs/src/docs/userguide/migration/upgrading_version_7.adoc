@@ -122,7 +122,7 @@ In the past, the task would be executed with the default toolchain or JVM runnin
 As part of the ongoing effort to improve Test Suites, dependency declarations using its nested `dependencies` block are <<jvm_test_suite_plugin.adoc#sec:differences_with_top_level_dependencies, now strongly typed>>.
 This will help make this incubating API more discoverable and easier to use in an IDE.
 
-In some case, this requires syntax changes.
+In some cases, this requires syntax changes.
 For example, build scripts that previously added Test Suite dependencies with the following syntax:
 
 ```kotlin
