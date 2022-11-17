@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.lexer.KtTokens.BLOCK_COMMENT
 import org.jetbrains.kotlin.lexer.KtTokens.CLOSING_QUOTE
 import org.jetbrains.kotlin.lexer.KtTokens.DOC_COMMENT
 import org.jetbrains.kotlin.lexer.KtTokens.DOT
+import org.jetbrains.kotlin.lexer.KtTokens.EOL_COMMENT
 import org.jetbrains.kotlin.lexer.KtTokens.FALSE_KEYWORD
 import org.jetbrains.kotlin.lexer.KtTokens.IDENTIFIER
 import org.jetbrains.kotlin.lexer.KtTokens.LBRACE
@@ -31,7 +32,7 @@ import org.jetbrains.kotlin.lexer.KtTokens.REGULAR_STRING_PART
 import org.jetbrains.kotlin.lexer.KtTokens.RPAR
 import org.jetbrains.kotlin.lexer.KtTokens.SEMICOLON
 import org.jetbrains.kotlin.lexer.KtTokens.TRUE_KEYWORD
-import org.jetbrains.kotlin.lexer.KtTokens.WHITE_SPACE_OR_COMMENT_BIT_SET
+import org.jetbrains.kotlin.lexer.KtTokens.WHITESPACES
 
 
 internal
@@ -54,13 +55,16 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
     start(program.fragment.blockString)
 
     val pluginRequests = mutableListOf<ResidualProgram.PluginRequestSpec>()
-    var pluginId = ""
+    var seenStatementSeparator = false
+    var pluginId: String? = null
     var version: String? = null
     var apply: Boolean? = null
     var state = InterpreterState.START
-    fun newStatement(): InterpreterState {
-        pluginRequests.add(ResidualProgram.PluginRequestSpec(pluginId, version, apply ?: true))
-        pluginId = ""
+    fun newPluginRequest(): InterpreterState {
+        require(pluginId != null) { "newPluginRequest() invoked without a pluginId set" }
+        pluginRequests.add(ResidualProgram.PluginRequestSpec(pluginId!!, version, apply ?: true))
+        seenStatementSeparator = false
+        pluginId = null
         version = null
         apply = null
         state = InterpreterState.ID
@@ -71,16 +75,19 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
 
             BLOCK_COMMENT -> Unit
             DOC_COMMENT -> Unit
+            EOL_COMMENT -> {
+                seenStatementSeparator = true
+            }
 
-            in WHITE_SPACE_OR_COMMENT_BIT_SET -> {
-                // detect newline separators between statements
-                if (state == InterpreterState.AFTER_ID && tokenSequence.contains('\n')) {
-                    newStatement()
+            in WHITESPACES -> {
+                if (tokenSequence.contains('\n')) {
+                    seenStatementSeparator = true
                 }
             }
 
             else -> {
                 when (state) {
+
                     InterpreterState.START -> state = when (tokenType) {
                         LBRACE -> InterpreterState.ID
                         else -> return expecting("{")
@@ -88,11 +95,16 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
 
                     InterpreterState.ID -> state = when (tokenType) {
                         RBRACE -> InterpreterState.END
-                        SEMICOLON -> InterpreterState.ID
-                        IDENTIFIER -> when (tokenText) {
-                            "id" -> InterpreterState.ID_OPEN_CALL
-                            "kotlin" -> InterpreterState.KOTLIN_ID_OPEN_CALL
-                            else -> return expecting("id or kotlin")
+                        SEMICOLON -> InterpreterState.ID.also { if (pluginId != null) newPluginRequest() }
+                        IDENTIFIER -> {
+                            if (pluginId != null && seenStatementSeparator) {
+                                newPluginRequest()
+                            }
+                            when (tokenText) {
+                                "id" -> InterpreterState.ID_OPEN_CALL
+                                "kotlin" -> InterpreterState.KOTLIN_ID_OPEN_CALL
+                                else -> return expecting("id or kotlin")
+                            }
                         }
 
                         else -> return expecting("plugin spec")
@@ -100,17 +112,29 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
 
                     InterpreterState.AFTER_ID -> {
                         state = when (tokenType) {
-                            DOT -> state
-                            SEMICOLON -> newStatement()
-                            RBRACE -> {
-                                newStatement()
-                                InterpreterState.END
-                            }
+                            DOT -> InterpreterState.AFTER_ID
+                            SEMICOLON -> newPluginRequest()
+                            RBRACE -> InterpreterState.END.also { newPluginRequest() }
+                            IDENTIFIER -> {
+                                when (tokenText) {
+                                    "version" -> InterpreterState.VERSION_OPEN_CALL
+                                    "apply" -> InterpreterState.APPLY_OPEN_CALL
+                                    "id" -> {
+                                        if (!seenStatementSeparator) {
+                                            return expecting("<statement separator>")
+                                        }
+                                        InterpreterState.ID_OPEN_CALL.also { if (pluginId != null) newPluginRequest() }
+                                    }
 
-                            IDENTIFIER -> when (tokenText) {
-                                "version" -> InterpreterState.VERSION_OPEN_CALL
-                                "apply" -> InterpreterState.APPLY_OPEN_CALL
-                                else -> return expecting("version or apply")
+                                    "kotlin" -> {
+                                        if (!seenStatementSeparator) {
+                                            return expecting("<statement separator>")
+                                        }
+                                        InterpreterState.KOTLIN_ID_OPEN_CALL.also { if (pluginId != null) newPluginRequest() }
+                                    }
+
+                                    else -> return expecting("version or apply")
+                                }
                             }
 
                             else -> return expecting(";")
@@ -128,11 +152,7 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                     }
 
                     InterpreterState.PLUGIN_ID_STRING -> state = when (tokenType) {
-                        REGULAR_STRING_PART -> {
-                            pluginId = tokenText
-                            InterpreterState.PLUGIN_ID_END
-                        }
-
+                        REGULAR_STRING_PART -> InterpreterState.PLUGIN_ID_END.also { pluginId = tokenText }
                         else -> return expecting("<plugin id string>")
                     }
 
@@ -157,11 +177,7 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                     }
 
                     InterpreterState.KOTLIN_ID_STRING -> state = when (tokenType) {
-                        REGULAR_STRING_PART -> {
-                            pluginId = "org.jetbrains.kotlin.$tokenText"
-                            InterpreterState.KOTLIN_ID_END
-                        }
-
+                        REGULAR_STRING_PART -> InterpreterState.KOTLIN_ID_END.also { pluginId = "org.jetbrains.kotlin.$tokenText" }
                         else -> return expecting("<kotlin plugin module string>")
                     }
 
@@ -171,31 +187,15 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                     }
 
                     InterpreterState.APPLY_OPEN_CALL -> state = when (tokenType) {
-                        FALSE_KEYWORD -> {
-                            apply = false
-                            InterpreterState.AFTER_ID
-                        }
-
-                        TRUE_KEYWORD -> {
-                            apply = true
-                            InterpreterState.AFTER_ID
-                        }
-
+                        FALSE_KEYWORD -> InterpreterState.AFTER_ID.also { apply = false }
+                        TRUE_KEYWORD -> InterpreterState.AFTER_ID.also { apply = true }
                         LPAR -> InterpreterState.APPLY_BOOL_CALL
                         else -> return expecting("(")
                     }
 
                     InterpreterState.APPLY_BOOL_CALL -> state = when (tokenType) {
-                        FALSE_KEYWORD -> {
-                            apply = false
-                            InterpreterState.APPLY_CLOSE_CALL
-                        }
-
-                        TRUE_KEYWORD -> {
-                            apply = true
-                            InterpreterState.APPLY_CLOSE_CALL
-                        }
-
+                        FALSE_KEYWORD -> InterpreterState.APPLY_CLOSE_CALL.also { apply = false }
+                        TRUE_KEYWORD -> InterpreterState.APPLY_CLOSE_CALL.also { apply = true }
                         else -> return expecting("true or false")
                     }
 
@@ -216,11 +216,7 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                     }
 
                     InterpreterState.VERSION_STRING -> state = when (tokenType) {
-                        REGULAR_STRING_PART -> {
-                            version = tokenText
-                            InterpreterState.VERSION_END
-                        }
-
+                        REGULAR_STRING_PART -> InterpreterState.VERSION_END.also { version = tokenText }
                         else -> return expecting("<version string>")
                     }
 
@@ -235,11 +231,7 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                     }
 
                     InterpreterState.VERSION_INFIX_STRING -> state = when (tokenType) {
-                        REGULAR_STRING_PART -> {
-                            version = tokenText
-                            InterpreterState.VERSION_INFIX_END
-                        }
-
+                        REGULAR_STRING_PART -> InterpreterState.VERSION_INFIX_END.also { version = tokenText }
                         else -> return expecting("<version string>")
                     }
 
