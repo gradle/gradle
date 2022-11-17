@@ -148,10 +148,7 @@ ${result.error}
         executer.withStdinPipe()
             .withTasks(tasks)
             .withForceInteractive(true)
-            .withArgument("--info")
             .withArgument("--full-stacktrace")
-            .withArgument("--console")
-            .withArgument("plain")
         if (!withoutContinuousArg) {
             executer.withArgument("--continuous")
         }
@@ -199,7 +196,7 @@ ${result.error}
             }
         }
         if (gradle.isRunning() && !endOfBuildReached) {
-            new JavaProcessStackTracesMonitor(temporaryFolder).printAllStackTracesByJstack()
+            new JavaProcessStackTracesMonitor(temporaryFolder.getTestDirectory()).printAllStackTracesByJstack()
             throw new RuntimeException("""Timeout waiting for build to complete. Output:
 $lastOutput
 
