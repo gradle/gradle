@@ -47,10 +47,11 @@ class ConfigurationRoleSpec extends Specification {
 
         where:
         consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
-        false       | false         | false             | false                 | false                 | false
+        true        | true          | false             | false                 | false                 | false
+        false       | true          | true              | false                 | true                  | false
         true        | true          | true              | true                  | true                  | true
         true        | false         | true              | true                  | false                 | true
-        true        | false         | true              | false                 | true                  | false
+        true        | true          | true              | false                 | true                  | false
     }
 
     def "custom role is named correctly"() {
@@ -63,10 +64,11 @@ class ConfigurationRoleSpec extends Specification {
 
         where:
         consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
-        false       | false         | false             | false                 | false                 | false
+        true        | true          | false             | false                 | false                 | false
+        false       | true          | true              | false                 | true                  | false
         true        | true          | true              | true                  | true                  | true
         true        | false         | true              | true                  | false                 | true
-        true        | false         | true              | false                 | true                  | false
+        true        | true          | true              | false                 | true                  | false
     }
 
     def "custom role can be given custom description"() {
@@ -80,10 +82,11 @@ class ConfigurationRoleSpec extends Specification {
 
         where:
         consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
-        false       | false         | false             | false                 | false                 | false
+        true        | true          | false             | false                 | false                 | false
+        false       | true          | true              | false                 | true                  | false
         true        | true          | true              | true                  | true                  | true
         true        | false         | true              | true                  | false                 | true
-        true        | false         | true              | false                 | true                  | false
+        true        | true          | true              | false                 | true                  | false
     }
 
     def "roles can describe themselves #role"() {
@@ -98,6 +101,21 @@ class ConfigurationRoleSpec extends Specification {
         ConfigurationRoles.INTENDED_BUCKET          || [DECLARABLE_AGAINST]
         ConfigurationRoles.DEPRECATED_CONSUMABLE    || [CONSUMABLE, deprecatedFor(RESOLVABLE), deprecatedFor(DECLARABLE_AGAINST)]
         ConfigurationRoles.DEPRECATED_RESOLVABLE    || [RESOLVABLE, deprecatedFor(CONSUMABLE), deprecatedFor(DECLARABLE_AGAINST)]
+    }
+
+    def "custom role can't deprecate what it doesn't allow"() {
+        when:
+        ConfigurationRole.forUsage(consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated, )
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Cannot create a role that deprecates a usage that is not allowed'
+
+        where:
+        consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
+        false       | false         | false             | true                  | false                 | false
+        false       | false         | false             | false                 | true                  | false
+        false       | false         | false             | false                 | false                 | true
     }
 
     private String deprecatedFor(String usage) {

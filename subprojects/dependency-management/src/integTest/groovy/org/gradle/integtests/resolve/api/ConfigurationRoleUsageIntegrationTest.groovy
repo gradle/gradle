@@ -357,6 +357,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
                 maybeCreateWithRole('implementation', ConfigurationRoles.INTENDED_RESOLVABLE, false, true)
             }
         """
+        executer.expectDocumentedDeprecationWarning("Custom configuration roles are deprecated. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Use one of the standard roles defined in ConfigurationRoles instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#custom_configuration_roles")
 
         expect:
         fails 'help'
@@ -378,6 +379,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
                 maybeCreateWithRole('custom', ConfigurationRoles.INTENDED_RESOLVABLE, false, true)
             }
         """
+        executer.expectDocumentedDeprecationWarning("Custom configuration roles are deprecated. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Use one of the standard roles defined in ConfigurationRoles instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#custom_configuration_roles")
 
         expect:
         fails 'help'
