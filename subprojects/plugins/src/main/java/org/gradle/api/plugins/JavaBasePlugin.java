@@ -254,7 +254,6 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         annotationProcessorConfiguration.setCanBeConsumed(false);
         annotationProcessorConfiguration.setCanBeDeclaredAgainst(true);
         annotationProcessorConfiguration.setCanBeResolved(true);
-        annotationProcessorConfiguration.preventUsageMutation();
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);

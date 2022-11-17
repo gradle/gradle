@@ -160,9 +160,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
                     canBeConsumed = !canBeConsumed
                     canBeResolved = !canBeResolved
                     canBeDeclaredAgainst = !canBeDeclaredAgainst
-                    deprecatedForConsumption = !deprecatedForConsumption
-                    deprecatedForResolution = !deprecatedForResolution
-                    deprecatedForDeclarationAgainst = !deprecatedForDeclarationAgainst
                 }
             }
         """
@@ -204,9 +201,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
                             canBeConsumed = !canBeConsumed
                             canBeResolved = !canBeResolved
                             canBeDeclaredAgainst = !canBeDeclaredAgainst
-                            deprecatedForConsumption = !deprecatedForConsumption
-                            deprecatedForResolution = !deprecatedForResolution
-                            deprecatedForDeclarationAgainst = !deprecatedForDeclarationAgainst
                         }
                     }
                 }
@@ -341,7 +335,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 assert findByName('implementation')
-                assert maybeCreateWithRole('implementation', ConfigurationRoles.LEGACY, false, true)
+                assert maybeCreateWithRole('implementation', ConfigurationRoles.INTENDED_BUCKET, false, true)
             }
         """
 
@@ -429,6 +423,58 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds 'help'
+    }
+
+    def "can update all plugin's configurations with all"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
+
+            plugins {
+                id 'java'
+            }
+
+            configurations {
+                def c1 = createWithRole('c1', ConfigurationRoles.LEGACY)
+                def c2 = createWithRole('c2', ConfigurationRoles.INTENDED_CONSUMABLE)
+                def c3 = createWithRole('c3', ConfigurationRoles.INTENDED_RESOLVABLE)
+                def c4 = createWithRole('c4', ConfigurationRoles.INTENDED_BUCKET)
+                def c5 = createWithRole('c5', ConfigurationRoles.DEPRECATED_CONSUMABLE)
+                def c6 = createWithRole('c6', ConfigurationRoles.DEPRECATED_RESOLVABLE)
+            }
+
+            configurations.all {
+                canBeResolved = !canBeResolved
+                canBeConsumed = !canBeConsumed
+                canBeDeclaredAgainst = !canBeDeclaredAgainst
+            }
+        """
+
+        expect:
+        succeeds 'help'
+    }
+
+    def "locked configuration's usage can not be updated with all"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            configurations {
+                consumable('custom', true)
+            }
+
+            configurations.all {
+                canBeResolved = !canBeResolved
+                canBeConsumed = !canBeConsumed
+                canBeDeclaredAgainst = !canBeDeclaredAgainst
+            }
+        """
+
+        expect:
+        fails 'help'
+        assertUsageLockedFailure('custom', 'Intended Consumable')
     }
     // endregion Role-Based Configurations
 
