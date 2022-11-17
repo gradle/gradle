@@ -27,18 +27,23 @@ import javax.inject.Inject;
 /**
  * Universal APIs that are available for all {@code dependencies} blocks.
  *
- * @apiNote This API is likely to change until it's made stable.
+ * @apiNote This interface is intended to be used to mix-in DSL methods for {@code dependencies} blocks.
+ * @implSpec The default implementation of all methods should not be overridden.
  *
- * @implSpec These methods are not intended to be implemented by end users or plugin authors.
  * @since 7.6
  */
 @Incubating
 public interface Dependencies {
+    // NOTE: Changes to this interface may require changes to the DSL extensions:
+    // See DependenciesExtensionModule for Groovy DSL
+    // See DependenciesExtensions for Kotlin DSL
 
     /**
      * A dependency factory is used to convert supported dependency notations into {@link org.gradle.api.artifacts.Dependency} instances.
      *
      * @return a dependency factory
+     * @implSpec Do not implement this method. Gradle generates the implementation automatically.
+     *
      * @see DependencyFactory
      */
     @Inject
@@ -49,6 +54,7 @@ public interface Dependencies {
      *
      * @return current project
      *
+     * @implSpec Do not implement this method. Gradle generates the implementation automatically.
      * @since 8.0
      */
     @Inject
