@@ -28,6 +28,9 @@ jobs:
             This issue has been automatically marked as stale because it has not had recent activity.
             Given the limited bandwidth of the team, it will be scheduled for a (potentially) final
             review and might be closed afterwards (if no further activity occurs).
+            If you feel this is something you could contribute to, please have a look
+            at our [Contributor Guide](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md).
+            Thank you for your contribution.
           days-before-issue-close: -1
           close-issue-message: >
             This issue has been automatically closed due to inactivity. If you can reproduce this on a
