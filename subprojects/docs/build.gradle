@@ -635,6 +635,8 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*android-app.sample"
             // Umbrella build project contains also Android projects so it requires Java 11+
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects_*_umbrella-build.sample"
+            // This test sets source and target compatibility to 11
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-kotlin-dsl-accessors_*.sample"
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {
