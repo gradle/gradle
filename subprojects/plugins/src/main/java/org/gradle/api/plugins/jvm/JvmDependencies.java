@@ -27,10 +27,9 @@ import javax.inject.Inject;
 /**
  * APIs that are available for {@code dependencies} blocks used by JVM components.
  *
- * @apiNote
- * This API is likely to change until it's made stable.
+ * @apiNote This interface is intended to be used to mix-in methods that expose JVM-ecosystem specific dependencies to the DSL.
+ * @implSpec The default implementation of all methods should not be overridden.
  *
- * @implSpec These methods are not intended to be implemented by end users or plugin authors.
  * @since 8.0
  */
 @Incubating
@@ -39,6 +38,7 @@ public interface JvmDependencies extends Dependencies {
      * Injected service to create named objects.
      *
      * @return injected service
+     * @implSpec Do not implement this method. Gradle generates the implementation automatically.
      */
     @Inject
     ObjectFactory getObjectFactory();
@@ -49,8 +49,6 @@ public interface JvmDependencies extends Dependencies {
      * behaves as a usual project dependency.
      *
      * @return the current project, including implementation details, as a dependency
-     *
-     * @since 8.0
      */
     default ProjectDependency projectInternalView() {
         ProjectDependency currentProject = project();
