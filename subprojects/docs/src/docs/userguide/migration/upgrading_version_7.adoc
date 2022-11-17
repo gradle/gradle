@@ -162,7 +162,7 @@ testing {
 }
 ```
 
-There are other related changes, such as:
+Other syntax effected by this change includes:
 
 - You cannot use `Provider<String>` as a dependency declaration.
 - You cannot use a `Map` as a dependency declaration for Kotlin or Java.
