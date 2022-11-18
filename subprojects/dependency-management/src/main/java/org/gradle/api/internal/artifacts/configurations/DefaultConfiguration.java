@@ -228,7 +228,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean declarationDeprecated = false;
     private boolean usageCanBeMutated = true;
     private final ConfigurationRole roleAtCreation;
-    private boolean warnOnChangingUsage = false; // Will be set to true/removed in Gradle 8.1
+    private boolean warnOnChangingUsage = false; // TODO: This should always be true in Gradle 8.1, and can be removed
 
     private boolean canBeMutated = true;
     private AttributeContainerInternal configurationAttributes;
@@ -1717,9 +1717,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void logChangingUsage(String usage, boolean allowed) {
-        String msgTemplate = "Configuration {} allowed usage is changing: {}. Ideally, usage should be fixed upon creation.";
+        String msgTemplate = "Allowed usage is changing for {}, {}. Ideally, usage should be fixed upon creation.";
         if (warnOnChangingUsage) {
-            LOGGER.warn(msgTemplate, getDisplayName(), describeChangingUsage(usage, allowed));
+            DeprecationLogger.deprecateBehaviour(msgTemplate.replaceFirst("\\{\\}", getDisplayName()).replaceFirst("\\{\\}", describeChangingUsage(usage, allowed)))
+                    .withAdvice("Usage should be fixed upon creation.")
+                    .willBeRemovedInGradle9()
+                    .withUpgradeGuideSection(8, "configurations_allowed_usage")
+                    .nagUser();
         } else {
             LOGGER.info(msgTemplate, getDisplayName(), describeChangingUsage(usage, allowed));
         }
