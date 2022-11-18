@@ -29,7 +29,7 @@ import javax.inject.Inject;
 
 
 /**
- * Dependency modifier APIs available that can find platform and enforced platforms in other modules for {@code dependencies} blocks.
+ * Dependency modifier APIs that can find platform and enforced platforms in other modules for {@code dependencies} blocks.
  *
  * @apiNote This interface is intended to be used to mix-in methods that modify dependencies into the DSL.
  * @implSpec The default implementation of all methods should not be overridden.
