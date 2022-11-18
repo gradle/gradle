@@ -1728,6 +1728,82 @@ All Artifacts:
         stacktrace.contains("The settings are not yet available for build")
     }
 
+    def "locking usage changes prevents #usageName usage changes"() {
+        given:
+        def conf = conf()
+        conf.preventUsageMutation()
+
+        when:
+        changeUsage(conf)
+
+        then:
+        GradleException t = thrown()
+        t.message == "Cannot change the allowed usage of configuration ':conf', as it has been locked."
+
+        where:
+        usageName               | changeUsage
+        'consumable'            | { it.setCanBeConsumed(!it.isCanBeConsumed()) }
+        'resolvable'            | { it.setCanBeResolved(!it.isCanBeResolved()) }
+        'declarable against'    | { it.setCanBeDeclaredAgainst(!it.isCanBeDeclaredAgainst()) }
+    }
+
+    def "locking usage changes prevents #usageName deprecation changes"() {
+        given:
+        def conf = conf()
+        conf.preventUsageMutation()
+
+        when:
+        changeUsage(conf)
+
+        then:
+        GradleException t = thrown()
+        t.message == "Cannot change the allowed usage of configuration ':conf', as it has been locked."
+
+        where:
+        usageName               | changeUsage
+        'consumable'            | { it.setDeprecatedForConsumption(!it.isDeprecatedForConsumption()) }
+        'resolvable'            | { it.setDeprecatedForResolution(!it.isDeprecatedForResolution()) }
+        'declarable against'    | { it.setDeprecatedForDeclarationAgainst(!it.isDeprecatedForDeclarationAgainst()) }
+    }
+
+    def "locking all changes prevents #usageName usage changes"() {
+        given:
+        def conf = conf()
+        conf.preventFromFurtherMutation()
+
+        when:
+        changeUsage(conf)
+
+        then:
+        GradleException t = thrown()
+        t.message == "Cannot change the allowed usage of configuration ':conf', as it has been locked."
+
+        where:
+        usageName               | changeUsage
+        'consumable'            | { it.setCanBeConsumed(!it.isCanBeConsumed()) }
+        'resolvable'            | { it.setCanBeResolved(!it.isCanBeResolved()) }
+        'declarable against'    | { it.setCanBeDeclaredAgainst(!it.isCanBeDeclaredAgainst()) }
+    }
+
+    def "locking all changes prevents #usageName deprecation changes"() {
+        given:
+        def conf = conf()
+        conf.preventFromFurtherMutation()
+
+        when:
+        changeUsage(conf)
+
+        then:
+        GradleException t = thrown()
+        t.message == "Cannot change the allowed usage of configuration ':conf', as it has been locked."
+
+        where:
+        usageName               | changeUsage
+        'consumable'            | { it.setDeprecatedForConsumption(!it.isDeprecatedForConsumption()) }
+        'resolvable'            | { it.setDeprecatedForResolution(!it.isDeprecatedForResolution()) }
+        'declarable against'    | { it.setDeprecatedForDeclarationAgainst(!it.isDeprecatedForDeclarationAgainst()) }
+    }
+
     private DefaultConfiguration configurationWithExcludeRules(ExcludeRule... rules) {
         def config = conf()
         config.setExcludeRules(rules as LinkedHashSet)
