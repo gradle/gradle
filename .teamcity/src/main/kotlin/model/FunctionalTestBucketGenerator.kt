@@ -130,7 +130,6 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             .filter { "UNKNOWN" != it.key }
             .filter { model.subprojects.getSubprojectByName(it.key) != null }
             .map { SubprojectTestClassTime(model.subprojects.getSubprojectByName(it.key)!!, it.value.filter { it.testClassAndSourceSet.sourceSet != "test" }) }
-            .filter { it.subProject.name != "docs" } // we handle docs specially, see `DocsTest.kt`
             .sortedBy { -it.totalTime }
 
         return parallelize(subProjectTestClassTimes, testCoverage) { numberOfBatches ->

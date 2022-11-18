@@ -64,9 +64,9 @@
 					"cli",
 					"build-operations",
 					"normalization-java",
+					"docs",
 					"language-jvm",
-					"tooling-api-builders",
-					"build-option"
+					"tooling-api-builders"
 				]
 			},
 			{
@@ -75,6 +75,7 @@
 				},
 				"subprojects":[
 					"composite-builds",
+					"build-option",
 					"hashing",
 					"execution",
 					"resources-http",
@@ -83,8 +84,7 @@
 					"internal-integ-testing",
 					"snapshots",
 					"resources",
-					"jvm-services",
-					"publish"
+					"jvm-services"
 				]
 			},
 			{
@@ -93,6 +93,7 @@
 				},
 				"subprojects":[
 					"launcher",
+					"publish",
 					"base-services",
 					"process-services",
 					"messaging",
@@ -101,8 +102,7 @@
 					"build-cache",
 					"resources-gcs",
 					"core-api",
-					"resources-sftp",
-					"testing-base"
+					"resources-sftp"
 				]
 			},
 			{
@@ -111,6 +111,7 @@
 				},
 				"subprojects":[
 					"testing-jvm",
+					"testing-base",
 					"tooling-native",
 					"build-events",
 					"wrapper",
@@ -119,8 +120,7 @@
 					"ide-native",
 					"diagnostics",
 					"model-groovy",
-					"signing",
-					"reporting"
+					"signing"
 				]
 			},
 			{
@@ -129,6 +129,7 @@
 				},
 				"subprojects":[
 					"plugin-use",
+					"reporting",
 					"resources-s3",
 					"antlr",
 					"test-kit",
@@ -349,9 +350,9 @@
 					"cli",
 					"build-operations",
 					"normalization-java",
+					"docs",
 					"language-jvm",
-					"tooling-api-builders",
-					"build-option"
+					"tooling-api-builders"
 				]
 			},
 			{
@@ -361,6 +362,7 @@
 				},
 				"subprojects":[
 					"language-java",
+					"build-option",
 					"hashing",
 					"execution",
 					"resources-http",
@@ -369,8 +371,7 @@
 					"internal-integ-testing",
 					"wrapper-shared",
 					"process-services",
-					"resources",
-					"jvm-services"
+					"resources"
 				]
 			},
 			{
@@ -380,6 +381,7 @@
 				},
 				"subprojects":[
 					"maven",
+					"jvm-services",
 					"publish",
 					"base-services",
 					"messaging",
@@ -388,8 +390,7 @@
 					"core-api",
 					"build-cache",
 					"resources-gcs",
-					"build-events",
-					"resources-s3"
+					"build-events"
 				]
 			},
 			{
@@ -399,6 +400,7 @@
 				},
 				"subprojects":[
 					"model-core",
+					"resources-s3",
 					"model-groovy",
 					"build-cache-http",
 					"resources-sftp",
@@ -558,9 +560,9 @@
 					"cli",
 					"build-operations",
 					"normalization-java",
+					"docs",
 					"language-jvm",
-					"tooling-api-builders",
-					"build-option"
+					"tooling-api-builders"
 				]
 			},
 			{
@@ -569,6 +571,7 @@
 				},
 				"subprojects":[
 					"testing-jvm",
+					"build-option",
 					"hashing",
 					"execution",
 					"resources-http",
@@ -577,8 +580,7 @@
 					"wrapper-shared",
 					"resources",
 					"snapshots",
-					"process-services",
-					"base-services"
+					"process-services"
 				]
 			},
 			{
@@ -587,6 +589,7 @@
 				},
 				"subprojects":[
 					"scala",
+					"base-services",
 					"publish",
 					"jvm-services",
 					"messaging",
@@ -595,8 +598,7 @@
 					"tooling-native",
 					"testing-base",
 					"resources-sftp",
-					"resources-gcs",
-					"resources-s3"
+					"resources-gcs"
 				]
 			},
 			{
@@ -605,6 +607,7 @@
 				},
 				"subprojects":[
 					"composite-builds",
+					"resources-s3",
 					"core-api",
 					"build-cache",
 					"build-cache-http",
@@ -613,8 +616,7 @@
 					"build-events",
 					"platform-jvm",
 					"antlr",
-					"signing",
-					"persistent-cache"
+					"signing"
 				]
 			},
 			{
@@ -623,6 +625,7 @@
 				},
 				"subprojects":[
 					"launcher",
+					"persistent-cache",
 					"platform-base",
 					"diagnostics",
 					"language-groovy",
@@ -827,9 +830,9 @@
 					"cli",
 					"build-operations",
 					"normalization-java",
+					"docs",
 					"language-jvm",
-					"tooling-api-builders",
-					"build-option"
+					"tooling-api-builders"
 				]
 			},
 			{
@@ -839,6 +842,7 @@
 				},
 				"subprojects":[
 					"ide",
+					"build-option",
 					"hashing",
 					"execution",
 					"resources-http",
@@ -847,8 +851,7 @@
 					"wrapper-shared",
 					"process-services",
 					"snapshots",
-					"resources",
-					"base-services"
+					"resources"
 				]
 			},
 			{
@@ -858,6 +861,7 @@
 				},
 				"subprojects":[
 					"build-init",
+					"base-services",
 					"build-profile",
 					"publish",
 					"messaging",
@@ -866,8 +870,7 @@
 					"resources-gcs",
 					"ear",
 					"resources-sftp",
-					"tooling-native",
-					"build-cache"
+					"tooling-native"
 				]
 			},
 			{
@@ -877,12 +880,12 @@
 				},
 				"subprojects":[
 					"kotlin-dsl-tooling-builders",
+					"build-cache",
 					"core-api",
 					"reporting",
 					"build-cache-http",
 					"persistent-cache",
-					"resources-s3",
-					"build-events"
+					"resources-s3"
 				]
 			},
 			{
@@ -892,6 +895,7 @@
 				},
 				"subprojects":[
 					"model-core",
+					"build-events",
 					"signing",
 					"platform-jvm",
 					"model-groovy",
@@ -1814,9 +1818,9 @@
 					"build-cache-packaging",
 					"build-operations",
 					"normalization-java",
+					"docs",
 					"language-jvm",
-					"tooling-api-builders",
-					"build-option"
+					"tooling-api-builders"
 				]
 			},
 			{
@@ -1826,6 +1830,7 @@
 				},
 				"subprojects":[
 					"kotlin-dsl-tooling-builders",
+					"build-option",
 					"hashing",
 					"execution",
 					"resources-http",
@@ -1834,8 +1839,7 @@
 					"wrapper-shared",
 					"resources",
 					"process-services",
-					"snapshots",
-					"build-profile"
+					"snapshots"
 				]
 			},
 			{
@@ -1845,6 +1849,7 @@
 				},
 				"subprojects":[
 					"testing-jvm",
+					"build-profile",
 					"publish",
 					"base-services",
 					"jvm-services",
@@ -1853,8 +1858,7 @@
 					"testing-base",
 					"ear",
 					"resources-gcs",
-					"platform-native",
-					"resources-sftp"
+					"platform-native"
 				]
 			},
 			{
@@ -1864,6 +1868,7 @@
 				},
 				"subprojects":[
 					"plugin-use",
+					"resources-sftp",
 					"resources-s3",
 					"build-cache",
 					"core-api",
@@ -1872,8 +1877,7 @@
 					"build-events",
 					"testing-native",
 					"signing",
-					"model-groovy",
-					"persistent-cache"
+					"model-groovy"
 				]
 			},
 			{
@@ -1883,6 +1887,7 @@
 				},
 				"subprojects":[
 					"launcher",
+					"persistent-cache",
 					"platform-jvm",
 					"antlr",
 					"platform-base",
@@ -2483,8 +2488,8 @@
 					"build-cache-packaging",
 					"build-operations",
 					"normalization-java",
-					"language-jvm",
-					"tooling-api-builders"
+					"docs",
+					"language-jvm"
 				]
 			},
 			{
@@ -2494,6 +2499,7 @@
 				},
 				"subprojects":[
 					"plugin-use",
+					"tooling-api-builders",
 					"build-option",
 					"hashing",
 					"execution",
@@ -2502,8 +2508,7 @@
 					"internal-integ-testing",
 					"wrapper-shared",
 					"resources",
-					"snapshots",
-					"publish"
+					"snapshots"
 				]
 			},
 			{
@@ -2513,6 +2518,7 @@
 				},
 				"subprojects":[
 					"testing-jvm",
+					"publish",
 					"base-services",
 					"process-services",
 					"messaging",
@@ -2521,8 +2527,7 @@
 					"ide-native",
 					"ear",
 					"testing-native",
-					"testing-base",
-					"resources-sftp"
+					"testing-base"
 				]
 			},
 			{
@@ -2532,6 +2537,7 @@
 				},
 				"subprojects":[
 					"kotlin-dsl-tooling-builders",
+					"resources-sftp",
 					"platform-native",
 					"resources-gcs",
 					"resources-s3",
@@ -2540,8 +2546,7 @@
 					"build-cache",
 					"build-events",
 					"signing",
-					"model-groovy",
-					"build-cache-http"
+					"model-groovy"
 				]
 			},
 			{
@@ -2551,6 +2556,7 @@
 				},
 				"subprojects":[
 					"language-java",
+					"build-cache-http",
 					"platform-jvm",
 					"antlr",
 					"platform-base",
