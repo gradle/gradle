@@ -63,6 +63,7 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
     var version: String? = null
     var apply: Boolean? = null
     var state = InterpreterState.START
+
     fun newPluginRequest(): InterpreterState {
         require(pluginId != null) { "newPluginRequest() invoked without a pluginId set" }
         pluginRequests.add(ResidualProgram.PluginRequestSpec(pluginId!!, version, apply ?: true))
@@ -73,6 +74,7 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
         state = InterpreterState.ID
         return state
     }
+
     while (tokenType != null) {
         when (tokenType) {
 
@@ -116,16 +118,14 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                             when (tokenText) {
                                 "version" -> InterpreterState.VERSION_OPEN_CALL
                                 "apply" -> InterpreterState.APPLY_OPEN_CALL
-                                "id" -> {
+                                in listOf("id", "kotlin") -> {
                                     if (!seenStatementSeparator) return expecting("<statement separator>")
                                     if (pluginId != null) newPluginRequest()
-                                    InterpreterState.ID_OPEN_CALL
-                                }
-
-                                "kotlin" -> {
-                                    if (!seenStatementSeparator) return expecting("<statement separator>")
-                                    if (pluginId != null) newPluginRequest()
-                                    InterpreterState.KOTLIN_ID_OPEN_CALL
+                                    when (tokenText) {
+                                        "id" -> InterpreterState.ID_OPEN_CALL
+                                        "kotlin" -> InterpreterState.KOTLIN_ID_OPEN_CALL
+                                        else -> return expecting("id or kotlin")
+                                    }
                                 }
 
                                 else -> return expecting("version or apply")
@@ -235,6 +235,8 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                     }
 
                     InterpreterState.END -> return unknown("Unexpected token '$tokenText'")
+
+                    else -> return unknown("Unhandled interpreter state '$state'")
                 }
                 previousTokenType = tokenType
             }
