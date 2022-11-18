@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.internal.properties.StaticValue;
+
 public abstract class AbstractTaskFilePropertyRegistration implements TaskPropertyRegistration {
     private String propertyName;
     private boolean optional;
