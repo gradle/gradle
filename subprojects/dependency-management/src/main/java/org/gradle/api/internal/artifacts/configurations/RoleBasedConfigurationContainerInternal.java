@@ -28,19 +28,25 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
      * using the role of {@link ConfigurationRoles#INTENDED_CONSUMABLE}.
      */
-    ConfigurationInternal consumable(String name, boolean lockRole);
+    default ConfigurationInternal consumable(String name, boolean lockRole) {
+        return createWithRole(name, ConfigurationRoles.INTENDED_CONSUMABLE, lockRole);
+    }
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
      * using the role of {@link ConfigurationRoles#INTENDED_RESOLVABLE}.
      */
-    ConfigurationInternal resolvable(String name, boolean lockRole);
+    default ConfigurationInternal resolvable(String name, boolean lockRole) {
+        return createWithRole(name, ConfigurationRoles.INTENDED_RESOLVABLE, lockRole);
+    }
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
      * using the role of {@link ConfigurationRoles#INTENDED_BUCKET}.
      */
-    ConfigurationInternal bucket(String name, boolean lockRole);
+    default ConfigurationInternal bucket(String name, boolean lockRole) {
+        return createWithRole(name, ConfigurationRoles.INTENDED_BUCKET, lockRole);
+    }
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}

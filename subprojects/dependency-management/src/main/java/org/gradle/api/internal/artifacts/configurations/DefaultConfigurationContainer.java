@@ -158,21 +158,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return reply.toString();
     }
 
-    @Override
-    public ConfigurationInternal consumable(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.INTENDED_CONSUMABLE, lockRole);
-    }
-
-    @Override
-    public ConfigurationInternal resolvable(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.INTENDED_RESOLVABLE, lockRole);
-    }
-
-    @Override
-    public ConfigurationInternal bucket(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.INTENDED_BUCKET, lockRole);
-    }
-
     @SuppressWarnings("deprecation")
     @Override
     public ConfigurationInternal deprecatedConsumable(String name, boolean lockRole) {
