@@ -338,7 +338,7 @@ class EmptyDependenciesResolverFactory(private val fileCollectionFactory: FileCo
     }
 
     override fun computeArtifacts(): Try<ArtifactTransformDependencies> {
-        return Try.successful(DefaultArtifactTransformDependencies(fileCollectionFactory.empty()))
+        return Try.successful(DefaultArtifactTransformDependencies(FileCollectionFactory.empty()))
     }
 }
 

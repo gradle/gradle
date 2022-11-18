@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
+import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 @NonNullApi
@@ -28,6 +29,8 @@ public class TaskPropertyUtils {
      * Visits both properties declared via annotations on the properties of the task type as well as
      * properties declared via the runtime API ({@link org.gradle.api.tasks.TaskInputs} etc.).
      */
+    // TODO Move this to some test fixture like TaskPropertyTestUtils
+    @VisibleForTesting
     public static void visitProperties(PropertyWalker propertyWalker, TaskInternal task, PropertyVisitor visitor) {
         visitProperties(propertyWalker, task, TypeValidationContext.NOOP, visitor);
     }
@@ -53,17 +56,5 @@ public class TaskPropertyUtils {
 
     static void visitAnnotatedProperties(PropertyWalker propertyWalker, TaskInternal task, TypeValidationContext validationContext, PropertyVisitor visitor) {
         propertyWalker.visitProperties(task, validationContext, visitor);
-    }
-
-    /**
-     * Checks if the given string can be used as a property name.
-     *
-     * @throws IllegalArgumentException if given name is an empty string.
-     */
-    public static String checkPropertyName(String propertyName) {
-        if (propertyName.isEmpty()) {
-            throw new IllegalArgumentException("Property name must not be empty string");
-        }
-        return propertyName;
     }
 }

@@ -44,6 +44,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private static boolean traceLoggingEnabled;
 
     private final Set<String> messages = new HashSet<String>();
+    private boolean deprecationsFound = false;
     private UsageLocationReporter locationReporter;
 
     private WarningMode warningMode = WarningMode.Summary;
@@ -62,8 +63,9 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     @Override
     public void featureUsed(DeprecatedFeatureUsage usage) {
-        String featureMessage = usage.formattedMessage();
-        if (messages.add(featureMessage)) {
+        deprecationsFound = true;
+        if (warningMode.shouldDisplayMessages()) {
+            String featureMessage = usage.formattedMessage();
             StringBuilder message = new StringBuilder();
             locationReporter.reportLocation(usage, message);
             if (message.length() > 0) {
@@ -71,12 +73,13 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             }
             message.append(featureMessage);
             appendLogTraceIfNecessary(usage.getStack(), message);
-            if (warningMode.shouldDisplayMessages()) {
-                LOGGER.warn(message.toString());
-            }
-            if (warningMode == WarningMode.Fail) {
-                if (error == null) {
-                    error = new GradleException(WARNING_SUMMARY + " " + DefaultGradleVersion.current().getNextMajorVersion().getVersion());
+            String messageString = message.toString();
+            if (messages.add(messageString)) {
+                LOGGER.warn(messageString);
+                if (warningMode == WarningMode.Fail) {
+                    if (error == null) {
+                        error = new GradleException(WARNING_SUMMARY + " " + DefaultGradleVersion.current().getNextMajorVersion().getVersion());
+                    }
                 }
             }
         }
@@ -92,11 +95,12 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     public void reset() {
         progressEventEmitter = null;
         messages.clear();
+        deprecationsFound = false;
         error = null;
     }
 
     public void reportSuppressedDeprecations() {
-        if (warningMode == WarningMode.Summary && !messages.isEmpty()) {
+        if (warningMode == WarningMode.Summary && deprecationsFound) {
             LOGGER.warn("\n{} {}.\n\nYou can use '--{} {}' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.\n\n{} {}",
                 WARNING_SUMMARY, DefaultGradleVersion.current().getNextMajorVersion().getVersion(),
                 LoggingConfigurationBuildOptions.WarningsOption.LONG_OPTION, WarningMode.All.name().toLowerCase(),

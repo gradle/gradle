@@ -18,10 +18,10 @@ package org.gradle.api.internal.tasks.properties
 
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
 import org.gradle.api.provider.Property
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.InstantiationScheme
+import org.gradle.internal.properties.annotations.PropertyAnnotationHandler
 import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import spock.lang.Specification
@@ -30,7 +30,7 @@ import javax.inject.Inject
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 
-import static org.gradle.internal.reflect.AnnotationCategory.TYPE
+import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE
 
 class InspectionSchemeFactoryTest extends Specification {
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()

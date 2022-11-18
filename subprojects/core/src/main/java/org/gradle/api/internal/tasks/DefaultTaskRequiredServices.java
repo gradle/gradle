@@ -18,13 +18,13 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.bean.PropertyWalker;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
@@ -90,7 +90,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
     }
 
     private void visitServiceReferences(Consumer<Provider<? extends BuildService<?>>> visitor) {
-        TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
+        TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor() {
             @Override
             public void visitServiceReference(String propertyName, boolean optional, PropertyValue value, @Nullable String serviceName) {
                 visitor.accept(Cast.uncheckedCast(value.call()));
