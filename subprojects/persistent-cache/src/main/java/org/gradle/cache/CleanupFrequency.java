@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 @Incubating
 public enum CleanupFrequency {
     /**
-     * Trigger cleanup only once every 24 hours
+     * Trigger cleanup once every 24 hours.
      */
     DAILY() {
         @Override
