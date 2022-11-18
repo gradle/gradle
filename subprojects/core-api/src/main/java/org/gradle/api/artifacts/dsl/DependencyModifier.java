@@ -27,7 +27,7 @@ import org.gradle.api.provider.ProviderConvertible;
 import javax.inject.Inject;
 
 /**
- * A {@code DependencyModifier} is used to modify dependencies to select a different variant.
+ * A {@code DependencyModifier} defines how to modify a dependency inside a custom {@code dependencies} block to select a different variant.
  *
  * @apiNote
  * Gradle has specific extensions to make explicit calls to {@code modify(...)} unnecessary from the DSL.

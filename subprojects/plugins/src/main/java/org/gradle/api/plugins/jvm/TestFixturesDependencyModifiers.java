@@ -28,7 +28,7 @@ import org.gradle.internal.component.external.model.ProjectTestFixtures;
 import org.gradle.internal.component.external.model.TestFixturesSupport;
 
 /**
- * Dependency modifier APIs available that can find test fixtures in other modules for {@code dependencies} blocks.
+ * Dependency modifier APIs that can find test fixtures in other modules for {@code dependencies} blocks.
  *
  * @apiNote This interface is intended to be used to mix-in methods that modify dependencies into the DSL.
  * @implSpec The default implementation of all methods should not be overridden.
