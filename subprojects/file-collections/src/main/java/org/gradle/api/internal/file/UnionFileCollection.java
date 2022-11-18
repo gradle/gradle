@@ -17,6 +17,7 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.Set;
@@ -29,11 +30,13 @@ import java.util.function.Supplier;
 public class UnionFileCollection extends CompositeFileCollection {
     private final ImmutableSet<FileCollectionInternal> source;
 
-    public UnionFileCollection(FileCollectionInternal... source) {
+    public UnionFileCollection(TaskDependencyFactory taskDependencyFactory, FileCollectionInternal... source) {
+        super(taskDependencyFactory);
         this.source = ImmutableSet.copyOf(source);
     }
 
-    public UnionFileCollection(Iterable<? extends FileCollectionInternal> source) {
+    public UnionFileCollection(TaskDependencyFactory taskDependencyFactory, Iterable<? extends FileCollectionInternal> source) {
+        super(taskDependencyFactory);
         this.source = ImmutableSet.copyOf(source);
     }
 
@@ -66,7 +69,7 @@ public class UnionFileCollection extends CompositeFileCollection {
             newSource.add(newCollection);
         }
         if (hasChanges) {
-            return new UnionFileCollection(newSource.build());
+            return new UnionFileCollection(taskDependencyFactory, newSource.build());
         } else {
             return this;
         }

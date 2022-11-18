@@ -13,6 +13,9 @@ import configurations.BaseGradleBuildType
 import configurations.BuildDistributions
 import configurations.CheckLinks
 import configurations.CompileAll
+import configurations.DocsTestType
+import configurations.DocsTestType.CONFIG_CACHE_DISABLED
+import configurations.DocsTestType.CONFIG_CACHE_ENABLED
 import configurations.FlakyTestQuarantine
 import configurations.FunctionalTest
 import configurations.Gradleception
@@ -87,8 +90,8 @@ data class CIBuildModel(
                 TestCoverage(20, TestType.configCache, Os.LINUX, JvmCategory.MIN_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
             ),
             docsTests = listOf(
-                DocsTestCoverage(Os.LINUX, JvmCategory.MAX_VERSION, true),
-                DocsTestCoverage(Os.WINDOWS, JvmCategory.MAX_VERSION, false),
+                DocsTestCoverage(Os.LINUX, JvmCategory.MAX_VERSION, listOf(CONFIG_CACHE_ENABLED, CONFIG_CACHE_DISABLED)),
+                DocsTestCoverage(Os.WINDOWS, JvmCategory.MAX_VERSION, listOf(CONFIG_CACHE_DISABLED)),
             )
         ),
         Stage(
@@ -129,7 +132,7 @@ data class CIBuildModel(
                 TestCoverage(36, TestType.platform, Os.MACOS, JvmCategory.MAX_LTS_VERSION, expectedBucketNumber = 20, arch = Arch.AARCH64)
             ),
             docsTests = listOf(
-                DocsTestCoverage(Os.MACOS, JvmCategory.MAX_VERSION, false),
+                DocsTestCoverage(Os.MACOS, JvmCategory.MAX_VERSION, listOf(CONFIG_CACHE_DISABLED)),
             ),
             performanceTests = slowPerformanceTestCoverages,
             performanceTestPartialTriggers = listOf(PerformanceTestPartialTrigger("All Performance Tests", "AllPerformanceTests", performanceRegressionTestCoverages + slowPerformanceTestCoverages))
@@ -211,7 +214,7 @@ data class Stage(
     val id = stageName.id
 }
 
-data class DocsTestCoverage(val os: Os, val testJava: JvmCategory, val configCacheEnabled: Boolean)
+data class DocsTestCoverage(val os: Os, val testJava: JvmCategory, val docsTestTypes: List<DocsTestType>)
 
 data class TestCoverage(
     val uuid: Int,

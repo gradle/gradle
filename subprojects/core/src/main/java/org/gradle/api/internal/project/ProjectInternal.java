@@ -34,6 +34,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -48,6 +49,7 @@ import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.util.Path;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
@@ -149,6 +151,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     FileResolver getFileResolver();
 
+    TaskDependencyFactory getTaskDependencyFactory();
+
     @UsedByScanPlugin("scan, test-retry")
     ServiceRegistry getServices();
 
@@ -181,6 +185,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      * Returns a unique path for this project within its containing build.
      */
     @Override
+    @Nonnull
     Path getProjectPath();
 
     /**

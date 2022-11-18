@@ -16,62 +16,23 @@
 
 package org.gradle.internal.execution.history.changes;
 
-import com.google.common.annotations.VisibleForTesting;
+import org.gradle.internal.RelativePathSupplier;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
+import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.MissingFileSnapshot;
-import org.gradle.internal.snapshot.RootTrackingFileSystemSnapshotHierarchyVisitor;
-import org.gradle.internal.snapshot.SnapshotUtil;
+import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.function.BiFunction;
+
+import static org.gradle.internal.execution.history.changes.AbstractFingerprintCompareStrategy.FINGERPRINT_CHANGE_FACTORY;
 
 public class OutputFileChanges implements ChangeContainer {
-
-    private static final CompareStrategy.ChangeFactory<FileSystemLocationSnapshot> SNAPSHOT_CHANGE_FACTORY = new CompareStrategy.ChangeFactory<FileSystemLocationSnapshot>() {
-        @Override
-        public Change added(String path, String propertyTitle, FileSystemLocationSnapshot current) {
-            return new DescriptiveChange("Output property '%s' file %s has been added.", propertyTitle, path);
-        }
-
-        @Override
-        public Change removed(String path, String propertyTitle, FileSystemLocationSnapshot previous) {
-            return new DescriptiveChange("Output property '%s' file %s has been removed.", propertyTitle, path);
-        }
-
-        @Override
-        public Change modified(String path, String propertyTitle, FileSystemLocationSnapshot previous, FileSystemLocationSnapshot current) {
-            return new DescriptiveChange("Output property '%s' file %s has changed.", propertyTitle, path);
-        }
-    };
-
-    private static final TrivialChangeDetector.ItemComparator<FileSystemLocationSnapshot> SNAPSHOT_COMPARATOR = new TrivialChangeDetector.ItemComparator<FileSystemLocationSnapshot>() {
-        @Override
-        public boolean hasSamePath(FileSystemLocationSnapshot previous, FileSystemLocationSnapshot current) {
-            return previous.getAbsolutePath().equals(current.getAbsolutePath());
-        }
-
-        @Override
-        public boolean hasSameContent(FileSystemLocationSnapshot previous, FileSystemLocationSnapshot current) {
-            return previous.isContentUpToDate(current);
-        }
-    };
-
-    @VisibleForTesting
-    static final CompareStrategy<FileSystemSnapshot, FileSystemLocationSnapshot> COMPARE_STRATEGY = new CompareStrategy<>(
-        OutputFileChanges::index,
-        SnapshotUtil::getRootHashes,
-        new TrivialChangeDetector<>(
-            SNAPSHOT_COMPARATOR,
-            SNAPSHOT_CHANGE_FACTORY,
-            new AbsolutePathChangeDetector<>(
-                FileSystemLocationSnapshot::isContentUpToDate,
-                SNAPSHOT_CHANGE_FACTORY
-            )
-        )
-    );
 
     private final SortedMap<String, FileSystemSnapshot> previous;
     private final SortedMap<String, FileSystemSnapshot> current;
@@ -96,23 +57,116 @@ public class OutputFileChanges implements ChangeContainer {
 
             @Override
             public boolean updated(String property, FileSystemSnapshot previous, FileSystemSnapshot current) {
-                return COMPARE_STRATEGY.visitChangesSince(previous, current, property, visitor);
+                String propertyTitle = "Output property '" + property + "'";
+                return visitChangesSince(previous, current, propertyTitle, visitor);
             }
         });
     }
 
-    private static Map<String, FileSystemLocationSnapshot> index(FileSystemSnapshot snapshot) {
-        Map<String, FileSystemLocationSnapshot> index = new LinkedHashMap<>();
-        snapshot.accept(new RootTrackingFileSystemSnapshotHierarchyVisitor() {
-            @Override
-            public SnapshotVisitResult visitEntry(FileSystemLocationSnapshot snapshot, boolean isRoot) {
-                // Remove missing roots so they show up as added/removed instead of changed
-                if (!(isRoot && snapshot instanceof MissingFileSnapshot)) {
-                    index.put(snapshot.getAbsolutePath(), snapshot);
+    public boolean visitChangesSince(FileSystemSnapshot previous, FileSystemSnapshot current, String propertyTitle, ChangeVisitor visitor) {
+        if (previous == current) {
+            return true;
+        }
+        if (previous == FileSystemSnapshot.EMPTY) {
+            return visitAllChanges(current, visitor, (relativePath, snapshot) -> FINGERPRINT_CHANGE_FACTORY.added(
+                snapshot.getAbsolutePath(),
+                propertyTitle,
+                createFingerprint(relativePath, snapshot)
+            ));
+        } else if (current == FileSystemSnapshot.EMPTY) {
+            return visitAllChanges(previous, visitor, (relativePath, snapshot) -> FINGERPRINT_CHANGE_FACTORY.removed(
+                snapshot.getAbsolutePath(),
+                propertyTitle,
+                createFingerprint(relativePath, snapshot)
+            ));
+        } else {
+            FileSystemLocationSnapshot previousSnapshot = (FileSystemLocationSnapshot) previous;
+            FileSystemLocationSnapshot currentSnapshot = (FileSystemLocationSnapshot) current;
+            if (previousSnapshot.getHash().equals(currentSnapshot.getHash())) {
+                return true;
+            } else if (currentSnapshot.getType() != FileType.Directory || previousSnapshot.getType() != FileType.Directory) {
+                // The hash is different and one of the two snapshots is not a directory falls into cases:
+                // 1. The type of the snapshot is different.
+                // 2. The content hash of a regular file changed.
+                // In any case, the root needs to be reported as changed:
+                if (visitor.visitChange(FINGERPRINT_CHANGE_FACTORY.modified(
+                    currentSnapshot.getAbsolutePath(),
+                    propertyTitle,
+                    createRootFingerprint(previousSnapshot),
+                    createRootFingerprint(currentSnapshot)
+                ))) {
+                    // Only one of the types will be a directory, so we now need to report all children of the other one.
+                    if (visitAllChildChanges(previousSnapshot, visitor, (relativePath, snapshot) -> FINGERPRINT_CHANGE_FACTORY.removed(
+                        snapshot.getAbsolutePath(),
+                        propertyTitle,
+                        createFingerprint(relativePath, snapshot)
+                    ))) {
+                        return visitAllChildChanges(currentSnapshot, visitor, (relativePath, snapshot) -> FINGERPRINT_CHANGE_FACTORY.added(
+                            snapshot.getAbsolutePath(),
+                            propertyTitle,
+                            createFingerprint(relativePath, snapshot)
+                        ));
+                    }
                 }
+                return false;
+            }
+        }
+
+        Map<String, FileSystemLocationFingerprint> previousFingerprint = collectFingerprints(previous);
+        Map<String, FileSystemLocationFingerprint> currentFingerprint = collectFingerprints(current);
+
+        return NormalizedPathChangeDetector.INSTANCE.visitChangesSince(
+            previousFingerprint,
+            currentFingerprint,
+            propertyTitle,
+            visitor);
+    }
+
+    private static boolean visitAllChanges(FileSystemSnapshot root, ChangeVisitor visitor, BiFunction<RelativePathSupplier, FileSystemLocationSnapshot, Change> changeFactory) {
+        return root.accept(new RelativePathTracker(), (snapshot, relativePath) -> {
+            boolean shouldContinue = visitor.visitChange(
+                changeFactory.apply(relativePath, snapshot)
+            );
+            return shouldContinue ? SnapshotVisitResult.CONTINUE : SnapshotVisitResult.TERMINATE;
+        }) == SnapshotVisitResult.CONTINUE;
+    }
+
+    private static boolean visitAllChildChanges(FileSystemSnapshot root, ChangeVisitor visitor, BiFunction<RelativePathSupplier, FileSystemLocationSnapshot, Change> changeFactory) {
+        return root.accept(new RelativePathTracker(), (snapshot, relativePath) -> {
+            if (relativePath.isRoot()) {
                 return SnapshotVisitResult.CONTINUE;
             }
-        });
-        return index;
+            boolean shouldContinue = visitor.visitChange(
+                changeFactory.apply(relativePath, snapshot)
+            );
+            return shouldContinue ? SnapshotVisitResult.CONTINUE : SnapshotVisitResult.TERMINATE;
+        }) == SnapshotVisitResult.CONTINUE;
+    }
+
+    private static Map<String, FileSystemLocationFingerprint> collectFingerprints(FileSystemSnapshot roots) {
+        Map<String, FileSystemLocationFingerprint> result = new LinkedHashMap<>();
+        roots.accept(new RelativePathTracker(),
+            (snapshot, relativePath) -> {
+                result.put(snapshot.getAbsolutePath(), createFingerprint(relativePath, snapshot));
+                return SnapshotVisitResult.CONTINUE;
+            }
+        );
+        return result;
+    }
+
+    private static DefaultFileSystemLocationFingerprint createFingerprint(RelativePathSupplier relativePath, FileSystemLocationSnapshot snapshot) {
+        return createFingerprint(relativePath.toRelativePath(), snapshot);
+    }
+
+    private static DefaultFileSystemLocationFingerprint createRootFingerprint(FileSystemLocationSnapshot snapshot) {
+        return createFingerprint("", snapshot);
+    }
+
+    private static DefaultFileSystemLocationFingerprint createFingerprint(String relativePath, FileSystemLocationSnapshot snapshot) {
+        return new DefaultFileSystemLocationFingerprint(
+            relativePath,
+            snapshot.getType(),
+            snapshot.getHash()
+        );
     }
 }

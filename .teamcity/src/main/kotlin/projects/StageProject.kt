@@ -107,7 +107,7 @@ class StageProject(
             }
         }
 
-        val docsTestProjects = stage.docsTests.map { DocsTestProject(model, stage, it.os, it.testJava, it.configCacheEnabled) }
+        val docsTestProjects = stage.docsTests.map { DocsTestProject(model, stage, it.os, it.testJava, it.docsTestTypes) }
         docsTestProjects.forEach(this::subProject)
         docsTestTriggers = docsTestProjects.map { DocsTestTrigger(model, it) }
         docsTestTriggers.forEach(this::buildType)

@@ -114,6 +114,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
     private
     fun splitBucketsByTestClassesForBuildProject(testCoverage: TestCoverage, buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes): List<SmallSubprojectBucket> {
         val validSubprojects = model.subprojects.getSubprojectsForFunctionalTest(testCoverage)
+
         // Build project not found, don't split into buckets
         val subProjectToClassTimes: MutableMap<String, List<TestClassTime>> =
             determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap() ?: return validSubprojects.map { SmallSubprojectBucket(it, ParallelizationMethod.None) }

@@ -55,12 +55,9 @@ dependencies {
 }
 
 task resolve {
+    def files = configurations.conf
     doLast {
-        delete 'libs'
-        copy {
-            from configurations.conf
-            into 'libs'
-        }
+        files.forEach { }
     }
 }
 """
@@ -70,7 +67,6 @@ task resolve {
         then:
         outputContains('AssertingRule executed')
         outputDoesNotContain('Resource action executed')
-
     }
 
     def 'can inject and use RepositoryResourceAccessor for ivy local repo'() {
@@ -108,12 +104,9 @@ dependencies {
 }
 
 task resolve {
+    def files = configurations.conf
     doLast {
-        delete 'libs'
-        copy {
-            from configurations.conf
-            into 'libs'
-        }
+        files.forEach { }
     }
 }
 """
@@ -160,12 +153,9 @@ dependencies {
 }
 
 task resolve {
+    def files = configurations.conf
     doLast {
-        delete 'libs'
-        copy {
-            from configurations.conf
-            into 'libs'
-        }
+        files.forEach { }
     }
 }
 """

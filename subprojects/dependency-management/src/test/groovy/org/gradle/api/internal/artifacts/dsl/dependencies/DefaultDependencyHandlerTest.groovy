@@ -38,6 +38,7 @@ import org.gradle.api.internal.artifacts.VariantTransformRegistry
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.Factory
@@ -88,7 +89,7 @@ class DefaultDependencyHandlerTest extends Specification {
 
         when:
         def result = dependencyHandler.add(TEST_CONF_NAME, "someNotation") {
-            force = true
+            because 'It is necessary'
         }
 
         then:
@@ -96,7 +97,7 @@ class DefaultDependencyHandlerTest extends Specification {
 
         and:
         1 * dependencyFactory.createDependency("someNotation") >> dependency
-        1 * dependency.setForce(true)
+        1 * dependency.because('It is necessary')
         1 * dependencySet.add(dependency)
     }
 
@@ -118,7 +119,6 @@ class DefaultDependencyHandlerTest extends Specification {
 
         when:
         def result = dependencyHandler.create("someNotation") {
-            force = true
             version {
                 it.require '1.0'
             }
@@ -129,7 +129,6 @@ class DefaultDependencyHandlerTest extends Specification {
 
         and:
         1 * dependencyFactory.createDependency("someNotation") >> dependency
-        1 * dependency.setForce(true)
         1 * dependency.version(_ as Action<VersionConstraint>)
     }
 
@@ -152,7 +151,7 @@ class DefaultDependencyHandlerTest extends Specification {
         ExternalDependency dependency = Mock()
 
         when:
-        def result = dependencyHandler.someConf("someNotation") { force = true }
+        def result = dependencyHandler.someConf("someNotation") { because "It's really important" }
 
         then:
         result == dependency
@@ -160,7 +159,7 @@ class DefaultDependencyHandlerTest extends Specification {
         and:
         1 * dependencyFactory.createDependency("someNotation") >> dependency
         1 * dependencySet.add(dependency)
-        1 * dependency.setForce(true)
+        1 * dependency.because("It's really important")
     }
 
     void "can use dynamic method to add multiple dependencies"() {
@@ -364,9 +363,9 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "local platform dependencies are endorsing"() {
-        ModuleDependency dep1 = new DefaultProjectDependency(null, null, false)
+        ModuleDependency dep1 = new DefaultProjectDependency(null, null, false, TestFiles.taskDependencyFactory())
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
-        ModuleDependency dep2 = new DefaultProjectDependency(null, null, false)
+        ModuleDependency dep2 = new DefaultProjectDependency(null, null, false, TestFiles.taskDependencyFactory())
         dep2.attributesFactory = AttributeTestUtil.attributesFactory()
 
         when:
@@ -400,7 +399,7 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "local platform dependency can be made non-endorsing"() {
-        ModuleDependency dep1 = new DefaultProjectDependency(null, null, false)
+        ModuleDependency dep1 = new DefaultProjectDependency(null, null, false, TestFiles.taskDependencyFactory())
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
 
         when:
