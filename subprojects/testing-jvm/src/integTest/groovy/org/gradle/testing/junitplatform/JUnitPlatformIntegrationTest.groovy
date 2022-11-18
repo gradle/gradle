@@ -26,18 +26,6 @@ import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 import static org.hamcrest.CoreMatchers.containsString
 
 class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
-    void createSimpleJupiterTest() {
-        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
-            package org.gradle;
-
-            import org.junit.jupiter.api.Test;
-
-            public class JUnitJupiterTest {
-                @Test
-                public void ok() { }
-            }
-            '''
-    }
 
     def 'can work with junit-platform-runner'() {
         given:
@@ -408,49 +396,5 @@ public class StaticInnerTest {
         scenario       | extraArgs
         "w/o filters"  | []
         "with filters" | ['--tests', 'JUnitJupiterTest']
-    }
-
-    def "creates LauncherSession before loading test classes"() {
-        given:
-        createSimpleJupiterTest()
-        buildFile << """
-            dependencies {
-                testImplementation 'org.junit.platform:junit-platform-launcher:${LATEST_PLATFORM_VERSION}'
-            }
-            test {
-                testLogging {
-                    showStandardStreams = true
-                }
-            }
-        """
-        file('src/test/java/NoisyLauncherSessionListener.java') << '''
-            import org.junit.platform.launcher.*;
-            public class NoisyLauncherSessionListener implements LauncherSessionListener {
-                @Override public void launcherSessionOpened(LauncherSession session) {
-                    System.out.println("launcherSessionOpened");
-                    Thread thread = Thread.currentThread();
-                    ClassLoader parent = thread.getContextClassLoader();
-                    ClassLoader replacement = new ClassLoader(parent) {
-                        @Override protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-                            System.out.println("Loading class " + name);
-                            return super.loadClass(name, resolve);
-                        }
-                    };
-                    thread.setContextClassLoader(replacement);
-                }
-                @Override public void launcherSessionClosed(LauncherSession session) {
-                    System.out.println("launcherSessionClosed");
-                }
-            }
-        '''
-        file('src/test/resources/META-INF/services/org.junit.platform.launcher.LauncherSessionListener') << '''\
-            NoisyLauncherSessionListener
-        '''.stripIndent(true)
-
-        expect:
-        succeeds('test')
-        outputContains('launcherSessionOpened')
-        outputContains('Loading class org.gradle.JUnitJupiterTest')
-        outputContains('launcherSessionClosed')
     }
 }
