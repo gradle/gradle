@@ -64,8 +64,8 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
 
         then:
         def e = thrown(TaskExecutionException)
-        assertMatchingCause(e, /Toolchain installation '${invalidJavac.parentFile.parentFile.absolutePath}' could not be probed: .*/)
-        assertMatchingCause(e, /Cannot run program .*java.*/)
+        assertHasMatchingCause(e, m -> m.startsWith("Toolchain installation '${invalidJavac.parentFile.parentFile.absolutePath}' could not be probed:"))
+        assertHasMatchingCause(e, m -> m ==~ /Cannot run program .*java.*/)
     }
 
     def "fails if custom Java home does not exist"() {
@@ -114,7 +114,7 @@ class JavaExecTest extends AbstractProjectBuilderSpec {
 
         then:
         def e = thrown(AbstractProperty.PropertyQueryException)
-        assertMatchingCause(e, /Toolchain installation '${javaHomeDir.absolutePath}' could not be probed: .*/)
-        assertMatchingCause(e, /Cannot run program .*java.*/)
+        assertHasMatchingCause(e, m -> m.startsWith("Toolchain installation '${javaHomeDir.absolutePath}' could not be probed:"))
+        assertHasMatchingCause(e, m -> m ==~ /Cannot run program .*java.*/)
     }
 }
