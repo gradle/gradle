@@ -1,0 +1,8 @@
+compileClasspath - Compile classpath for source set 'main'.
++--- org.springframework.boot:spring-boot-dependencies:1.5.8.RELEASE
+|    +--- com.google.code.gson:gson:2.8.2 (c)
+|    +--- dom4j:dom4j:1.6.1 (c)
+|    \--- xml-apis:xml-apis:1.4.01 (c)
++--- com.google.code.gson:gson -> 2.8.2
+\--- dom4j:dom4j -> 1.6.1
+     \--- xml-apis:xml-apis:1.0.b2 -> 1.4.01
