@@ -39,7 +39,7 @@ public enum CleanupFrequency {
         }
     },
     /**
-     * Disable cleanup completely
+     * Disable cleanup completely.
      */
     NEVER() {
         @Override
