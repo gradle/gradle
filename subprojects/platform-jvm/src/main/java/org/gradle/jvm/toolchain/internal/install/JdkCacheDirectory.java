@@ -132,10 +132,17 @@ public class JdkCacheDirectory {
         }
 
         File installFolder = new File(jdkDirectory, toDirectoryName(metadata));
+
+        //make sure the install folder is not already populated with something
+        operations.delete(installFolder);
+
+        //copy to install folder
         operations.copy(copySpec -> {
             copySpec.from(unpackFolder);
             copySpec.into(installFolder);
         });
+
+        //remove temporary unpack folder
         operations.delete(unpackFolder);
 
         LOGGER.info("Installed toolchain from {} into {}", uri, installFolder);
