@@ -158,7 +158,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         }
     }
 
-    public static class InvalidValue implements PropertyValue {
+    private static class InvalidValue implements PropertyValue {
         private final Exception exception;
 
         public InvalidValue(Exception exception) {
