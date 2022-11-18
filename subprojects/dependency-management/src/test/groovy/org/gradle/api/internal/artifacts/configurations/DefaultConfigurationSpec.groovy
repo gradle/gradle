@@ -1804,6 +1804,32 @@ All Artifacts:
         'declarable against'    | { it.setDeprecatedForDeclarationAgainst(!it.isDeprecatedForDeclarationAgainst()) }
     }
 
+    def "can unallow deprecation usage"() {
+        given:
+        def conf = conf()
+        conf.setCanBeConsumed(true)
+        conf.setCanBeResolved(true)
+        conf.setCanBeDeclaredAgainst(true)
+        conf.setDeprecatedForConsumption(true)
+        conf.setDeprecatedForResolution(true)
+        conf.setDeprecatedForDeclarationAgainst(true)
+
+        then:
+        assert conf.isDeprecatedForConsumption()
+        assert conf.isDeprecatedForResolution()
+        assert conf.isDeprecatedForDeclarationAgainst()
+
+        when:
+        conf.setDeprecatedForConsumption(false)
+        conf.setDeprecatedForResolution(false)
+        conf.setDeprecatedForDeclarationAgainst(false)
+
+        then:
+        assert !conf.isDeprecatedForConsumption()
+        assert !conf.isDeprecatedForResolution()
+        assert !conf.isDeprecatedForDeclarationAgainst()
+    }
+
     private DefaultConfiguration configurationWithExcludeRules(ExcludeRule... rules) {
         def config = conf()
         config.setExcludeRules(rules as LinkedHashSet)
