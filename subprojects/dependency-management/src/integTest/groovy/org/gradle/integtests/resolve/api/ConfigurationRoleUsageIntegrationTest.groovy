@@ -427,14 +427,10 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
-    def "can update all plugin's configurations with all"() {
+    def "can update all plugins' configurations with all"() {
         given:
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
-
-            plugins {
-                id 'java'
-            }
 
             configurations {
                 def c1 = createWithRole('c1', ConfigurationRoles.LEGACY)
@@ -456,13 +452,9 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
-    def "locked configuration's usage can not be updated with all"() {
+    def "locked configurations' usage can not be updated with all"() {
         given:
         buildFile << """
-            plugins {
-                id 'java'
-            }
-
             configurations {
                 consumable('custom', true)
             }
@@ -479,6 +471,24 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         assertUsageLockedFailure('custom', 'Intended Consumable')
     }
     // endregion Role-Based Configurations
+
+    // region Logging
+    def "changing usage is logged as deprecation if requested for #usageName"() {
+        given:
+        buildFile << """
+            configurations {
+                def custom = consumable('custom')
+                assert !custom.canBeResolved
+                custom.setWarnOnChangingUsage(true)
+                custom.canBeResolved = true
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':custom', resolvable was false and is now true. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        succeeds 'help'
+    }
+    // endregion Logging
 
     // region Custom Roles
     def "can create configuration with custom role"() {
