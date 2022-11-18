@@ -36,17 +36,19 @@ import javax.inject.Inject;
  * <li>For Kotlin DSL, we create {@code invoke(...)} equivalents for all the {@code modify(...)} methods.</li>
  * </ul>
  *
- * @implSpec The default implementation of all methods should not be overridden; however, {@link #modify(ModuleDependency)} must be implemented.
+ * @implSpec The default implementation of all methods should not be overridden except {@link #modify(ModuleDependency)}. This method must be implemented.
+ *
+ * @implNote All other implementations of {@code modify(...)} delegate to {@link #modify(ModuleDependency)}.
+ * <p>
+ * Changes to this interface may require changes to the
+ * {@link org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule extension module for Groovy DSL} or
+ * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL}.
  *
  * @since 8.0
  */
 @Incubating
 @NonExtensible
 public interface DependencyModifier {
-    // NOTE: Changes to this interface may require changes to the DSL extensions:
-    // See DependenciesExtensionModule for Groovy DSL
-    // See DependenciesExtensions for Kotlin DSL
-
     /**
      * A dependency factory is used to convert supported dependency notations into {@link org.gradle.api.artifacts.Dependency} instances.
      *
@@ -97,7 +99,6 @@ public interface DependencyModifier {
      * @return the modified dependency
      * @param <D> the type of the {@link ModuleDependency}
      * @implSpec This method must be implemented.
-     * @implNote All other implementations of {@code modify(...)} delegate to this method.
      */
     <D extends ModuleDependency> D modify(D dependency);
 }

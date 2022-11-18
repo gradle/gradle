@@ -31,15 +31,15 @@ import javax.inject.Inject;
  *
  * @apiNote This interface is intended to be used to mix-in DSL methods for {@code dependencies} blocks.
  * @implSpec The default implementation of all methods should not be overridden.
+ * @implNote
+ * Changes to this interface may require changes to the
+ * {@link org.gradle.api.internal.artifacts.dsl.dependencies.DependenciesExtensionModule extension module for Groovy DSL} or
+ * {@link org.gradle.kotlin.dsl.DependenciesExtensions extension functions for Kotlin DSL}.
  *
  * @since 7.6
  */
 @Incubating
 public interface Dependencies {
-    // NOTE: Changes to this interface may require changes to the DSL extensions:
-    // See DependenciesExtensionModule for Groovy DSL
-    // See DependenciesExtensions for Kotlin DSL
-
     /**
      * A dependency factory is used to convert supported dependency notations into {@link org.gradle.api.artifacts.Dependency} instances.
      *
