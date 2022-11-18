@@ -37,7 +37,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -53,7 +52,6 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final TypeAnnotationMetadataStore typeAnnotationMetadataStore;
     private final PropertyTypeResolver propertyTypeResolver;
     private final String displayName;
-    private final Function<Class<?>, TypeMetadata> typeMetadataFactory = this::createTypeMetadata;
 
     public DefaultTypeMetadataStore(
         Collection<? extends TypeAnnotationHandler> typeAnnotationHandlers,
@@ -82,7 +80,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
     @Override
     public <T> TypeMetadata getTypeMetadata(Class<T> type) {
-        return cache.get(type, typeMetadataFactory);
+        return cache.get(type, this::createTypeMetadata);
     }
 
     private <T> TypeMetadata createTypeMetadata(Class<T> type) {
