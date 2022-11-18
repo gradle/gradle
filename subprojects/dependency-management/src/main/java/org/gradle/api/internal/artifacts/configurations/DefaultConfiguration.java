@@ -1469,8 +1469,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         if (type == MutationType.DEPENDENCY_ATTRIBUTES) {
             assertIsDeclarableAgainst();
             return;
-        } else if (type == MutationType.USAGE) {
-            assertUsageIsMutable();
         }
 
         InternalState resolvedState = currentResolveState.get().state;
@@ -1488,6 +1486,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 String extraMessage = insideBeforeResolve ? " Use 'defaultDependencies' instead of 'beforeResolve' to specify default dependencies for a configuration." : "";
                 throw new InvalidUserDataException(String.format("Cannot change %s of dependency %s after it has been included in dependency resolution.%s", type, getDisplayName(), extraMessage));
             }
+        }
+
+        if (type == MutationType.USAGE) {
+            assertUsageIsMutable();
         }
     }
 
