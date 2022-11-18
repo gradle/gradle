@@ -45,7 +45,7 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
         propertyMetadata.getAnnotation(ServiceReference.class).ifPresent(annotation -> {
             String serviceName = StringUtils.trimToNull(annotation.value());
             visitor.visitServiceReference(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, serviceName);
