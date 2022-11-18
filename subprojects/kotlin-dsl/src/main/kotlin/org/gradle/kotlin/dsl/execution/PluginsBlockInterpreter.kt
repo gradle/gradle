@@ -60,15 +60,23 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
     val pluginRequests = mutableListOf<ResidualProgram.PluginRequestSpec>()
     var seenStatementSeparator = false
     var pluginId: String? = null
+    val aliasReferenceFragments = mutableListOf<String>()
     var version: String? = null
     var apply: Boolean? = null
     var state = InterpreterState.START
 
     fun newPluginRequest(): InterpreterState {
-        require(pluginId != null) { "newPluginRequest() invoked without a pluginId set" }
-        pluginRequests.add(ResidualProgram.PluginRequestSpec(pluginId!!, version, apply ?: true))
+        if (pluginId != null) {
+            require(aliasReferenceFragments.isEmpty()) { "newPluginRequest() invoked with both pluginId and alias reference" }
+            pluginRequests.add(ResidualProgram.PluginRequestSpec(pluginId!!, version, apply ?: true))
+        } else if (aliasReferenceFragments.isNotEmpty()) {
+            TODO("ALIAS FROM DEPENDENCY CATALOG")
+        } else {
+            throw IllegalStateException("newPluginRequest() invoked with no pluginId nor alias reference")
+        }
         seenStatementSeparator = false
         pluginId = null
+        aliasReferenceFragments.clear()
         version = null
         apply = null
         state = InterpreterState.ID
@@ -99,6 +107,7 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                             when (tokenText) {
                                 "id" -> InterpreterState.ID_OPEN_CALL
                                 "kotlin" -> InterpreterState.KOTLIN_ID_OPEN_CALL
+                                "alias" -> InterpreterState.ALIAS_OPEN_CALL
                                 else -> return expecting("id or kotlin")
                             }
                         }
@@ -118,13 +127,14 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                             when (tokenText) {
                                 "version" -> InterpreterState.VERSION_OPEN_CALL
                                 "apply" -> InterpreterState.APPLY_OPEN_CALL
-                                in listOf("id", "kotlin") -> {
+                                in listOf("id", "kotlin", "alias") -> {
                                     if (!seenStatementSeparator) return expecting("<statement separator>")
                                     if (pluginId != null) newPluginRequest()
                                     when (tokenText) {
                                         "id" -> InterpreterState.ID_OPEN_CALL
                                         "kotlin" -> InterpreterState.KOTLIN_ID_OPEN_CALL
-                                        else -> return expecting("id or kotlin")
+                                        "alias" -> InterpreterState.ALIAS_OPEN_CALL
+                                        else -> return expecting("id, kotlin or alias")
                                     }
                                 }
 
@@ -178,6 +188,18 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                     InterpreterState.KOTLIN_ID_END -> state = when (tokenType) {
                         CLOSING_QUOTE -> InterpreterState.ID_CLOSE_CALL
                         else -> return expecting("<kotlin plugin module string>")
+                    }
+
+                    InterpreterState.ALIAS_OPEN_CALL -> state = when (tokenType) {
+                        LPAR -> InterpreterState.ALIAS_REFERENCE
+                        else -> return expecting("(")
+                    }
+
+                    InterpreterState.ALIAS_REFERENCE -> state = when (tokenType) {
+                        IDENTIFIER -> InterpreterState.ALIAS_REFERENCE.also { aliasReferenceFragments += tokenText }
+                        DOT -> InterpreterState.ALIAS_REFERENCE // TODO
+                        RPAR -> InterpreterState.AFTER_ID
+                        else -> return expecting("<alias reference>")
                     }
 
                     InterpreterState.APPLY_OPEN_CALL -> state = when (tokenType) {
@@ -263,6 +285,8 @@ enum class InterpreterState {
     KOTLIN_ID_START,
     KOTLIN_ID_STRING,
     KOTLIN_ID_END,
+    ALIAS_OPEN_CALL,
+    ALIAS_REFERENCE,
     ID_CLOSE_CALL,
     AFTER_ID,
     APPLY_OPEN_CALL,
