@@ -83,7 +83,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
                 .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '" + archiveUri + "'.")
                 .assertHasCause("Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed: " +
-                        "A problem occurred starting process 'command '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain", "bin", "java" + "''"))
+                        "A problem occurred starting process 'command '")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -137,7 +137,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
                 .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '" + archiveUri + "'.")
                 .assertHasCause("Provisioned toolchain '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain") + "' could not be probed: " +
-                        "A problem occurred starting process 'command '" + temporaryFolder.testDirectory.file("user-home", "jdks", "toolchain", "bin", "java" + "''"))
+                        "A problem occurred starting process 'command '")
     }
 
     private static String customToolchainResolverCode(String uri) {
