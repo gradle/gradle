@@ -47,6 +47,7 @@ import org.gradle.api.provider.ProviderConvertible;
  */
 @Incubating
 @NonExtensible
+@SuppressWarnings("JavadocReference")
 public interface DependencyAdder {
     /**
      * Add a dependency.

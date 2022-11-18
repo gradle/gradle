@@ -39,6 +39,7 @@ import javax.inject.Inject;
  * @since 7.6
  */
 @Incubating
+@SuppressWarnings("JavadocReference")
 public interface Dependencies {
     /**
      * A dependency factory is used to convert supported dependency notations into {@link org.gradle.api.artifacts.Dependency} instances.

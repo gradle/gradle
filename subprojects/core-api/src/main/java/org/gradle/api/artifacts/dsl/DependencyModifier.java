@@ -48,6 +48,7 @@ import javax.inject.Inject;
  */
 @Incubating
 @NonExtensible
+@SuppressWarnings("JavadocReference")
 public interface DependencyModifier {
     /**
      * A dependency factory is used to convert supported dependency notations into {@link org.gradle.api.artifacts.Dependency} instances.
