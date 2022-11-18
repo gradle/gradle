@@ -103,7 +103,7 @@ class PluginsBlockInterpreterTest {
 
 
     @Test
-    fun `single plugin - id mixed version apply`() {
+    fun `single plugin - id() mixed version apply`() {
         assertStaticInterpretationOf(
             """id("plugin-id").version("1.0").apply(true) version "3.0" apply false""",
             PluginRequestSpec("plugin-id", version = "3.0", apply = false)
@@ -163,6 +163,23 @@ class PluginsBlockInterpreterTest {
             PluginRequestSpec("plugin-id-2"),
             PluginRequestSpec("org.jetbrains.kotlin.jvm", version = "1.0", apply = false),
             PluginRequestSpec("plugin-id-3", version = "2.0"),
+        )
+    }
+
+    @Test
+    fun `multiple plugins - multiline statement`() {
+        assertStaticInterpretationOf(
+            """
+                id("plugin-id-1")
+                    .version("1.0")
+                    .apply(false)
+                    .version("2.0") ; kotlin("plugin-id-2")
+                    .version("1.0") apply false
+                id("plugin-id-3")
+            """,
+            PluginRequestSpec("plugin-id-1", version = "2.0", apply = false),
+            PluginRequestSpec("org.jetbrains.kotlin.plugin-id-2", version = "1.0", apply = false),
+            PluginRequestSpec("plugin-id-3"),
         )
     }
 
@@ -272,6 +289,11 @@ class PluginsBlockInterpreterTest {
                 id("plugin-id-9") version /* multiline
                 block
                 comment */ "1.0"
+
+                id("plugin-id-10") version "1.0" /* multiline
+                block
+                comment */
+                id("plugin-id-11")
             """,
             PluginRequestSpec("plugin-id-1"),
             PluginRequestSpec("plugin-id-2"),
@@ -282,6 +304,8 @@ class PluginsBlockInterpreterTest {
             PluginRequestSpec("plugin-id-7", version = "1.0"),
             PluginRequestSpec("plugin-id-8", version = "1.0"),
             PluginRequestSpec("plugin-id-9", version = "1.0"),
+            PluginRequestSpec("plugin-id-10", version = "1.0"),
+            PluginRequestSpec("plugin-id-11"),
         )
     }
 
@@ -371,6 +395,11 @@ class PluginsBlockInterpreterTest {
                 id("plugin-id-9") version /** multiline
                 kdoc
                 comment */ "1.0"
+
+                id("plugin-id-10") version "1.0" /** multiline
+                kdoc
+                comment */
+                id("plugin-id-11")
             """,
             PluginRequestSpec("plugin-id-1"),
             PluginRequestSpec("plugin-id-2"),
@@ -381,6 +410,8 @@ class PluginsBlockInterpreterTest {
             PluginRequestSpec("plugin-id-7", version = "1.0"),
             PluginRequestSpec("plugin-id-8", version = "1.0"),
             PluginRequestSpec("plugin-id-9", version = "1.0"),
+            PluginRequestSpec("plugin-id-10", version = "1.0"),
+            PluginRequestSpec("plugin-id-11"),
         )
     }
 
@@ -484,10 +515,17 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - id() id() on the same line`() {
         assertDynamicInterpretationOf(
             """id("plugin-id-1") id("plugin-id-2")""",
-            "Expecting version or apply, got 'id'"
+            "Expecting <statement separator>, got 'id'"
         )
     }
 
+    @Test
+    fun `syntax error - id() unknown on the same line`() {
+        assertDynamicInterpretationOf(
+            """id("plugin-id-1") unknown "thing"""",
+            "Expecting version or apply, got 'unknown'"
+        )
+    }
 
     @Test
     fun `syntax error - kotlin() without parens`() {
@@ -557,7 +595,34 @@ class PluginsBlockInterpreterTest {
     fun `syntax error - kotlin() kotlin() on the same line`() {
         assertDynamicInterpretationOf(
             """kotlin("plugin-id-1") kotlin("plugin-id-2")""",
-            "Expecting version or apply, got 'kotlin'"
+            "Expecting <statement separator>, got 'kotlin'"
+        )
+    }
+
+    @Test
+    fun `syntax error - kotlin() unknown on the same line`() {
+        assertDynamicInterpretationOf(
+            """kotlin("plugin-id-1") unknown "thing"""",
+            "Expecting version or apply, got 'unknown'"
+        )
+    }
+
+    @Test
+    fun `syntax error - dot after dot`() {
+        assertDynamicInterpretationOf(
+            """id("plugin-id-1"). .version("1.0")""",
+            "Expecting version or apply, got '.'"
+        )
+    }
+
+    @Test
+    fun `syntax error - dot after dot on next line`() {
+        assertDynamicInterpretationOf(
+            """
+                id("plugin-id-1").
+                    .version("1.0")
+            """,
+            "Expecting version or apply, got '.'"
         )
     }
 
@@ -572,7 +637,7 @@ class PluginsBlockInterpreterTest {
     }
 
     private
-    fun assertDynamicInterpretationOf(pluginsBlock: String, reason: String = "BOOM") {
+    fun assertDynamicInterpretationOf(pluginsBlock: String, reason: String) {
         assertThat(
             interpret(Program.Plugins(fragment("plugins", pluginsBlock))),
             equalTo(
