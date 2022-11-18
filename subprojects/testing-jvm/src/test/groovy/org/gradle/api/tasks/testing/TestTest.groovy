@@ -66,7 +66,7 @@ class TestTest extends AbstractProjectBuilderSpec {
 
         then:
         def e = thrown(AbstractProperty.PropertyQueryException)
-        assertHasCause(e, "Toolchain installation '${invalidJavac.parentFile.parentFile.absolutePath}' could not be probed: ")
-        assertHasCause(e, "Cannot run program \"${invalidJavac.parentFile.parentFile.file("bin", "java").absolutePath}\"")
+        assertMatchingCause(e, /Toolchain installation '${invalidJavac.parentFile.parentFile.absolutePath}' could not be probed: .*/)
+        assertMatchingCause(e, /Cannot run program .*java.*/)
     }
 }
