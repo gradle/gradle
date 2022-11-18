@@ -124,6 +124,7 @@ public interface Dependencies {
      * behaves as a usual project dependency.
      *
      * @return the current project, including implementation details, as a dependency
+     * @since 8.0
      */
     default ProjectDependency projectInternalView() {
         ProjectDependency currentProject = project();
