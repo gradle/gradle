@@ -18,26 +18,26 @@ package org.gradle.configuration.project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 public class BuildScriptProcessor implements ProjectConfigureAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildScriptProcessor.class);
     private final ScriptPluginFactory configurerFactory;
-    private final ListenerManager listenerManager;
+    private final FileResourceListener fileResourceListener;
 
     public BuildScriptProcessor(
         ScriptPluginFactory configurerFactory,
-        ListenerManager listenerManager
+        FileResourceListener fileResourceListener
     ) {
         this.configurerFactory = configurerFactory;
-        this.listenerManager = listenerManager;
+        this.fileResourceListener = fileResourceListener;
     }
 
     @Override
@@ -46,10 +46,7 @@ public class BuildScriptProcessor implements ProjectConfigureAction {
             LOGGER.info("Evaluating {} using {}.", project, project.getBuildScriptSource().getDisplayName());
         }
 
-        File buildScriptSourceFile = project.getBuildscript().getSourceFile();
-        if (buildScriptSourceFile != null) {
-            listenerManager.getBroadcaster(FileResourceListener.class).fileObserved(buildScriptSourceFile);
-        }
+        buildScriptFileObserved(project.getBuildscript().getSourceFile());
 
         final Timer clock = Time.startTimer();
         try {
@@ -59,6 +56,12 @@ public class BuildScriptProcessor implements ProjectConfigureAction {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Timing: Running the build script took {}", clock.getElapsed());
             }
+        }
+    }
+
+    private void buildScriptFileObserved(@Nullable File sourceFile) {
+        if (sourceFile != null) {
+            fileResourceListener.fileObserved(sourceFile);
         }
     }
 }

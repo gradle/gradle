@@ -498,7 +498,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         ServiceRegistryFactory serviceRegistryFactory,
         GradleProperties gradleProperties,
         BuildOperationExecutor buildOperationExecutor,
-        TextFileResourceLoader textFileResourceLoader
+        TextFileResourceLoader textFileResourceLoader,
+        ListenerManager listenerManager
     ) {
         return new BuildOperationSettingsProcessor(
             new RootBuildCacheControllerSettingsProcessor(
@@ -511,7 +512,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                             scriptHandlerFactory
                         ),
                         gradleProperties,
-                        textFileResourceLoader
+                        textFileResourceLoader,
+                        listenerManager.getBroadcaster(FileResourceListener.class)
                     )
                 )
             ),

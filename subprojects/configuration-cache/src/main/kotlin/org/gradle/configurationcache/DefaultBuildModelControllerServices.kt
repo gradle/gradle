@@ -57,6 +57,7 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
@@ -199,7 +200,7 @@ class DefaultBuildModelControllerServices(
         ): ProjectEvaluator {
             val withActionsEvaluator = ConfigureActionsProjectEvaluator(
                 PluginsProjectConfigureActions.from(cachingServiceLocator),
-                BuildScriptProcessor(scriptPluginFactory, listenerManager),
+                BuildScriptProcessor(scriptPluginFactory, listenerManager.getBroadcaster(FileResourceListener::class.java)),
                 DelayedConfigurationActions()
             )
             return LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator, cancellationToken)
