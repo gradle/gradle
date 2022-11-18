@@ -31,7 +31,7 @@ import org.gradle.api.artifacts.dsl.GradleDependencies;
  *     <li><code>annotationProcessor</code> dependencies are used only at compilation for the annotation processor classpath</li>
  * </ul>
  *
- * @apiNote This interface is intended to be used to combine various {@link Dependencies} APIs into a DSL for JVM components.
+ * @apiNote This interface combines various {@link Dependencies} APIs into a DSL type that can be used to add dependencies for JVM components.
  * @implSpec The default implementation of all methods should not be overridden.
  *
  * @see org.gradle.api.artifacts.dsl.DependencyHandler For more information.
