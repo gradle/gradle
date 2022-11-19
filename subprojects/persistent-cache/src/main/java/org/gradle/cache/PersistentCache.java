@@ -15,6 +15,7 @@
  */
 package org.gradle.cache;
 
+import org.gradle.cache.internal.HasCleanupAction;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.Closeable;
@@ -33,7 +34,7 @@ import java.io.File;
  * lock on the cache.
  * </p>
  */
-public interface PersistentCache extends CacheAccess, Closeable, CleanableStore {
+public interface PersistentCache extends CacheAccess, Closeable, CleanableStore, HasCleanupAction {
     /**
      * Returns the base directory for this cache.
      */
@@ -59,11 +60,6 @@ public interface PersistentCache extends CacheAccess, Closeable, CleanableStore 
     <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer);
 
     <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters);
-
-    /**
-     * Cleans up this cache, blocking until all operations are complete before cleaning.
-     */
-    void cleanup();
 
     /**
      * Closes this cache, blocking until all operations are complete.
