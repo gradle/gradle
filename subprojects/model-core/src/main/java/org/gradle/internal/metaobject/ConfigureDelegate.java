@@ -25,16 +25,28 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class ConfigureDelegate extends GroovyObjectSupport {
     protected final DynamicObject _owner;
     protected final DynamicObject _delegate;
+    private final Object _original_owner;
+    private final Object _original_delegate;
     private boolean _configuring;
 
     public ConfigureDelegate(Closure configureClosure, Object delegate) {
-        _owner = DynamicObjectUtil.asDynamicObject(configureClosure.getOwner());
-        _delegate = DynamicObjectUtil.asDynamicObject(delegate);
+        _original_owner = configureClosure.getOwner();
+        _owner = DynamicObjectUtil.asDynamicObject(_original_owner);
+        _original_delegate = delegate;
+        _delegate = DynamicObjectUtil.asDynamicObject(_original_delegate);
     }
 
     @Override
     public String toString() {
         return _delegate.toString();
+    }
+
+    public Object _original_owner() {
+        return _original_owner;
+    }
+
+    public Object _original_delegate() {
+        return _original_delegate;
     }
 
     protected DynamicInvokeResult _configure(String name, Object[] params) {
