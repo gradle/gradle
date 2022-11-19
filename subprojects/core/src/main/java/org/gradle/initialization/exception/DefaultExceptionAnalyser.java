@@ -17,31 +17,56 @@ package org.gradle.initialization.exception;
 
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.ProjectConfigurationException;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.ScriptCompilationException;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.event.ListenerManager;
+import org.gradle.initialization.ClassLoaderScopeId;
+import org.gradle.initialization.ClassLoaderScopeOrigin;
+import org.gradle.initialization.ClassLoaderScopeRegistryListener;
+import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
+import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.internal.scripts.ScriptExecutionListener;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.service.ServiceCreationException;
 
+import javax.annotation.Nullable;
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultExceptionAnalyser implements ExceptionCollector, ScriptExecutionListener {
-    private final Map<String, ScriptSource> scripts = new HashMap<>();
+public class DefaultExceptionAnalyser implements ExceptionCollector, ClassLoaderScopeRegistryListener, Closeable {
+    private final Map<String, String> scripts = new HashMap<>();
+    private final ClassLoaderScopeRegistryListenerManager listenerManager;
 
-    public DefaultExceptionAnalyser(ListenerManager listenerManager) {
-        listenerManager.addListener(this);
+    public DefaultExceptionAnalyser(@Nullable ClassLoaderScopeRegistryListenerManager listenerManager) {
+        this.listenerManager = listenerManager;
+        if (listenerManager != null) {
+            listenerManager.add(this);
+        }
     }
 
     @Override
-    public void onScriptClassLoaded(ScriptSource source, Class<?> scriptClass) {
-        scripts.put(source.getFileName(), source);
+    public void close() throws IOException {
+        if (listenerManager != null) {
+            listenerManager.remove(this);
+        }
+    }
+
+    @Override
+    public void childScopeCreated(ClassLoaderScopeId parentId, ClassLoaderScopeId childId, @Nullable ClassLoaderScopeOrigin origin) {
+        if (origin instanceof ClassLoaderScopeOrigin.Script) {
+            ClassLoaderScopeOrigin.Script scriptOrigin = (ClassLoaderScopeOrigin.Script) origin;
+            scripts.put(scriptOrigin.getFileName(), scriptOrigin.getDisplayName());
+        }
+    }
+
+    @Override
+    public void classloaderCreated(ClassLoaderScopeId scopeId, ClassLoaderId classLoaderId, ClassLoader classLoader, ClassPath classPath, @Nullable HashCode implementationHash) {
     }
 
     @Override
@@ -74,13 +99,13 @@ public class DefaultExceptionAnalyser implements ExceptionCollector, ScriptExecu
             return actualException;
         }
 
-        ScriptSource source = null;
+        String source = null;
         Integer lineNumber = null;
 
         // TODO: remove these special cases
         if (actualException instanceof ScriptCompilationException) {
             ScriptCompilationException scriptCompilationException = (ScriptCompilationException) actualException;
-            source = scriptCompilationException.getScriptSource();
+            source = scriptCompilationException.getScriptSource().getDisplayName();
             lineNumber = scriptCompilationException.getLineNumber();
         }
 
