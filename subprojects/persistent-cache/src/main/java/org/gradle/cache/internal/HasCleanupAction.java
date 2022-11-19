@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,12 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.cache.CacheAccess;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
-
-import java.io.Closeable;
-
-public interface CacheCoordinator extends CacheAccess, Closeable, HasCleanupAction {
-    void open();
-
+/**
+ * A cache entity that can be cleaned on demand.
+ */
+public interface HasCleanupAction {
     /**
-     * Closes the cache, blocking until all operations have completed.
+     * Cleans up the cache, if any cleanup action has been provided.
      */
-    @Override
-    void close();
-
-    <K, V> PersistentIndexedCache<K, V> newCache(PersistentIndexedCacheParameters<K, V> parameters);
-
-    <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters);
-
+    void cleanup();
 }
