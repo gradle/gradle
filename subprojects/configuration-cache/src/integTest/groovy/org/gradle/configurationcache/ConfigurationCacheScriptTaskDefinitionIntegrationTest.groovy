@@ -259,6 +259,8 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         configurationCacheFails ":some"
 
         then:
+        failure.assertHasFileName("Build file '$buildFile'")
+        failure.assertHasLineNumber(5)
         failure.assertHasFailure("Execution failed for task ':some'.") {
             it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
         }
@@ -291,6 +293,8 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         configurationCacheFails ":some"
 
         then:
+        failure.assertHasFileName("Build file '$buildFile'")
+        failure.assertHasLineNumber(5)
         failure.assertHasFailure("Execution failed for task ':some'.") {
             it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
         }
@@ -322,6 +326,8 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         configurationCacheFails ":some"
 
         then:
+        failure.assertHasFileName("Build file '$buildFile'")
+        failure.assertHasLineNumber(4)
         failure.assertHasFailure("Execution failed for task ':some'.") {
             it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
         }

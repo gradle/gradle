@@ -145,7 +145,7 @@ class ConfigurationCacheHost internal constructor(
         private
         fun createSettings(): SettingsInternal {
             val baseClassLoaderScope = gradle.classLoaderScope
-            val classLoaderScope = baseClassLoaderScope.createChild("settings")
+            val classLoaderScope = baseClassLoaderScope.createChild("settings", null)
             val settingsSource = if (settingsFile == null) {
                 TextResourceScriptSource(StringTextResource("settings", ""))
             } else {
