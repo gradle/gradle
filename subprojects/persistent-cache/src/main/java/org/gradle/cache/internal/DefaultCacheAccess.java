@@ -85,6 +85,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private FileLock.State stateAtOpen;
     private Runnable fileLockHeldByOwner;
     private int cacheClosedCount;
+    private boolean alreadyCleaned;
 
     public DefaultCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupAction cleanupAction, ExecutorFactory executorFactory) {
         this.cacheDisplayName = cacheDisplayName;
@@ -163,6 +164,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private void doCleanup() {
         try {
             cleanupAction.cleanup();
+            alreadyCleaned = true;
         } catch (Exception e) {
             LOG.debug("Cache {} could not run cleanup action {}", cacheDisplayName, cleanupAction);
         }
@@ -185,7 +187,13 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 if (fileLockHeldByOwner != null) {
                     fileLockHeldByOwner.run();
                 }
-                
+
+                // If cleanup is required, but has not already been invoked (e.g. at the end of the build session)
+                // perform cleanup on close.
+                if (cleanupAction != null && cleanupAction.requiresCleanup() && !alreadyCleaned) {
+                    doCleanup();
+                }
+
                 if (cacheClosedCount != 1) {
                     LOG.debug("Cache {} was closed {} times.", cacheDisplayName, cacheClosedCount);
                 }
