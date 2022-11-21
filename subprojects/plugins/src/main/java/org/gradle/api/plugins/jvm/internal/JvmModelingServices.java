@@ -35,17 +35,6 @@ public interface JvmModelingServices {
     Configuration createOutgoingElements(String name, Action<? super OutgoingElementsBuilder> configuration);
 
     /**
-     * Creates an incoming configuration for resolution of a dependency graph.
-     *
-     * The action is used to configure the created <i>resolvable</i> configuration.
-     *
-     * @param name the name of the configuration
-     * @param action the configuration of the resolvable configuration
-     * @return the resolvable configuration
-     */
-    Configuration createResolvableConfiguration(String name, Action<? super ResolvableConfigurationBuilder> action);
-
-    /**
      * Creates a generic "java component", which implies creation of an underlying source set,
      * compile tasks, jar tasks, possibly javadocs and sources jars and allows configuring if such
      * a component has to be published externally.
