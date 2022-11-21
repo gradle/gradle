@@ -92,14 +92,14 @@ abstract class AbstractTaskInputsAndOutputsTest extends AbstractProjectBuilderSp
         TaskPropertyUtils.visitProperties(walker, task, new PropertyVisitor() {
             @Override
             void visitInputFileProperty(
-                    String propertyName,
-                    boolean optional,
-                    InputBehavior behavior,
-                    DirectorySensitivity emptyDirectorySensitivity,
-                    LineEndingSensitivity lineEndingNormalization,
-                    @Nullable FileNormalizer fileNormalizer,
-                    PropertyValue value,
-                    InputFilePropertyType filePropertyType
+                String propertyName,
+                boolean optional,
+                InputBehavior behavior,
+                DirectorySensitivity emptyDirectorySensitivity,
+                LineEndingSensitivity lineEndingNormalization,
+                @Nullable FileNormalizer fileNormalizer,
+                PropertyValue value,
+                InputFilePropertyType filePropertyType
             ) {
                 inputFiles[propertyName] = value.call()
             }
