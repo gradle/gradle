@@ -1617,6 +1617,14 @@
             ]
         },
         {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Constructor org.gradle.language.scala.tasks.AbstractScalaCompile(org.gradle.language.scala.tasks.BaseScalaCompileOptions)",
+            "acceptation": "Remove deprecated constructor in Gradle 8.0",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.language.scala.tasks.BaseScalaCompileOptions",
             "member": "Class org.gradle.language.scala.tasks.BaseScalaCompileOptions",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
