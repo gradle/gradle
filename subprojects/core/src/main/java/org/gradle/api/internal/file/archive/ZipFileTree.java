@@ -131,12 +131,17 @@ public class ZipFileTree extends AbstractArchiveFileTree {
     }
 
     private static class DetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
+        // See https://github.com/gradle/gradle/issues/22685 - tasks in different projects
+        // might end up accessing and expanding the same zip file concurrently, so we need
+        // to synchronize using the same lock object for all zip file instances
+        private static final Object[] expandLock = new Object[0];
+
         private final File originalFile;
         private final File expandedDir;
         private final ZipArchiveEntry entry;
         private final ZipFile zip;
         private final AtomicBoolean stopFlag;
-        private File file;
+        private volatile File file;
 
         public DetailsImpl(File originalFile, File expandedDir, ZipArchiveEntry entry, ZipFile zip, AtomicBoolean stopFlag, Chmod chmod) {
             super(chmod);
@@ -160,9 +165,13 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         @Override
         public File getFile() {
             if (file == null) {
-                file = new File(expandedDir, safeEntryName());
-                if (!file.exists()) {
-                    copyTo(file);
+                synchronized (expandLock) {
+                    if (file == null) {
+                        file = new File(expandedDir, safeEntryName());
+                        if (!file.exists()) {
+                            copyTo(file);
+                        }
+                    }
                 }
             }
             return file;

@@ -15,26 +15,44 @@
  */
 package org.gradle.api.internal.file.archive;
 
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.EmptyFileVisitor;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
 import org.gradle.util.internal.Resources;
 import org.junit.Rule;
 import org.junit.Test;
+import spock.lang.Issue;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
-import static org.gradle.api.file.FileVisitorUtil.*;
-import static org.gradle.api.internal.file.TestFiles.*;
+import static org.gradle.api.file.FileVisitorUtil.assertCanStopVisiting;
+import static org.gradle.api.file.FileVisitorUtil.assertVisits;
+import static org.gradle.api.file.FileVisitorUtil.assertVisitsPermissions;
+import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory;
+import static org.gradle.api.internal.file.TestFiles.fileHasher;
+import static org.gradle.api.internal.file.TestFiles.fileSystem;
 import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTypes;
 import static org.gradle.util.internal.WrapUtil.toList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public class ZipFileTreeTest {
@@ -136,5 +154,67 @@ public class ZipFileTreeTest {
         TestFile.Snapshot snapshot = content.snapshot();
         assertVisits(tree, toList("file1.txt"), new ArrayList<>());
         content.assertHasNotChangedSince(snapshot);
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22685")
+    @Test
+    public void testZipVisiting() throws InterruptedException {
+        Long numLines = 1000000L;
+        int numFiles = 2;
+        int numThreads = 3;
+
+        class CountingVisitor implements FileVisitor {
+            private List<Long> actualCounts = new ArrayList<>();
+
+            public List<Long> getActualCounts() {
+                return actualCounts;
+            }
+
+            @Override
+            public void visitDir(FileVisitDetails dirDetails) { }
+
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
+                try {
+                    List<String> lines = FileUtils.readLines(fileDetails.getFile(), Charset.defaultCharset());
+                    actualCounts.add((long) lines.size());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        // Generate a sufficiently large zip file containing some large files with random numbers, one per line
+        Random random = new Random();
+        for (int i = 0; i < numFiles; i++) {
+            StringBuilder sb = new StringBuilder();
+            for (long j = 0; j < numLines; j++) {
+                sb.append(random.nextInt()).append('\n');
+            }
+            rootDir.file("file" + i + ".txt").write(sb.toString());
+        }
+        rootDir.zipTo(zipFile);
+
+        // Create some visitors that will count the number of lines in each file they encounter
+        List<CountingVisitor> visitors = new ArrayList<>(numThreads);
+        for (int i = 0; i < numThreads; i++) {
+            visitors.add(new CountingVisitor());
+        }
+
+        List<Callable<List<Long>>> callables = visitors.stream().map(v -> (Callable<List<Long>>) () -> {
+            tree.visit(v);
+            return v.getActualCounts();
+        }).collect(Collectors.toList());
+
+        ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
+        List<Future<List<Long>>> results = executorService.invokeAll(callables);
+
+        results.forEach(f -> {
+            try {
+                f.get().forEach(result -> assertEquals("Files should only be read after full expansion when all lines are present", numLines, result));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 }
