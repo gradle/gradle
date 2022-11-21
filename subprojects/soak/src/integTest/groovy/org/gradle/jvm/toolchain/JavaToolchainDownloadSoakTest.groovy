@@ -83,7 +83,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
     }
 
     def "clean destination folder when downloading toolchain"() {
-        when:
+        when: "build runs and doesn't have a local JDK to use for compilation"
         result = executer
                 .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
                 .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
@@ -92,19 +92,17 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
                         "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
                 .run()
 
-        then:
+        then: "suitable JDK gets auto-provisioned"
         javaClassFile("Foo.class").assertExists()
         assertJdkWasDownloaded("adoptopenjdk")
 
-        when:
+        when: "the marker file of the auto-provisioned JDK is deleted, making the JDK not detectable"
         //delete marker file to make the previously downloaded installation undetectable
         def markerFile = findMarkerFile(executer.gradleUserHomeDir.file("jdks"))
         markerFile.delete()
+        assert !markerFile.exists()
 
-        then:
-        !markerFile.exists()
-
-        when:
+        and: "build runs again"
         executer
                 .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
                 .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
@@ -113,7 +111,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
                         "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
                 .run()
 
-        then:
+        then: "the JDK is auto-provisioned again and its files, even though they are already there don't trigger an error, they just get overwritten"
         markerFile.exists()
     }
 
