@@ -30,7 +30,6 @@ import org.gradle.tooling.internal.consumer.connection.ParameterAcceptingConsume
 import org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.TestExecutionConsumerConnection
 import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionConnection
-import org.gradle.tooling.internal.protocol.BuildActionRunner
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1
 import org.gradle.tooling.internal.protocol.BuildParameters
@@ -47,7 +46,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildCancelledException
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection
 import org.gradle.tooling.internal.protocol.InternalCancellationToken
-import org.gradle.tooling.internal.protocol.InternalConnection
+
 import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection
 import org.gradle.tooling.internal.protocol.InternalPhasedAction
 import org.gradle.tooling.internal.protocol.InternalPhasedActionConnection
@@ -247,7 +246,7 @@ class TestR16Connection extends TestR12Connection implements ModelBuilder {
     }
 }
 
-class TestR12Connection extends TestR10M8Connection implements BuildActionRunner, ConfigurableConnection {
+class TestR12Connection extends TestR10M8Connection implements ConfigurableConnection {
     void configure(org.gradle.tooling.internal.protocol.ConnectionParameters parameters) {
         configured = parameters.verboseLogging
     }
@@ -260,16 +259,9 @@ class TestR12Connection extends TestR10M8Connection implements BuildActionRunner
     ConnectionMetaDataVersion1 getMetaData() {
         return new TestMetaData('1.2')
     }
-
-    def <T> BuildResult<T> run(Class<T> type, BuildParameters parameters) {
-        throw new UnsupportedOperationException()
-    }
 }
 
-class TestR10M8Connection extends TestR10M3Connection implements InternalConnection {
-    def <T> T getTheModel(Class<T> type, BuildOperationParametersVersion1 operationParameters) {
-        throw new UnsupportedOperationException()
-    }
+class TestR10M8Connection extends TestR10M3Connection {
 
     void configureLogging(boolean verboseLogging) {
         configured = verboseLogging
