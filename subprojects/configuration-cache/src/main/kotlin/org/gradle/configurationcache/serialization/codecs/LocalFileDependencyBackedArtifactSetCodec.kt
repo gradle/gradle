@@ -248,7 +248,7 @@ class TransformMapping(private val targetAttributes: ImmutableAttributes, privat
         throw UnsupportedOperationException()
     }
 
-    override fun getSourceVariant(): VariantDefinition? {
+    override fun getPrevious(): VariantDefinition? {
         throw UnsupportedOperationException()
     }
 }
