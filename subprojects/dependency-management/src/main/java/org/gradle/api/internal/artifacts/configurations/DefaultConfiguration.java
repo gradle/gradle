@@ -1709,7 +1709,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 "This role permits the following usage:\n" +
                                 "%s\n" +
                                 "Ideally, each configuration should be used for a single purpose.",
-                                getDisplayName(), roleAtCreation.getName(), roleAtCreation.describe()));
+                                getDisplayName(), roleAtCreation.getName(), roleAtCreation.describeUsage()));
             } else {
                 throw new GradleException(String.format("Cannot change the allowed usage of %s, as it has been locked.", getDisplayName()));
             }

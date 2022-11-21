@@ -46,7 +46,7 @@ public interface ConfigurationRole {
     /**
      * Obtains a human-readable summary of the usage allowed by the given role.
      */
-    default String describe() {
+    default String describeUsage() {
         return RoleDescriber.describeRole(this);
     }
 
@@ -108,7 +108,7 @@ public interface ConfigurationRole {
                     }
 
                     @Override
-                    public String describe() {
+                    public String describeUsage() {
                         if (description != null) {
                             return description;
                         } else {
