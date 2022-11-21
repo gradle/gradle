@@ -26,10 +26,9 @@ jobs:
           stale-issue-label: stale
           stale-issue-message: >
             This issue has been automatically marked as stale because it has not had recent activity.
-            Given the limited bandwidth of the team, it will be automatically closed if no further
-            activity occurs. If you're interested in how we try to keep the backlog in a healthy state,
-            please read our [blog post on how we refine our backlog](https://blog.gradle.org/stale-issue-backlog).
-            If you feel this is something you could contribute, please have a look
+            Given the limited bandwidth of the team, it will be scheduled for a (potentially) final
+            review and might be closed afterwards (if no further activity occurs).
+            If you feel this is something you could contribute to, please have a look
             at our [Contributor Guide](https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md).
             Thank you for your contribution.
           days-before-issue-close: -1

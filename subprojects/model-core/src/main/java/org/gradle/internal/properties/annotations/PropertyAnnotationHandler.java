@@ -48,11 +48,7 @@ public interface PropertyAnnotationHandler {
     /**
      * Visit the value of a property with this annotation attached.
      */
-    void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context);
-
-    interface BeanPropertyContext {
-        void addNested(Object bean);
-    }
+    void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor);
 
     /**
      * Visits problems associated with the given property, if any.

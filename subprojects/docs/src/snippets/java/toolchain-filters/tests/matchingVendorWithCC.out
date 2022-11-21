@@ -1,0 +1,2 @@
+> Failed to calculate the value of task ':compileJava' property 'javaCompiler'.
+   > No compatible toolchains found for request specification: {languageVersion=11, vendor=matching('customString'), implementation=vendor-specific} (auto-detect true, auto-download false).

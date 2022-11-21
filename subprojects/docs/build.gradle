@@ -635,6 +635,8 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*android-app.sample"
             // Umbrella build project contains also Android projects so it requires Java 11+
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects_*_umbrella-build.sample"
+            // This test sets source and target compatibility to 11
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-kotlin-dsl-accessors_*.sample"
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {
@@ -739,10 +741,6 @@ tasks.named("docsTest") { task ->
             // These tests cover features that the configuration cache doesn't support yet, but we plan to do that before hitting stable.
             // The tests should be removed from this list when the feature becomes supported.
             def testsForNotYetSupportedFeatures = [
-                // TODO(https://github.com/gradle/gradle/issues/21642)
-                "publishing-credentials_groovy_publishCommandLineCredentials.sample",
-                "publishing-credentials_kotlin_publishCommandLineCredentials.sample",
-
                 // TODO(https://github.com/gradle/gradle/issues/14880)
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_groovy_iterating-dependencies.sample",
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_kotlin_iterating-dependencies.sample",
@@ -766,10 +764,6 @@ tasks.named("docsTest") { task ->
                 "snippet-plugins-publishing_groovy_publishToIvy.sample",
                 "snippet-plugins-publishing_kotlin_publishToIvy.sample",
                 "snippet-tooling-api-custom-model_groovy_sanityCheck.sample",
-
-                // TODO(https://github.com/gradle/gradle/issues/21717)
-                "snippet-java-toolchain-filters_groovy_toolchainFilters.sample",
-                "snippet-java-toolchain-filters_kotlin_toolchainFilters.sample",
 
                 // TODO(https://github.com/gradle/gradle/issues/13470) Signing plugin support
                 "snippet-signing-configurations_groovy_signingArchivesOutput.sample",
@@ -817,9 +811,6 @@ configurations {
     }
 }
 
-tasks.named('platformTest') {
-    dependsOn(tasks.named('checkSamples'))
-}
 tasks.named("check") {
     dependsOn(tasks.named('checkstyleApi'))
 }

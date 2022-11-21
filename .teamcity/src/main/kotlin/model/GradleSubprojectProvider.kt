@@ -27,7 +27,7 @@ val ignoredSubprojects = listOf(
 
 interface GradleSubprojectProvider {
     val subprojects: List<GradleSubproject>
-    fun getSubprojectsFor(testConfig: TestCoverage, stage: Stage): List<GradleSubproject>
+    fun getSubprojectsForFunctionalTest(testConfig: TestCoverage): List<GradleSubproject>
     fun getSubprojectByName(name: String): GradleSubproject?
 }
 
@@ -36,9 +36,8 @@ data class JsonBasedGradleSubprojectProvider(private val jsonFile: File) : Gradl
     override val subprojects = JSON.parseArray(jsonFile.readText()).map { toSubproject(it as Map<String, Any>) }
     private val nameToSubproject = subprojects.map { it.name to it }.toMap()
 
-    override fun getSubprojectsFor(testConfig: TestCoverage, stage: Stage) =
+    override fun getSubprojectsForFunctionalTest(testConfig: TestCoverage) =
         subprojects.filter { it.hasTestsOf(testConfig.testType) }
-            .filterNot { testConfig.os.ignoredSubprojects.contains(it.name) }
 
     override fun getSubprojectByName(name: String) = nameToSubproject[name]
 
