@@ -56,15 +56,14 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
             manager.unsupported();
             return checkInResult(UNSUPPORTED_TOGGLE_MESSAGE, () -> {throw new IllegalStateException();});
-        } else {
-            if (isConfigurationCacheEnabled && isUnsupported(pluginMetadata.getVersion())) {
-                manager.unsupported();
-                return checkInResult(UNSUPPORTED_PLUGIN_DUE_TO_GRADLE_8_AND_CONFIGURATION_CACHING_MESSAGE, () -> {throw new IllegalStateException();});
-            }
-            GradleEnterprisePluginServiceRef ref = adapter.register(serviceFactory);
-            manager.registerAdapter(adapter);
-            return checkInResult(null, () -> ref);
         }
+        if (isConfigurationCacheEnabled && isUnsupported(pluginMetadata.getVersion())) {
+            manager.unsupported();
+            return checkInResult(UNSUPPORTED_PLUGIN_DUE_TO_GRADLE_8_AND_CONFIGURATION_CACHING_MESSAGE, () -> {throw new IllegalStateException();});
+        }
+        GradleEnterprisePluginServiceRef ref = adapter.register(serviceFactory);
+        manager.registerAdapter(adapter);
+        return checkInResult(null, () -> ref);
     }
 
     private static GradleEnterprisePluginCheckInResult checkInResult(String unsupportedMessage, Supplier<GradleEnterprisePluginServiceRef> pluginServiceRefSupplier) {
