@@ -170,6 +170,11 @@ The following type and method are now considered stable:
 
 - The `War.getWebAppDirectory()` method is now considered stable.
 
+### Promoted features in the `Settings` API
+
+- The methods `Settings.dependencyResolutionManagement(Action)`  and `Settings.getDependencyResolutionManagement()` are now considered stable.
+  - All the methods in `DependencyResolutionManagement` are now stable, except the ones for central repository declaration.
+
 ## Fixed issues
 
 ## Known issues
