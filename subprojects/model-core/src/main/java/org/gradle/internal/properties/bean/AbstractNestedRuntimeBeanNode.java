@@ -60,7 +60,7 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
                     nested = unpackProvider(value.call());
                 } catch (Exception e) {
                     visitor.visitInputProperty(propertyName, new InvalidValue(e), false);
-                    return;
+                    continue;
                 }
                 if (nested != null) {
                     queue.add(nodeFactory.create(this, propertyName, nested));
