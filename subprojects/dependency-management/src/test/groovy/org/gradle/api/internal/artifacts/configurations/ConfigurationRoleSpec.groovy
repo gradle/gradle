@@ -78,7 +78,7 @@ class ConfigurationRoleSpec extends Specification {
         then:
         customRole !in ConfigurationRoles.values()
         customRole.name == 'custom'
-        customRole.describe() == 'custom description'
+        customRole.describeUsage() == 'custom description'
 
         where:
         consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
@@ -124,7 +124,7 @@ class ConfigurationRoleSpec extends Specification {
 
     private void assertDescriptionContains(ConfigurationRole role, List<String> usages) {
         for (String usage : usages) {
-            assert role.describe().contains(usage)
+            assert role.describeUsage().contains(usage)
         }
     }
 }

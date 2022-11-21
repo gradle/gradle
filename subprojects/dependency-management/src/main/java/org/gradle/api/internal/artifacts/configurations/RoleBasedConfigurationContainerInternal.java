@@ -219,9 +219,9 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
             if (!isUsageConsistentWithRole(configuration, role)) {
                 return "Usage for configuration: " + configuration.getName() + " is not consistent with the role: " + role.getName() + ".\n" +
                         "Expected that it is:\n" +
-                        role.describe() + "\n" +
+                        role.describeUsage() + "\n" +
                         "But is actually is:\n" +
-                        ConfigurationRole.forConfiguration(configuration).describe();
+                        ConfigurationRole.forConfiguration(configuration).describeUsage();
             } else {
                 return "Usage for configuration: " + configuration.getName() + " is consistent with the role: " + role.getName() + ".";
             }
