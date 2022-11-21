@@ -377,6 +377,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.JavaBasePlugin",
+            "member": "Method org.gradle.api.plugins.JavaBasePlugin.getJavaToolchainQueryService()",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.JavaLibraryDistributionPlugin",
             "member": "Class org.gradle.api.plugins.JavaLibraryDistributionPlugin",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
