@@ -58,7 +58,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
         Normalizer normalizer = propertyMetadata.getAnnotationForCategory(NORMALIZATION)
             .map(fileNormalization -> {
                 if (fileNormalization instanceof PathSensitive) {
