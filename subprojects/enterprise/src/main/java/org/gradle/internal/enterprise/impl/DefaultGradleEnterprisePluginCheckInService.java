@@ -47,7 +47,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-enterprise-plugin";
     public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Enterprise plugin unsupported due to secret toggle";
 
-    public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_GRADLE_8_AND_CONFIGURATION_CACHING = VersionNumber.version(3, 12);
+    private static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_GRADLE_8_AND_CONFIGURATION_CACHING = VersionNumber.version(3, 12);
     public static final String UNSUPPORTED_PLUGIN_DUE_TO_GRADLE_8_AND_CONFIGURATION_CACHING_MESSAGE = String.format("The Gradle Enterprise plugin has been disabled as it is " +
         "incompatible with this version of Gradle and the configuration caching feature - please upgrade to version %s or later of the Gradle Enterprise plugin to restore functionality.", MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_GRADLE_8_AND_CONFIGURATION_CACHING);
 
