@@ -164,7 +164,7 @@ public class ZipFileTreeTest {
         int numThreads = 3;
 
         class CountingVisitor implements FileVisitor {
-            private List<Long> actualCounts = new ArrayList<>();
+            private final List<Long> actualCounts = new ArrayList<>();
 
             public List<Long> getActualCounts() {
                 return actualCounts;
