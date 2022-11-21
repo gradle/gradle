@@ -1022,6 +1022,98 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         outputContains("ids: [producer2.jar (producer2.jar)]")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/22735")
+    def "transform selection prioritizes shorter transforms over attribute schema matching"() {
+        buildFile << """
+            project(':lib') {
+                task jar(type: Jar) {
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib.jar'
+                }
+
+                configurations.compile.outgoing.variants{
+                    primary {
+                        attributes {
+                            attribute(artifactType, "jar")
+                            attribute(extraAttribute, "preferred")
+                        }
+                        artifact jar
+                    }
+                    secondary {
+                        attributes {
+                            attribute(artifactType, "intermediate")
+                        }
+                        artifact jar
+                    }
+                }
+            }
+
+            // Provides a default value of `preferred` if a given attribute is not requested.
+            abstract class DefaultingDisambiguationRule implements AttributeDisambiguationRule<String>, org.gradle.api.internal.ReusableAction {
+                @Inject
+                protected abstract ObjectFactory getObjectFactory()
+                @Override
+                void execute(MultipleCandidatesDetails<String> details) {
+                    String consumerValue = details.getConsumerValue()
+                    Set<String> candidateValues = details.getCandidateValues()
+                    if (consumerValue == null) {
+                        // Default to preferred
+                        if (candidateValues.contains("preferred")) {
+                            details.closestMatch("preferred")
+                        }
+                        // Otherwise, use the selected value
+                    } else if (candidateValues.contains(consumerValue)) {
+                        details.closestMatch(consumerValue)
+                    }
+                }
+            }
+
+            project(':app') {
+                dependencies {
+                    compile project(':lib')
+
+                    attributesSchema {
+                        attribute(extraAttribute).disambiguationRules.add(DefaultingDisambiguationRule)
+                    }
+
+                    registerTransform(FileSizer) { reg ->
+                        reg.getFrom().attribute(artifactType, "jar")
+                        reg.getTo().attribute(artifactType, "intermediate")
+                    }
+
+                    registerTransform(FileSizer) { reg ->
+                        reg.getFrom().attribute(artifactType, "intermediate")
+                        reg.getTo().attribute(artifactType, "final")
+                    }
+                }
+
+                task resolve {
+                    def artifactFiles = configurations.compile.incoming.artifactView { config ->
+                        config.attributes {
+                            attribute(artifactType, "final")
+                        }
+                    }.artifacts.artifactFiles
+                    inputs.files(artifactFiles)
+                    doLast {
+                        println "files: " + artifactFiles.files.collect { it.name }
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds ":app:resolve"
+
+        // Ensure we consume the `secondary` variant of `:lib` using only a single transform
+        // instead of consuming the `primary` variant using both transforms, even though
+        // the primary transformed variant has an attribute which is preferred according to
+        // the attribute schema.
+        then:
+        output.count("Creating FileSizer") == 1
+        output.count("Transforming") == 1
+        outputContains("files: [lib.jar.txt]")
+    }
+
     def "transform can generate multiple output files for a single input"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -2165,6 +2257,66 @@ Found the following transforms:
         true      | 'project(":lib")'
         false     | '"test:a:1.3"'
         type = scheduled ? 'scheduled' : 'immediate'
+    }
+
+    def "transformation attribute cycles are permitted"() {
+        mavenRepo.module("test", "a", "1.0").publish()
+
+        buildFile << """
+            repositories {
+                maven { url '$mavenRepo.uri' }
+            }
+
+            dependencies {
+                compile 'test:a:1.0'
+            }
+
+            dependencies {
+                // A circular "chain" of depth 2
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, "final")
+                    to.attribute(artifactType, "somewhere")
+                }
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, "somewhere")
+                    to.attribute(artifactType, "final")
+                }
+
+                // A linear chain of depth 3
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, "jar")
+                    to.attribute(artifactType, "intermediate")
+                }
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, "intermediate")
+                    to.attribute(artifactType, "semi-final")
+                }
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, "semi-final")
+                    to.attribute(artifactType, "final")
+                }
+            }
+
+            task resolve {
+                def artifactFiles = configurations.compile.incoming.artifactView { config ->
+                    config.attributes {
+                        attribute(artifactType, "final")
+                    }
+                }.artifacts.artifactFiles
+                inputs.files(artifactFiles)
+                doLast {
+                    println "files: " + artifactFiles.files.collect { it.name }
+                }
+            }
+        """
+
+        when:
+        succeeds "resolve"
+
+        then:
+        output.count("Creating FileSizer") == 3
+        output.count("Transforming") == 3
+        outputContains("files: [a-1.0.jar.txt.txt.txt]")
     }
 
     def "artifacts with same component id and extension, but different classifier remain distinguishable after transformation"() {
