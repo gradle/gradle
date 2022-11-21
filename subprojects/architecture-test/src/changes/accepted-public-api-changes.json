@@ -377,6 +377,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.JavaBasePlugin",
+            "member": "Method org.gradle.api.plugins.JavaBasePlugin.getJavaToolchainQueryService()",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.JavaLibraryDistributionPlugin",
             "member": "Class org.gradle.api.plugins.JavaLibraryDistributionPlugin",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
@@ -1462,6 +1470,30 @@
             "acceptation": "Class to be removed, functionality deleted",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependenciesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependenciesExtensionsKt.invoke(org.gradle.api.artifacts.dsl.DependencyAdder,org.gradle.api.artifacts.Dependency,org.gradle.api.Action)",
+            "acceptation": "binary compatibilty check is confused",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependenciesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependenciesExtensionsKt.invoke(org.gradle.api.artifacts.dsl.DependencyModifier,org.gradle.api.artifacts.ModuleDependency)",
+            "acceptation": "binary compatibilty check is confused",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependenciesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependenciesExtensionsKt.module(org.gradle.api.artifacts.dsl.Dependencies,java.lang.String,java.lang.String,java.lang.String)",
+            "acceptation": "binary compatibilty check is confused",
+            "changes": [
+                "Method added to public class"
             ]
         },
         {

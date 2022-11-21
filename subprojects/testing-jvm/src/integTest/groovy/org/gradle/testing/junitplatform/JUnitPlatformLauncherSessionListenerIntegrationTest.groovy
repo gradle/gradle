@@ -16,13 +16,15 @@
 
 package org.gradle.testing.junitplatform
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 
 /**
  * Tests JUnitPlatform integrations with {@code LauncherSessionListener}.
  */
-class JUnitPlatformLauncherSessionListenerIntegrationTest extends AbstractIntegrationSpec {
+class JUnitPlatformLauncherSessionListenerIntegrationTest extends JUnitPlatformIntegrationSpec {
+
     /**
      * @see <a href=https://github.com/JetBrains/intellij-community/commit/d41841670c8a98c0464ef25ef490c79b5bafe8a9">The IntelliJ commit</a>
      * which introduced a {@code LauncherSessionListener} onto the test classpath when using the {@code org.jetbrains.intellij} plugin.
@@ -58,7 +60,7 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends AbstractIntegr
             com.example.MyLauncherSessionListener
         """
 
-        buildFile << """
+        buildFile.text = """
             plugins {
                 id 'java'
             }
@@ -90,5 +92,49 @@ class JUnitPlatformLauncherSessionListenerIntegrationTest extends AbstractIntegr
         then:
         // Sanity check in case future versions for some reason include a launcher
         outputDoesNotContain("junit-platform-launcher")
+    }
+
+    def "creates LauncherSession before loading test classes"() {
+        given:
+        createSimpleJupiterTest()
+        buildFile << """
+            dependencies {
+                testImplementation 'org.junit.platform:junit-platform-launcher:${LATEST_PLATFORM_VERSION}'
+            }
+            test {
+                testLogging {
+                    showStandardStreams = true
+                }
+            }
+        """
+        file('src/test/java/NoisyLauncherSessionListener.java') << '''
+            import org.junit.platform.launcher.*;
+            public class NoisyLauncherSessionListener implements LauncherSessionListener {
+                @Override public void launcherSessionOpened(LauncherSession session) {
+                    System.out.println("launcherSessionOpened");
+                    Thread thread = Thread.currentThread();
+                    ClassLoader parent = thread.getContextClassLoader();
+                    ClassLoader replacement = new ClassLoader(parent) {
+                        @Override protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+                            System.out.println("Loading class " + name);
+                            return super.loadClass(name, resolve);
+                        }
+                    };
+                    thread.setContextClassLoader(replacement);
+                }
+                @Override public void launcherSessionClosed(LauncherSession session) {
+                    System.out.println("launcherSessionClosed");
+                }
+            }
+        '''
+        file('src/test/resources/META-INF/services/org.junit.platform.launcher.LauncherSessionListener') << '''\
+            NoisyLauncherSessionListener
+        '''.stripIndent(true)
+
+        expect:
+        succeeds('test')
+        outputContains('launcherSessionOpened')
+        outputContains('Loading class org.gradle.JUnitJupiterTest')
+        outputContains('launcherSessionClosed')
     }
 }

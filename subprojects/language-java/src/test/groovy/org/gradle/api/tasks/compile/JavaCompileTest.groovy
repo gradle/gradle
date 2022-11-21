@@ -95,9 +95,8 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
 
         then:
         def e = thrown(AbstractProperty.PropertyQueryException)
-        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
-        cause.message.contains("Specific installation toolchain")
-        cause.message.contains(invalidJavac.parentFile.parentFile.absolutePath)
+        assertHasMatchingCause(e, m -> m.startsWith("Toolchain installation '${invalidJavac.parentFile.parentFile.absolutePath}' could not be probed:"))
+        assertHasMatchingCause(e, m -> m ==~ /Cannot run program .*java.*/)
     }
 
     def "fails if custom Java home does not exist"() {
@@ -146,9 +145,8 @@ class JavaCompileTest extends AbstractProjectBuilderSpec {
 
         then:
         def e = thrown(AbstractProperty.PropertyQueryException)
-        def cause = TestUtil.getRootCause(e) as InvalidUserDataException
-        cause.message.contains("Specific installation toolchain")
-        cause.message.contains(javaHomeDir.absolutePath)
+        assertHasMatchingCause(e, m -> m.startsWith("Toolchain installation '${javaHomeDir.absolutePath}' could not be probed:"))
+        assertHasMatchingCause(e, m -> m ==~ /Cannot run program .*java.*/)
     }
 
     def 'uses release property combined with toolchain compiler'() {

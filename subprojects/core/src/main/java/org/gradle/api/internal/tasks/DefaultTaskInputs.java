@@ -39,6 +39,7 @@ import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.StaticValue;
 import org.gradle.internal.properties.bean.PropertyWalker;
 
 import javax.annotation.Nullable;
