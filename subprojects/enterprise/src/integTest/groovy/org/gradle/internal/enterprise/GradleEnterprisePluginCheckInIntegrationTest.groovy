@@ -99,6 +99,6 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         plugin.notApplied(output)
 
         and:
-        plugin.assertUnsupportedMessage(output, DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_PLUGIN_DUE_TO_GRADLE_8_AND_CONFIGURATION_CACHING_MESSAGE)
+        plugin.assertUnsupportedMessage(output, DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE)
     }
 }

@@ -47,9 +47,10 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-enterprise-plugin";
     public static final String UNSUPPORTED_TOGGLE_MESSAGE = "Enterprise plugin unsupported due to secret toggle";
 
-    private static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_GRADLE_8_AND_CONFIGURATION_CACHING = VersionNumber.version(3, 12);
-    public static final String UNSUPPORTED_PLUGIN_DUE_TO_GRADLE_8_AND_CONFIGURATION_CACHING_MESSAGE = String.format("The Gradle Enterprise plugin has been disabled as it is " +
-        "incompatible with this version of Gradle and the configuration caching feature - please upgrade to version %s or later of the Gradle Enterprise plugin to restore functionality.", MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_GRADLE_8_AND_CONFIGURATION_CACHING);
+    // For Gradle versions 8+, configuration caching builds are not compatible with Gradle Enterprise plugin < 3.12
+    private static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING = VersionNumber.version(3, 12);
+    public static final String UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE = String.format("The Gradle Enterprise plugin has been disabled as it is " +
+        "incompatible with this version of Gradle and the configuration caching feature - please upgrade to version %s or later of the Gradle Enterprise plugin to restore functionality.", MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING);
 
     @Override
     public GradleEnterprisePluginCheckInResult checkIn(GradleEnterprisePluginMetadata pluginMetadata, GradleEnterprisePluginServiceFactory serviceFactory) {
@@ -59,7 +60,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         }
         if (isConfigurationCacheEnabled && isUnsupported(pluginMetadata.getVersion())) {
             manager.unsupported();
-            return checkInResult(UNSUPPORTED_PLUGIN_DUE_TO_GRADLE_8_AND_CONFIGURATION_CACHING_MESSAGE, () -> {throw new IllegalStateException();});
+            return checkInResult(UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE, () -> {throw new IllegalStateException();});
         }
         GradleEnterprisePluginServiceRef ref = adapter.register(serviceFactory);
         manager.registerAdapter(adapter);
@@ -82,7 +83,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
 
     private static boolean isUnsupported(String pluginVersion) {
         VersionNumber version = VersionNumber.parse(pluginVersion).getBaseVersion();
-        return MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_GRADLE_8_AND_CONFIGURATION_CACHING.compareTo(version) < 0;
+        return MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.compareTo(version) < 0;
     }
 
 }
