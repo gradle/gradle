@@ -30,6 +30,7 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.DslObject;
@@ -235,25 +236,23 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         String runtimeClasspathConfigurationName = sourceSet.getRuntimeClasspathConfigurationName();
         String sourceSetName = sourceSet.toString();
 
-        Configuration implementationConfiguration = configurations.bucket(implementationConfigurationName, false);
+        Configuration implementationConfiguration = configurations.maybeCreateWithRole(implementationConfigurationName, ConfigurationRoles.INTENDED_BUCKET, false, false);
         implementationConfiguration.setVisible(false);
         implementationConfiguration.setDescription("Implementation only dependencies for " + sourceSetName + ".");
 
-        Configuration compileOnlyConfiguration = configurations.bucket(compileOnlyConfigurationName, false);
+        Configuration compileOnlyConfiguration = configurations.maybeCreateWithRole(compileOnlyConfigurationName, ConfigurationRoles.INTENDED_BUCKET, false, false);
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.setDescription("Compile only dependencies for " + sourceSetName + ".");
 
-        ConfigurationInternal compileClasspathConfiguration = configurations.resolvable(compileClasspathConfigurationName, false);
+        ConfigurationInternal compileClasspathConfiguration = configurations.maybeCreateWithRole(compileClasspathConfigurationName, ConfigurationRoles.INTENDED_RESOLVABLE, false, false);
         compileClasspathConfiguration.setVisible(false);
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         jvmPluginServices.configureAsCompileClasspath(compileClasspathConfiguration);
 
         // Need to be able to declare against and resolve this; but NOT consume it - this is NOT a standard role
-        ConfigurationInternal annotationProcessorConfiguration = (ConfigurationInternal) configurations.maybeCreate(annotationProcessorConfigurationName);
-        annotationProcessorConfiguration.setCanBeConsumed(false);
-        annotationProcessorConfiguration.setCanBeDeclaredAgainst(true);
-        annotationProcessorConfiguration.setCanBeResolved(true);
+        ConfigurationRole annotationProcessorRole = ConfigurationRole.forUsage("Annotation Processor Usage", false, true, true, false, false, false);
+        ConfigurationInternal annotationProcessorConfiguration = (ConfigurationInternal) configurations.maybeCreateWithRole(annotationProcessorConfigurationName, annotationProcessorRole, false, false);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
