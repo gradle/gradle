@@ -29,24 +29,19 @@ import java.util.stream.Collectors;
  */
 public interface SoftwareComponentInternal extends SoftwareComponent {
 
-    // TODO: Should we name this `getVariants`? `ComponentWithVariants` already defines a `getVariants` which
-    // returns a different type. There are existing classes (internally and in KGP) which implement both this class and
-    // `ComponentWithVariants`.
-    default Set<? extends SoftwareComponentVariant> getAllVariants() {
-        // TODO Gradle 8.1: Add a deprecation nag here. Subclasses should implement this method
-        // instead of getUsages. In 9.0, we'll remove the default implementation.
-        return Collections.unmodifiableSet(getUsages());
+    default SoftwareComponentPublications getOutgoing() {
+        return new DefaultSoftwareComponentPublications(Collections.unmodifiableSet(getUsages()));
     }
 
     /**
-     * Currently used by the kotlin plugins.
+     * Currently used by the kotlin multiplatform plugins.
      *
-     * @deprecated Use {@link #getAllVariants()}. This method is scheduled for removal in Gradle 9.0.
+     * @deprecated Use {@link #getOutgoing()} ()}. This method is scheduled for removal in Gradle 9.0.
      */
     @Deprecated
     default Set<? extends UsageContext> getUsages() {
         // TODO Gradle 8.1: Add a deprecation nag here.
-        return getAllVariants().stream().map(UsageContextShim::new).collect(Collectors.toSet());
+        return getOutgoing().getVariants().stream().map(UsageContextShim::new).collect(Collectors.toSet());
     }
 
     /**

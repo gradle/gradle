@@ -24,12 +24,13 @@ import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.component.DefaultSoftwareComponentPublications;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.SoftwareComponentPublications;
 import org.gradle.api.internal.java.usagecontext.ConfigurationVariantMapping;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants, SoftwareComponentInternal {
     private final String componentName;
@@ -60,11 +61,11 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     }
 
     @Override
-    public Set<? extends SoftwareComponentVariant> getAllVariants() {
+    public SoftwareComponentPublications getOutgoing() {
         ImmutableSet.Builder<SoftwareComponentVariant> builder = new ImmutableSet.Builder<>();
         for (ConfigurationVariantMapping variant : variants.values()) {
             variant.collectVariants(builder);
         }
-        return builder.build();
+        return new DefaultSoftwareComponentPublications(builder.build());
     }
 }

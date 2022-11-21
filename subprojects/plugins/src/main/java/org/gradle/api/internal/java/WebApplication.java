@@ -19,12 +19,13 @@ package org.gradle.api.internal.java;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.component.SoftwareComponentVariant;
-import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.DefaultSoftwareComponentPublications;
 import org.gradle.api.internal.component.DefaultSoftwareComponentVariant;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.SoftwareComponentPublications;
 
 import javax.inject.Inject;
 import java.util.Collections;
-import java.util.Set;
 
 public class WebApplication implements SoftwareComponentInternal {
     private final SoftwareComponentVariant variant;
@@ -40,7 +41,7 @@ public class WebApplication implements SoftwareComponentInternal {
     }
 
     @Override
-    public Set<? extends SoftwareComponentVariant> getAllVariants() {
-        return Collections.singleton(variant);
+    public SoftwareComponentPublications getOutgoing() {
+        return new DefaultSoftwareComponentPublications(Collections.singleton(variant));
     }
 }

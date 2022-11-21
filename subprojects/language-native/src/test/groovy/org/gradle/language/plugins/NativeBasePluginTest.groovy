@@ -25,6 +25,7 @@ import org.gradle.api.component.SoftwareComponentVariant
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.component.DefaultSoftwareComponentPublications
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.Providers
@@ -417,7 +418,7 @@ class NativeBasePluginTest extends Specification {
         componentVariant1.artifacts >> [artifact1]
         def variant1 = Stub(PublishableVariant)
         variant1.name >> "debug"
-        variant1.allVariants >> [componentVariant1]
+        variant1.outgoing >> new DefaultSoftwareComponentPublications([componentVariant1] as Set)
         variant1.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_debug", "1.2")
 
         def componentVariant2 = Stub(SoftwareComponentVariant)
@@ -426,7 +427,7 @@ class NativeBasePluginTest extends Specification {
         componentVariant2.artifacts >> [artifact2]
         def variant2 = Stub(PublishableVariant)
         variant2.name >> "release"
-        variant2.allVariants >> [componentVariant2]
+        variant2.outgoing >> new DefaultSoftwareComponentPublications([componentVariant2] as Set)
         variant2.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_release", "1.2")
 
         def doNotPublish = Stub(SoftwareComponentInternal)

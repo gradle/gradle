@@ -116,8 +116,8 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
 
         when:
         DefaultAdhocSoftwareComponent javaPlatform = project.components.getByName("javaPlatform")
-        SoftwareComponentVariant apiVariant = javaPlatform.allVariants[0]
-        SoftwareComponentVariant runtimeVariant = javaPlatform.allVariants[1]
+        SoftwareComponentVariant apiVariant = javaPlatform.outgoing.variants[0]
+        SoftwareComponentVariant runtimeVariant = javaPlatform.outgoing.variants[1]
 
         then:
         runtimeVariant.dependencies.size() == 2

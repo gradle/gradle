@@ -21,13 +21,14 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.component.DefaultSoftwareComponentPublications;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.SoftwareComponentPublications;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.ConfigurationSoftwareComponentVariant;
 import org.gradle.api.provider.Property;
@@ -46,7 +47,6 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Collections;
-import java.util.Set;
 
 public class DefaultCppExecutable extends DefaultCppBinary implements CppExecutable, ConfigurableComponentWithExecutable, ConfigurableComponentWithRuntimeUsage, SoftwareComponentInternal {
     private final RegularFileProperty executableFile;
@@ -128,9 +128,10 @@ public class DefaultCppExecutable extends DefaultCppBinary implements CppExecuta
     }
 
     @Override
-    public Set<? extends SoftwareComponentVariant> getAllVariants() {
+    public SoftwareComponentPublications getOutgoing() {
         Configuration runtimeElements = runtimeElementsProperty.get();
-        return Collections.singleton(new ConfigurationSoftwareComponentVariant(getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements));
+        return new DefaultSoftwareComponentPublications(Collections.singleton(
+            new ConfigurationSoftwareComponentVariant(getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements)));
     }
 
     @Override

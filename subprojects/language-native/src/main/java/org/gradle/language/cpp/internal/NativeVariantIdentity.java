@@ -21,7 +21,9 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.component.ComponentWithCoordinates;
 import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.component.DefaultSoftwareComponentPublications;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.SoftwareComponentPublications;
 import org.gradle.api.provider.Provider;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.TargetMachine;
@@ -88,8 +90,8 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
     }
 
     @Override
-    public Set<? extends SoftwareComponentVariant> getAllVariants() {
-        return variants;
+    public SoftwareComponentPublications getOutgoing() {
+        return new DefaultSoftwareComponentPublications(variants);
     }
 
     @Override

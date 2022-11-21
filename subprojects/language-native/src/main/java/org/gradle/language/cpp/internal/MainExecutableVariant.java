@@ -20,8 +20,9 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.component.SoftwareComponentVariant;
+import org.gradle.api.internal.component.DefaultSoftwareComponentPublications;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.SoftwareComponentPublications;
 import org.gradle.api.model.ObjectFactory;
 
 import java.util.Set;
@@ -48,7 +49,7 @@ public class MainExecutableVariant implements SoftwareComponentInternal, Compone
     }
 
     @Override
-    public Set<? extends SoftwareComponentVariant> getAllVariants() {
-        return ImmutableSet.of();
+    public SoftwareComponentPublications getOutgoing() {
+        return new DefaultSoftwareComponentPublications(ImmutableSet.of());
     }
 }

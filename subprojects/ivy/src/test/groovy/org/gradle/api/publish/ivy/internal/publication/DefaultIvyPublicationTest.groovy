@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.component.DefaultSoftwareComponentPublications
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.internal.PublicationInternal
@@ -421,7 +422,7 @@ class DefaultIvyPublicationTest extends Specification {
             getAttributes() >> ImmutableAttributes.EMPTY
         }
         def component = Stub(SoftwareComponentInternal) {
-            getAllVariants() >> [variant]
+            getOutgoing() >> new DefaultSoftwareComponentPublications([variant] as Set)
         }
         return component
     }

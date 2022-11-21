@@ -36,6 +36,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConst
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.component.DefaultSoftwareComponentPublications
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
@@ -103,7 +104,7 @@ class GradleModuleMetadataWriterTest extends Specification {
         v1.attributes >> attributes(usage: "compile")
         v1.dependencies >> []
 
-        component.allVariants >> [v1]
+        component.outgoing >> new DefaultSoftwareComponentPublications([v1] as Set)
 
         when:
         publication.attributes >> attributes(status: 'release', 'test': 'value')
@@ -176,7 +177,7 @@ class GradleModuleMetadataWriterTest extends Specification {
         v2.attributes >> attributes(usage: "runtime")
         v2.artifacts >> [a2]
 
-        component.allVariants >> [v1, v2]
+        component.outgoing >> new DefaultSoftwareComponentPublications([v1, v2] as Set)
 
         when:
         writeTo(writer, publication, [publication])
@@ -310,7 +311,7 @@ class GradleModuleMetadataWriterTest extends Specification {
         v2.attributes >> attributes(usage: "runtime")
         v2.dependencies >> [d2, d3, d4, d5, d6, d7]
 
-        component.allVariants >> [v1, v2]
+        component.outgoing >> new DefaultSoftwareComponentPublications([v1, v2] as Set)
 
         when:
         writeTo(writer, publication, [publication])
@@ -489,7 +490,7 @@ class GradleModuleMetadataWriterTest extends Specification {
         v2.attributes >> attributes(usage: "runtime")
         v2.dependencyConstraints >> [dc2, dc3, dc4]
 
-        component.allVariants >> [v1, v2]
+        component.outgoing >> new DefaultSoftwareComponentPublications([v1, v2] as Set)
 
         when:
         writeTo(writer, publication, [publication])
@@ -593,7 +594,7 @@ class GradleModuleMetadataWriterTest extends Specification {
                 (Attribute.of("platform", Named)): platform,
                 (Attribute.of("linkage", SomeEnum)): SomeEnum.VALUE_2)
 
-        component.allVariants >> [v1, v2]
+        component.outgoing >> new DefaultSoftwareComponentPublications([v1, v2] as Set)
 
         when:
         writeTo(writer, publication, [publication])
@@ -663,9 +664,9 @@ class GradleModuleMetadataWriterTest extends Specification {
         v2.attributes >> attributes(usage: "runtime")
 
         rootComponent.variants >> [comp1, comp2]
-        rootComponent.allVariants >> []
-        comp1.allVariants >> [v1]
-        comp2.allVariants >> [v2]
+        rootComponent.outgoing >> new DefaultSoftwareComponentPublications([] as Set)
+        comp1.outgoing >> new DefaultSoftwareComponentPublications([v1] as Set)
+        comp2.outgoing >> new DefaultSoftwareComponentPublications([v2] as Set)
 
         when:
         writeTo(writer, rootPublication, [rootPublication, publication1, publication2])
@@ -742,8 +743,8 @@ class GradleModuleMetadataWriterTest extends Specification {
         v1.capabilities >> [c1]
 
         rootComponent.variants >> [comp1]
-        rootComponent.allVariants >> []
-        comp1.allVariants >> [v1]
+        rootComponent.outgoing >> new DefaultSoftwareComponentPublications([] as Set)
+        comp1.outgoing >> new DefaultSoftwareComponentPublications([v1] as Set)
 
         when:
         writeTo(writer, rootPublication, [rootPublication, publication1])
@@ -767,8 +768,8 @@ class GradleModuleMetadataWriterTest extends Specification {
         variant.attributes >> attributes(usage: "compile")
 
         rootComponent.variants >> [childComponent]
-        rootComponent.allVariants >> []
-        childComponent.allVariants >> [variant]
+        rootComponent.outgoing >> new DefaultSoftwareComponentPublications([] as Set)
+        childComponent.outgoing >> new DefaultSoftwareComponentPublications([variant] as Set)
 
         when:
         writeTo(writer, childPublication, [rootPublication, childPublication])
@@ -828,7 +829,7 @@ class GradleModuleMetadataWriterTest extends Specification {
         v2.dependencies >> []
         v2.capabilities >> [c1, c2]
 
-        component.allVariants >> [v1, v2]
+        component.outgoing >> new DefaultSoftwareComponentPublications([v1, v2] as Set)
 
         when:
         writeTo(writer, publication, [publication])
@@ -923,7 +924,7 @@ class GradleModuleMetadataWriterTest extends Specification {
         v2.dependencies >> [runtimeDependency, intransitiveDependency]
         v2.globalExcludes >> [new DefaultExcludeRule("org.example.runtime", null)]
 
-        component.allVariants >> [v1, v2]
+        component.outgoing >> new DefaultSoftwareComponentPublications([v1, v2] as Set)
 
         when:
         writeTo(writer, publication, [publication])
@@ -1005,7 +1006,7 @@ class GradleModuleMetadataWriterTest extends Specification {
         v1.name >> "v1"
         v1.dependencies >> [apiDependency]
 
-        component.allVariants >> [v1]
+        component.outgoing >> new DefaultSoftwareComponentPublications([v1] as Set)
 
         when:
         writeTo(writer, publication, [publication])
@@ -1082,7 +1083,7 @@ class GradleModuleMetadataWriterTest extends Specification {
         v2.attributes >> attributes(usage: "runtime")
         v2.dependencies >> [d2, d3, d4, d5]
 
-        component.allVariants >> [v1, v2]
+        component.outgoing >> new DefaultSoftwareComponentPublications([v1, v2] as Set)
 
         when:
         writeTo(writer, publication, [publication])
@@ -1188,7 +1189,7 @@ class GradleModuleMetadataWriterTest extends Specification {
         v2.name >> "v2"
         v2.attributes >> attributes(usage: "runtime")
 
-        comp.allVariants >> [v1, v2]
+        comp.outgoing >> new DefaultSoftwareComponentPublications([v1, v2] as Set)
 
         when:
         writeTo(writer, publication1, [publication1, publication2])

@@ -419,7 +419,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             ? Comparator.comparing(x -> ((MavenPublishingAwareVariant) x).getScopeMapping())
             : (u1, u2) -> VARIANT_ORDERING.compare(u1.getName(), u2.getName());
 
-        return this.component.getAllVariants().stream().sorted(comparator).collect(Collectors.toList());
+        return this.component.getOutgoing().getVariants().stream().sorted(comparator).collect(Collectors.toList());
     }
 
     private Set<MavenDependencyInternal> dependenciesFor(SoftwareComponentVariant variant) {

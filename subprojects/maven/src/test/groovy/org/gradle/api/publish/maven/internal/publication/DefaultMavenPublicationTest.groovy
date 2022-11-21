@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.component.DefaultSoftwareComponentPublications
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.internal.PublicationArtifactInternal
@@ -228,7 +229,7 @@ class DefaultMavenPublicationTest extends Specification {
         def variant2 = Stub(SoftwareComponentVariant) { getName() >> 'runtime' }
         variant2.artifacts >> [artifact2]
         def component = Stub(SoftwareComponentInternal)
-        component.allVariants >> [variant1, variant2]
+        component.outgoing >> new DefaultSoftwareComponentPublications([variant1, variant2] as Set)
         def mavenArtifact = Mock(MavenArtifact)
         mavenArtifact.file >> artifactFile
         notationParser.parseNotation(artifact1) >> mavenArtifact
@@ -600,7 +601,7 @@ class DefaultMavenPublicationTest extends Specification {
             getDependencies() >> dependencies
         }
         def component = Stub(SoftwareComponentInternal) {
-            getAllVariants() >> [variant]
+            getOutgoing() >> new DefaultSoftwareComponentPublications([variant] as Set)
         }
         return component
     }

@@ -24,8 +24,9 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.component.SoftwareComponentVariant;
+import org.gradle.api.internal.component.DefaultSoftwareComponentPublications;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
+import org.gradle.api.internal.component.SoftwareComponentPublications;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.ConfigurationSoftwareComponentVariant;
 
@@ -54,8 +55,9 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
     }
 
     @Override
-    public Set<? extends SoftwareComponentVariant> getAllVariants() {
-        return ImmutableSet.of(new ConfigurationSoftwareComponentVariant(name, dependencies, attributeContainer, artifacts));
+    public SoftwareComponentPublications getOutgoing() {
+        return new DefaultSoftwareComponentPublications(ImmutableSet.of(
+            new ConfigurationSoftwareComponentVariant(name, dependencies, attributeContainer, artifacts)));
     }
 
     @Override

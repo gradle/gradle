@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,17 @@
 
 package org.gradle.api.internal.component;
 
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.SoftwareComponentVariant;
 
+import java.util.Set;
+
 /**
- * Currently used by the Kotlin multiplatform plugins.
- *
- * @deprecated Use {@link SoftwareComponentVariant}. This class is scheduled for removal in Gradle 9.0.
+ * Represents the outgoing view of a software component -- the view which external consumers interact with.
  */
-@Deprecated
-public interface UsageContext extends SoftwareComponentVariant {
+public interface SoftwareComponentPublications {
 
     /**
-     * Currently used by the Kotlin multiplatform plugins.
-     *
-     * @deprecated This class is scheduled for removal in Gradle 9.0.
+     * @return All variants for this component.
      */
-    @Deprecated
-    default Usage getUsage(){
-        throw new UnsupportedOperationException("This method has been deprecated, should never be called");
-    }
-
+    Set<? extends SoftwareComponentVariant> getVariants();
 }

@@ -274,7 +274,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         PublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
 
         PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor");
-        Set<? extends SoftwareComponentVariant> variants = component.getAllVariants();
+        Set<? extends SoftwareComponentVariant> variants = component.getOutgoing().getVariants();
 
         populateConfigurations(variants);
         populateArtifacts(variants);
