@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.reporting.CustomizableHtmlReport;
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.SingleFileReport;
@@ -55,8 +56,10 @@ public interface CheckstyleReports extends ReportContainer<SingleFileReport> {
      * This report IS NOT enabled by default.
      *
      * @return The checkstyle SARIF report
+     * @since 8.0
      */
     @Internal
+    @Incubating
     SingleFileReport getSarif();
 
 }
