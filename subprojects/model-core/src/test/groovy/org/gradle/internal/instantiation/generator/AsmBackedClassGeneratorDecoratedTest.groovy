@@ -28,9 +28,10 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.BiAction
 import org.gradle.internal.Describables
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
-import org.gradle.internal.util.BiFunction
 import org.gradle.util.internal.ConfigureUtil
 import spock.lang.Issue
+
+import java.util.function.BiFunction
 
 import static AsmBackedClassGeneratorTest.Bean
 import static AsmBackedClassGeneratorTest.InterfaceBean
@@ -517,7 +518,7 @@ class DynamicThing {
     def methods = [:]
     def props = [:]
 
-    BiFunction<Object, String, Object[]> onMethodMissing = { name, args -> methods[name] = args.toList(); null }
+    BiFunction<String, Object[], Object> onMethodMissing = { name, args -> methods[name] = args.toList(); null }
     Function<String, Object> onPropertyMissingGet = { name -> props[name] }
     BiAction<String, Object> onPropertyMissingSet = { name, value -> props[name] = value }
 
