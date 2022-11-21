@@ -40,21 +40,24 @@ public abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalke
     private void walk(T node, @Nullable String parentPropertyName, PropertyMetadataVisitor<T> visitor) {
         Class<?> nodeType = resolveType(node);
         if (Map.class.isAssignableFrom(nodeType)) {
-            handleMap(node, (name, child) ->
-                walk(child, getQualifiedName(parentPropertyName, name), visitor));
+            handleMap(node, (name, child) -> walk(child, getQualifiedName(parentPropertyName, name), visitor));
         } else if (Iterable.class.isAssignableFrom(nodeType)) {
-            handleIterable(node, (name, child) ->
-                walk(child, getQualifiedName(parentPropertyName, name), visitor));
+            handleIterable(node, (name, child) -> walk(child, getQualifiedName(parentPropertyName, name), visitor));
         } else {
             TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(nodeType);
             typeMetadata.getPropertiesMetadata()
                 .forEach(propertyMetadata -> {
                     String qualifiedName = getQualifiedName(parentPropertyName, propertyMetadata.getPropertyName());
                     T child = getChild(node, propertyMetadata);
+                    Class<?> childType = resolveType(child);
+                    visitor.visitProperty(typeMetadata, propertyMetadata, qualifiedName, child);
                     if (propertyMetadata.getPropertyType() == Nested.class) {
                         walk(child, qualifiedName, visitor);
+                    } else if (Map.class.isAssignableFrom(childType)) {
+                        handleMap(child, (name, mapChild) -> walk(mapChild, getQualifiedName(qualifiedName, name), visitor));
+                    } else if (Iterable.class.isAssignableFrom(childType)) {
+                        handleIterable(child, (name, iterableChild) -> walk(iterableChild, getQualifiedName(qualifiedName, name), visitor));
                     }
-                    visitor.visitProperty(typeMetadata, propertyMetadata, qualifiedName, child);
                 });
         }
     }

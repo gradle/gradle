@@ -23,7 +23,7 @@ interface TypeMetadataWalker<T> {
         return new AbstractTypeMetadataWalker.InstanceTypeMetadataWalker(typeMetadataStore);
     }
 
-    static TypeMetadataWalker<TypeToken<?>> staticWalker(TypeMetadataStore typeMetadataStore) {
+    static TypeMetadataWalker<TypeToken<?>> typeWalker(TypeMetadataStore typeMetadataStore) {
         return new AbstractTypeMetadataWalker.StaticTypeMetadataWalker(typeMetadataStore);
     }
 
