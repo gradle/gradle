@@ -488,6 +488,45 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         executer.expectDocumentedDeprecationWarning("Allowed usage is changing for configuration ':custom', resolvable was false and is now true. Ideally, usage should be fixed upon creation. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Usage should be fixed upon creation. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
         succeeds 'help'
     }
+
+    def "using a reserved configuration name emits a deprecation warning if JavaBasePlugin applied"() {
+        given:
+        file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
+            import org.gradle.api.Plugin
+            import org.gradle.api.plugins.BasePlugin
+            import org.gradle.api.plugins.JvmEcosystemPlugin
+
+            class MyPlugin implements Plugin {
+                void apply(project) {
+                    project.pluginManager.apply(BasePlugin.class)
+                    project.pluginManager.apply(JvmEcosystemPlugin.class)
+
+                    project.sourceSets.create('custom')
+                    project.configurations.create('customCompileOnly')
+
+                    project.configurations.create('implementation')
+                }
+            }
+        """
+
+        file('buildSrc/build.gradle') << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+
+        file("buildSrc/src/main/resources/META-INF/gradle-plugins/my-plugin.properties") << "implementation-class=MyPlugin"
+
+        buildFile << """
+            apply plugin: 'my-plugin'
+            apply plugin: 'java'
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("The configuration customCompileOnly was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with this name. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        executer.expectDocumentedDeprecationWarning("The configuration implementation was created explicitly. This configuration name is reserved for creation by Gradle. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Do not create a configuration with this name. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#configurations_allowed_usage")
+        succeeds 'help'
+    }
     // endregion Logging
 
     // region Custom Roles
