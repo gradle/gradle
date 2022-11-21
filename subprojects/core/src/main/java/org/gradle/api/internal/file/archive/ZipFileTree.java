@@ -134,7 +134,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         // See https://github.com/gradle/gradle/issues/22685 - tasks in different projects
         // might end up accessing and expanding the same zip file concurrently, so we need
         // to synchronize using the same lock object for all zip file instances
-        private static final Object[] expandLock = new Object[0];
+        private static final Object[] EXPAND_LOCK = new Object[0];
 
         private final File originalFile;
         private final File expandedDir;
@@ -165,7 +165,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         @Override
         public File getFile() {
             if (file == null) {
-                synchronized (expandLock) {
+                synchronized (EXPAND_LOCK) {
                     if (file == null) {
                         file = new File(expandedDir, safeEntryName());
                         if (!file.exists()) {
