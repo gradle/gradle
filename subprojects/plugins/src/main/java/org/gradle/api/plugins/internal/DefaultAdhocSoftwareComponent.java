@@ -48,11 +48,13 @@ public class DefaultAdhocSoftwareComponent extends FinalizableSoftwareComponentI
 
     @Override
     public void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> spec) {
+        checkNotFinalized();
         variants.put(outgoingConfiguration, new ConfigurationVariantMapping((ConfigurationInternal) outgoingConfiguration, spec, instantiator));
     }
 
     @Override
     public void withVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
+        checkNotFinalized();
         if (!variants.containsKey(outgoingConfiguration)) {
             throw new InvalidUserDataException("Variant for configuration " + outgoingConfiguration.getName() + " does not exist in component " + componentName);
         }
