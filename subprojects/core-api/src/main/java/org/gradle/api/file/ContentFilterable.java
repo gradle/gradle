@@ -17,7 +17,6 @@ package org.gradle.api.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Transformer;
 
 import java.io.FilterReader;
@@ -119,6 +118,5 @@ public interface ContentFilterable {
      * @return this
      * @since 7.2
      */
-    @Incubating
     ContentFilterable expand(Map<String, ?> properties, Action<? super ExpandDetails> action);
 }
