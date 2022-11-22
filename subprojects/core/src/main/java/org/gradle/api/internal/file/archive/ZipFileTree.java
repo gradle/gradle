@@ -23,10 +23,12 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.CacheFactory;
+import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -45,20 +47,20 @@ import static org.gradle.util.internal.ZipSlip.safeZipEntryName;
 
 public class ZipFileTree extends AbstractArchiveFileTree {
     private final Provider<File> fileProvider;
-    private final File tmpDir;
     private final Chmod chmod;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileHasher fileHasher;
 
     public ZipFileTree(
         Provider<File> zipFile,
-        File tmpDir,
         Chmod chmod,
         DirectoryFileTreeFactory directoryFileTreeFactory,
-        FileHasher fileHasher
+        FileHasher fileHasher,
+        CacheFactory cacheFactory,
+        GradleUserHomeDirProvider userHomeDirProvider
     ) {
+        super(cacheFactory, userHomeDirProvider);
         this.fileProvider = zipFile;
-        this.tmpDir = tmpDir;
         this.chmod = chmod;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileHasher = fileHasher;
@@ -97,7 +99,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
             Iterator<ZipArchiveEntry> sortedEntries = entriesSortedByName(zip);
             while (!stopFlag.get() && sortedEntries.hasNext()) {
                 ZipArchiveEntry entry = sortedEntries.next();
-                DetailsImpl details = new DetailsImpl(zipFile, expandedDir, entry, zip, stopFlag, chmod);
+                DetailsImpl details = new DetailsImpl(zipFile, expandedDir, entry, zip, stopFlag, chmod, expansionCache);
                 if (entry.isDirectory()) {
                     visitor.visitDir(details);
                 } else {
@@ -127,26 +129,18 @@ public class ZipFileTree extends AbstractArchiveFileTree {
     private File getExpandedDir() {
         File zipFile = fileProvider.get();
         String expandedDirName = zipFile.getName() + "_" + fileHasher.hash(zipFile);
-        return new File(tmpDir, expandedDirName);
+        return new File(expansionCache.getBaseDir(), expandedDirName);
     }
 
-    private static class DetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
-        // See https://github.com/gradle/gradle/issues/22685 - tasks in different projects
-        // might end up accessing and expanding the same zip file concurrently, so we need
-        // to synchronize using the same lock object for all zip file instances
-        private static final Object[] EXPAND_LOCK = new Object[0];
-
+    private static class DetailsImpl extends AbstractArchiveFileTreeElement implements FileVisitDetails {
         private final File originalFile;
-        private final File expandedDir;
         private final ZipArchiveEntry entry;
         private final ZipFile zip;
         private final AtomicBoolean stopFlag;
-        private volatile File file;
 
-        public DetailsImpl(File originalFile, File expandedDir, ZipArchiveEntry entry, ZipFile zip, AtomicBoolean stopFlag, Chmod chmod) {
-            super(chmod);
+        public DetailsImpl(File originalFile, File expandedDir, ZipArchiveEntry entry, ZipFile zip, AtomicBoolean stopFlag, Chmod chmod, PersistentCache expansionCache) {
+            super(chmod, expansionCache, expandedDir);
             this.originalFile = originalFile;
-            this.expandedDir = expandedDir;
             this.entry = entry;
             this.zip = zip;
             this.stopFlag = stopFlag;
@@ -163,21 +157,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         }
 
         @Override
-        public File getFile() {
-            if (file == null) {
-                synchronized (EXPAND_LOCK) {
-                    if (file == null) {
-                        file = new File(expandedDir, safeEntryName());
-                        if (!file.exists()) {
-                            copyTo(file);
-                        }
-                    }
-                }
-            }
-            return file;
-        }
-
-        private String safeEntryName() {
+        protected String safeEntryName() {
             return safeZipEntryName(entry.getName());
         }
 

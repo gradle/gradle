@@ -26,6 +26,7 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.resources.DefaultResourceHandler
+import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
@@ -69,7 +70,9 @@ class DefaultFileOperationsTest extends Specification {
             TestFiles.deleter(),
             TestFiles.documentationRegistry(),
             TestFiles.taskDependencyFactory(),
-            TestUtil.providerFactory()
+            TestUtil.providerFactory(),
+            TestFiles.cacheFactory(),
+            (GradleUserHomeDirProvider)(() -> temporaryFileProvider.newTemporaryDirectory("user-home"))
         )
     }
 
@@ -249,4 +252,3 @@ class DefaultFileOperationsTest extends Specification {
         return TestFiles.resolver(tmpDir.testDirectory)
     }
 }
-

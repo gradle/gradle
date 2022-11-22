@@ -18,24 +18,32 @@ package org.gradle.api.internal.file.archive
 
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.MinimalFileTree
 import org.gradle.api.provider.Provider
+import org.gradle.cache.internal.CacheFactory
+import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
-
-class AbstractArchiveFileTreeTest extends Specification {
+/**
+ * Tests core functionality in {@link AbstractArchiveFileTree} using a minimal test implementation.
+ */
+class AbstractArchiveFileTreeSpec extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "visits structure when backing file is known"() {
         def owner = Stub(FileTreeInternal)
         def visitor = Mock(MinimalFileTree.MinimalFileTreeStructureVisitor)
         def backingFile = tmpDir.createFile("thing.bin")
 
-        def fileTree = new TestArchiveFileTree(backingFile: backingFile)
+        def fileTree = new TestArchiveFileTree(
+                TestFiles.cacheFactory(),
+                () -> tmpDir.createDir("user-home"),
+                backingFile)
 
         when:
         fileTree.visitStructure(visitor, owner)
@@ -48,6 +56,11 @@ class AbstractArchiveFileTreeTest extends Specification {
     static class TestArchiveFileTree extends AbstractArchiveFileTree {
         File backingFile
         final String displayName = "<display>"
+
+        TestArchiveFileTree(CacheFactory cacheFactory, GradleUserHomeDirProvider userHomeDirProvider, File backingFile) {
+            super(cacheFactory, userHomeDirProvider)
+            this.backingFile = backingFile
+        }
 
         @Override
         DirectoryFileTree getMirror() {
