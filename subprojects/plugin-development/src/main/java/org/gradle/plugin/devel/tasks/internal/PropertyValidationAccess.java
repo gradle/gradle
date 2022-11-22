@@ -21,9 +21,11 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.TypeScheme;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
+import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
+import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.properties.annotations.TypeMetadataWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -35,8 +37,8 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 
+import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Class for easy access to property validation from the validator task.
@@ -81,24 +83,31 @@ public class PropertyValidationAccess {
             return;
         }
 
-        Optional<TypeMetadataStore> metadataStore = getTypeMetadataStore(topLevelBean);
-        if (!metadataStore.isPresent()) {
+        TypeMetadataStore metadataStore = getTypeMetadataStore(topLevelBean);
+        if (metadataStore == null) {
             // Don't know about this type
             return;
         }
 
         // TODO: Handle cycles
         TypeToken<?> topLevelType = TypeToken.of(topLevelBean);
-        TypeMetadataWalker.typeWalker(metadataStore.get()).walk(topLevelType,
-            (declaringType, property, qualifiedName, value) -> declaringType.visitValidationFailures(qualifiedName, validationContext));
+        TypeMetadata topLevelMetadata = metadataStore.getTypeMetadata(topLevelBean);
+        topLevelMetadata.visitValidationFailures(null, validationContext);
+        TypeMetadataWalker.typeWalker(metadataStore).walk(topLevelType, (declaringType, property, qualifiedName, value) -> {
+            if (property.getPropertyType() == Nested.class) {
+                TypeMetadata propertyType = metadataStore.getTypeMetadata(value.getRawType());
+                propertyType.visitValidationFailures(qualifiedName, validationContext);
+            }
+        });
     }
 
-    private Optional<TypeMetadataStore> getTypeMetadataStore(Class<?> topLevelBean) {
+    @Nullable
+    private TypeMetadataStore getTypeMetadataStore(Class<?> topLevelBean) {
         for (TypeScheme typeScheme : typeSchemes) {
             if (typeScheme.appliesTo(topLevelBean)) {
-                return Optional.of(typeScheme.getMetadataStore());
+                return typeScheme.getMetadataStore();
             }
         }
-        return Optional.empty();
+        return null;
     }
 }

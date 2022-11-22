@@ -45,15 +45,14 @@ public abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalke
             handleIterable(node, (name, child) -> walk(child, getQualifiedName(parentPropertyName, name), visitor));
         } else {
             TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(nodeType);
-            typeMetadata.getPropertiesMetadata()
-                .forEach(propertyMetadata -> {
-                    String qualifiedName = getQualifiedName(parentPropertyName, propertyMetadata.getPropertyName());
-                    T child = getChild(node, propertyMetadata);
-                    visitor.visitProperty(typeMetadata, propertyMetadata, qualifiedName, child);
-                    if (propertyMetadata.getPropertyType() == Nested.class) {
-                        walk(child, qualifiedName, visitor);
-                    }
-                });
+            typeMetadata.getPropertiesMetadata().forEach(propertyMetadata -> {
+                String qualifiedName = getQualifiedName(parentPropertyName, propertyMetadata.getPropertyName());
+                T child = getChild(node, propertyMetadata);
+                visitor.visitProperty(typeMetadata, propertyMetadata, qualifiedName, child);
+                if (propertyMetadata.getPropertyType() == Nested.class) {
+                    walk(child, qualifiedName, visitor);
+                }
+            });
         }
     }
 
