@@ -563,7 +563,6 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     @Override
-    @Nullable
     public VersionMappingStrategyInternal getVersionMappingStrategy() {
         return versionMappingStrategy;
     }
