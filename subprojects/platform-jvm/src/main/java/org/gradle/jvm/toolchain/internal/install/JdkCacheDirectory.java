@@ -136,6 +136,7 @@ public class JdkCacheDirectory {
             installFolder[0] = new File(jdkDirectory, installFolderName);
 
             //make sure the install folder is empty
+            checkInstallFolderForLeftoverContent(installFolder[0], uri, spec, metadata);
             operations.delete(installFolder[0]);
 
             //copy content of unpack folder to install folder, including the marker file
@@ -158,6 +159,32 @@ public class JdkCacheDirectory {
                 operations.delete(unpackFolder[0]);
             }
         }
+    }
+
+    private void checkInstallFolderForLeftoverContent(File installFolder, URI uri, JavaToolchainSpec spec, JvmInstallationMetadata metadata) {
+        if (!installFolder.exists()) {
+            return; //install folder doesn't even exist
+        }
+
+        File[] filesInInstallFolder = installFolder.listFiles();
+        if (filesInInstallFolder == null || filesInInstallFolder.length == 0) {
+            return; //no files in install folder
+        }
+
+        File markerLocation = markedLocation(installFolder);
+        if (!isMarkedLocation(markerLocation)) {
+            return; //no marker found
+        }
+
+        String leftoverMetadata;
+        try {
+            leftoverMetadata = getMetadata(markerLocation).toString();
+        } catch (Exception e) {
+            leftoverMetadata = "Could not be determined due to: " + e.getMessage();
+        }
+        LOGGER.warn("While provisioning Java toolchain from '{}' to satisfy spec '{}', having metadata '{}', " +
+                "leftover content with metadata '{}' found in install folder '{}'. Will be erased, but this should not have happened.",
+                uri, spec, metadata, leftoverMetadata, installFolder);
     }
 
     private JvmInstallationMetadata getMetadata(File markedLocation) {
