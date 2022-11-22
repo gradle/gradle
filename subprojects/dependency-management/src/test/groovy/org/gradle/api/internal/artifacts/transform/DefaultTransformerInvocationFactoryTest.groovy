@@ -53,8 +53,8 @@ import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.execution.timeout.TimeoutHandler
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
-import org.gradle.internal.fingerprint.Normalizer
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
@@ -216,12 +216,12 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         @Override
-        Normalizer getInputArtifactNormalizer() {
+        FileNormalizer getInputArtifactNormalizer() {
             return InputNormalizer.ABSOLUTE_PATH
         }
 
         @Override
-        Normalizer getInputArtifactDependenciesNormalizer() {
+        FileNormalizer getInputArtifactDependenciesNormalizer() {
             return InputNormalizer.ABSOLUTE_PATH
         }
 

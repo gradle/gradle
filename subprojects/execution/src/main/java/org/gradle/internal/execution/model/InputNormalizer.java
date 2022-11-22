@@ -17,11 +17,11 @@
 package org.gradle.internal.execution.model;
 
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.fingerprint.Normalizer;
+import org.gradle.internal.fingerprint.FileNormalizer;
 
 // TODO Break this up between simple normalizers and Java classpath normalizers
 //      The latter should be moved to :normalization-java
-public enum InputNormalizer implements Normalizer {
+public enum InputNormalizer implements FileNormalizer {
     ABSOLUTE_PATH(false),
     RELATIVE_PATH(false),
     NAME_ONLY(false),
@@ -37,7 +37,7 @@ public enum InputNormalizer implements Normalizer {
         this.description = name().toLowerCase().replace('_', ' ');
     }
 
-    public static Normalizer determineNormalizerForPathSensitivity(PathSensitivity pathSensitivity) {
+    public static FileNormalizer determineNormalizerForPathSensitivity(PathSensitivity pathSensitivity) {
         switch (pathSensitivity) {
             case NONE:
                 return IGNORE_PATH;
@@ -53,7 +53,7 @@ public enum InputNormalizer implements Normalizer {
     }
 
     @Override
-    public boolean isIgnoreDirectories() {
+    public boolean isIgnoringDirectories() {
         return ignoreDirectories;
     }
 

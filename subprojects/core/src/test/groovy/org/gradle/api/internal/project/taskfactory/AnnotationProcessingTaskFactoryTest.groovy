@@ -25,7 +25,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
-import org.gradle.api.internal.tasks.properties.bean.TestImplementationIdentifier
+import org.gradle.api.internal.tasks.properties.bean.TestImplementationResolver
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.SkipWhenEmpty
@@ -117,7 +117,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         cacheFactory
     )
     def typeMetadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [Optional, SkipWhenEmpty], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
-    def propertyWalker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationIdentifier())
+    def propertyWalker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver())
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"

@@ -185,9 +185,9 @@ public class JavaProcessStackTracesMonitor {
     private StdoutAndPatterns ps() {
         String[] command = isWindows() ? new String[]{"wmic", "process", "get", "processid,commandline"} : new String[]{"ps", "x"};
         ExecResult result = run(command);
-        output.printf("Run: " + Arrays.toString(command));
-        output.printf("Stdout: " + result.stdout);
-        output.printf("Stderr: " + result.stderr);
+        output.printf("Run: %s", Arrays.toString(command));
+        output.printf("Stdout: %s", result.stdout);
+        output.printf("Stderr: %s", result.stderr);
 
         result.assertZeroExit();
         return new StdoutAndPatterns(result.stdout);

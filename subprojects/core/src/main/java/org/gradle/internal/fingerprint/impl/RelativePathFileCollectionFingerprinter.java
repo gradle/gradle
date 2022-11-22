@@ -20,7 +20,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.execution.FileCollectionSnapshotter;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.Normalizer;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 
 public class RelativePathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
@@ -30,7 +30,7 @@ public class RelativePathFileCollectionFingerprinter extends AbstractFileCollect
     }
 
     @Override
-    public Normalizer getNormalizer() {
+    public FileNormalizer getNormalizer() {
         return InputNormalizer.RELATIVE_PATH;
     }
 }

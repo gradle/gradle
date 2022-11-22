@@ -16,18 +16,18 @@
 
 package org.gradle.internal.execution.model;
 
-import org.gradle.internal.fingerprint.Normalizer;
+import org.gradle.internal.fingerprint.FileNormalizer;
 
 /**
- * {@link Normalizer} used for output files.
+ * {@link FileNormalizer} used for output files.
  *
  * Like {@link InputNormalizer#RELATIVE_PATH}, but ignoring missing files.
  */
-public enum OutputNormalizer implements Normalizer {
+public enum OutputNormalizer implements FileNormalizer {
     INSTANCE;
 
     @Override
-    public boolean isIgnoreDirectories() {
+    public boolean isIgnoringDirectories() {
         return false;
     }
 
