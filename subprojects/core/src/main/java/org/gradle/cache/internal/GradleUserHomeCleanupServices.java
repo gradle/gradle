@@ -20,9 +20,11 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.cache.MonitoredCleanupActionDecorator;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.session.BuildSessionLifecycleListener;
 
 public class GradleUserHomeCleanupServices {
 
@@ -33,16 +35,24 @@ public class GradleUserHomeCleanupServices {
         GradleUserHomeDirProvider gradleUserHomeDirProvider,
         ProgressLoggerFactory progressLoggerFactory,
         MonitoredCleanupActionDecorator monitoredCleanupActionDecorator,
-        CacheConfigurationsInternal cacheConfigurations
+        CacheConfigurationsInternal cacheConfigurations,
+        ListenerManager listenerManager
     ) {
         UsedGradleVersions usedGradleVersions = new UsedGradleVersionsFromGradleUserHomeCaches(globalScopedCache);
         registration.add(UsedGradleVersions.class, usedGradleVersions);
 
         // register eagerly so stop() is triggered when services are being stopped
+        GradleUserHomeCleanupService gradleUserHomeCleanupService = new GradleUserHomeCleanupService(deleter, gradleUserHomeDirProvider, globalScopedCache, usedGradleVersions, progressLoggerFactory, monitoredCleanupActionDecorator, cacheConfigurations);
         registration.add(
             GradleUserHomeCleanupService.class,
-            new GradleUserHomeCleanupService(deleter, gradleUserHomeDirProvider, globalScopedCache, usedGradleVersions, progressLoggerFactory, monitoredCleanupActionDecorator, cacheConfigurations)
+            gradleUserHomeCleanupService
         );
+        listenerManager.addListener(new BuildSessionLifecycleListener() {
+            @Override
+            public void beforeComplete() {
+                gradleUserHomeCleanupService.cleanup();
+            }
+        });
     }
 
 }
