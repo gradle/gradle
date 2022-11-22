@@ -23,12 +23,14 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
+import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.CacheFactory;
+import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -47,15 +49,21 @@ public class TarFileTree extends AbstractArchiveFileTree {
     private final Provider<ReadableResourceInternal> resource;
     private final Chmod chmod;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
-    private final File tmpDir;
     private final FileHasher fileHasher;
 
-    public TarFileTree(Provider<File> tarFileProvider, Provider<ReadableResourceInternal> resource, File tmpDir, Chmod chmod, DirectoryFileTreeFactory directoryFileTreeFactory, FileHasher fileHasher) {
+    public TarFileTree(
+            Provider<File> tarFileProvider,
+            Provider<ReadableResourceInternal> resource,
+            Chmod chmod,
+            DirectoryFileTreeFactory directoryFileTreeFactory,
+            FileHasher fileHasher,
+            CacheFactory cacheFactory,
+            GradleUserHomeDirProvider userHomeDirProvider) {
+        super(cacheFactory, userHomeDirProvider);
         this.tarFileProvider = tarFileProvider;
         this.resource = resource;
         this.chmod = chmod;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        this.tmpDir = tmpDir;
         this.fileHasher = fileHasher;
     }
 
@@ -104,9 +112,9 @@ public class TarFileTree extends AbstractArchiveFileTree {
         TarArchiveEntry entry;
         while (!stopFlag.get() && (entry = (TarArchiveEntry) tar.getNextEntry()) != null) {
             if (entry.isDirectory()) {
-                visitor.visitDir(new DetailsImpl(resource, expandedDir, entry, tar, stopFlag, chmod));
+                visitor.visitDir(new DetailsImpl(resource, expandedDir, entry, tar, stopFlag, chmod, expansionCache));
             } else {
-                visitor.visitFile(new DetailsImpl(resource, expandedDir, entry, tar, stopFlag, chmod));
+                visitor.visitFile(new DetailsImpl(resource, expandedDir, entry, tar, stopFlag, chmod, expansionCache));
             }
         }
     }
@@ -120,7 +128,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
         File tarFile = tarFileProvider.get();
         HashCode fileHash = hashFile(tarFile);
         String expandedDirName = tarFile.getName() + "_" + fileHash;
-        return new File(tmpDir, expandedDirName);
+        return new File(expansionCache.getBaseDir(), expandedDirName);
     }
 
     private HashCode hashFile(File tarFile) {
@@ -133,93 +141,6 @@ public class TarFileTree extends AbstractArchiveFileTree {
 
     private RuntimeException cannotExpand(Exception e) {
         throw new InvalidUserDataException(String.format("Cannot expand %s.", getDisplayName()), e);
-    }
-
-    private static class DetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
-        private final TarArchiveEntry entry;
-        private final NoCloseTarArchiveInputStream tar;
-        private final AtomicBoolean stopFlag;
-        private final ReadableResourceInternal resource;
-        private final File expandedDir;
-        private File file;
-        private boolean read;
-
-        public DetailsImpl(ReadableResourceInternal resource, File expandedDir, TarArchiveEntry entry, NoCloseTarArchiveInputStream tar, AtomicBoolean stopFlag, Chmod chmod) {
-            super(chmod);
-            this.resource = resource;
-            this.expandedDir = expandedDir;
-            this.entry = entry;
-            this.tar = tar;
-            this.stopFlag = stopFlag;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return String.format("tar entry %s!%s", resource.getDisplayName(), entry.getName());
-        }
-
-        @Override
-        public void stopVisiting() {
-            stopFlag.set(true);
-        }
-
-        @Override
-        public File getFile() {
-            if (file == null) {
-                file = new File(expandedDir, entry.getName());
-                if (!file.exists()) {
-                    copyTo(file);
-                }
-            }
-            return file;
-        }
-
-        @Override
-        public long getLastModified() {
-            return entry.getLastModifiedDate().getTime();
-        }
-
-        @Override
-        public boolean isDirectory() {
-            return entry.isDirectory();
-        }
-
-        @Override
-        public long getSize() {
-            return entry.getSize();
-        }
-
-        @Override
-        public InputStream open() {
-            if (read && file != null) {
-                return GFileUtils.openInputStream(file);
-            }
-            if (read || tar.getCurrentEntry() != entry) {
-                throw new UnsupportedOperationException(String.format("The contents of %s has already been read.", this));
-            }
-            read = true;
-            return tar;
-        }
-
-        @Override
-        public RelativePath getRelativePath() {
-            return new RelativePath(!entry.isDirectory(), entry.getName().split("/"));
-        }
-
-        @Override
-        public int getMode() {
-            return entry.getMode() & 0777;
-        }
-    }
-
-    private static class NoCloseTarArchiveInputStream extends TarArchiveInputStream {
-        public NoCloseTarArchiveInputStream(InputStream is) {
-            super(is);
-        }
-
-        @Override
-        public void close() throws IOException {
-        }
     }
 
     /**
@@ -258,5 +179,83 @@ public class TarFileTree extends AbstractArchiveFileTree {
             }
         }
         throw new IOException("Not a TAR archive");
+    }
+
+    private static class DetailsImpl extends AbstractArchiveFileTreeElement implements FileVisitDetails {
+        private final TarArchiveEntry entry;
+        private final NoCloseTarArchiveInputStream tar;
+        private final AtomicBoolean stopFlag;
+        private final ReadableResourceInternal resource;
+        private boolean read;
+
+        public DetailsImpl(ReadableResourceInternal resource, File expandedDir, TarArchiveEntry entry, NoCloseTarArchiveInputStream tar, AtomicBoolean stopFlag, Chmod chmod, PersistentCache expansionCache) {
+            super(chmod, expansionCache, expandedDir);
+            this.resource = resource;
+            this.entry = entry;
+            this.tar = tar;
+            this.stopFlag = stopFlag;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return String.format("tar entry %s!%s", resource.getDisplayName(), entry.getName());
+        }
+
+        @Override
+        public void stopVisiting() {
+            stopFlag.set(true);
+        }
+
+        @Override
+        public long getLastModified() {
+            return entry.getLastModifiedDate().getTime();
+        }
+
+        @Override
+        public boolean isDirectory() {
+            return entry.isDirectory();
+        }
+
+        @Override
+        public long getSize() {
+            return entry.getSize();
+        }
+
+        @Override
+        public InputStream open() {
+            if (read && getFile() != null) {
+                return GFileUtils.openInputStream(getFile());
+            }
+            if (read || tar.getCurrentEntry() != entry) {
+                throw new UnsupportedOperationException(String.format("The contents of %s has already been read.", this));
+            }
+            read = true;
+            return tar;
+        }
+
+        @Override
+        public RelativePath getRelativePath() {
+            return new RelativePath(!entry.isDirectory(), entry.getName().split("/"));
+        }
+
+        @Override
+        public int getMode() {
+            return entry.getMode() & 0777;
+        }
+
+        @Override
+        protected String safeEntryName() {
+            return entry.getName();
+        }
+    }
+
+    private static class NoCloseTarArchiveInputStream extends TarArchiveInputStream {
+        public NoCloseTarArchiveInputStream(InputStream is) {
+            super(is);
+        }
+
+        @Override
+        public void close() throws IOException {
+        }
     }
 }

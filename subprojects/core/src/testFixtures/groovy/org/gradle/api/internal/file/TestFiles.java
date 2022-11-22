@@ -52,6 +52,7 @@ import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
+import org.gradle.testfixtures.internal.TestInMemoryCacheFactory;
 import org.gradle.util.TestUtil;
 
 import javax.annotation.Nullable;
@@ -172,7 +173,9 @@ public class TestFiles {
             deleter(),
             documentationRegistry(),
             taskDependencyFactory(),
-            providerFactory());
+            providerFactory(),
+            cacheFactory(),
+            () -> temporaryFileProvider.newTemporaryDirectory("user-home"));
     }
 
     public static ApiTextResourceAdapter.Factory textResourceAdapterFactory(@Nullable TemporaryFileProvider temporaryFileProvider) {
@@ -276,5 +279,9 @@ public class TestFiles {
 
     public static TemporaryFileProvider tmpDirTemporaryFileProvider(File baseDir) {
         return new DefaultTemporaryFileProvider(() -> baseDir);
+    }
+
+    public static TestInMemoryCacheFactory cacheFactory() {
+        return new TestInMemoryCacheFactory();
     }
 }

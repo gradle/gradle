@@ -44,6 +44,8 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.cache.internal.CacheFactory;
+import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.FileHasher;
@@ -94,7 +96,9 @@ public class WorkerSharedProjectScopeServices {
             Deleter deleter,
             DocumentationRegistry documentationRegistry,
             ProviderFactory providers,
-            TaskDependencyFactory taskDependencyFactory
+            TaskDependencyFactory taskDependencyFactory,
+            CacheFactory cacheFactory,
+            GradleUserHomeDirProvider userHomeDirProvider
     ) {
         return new DefaultFileOperations(
                 fileResolver,
@@ -110,7 +114,10 @@ public class WorkerSharedProjectScopeServices {
                 patternSetFactory,
                 deleter,
                 documentationRegistry,
-                taskDependencyFactory, providers);
+                taskDependencyFactory,
+                providers,
+                cacheFactory,
+                userHomeDirProvider);
     }
 
     protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
