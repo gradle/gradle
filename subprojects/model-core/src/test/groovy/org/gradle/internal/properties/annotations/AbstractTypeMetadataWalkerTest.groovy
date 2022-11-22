@@ -20,72 +20,87 @@ import com.google.common.reflect.TypeToken
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
-import org.gradle.api.model.ReplacedBy
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Classpath
-import org.gradle.api.tasks.CompileClasspath
-import org.gradle.api.tasks.Console
-import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.OutputDirectories
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.lang.annotation.Annotation
 
 class AbstractTypeMetadataWalkerTest extends Specification {
-    static final PROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
-        Input, InputFile, InputFiles, InputDirectory, Nested, OutputFile, OutputDirectory, OutputFiles, OutputDirectories, Destroys, LocalState
-    ]
-    static final UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS = [
-        Console, Internal, ReplacedBy
-    ]
+    // TODO: Use custom annotation instead `Input`
+    static final PROCESSED_PROPERTY_TYPE_ANNOTATIONS = [Input, Nested]
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
-        [CustomCacheable],
-        ModifierAnnotationCategory.asMap((PROCESSED_PROPERTY_TYPE_ANNOTATIONS + [SearchPath]) as Set<Class<? extends Annotation>>),
+        [],
+        ModifierAnnotationCategory.asMap((PROCESSED_PROPERTY_TYPE_ANNOTATIONS) as Set<Class<? extends Annotation>>),
         ["java", "groovy"],
         [DefaultTask],
         [Object, GroovyObject],
         [ConfigurableFileCollection, Property],
-        UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS,
+        [],
         { false },
         cacheFactory
     )
     def propertyTypeResolver = new DefaultPropertyTypeResolver()
-    def metadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [Classpath, CompileClasspath], typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory)
+    def metadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [], typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory)
 
     def "should walk a type"() {
         when:
-        def inputs = []
+        List<CollectedInput> inputs = []
         TypeMetadataWalker.typeWalker(metadataStore).walk(TypeToken.of(MyType), new TypeMetadataWalker.PropertyMetadataVisitor<TypeToken<?>>() {
             @Override
             void visitProperty(TypeMetadata declaringType, PropertyMetadata property, String qualifiedName, TypeToken<?> value) {
-                inputs.add(["declaringType": declaringType, "property": property, "qualifiedName": qualifiedName, "value": value])
+                inputs.add(new CollectedInput(declaringType, property, qualifiedName, value))
             }
         })
 
         then:
-        inputs.size() == 9
-        inputs.collect { it['qualifiedName'] } == ["i1", "i2", "i2.nI2", "i3", "i3.*.nI2", "i4", "i4.<key>.nI2", "i5", "i5.*.*.nI2"]
+        inputs.collect { it.qualifiedName } == ["i1", "i2", "i2.nI2", "i3", "i3.*.nI2", "i4", "i4.<key>.nI2", "i5", "i5.*.*.nI2"]
     }
 
     def "should walk type instance"() {
+        given:
+        def myType = new MyType()
+        def nestedType = new NestedType()
+        def propertyI1 = TestUtil.propertyFactory().property(String).value("value-i1")
+        def propertyNI2 = TestUtil.propertyFactory().property(String).value("value-nI2")
+        nestedType.nI2 = propertyNI2
+        myType.i1 = propertyI1
+        myType.i2 = nestedType
+        myType.i3 = [nestedType, nestedType]
+        myType.i4 = ["key1": nestedType, "key2": nestedType]
+        myType.i5 = [[nestedType]]
 
+        when:
+        Map<String, CollectedInput> inputs = [:]
+        TypeMetadataWalker.instanceWalker(metadataStore).walk(myType, new TypeMetadataWalker.PropertyMetadataVisitor<Object>() {
+            @Override
+            void visitProperty(TypeMetadata declaringType, PropertyMetadata property, String qualifiedName, Object value) {
+                assert !inputs.containsKey(qualifiedName)
+                inputs[qualifiedName] = new CollectedInput(declaringType, property, qualifiedName, value)
+            }
+        })
+
+        then:
+        inputs["i1"].value == propertyI1
+        inputs["i2"].value == nestedType
+        inputs["i2.nI2"].value == propertyNI2
+        inputs["i3"].value == [nestedType, nestedType]
+        inputs["i3.\$1.nI2"].value == propertyNI2
+        inputs["i3.\$2.nI2"].value == propertyNI2
+        inputs["i4"].value == ["key1": nestedType, "key2": nestedType]
+        inputs["i4.key1.nI2"].value == propertyNI2
+        inputs["i4.key2.nI2"].value == propertyNI2
+        inputs["i5"].value == [[nestedType]]
+        inputs["i5.\$1.\$1.nI2"].value == propertyNI2
     }
 
     class MyType {
@@ -93,16 +108,30 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         Property<String> i1
         @Nested
         NestedType i2
-        @InputFiles
-        Set<NestedType> i3
-        @InputFiles
+        @Nested
+        List<NestedType> i3
+        @Nested
         Map<String, NestedType> i4
-        @InputFiles
-        Set<Set<NestedType>> i5
+        @Nested
+        List<List<NestedType>> i5
     }
 
     class NestedType {
         @Input
         Property<String> nI2
+    }
+
+    class CollectedInput {
+        TypeMetadata declaringType
+        PropertyMetadata property
+        String qualifiedName
+        Object value
+
+        CollectedInput(TypeMetadata declaringType, PropertyMetadata property, String qualifiedName, Object value) {
+            this.declaringType = declaringType
+            this.property = property
+            this.qualifiedName = qualifiedName
+            this.value = value
+        }
     }
 }
