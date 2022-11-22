@@ -22,8 +22,8 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
@@ -52,12 +52,12 @@ public class GetInputFilesVisitor implements PropertyVisitor {
         InputBehavior behavior,
         DirectorySensitivity directorySensitivity,
         LineEndingSensitivity lineEndingSensitivity,
-        @Nullable Normalizer fileNormalizer,
+        @Nullable FileNormalizer fileNormalizer,
         PropertyValue value,
         InputFilePropertyType filePropertyType
     ) {
         FileCollectionInternal actualValue = FileParameterUtils.resolveInputFileValue(fileCollectionFactory, filePropertyType, value);
-        Normalizer normalizer = FileParameterUtils.normalizerOrDefault(fileNormalizer);
+        FileNormalizer normalizer = FileParameterUtils.normalizerOrDefault(fileNormalizer);
         specs.add(new DefaultInputFilePropertySpec(
             propertyName,
             normalizer,
@@ -72,8 +72,8 @@ public class GetInputFilesVisitor implements PropertyVisitor {
         }
     }
 
-    private DirectorySensitivity normalizeDirectorySensitivity(Normalizer normalizer, DirectorySensitivity directorySensitivity) {
-        return normalizer.isIgnoreDirectories()
+    private DirectorySensitivity normalizeDirectorySensitivity(FileNormalizer normalizer, DirectorySensitivity directorySensitivity) {
+        return normalizer.isIgnoringDirectories()
             ? DirectorySensitivity.DEFAULT
             : directorySensitivity;
     }

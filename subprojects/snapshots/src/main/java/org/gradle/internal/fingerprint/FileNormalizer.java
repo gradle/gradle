@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.properties.bean;
+package org.gradle.internal.fingerprint;
 
-import org.gradle.internal.snapshot.impl.ImplementationValue;
+public interface FileNormalizer {
+    /**
+     * Does the normalizer always ignore directories.
+     */
+    boolean isIgnoringDirectories();
 
-public interface ImplementationIdentifier {
-    ImplementationValue identify(Object bean);
+    @Override
+    String toString();
 }

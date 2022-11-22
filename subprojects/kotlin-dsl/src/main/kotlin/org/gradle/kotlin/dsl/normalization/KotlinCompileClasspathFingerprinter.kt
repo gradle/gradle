@@ -23,7 +23,7 @@ import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheSer
 import org.gradle.api.internal.changedetection.state.ZipHasher
 import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.model.InputNormalizer
-import org.gradle.internal.fingerprint.Normalizer
+import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter
 import org.gradle.internal.fingerprint.classpath.impl.ClasspathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter
@@ -46,7 +46,7 @@ class KotlinCompileClasspathFingerprinter(
 ),
     CompileClasspathFingerprinter {
 
-    override fun getNormalizer(): Normalizer {
+    override fun getNormalizer(): FileNormalizer {
         return InputNormalizer.COMPILE_CLASSPATH
     }
 }
