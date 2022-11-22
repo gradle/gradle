@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks
+package org.gradle.internal.properties
 
 import org.gradle.api.Task
 import org.gradle.api.internal.provider.PropertyInternal
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.internal.state.ModelObject
 import spock.lang.Specification
-
 
 class StaticValueTest extends Specification {
     def "creates value for Provider with value"() {

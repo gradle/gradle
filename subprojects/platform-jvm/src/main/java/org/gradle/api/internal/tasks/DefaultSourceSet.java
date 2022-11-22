@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.jvm.ClassDirectoryBinaryNamingScheme;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.util.internal.GUtil;
@@ -115,7 +114,7 @@ public abstract class DefaultSourceSet implements SourceSet {
 
     @Override
     public String getJavadocTaskName() {
-        return getTaskName(null, JavaPlugin.JAVADOC_TASK_NAME);
+        return getTaskName(null, JvmConstants.JAVADOC_TASK_NAME);
     }
 
     @Override
@@ -148,62 +147,62 @@ public abstract class DefaultSourceSet implements SourceSet {
 
     @Override
     public String getCompileOnlyConfigurationName() {
-        return configurationNameOf(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME);
+        return configurationNameOf(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME);
     }
 
     @Override
     public String getCompileOnlyApiConfigurationName() {
-        return configurationNameOf(JavaPlugin.COMPILE_ONLY_API_CONFIGURATION_NAME);
+        return configurationNameOf(JvmConstants.COMPILE_ONLY_API_CONFIGURATION_NAME);
     }
 
     @Override
     public String getCompileClasspathConfigurationName() {
-        return configurationNameOf(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
+        return configurationNameOf(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME);
     }
 
     @Override
     public String getAnnotationProcessorConfigurationName() {
-        return configurationNameOf(JavaPlugin.ANNOTATION_PROCESSOR_CONFIGURATION_NAME);
+        return configurationNameOf(JvmConstants.ANNOTATION_PROCESSOR_CONFIGURATION_NAME);
     }
 
     @Override
     public String getApiConfigurationName() {
-        return configurationNameOf(JavaPlugin.API_CONFIGURATION_NAME);
+        return configurationNameOf(JvmConstants.API_CONFIGURATION_NAME);
     }
 
     @Override
     public String getImplementationConfigurationName() {
-        return configurationNameOf(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME);
+        return configurationNameOf(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME);
     }
 
     @Override
     public String getApiElementsConfigurationName() {
-        return configurationNameOf(JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME);
+        return configurationNameOf(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME);
     }
 
     @Override
     public String getRuntimeOnlyConfigurationName() {
-        return configurationNameOf(JavaPlugin.RUNTIME_ONLY_CONFIGURATION_NAME);
+        return configurationNameOf(JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME);
     }
 
     @Override
     public String getRuntimeClasspathConfigurationName() {
-        return configurationNameOf(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+        return configurationNameOf(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME);
     }
 
     @Override
     public String getRuntimeElementsConfigurationName() {
-        return configurationNameOf(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
+        return configurationNameOf(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME);
     }
 
     @Override
     public String getJavadocElementsConfigurationName() {
-        return configurationNameOf(JavaPlugin.JAVADOC_ELEMENTS_CONFIGURATION_NAME);
+        return configurationNameOf(JvmConstants.JAVADOC_ELEMENTS_CONFIGURATION_NAME);
     }
 
     @Override
     public String getSourcesElementsConfigurationName() {
-        return configurationNameOf(JavaPlugin.SOURCES_ELEMENTS_CONFIGURATION_NAME);
+        return configurationNameOf(JvmConstants.SOURCES_ELEMENTS_CONFIGURATION_NAME);
     }
 
     @Override
@@ -257,6 +256,7 @@ public abstract class DefaultSourceSet implements SourceSet {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public SourceSet java(@Nullable Closure configureClosure) {
         configure(configureClosure, getJava());
         return this;
@@ -279,6 +279,7 @@ public abstract class DefaultSourceSet implements SourceSet {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public SourceSet resources(@Nullable Closure configureClosure) {
         configure(configureClosure, getResources());
         return this;

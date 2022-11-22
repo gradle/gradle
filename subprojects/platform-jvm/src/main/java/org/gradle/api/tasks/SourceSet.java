@@ -147,6 +147,7 @@ public interface SourceSet extends ExtensionAware {
      * @param configureClosure The closure to use to configure the resources.
      * @return this
      */
+    @SuppressWarnings("rawtypes")
     SourceSet resources(@Nullable @DelegatesTo(SourceDirectorySet.class) Closure configureClosure);
 
     /**
@@ -174,6 +175,7 @@ public interface SourceSet extends ExtensionAware {
      * @param configureClosure The closure to use to configure the Java source.
      * @return this
      */
+    @SuppressWarnings("rawtypes")
     SourceSet java(@Nullable @DelegatesTo(SourceDirectorySet.class) Closure configureClosure);
 
     /**

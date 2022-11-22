@@ -29,8 +29,9 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.attributes.CompileView;
+import org.gradle.api.attributes.Usage;
+import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
@@ -40,10 +41,18 @@ import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
+import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
+import org.gradle.api.publish.ivy.IvyPublication;
+import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal;
+import org.gradle.api.publish.maven.MavenPublication;
+import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
+import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
@@ -71,47 +80,47 @@ public abstract class JavaPlugin implements Plugin<Project> {
     /**
      * The name of the task that processes resources.
      */
-    public static final String PROCESS_RESOURCES_TASK_NAME = "processResources";
+    public static final String PROCESS_RESOURCES_TASK_NAME = JvmConstants.PROCESS_RESOURCES_TASK_NAME;
 
     /**
      * The name of the lifecycle task which outcome is that all the classes of a component are generated.
      */
-    public static final String CLASSES_TASK_NAME = "classes";
+    public static final String CLASSES_TASK_NAME = JvmConstants.CLASSES_TASK_NAME;
 
     /**
      * The name of the task which compiles Java sources.
      */
-    public static final String COMPILE_JAVA_TASK_NAME = "compileJava";
+    public static final String COMPILE_JAVA_TASK_NAME = JvmConstants.COMPILE_JAVA_TASK_NAME;
 
     /**
      * The name of the task which processes the test resources.
      */
-    public static final String PROCESS_TEST_RESOURCES_TASK_NAME = "processTestResources";
+    public static final String PROCESS_TEST_RESOURCES_TASK_NAME = JvmConstants.PROCESS_TEST_RESOURCES_TASK_NAME;
 
     /**
      * The name of the lifecycle task which outcome is that all test classes of a component are generated.
      */
-    public static final String TEST_CLASSES_TASK_NAME = "testClasses";
+    public static final String TEST_CLASSES_TASK_NAME = JvmConstants.TEST_CLASSES_TASK_NAME;
 
     /**
      * The name of the task which compiles the test Java sources.
      */
-    public static final String COMPILE_TEST_JAVA_TASK_NAME = "compileTestJava";
+    public static final String COMPILE_TEST_JAVA_TASK_NAME = JvmConstants.COMPILE_TEST_JAVA_TASK_NAME;
 
     /**
      * The name of the task which triggers execution of tests.
      */
-    public static final String TEST_TASK_NAME = "test";
+    public static final String TEST_TASK_NAME = JvmConstants.TEST_TASK_NAME;
 
     /**
      * The name of the task which generates the component main jar.
      */
-    public static final String JAR_TASK_NAME = "jar";
+    public static final String JAR_TASK_NAME = JvmConstants.JAR_TASK_NAME;
 
     /**
      * The name of the task which generates the component javadoc.
      */
-    public static final String JAVADOC_TASK_NAME = "javadoc";
+    public static final String JAVADOC_TASK_NAME = JvmConstants.JAVADOC_TASK_NAME;
 
     /**
      * The name of the API configuration, where dependencies exported by a component at compile time should
@@ -119,7 +128,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
      *
      * @since 3.4
      */
-    public static final String API_CONFIGURATION_NAME = "api";
+    public static final String API_CONFIGURATION_NAME = JvmConstants.API_CONFIGURATION_NAME;
 
     /**
      * The name of the implementation configuration, where dependencies that are only used internally by
@@ -127,7 +136,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
      *
      * @since 3.4
      */
-    public static final String IMPLEMENTATION_CONFIGURATION_NAME = "implementation";
+    public static final String IMPLEMENTATION_CONFIGURATION_NAME = JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME;
 
     /**
      * The name of the configuration to define the API elements of a component.
@@ -135,13 +144,13 @@ public abstract class JavaPlugin implements Plugin<Project> {
      *
      * @since 3.4
      */
-    public static final String API_ELEMENTS_CONFIGURATION_NAME = "apiElements";
+    public static final String API_ELEMENTS_CONFIGURATION_NAME = JvmConstants.API_ELEMENTS_CONFIGURATION_NAME;
 
     /**
      * The name of the configuration that is used to declare dependencies which are only required to compile a component,
      * but not at runtime.
      */
-    public static final String COMPILE_ONLY_CONFIGURATION_NAME = "compileOnly";
+    public static final String COMPILE_ONLY_CONFIGURATION_NAME = JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME;
 
     /**
      * The name of the configuration to define the API elements of a component that are required to compile a component,
@@ -149,7 +158,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
      *
      * @since 6.7
      */
-    public static final String COMPILE_ONLY_API_CONFIGURATION_NAME = "compileOnlyApi";
+    public static final String COMPILE_ONLY_API_CONFIGURATION_NAME = JvmConstants.COMPILE_ONLY_API_CONFIGURATION_NAME;
 
     /**
      * The name of the runtime only dependencies configuration, used to declare dependencies
@@ -157,14 +166,14 @@ public abstract class JavaPlugin implements Plugin<Project> {
      *
      * @since 3.4
      */
-    public static final String RUNTIME_ONLY_CONFIGURATION_NAME = "runtimeOnly";
+    public static final String RUNTIME_ONLY_CONFIGURATION_NAME = JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME;
 
     /**
      * The name of the runtime classpath configuration, used by a component to query its own runtime classpath.
      *
      * @since 3.4
      */
-    public static final String RUNTIME_CLASSPATH_CONFIGURATION_NAME = "runtimeClasspath";
+    public static final String RUNTIME_CLASSPATH_CONFIGURATION_NAME = JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 
     /**
      * The name of the runtime elements configuration, that should be used by consumers
@@ -172,76 +181,76 @@ public abstract class JavaPlugin implements Plugin<Project> {
      *
      * @since 3.4
      */
-    public static final String RUNTIME_ELEMENTS_CONFIGURATION_NAME = "runtimeElements";
+    public static final String RUNTIME_ELEMENTS_CONFIGURATION_NAME = JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME;
 
     /**
      * The name of the javadoc elements configuration.
      *
      * @since 6.0
      */
-    public static final String JAVADOC_ELEMENTS_CONFIGURATION_NAME = "javadocElements";
+    public static final String JAVADOC_ELEMENTS_CONFIGURATION_NAME = JvmConstants.JAVADOC_ELEMENTS_CONFIGURATION_NAME;
 
     /**
      * The name of the sources elements configuration.
      *
      * @since 6.0
      */
-    public static final String SOURCES_ELEMENTS_CONFIGURATION_NAME = "sourcesElements";
+    public static final String SOURCES_ELEMENTS_CONFIGURATION_NAME = JvmConstants.SOURCES_ELEMENTS_CONFIGURATION_NAME;
 
     /**
      * The name of the compile classpath configuration.
      *
      * @since 3.4
      */
-    public static final String COMPILE_CLASSPATH_CONFIGURATION_NAME = "compileClasspath";
+    public static final String COMPILE_CLASSPATH_CONFIGURATION_NAME = JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME;
 
     /**
      * The name of the annotation processor configuration.
      *
      * @since 4.6
      */
-    public static final String ANNOTATION_PROCESSOR_CONFIGURATION_NAME = "annotationProcessor";
+    public static final String ANNOTATION_PROCESSOR_CONFIGURATION_NAME = JvmConstants.ANNOTATION_PROCESSOR_CONFIGURATION_NAME;
 
     /**
      * The name of the test implementation dependencies configuration.
      *
      * @since 3.4
      */
-    public static final String TEST_IMPLEMENTATION_CONFIGURATION_NAME = "testImplementation";
+    public static final String TEST_IMPLEMENTATION_CONFIGURATION_NAME = JvmConstants.TEST_IMPLEMENTATION_CONFIGURATION_NAME;
 
     /**
      * The name of the configuration that should be used to declare dependencies which are only required
      * to compile the tests, but not when running them.
      */
-    public static final String TEST_COMPILE_ONLY_CONFIGURATION_NAME = "testCompileOnly";
+    public static final String TEST_COMPILE_ONLY_CONFIGURATION_NAME = JvmConstants.TEST_COMPILE_ONLY_CONFIGURATION_NAME;
 
     /**
      * The name of the test runtime only dependencies configuration.
      *
      * @since 3.4
      */
-    public static final String TEST_RUNTIME_ONLY_CONFIGURATION_NAME = "testRuntimeOnly";
+    public static final String TEST_RUNTIME_ONLY_CONFIGURATION_NAME = JvmConstants.TEST_RUNTIME_ONLY_CONFIGURATION_NAME;
 
     /**
      * The name of the test compile classpath configuration.
      *
      * @since 3.4
      */
-    public static final String TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME = "testCompileClasspath";
+    public static final String TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME = JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
 
     /**
      * The name of the test annotation processor configuration.
      *
      * @since 4.6
      */
-    public static final String TEST_ANNOTATION_PROCESSOR_CONFIGURATION_NAME = "testAnnotationProcessor";
+    public static final String TEST_ANNOTATION_PROCESSOR_CONFIGURATION_NAME = JvmConstants.TEST_ANNOTATION_PROCESSOR_CONFIGURATION_NAME;
 
     /**
      * The name of the test runtime classpath configuration.
      *
      * @since 3.4
      */
-    public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "testRuntimeClasspath";
+    public static final String TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME = JvmConstants.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 
     private static final String SOURCE_ELEMENTS_VARIANT_NAME = "mainSourceElements";
 
@@ -283,6 +292,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         createConsumableConfigurations(project, mainSourceSet, jarArtifact);
         configureJavaDocTask(null, mainSourceSet, project.getTasks(), javaExtension);
         configureBuild(project);
+        configurePublishing(project, mainSourceSet);
     }
 
     private static void configureSourceSets(JavaPluginExtension pluginExtension, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
@@ -434,6 +444,25 @@ public abstract class JavaPlugin implements Plugin<Project> {
         java.addVariantsFromConfiguration(apiElementsConfiguration, new JavaConfigurationVariantMapping("compile", false));
         java.addVariantsFromConfiguration(runtimeElementsConfiguration, new JavaConfigurationVariantMapping("runtime", false));
         project.getComponents().add(java);
+    }
+
+    private void configurePublishing(Project project, SourceSet mainSourceSet) {
+        project.getPlugins().withType(PublishingPlugin.class, plugin -> {
+            PublishingExtension publishing = project.getExtensions().getByType(PublishingExtension.class);
+
+            // Set up the default configurations used when mapping to resolved versions
+            publishing.getPublications().withType(IvyPublication.class, publication -> {
+                VersionMappingStrategyInternal strategy = ((IvyPublicationInternal) publication).getVersionMappingStrategy();
+                strategy.defaultResolutionConfiguration(Usage.JAVA_API, mainSourceSet.getCompileClasspathConfigurationName());
+                strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, mainSourceSet.getRuntimeClasspathConfigurationName());
+            });
+            publishing.getPublications().withType(MavenPublication.class, publication -> {
+                VersionMappingStrategyInternal strategy = ((MavenPublicationInternal) publication).getVersionMappingStrategy();
+                strategy.defaultResolutionConfiguration(Usage.JAVA_API, mainSourceSet.getCompileClasspathConfigurationName());
+                strategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, mainSourceSet.getRuntimeClasspathConfigurationName());
+            });
+
+        });
     }
 
     private static void configureBuild(Project project) {

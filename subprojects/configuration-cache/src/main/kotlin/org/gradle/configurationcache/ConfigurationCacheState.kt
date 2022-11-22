@@ -53,9 +53,12 @@ import org.gradle.configurationcache.serialization.writeFile
 import org.gradle.configurationcache.serialization.writeStrings
 import org.gradle.configurationcache.services.EnvironmentChangeTracker
 import org.gradle.execution.plan.Node
+import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.BuildOperationFiringSettingsPreparer
 import org.gradle.initialization.BuildOperationSettingsProcessor
+import org.gradle.initialization.BuildStructureOperationProject
 import org.gradle.initialization.NotifyingBuildLoader
+import org.gradle.initialization.ProjectsIdentifiedProgressDetails
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
 import org.gradle.initialization.SettingsLocation
 import org.gradle.internal.Actions
@@ -120,12 +123,19 @@ class ConfigurationCacheState(
             writeInt(0x1ecac8e)
         }
 
-    suspend fun DefaultReadContext.readRootBuildState(graph: BuildTreeWorkGraph, createBuild: (File?, String) -> ConfigurationCacheBuild): BuildTreeWorkGraph.FinalizedGraph {
+    suspend fun DefaultReadContext.readRootBuildState(graph: BuildTreeWorkGraph, loadAfterStoreModeEnabled: Boolean, loadAfterStore: Boolean, createBuild: (File?, String) -> ConfigurationCacheBuild): BuildTreeWorkGraph.FinalizedGraph {
         val buildState = readRootBuild(createBuild)
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
         }
-        configureBuild(buildState)
+        if (loadAfterStoreModeEnabled) {
+            if (!loadAfterStore) {
+                identifyBuild(buildState)
+            }
+        } else {
+            configureBuild(buildState)
+        }
+
         return calculateRootTaskGraph(buildState, graph)
     }
 
@@ -138,6 +148,18 @@ class ConfigurationCacheState(
             state.children.forEach(::configureBuild)
             fireConfigureProject(buildOperationExecutor, gradle)
         }
+    }
+
+    private
+    fun identifyBuild(state: CachedBuildState) {
+        val gradle = state.build.gradle
+        val emitter = gradle.serviceOf<BuildOperationProgressEventEmitter>()
+        emitter.emitNowForCurrent(BuildIdentifiedProgressDetails { gradle.identityPath.toString() })
+        emitter.emitNowForCurrent(object : ProjectsIdentifiedProgressDetails {
+            override fun getBuildPath() = gradle.identityPath.toString()
+            override fun getRootProject() = BuildStructureOperationProject.from(gradle)
+        })
+        state.children.forEach(::identifyBuild)
     }
 
     private

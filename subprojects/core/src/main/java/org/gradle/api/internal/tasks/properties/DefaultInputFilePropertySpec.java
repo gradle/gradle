@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.PropertyValue;
 
@@ -33,7 +33,7 @@ public class DefaultInputFilePropertySpec extends AbstractFilePropertySpec imple
 
     public DefaultInputFilePropertySpec(
         String propertyName,
-        Normalizer normalizer,
+        FileNormalizer normalizer,
         FileCollectionInternal files,
         PropertyValue value,
         InputBehavior behavior,
