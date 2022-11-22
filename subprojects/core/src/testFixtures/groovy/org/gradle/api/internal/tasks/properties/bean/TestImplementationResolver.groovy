@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks.properties.bean
 
-import org.gradle.internal.properties.bean.ImplementationIdentifier
+import org.gradle.internal.properties.bean.ImplementationResolver
 import org.gradle.internal.snapshot.impl.ImplementationValue
 
-class TestImplementationIdentifier implements ImplementationIdentifier {
+class TestImplementationResolver implements ImplementationResolver {
     @Override
-    ImplementationValue identify(Object bean) {
+    ImplementationValue resolveImplementation(Object bean) {
         new ImplementationValue(bean.getClass().getName(), bean)
     }
 }

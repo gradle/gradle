@@ -22,13 +22,13 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor
 import org.gradle.api.internal.tasks.properties.InputParameterUtils
-import org.gradle.api.internal.tasks.properties.bean.TestImplementationIdentifier
+import org.gradle.api.internal.tasks.properties.bean.TestImplementationResolver
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
-import org.gradle.internal.fingerprint.Normalizer
 import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.properties.InputFilePropertyType
 import org.gradle.internal.properties.PropertyValue
@@ -60,7 +60,7 @@ abstract class AbstractTaskInputsAndOutputsTest extends AbstractProjectBuilderSp
         cacheFactory
     )
     def typeMetadataStore = new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
-    def walker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationIdentifier())
+    def walker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver())
 
     TaskInternal task
     TaskInputsInternal inputs
@@ -97,7 +97,7 @@ abstract class AbstractTaskInputsAndOutputsTest extends AbstractProjectBuilderSp
                 InputBehavior behavior,
                 DirectorySensitivity emptyDirectorySensitivity,
                 LineEndingSensitivity lineEndingNormalization,
-                @Nullable Normalizer fileNormalizer,
+                @Nullable FileNormalizer fileNormalizer,
                 PropertyValue value,
                 InputFilePropertyType filePropertyType
             ) {
