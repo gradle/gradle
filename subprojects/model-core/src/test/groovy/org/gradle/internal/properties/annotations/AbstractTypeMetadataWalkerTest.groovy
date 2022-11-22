@@ -55,12 +55,9 @@ class AbstractTypeMetadataWalkerTest extends Specification {
     def "should walk a type"() {
         when:
         List<CollectedInput> inputs = []
-        TypeMetadataWalker.typeWalker(metadataStore).walk(TypeToken.of(MyType), new TypeMetadataWalker.PropertyMetadataVisitor<TypeToken<?>>() {
-            @Override
-            void visitProperty(TypeMetadata declaringType, PropertyMetadata property, String qualifiedName, TypeToken<?> value) {
-                inputs.add(new CollectedInput(declaringType, property, qualifiedName, value))
-            }
-        })
+        TypeMetadataWalker.typeWalker(metadataStore).walk(TypeToken.of(MyType)) { TypeMetadata declaringType, PropertyMetadata property, String qualifiedName, TypeToken<?> value ->
+            inputs.add(new CollectedInput(declaringType, property, qualifiedName, value))
+        }
 
         then:
         inputs.collect { it.qualifiedName } == ["i1", "i2", "i2.nI2", "i3", "i3.*.nI2", "i4", "i4.<key>.nI2", "i5", "i5.*.*.nI2"]
@@ -81,12 +78,9 @@ class AbstractTypeMetadataWalkerTest extends Specification {
 
         when:
         Map<String, CollectedInput> inputs = [:]
-        TypeMetadataWalker.instanceWalker(metadataStore).walk(myType, new TypeMetadataWalker.PropertyMetadataVisitor<Object>() {
-            @Override
-            void visitProperty(TypeMetadata declaringType, PropertyMetadata property, String qualifiedName, Object value) {
-                assert !inputs.containsKey(qualifiedName)
-                inputs[qualifiedName] = new CollectedInput(declaringType, property, qualifiedName, value)
-            }
+        TypeMetadataWalker.instanceWalker(metadataStore).walk(myType, { TypeMetadata declaringType, PropertyMetadata property, String qualifiedName, Object value ->
+            assert !inputs.containsKey(qualifiedName)
+            inputs[qualifiedName] = new CollectedInput(declaringType, property, qualifiedName, value)
         })
 
         then:

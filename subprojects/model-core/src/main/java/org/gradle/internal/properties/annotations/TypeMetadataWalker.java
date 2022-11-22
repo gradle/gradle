@@ -18,7 +18,7 @@ package org.gradle.internal.properties.annotations;
 
 import com.google.common.reflect.TypeToken;
 
-interface TypeMetadataWalker<T> {
+public interface TypeMetadataWalker<T> {
     static TypeMetadataWalker<Object> instanceWalker(TypeMetadataStore typeMetadataStore) {
         return new AbstractTypeMetadataWalker.InstanceTypeMetadataWalker(typeMetadataStore);
     }
