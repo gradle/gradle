@@ -23,7 +23,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -36,9 +35,6 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.plugins.JavaPlatformPlugin;
-import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
@@ -54,8 +50,6 @@ import org.gradle.api.publish.ivy.tasks.PublishToIvyRepository;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.reflect.Instantiator;
@@ -100,8 +94,6 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
                 instantiator,
                 objectFactory,
                 fileResolver,
-                project.getPluginManager(),
-                project.getExtensions(),
                 ((ProjectInternal) project).getTaskDependencyFactory())
             );
             createTasksLater(project, extension, project.getLayout().getBuildDirectory());
@@ -208,19 +200,15 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         private final DependencyMetaDataProvider dependencyMetaDataProvider;
         private final ObjectFactory objectFactory;
         private final FileResolver fileResolver;
-        private final PluginManager plugins;
-        private final ExtensionContainer extensionContainer;
         private final TaskDependencyFactory taskDependencyFactory;
 
         private IvyPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, ObjectFactory objectFactory, FileResolver fileResolver,
-                                      PluginManager plugins, ExtensionContainer extensionContainer, TaskDependencyFactory taskDependencyFactory
+                                      TaskDependencyFactory taskDependencyFactory
         ) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
             this.objectFactory = objectFactory;
             this.fileResolver = fileResolver;
-            this.plugins = plugins;
-            this.extensionContainer = extensionContainer;
             this.taskDependencyFactory = taskDependencyFactory;
         }
 
@@ -230,22 +218,8 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
             IvyPublicationIdentity publicationIdentity = new DefaultIvyPublicationIdentity(module);
             NotationParser<Object, IvyArtifact> notationParser = new IvyArtifactNotationParserFactory(instantiator, fileResolver, publicationIdentity, taskDependencyFactory).create();
             VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
-            configureDefaultConfigurationsUsedWhenMappingToResolvedVersions(versionMappingStrategy);
 
             return objectFactory.newInstance(DefaultIvyPublication.class, name, publicationIdentity, notationParser, versionMappingStrategy);
-        }
-
-        private void configureDefaultConfigurationsUsedWhenMappingToResolvedVersions(VersionMappingStrategyInternal versionMappingStrategy) {
-            plugins.withPlugin("org.gradle.java", plugin -> {
-                SourceSet mainSourceSet = extensionContainer.getByType(SourceSetContainer.class).getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-                // setup the default configurations used when mapping to resolved versions
-                versionMappingStrategy.defaultResolutionConfiguration(Usage.JAVA_API, mainSourceSet.getCompileClasspathConfigurationName());
-                versionMappingStrategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, mainSourceSet.getRuntimeClasspathConfigurationName());
-            });
-            plugins.withPlugin("org.gradle.java-platform", plugin -> {
-                versionMappingStrategy.defaultResolutionConfiguration(Usage.JAVA_API, JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME);
-                versionMappingStrategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME);
-            });
         }
     }
 
