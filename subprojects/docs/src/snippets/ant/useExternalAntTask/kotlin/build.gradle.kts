@@ -5,7 +5,7 @@ repositories {
 val checkstyle by configurations.creating
 
 dependencies {
-    "checkstyle"("com.puppycrawl.tools:checkstyle:8.45.1")
+    "checkstyle"("com.puppycrawl.tools:checkstyle:10.4")
 }
 
 val download = tasks.register<Copy>("download") {

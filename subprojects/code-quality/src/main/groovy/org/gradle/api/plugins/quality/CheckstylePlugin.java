@@ -45,7 +45,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
  */
 public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
 
-    public static final String DEFAULT_CHECKSTYLE_VERSION = "8.45.1";
+    public static final String DEFAULT_CHECKSTYLE_VERSION = "10.4";
     private static final String CONFIG_DIR_NAME = "config/checkstyle";
     private CheckstyleExtension extension;
 
