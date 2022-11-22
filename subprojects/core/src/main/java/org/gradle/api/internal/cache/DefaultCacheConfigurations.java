@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.cache.CacheResourceConfiguration;
 import org.gradle.api.cache.Cleanup;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupFrequency;
@@ -31,11 +32,12 @@ import org.gradle.initialization.GradleUserHomeDirProvider;
 import javax.inject.Inject;
 
 abstract public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
-    private final CacheResourceConfiguration releasedWrappersConfiguration;
-    private final CacheResourceConfiguration snapshotWrappersConfiguration;
-    private final CacheResourceConfiguration downloadedResourcesConfiguration;
-    private final CacheResourceConfiguration createdResourcesConfiguration;
+    private CacheResourceConfiguration releasedWrappersConfiguration;
+    private CacheResourceConfiguration snapshotWrappersConfiguration;
+    private CacheResourceConfiguration downloadedResourcesConfiguration;
+    private CacheResourceConfiguration createdResourcesConfiguration;
     private final GradleUserHomeCacheCleanupActionDecorator delegate;
+    private Property<Cleanup> cleanup;
 
     @Inject
     public DefaultCacheConfigurations(ObjectFactory objectFactory, GradleUserHomeDirProvider gradleUserHomeDirProvider) {
@@ -44,7 +46,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
         this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
         this.delegate = new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeDirProvider);
-        getCleanup().convention(Cleanup.DEFAULT);
+        this.cleanup = objectFactory.property(Cleanup.class).convention(Cleanup.DEFAULT);
     }
 
     private static CacheResourceConfiguration createResourceConfiguration(ObjectFactory objectFactory, int defaultDays) {
@@ -64,6 +66,11 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
+    public void setReleasedWrappers(CacheResourceConfiguration releasedWrappers) {
+        this.releasedWrappersConfiguration = releasedWrappers;
+    }
+
+    @Override
     public void snapshotWrappers(Action<? super CacheResourceConfiguration> cacheConfiguration) {
         cacheConfiguration.execute(snapshotWrappersConfiguration);
     }
@@ -71,6 +78,11 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     @Override
     public CacheResourceConfiguration getSnapshotWrappers() {
         return snapshotWrappersConfiguration;
+    }
+
+    @Override
+    public void setSnapshotWrappers(CacheResourceConfiguration snapshotWrappers) {
+        this.snapshotWrappersConfiguration = snapshotWrappers;
     }
 
     @Override
@@ -84,6 +96,11 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
+    public void setDownloadedResources(CacheResourceConfiguration downloadedResources) {
+        this.downloadedResourcesConfiguration = downloadedResources;
+    }
+
+    @Override
     public void createdResources(Action<? super CacheResourceConfiguration> cacheConfiguration) {
         cacheConfiguration.execute(createdResourcesConfiguration);
     }
@@ -91,6 +108,21 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     @Override
     public CacheResourceConfiguration getCreatedResources() {
         return createdResourcesConfiguration;
+    }
+
+    @Override
+    public void setCreatedResources(CacheResourceConfiguration createdResources) {
+        this.createdResourcesConfiguration = createdResources;
+    }
+
+    @Override
+    public Property<Cleanup> getCleanup() {
+        return cleanup;
+    }
+
+    @Override
+    public void setCleanup(Property<Cleanup> cleanup) {
+        this.cleanup = cleanup;
     }
 
     @Override

@@ -22,11 +22,9 @@ import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.cache.MonitoredCleanupAction;
 import org.gradle.internal.cache.MonitoredCleanupActionDecorator;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.session.BuildSessionLifecycleListener;
 
 import java.io.File;
 
