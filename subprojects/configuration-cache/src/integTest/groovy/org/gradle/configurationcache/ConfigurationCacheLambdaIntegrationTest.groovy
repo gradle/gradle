@@ -30,7 +30,7 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
 
                 public class LambdaTask extends DefaultTask {
 
-                    public interface SerializableSupplier<T> extends java.io.Serializable {
+                    public interface SerializableSupplier<T> /*extends java.io.Serializable*/ {
                         T get();
                     }
 

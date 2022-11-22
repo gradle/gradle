@@ -524,7 +524,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         @Override
         public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-            if (isGradleLambdaDescriptor(descriptor) && bootstrapMethodHandle.getOwner().equals(LAMBDA_METAFACTORY_TYPE) && bootstrapMethodHandle.getName().equals("metafactory")) {
+            if (/*isGradleLambdaDescriptor(descriptor) && */bootstrapMethodHandle.getOwner().equals(LAMBDA_METAFACTORY_TYPE) && bootstrapMethodHandle.getName().equals("metafactory")) {
                 Handle altMethod = new Handle(
                     H_INVOKESTATIC,
                     LAMBDA_METAFACTORY_TYPE,
