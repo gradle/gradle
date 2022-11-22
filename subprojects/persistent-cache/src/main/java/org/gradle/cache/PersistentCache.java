@@ -15,7 +15,6 @@
  */
 package org.gradle.cache;
 
-import org.gradle.cache.internal.HasCleanupAction;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.Closeable;

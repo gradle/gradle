@@ -17,6 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.CacheAccess;
+import org.gradle.cache.HasCleanupAction;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 
