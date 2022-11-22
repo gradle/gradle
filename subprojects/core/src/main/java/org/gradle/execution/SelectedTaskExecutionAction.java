@@ -31,7 +31,7 @@ public class SelectedTaskExecutionAction implements BuildWorkExecutor {
     @Override
     public ExecutionResult<Void> execute(GradleInternal gradle, FinalizedExecutionPlan plan) {
         TaskExecutionGraphInternal taskGraph = gradle.getTaskGraph();
-        bindAllReferencesOfProject(taskGraph);
+//        bindAllReferencesOfProject(taskGraph);
         return taskGraph.execute(plan);
     }
 
