@@ -34,7 +34,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             public class DeprecatedTask extends DefaultTask {
                 @TaskAction
                 void causeDeprecationWarning() {
-                    DeprecationLogger.deprecateTask("deprecated").replaceWith("foobar").willBeRemovedInGradle9().undocumented().nagUser();
+                    DeprecationLogger.deprecateTask("thisIsADeprecatedTask").replaceWith("foobar").willBeRemovedInGradle9().undocumented().nagUser();
                     System.out.println("DeprecatedTask.causeDeprecationWarning() executed.");
                 }
 
@@ -59,7 +59,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
                 @Override
                 public void apply(Project project) {
                     DeprecationLogger.deprecatePlugin("DeprecatedPlugin").replaceWithExternalPlugin("Foobar").willBeRemovedInGradle9().undocumented().nagUser();
-                    project.getTasks().create("deprecated", DeprecatedTask.class);
+                    project.getTasks().create("thisIsADeprecatedTask", DeprecatedTask.class);
                 }
             }
         """.stripIndent()
@@ -91,7 +91,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             executer.expectDeprecationWarnings(warningsCount)
         }
         executer.withWarningMode(warnings)
-        warnings == WarningMode.Fail ? fails('deprecated', 'broken') : succeeds('deprecated', 'broken')
+        warnings == WarningMode.Fail ? fails('thisIsADeprecatedTask', 'broken') : succeeds('thisIsADeprecatedTask', 'broken')
 
         then:
         output.contains('build.gradle:2)') == warningsCount > 0
@@ -102,7 +102,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.contains(PLUGIN_DEPRECATION_MESSAGE) == warningsCount > 0
         output.contains('The DeprecatedTask.someFeature() method has been deprecated') == warningsCount > 0
         output.contains('The DeprecatedTask.otherFeature() method has been deprecated') == warningsCount > 0
-        output.contains('The deprecated task has been deprecated') == warningsCount > 0
+        output.contains('The thisIsADeprecatedTask task has been deprecated') == warningsCount > 0
 
         and:
         output.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY) == warningsSummary
