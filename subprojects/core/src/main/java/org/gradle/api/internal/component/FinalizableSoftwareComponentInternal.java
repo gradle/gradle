@@ -16,13 +16,18 @@
 
 package org.gradle.api.internal.component;
 
+import org.gradle.internal.deprecation.DeprecationLogger;
+
 public abstract class FinalizableSoftwareComponentInternal implements SoftwareComponentInternal {
 
     private boolean finalized = false;
 
     protected void checkNotFinalized() {
         if (finalized) {
-            throw new IllegalStateException("Cannot change the state of a finalized component");
+            DeprecationLogger.deprecateInvocation("")
+                .willBecomeAnErrorInGradle9()
+                .withUpgradeGuideSection(8, "org_gradle_util_reports_deprecations")
+                .nagUser();
         }
     }
 
