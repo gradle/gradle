@@ -1529,6 +1529,22 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt.getBuild-scan$annotations(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed deprecated methods for Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt.getBuild-scan(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed deprecated methods for Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.language.base.plugins.LifecycleBasePlugin",
             "member": "Class org.gradle.language.base.plugins.LifecycleBasePlugin",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
