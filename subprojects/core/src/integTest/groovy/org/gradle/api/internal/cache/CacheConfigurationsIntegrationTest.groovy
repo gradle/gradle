@@ -26,7 +26,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
     private static final int MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1
 
     private static final String THIS_PROPERTY_FINAL_ERROR = "The value for this property is final and cannot be changed any further"
-    private static final String REMOVE_UNUSED_ENTRIES_FINAL_ERROR = "The value for property 'removeUnusedEntriesAfterDays' is final and cannot be changed any further"
+    private static final String REMOVE_UNUSED_ENTRIES_FINAL_ERROR = "The value for property 'removeUnusedEntries' is final and cannot be changed any further"
 
     def setup() {
         requireOwnGradleUserHomeDir()
@@ -39,19 +39,19 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             beforeSettings { settings ->
                 settings.caches {
                     cleanup = Cleanup.DISABLED
-                    releasedWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}
-                    snapshotWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}
-                    downloadedResources.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}
-                    createdResources.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}
+                    releasedWrappers.removeUnusedEntries = TimestampSupplier.olderThanInDays(${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS})
+                    snapshotWrappers.removeUnusedEntries = TimestampSupplier.olderThanInDays(${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS})
+                    downloadedResources.removeUnusedEntries = TimestampSupplier.olderThanInDays(${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES})
+                    createdResources.removeUnusedEntries = TimestampSupplier.olderThanInDays(${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES})
                 }
             }
         """
         settingsFile << """
             caches {
-                assert releasedWrappers.removeUnusedEntriesAfterDays.get() == ${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}
-                assert snapshotWrappers.removeUnusedEntriesAfterDays.get() == ${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}
-                assert downloadedResources.removeUnusedEntriesAfterDays.get() == ${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}
-                assert createdResources.removeUnusedEntriesAfterDays.get() == ${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}
+                assert releasedWrappers.removeUnusedEntries.get() != null
+                assert snapshotWrappers.removeUnusedEntries.get() != null
+                assert downloadedResources.removeUnusedEntries.get() != null
+                assert createdResources.removeUnusedEntries.get() != null
             }
         """
 
@@ -71,12 +71,12 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains(error)
 
         where:
-        property                                           | error                             | value
-        'cleanup'                                          | THIS_PROPERTY_FINAL_ERROR         | 'Cleanup.DISABLED'
-        'releasedWrappers.removeUnusedEntriesAfterDays'    | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}"
-        'snapshotWrappers.removeUnusedEntriesAfterDays'    | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}"
-        'downloadedResources.removeUnusedEntriesAfterDays' | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}"
-        'createdResources.removeUnusedEntriesAfterDays'    | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}"
+        property                                  | error                             | value
+        'cleanup'                                 | THIS_PROPERTY_FINAL_ERROR         | 'Cleanup.DISABLED'
+        'releasedWrappers.removeUnusedEntries'    | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "TimestampSupplier.olderThanInDays(${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS})"
+        'snapshotWrappers.removeUnusedEntries'    | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "TimestampSupplier.olderThanInDays(${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS})"
+        'downloadedResources.removeUnusedEntries' | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "TimestampSupplier.olderThanInDays(${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES})"
+        'createdResources.removeUnusedEntries'    | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "TimestampSupplier.olderThanInDays(${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES})"
     }
 
     static String modifyCacheConfiguration(String property, String value) {

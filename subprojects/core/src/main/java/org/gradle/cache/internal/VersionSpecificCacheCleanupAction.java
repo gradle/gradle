@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
+import org.gradle.api.cache.TimestampSupplier;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.CleanupFrequency;
@@ -37,7 +38,6 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.SortedSet;
-import java.util.concurrent.TimeUnit;
 
 public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction {
     private final static String FILE_HASHES_CACHE_KEY =  CrossBuildFileHashCache.Kind.FILE_HASHES.getCacheId();
@@ -46,22 +46,22 @@ public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction
     private static final Logger LOGGER = LoggerFactory.getLogger(VersionSpecificCacheCleanupAction.class);
 
     private final VersionSpecificCacheDirectoryScanner versionSpecificCacheDirectoryScanner;
-    private final long maxUnusedDaysForReleases;
-    private final long maxUnusedDaysForSnapshots;
+    private final TimestampSupplier releaseTimestampSupplier;
+    private final TimestampSupplier snapshotTimestampSupplier;
     private final Deleter deleter;
     private final CleanupFrequency cleanupFrequency;
 
-    public VersionSpecificCacheCleanupAction(File cacheBaseDir, long maxUnusedDaysForReleasesAndSnapshots, Deleter deleter, CleanupFrequency cleanupFrequency) {
-        this(cacheBaseDir, maxUnusedDaysForReleasesAndSnapshots, maxUnusedDaysForReleasesAndSnapshots, deleter, cleanupFrequency);
+    public VersionSpecificCacheCleanupAction(File cacheBaseDir, TimestampSupplier releasesAndSnapshotTimestampSupplier, Deleter deleter, CleanupFrequency cleanupFrequency) {
+        this(cacheBaseDir, releasesAndSnapshotTimestampSupplier, releasesAndSnapshotTimestampSupplier, deleter, cleanupFrequency);
     }
 
-    public VersionSpecificCacheCleanupAction(File cacheBaseDir, long maxUnusedDaysForReleases, long maxUnusedDaysForSnapshots, Deleter deleter, CleanupFrequency cleanupFrequency) {
+    public VersionSpecificCacheCleanupAction(File cacheBaseDir, TimestampSupplier releaseTimestampSupplier, TimestampSupplier snapshotTimestampSupplier, Deleter deleter, CleanupFrequency cleanupFrequency) {
         this.deleter = deleter;
-        Preconditions.checkArgument(maxUnusedDaysForReleases >= maxUnusedDaysForSnapshots,
-            "maxUnusedDaysForReleases (%s) must be greater than or equal to maxUnusedDaysForSnapshots (%s)", maxUnusedDaysForReleases, maxUnusedDaysForSnapshots);
+        Preconditions.checkArgument(releaseTimestampSupplier.get() <= snapshotTimestampSupplier.get(),
+            "releaseTimestampSupplier (%s) must supply a timestamp older than or equal to snapshotTimestampSupplier (%s)", releaseTimestampSupplier, snapshotTimestampSupplier);
         this.versionSpecificCacheDirectoryScanner = new VersionSpecificCacheDirectoryScanner(cacheBaseDir);
-        this.maxUnusedDaysForReleases = maxUnusedDaysForReleases;
-        this.maxUnusedDaysForSnapshots = maxUnusedDaysForSnapshots;
+        this.releaseTimestampSupplier = releaseTimestampSupplier;
+        this.snapshotTimestampSupplier = snapshotTimestampSupplier;
         this.cleanupFrequency = cleanupFrequency;
     }
 
@@ -109,10 +109,9 @@ public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction
     }
 
     private void performCleanup(CleanupProgressMonitor progressMonitor) {
-        MinimumTimestampProvider minimumTimestampProvider = new MinimumTimestampProvider();
         SortedSetMultimap<GradleVersion, VersionSpecificCacheDirectory> cacheDirsByBaseVersion = scanForVersionSpecificCacheDirs();
         for (GradleVersion baseVersion : cacheDirsByBaseVersion.keySet()) {
-            performCleanup(cacheDirsByBaseVersion.get(baseVersion), minimumTimestampProvider, progressMonitor);
+            performCleanup(cacheDirsByBaseVersion.get(baseVersion), releaseTimestampSupplier, snapshotTimestampSupplier, progressMonitor);
         }
         markCleanedUp();
     }
@@ -125,8 +124,8 @@ public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction
         return cacheDirsByBaseVersion;
     }
 
-    private void performCleanup(SortedSet<VersionSpecificCacheDirectory> cacheDirsWithSameBaseVersion, MinimumTimestampProvider minimumTimestampProvider, CleanupProgressMonitor progressMonitor) {
-        Spec<VersionSpecificCacheDirectory> cleanupCondition = new CleanupCondition(cacheDirsWithSameBaseVersion, minimumTimestampProvider);
+    private void performCleanup(SortedSet<VersionSpecificCacheDirectory> cacheDirsWithSameBaseVersion, TimestampSupplier releaseTimestampSupplier, TimestampSupplier snapshotTimestampSupplier, CleanupProgressMonitor progressMonitor) {
+        Spec<VersionSpecificCacheDirectory> cleanupCondition = new CleanupCondition(cacheDirsWithSameBaseVersion, releaseTimestampSupplier, snapshotTimestampSupplier);
         for (VersionSpecificCacheDirectory cacheDir : cacheDirsWithSameBaseVersion) {
             if (cleanupCondition.isSatisfiedBy(cacheDir)) {
                 progressMonitor.incrementDeleted();
@@ -148,11 +147,13 @@ public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction
 
     private static class CleanupCondition implements Spec<VersionSpecificCacheDirectory> {
         private final SortedSet<VersionSpecificCacheDirectory> cacheDirsWithSameBaseVersion;
-        private final MinimumTimestampProvider minimumTimestampProvider;
+        private final TimestampSupplier releaseTimestampSupplier;
+        private final TimestampSupplier snapshotTimestampSupplier;
 
-        CleanupCondition(SortedSet<VersionSpecificCacheDirectory> cacheDirsWithSameBaseVersion, MinimumTimestampProvider minimumTimestampProvider) {
+        CleanupCondition(SortedSet<VersionSpecificCacheDirectory> cacheDirsWithSameBaseVersion, TimestampSupplier releaseTimestampSupplier, TimestampSupplier snapshotTimestampSupplier) {
             this.cacheDirsWithSameBaseVersion = cacheDirsWithSameBaseVersion;
-            this.minimumTimestampProvider = minimumTimestampProvider;
+            this.releaseTimestampSupplier = releaseTimestampSupplier;
+            this.snapshotTimestampSupplier = snapshotTimestampSupplier;
         }
 
         @Override
@@ -165,37 +166,14 @@ public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction
         }
 
         private boolean markerFileHasNotBeenTouchedRecently(VersionSpecificCacheDirectory cacheDir, File markerFile) {
-            if (markerFile.lastModified() < minimumTimestampProvider.forReleases()) {
+            if (markerFile.lastModified() < releaseTimestampSupplier.get()) {
                 return true;
             }
-            if (cacheDir.getVersion().isSnapshot() && markerFile.lastModified() < minimumTimestampProvider.forSnapshots()) {
+            if (cacheDir.getVersion().isSnapshot() && markerFile.lastModified() < snapshotTimestampSupplier.get()) {
                 // Keep at least one snapshot version for this base version
                 return cacheDirsWithSameBaseVersion.tailSet(cacheDir).size() > 1;
             }
             return false;
-        }
-    }
-
-    private class MinimumTimestampProvider {
-        private final long minimumReleaseTimestamp;
-        private final long minimumSnapshotTimestamp;
-
-        MinimumTimestampProvider() {
-            long startTime = System.currentTimeMillis();
-            this.minimumReleaseTimestamp = compute(startTime, maxUnusedDaysForReleases);
-            this.minimumSnapshotTimestamp = compute(startTime, maxUnusedDaysForSnapshots);
-        }
-
-        private long compute(long startTime, long maxUnusedDays) {
-            return Math.max(0, startTime - TimeUnit.DAYS.toMillis(maxUnusedDays));
-        }
-
-        long forReleases() {
-            return minimumReleaseTimestamp;
-        }
-
-        long forSnapshots() {
-            return minimumSnapshotTimestamp;
         }
     }
 }

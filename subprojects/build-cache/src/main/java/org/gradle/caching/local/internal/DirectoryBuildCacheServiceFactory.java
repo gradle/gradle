@@ -17,6 +17,7 @@
 package org.gradle.caching.local.internal;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.cache.TimestampSupplier;
 import org.gradle.api.internal.cache.DefaultCacheCleanup;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.CacheBuilder;
@@ -80,15 +81,15 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         }
         checkDirectory(target);
 
-        int removeUnusedEntriesAfterDays = configuration.getRemoveUnusedEntriesAfterDays();
+        TimestampSupplier removeUnusedEntriesTimestamp = TimestampSupplier.olderThanInDays(configuration.getRemoveUnusedEntriesAfterDays());
         describer.type(DIRECTORY_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath()).
-            config("removeUnusedEntriesAfter", String.valueOf(removeUnusedEntriesAfterDays) + " days");
+            config("removeUnusedEntriesAfter", String.valueOf(removeUnusedEntriesTimestamp) + " days");
 
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
         PersistentCache persistentCache = cacheRepository
             .cache(target)
-            .withCleanup(createCacheCleanup(removeUnusedEntriesAfterDays))
+            .withCleanup(createCacheCleanup(removeUnusedEntriesTimestamp))
             .withDisplayName("Build cache")
             .withLockOptions(mode(OnDemand))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
@@ -99,12 +100,12 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         return new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, fileAccessTracker, FAILED_READ_SUFFIX);
     }
 
-    private DefaultCacheCleanup createCacheCleanup(int removeUnusedEntriesAfterDays) {
-        return DefaultCacheCleanup.from(cleanupActionDecorator.decorate(createCleanupAction(removeUnusedEntriesAfterDays)));
+    private DefaultCacheCleanup createCacheCleanup(TimestampSupplier removeUnusedEntriesTimestamp) {
+        return DefaultCacheCleanup.from(cleanupActionDecorator.decorate(createCleanupAction(removeUnusedEntriesTimestamp)));
     }
 
-    private LeastRecentlyUsedCacheCleanup createCleanupAction(int removeUnusedEntriesAfterDays) {
-        return new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, () -> removeUnusedEntriesAfterDays);
+    private LeastRecentlyUsedCacheCleanup createCleanupAction(TimestampSupplier removeUnusedEntriesTimestamp) {
+        return new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, removeUnusedEntriesTimestamp);
     }
 
     private static void checkDirectory(File directory) {

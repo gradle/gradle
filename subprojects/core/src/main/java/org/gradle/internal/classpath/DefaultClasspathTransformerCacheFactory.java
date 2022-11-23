@@ -85,7 +85,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
                 new LeastRecentlyUsedCacheCleanup(
                     new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP),
                     fileAccessTimeJournal,
-                    () -> cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesAfterDays().get()
+                    cacheConfigurations.getCreatedResources().getRemoveUnusedEntries().get()
                 )
             ).build();
     }

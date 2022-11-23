@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.cache.TimestampSupplier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.internal.CleanupActionDecorator
@@ -220,7 +221,7 @@ class ConfigurationCacheRepository(
                     LeastRecentlyUsedCacheCleanup(
                         SingleDepthFilesFinder(cleanupDepth),
                         fileAccessTimeJournal,
-                        { cleanupMaxAgeDays }
+                        TimestampSupplier.olderThanInDays(cleanupMaxAgeDays)
                     )
                 )
             )
