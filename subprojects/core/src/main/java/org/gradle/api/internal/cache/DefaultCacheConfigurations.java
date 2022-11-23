@@ -32,11 +32,12 @@ import org.gradle.initialization.GradleUserHomeDirProvider;
 import javax.inject.Inject;
 
 abstract public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
+    private final GradleUserHomeCacheCleanupActionDecorator delegate;
+
     private CacheResourceConfiguration releasedWrappersConfiguration;
     private CacheResourceConfiguration snapshotWrappersConfiguration;
     private CacheResourceConfiguration downloadedResourcesConfiguration;
     private CacheResourceConfiguration createdResourcesConfiguration;
-    private final GradleUserHomeCacheCleanupActionDecorator delegate;
     private Property<Cleanup> cleanup;
 
     @Inject
@@ -45,8 +46,8 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         this.snapshotWrappersConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
         this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
         this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
-        this.delegate = new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeDirProvider);
         this.cleanup = objectFactory.property(Cleanup.class).convention(Cleanup.DEFAULT);
+        this.delegate = new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeDirProvider);
     }
 
     private static CacheResourceConfiguration createResourceConfiguration(ObjectFactory objectFactory, int defaultDays) {
