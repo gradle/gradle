@@ -626,6 +626,22 @@ class PluginsBlockInterpreterTest {
         )
     }
 
+    @Test
+    fun `syntax error - id() dot version`() {
+        assertDynamicInterpretationOf(
+            """id("plugin-id").version "1.0"""",
+            """Expecting (, got '"'"""
+        )
+    }
+
+    @Test
+    fun `syntax error - id() dot apply`() {
+        assertDynamicInterpretationOf(
+            """id("plugin-id").apply false""",
+            """Expecting (, got 'false'"""
+        )
+    }
+
     private
     fun assertStaticInterpretationOf(pluginsBlock: String, vararg specs: PluginRequestSpec) {
         assertThat(
