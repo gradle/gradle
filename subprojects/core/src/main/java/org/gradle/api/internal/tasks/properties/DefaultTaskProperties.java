@@ -21,12 +21,12 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.tasks.ResolvingValue;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
@@ -38,6 +38,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 @NonNullApi
 public class DefaultTaskProperties implements TaskProperties {
@@ -209,7 +210,7 @@ public class DefaultTaskProperties implements TaskProperties {
             InputBehavior behavior,
             DirectorySensitivity directorySensitivity,
             LineEndingSensitivity lineEndingSensitivity,
-            @Nullable Normalizer fileNormalizer,
+            @Nullable FileNormalizer fileNormalizer,
             PropertyValue value,
             InputFilePropertyType filePropertyType
         ) {
@@ -244,6 +245,32 @@ public class DefaultTaskProperties implements TaskProperties {
 
         public List<ValidatingProperty> getTaskPropertySpecs() {
             return taskPropertySpecs;
+        }
+    }
+
+    private static class ResolvingValue implements PropertyValue {
+        private final PropertyValue delegate;
+        private final Function<Object, Object> resolver;
+
+        public ResolvingValue(PropertyValue delegate, Function<Object, Object> resolver) {
+            this.delegate = delegate;
+            this.resolver = resolver;
+        }
+
+        @Override
+        public TaskDependencyContainer getTaskDependencies() {
+            return delegate.getTaskDependencies();
+        }
+
+        @Override
+        public void maybeFinalizeValue() {
+            delegate.maybeFinalizeValue();
+        }
+
+        @Nullable
+        @Override
+        public Object call() {
+            return resolver.apply(delegate.call());
         }
     }
 }

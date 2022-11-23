@@ -34,8 +34,8 @@ import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -114,8 +114,8 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         actionMetadata.visitValidationFailures(null, validationContext);
 
         // Should retain this on the metadata rather than calculate on each invocation
-        Normalizer inputArtifactNormalizer = null;
-        Normalizer dependenciesNormalizer = null;
+        FileNormalizer inputArtifactNormalizer = null;
+        FileNormalizer dependenciesNormalizer = null;
         DirectorySensitivity artifactDirectorySensitivity = DirectorySensitivity.DEFAULT;
         DirectorySensitivity dependenciesDirectorySensitivity = DirectorySensitivity.DEFAULT;
         LineEndingSensitivity artifactLineEndingSensitivity = LineEndingSensitivity.DEFAULT;
@@ -125,13 +125,13 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
             Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
             NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
             if (propertyType.equals(InputArtifact.class)) {
-                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor, bean -> {});
+                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor);
                 inputArtifactNormalizer = visitor.normalizer;
                 artifactDirectorySensitivity = visitor.directorySensitivity;
                 artifactLineEndingSensitivity = visitor.lineEndingSensitivity;
                 DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), inputArtifactNormalizer, cacheable, validationContext);
             } else if (propertyType.equals(InputArtifactDependencies.class)) {
-                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor, bean -> {});
+                actionMetadata.getAnnotationHandlerFor(propertyMetadata).visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor);
                 dependenciesNormalizer = visitor.normalizer;
                 dependenciesDirectorySensitivity = visitor.directorySensitivity;
                 dependenciesLineEndingSensitivity = visitor.lineEndingSensitivity;
@@ -210,7 +210,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     }
 
     private static class NormalizerCollectingVisitor implements PropertyVisitor {
-        private Normalizer normalizer;
+        private FileNormalizer normalizer;
         private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
         private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;
 
@@ -221,7 +221,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
                 InputBehavior behavior,
                 DirectorySensitivity directorySensitivity,
                 LineEndingSensitivity lineEndingSensitivity,
-                @Nullable Normalizer fileNormalizer,
+                @Nullable FileNormalizer fileNormalizer,
                 PropertyValue value,
                 InputFilePropertyType filePropertyType
         ) {

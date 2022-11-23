@@ -39,6 +39,8 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.function.Predicate
+
 /**
  * An abstract class for writing tests using ProjectBuilder.
  * The fixture automatically takes care of deleting files creating in the temporary project directory used by the Project instance.
@@ -92,5 +94,25 @@ abstract class AbstractProjectBuilderSpec extends Specification {
         project.gradle.services.get(BuildOutputCleanupRegistry).resolveOutputs()
         executionServices.get(TaskExecuter).execute((TaskInternal) task, (TaskStateInternal) task.state, taskExecutionContext)
         task.state.rethrowFailure()
+    }
+
+    protected static boolean assertHasMatchingCause(Throwable t, Predicate<String> predicate) {
+        if (t == null) {
+            return false
+        }
+
+        def cause = t
+        while (true) {
+            if (predicate.test(cause.getMessage())) {
+                return true
+            }
+            def nextCause = cause.cause
+            if (nextCause == null || nextCause === cause) {
+                break
+            }
+            cause = nextCause
+        }
+
+        return false
     }
 }

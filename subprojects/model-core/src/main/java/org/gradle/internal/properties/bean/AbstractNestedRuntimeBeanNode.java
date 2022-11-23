@@ -24,10 +24,12 @@ import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.StaticValue;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
@@ -52,14 +54,35 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
             PropertyAnnotationHandler annotationHandler = typeMetadata.getAnnotationHandlerFor(propertyMetadata);
             String propertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
             PropertyValue value = new BeanPropertyValue(getBean(), propertyMetadata.getGetterMethod());
+            if (propertyMetadata.isAnnotationPresent(Nested.class)) {
+                Object nested;
+                try {
+                    nested = unpackProvider(value.call());
+                } catch (Exception e) {
+                    visitor.visitInputProperty(propertyName, new InvalidValue(e), false);
+                    continue;
+                }
+                if (nested != null) {
+                    queue.add(nodeFactory.create(this, propertyName, nested));
+                }
+                value = new StaticValue(nested);
+            }
             annotationHandler.visitPropertyValue(
                 propertyName,
                 value,
                 propertyMetadata,
-                visitor,
-                childBean -> queue.add(nodeFactory.create(AbstractNestedRuntimeBeanNode.this, propertyName, childBean))
+                visitor
             );
         }
+    }
+
+    @Nullable
+    private static Object unpackProvider(@Nullable Object value) {
+        // Only unpack one level of Providers, since Provider<Provider<>> is not supported - we don't need two levels of laziness.
+        if (value instanceof Provider) {
+            return ((Provider<?>) value).getOrNull();
+        }
+        return value;
     }
 
     private static class BeanPropertyValue implements PropertyValue {
@@ -132,6 +155,36 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         @Override
         public String toString() {
             return "Bean: " + bean + ", method: " + method;
+        }
+    }
+
+    private static class InvalidValue implements PropertyValue {
+        private final Exception exception;
+
+        public InvalidValue(Exception exception) {
+            this.exception = exception;
+        }
+
+        @Nullable
+        @Override
+        public Object call() {
+            throw UncheckedException.throwAsUncheckedException(exception);
+        }
+
+        @Override
+        public TaskDependencyContainer getTaskDependencies() {
+            // Ignore
+            return TaskDependencyContainer.EMPTY;
+        }
+
+        @Override
+        public void maybeFinalizeValue() {
+            // Ignore
+        }
+
+        @Override
+        public String toString() {
+            return "INVALID: " + exception.getMessage();
         }
     }
 }

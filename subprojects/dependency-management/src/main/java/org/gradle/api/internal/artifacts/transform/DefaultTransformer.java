@@ -47,8 +47,8 @@ import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -99,8 +99,8 @@ public class DefaultTransformer implements Transformer {
 
     private final Class<? extends TransformAction<?>> implementationClass;
     private final ImmutableAttributes fromAttributes;
-    private final Normalizer fileNormalizer;
-    private final Normalizer dependenciesNormalizer;
+    private final FileNormalizer fileNormalizer;
+    private final FileNormalizer dependenciesNormalizer;
     private final FileLookup fileLookup;
     private final ServiceLookup internalServices;
     private final boolean requiresDependencies;
@@ -117,8 +117,8 @@ public class DefaultTransformer implements Transformer {
         Class<? extends TransformAction<?>> implementationClass,
         @Nullable TransformParameters parameterObject,
         ImmutableAttributes fromAttributes,
-        Normalizer inputArtifactNormalizer,
-        Normalizer dependenciesNormalizer,
+        FileNormalizer inputArtifactNormalizer,
+        FileNormalizer dependenciesNormalizer,
         boolean cacheable,
         DirectorySensitivity artifactDirectorySensitivity,
         DirectorySensitivity dependenciesDirectorySensitivity,
@@ -162,8 +162,8 @@ public class DefaultTransformer implements Transformer {
         Class<? extends TransformAction<?>> implementationClass,
         CalculatedValueContainer<IsolatedParameters, IsolateTransformerParameters> isolatedParameters,
         ImmutableAttributes fromAttributes,
-        Normalizer inputArtifactNormalizer,
-        Normalizer dependenciesNormalizer,
+        FileNormalizer inputArtifactNormalizer,
+        FileNormalizer dependenciesNormalizer,
         boolean cacheable,
         FileLookup fileLookup,
         InstantiationScheme actionInstantiationScheme,
@@ -190,7 +190,7 @@ public class DefaultTransformer implements Transformer {
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
     }
 
-    public static void validateInputFileNormalizer(String propertyName, @Nullable Normalizer normalizer, boolean cacheable, TypeValidationContext validationContext) {
+    public static void validateInputFileNormalizer(String propertyName, @Nullable FileNormalizer normalizer, boolean cacheable, TypeValidationContext validationContext) {
         if (cacheable) {
             if (normalizer == InputNormalizer.ABSOLUTE_PATH) {
                 validationContext.visitPropertyProblem(problem ->
@@ -207,12 +207,12 @@ public class DefaultTransformer implements Transformer {
     }
 
     @Override
-    public Normalizer getInputArtifactNormalizer() {
+    public FileNormalizer getInputArtifactNormalizer() {
         return fileNormalizer;
     }
 
     @Override
-    public Normalizer getInputArtifactDependenciesNormalizer() {
+    public FileNormalizer getInputArtifactDependenciesNormalizer() {
         return dependenciesNormalizer;
     }
 
@@ -324,7 +324,7 @@ public class DefaultTransformer implements Transformer {
                     InputBehavior behavior,
                     DirectorySensitivity directorySensitivity,
                     LineEndingSensitivity lineEndingNormalization,
-                    @Nullable Normalizer normalizer,
+                    @Nullable FileNormalizer normalizer,
                     PropertyValue value,
                     InputFilePropertyType filePropertyType
                 ) {
@@ -608,7 +608,7 @@ public class DefaultTransformer implements Transformer {
                         InputBehavior behavior,
                         DirectorySensitivity directorySensitivity,
                         LineEndingSensitivity lineEndingSensitivity,
-                        @Nullable Normalizer fileNormalizer,
+                        @Nullable FileNormalizer fileNormalizer,
                         PropertyValue value,
                         InputFilePropertyType filePropertyType
                     ) {

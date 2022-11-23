@@ -24,11 +24,13 @@ import org.gradle.language.swift.SwiftBinary
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
 import javax.inject.Inject
 
+@UsesNativeServices
 class DefaultSwiftComponentTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
