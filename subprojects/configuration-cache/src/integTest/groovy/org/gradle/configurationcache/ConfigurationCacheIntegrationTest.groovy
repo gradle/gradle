@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.initialization.ProjectsIdentifiedProgressDetails
@@ -218,7 +219,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         outputContains("Recreating configuration cache")
     }
 
-    def "restores some details of the project structure"() {
+    def "restores some details of the project structure"(List<String> tasks) {
         def fixture = new BuildOperationsFixture(executer, temporaryFolder)
         executer.beforeExecute {
             withArgument("-Dorg.gradle.configuration-cache.internal.load-after-store=true")
@@ -236,112 +237,130 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        configurationCacheRun "help"
+        configurationCacheRun(tasks as String[])
 
         then:
         with(fixture.only(LoadBuildBuildOperationType)) {
             it.details.buildPath == ":"
         }
-
-        def op1 = fixture.only(LoadProjectsBuildOperationType)
-        op1.result.rootProject.name == 'thing'
-        op1.result.rootProject.path == ':'
-        op1.result.rootProject.children.size() == 3 // All projects are created when storing
-
-        def events1 = fixture.progress(ProjectsIdentifiedProgressDetails)
-        events1.size() == 1
-        events1[0].details.rootProject.name == 'thing'
-        events1[0].details.rootProject.path == ':'
-        events1[0].details.rootProject.children.size() == 3
+        with(fixture.only(LoadProjectsBuildOperationType)) {
+            result.rootProject.name == 'thing'
+            result.rootProject.path == ':'
+            result.rootProject.children.size() == 3 // All projects are created when storing
+            with(result.rootProject.children.first() as Map<String, Object>) {
+                name == 'a'
+                path == ':a'
+                projectDir == file('a').absolutePath
+                with(children.first()) {
+                    name == 'b'
+                    path == ':a:b'
+                    projectDir == file('custom').absolutePath
+                    children.empty
+                }
+            }
+        }
+        with(fixture.progress(BuildIdentifiedProgressDetails)) {
+            size() == 1
+            first().details.buildPath == ":"
+        }
+        with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
+            size() == 1
+            with(first()) {
+                details.rootProject.name == 'thing'
+                details.rootProject.path == ':'
+                details.rootProject.projectDir == testDirectory.absolutePath
+                details.rootProject.children.size() == 3
+                with(details.rootProject.children.first() as Map<String, Object>) {
+                    name == 'a'
+                    path == ':a'
+                    projectDir == file('a').absolutePath
+                    with(children.first()) {
+                        name == 'b'
+                        path == ':a:b'
+                        projectDir == file('custom').absolutePath
+                        children.empty
+                    }
+                }
+            }
+        }
 
         when:
-        configurationCacheRun "help"
+        configurationCacheRun(tasks as String[])
 
         then:
         fixture.none(LoadBuildBuildOperationType)
         fixture.none(LoadProjectsBuildOperationType)
+        with(fixture.progress(BuildIdentifiedProgressDetails)) {
+            size() == 1
+            first().details.buildPath == ":"
+        }
+        with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
+            size() == 1
+            with(first()) {
+                details.rootProject.name == 'thing'
+                details.rootProject.path == ':'
+                details.rootProject.projectDir == testDirectory.absolutePath
 
-        def events2 = fixture.progress(ProjectsIdentifiedProgressDetails)
-        events2.size() == 1
-        events2[0].details.rootProject.name == 'thing'
-        events2[0].details.rootProject.path == ':'
-        events2[0].details.rootProject.projectDir == testDirectory.absolutePath
-        events2[0].details.rootProject.children.empty
+                // TODO The following demonstrates that this event currently only conveys the “used” part of the project structure.
+                // This needs to be updated to convey the entirety of the structure.
 
-        when:
-        configurationCacheRun ":a:thing"
+                if (tasks == [":help"]) {
+                    assert details.rootProject.children.empty
+                }
+                if (tasks == [":a:thing"]) {
+                    assert details.rootProject.children.size() == 1
+                    with(details.rootProject.children.first() as Map<String, Object>) {
+                        name == 'a'
+                        path == ':a'
+                        projectDir == file('a').absolutePath
+                        children.empty
+                    }
+                }
+                if (tasks == [":a:b:thing"]) {
+                    assert details.rootProject.children.size() == 1
+                    with(details.rootProject.children.first() as Map<String, Object>) {
+                        name == 'a'
+                        path == ':a'
+                        projectDir == file('a').absolutePath
+                        children.size() == 1
+                        with(children.first() as Map<String, Object>) {
+                            name == 'b'
+                            path == ':a:b'
+                            projectDir == file('custom').absolutePath
+                        }
+                    }
+                }
+            }
+        }
 
-        then:
-        def op3 = fixture.only(LoadProjectsBuildOperationType)
-        op3.result.rootProject.name == 'thing'
-        op3.result.rootProject.children.size() == 3 // All projects are created when storing
-
-        def events3 = fixture.progress(ProjectsIdentifiedProgressDetails)
-        events3.size() == 1
-        events3[0].details.rootProject.name == 'thing'
-        events3[0].details.rootProject.children.size() == 3
-
-        when:
-        configurationCacheRun ":a:thing"
-
-        then:
-        fixture.none(LoadProjectsBuildOperationType)
-
-        def events4 = fixture.progress(ProjectsIdentifiedProgressDetails)
-        events4.size() == 1
-        events4[0].details.rootProject.name == 'thing'
-        events4[0].details.rootProject.path == ':'
-        events4[0].details.rootProject.children.size() == 1
-        def project2 = events4[0].details.rootProject.children.first()
-        project2.name == 'a'
-        project2.path == ':a'
-        project2.projectDir == file('a').absolutePath
-        project2.children.empty
-
-        when:
-        configurationCacheRun ":a:b:thing"
-
-        then:
-        def op5 = fixture.only(LoadProjectsBuildOperationType)
-        op5.result.rootProject.name == 'thing'
-        op5.result.rootProject.children.size() == 3 // All projects are created when storing
-
-        def events5 = fixture.progress(ProjectsIdentifiedProgressDetails)
-        events5.size() == 1
-        events5[0].details.rootProject.name == 'thing'
-        events5[0].details.rootProject.children.size() == 3
-
-        when:
-        configurationCacheRun ":a:b:thing"
-
-        then:
-        fixture.none(LoadProjectsBuildOperationType)
-
-        def events6 = fixture.progress(ProjectsIdentifiedProgressDetails)
-        events6.size() == 1
-        events6[0].details.rootProject.name == 'thing'
-        events6[0].details.rootProject.path == ':'
-        events6[0].details.rootProject.children.size() == 1
-        def project5 = events6[0].details.rootProject.children.first()
-        project5.name == 'a'
-        project5.path == ':a'
-        project5.projectDir == file('a').absolutePath
-        project5.children.size() == 1
-        def project6 = project5.children.first()
-        project6.name == 'b'
-        project6.path == ':a:b'
-        project6.projectDir == file('custom').absolutePath
+        where:
+        tasks << [
+            ["help"],
+            [":a:thing"],
+            [":a:b:thing"],
+        ]
     }
 
-    def "restores some details of the project structure of included build"() {
+    def "restores some details of the project structure of included build"(String task) {
         def fixture = new BuildOperationsFixture(executer, temporaryFolder)
         executer.beforeExecute {
             withArgument("-Dorg.gradle.configuration-cache.internal.load-after-store=true")
         }
 
-        createDir("nested") {
+
+        createDir("include") {
+            dir("inner-include") {
+                file("settings.gradle") << """
+                    rootProject.name = "inner-include"
+                    include "child"
+                    gradle.allprojects {
+                        task thing
+                    }
+                """
+            }
             file("settings.gradle") << """
-                rootProject.name = "nested"
+                rootProject.name = "include"
+                includeBuild "inner-include"
                 include "child"
                 gradle.allprojects {
                     task thing
@@ -350,7 +369,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         }
         settingsFile << """
             rootProject.name = 'thing'
-            includeBuild "nested"
+            includeBuild "include"
             include "child"
             gradle.allprojects {
                 task thing
@@ -358,32 +377,76 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        configurationCacheRun "help"
+        configurationCacheRun(task)
 
         then:
-        fixture.all(LoadBuildBuildOperationType).size() == 2
-        fixture.only(LoadBuildBuildOperationType) { it.details.buildPath == ":" }
-        fixture.only(LoadBuildBuildOperationType) { it.details.buildPath == ":nested" }
-        fixture.all(LoadProjectsBuildOperationType).size() == 2
-        fixture.only(LoadProjectsBuildOperationType) { it.details.buildPath == ":" }
-        fixture.only(LoadProjectsBuildOperationType) { it.details.buildPath == ":nested" }
-        with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
-            size() == 2
+        with(fixture.all(LoadBuildBuildOperationType)) {
+            size() == 3
             it.find { it.details.buildPath == ":" }
-            it.find { it.details.buildPath == ":nested" }
+            it.find { it.details.buildPath == ":include" }
+            it.find { it.details.buildPath == ":inner-include" }
+        }
+        with(fixture.all(LoadProjectsBuildOperationType)) {
+            size() == 3
+            it.find { it.details.buildPath == ":" }
+            it.find { it.details.buildPath == ":include" }
+            it.find { it.details.buildPath == ":inner-include" }
+        }
+        with(fixture.progress(BuildIdentifiedProgressDetails)) {
+            size() == 3
+            it.find { it.details.buildPath == ":" }
+            it.find { it.details.buildPath == ":include" }
+            it.find { it.details.buildPath == ":inner-include" }
+        }
+        with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
+            size() == 3
+            with(it.find { it.details.buildPath == ":" }) {
+                details.rootProject.children.size() == 1
+            }
+            with(it.find { it.details.buildPath == ":include" }) {
+                details.rootProject.children.size() == 1
+            }
+            with(it.find { it.details.buildPath == ":inner-include" }) {
+                details.rootProject.children.size() == 1
+            }
         }
 
         when:
-        configurationCacheRun "help"
+        configurationCacheRun(task)
 
         then:
         fixture.none(LoadBuildBuildOperationType)
         fixture.none(LoadProjectsBuildOperationType)
-        with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
-            size() == 2
+        with(fixture.progress(BuildIdentifiedProgressDetails)) {
+            size() == 3
             it.find { it.details.buildPath == ":" }
-            it.find { it.details.buildPath == ":nested" }
+            it.find { it.details.buildPath == ":include" }
+            it.find { it.details.buildPath == ":inner-include" }
         }
+        // TODO The following demonstrates that this event currently only conveys the “used” part of the project structure.
+        // This needs to be updated to convey the entirety of the structure.
+        with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
+            size() == 3
+            with(it.find { it.details.buildPath == ":" }) {
+                details.rootProject.children.size() == (task in [":child:thing"] ? 1 : 0)
+            }
+            with(it.find { it.details.buildPath == ":include" }) {
+                details.rootProject.children.size() == (task in [":include:child:thing"] ? 1 : 0)
+            }
+            with(it.find { it.details.buildPath == ":inner-include" }) {
+                details.rootProject.children.size() == (task in [":inner-include:child:thing"] ? 1 : 0)
+            }
+        }
+
+        where:
+        task << [
+            ":thing",
+            ":child:thing",
+            ":include:thing",
+            ":include:child:thing",
+            ":inner-include:thing",
+            ":inner-include:child:thing",
+        ]
     }
 
     def "does not configure build when task graph is already cached for requested tasks"() {
