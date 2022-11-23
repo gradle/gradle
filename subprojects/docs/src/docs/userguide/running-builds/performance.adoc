@@ -748,7 +748,7 @@ tasks.withType(JavaCompile).configureEach {
 [source.multi-language-sample,kotlin]
 ----
 tasks.withType<JavaCompile>().configureEach {
-    options.incremental = true
+    options.isIncremental = true
 }
 ----
 ====
