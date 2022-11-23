@@ -25,8 +25,7 @@ import org.gradle.api.provider.Property;
  * @since 8.0
  */
 @Incubating
-public
-interface CacheResourceConfiguration {
+public interface CacheResourceConfiguration {
     /**
      * Configures the maximum number of days an unused entry will be retained in the cache.
      */
