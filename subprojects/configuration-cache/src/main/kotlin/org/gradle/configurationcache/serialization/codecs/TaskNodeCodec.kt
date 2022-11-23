@@ -53,8 +53,8 @@ import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
-import org.gradle.internal.fingerprint.Normalizer
 import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.properties.InputFilePropertyType
 import org.gradle.internal.properties.OutputFilePropertyType
@@ -253,7 +253,7 @@ sealed class RegisteredProperty {
         val optional: Boolean,
         val filePropertyType: InputFilePropertyType,
         val behavior: InputBehavior,
-        val normalizer: Normalizer?,
+        val normalizer: FileNormalizer?,
         val directorySensitivity: DirectorySensitivity,
         val lineEndingSensitivity: LineEndingSensitivity
     ) : RegisteredProperty()
@@ -364,7 +364,7 @@ fun collectRegisteredInputsOf(task: Task): List<RegisteredProperty> {
             behavior: InputBehavior,
             directorySensitivity: DirectorySensitivity,
             lineEndingSensitivity: LineEndingSensitivity,
-            normalizer: Normalizer?,
+            normalizer: FileNormalizer?,
             propertyValue: PropertyValue,
             filePropertyType: InputFilePropertyType
         ) {

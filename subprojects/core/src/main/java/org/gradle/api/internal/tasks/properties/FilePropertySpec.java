@@ -17,9 +17,9 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.internal.fingerprint.Normalizer;
+import org.gradle.internal.fingerprint.FileNormalizer;
 
 public interface FilePropertySpec extends PropertySpec {
-    Normalizer getNormalizer();
+    FileNormalizer getNormalizer();
     FileCollectionInternal getPropertyFiles();
 }

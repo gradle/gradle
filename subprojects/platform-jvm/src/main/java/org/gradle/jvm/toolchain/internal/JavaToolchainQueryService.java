@@ -18,7 +18,6 @@ package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -27,6 +26,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
@@ -124,11 +124,11 @@ public class JavaToolchainQueryService {
     private JavaToolchain query(JavaToolchainSpec spec, boolean isFallback) {
         if (spec instanceof CurrentJvmToolchainSpec) {
             // TODO (#22023) Look into checking if this optional is present and throwing an exception
-            return asToolchain(new InstallationLocation(Jvm.current().getJavaHome(), "current JVM"), spec, isFallback).get();
+            return asToolchain(new InstallationLocation(Jvm.current().getJavaHome(), "current JVM"), spec, isFallback).toolchain().get();
         }
         if (spec instanceof SpecificInstallationToolchainSpec) {
             final InstallationLocation installation = new InstallationLocation(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation");
-            return asToolchain(installation, spec).orElseThrow(() -> new InvalidUserDataException("Specific installation toolchain '" + installation.getLocation() + "' is not a valid JVM."));
+            return asToolchainOrThrow(installation, spec);
         }
 
         return registry.listInstallations().stream()
@@ -146,19 +146,24 @@ public class JavaToolchainQueryService {
             throw new NoToolchainAvailableException(spec, detectEnabled.getOrElse(true), downloadEnabled.getOrElse(true));
         }
 
-        Optional<JavaToolchain> toolchain = asToolchain(new InstallationLocation(installation.get(), "provisioned toolchain"), spec);
-        if (!toolchain.isPresent()) {
-            throw new GradleException("Provisioned toolchain '" + installation.get() + "' could not be probed.");
-        }
-
-        return toolchain.get();
+        return asToolchainOrThrow(new InstallationLocation(installation.get(), "provisioned toolchain"), spec);
     }
 
     private Optional<JavaToolchain> asToolchain(InstallationLocation javaHome, JavaToolchainSpec spec) {
-        return asToolchain(javaHome, spec, false);
+        return asToolchain(javaHome, spec, false).toolchain();
     }
 
-    private Optional<JavaToolchain> asToolchain(InstallationLocation javaHome, JavaToolchainSpec spec, boolean isFallback) {
+    private JavaToolchain asToolchainOrThrow(InstallationLocation javaHome, JavaToolchainSpec spec) {
+        JavaToolchainInstantiationResult result = asToolchain(javaHome, spec, false);
+        Optional<JavaToolchain> toolchain = result.toolchain();
+        if (!toolchain.isPresent()) {
+            JvmInstallationMetadata metadata = result.metadata();
+            throw new GradleException("Toolchain installation '" + javaHome.getLocation() + "' could not be probed: " + metadata.getErrorMessage(), metadata.getErrorCause());
+        }
+        return toolchain.get();
+    }
+
+    private JavaToolchainInstantiationResult asToolchain(InstallationLocation javaHome, JavaToolchainSpec spec, boolean isFallback) {
         return toolchainFactory.newInstance(javaHome, new JavaToolchainInput(spec), isFallback);
     }
 }

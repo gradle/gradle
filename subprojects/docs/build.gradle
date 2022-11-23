@@ -741,10 +741,6 @@ tasks.named("docsTest") { task ->
             // These tests cover features that the configuration cache doesn't support yet, but we plan to do that before hitting stable.
             // The tests should be removed from this list when the feature becomes supported.
             def testsForNotYetSupportedFeatures = [
-                // TODO(https://github.com/gradle/gradle/issues/21642)
-                "publishing-credentials_groovy_publishCommandLineCredentials.sample",
-                "publishing-credentials_kotlin_publishCommandLineCredentials.sample",
-
                 // TODO(https://github.com/gradle/gradle/issues/14880)
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_groovy_iterating-dependencies.sample",
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_kotlin_iterating-dependencies.sample",
@@ -852,7 +848,7 @@ class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumen
 }
 
 tasks.withType(CheckLinks).configureEach {
-    enabled = !gradle.startParameter.taskNames.contains("docs:platformTest")
+    enabled = !gradle.startParameter.taskNames.contains("docs:docsTest")
 }
 
 tasks.register("checkLinks") {
