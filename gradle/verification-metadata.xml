@@ -1270,21 +1270,6 @@
             <sha256 value="b4182982109d85f9a623fa597932c3f09651467559bb99965c41d45159e89a68" origin="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="2.3.3">
-         <artifact name="gradle-kotlin-dsl-plugins-2.3.3.jar">
-            <sha256 value="ba63ebb9e874a798510b5888a159622ef4e4d59f82e54d755ddcf5e60bf1257f" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="2.4.1">
-         <artifact name="gradle-kotlin-dsl-plugins-2.4.1.jar">
-            <sha256 value="24d7f385cdffff81648f11098688fd0a2f1986c5286364183c08958927e5307d" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="3.0.0">
-         <artifact name="gradle-kotlin-dsl-plugins-3.0.0.jar">
-            <sha256 value="4ba5a8716d81dde001ff3df916b11a523bb8a05c0a707de25a08fed9fc11c13f" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
       <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="3.1.0">
          <artifact name="gradle-kotlin-dsl-plugins-3.1.0.jar">
             <sha256 value="4667995032a32315ff331fc1e80226788b0f935a42c3399d7214e16d8c5a0419" origin="Artifact is not signed"/>
