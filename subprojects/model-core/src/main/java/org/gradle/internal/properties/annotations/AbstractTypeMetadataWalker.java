@@ -128,9 +128,8 @@ public abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalke
         @SuppressWarnings("unchecked")
         @Override
         protected void handleIterable(TypeToken<?> node, BiConsumer<String, TypeToken<?>> handler) {
-            handler.accept(
-                determinePropertyName(node),
-                extractNestedType((TypeToken<? extends Iterable<?>>) node, Iterable.class, 0));
+            TypeToken<?> nestedType = extractNestedType((TypeToken<? extends Iterable<?>>) node, Iterable.class, 0);
+            handler.accept(determinePropertyName(nestedType), nestedType);
         }
 
         @Override
