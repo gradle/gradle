@@ -59,6 +59,7 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
 
     val pluginRequests = mutableListOf<ResidualProgram.PluginRequestSpec>()
     var seenStatementSeparator = false
+    var isInfix = false
     var pluginId: String? = null
     var version: String? = null
     var apply: Boolean? = null
@@ -116,8 +117,15 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                         RBRACE -> InterpreterState.END.also { newPluginRequest() }
                         IDENTIFIER -> {
                             when (tokenText) {
-                                "version" -> InterpreterState.VERSION_OPEN_CALL
-                                "apply" -> InterpreterState.APPLY_OPEN_CALL
+                                in listOf("version", "apply") -> {
+                                    isInfix = previousTokenType != DOT
+                                    when (tokenText) {
+                                        "version" -> InterpreterState.VERSION_OPEN_CALL
+                                        "apply" -> InterpreterState.APPLY_OPEN_CALL
+                                        else -> return expecting("version or apply")
+                                    }
+                                }
+
                                 in listOf("id", "kotlin") -> {
                                     if (!seenStatementSeparator) return expecting("<statement separator>")
                                     if (pluginId != null) newPluginRequest()
@@ -181,9 +189,17 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                     }
 
                     InterpreterState.APPLY_OPEN_CALL -> state = when (tokenType) {
-                        FALSE_KEYWORD -> InterpreterState.AFTER_ID.also { apply = false }
-                        TRUE_KEYWORD -> InterpreterState.AFTER_ID.also { apply = true }
                         LPAR -> InterpreterState.APPLY_BOOL_CALL
+                        FALSE_KEYWORD -> {
+                            if (!isInfix) return expecting("(")
+                            InterpreterState.AFTER_ID.also { apply = false }
+                        }
+
+                        TRUE_KEYWORD -> {
+                            if (!isInfix) return expecting("(")
+                            InterpreterState.AFTER_ID.also { apply = true }
+                        }
+
                         else -> return expecting("(")
                     }
 
@@ -199,8 +215,12 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                     }
 
                     InterpreterState.VERSION_OPEN_CALL -> state = when (tokenType) {
-                        OPEN_QUOTE -> InterpreterState.VERSION_INFIX_STRING
                         LPAR -> InterpreterState.VERSION_START
+                        OPEN_QUOTE -> {
+                            if (!isInfix) return expecting("(")
+                            InterpreterState.VERSION_INFIX_STRING
+                        }
+
                         else -> return expecting("(")
                     }
 
@@ -230,7 +250,7 @@ fun interpret(program: Program.Plugins): PluginsBlockInterpretation = KotlinLexe
                     }
 
                     InterpreterState.VERSION_INFIX_END -> state = when (tokenType) {
-                        CLOSING_QUOTE -> InterpreterState.AFTER_ID
+                        CLOSING_QUOTE -> InterpreterState.AFTER_ID.also { isInfix = false }
                         else -> return expecting("<version string>")
                     }
 
