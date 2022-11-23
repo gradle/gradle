@@ -29,8 +29,8 @@ import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
+import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
-import org.gradle.internal.fingerprint.Normalizer
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
@@ -55,7 +55,7 @@ class DefaultInputFingerprinterTest extends Specification {
     def fileInputSnapshot = Mock(FileSystemSnapshot)
     def fileInputSnapshotResult = Mock(FileCollectionSnapshotter.Result)
     def fileInputFingerprint = Mock(CurrentFileCollectionFingerprint)
-    def normalizer = Mock(Normalizer)
+    def normalizer = Mock(FileNormalizer)
 
     def "visits properties"() {
         when:

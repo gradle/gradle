@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.initialization.ProjectsIdentifiedProgressDetails
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
@@ -45,12 +46,12 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         firstRunOutput == secondRunOutput
 
         where:
-        task            | options
-        "help"          | []
-        "properties"    | []
-        "dependencies"  | []
-        "help"          | ["--task", "help"]
-        "help"          | ["--rerun"]
+        task           | options
+        "help"         | []
+        "properties"   | []
+        "dependencies" | []
+        "help"         | ["--task", "help"]
+        "help"         | ["--rerun"]
     }
 
     def "can store task selection success/failure for :help --task"() {
@@ -219,7 +220,9 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
     def "restores some details of the project structure"() {
         def fixture = new BuildOperationsFixture(executer, temporaryFolder)
-
+        executer.beforeExecute {
+            withArgument("-Dorg.gradle.configuration-cache.internal.load-after-store=true")
+        }
         settingsFile << """
             rootProject.name = 'thing'
             include 'a', 'b', 'c'
@@ -236,6 +239,10 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCacheRun "help"
 
         then:
+        with(fixture.only(LoadBuildBuildOperationType)) {
+            it.details.buildPath == ":"
+        }
+
         def op1 = fixture.only(LoadProjectsBuildOperationType)
         op1.result.rootProject.name == 'thing'
         op1.result.rootProject.path == ':'
@@ -251,11 +258,8 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCacheRun "help"
 
         then:
-        def op2 = fixture.only(LoadProjectsBuildOperationType)
-        op2.result.rootProject.name == 'thing'
-        op2.result.rootProject.path == ':'
-        op2.result.rootProject.projectDir == testDirectory.absolutePath
-        op2.result.rootProject.children.empty // None of the child projects are created when loading, as they have no tasks scheduled
+        fixture.none(LoadBuildBuildOperationType)
+        fixture.none(LoadProjectsBuildOperationType)
 
         def events2 = fixture.progress(ProjectsIdentifiedProgressDetails)
         events2.size() == 1
@@ -281,16 +285,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCacheRun ":a:thing"
 
         then:
-        def op4 = fixture.only(LoadProjectsBuildOperationType)
-        op4.result.rootProject.name == 'thing'
-        op4.result.rootProject.path == ':'
-        op4.result.rootProject.projectDir == testDirectory.absolutePath
-        op4.result.rootProject.children.size() == 1 // Only project a is created when loading
-        def project1 = op4.result.rootProject.children.first()
-        project1.name == 'a'
-        project1.path == ':a'
-        project1.projectDir == file('a').absolutePath
-        project1.children.empty
+        fixture.none(LoadProjectsBuildOperationType)
 
         def events4 = fixture.progress(ProjectsIdentifiedProgressDetails)
         events4.size() == 1
@@ -320,20 +315,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCacheRun ":a:b:thing"
 
         then:
-        def op6 = fixture.only(LoadProjectsBuildOperationType)
-        op6.result.rootProject.name == 'thing'
-        op6.result.rootProject.path == ':'
-        op6.result.rootProject.projectDir == testDirectory.absolutePath
-        op6.result.rootProject.children.size() == 1
-        def project3 = op6.result.rootProject.children.first()
-        project3.name == 'a'
-        project3.path == ':a'
-        project3.projectDir == file('a').absolutePath
-        project3.children.size() == 1
-        def project4 = project3.children.first()
-        project4.name == 'b'
-        project4.path == ':a:b'
-        project4.projectDir == file('custom').absolutePath
+        fixture.none(LoadProjectsBuildOperationType)
 
         def events6 = fixture.progress(ProjectsIdentifiedProgressDetails)
         events6.size() == 1
@@ -349,6 +331,59 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         project6.name == 'b'
         project6.path == ':a:b'
         project6.projectDir == file('custom').absolutePath
+    }
+
+    def "restores some details of the project structure of included build"() {
+        def fixture = new BuildOperationsFixture(executer, temporaryFolder)
+        executer.beforeExecute {
+            withArgument("-Dorg.gradle.configuration-cache.internal.load-after-store=true")
+        }
+
+        createDir("nested") {
+            file("settings.gradle") << """
+                rootProject.name = "nested"
+                include "child"
+                gradle.allprojects {
+                    task thing
+                }
+            """
+        }
+        settingsFile << """
+            rootProject.name = 'thing'
+            includeBuild "nested"
+            include "child"
+            gradle.allprojects {
+                task thing
+            }
+        """
+
+        when:
+        configurationCacheRun "help"
+
+        then:
+        fixture.all(LoadBuildBuildOperationType).size() == 2
+        fixture.only(LoadBuildBuildOperationType) { it.details.buildPath == ":" }
+        fixture.only(LoadBuildBuildOperationType) { it.details.buildPath == ":nested" }
+        fixture.all(LoadProjectsBuildOperationType).size() == 2
+        fixture.only(LoadProjectsBuildOperationType) { it.details.buildPath == ":" }
+        fixture.only(LoadProjectsBuildOperationType) { it.details.buildPath == ":nested" }
+        with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
+            size() == 2
+            it.find { it.details.buildPath == ":" }
+            it.find { it.details.buildPath == ":nested" }
+        }
+
+        when:
+        configurationCacheRun "help"
+
+        then:
+        fixture.none(LoadBuildBuildOperationType)
+        fixture.none(LoadProjectsBuildOperationType)
+        with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
+            size() == 2
+            it.find { it.details.buildPath == ":" }
+            it.find { it.details.buildPath == ":nested" }
+        }
     }
 
     def "does not configure build when task graph is already cached for requested tasks"() {

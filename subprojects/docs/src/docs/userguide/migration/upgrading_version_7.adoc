@@ -366,6 +366,59 @@ PMD has been updated to https://pmd.github.io/pmd-6.48.0/pmd_release_notes.html[
 When configuring an executable explicitly for link:{groovyDslPath}/org.gradle.api.tasks.compile.ForkOptions.html#org.gradle.api.tasks.compile.ForkOptions:executable[`JavaCompile`] or link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:executable[`Test`] tasks, Gradle will now emit an error if this executable does not exist.
 In the past, the task would be executed with the default toolchain or JVM running the build.
 
+==== Changes to dependency declarations in Test Suites
+
+As part of the ongoing effort to evolve Test Suites, dependency declarations in the Test Suites `dependencies` block are <<jvm_test_suite_plugin.adoc#sec:differences_with_top_level_dependencies, now strongly typed>>.
+This will help make this incubating API more discoverable and easier to use in an IDE.
+
+In some cases, this requires syntax changes.
+For example, build scripts that previously added Test Suite dependencies with the following syntax:
+
+```kotlin
+testing {
+  suites {
+    register<JvmTestSuite>("integrationTest") {
+      dependencies {
+        implementation(project)
+      }
+    }
+  }
+}
+```
+
+will now fail to compile, with a message like:
+
+```
+None of the following functions can be called with the arguments supplied:
+public operator fun DependencyAdder.invoke(dependencyNotation: CharSequence): Unit defined in org.gradle.kotlin.dsl
+public operator fun DependencyAdder.invoke(dependency: Dependency): Unit defined in org.gradle.kotlin.dsl
+public operator fun DependencyAdder.invoke(files: FileCollection): Unit defined in org.gradle.kotlin.dsl
+public operator fun DependencyAdder.invoke(dependency: Provider<out Dependency>): Unit defined in org.gradle.kotlin.dsl
+public operator fun DependencyAdder.invoke(externalModule: ProviderConvertible<out MinimalExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+```
+
+To fix this, replace the reference to `project` with a call to `project()`:
+
+```kotlin
+testing {
+  suites {
+    register<JvmTestSuite>("integrationTest") {
+      dependencies {
+        implementation(project())
+      }
+    }
+  }
+}
+```
+
+Other syntax effected by this change includes:
+
+- You cannot use `Provider<String>` as a dependency declaration.
+- You cannot use a `Map` as a dependency declaration for Kotlin or Java.
+- You cannot use a bundle as a dependency declaration directly (`implementation(libs.bundles.testing)`). Use `implementation.bundle(libs.bundles.testing)` instead.
+
+For more information, see the updated <<jvm_test_suite_plugin.adoc#sec:declare_an_additional_test_suite, declare an additional test suite>> example in the JVM Test Suite Plugin section of the user guide and the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyAdder.html[`DependencyAdder`] page in the DSL reference.
+
 === Deprecations
 
 [[invalid_toolchain_specification_deprecation]]

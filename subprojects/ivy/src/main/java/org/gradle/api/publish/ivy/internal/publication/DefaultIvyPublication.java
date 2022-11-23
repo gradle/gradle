@@ -670,7 +670,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    @Nullable
     public VersionMappingStrategyInternal getVersionMappingStrategy() {
         return versionMappingStrategy;
     }

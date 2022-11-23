@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.internal.properties;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.provider.PropertyInternal;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.HasConfigurableValue;
-import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nullable;

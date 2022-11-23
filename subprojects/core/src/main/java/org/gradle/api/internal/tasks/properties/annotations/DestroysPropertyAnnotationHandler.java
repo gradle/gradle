@@ -36,7 +36,7 @@ public class DestroysPropertyAnnotationHandler extends AbstractPropertyAnnotatio
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
         visitor.visitDestroyableProperty(value);
     }
 }
