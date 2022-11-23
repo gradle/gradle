@@ -180,10 +180,12 @@ public class JdkCacheDirectory {
         try {
             leftoverMetadata = getMetadata(markerLocation).toString();
         } catch (Exception e) {
+            LOGGER.debug("Failed determining metadata of installation leftover", e);
             leftoverMetadata = "Could not be determined due to: " + e.getMessage();
         }
-        LOGGER.warn("While provisioning Java toolchain from '{}' to satisfy spec '{}', having metadata '{}', " +
-                "leftover content with metadata '{}' found in install folder '{}'. Existing installation will be replaced by the new download.",
+        LOGGER.warn("While provisioning Java toolchain from '{}' to satisfy spec '{}' (with metadata '{}'), " +
+                "leftover content (with metadata '{}') was found in the install folder '{}'. " +
+                "The existing installation will be replaced by the new download.",
                 uri, spec, metadata, leftoverMetadata, installFolder);
     }
 
