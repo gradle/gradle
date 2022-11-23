@@ -23,18 +23,21 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.component.FinalizableSoftwareComponentInternal;
+import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.java.usagecontext.ConfigurationVariantMapping;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultAdhocSoftwareComponent extends FinalizableSoftwareComponentInternal implements AdhocComponentWithVariants {
+public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants, SoftwareComponentInternal {
     private final String componentName;
     private final Map<Configuration, ConfigurationVariantMapping> variants = Maps.newLinkedHashMapWithExpectedSize(4);
     private final Instantiator instantiator;
+
+    private boolean finalized = false;
 
     public DefaultAdhocSoftwareComponent(String componentName, Instantiator instantiator) {
         this.componentName = componentName;
@@ -68,5 +71,19 @@ public class DefaultAdhocSoftwareComponent extends FinalizableSoftwareComponentI
             variant.collectUsageContexts(builder);
         }
         return builder.build();
+    }
+
+    @Override
+    public void finalizeValue() {
+        finalized = true;
+    }
+
+    protected void checkNotFinalized() {
+        if (finalized) {
+            DeprecationLogger.deprecateBehaviour("Gradle Module Metadata modification after publication has been populated")
+                .willBecomeAnErrorInGradle9()
+                .withUpgradeGuideSection(7, "gmm_modification_after_publication_populated")
+                .nagUser();
+        }
     }
 }
