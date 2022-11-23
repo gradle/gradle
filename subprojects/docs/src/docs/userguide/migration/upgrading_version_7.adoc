@@ -1369,7 +1369,7 @@ Migrate your artifact transform to use `TransformAction` and use link:{groovyDsl
 See the <<artifact_transforms#sec:abm_artifact_transforms,user manual>> for more information on implementing `TransformAction`.
 
 [[gmm_modification_after_publication_populated]]
-==== Modifying GMM after publications have been populated
+==== Modifying GMM after a publication has been populated
 
 Altering the link:publishing_gradle_module_metadata.html[Gradle Module Metadata] (e.g. changing a component configuration variants) after a Maven or Ivy publication have been populated from their components, is now deprecated and scheduled to be disallowed in Gradle 9.0.
 
