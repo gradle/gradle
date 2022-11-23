@@ -326,11 +326,6 @@ fun configureTests() {
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }
-
-        // TODO remove once the wrapper is updated or the embedded mode is fixed
-        if (usesEmbeddedExecuter()) {
-            enabled = false
-        }
     }
 }
 
