@@ -17,7 +17,6 @@
 package org.gradle.util.internal;
 
 import groovy.lang.Closure;
-import org.codehaus.groovy.runtime.ConvertedClosure;
 import org.codehaus.groovy.runtime.GeneratedClosure;
 import org.gradle.api.Action;
 import org.gradle.internal.Actions;
@@ -28,8 +27,6 @@ import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.util.Configurable;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Map;
 
@@ -156,30 +153,6 @@ public class ConfigureUtil {
         // Hackery to make closure execution faster, by short-circuiting the expensive property and method lookup on Closure
         Closure withNewOwner = configureClosure.rehydrate(target, closureDelegate, configureClosure.getThisObject());
         new ClosureBackedAction<T>(withNewOwner, Closure.OWNER_ONLY, false).execute(target);
-    }
-
-    public static Object unwrapBean(Object bean) {
-        // When Groovy coerces a Closure into an SAM type, then it creates a Proxy which is backed by the Closure.
-        // We want to track the implementation of the Closure, since the class name and classloader of the proxy will not change.
-        // Java and Kotlin Lambdas are coerced to SAM types at compile time, so no unpacking is necessary there.
-        if (Proxy.isProxyClass(bean.getClass())) {
-            InvocationHandler invocationHandler = Proxy.getInvocationHandler(bean);
-            if (invocationHandler instanceof ConvertedClosure) {
-                return ((ConvertedClosure) invocationHandler).getDelegate();
-            }
-            return invocationHandler;
-        }
-
-        // Same as above, if we have wrapped a closure in a WrappedConfigureAction or a ClosureBackedAction, we want to
-        // track the closure itself, not the action class.
-        if (bean instanceof WrappedConfigureAction) {
-            return ((WrappedConfigureAction<?>) bean).getConfigureClosure();
-        }
-
-        if (bean instanceof ClosureBackedAction) {
-            return ((ClosureBackedAction<?>) bean).getClosure();
-        }
-        return bean;
     }
 
     public static class WrappedConfigureAction<T> implements Action<T> {

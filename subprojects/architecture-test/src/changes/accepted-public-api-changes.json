@@ -377,6 +377,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.JavaBasePlugin",
+            "member": "Method org.gradle.api.plugins.JavaBasePlugin.getJavaToolchainQueryService()",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.JavaLibraryDistributionPlugin",
             "member": "Class org.gradle.api.plugins.JavaLibraryDistributionPlugin",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
@@ -422,6 +430,22 @@
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
             "changes": [
                 "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPlugin",
+            "member": "Class org.gradle.api.plugins.MavenPlugin",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPlugin",
+            "member": "Method org.gradle.api.plugins.MavenPlugin.apply(org.gradle.api.Project)",
+            "acceptation": "Remove deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {
@@ -1590,6 +1614,14 @@
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
             "changes": [
                 "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Constructor org.gradle.language.scala.tasks.AbstractScalaCompile(org.gradle.language.scala.tasks.BaseScalaCompileOptions)",
+            "acceptation": "Remove deprecated constructor in Gradle 8.0",
+            "changes": [
+                "Constructor has been removed"
             ]
         },
         {

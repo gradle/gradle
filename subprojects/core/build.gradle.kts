@@ -75,7 +75,7 @@ dependencies {
         because("The Groovy compiler inspects the dependencies at compile time")
     }
 
-    testImplementation(project(":plugins"))
+    testImplementation(project(":platform-jvm"))
     testImplementation(project(":testing-base"))
     testImplementation(project(":platform-native"))
     testImplementation(libs.jsoup)

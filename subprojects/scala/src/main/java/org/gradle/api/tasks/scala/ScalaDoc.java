@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.scala;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -122,7 +121,6 @@ public abstract class ScalaDoc extends SourceTask {
      * @return the compilation outputs produced from the sources
      * @since 7.3
      */
-    @Incubating
     @InputFiles
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -136,7 +134,6 @@ public abstract class ScalaDoc extends SourceTask {
      * @return the compilation outputs produced from the sources
      * @since 7.3
      */
-    @Incubating
     @Internal
     public ConfigurableFileCollection getCompilationOutputs() {
         return compilationOutputs;
