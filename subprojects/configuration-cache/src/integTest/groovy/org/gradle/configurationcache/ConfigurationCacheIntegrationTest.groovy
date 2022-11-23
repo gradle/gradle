@@ -18,6 +18,7 @@ package org.gradle.configurationcache
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.initialization.ProjectsIdentifiedProgressDetails
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
@@ -238,6 +239,10 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCacheRun "help"
 
         then:
+        with(fixture.only(LoadBuildBuildOperationType)) {
+            it.details.buildPath == ":"
+        }
+
         def op1 = fixture.only(LoadProjectsBuildOperationType)
         op1.result.rootProject.name == 'thing'
         op1.result.rootProject.path == ':'
@@ -253,6 +258,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         configurationCacheRun "help"
 
         then:
+        fixture.none(LoadBuildBuildOperationType)
         fixture.none(LoadProjectsBuildOperationType)
 
         def events2 = fixture.progress(ProjectsIdentifiedProgressDetails)
@@ -325,6 +331,59 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         project6.name == 'b'
         project6.path == ':a:b'
         project6.projectDir == file('custom').absolutePath
+    }
+
+    def "restores some details of the project structure of included build"() {
+        def fixture = new BuildOperationsFixture(executer, temporaryFolder)
+        executer.beforeExecute {
+            withArgument("-Dorg.gradle.configuration-cache.internal.load-after-store=true")
+        }
+
+        createDir("nested") {
+            file("settings.gradle") << """
+                rootProject.name = "nested"
+                include "child"
+                gradle.allprojects {
+                    task thing
+                }
+            """
+        }
+        settingsFile << """
+            rootProject.name = 'thing'
+            includeBuild "nested"
+            include "child"
+            gradle.allprojects {
+                task thing
+            }
+        """
+
+        when:
+        configurationCacheRun "help"
+
+        then:
+        fixture.all(LoadBuildBuildOperationType).size() == 2
+        fixture.only(LoadBuildBuildOperationType) { it.details.buildPath == ":" }
+        fixture.only(LoadBuildBuildOperationType) { it.details.buildPath == ":nested" }
+        fixture.all(LoadProjectsBuildOperationType).size() == 2
+        fixture.only(LoadProjectsBuildOperationType) { it.details.buildPath == ":" }
+        fixture.only(LoadProjectsBuildOperationType) { it.details.buildPath == ":nested" }
+        with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
+            size() == 2
+            it.find { it.details.buildPath == ":" }
+            it.find { it.details.buildPath == ":nested" }
+        }
+
+        when:
+        configurationCacheRun "help"
+
+        then:
+        fixture.none(LoadBuildBuildOperationType)
+        fixture.none(LoadProjectsBuildOperationType)
+        with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
+            size() == 2
+            it.find { it.details.buildPath == ":" }
+            it.find { it.details.buildPath == ":nested" }
+        }
     }
 
     def "does not configure build when task graph is already cached for requested tasks"() {
