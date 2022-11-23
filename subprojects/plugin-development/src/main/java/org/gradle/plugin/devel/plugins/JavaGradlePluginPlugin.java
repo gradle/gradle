@@ -27,8 +27,8 @@ import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
@@ -193,18 +193,22 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
             pluginUnderTestMetadataTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(pluginUnderTestMetadataTask.getName()));
 
-            pluginUnderTestMetadataTask.getPluginClasspath().from((Callable<FileCollection>) () -> {
-                SourceSet sourceSet = extension.getPluginSourceSet();
-                Configuration runtimeClasspath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
-                ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
-                    config.componentFilter(spec(JavaGradlePluginPlugin::excludeGradleApi));
-                });
-                return pluginUnderTestMetadataTask.getProject().getObjects().fileCollection().from(
-                    sourceSet.getOutput(),
-                    view.getFiles().getElements()
-                );
-            });
+            pluginUnderTestMetadataTask.getPluginClasspath().from(
+                classpathForPlugin(pluginUnderTestMetadataTask, project, extension)
+            );
         });
+    }
+
+    private static ConfigurableFileCollection classpathForPlugin(PluginUnderTestMetadata pluginUnderTestMetadataTask, Project project, GradlePluginDevelopmentExtension extension) {
+        SourceSet sourceSet = extension.getPluginSourceSet();
+        Configuration runtimeClasspath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
+        ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
+            config.componentFilter(spec(JavaGradlePluginPlugin::excludeGradleApi));
+        });
+        return pluginUnderTestMetadataTask.getProject().getObjects().fileCollection().from(
+            sourceSet.getOutput(),
+            view.getFiles().getElements()
+        );
     }
 
     private static boolean excludeGradleApi(ComponentIdentifier componentId) {

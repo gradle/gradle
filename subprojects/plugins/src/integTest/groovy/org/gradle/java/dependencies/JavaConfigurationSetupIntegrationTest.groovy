@@ -101,8 +101,8 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
                 root project(path: ':sub', configuration: '$configuration')
             }
             task resolve {
+                inputs.files(configurations.root)
                 doLast {
-                    configurations.root.files
                 }
             }
         """
