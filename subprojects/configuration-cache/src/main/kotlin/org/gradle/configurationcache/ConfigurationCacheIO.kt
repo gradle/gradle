@@ -153,10 +153,10 @@ class ConfigurationCacheIO internal constructor(
     }
 
     internal
-    fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild) =
+    fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild, synthesizeBuildOps: Boolean) =
         readConfigurationCacheState(stateFile) { state ->
             state.run {
-                readBuildState(includedBuild)
+                readBuildState(includedBuild, synthesizeBuildOps)
             }
         }
 
