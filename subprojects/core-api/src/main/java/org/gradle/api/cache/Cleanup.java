@@ -28,8 +28,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @HasInternalProtocol
 @Incubating
-public
-interface Cleanup {
+public interface Cleanup {
     /**
      * Perform cache cleanup periodically (default is only once every 24 hours).
      */
