@@ -124,7 +124,7 @@ class ConfigurationCacheState(
         }
 
     suspend fun DefaultReadContext.readRootBuildState(graph: BuildTreeWorkGraph, loadAfterStoreModeEnabled: Boolean, loadAfterStore: Boolean, createBuild: (File?, String) -> ConfigurationCacheBuild): BuildTreeWorkGraph.FinalizedGraph {
-        val buildState = readRootBuild(createBuild)
+        val buildState = readRootBuild(createBuild, !loadAfterStoreModeEnabled)
         require(readInt() == 0x1ecac8e) {
             "corrupt state file"
         }
@@ -207,14 +207,15 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultReadContext.readRootBuild(
-        createBuild: (File?, String) -> ConfigurationCacheBuild
+        createBuild: (File?, String) -> ConfigurationCacheBuild,
+        synthesizeBuildOps: Boolean
     ): CachedBuildState {
         val settingsFile = read() as File?
         val rootProjectName = readString()
         val build = createBuild(settingsFile, rootProjectName)
         val gradle = build.gradle
         readBuildTreeState(gradle)
-        val rootBuildState = readBuildState(build)
+        val rootBuildState = readBuildState(build, synthesizeBuildOps)
         readRootEventListenerSubscriptions(gradle)
         return rootBuildState
     }
@@ -239,16 +240,23 @@ class ConfigurationCacheState(
     }
 
     internal
-    suspend fun DefaultReadContext.readBuildState(build: ConfigurationCacheBuild): CachedBuildState {
+    suspend fun DefaultReadContext.readBuildState(build: ConfigurationCacheBuild, synthesizeBuildOps: Boolean): CachedBuildState {
 
         val gradle = build.gradle
 
         lateinit var children: List<CachedBuildState>
-        withLoadBuildOperation(gradle) {
-            fireEvaluateSettings(gradle)
-            runReadOperation {
-                children = readGradleState(build)
+
+        val readOperation: suspend DefaultReadContext.() -> Unit = {
+            children = readGradleState(build, synthesizeBuildOps)
+        }
+
+        if (synthesizeBuildOps) {
+            withLoadBuildOperation(gradle) {
+                fireEvaluateSettings(gradle)
+                runReadOperation(readOperation)
             }
+        } else {
+            runReadOperation(readOperation)
         }
 
         readRelevantProjectRegistrations(build)
@@ -389,13 +397,14 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultReadContext.readGradleState(
-        build: ConfigurationCacheBuild
+        build: ConfigurationCacheBuild,
+        synthesizeBuildOps: Boolean
     ): List<CachedBuildState> {
         val gradle = build.gradle
         withGradleIsolate(gradle, userTypesCodec) {
             // per build
             readStartParameterOf(gradle)
-            return readChildBuildsOf(build)
+            return readChildBuildsOf(build, synthesizeBuildOps)
         }
     }
 
@@ -431,10 +440,11 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultReadContext.readChildBuildsOf(
-        parentBuild: ConfigurationCacheBuild
+        parentBuild: ConfigurationCacheBuild,
+        synthesizeBuildOps: Boolean
     ): List<CachedBuildState> {
         val includedBuilds = readList {
-            readIncludedBuildState(parentBuild)
+            readIncludedBuildState(parentBuild, synthesizeBuildOps)
         }
         if (readBoolean()) {
             logNotImplemented(
@@ -486,7 +496,8 @@ class ConfigurationCacheState(
 
     private
     suspend fun DefaultReadContext.readIncludedBuildState(
-        parentBuild: ConfigurationCacheBuild
+        parentBuild: ConfigurationCacheBuild,
+        synthesizeBuildOps: Boolean
     ): Pair<CompositeBuildParticipantBuildState, CachedBuildState?> =
         when {
             readBoolean() -> {
@@ -500,7 +511,8 @@ class ConfigurationCacheState(
                         }
                         confCacheBuild.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(
                             stateFileFor(buildDefinition),
-                            confCacheBuild
+                            confCacheBuild,
+                            synthesizeBuildOps
                         )
                     } else null
                 includedBuild to cachedBuildState
