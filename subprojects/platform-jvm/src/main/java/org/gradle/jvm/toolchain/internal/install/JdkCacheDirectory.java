@@ -183,7 +183,7 @@ public class JdkCacheDirectory {
             leftoverMetadata = "Could not be determined due to: " + e.getMessage();
         }
         LOGGER.warn("While provisioning Java toolchain from '{}' to satisfy spec '{}', having metadata '{}', " +
-                "leftover content with metadata '{}' found in install folder '{}'. Will be erased, but this should not have happened.",
+                "leftover content with metadata '{}' found in install folder '{}'. Existing installation will be replaced by the new download.",
                 uri, spec, metadata, leftoverMetadata, installFolder);
     }
 
