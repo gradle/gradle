@@ -29,5 +29,5 @@ public interface CacheResourceConfiguration {
     /**
      * Configures the maximum number of days an unused entry will be retained in the cache.
      */
-    Property<Integer> getRemoveUnusedEntriesAfterDays();
+    Property<TimestampSupplier> getRemoveUnusedEntries();
 }

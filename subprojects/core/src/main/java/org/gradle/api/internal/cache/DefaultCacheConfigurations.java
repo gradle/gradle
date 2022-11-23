@@ -19,6 +19,7 @@ package org.gradle.api.internal.cache;
 import org.gradle.api.Action;
 import org.gradle.api.cache.CacheResourceConfiguration;
 import org.gradle.api.cache.Cleanup;
+import org.gradle.api.cache.TimestampSupplier;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -52,7 +53,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     private static CacheResourceConfiguration createResourceConfiguration(ObjectFactory objectFactory, int defaultDays) {
         CacheResourceConfiguration resourceConfiguration = objectFactory.newInstance(CacheResourceConfiguration.class);
-        resourceConfiguration.getRemoveUnusedEntriesAfterDays().convention(defaultDays);
+        resourceConfiguration.getRemoveUnusedEntries().convention(TimestampSupplier.olderThanInDays(defaultDays));
         return resourceConfiguration;
     }
 
@@ -133,10 +134,10 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     @Override
     public void finalizeConfigurations() {
-        releasedWrappersConfiguration.getRemoveUnusedEntriesAfterDays().finalizeValue();
-        snapshotWrappersConfiguration.getRemoveUnusedEntriesAfterDays().finalizeValue();
-        downloadedResourcesConfiguration.getRemoveUnusedEntriesAfterDays().finalizeValue();
-        createdResourcesConfiguration.getRemoveUnusedEntriesAfterDays().finalizeValue();
+        releasedWrappersConfiguration.getRemoveUnusedEntries().finalizeValue();
+        snapshotWrappersConfiguration.getRemoveUnusedEntries().finalizeValue();
+        downloadedResourcesConfiguration.getRemoveUnusedEntries().finalizeValue();
+        createdResourcesConfiguration.getRemoveUnusedEntries().finalizeValue();
         getCleanup().finalizeValue();
     }
 
