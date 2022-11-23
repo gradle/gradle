@@ -18,10 +18,12 @@ package org.gradle.internal.properties.annotations
 
 import com.google.common.reflect.TypeToken
 import org.gradle.api.DefaultTask
+import org.gradle.api.Named
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
@@ -60,7 +62,7 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         }
 
         then:
-        inputs.collect { it.qualifiedName } == ["i1", "i2", "i2.nI2", "i3", "i3.*.nI2", "i4", "i4.<key>.nI2", "i5", "i5.*.*.nI2"]
+        inputs.collect { it.qualifiedName } == ["i1", "i2", "i2.nI2", "i3", "i3.*.nI2", "i4", "i4.<key>.nI2", "i5", "i5.*.*.nI2", "i6", "i6.<name>.nI3"]
     }
 
     def "should walk type instance"() {
@@ -70,11 +72,16 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         def propertyI1 = TestUtil.propertyFactory().property(String).value("value-i1")
         def propertyNI2 = TestUtil.propertyFactory().property(String).value("value-nI2")
         nestedType.nI2 = propertyNI2
+        def namedType = new NamedType()
+        def propertyNI3 = TestUtil.propertyFactory().property(String).value("value-nI3")
+        namedType.nI3 = propertyNI3
         myType.i1 = propertyI1
         myType.i2 = nestedType
         myType.i3 = [nestedType, nestedType]
         myType.i4 = ["key1": nestedType, "key2": nestedType]
         myType.i5 = [[nestedType]]
+        myType.i5 = [[nestedType]]
+        myType.i6 = [namedType]
 
         when:
         Map<String, CollectedInput> inputs = [:]
@@ -95,6 +102,8 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         inputs["i4.key2.nI2"].value == propertyNI2
         inputs["i5"].value == [[nestedType]]
         inputs["i5.\$1.\$1.nI2"].value == propertyNI2
+        inputs["i6"].value == [namedType]
+        inputs["i6.\$1.nI3"].value == propertyNI3
     }
 
     class MyType {
@@ -108,11 +117,22 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         Map<String, NestedType> i4
         @Nested
         List<List<NestedType>> i5
+        @Nested
+        List<NamedType> i6
     }
 
     class NestedType {
         @Input
         Property<String> nI2
+    }
+
+    class NamedType implements Named {
+        @Input
+        Property<String> nI3
+        @Internal
+        String getName() {
+            return "namedType"
+        }
     }
 
     class CollectedInput {
