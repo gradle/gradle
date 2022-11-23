@@ -28,6 +28,16 @@ import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependen
 
 class GroovyCompileToolchainIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
+    // The following versions and values must be kept in sync
+    def groovyVersion = "3.0.13"
+    def groovyHighestSupportedTarget = JavaVersion.toVersion(17)
+    def groovyFallbackTarget = JavaVersion.toVersion(8)
+
+    def groovyTarget(JavaVersion target) {
+        // In case Groovy does not support the requested target version, it silently falls back to an internal default
+        groovyHighestSupportedTarget.isCompatibleWith(target) ? target : groovyFallbackTarget
+    }
+
     def setup() {
         file("src/main/groovy/Foo.java") << "public class Foo {}"
         file("src/main/groovy/Bar.groovy") << "public class Bar { def bar() {} }"
@@ -37,7 +47,7 @@ class GroovyCompileToolchainIntegrationTest extends AbstractIntegrationSpec impl
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation "${groovyModuleDependency("groovy", "3.0.13")}"
+                implementation "${groovyModuleDependency("groovy", groovyVersion)}"
             }
         """
     }
@@ -68,7 +78,7 @@ class GroovyCompileToolchainIntegrationTest extends AbstractIntegrationSpec impl
         then:
         executedAndNotSkipped(":compileGroovy")
         currentJdk.javaVersion == JavaVersion.forClass(groovyClassFile("Foo.class").bytes)
-        currentJdk.javaVersion == JavaVersion.forClass(groovyClassFile("Bar.class").bytes)
+        groovyTarget(currentJdk.javaVersion) == JavaVersion.forClass(groovyClassFile("Bar.class").bytes)
 
         where:
         option << ["executable", "javaHome"]
@@ -95,7 +105,7 @@ class GroovyCompileToolchainIntegrationTest extends AbstractIntegrationSpec impl
         executedAndNotSkipped(":compileGroovy")
         outputContains("Compiling with JDK Java compiler API")
         targetJdk.javaVersion == JavaVersion.forClass(groovyClassFile("Foo.class").bytes)
-        targetJdk.javaVersion == JavaVersion.forClass(groovyClassFile("Bar.class").bytes)
+        groovyTarget(targetJdk.javaVersion) == JavaVersion.forClass(groovyClassFile("Bar.class").bytes)
 
         where:
         what             | when                         | withTool | withJavaHome | withExecutable | withJavaExtension | target
