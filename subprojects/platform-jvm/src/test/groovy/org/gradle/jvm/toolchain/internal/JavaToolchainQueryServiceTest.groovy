@@ -147,11 +147,12 @@ class JavaToolchainQueryServiceTest extends Specification {
         def eventEmitter = Stub(BuildOperationProgressEventEmitter)
         def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory(), eventEmitter) {
             @Override
-            Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input, boolean isFallbackToolchain) {
+            JavaToolchainInstantiationResult newInstance(InstallationLocation javaHome, JavaToolchainInput input, boolean isFallbackToolchain) {
                 String locationName = javaHome.location.name
                 def vendor = locationName.substring(5)
                 def metadata = newMetadata(new InstallationLocation(new File("/path/" + locationName), javaHome.source), "8", vendor)
-                return Optional.of(new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input, isFallbackToolchain, eventEmitter))
+                return new JavaToolchainFactory.DefaultJavaToolchainInstantiationResult(metadata,
+                    new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input, isFallbackToolchain, eventEmitter))
             }
         }
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory(), TestUtil.objectFactory())
@@ -311,10 +312,11 @@ class JavaToolchainQueryServiceTest extends Specification {
         def eventEmitter = Stub(BuildOperationProgressEventEmitter)
         def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory(), eventEmitter) {
             @Override
-            Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input, boolean isFallbackToolchain) {
+            JavaToolchainInstantiationResult newInstance(InstallationLocation javaHome, JavaToolchainInput input, boolean isFallbackToolchain) {
                 def vendor = javaHome.location.name.substring(2)
                 def metadata = newMetadata(new InstallationLocation(new File("/path/8"), javaHome.source), "8", vendor)
-                return Optional.of(new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input, isFallbackToolchain, eventEmitter))
+                return new JavaToolchainFactory.DefaultJavaToolchainInstantiationResult(metadata,
+                        new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input, isFallbackToolchain, eventEmitter))
             }
         }
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, Mock(JavaToolchainProvisioningService), createProviderFactory(), TestUtil.objectFactory())
@@ -375,7 +377,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == "Provisioned toolchain '${File.separator}path${File.separator}12.broken' could not be probed."
+        e.message == "Toolchain installation '${File.separator}path${File.separator}12.broken' could not be probed: errorMessage"
     }
 
     def "provisioned toolchain is cached no re-request"() {
@@ -432,7 +434,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def eventEmitter = Stub(BuildOperationProgressEventEmitter)
         def toolchainFactory = new JavaToolchainFactory(Mock(JvmMetadataDetector), compilerFactory, toolFactory, TestFiles.fileFactory(), eventEmitter) {
             @Override
-            Optional<JavaToolchain> newInstance(InstallationLocation javaHome, JavaToolchainInput input, boolean isFallbackToolchain) {
+            JavaToolchainInstantiationResult newInstance(InstallationLocation javaHome, JavaToolchainInput input, boolean isFallbackToolchain) {
                 def languageVersion = Jvm.current().javaHome == javaHome.location ? Jvm.current().javaVersion.toString() : getVersion.apply(javaHome.location)
                 def metadata = newMetadata(javaHome, languageVersion)
                 if (metadata.isValidInstallation()) {
@@ -442,9 +444,9 @@ class JavaToolchainQueryServiceTest extends Specification {
                             return isCurrentJvm.test(javaHome.location)
                         }
                     }
-                    return Optional.of(toolchain)
+                    return new JavaToolchainFactory.DefaultJavaToolchainInstantiationResult(metadata, toolchain)
                 }
-                return Optional.empty()
+                return new JavaToolchainFactory.DefaultJavaToolchainInstantiationResult(metadata)
             }
         }
         toolchainFactory

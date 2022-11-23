@@ -83,7 +83,7 @@ public class InspectionSchemeFactory {
         public InspectionSchemeImpl(List<TypeAnnotationHandler> typeHandlers, List<PropertyAnnotationHandler> propertyHandlers, Collection<Class<? extends Annotation>> propertyModifiers, TypeAnnotationMetadataStore typeAnnotationMetadataStore, CrossBuildInMemoryCacheFactory cacheFactory) {
             DefaultPropertyTypeResolver propertyTypeResolver = new DefaultPropertyTypeResolver();
             metadataStore = new DefaultTypeMetadataStore(typeHandlers, propertyHandlers, propertyModifiers, typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory);
-            propertyWalker = new DefaultPropertyWalker(metadataStore, new ScriptSourceAwareImplementationIdentifier());
+            propertyWalker = new DefaultPropertyWalker(metadataStore, new ScriptSourceAwareImplementationResolver());
         }
 
         @Override

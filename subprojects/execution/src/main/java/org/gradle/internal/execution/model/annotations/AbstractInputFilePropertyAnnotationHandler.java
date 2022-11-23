@@ -26,8 +26,8 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.fingerprint.Normalizer;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
@@ -58,8 +58,8 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        Normalizer normalizer = propertyMetadata.getAnnotationForCategory(NORMALIZATION)
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+        FileNormalizer normalizer = propertyMetadata.getAnnotationForCategory(NORMALIZATION)
             .map(fileNormalization -> {
                 if (fileNormalization instanceof PathSensitive) {
                     PathSensitivity pathSensitivity = ((PathSensitive) fileNormalization).value();

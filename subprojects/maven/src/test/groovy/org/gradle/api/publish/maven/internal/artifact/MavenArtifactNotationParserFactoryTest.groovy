@@ -30,7 +30,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
-import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.bundling.Zip
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -129,7 +129,7 @@ class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec 
     def "creates MavenArtifact for ArchivePublishArtifact"() {
         when:
         def rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
-        def archive = rootProject.task('foo', type: Jar, {})
+        def archive = rootProject.task('foo', type: Zip, {})
         archive.archiveBaseName.set("baseName")
         archive.destinationDirectory.set(temporaryFolder.testDirectory)
         archive.archiveExtension.set(archiveExtension)

@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.properties.bean;
+package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.internal.snapshot.impl.ImplementationValue;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 
-public interface ImplementationIdentifier {
-    ImplementationValue identify(Object bean);
+import java.util.Optional;
+
+public interface JavaToolchainInstantiationResult {
+
+    JvmInstallationMetadata metadata();
+
+    Optional<JavaToolchain> toolchain();
 }

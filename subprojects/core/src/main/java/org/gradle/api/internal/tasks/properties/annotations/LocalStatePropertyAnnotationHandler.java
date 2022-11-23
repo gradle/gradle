@@ -35,7 +35,7 @@ public class LocalStatePropertyAnnotationHandler extends AbstractPropertyAnnotat
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
         visitor.visitLocalStateProperty(value);
     }
 }
