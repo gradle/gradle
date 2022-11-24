@@ -56,7 +56,7 @@ public abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalke
                     T child = getChild(node, propertyMetadata);
                     walk(child, childQualifiedName, visitor);
                 } else {
-                    visitor.visitLeaf(childQualifiedName, () -> getChild(node, propertyMetadata));
+                    visitor.visitLeaf(childQualifiedName, propertyMetadata, () -> getChild(node, propertyMetadata));
                 }
             });
         }

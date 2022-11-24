@@ -66,7 +66,7 @@ class AbstractTypeMetadataWalkerTest extends Specification {
             }
 
             @Override
-            void visitLeaf(@Nullable String qualifiedName, Supplier<TypeToken<?>> value) {
+            void visitLeaf(@Nullable String qualifiedName, PropertyMetadata propertyMetadata, Supplier<TypeToken<?>> value) {
                 inputs.add(new CollectedInput(qualifiedName, value.get()))
             }
         })
@@ -104,7 +104,7 @@ class AbstractTypeMetadataWalkerTest extends Specification {
             }
 
             @Override
-            void visitLeaf(@Nullable String qualifiedName, Supplier<Object> value) {
+            void visitLeaf(@Nullable String qualifiedName, PropertyMetadata propertyMetadata, Supplier<Object> value) {
                 assert !inputs.containsKey(qualifiedName)
                 inputs[qualifiedName] = new CollectedInput(qualifiedName, value.get())
             }
