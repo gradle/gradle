@@ -16,9 +16,11 @@
 
 package org.gradle.api.publish.maven.tasks;
 
-import org.gradle.api.DefaultTask;
+import org.gradle.api.SeparatedTask;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.provider.Property;
 import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPom;
 import org.gradle.api.publish.maven.internal.dependencies.MavenDependencyInternal;
@@ -27,9 +29,7 @@ import org.gradle.api.publish.maven.internal.publication.MavenPomInternal;
 import org.gradle.api.publish.maven.internal.tasks.MavenPomFileGenerator;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.UntrackedTask;
-import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 
 import javax.inject.Inject;
@@ -43,13 +43,12 @@ import static org.gradle.internal.serialization.Transient.varOf;
  * @since 1.4
  */
 @UntrackedTask(because = "Gradle doesn't understand the data structures used to configure this task")
-public abstract class GenerateMavenPom extends DefaultTask {
+public abstract class GenerateMavenPom extends SeparatedTask<GenerateMavenPom.GeneratePomAction> {
 
     private final Transient.Var<MavenPom> pom = varOf();
     private final Transient.Var<ImmutableAttributes> compileScopeAttributes = varOf(ImmutableAttributes.EMPTY);
     private final Transient.Var<ImmutableAttributes> runtimeScopeAttributes = varOf(ImmutableAttributes.EMPTY);
     private Object destination;
-    private final Cached<MavenPomFileGenerator.MavenPomSpec> mavenPomSpec = Cached.of(this::computeMavenPomSpec);
 
     @Inject
     protected FileResolver getFileResolver() {
@@ -116,13 +115,25 @@ public abstract class GenerateMavenPom extends DefaultTask {
         this.destination = destination;
     }
 
-    @TaskAction
-    public void doGenerate() {
-        mavenPomSpec().writeTo(getDestination());
+    @Override
+    protected Class<GeneratePomAction> getTaskActionType() {
+        return GeneratePomAction.class;
     }
 
-    private MavenPomFileGenerator.MavenPomSpec mavenPomSpec() {
-        return mavenPomSpec.get();
+    @Override
+    protected void configureTaskAction(GeneratePomAction a) {
+        a.getSpec().set(computeMavenPomSpec());
+        a.getDestination().set(getDestination());
+    }
+
+    public static abstract class GeneratePomAction implements Runnable {
+        abstract Property<MavenPomFileGenerator.MavenPomSpec> getSpec();
+        abstract RegularFileProperty getDestination();
+
+        @Override
+        public void run() {
+            getSpec().get().writeTo(getDestination().get().getAsFile());
+        }
     }
 
     private MavenPomFileGenerator.MavenPomSpec computeMavenPomSpec() {

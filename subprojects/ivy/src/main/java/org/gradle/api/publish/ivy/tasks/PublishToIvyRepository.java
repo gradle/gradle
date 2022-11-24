@@ -16,13 +16,11 @@
 
 package org.gradle.api.publish.ivy.tasks;
 
-import org.gradle.api.Action;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.SeparatedTask;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.ivy.IvyPublication;
@@ -34,7 +32,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -47,7 +44,7 @@ import java.util.concurrent.Callable;
  * @since 1.3
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public abstract class PublishToIvyRepository extends DefaultTask {
+public abstract class PublishToIvyRepository extends SeparatedTask<PublishToIvyRepository.PublishAction> {
 
     private IvyPublicationInternal publication;
     private IvyArtifactRepository repository;
@@ -135,18 +132,13 @@ public abstract class PublishToIvyRepository extends DefaultTask {
         this.credentials.set(((AuthenticationSupportedInternal) repository).getConfiguredCredentials());
     }
 
-    @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException("WUT");
+    @Override
+    protected Class<PublishAction> getTaskActionType() {
+        return PublishAction.class;
     }
 
-    @TaskAction
-    public void publish() {
-        PublishAction taskAction = configureTaskAction();
-        taskAction.run();
-    }
-
-    private PublishAction configureTaskAction() {
+    @Override
+    protected void configureTaskAction(PublishAction a) {
         IvyPublicationInternal publicationInternal = getPublicationInternal();
         if (publicationInternal == null) {
             throw new InvalidUserDataException("The 'publication' property is required");
@@ -157,22 +149,13 @@ public abstract class PublishToIvyRepository extends DefaultTask {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
 
-        return createAction(a -> {
-            a.getPublication().set(publicationInternal);
-            a.getRepository().set(repository);
-        });
+        a.getPublication().set(publicationInternal);
+        a.getRepository().set(repository);
     }
 
-    private PublishAction createAction(Action<PublishAction> configurationAction) {
-        PublishAction publishAction = getObjectFactory().newInstance(PublishAction.class);
-        configurationAction.execute(publishAction);
-        return publishAction;
-    }
 
-    public static abstract class PublishAction {
-        @Inject
+    public static abstract class PublishAction implements Runnable {
         public abstract Property<IvyPublicationInternal> getPublication();
-        @Inject
         public abstract Property<IvyArtifactRepository> getRepository();
 
         @Inject
@@ -181,6 +164,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
         @Inject
         protected abstract IvyDuplicatePublicationTracker getDuplicatePublicationTracker();
 
+        @Override
         public void run() {
             IvyPublicationInternal publication = getPublication().get();
             IvyArtifactRepository repository = getRepository().get();
