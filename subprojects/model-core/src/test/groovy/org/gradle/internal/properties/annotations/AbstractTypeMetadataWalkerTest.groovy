@@ -31,9 +31,11 @@ import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadat
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.util.TestUtil
+import org.jetbrains.annotations.Nullable
 import spock.lang.Specification
 
 import java.lang.annotation.Annotation
+import java.util.function.Supplier
 
 class AbstractTypeMetadataWalkerTest extends Specification {
     // TODO: Use custom annotation instead `Input`
@@ -57,12 +59,20 @@ class AbstractTypeMetadataWalkerTest extends Specification {
     def "should walk a type"() {
         when:
         List<CollectedInput> inputs = []
-        TypeMetadataWalker.typeWalker(metadataStore).walk(TypeToken.of(MyType)) { TypeMetadata declaringType, PropertyMetadata property, String qualifiedName, TypeToken<?> value ->
-            inputs.add(new CollectedInput(declaringType, property, qualifiedName, value))
-        }
+        TypeMetadataWalker.typeWalker(metadataStore).walk(TypeToken.of(MyType), new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
+            @Override
+            void visitNested(TypeMetadata typeMetadata, @Nullable String qualifiedName, TypeToken<?> value) {
+                inputs.add(new CollectedInput(qualifiedName, value))
+            }
+
+            @Override
+            void visitLeaf(@Nullable String qualifiedName, Supplier<TypeToken<?>> value) {
+                inputs.add(new CollectedInput(qualifiedName, value.get()))
+            }
+        })
 
         then:
-        inputs.collect { it.qualifiedName } == ["i1", "i2", "i2.nI2", "i3", "i3.*.nI2", "i4", "i4.<key>.nI2", "i5", "i5.*.*.nI2", "i6", "i6.<name>.nI3"]
+        inputs.collect { it.qualifiedName } == [null, "i1", "i2", "i2.nI2", "i3.*", "i3.*.nI2", "i4.<key>", "i4.<key>.nI2", "i5.*.*", "i5.*.*.nI2", "i6.<name>", "i6.<name>.nI3", "i7", "i7.nI2"]
     }
 
     def "should walk type instance"() {
@@ -82,28 +92,43 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         myType.i5 = [[nestedType]]
         myType.i5 = [[nestedType]]
         myType.i6 = [namedType]
+        myType.i7 = TestUtil.propertyFactory().property(NestedType).value(nestedType)
 
         when:
         Map<String, CollectedInput> inputs = [:]
-        TypeMetadataWalker.instanceWalker(metadataStore).walk(myType, { TypeMetadata declaringType, PropertyMetadata property, String qualifiedName, Object value ->
-            assert !inputs.containsKey(qualifiedName)
-            inputs[qualifiedName] = new CollectedInput(declaringType, property, qualifiedName, value)
+        TypeMetadataWalker.instanceWalker(metadataStore).walk(myType, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
+            @Override
+            void visitNested(TypeMetadata typeMetadata, @Nullable String qualifiedName, Object value) {
+                assert !inputs.containsKey(qualifiedName)
+                inputs[qualifiedName] = new CollectedInput(qualifiedName, value)
+            }
+
+            @Override
+            void visitLeaf(@Nullable String qualifiedName, Supplier<Object> value) {
+                assert !inputs.containsKey(qualifiedName)
+                inputs[qualifiedName] = new CollectedInput(qualifiedName, value.get())
+            }
         })
 
         then:
+        inputs[null].value == myType
         inputs["i1"].value == propertyI1
         inputs["i2"].value == nestedType
         inputs["i2.nI2"].value == propertyNI2
-        inputs["i3"].value == [nestedType, nestedType]
+        inputs["i3.\$1"].value == nestedType
+        inputs["i3.\$2"].value == nestedType
         inputs["i3.\$1.nI2"].value == propertyNI2
         inputs["i3.\$2.nI2"].value == propertyNI2
-        inputs["i4"].value == ["key1": nestedType, "key2": nestedType]
+        inputs["i4.key1"].value ==  nestedType
+        inputs["i4.key2"].value ==  nestedType
         inputs["i4.key1.nI2"].value == propertyNI2
         inputs["i4.key2.nI2"].value == propertyNI2
-        inputs["i5"].value == [[nestedType]]
+        inputs["i5.\$1.\$1"].value == nestedType
         inputs["i5.\$1.\$1.nI2"].value == propertyNI2
-        inputs["i6"].value == [namedType]
+        inputs["i6.\$1"].value == namedType
         inputs["i6.\$1.nI3"].value == propertyNI3
+        inputs["i7"].value == nestedType
+        inputs["i7.nI2"].value == nestedType.nI2
     }
 
     class MyType {
@@ -119,6 +144,8 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         List<List<NestedType>> i5
         @Nested
         List<NamedType> i6
+        @Nested
+        Property<NestedType> i7
     }
 
     class NestedType {
@@ -136,14 +163,10 @@ class AbstractTypeMetadataWalkerTest extends Specification {
     }
 
     class CollectedInput {
-        TypeMetadata declaringType
-        PropertyMetadata property
         String qualifiedName
         Object value
 
-        CollectedInput(TypeMetadata declaringType, PropertyMetadata property, String qualifiedName, Object value) {
-            this.declaringType = declaringType
-            this.property = property
+        CollectedInput(String qualifiedName, Object value) {
             this.qualifiedName = qualifiedName
             this.value = value
         }
