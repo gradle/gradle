@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAn
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.properties.annotations.TypeMetadataWalker;
@@ -98,7 +99,7 @@ public class PropertyValidationAccess {
             }
 
             @Override
-            public void visitLeaf(@Nullable String qualifiedName, Supplier<TypeToken<?>> value) {
+            public void visitLeaf(@Nullable String qualifiedName, PropertyMetadata propertyMetadata, Supplier<TypeToken<?>> value) {
             }
         });
     }
