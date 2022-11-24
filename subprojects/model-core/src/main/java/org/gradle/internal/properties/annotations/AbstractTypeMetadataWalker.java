@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
+abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
     private final TypeMetadataStore typeMetadataStore;
 
     private AbstractTypeMetadataWalker(TypeMetadataStore typeMetadataStore) {
@@ -61,7 +61,6 @@ public abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalke
             });
         }
     }
-
 
     private static String getQualifiedName(@Nullable String parentPropertyName, String childPropertyName) {
         return parentPropertyName == null
