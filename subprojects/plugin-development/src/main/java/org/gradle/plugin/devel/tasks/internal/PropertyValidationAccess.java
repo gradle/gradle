@@ -21,6 +21,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.TypeScheme;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
+import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
@@ -92,7 +93,7 @@ public class PropertyValidationAccess {
 
         // TODO: Handle cycles
         TypeToken<?> topLevelType = TypeToken.of(topLevelBean);
-        TypeMetadataWalker.typeWalker(metadataStore).walk(topLevelType, new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
+        TypeMetadataWalker.typeWalker(metadataStore, Nested.class).walk(topLevelType, new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
             @Override
             public void visitNested(TypeMetadata typeMetadata, @Nullable String qualifiedName, TypeToken<?> value) {
                 typeMetadata.visitValidationFailures(qualifiedName, validationContext);

@@ -19,15 +19,16 @@ package org.gradle.internal.properties.annotations;
 import com.google.common.reflect.TypeToken;
 
 import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
 import java.util.function.Supplier;
 
 public interface TypeMetadataWalker<T> {
-    static TypeMetadataWalker<Object> instanceWalker(TypeMetadataStore typeMetadataStore) {
-        return new AbstractTypeMetadataWalker.InstanceTypeMetadataWalker(typeMetadataStore);
+    static TypeMetadataWalker<Object> instanceWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
+        return new AbstractTypeMetadataWalker.InstanceTypeMetadataWalker(typeMetadataStore, nestedAnnotation);
     }
 
-    static TypeMetadataWalker<TypeToken<?>> typeWalker(TypeMetadataStore typeMetadataStore) {
-        return new AbstractTypeMetadataWalker.StaticTypeMetadataWalker(typeMetadataStore);
+    static TypeMetadataWalker<TypeToken<?>> typeWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
+        return new AbstractTypeMetadataWalker.StaticTypeMetadataWalker(typeMetadataStore, nestedAnnotation);
     }
 
     void walk(T root, NodeMetadataVisitor<T> visitor);
