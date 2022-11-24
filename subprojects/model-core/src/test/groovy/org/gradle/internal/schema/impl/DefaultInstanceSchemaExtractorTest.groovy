@@ -16,27 +16,12 @@
 
 package org.gradle.internal.schema.impl
 
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Internal
-import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
+
+import org.gradle.internal.reflect.annotations.TestAnnotationHandlingSupport
 import spock.lang.Specification
 
-class DefaultInstanceSchemaExtractorTest extends Specification {
+class DefaultInstanceSchemaExtractorTest extends Specification implements TestAnnotationHandlingSupport {
 
-    def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
-    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
-        [],
-        [:],
-        ["java", "groovy"],
-        [],
-        [Object, GroovyObject],
-        [ConfigurableFileCollection, Property],
-        [Internal],
-        { false },
-        cacheFactory
-    )
     def schemaExtractor = new DefaultInstanceSchemaExtractor(typeAnnotationMetadataStore)
 
     def "can extract empty schema"() {
