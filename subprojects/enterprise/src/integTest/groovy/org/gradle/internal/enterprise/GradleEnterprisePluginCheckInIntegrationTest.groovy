@@ -17,8 +17,12 @@
 package org.gradle.internal.enterprise
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
+import spock.lang.IgnoreIf
+
+import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING
 
 class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSpec {
 
@@ -32,7 +36,6 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
             task f { doLast { throw new RuntimeException("failed") } }
         """
     }
-
 
     void applyPlugin() {
         settingsFile << plugin.plugins()
@@ -87,18 +90,32 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         plugin.serviceCreatedOnce(output)
     }
 
+    @IgnoreIf({ GradleContextualExecuter.configCache })
     def "shows warning message when unsupported Gradle Enterprise plugin version is used with configuration caching enabled"() {
         given:
-        plugin.runtimeVersion = '3.11.4'
+        plugin.runtimeVersion = pluginVersion
         applyPlugin()
+        settingsFile << """
+            println "present: " + services.get($GradleEnterprisePluginManager.name).present
+        """
 
         when:
         succeeds("t", "--configuration-cache")
 
         then:
-        plugin.notApplied(output)
+        output.contains("present: ${applied}")
 
         and:
         plugin.assertUnsupportedMessage(output, DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE)
+
+        where:
+        pluginVersion                                    | applied
+        '3.11.4'                                         | false
+        getMinimumPluginVersionForConfigurationCaching() | true
     }
+
+    private static String getMinimumPluginVersionForConfigurationCaching() {
+        "${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMajor()}.${MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMinor()}"
+    }
+
 }
