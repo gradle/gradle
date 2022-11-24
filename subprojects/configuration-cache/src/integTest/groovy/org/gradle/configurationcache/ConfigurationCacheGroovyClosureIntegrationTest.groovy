@@ -17,7 +17,7 @@
 package org.gradle.configurationcache
 
 class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    def "build fails when task action closure reads a project property"() {
+    def "from-cache build fails when task action closure reads a project property"() {
         given:
         buildFile << """
             tasks.register("some") {
@@ -28,11 +28,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
             }
         """
 
-        when:
         configurationCacheRun ":some"
-
-        then:
-        noExceptionThrown()
 
         when:
         configurationCacheFails ":some"
@@ -45,7 +41,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         }
     }
 
-    def "build fails when task action closure sets a project property"() {
+    def "from-cache build fails when task action closure sets a project property"() {
         given:
         buildFile << """
             tasks.register("some") {
@@ -56,11 +52,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
             }
         """
 
-        when:
         configurationCacheRun ":some"
-
-        then:
-        noExceptionThrown()
 
         when:
         configurationCacheFails ":some"
@@ -73,7 +65,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         }
     }
 
-    def "build fails when task action closure invokes a project method"() {
+    def "from-cache build fails when task action closure invokes a project method"() {
         given:
         buildFile << """
             tasks.register("some") {
@@ -83,11 +75,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
             }
         """
 
-        when:
         configurationCacheRun ":some"
-
-        then:
-        noExceptionThrown()
 
         when:
         configurationCacheFails ":some"
@@ -100,7 +88,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         }
     }
 
-    def "build fails when task action nested closure reads a project property"() {
+    def "from-cache build fails when task action nested closure reads a project property"() {
         given:
         buildFile << """
             tasks.register("some") {
@@ -114,11 +102,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
             }
         """
 
-        when:
         configurationCacheRun ":some"
-
-        then:
-        noExceptionThrown()
 
         when:
         configurationCacheFails ":some"
@@ -131,7 +115,60 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
         }
     }
 
-    def "build fails when task onlyIf closure reads a project property"() {
+    def "from-cache build fails when task action defined in settings script reads a settings property"() {
+        given:
+        settingsFile << """
+            gradle.rootProject {
+                tasks.register("some") {
+                    doFirst {
+                        println(name) // task property is ok
+                        println(rootProject)
+                    }
+                }
+            }
+        """
+
+        configurationCacheRun ":some"
+
+        when:
+        configurationCacheFails ":some"
+
+        then:
+        failure.assertHasFileName("Settings file '$settingsFile'")
+        failure.assertHasLineNumber(6)
+        failure.assertHasFailure("Execution failed for task ':some'.") {
+            it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
+        }
+    }
+
+    def "from-cache build fails when task action defined in init script reads a `Gradle` property"() {
+        given:
+        def initScript = file("init.gradle")
+        initScript << """
+            rootProject {
+                tasks.register("some") {
+                    doFirst {
+                        println(name) // task property is ok
+                        println(gradleVersion)
+                    }
+                }
+            }
+        """
+        executer.beforeExecute { withArguments("-I", initScript.absolutePath) }
+        configurationCacheRun ":some"
+
+        when:
+        configurationCacheFails ":some"
+
+        then:
+        failure.assertHasFileName("Initialization script '$initScript'")
+        failure.assertHasLineNumber(6)
+        failure.assertHasFailure("Execution failed for task ':some'.") {
+            it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
+        }
+    }
+
+    def "from-cache build fails when task onlyIf closure reads a project property"() {
         given:
         buildFile << """
             tasks.register("some") {
@@ -145,11 +182,7 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
             }
         """
 
-        when:
         configurationCacheRun ":some"
-
-        then:
-        noExceptionThrown()
 
         when:
         configurationCacheFails ":some"
