@@ -16,11 +16,13 @@
 
 package org.gradle.api.publish.ivy.tasks;
 
+import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.ivy.IvyPublication;
@@ -133,8 +135,18 @@ public abstract class PublishToIvyRepository extends DefaultTask {
         this.credentials.set(((AuthenticationSupportedInternal) repository).getConfiguredCredentials());
     }
 
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException("WUT");
+    }
+
     @TaskAction
     public void publish() {
+        PublishAction taskAction = configureTaskAction();
+        taskAction.run();
+    }
+
+    private PublishAction configureTaskAction() {
         IvyPublicationInternal publicationInternal = getPublicationInternal();
         if (publicationInternal == null) {
             throw new InvalidUserDataException("The 'publication' property is required");
@@ -144,30 +156,45 @@ public abstract class PublishToIvyRepository extends DefaultTask {
         if (repository == null) {
             throw new InvalidUserDataException("The 'repository' property is required");
         }
-        getDuplicatePublicationTracker().checkCanPublish(publicationInternal, repository.getUrl(), repository.getName());
 
-        doPublish(publicationInternal, repository);
+        return createAction(a -> {
+            a.getPublication().set(publicationInternal);
+            a.getRepository().set(repository);
+        });
     }
 
-    @Inject
-    protected IvyPublisher getIvyPublisher() {
-        throw new UnsupportedOperationException();
+    private PublishAction createAction(Action<PublishAction> configurationAction) {
+        PublishAction publishAction = getObjectFactory().newInstance(PublishAction.class);
+        configurationAction.execute(publishAction);
+        return publishAction;
     }
 
-    private void doPublish(final IvyPublicationInternal publication, final IvyArtifactRepository repository) {
-        new PublishOperation(publication, repository.getName()) {
-            @Override
-            protected void publish() {
-                IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
-                IvyPublisher publisher = getIvyPublisher();
-                publisher.publish(normalizedPublication, repository);
-            }
-        }.run();
-    }
+    public static abstract class PublishAction {
+        @Inject
+        public abstract Property<IvyPublicationInternal> getPublication();
+        @Inject
+        public abstract Property<IvyArtifactRepository> getRepository();
 
-    @Inject
-    protected IvyDuplicatePublicationTracker getDuplicatePublicationTracker() {
-        throw new UnsupportedOperationException();
+        @Inject
+        protected abstract IvyPublisher getIvyPublisher();
+
+        @Inject
+        protected abstract IvyDuplicatePublicationTracker getDuplicatePublicationTracker();
+
+        public void run() {
+            IvyPublicationInternal publication = getPublication().get();
+            IvyArtifactRepository repository = getRepository().get();
+            getDuplicatePublicationTracker().checkCanPublish(publication, repository.getUrl(), repository.getName());
+
+            new PublishOperation(publication, repository.getName()) {
+                @Override
+                protected void publish() {
+                    IvyNormalizedPublication normalizedPublication = publication.asNormalisedPublication();
+                    IvyPublisher publisher = getIvyPublisher();
+                    publisher.publish(normalizedPublication, repository);
+                }
+            }.run();
+        }
     }
 
 }
