@@ -1114,10 +1114,50 @@
         },
         {
             "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getDeleter()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
             "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getFeaturePreviews()",
             "acceptation": "Changed type of injected property",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getGroovyCompilerFactory()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getIncrementalCompilerFactory()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getObjectFactory()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getProjectLayout()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
