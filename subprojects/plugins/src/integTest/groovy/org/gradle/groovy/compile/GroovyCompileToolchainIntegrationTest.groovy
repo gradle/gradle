@@ -165,10 +165,8 @@ class GroovyCompileToolchainIntegrationTest extends AbstractIntegrationSpec impl
             }
 
             compileGroovy {
-                if ("$source" != 'none')
-                    sourceCompatibility = JavaVersion.toVersion($source)
-                if ("$target" != 'none')
-                    targetCompatibility = JavaVersion.toVersion($target)
+                ${source != 'none' ? "sourceCompatibility = JavaVersion.toVersion($source)" : ''}
+                ${target != 'none' ? "targetCompatibility = JavaVersion.toVersion($target)" : ''}
                 def projectSourceCompat = project.java.sourceCompatibility
                 def projectTargetCompat = project.java.targetCompatibility
                 doLast {
