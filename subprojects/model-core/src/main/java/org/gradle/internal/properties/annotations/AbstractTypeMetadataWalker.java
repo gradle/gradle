@@ -18,12 +18,14 @@ package org.gradle.internal.properties.annotations;
 
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.Named;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.ParameterizedType;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
     private final TypeMetadataStore typeMetadataStore;
@@ -37,30 +39,35 @@ public abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalke
         walk(root, null, visitor);
     }
 
-    private void walk(T node, @Nullable String parentPropertyName, PropertyMetadataVisitor<T> visitor) {
+    private void walk(T node, @Nullable String qualifiedName, PropertyMetadataVisitor<T> visitor) {
         Class<?> nodeType = resolveType(node);
-        if (Map.class.isAssignableFrom(nodeType)) {
-            handleMap(node, (name, child) -> walk(child, getQualifiedName(parentPropertyName, name), visitor));
-        } else if (Iterable.class.isAssignableFrom(nodeType)) {
-            handleIterable(node, (name, child) -> walk(child, getQualifiedName(parentPropertyName, name), visitor));
+        TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(nodeType);
+        if (Provider.class.isAssignableFrom(nodeType)) {
+            handleProvider(node, child -> walk(child, qualifiedName, visitor));
+        } else if (Map.class.isAssignableFrom(nodeType) && !typeMetadata.hasAnnotatedProperties()) {
+            handleMap(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), visitor));
+        } else if (Iterable.class.isAssignableFrom(nodeType) && !typeMetadata.hasAnnotatedProperties()) {
+            handleIterable(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), visitor));
         } else {
-            TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(nodeType);
+            visitor.visitProperty(typeMetadata, qualifiedName, node);
             typeMetadata.getPropertiesMetadata().forEach(propertyMetadata -> {
-                String qualifiedName = getQualifiedName(parentPropertyName, propertyMetadata.getPropertyName());
+                String childQualifiedName = getQualifiedName(qualifiedName, propertyMetadata.getPropertyName());
                 T child = getChild(node, propertyMetadata);
-                visitor.visitProperty(typeMetadata, propertyMetadata, qualifiedName, child);
                 if (propertyMetadata.getPropertyType() == Nested.class) {
-                    walk(child, qualifiedName, visitor);
+                    walk(child, childQualifiedName, visitor);
                 }
             });
         }
     }
+
 
     private static String getQualifiedName(@Nullable String parentPropertyName, String childPropertyName) {
         return parentPropertyName == null
             ? childPropertyName
             : parentPropertyName + "." + childPropertyName;
     }
+
+    protected abstract void handleProvider(T node, Consumer<T> handler);
 
     abstract protected void handleMap(T node, BiConsumer<String, T> handler);
 
@@ -78,6 +85,11 @@ public abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalke
         @Override
         protected Class<?> resolveType(Object value) {
             return value.getClass();
+        }
+
+        @Override
+        protected void handleProvider(Object node, Consumer<Object> handler) {
+            handler.accept(((Provider<?>) node).get());
         }
 
         @SuppressWarnings("unchecked")
@@ -116,6 +128,11 @@ public abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalke
             return type.getRawType();
         }
 
+        @SuppressWarnings("unchecked")
+        @Override
+        protected void handleProvider(TypeToken<?> node, Consumer<TypeToken<?>> handler) {
+            handler.accept(extractNestedType((TypeToken<Provider<?>>) node, Provider.class, 0));
+        }
 
         @SuppressWarnings("unchecked")
         @Override
