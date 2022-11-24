@@ -89,7 +89,7 @@ public class ProjectBuilderImpl {
         descriptorRegistry.addProject(projectDescriptor);
 
         ProjectState projectState = parentProject.getServices().get(ProjectStateRegistry.class).registerProject(parentProject.getServices().get(BuildState.class), projectDescriptor);
-        projectState.createMutableModel(parentProject.getClassLoaderScope().createChild("project-" + name), parentProject.getBaseClassLoaderScope());
+        projectState.createMutableModel(parentProject.getClassLoaderScope().createChild("project-" + name, null), parentProject.getBaseClassLoaderScope());
         ProjectInternal project = projectState.getMutableModel();
 
         // Lock the project, these won't ever be released as ProjectBuilder has no lifecycle
@@ -133,7 +133,7 @@ public class ProjectBuilderImpl {
         projectDescriptorRegistry.addProject(projectDescriptor);
 
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
-        ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
+        ClassLoaderScope rootProjectScope = baseScope.createChild("root-project", null);
 
         ProjectStateRegistry projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
         ProjectState projectState = projectStateRegistry.registerProject(build, projectDescriptor);

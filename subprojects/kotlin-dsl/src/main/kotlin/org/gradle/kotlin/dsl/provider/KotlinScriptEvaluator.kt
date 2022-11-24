@@ -26,6 +26,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.cache.CacheOpenException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
+import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
@@ -261,13 +262,14 @@ class StandardKotlinScriptEvaluator(
         override fun loadClassInChildScopeOf(
             classLoaderScope: ClassLoaderScope,
             childScopeId: String,
+            origin: ClassLoaderScopeOrigin,
             location: File,
             className: String,
             accessorsClassPath: ClassPath
         ): CompiledScript {
             val instrumentedClasses = cachedClasspathTransformer.transform(DefaultClassPath.of(location), BuildLogic)
             val classpath = instrumentedClasses.plus(accessorsClassPath)
-            return ScopeBackedCompiledScript(classLoaderScope, childScopeId, classpath, className)
+            return ScopeBackedCompiledScript(classLoaderScope, childScopeId, origin, classpath, className)
         }
 
         override val implicitImports: List<String>
@@ -286,6 +288,7 @@ class StandardKotlinScriptEvaluator(
     class ScopeBackedCompiledScript(
         private val classLoaderScope: ClassLoaderScope,
         private val childScopeId: String,
+        private val origin: ClassLoaderScopeOrigin,
         override val classPath: ClassPath,
         private val className: String
     ) : CompiledScript {
@@ -317,6 +320,7 @@ class StandardKotlinScriptEvaluator(
         fun prepareClassLoaderScope() =
             classLoaderScope.createLockedChild(
                 childScopeId,
+                origin,
                 classPath,
                 null,
                 null
