@@ -99,7 +99,7 @@ public class PropertyValidationAccess {
             }
 
             @Override
-            public void visitLeaf(@Nullable String qualifiedName, PropertyMetadata propertyMetadata, Supplier<TypeToken<?>> value) {
+            public void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<TypeToken<?>> value) {
             }
         });
     }
