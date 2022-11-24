@@ -34,6 +34,6 @@ public interface TypeMetadataWalker<T> {
 
     interface NodeMetadataVisitor<T> {
         void visitNested(TypeMetadata typeMetadata, @Nullable String qualifiedName, T value);
-        void visitLeaf(@Nullable String qualifiedName, PropertyMetadata propertyMetadata, Supplier<T> value);
+        void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<T> value);
     }
 }
