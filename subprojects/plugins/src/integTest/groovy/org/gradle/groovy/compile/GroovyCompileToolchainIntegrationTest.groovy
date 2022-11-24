@@ -17,26 +17,19 @@
 package org.gradle.groovy.compile
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
 
-class GroovyCompileToolchainIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
-
-    // The following versions and values must be kept in sync
-    def groovyVersion = "3.0.13"
-    def groovyHighestSupportedTarget = JavaVersion.toVersion(17)
-    def groovyFallbackTarget = JavaVersion.toVersion(8)
-
-    def groovyTarget(JavaVersion target) {
-        // In case Groovy does not support the requested target version, it silently falls back to an internal default
-        groovyHighestSupportedTarget.isCompatibleWith(target) ? target : groovyFallbackTarget
-    }
+@TargetCoverage({ GroovyCoverage.SINCE_3_0 })
+class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
 
     def setup() {
         file("src/main/groovy/Foo.java") << "public class Foo {}"
@@ -47,7 +40,7 @@ class GroovyCompileToolchainIntegrationTest extends AbstractIntegrationSpec impl
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation "${groovyModuleDependency("groovy", groovyVersion)}"
+                implementation "${groovyModuleDependency("groovy", version)}"
             }
         """
     }
@@ -72,13 +65,15 @@ class GroovyCompileToolchainIntegrationTest extends AbstractIntegrationSpec impl
             """
         }
 
+        def groovyTarget = GroovyCoverage.getEffectiveTarget(versionNumber, currentJdk.javaVersion)
+
         when:
         withInstallations(otherJdk).run(":compileGroovy")
 
         then:
         executedAndNotSkipped(":compileGroovy")
         currentJdk.javaVersion == JavaVersion.forClass(groovyClassFile("Foo.class").bytes)
-        groovyTarget(currentJdk.javaVersion) == JavaVersion.forClass(groovyClassFile("Bar.class").bytes)
+        groovyTarget == JavaVersion.forClass(groovyClassFile("Bar.class").bytes)
 
         where:
         option << ["executable", "javaHome"]
@@ -97,6 +92,7 @@ class GroovyCompileToolchainIntegrationTest extends AbstractIntegrationSpec impl
         }
 
         def targetJdk = selectJdk(target)
+        def groovyTarget = GroovyCoverage.getEffectiveTarget(versionNumber, targetJdk.javaVersion)
 
         when:
         withInstallations(currentJdk, otherJdk).run(":compileGroovy", "--info")
@@ -105,7 +101,7 @@ class GroovyCompileToolchainIntegrationTest extends AbstractIntegrationSpec impl
         executedAndNotSkipped(":compileGroovy")
         outputContains("Compiling with JDK Java compiler API")
         targetJdk.javaVersion == JavaVersion.forClass(groovyClassFile("Foo.class").bytes)
-        groovyTarget(targetJdk.javaVersion) == JavaVersion.forClass(groovyClassFile("Bar.class").bytes)
+        groovyTarget == JavaVersion.forClass(groovyClassFile("Bar.class").bytes)
 
         where:
         what             | when                         | withTool | withJavaHome | withExecutable | withJavaExtension | target
