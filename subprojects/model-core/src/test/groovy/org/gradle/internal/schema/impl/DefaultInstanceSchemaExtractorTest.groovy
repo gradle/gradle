@@ -16,19 +16,58 @@
 
 package org.gradle.internal.schema.impl
 
-
+import groovy.transform.MapConstructor
+import org.gradle.internal.reflect.annotations.Long
+import org.gradle.internal.reflect.annotations.Short
 import org.gradle.internal.reflect.annotations.TestAnnotationHandlingSupport
+import org.gradle.internal.reflect.annotations.TestNested
+import org.gradle.internal.reflect.annotations.Tint
 import spock.lang.Specification
 
 class DefaultInstanceSchemaExtractorTest extends Specification implements TestAnnotationHandlingSupport {
 
-    def schemaExtractor = new DefaultInstanceSchemaExtractor(typeAnnotationMetadataStore)
+    def schemaExtractor = new DefaultInstanceSchemaExtractor(typeMetadataStore, TestNested)
 
     def "can extract empty schema"() {
         when:
         def schema = schemaExtractor.extractSchema(new Object())
 
         then:
-        schema.typeMetadata.propertiesAnnotationMetadata.isEmpty()
+        schema.properties().collect() ==~ []
+    }
+
+    @MapConstructor
+    class TypeWithSimpleProperties {
+        @Short @Tint("blue")
+        String name
+
+        @Long
+        String longName
+    }
+
+    def "can extract simple properties"() {
+        def thing = new TypeWithSimpleProperties(name: "lajos", longName: "Kovács Lajos")
+        when:
+        def schema = schemaExtractor.extractSchema(thing)
+
+        then:
+        schema.properties().map { it.qualifiedName }.collect() ==~ ["name", "longName"]
+    }
+
+    @MapConstructor
+    class TypeWithNestedProperties {
+        @TestNested
+        TypeWithSimpleProperties nested
+    }
+
+    def "can extract nested properties"() {
+        def thing = new TypeWithNestedProperties(
+            nested: new TypeWithSimpleProperties(name: "lajos", longName: "Kovács Lajos")
+        )
+        when:
+        def schema = schemaExtractor.extractSchema(thing)
+
+        then:
+        schema.properties().map { it.qualifiedName }.collect() ==~ ["nested", "nested.name", "nested.longName"]
     }
 }

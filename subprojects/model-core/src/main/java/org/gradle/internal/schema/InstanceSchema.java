@@ -16,12 +16,13 @@
 
 package org.gradle.internal.schema;
 
-import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadata;
 
 import java.util.stream.Stream;
 
 public interface InstanceSchema {
-    TypeAnnotationMetadata getTypeMetadata();
+    // TODO Do we need to expose this?
+    TypeMetadata getTypeMetadata();
 
     Stream<PropertySchema> properties();
 }

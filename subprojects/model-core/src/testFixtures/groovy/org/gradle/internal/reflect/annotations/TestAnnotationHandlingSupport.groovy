@@ -37,6 +37,7 @@ import java.lang.annotation.Target
 import java.lang.reflect.Method
 
 import static org.gradle.internal.properties.annotations.PropertyAnnotationHandler.Kind.INPUT
+import static org.gradle.internal.properties.annotations.PropertyAnnotationHandler.Kind.OTHER
 import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE
 
 trait TestAnnotationHandlingSupport {
@@ -52,7 +53,7 @@ trait TestAnnotationHandlingSupport {
 
     TypeAnnotationMetadataStore typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [ThisIsAThing],
-        [(Large): TYPE, (Small): TYPE, (Color): Modifiers.COLOR],
+        [(TestNested): TYPE, (Long): TYPE, (Short): TYPE, (Tint): Modifiers.COLOR],
         ["java", "groovy"],
         [Object],
         [Object, GroovyObject],
@@ -65,12 +66,13 @@ trait TestAnnotationHandlingSupport {
     TypeMetadataStore typeMetadataStore = new DefaultTypeMetadataStore(
         [new ThisIsAThingTypeAnnotationHandler()],
         [
-            new SimplePropertyAnnotationHandler(Large, INPUT, [Color]),
-            new SimplePropertyAnnotationHandler(Small, INPUT, [Color]),
+            new SimplePropertyAnnotationHandler(TestNested, OTHER, [ItDepends]),
+            new SimplePropertyAnnotationHandler(Long, INPUT, [ItDepends, Tint]),
+            new SimplePropertyAnnotationHandler(Short, INPUT, [Tint]),
         ],
-        [Color],
+        [ItDepends, Tint],
         typeAnnotationMetadataStore,
-        { annotation -> annotation },
+        { annotations -> annotations.get(TYPE)?.annotationType() },
         TestCrossBuildInMemoryCacheFactory.instance()
     )
 
@@ -116,17 +118,23 @@ trait TestAnnotationHandlingSupport {
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.FIELD])
-@interface Large {
+@interface Long {
 }
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.FIELD])
-@interface Small {
+@interface TestNested {
 }
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.FIELD])
-@interface Color {
+@interface Short {
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target([ElementType.METHOD, ElementType.FIELD])
+@interface Tint {
+    String value()
 }
 
 @Retention(RetentionPolicy.RUNTIME)
@@ -137,4 +145,9 @@ trait TestAnnotationHandlingSupport {
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.FIELD])
 @interface AlsoIgnored {
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target([ElementType.METHOD, ElementType.FIELD])
+@interface ItDepends {
 }
