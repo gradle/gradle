@@ -50,7 +50,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     // For Gradle versions 8+, configuration caching builds are not compatible with Gradle Enterprise plugin < 3.12
     public static final VersionNumber MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING = VersionNumber.version(3, 12);
     public static final String UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE = String.format("The Gradle Enterprise plugin has been disabled as it is " +
-        "incompatible with this version of Gradle and the configuration caching feature - please upgrade to version %s.%s or later of the Gradle Enterprise plugin to restore functionality.",
+            "incompatible with this version of Gradle and the configuration caching feature - please upgrade to version %s.%s or later of the Gradle Enterprise plugin to restore functionality.",
         MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMajor(),
         MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.getMinor());
 
@@ -58,11 +58,15 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
     public GradleEnterprisePluginCheckInResult checkIn(GradleEnterprisePluginMetadata pluginMetadata, GradleEnterprisePluginServiceFactory serviceFactory) {
         if (Boolean.getBoolean(UNSUPPORTED_TOGGLE)) {
             manager.unsupported();
-            return checkInResult(UNSUPPORTED_TOGGLE_MESSAGE, () -> {throw new IllegalStateException();});
+            return checkInResult(UNSUPPORTED_TOGGLE_MESSAGE, () -> {
+                throw new IllegalStateException();
+            });
         }
         if (isConfigurationCacheEnabled && isUnsupported(pluginMetadata.getVersion())) {
             manager.unsupported();
-            return checkInResult(UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE, () -> {throw new IllegalStateException();});
+            return checkInResult(UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE, () -> {
+                throw new IllegalStateException();
+            });
         }
         GradleEnterprisePluginServiceRef ref = adapter.register(serviceFactory);
         manager.registerAdapter(adapter);
