@@ -43,7 +43,7 @@ import static org.gradle.internal.serialization.Transient.varOf;
  * @since 1.4
  */
 @UntrackedTask(because = "Gradle doesn't understand the data structures used to configure this task")
-public abstract class GenerateMavenPom extends SeparatedTask<GenerateMavenPom.GeneratePomAction> {
+public abstract class GenerateMavenPom extends SeparatedTask<GenerateMavenPom.Params> {
 
     private final Transient.Var<MavenPom> pom = varOf();
     private final Transient.Var<ImmutableAttributes> compileScopeAttributes = varOf(ImmutableAttributes.EMPTY);
@@ -116,24 +116,23 @@ public abstract class GenerateMavenPom extends SeparatedTask<GenerateMavenPom.Ge
     }
 
     @Override
-    protected Class<GeneratePomAction> getTaskActionType() {
-        return GeneratePomAction.class;
+    protected Class<Params> getTaskParamType() {
+        return Params.class;
     }
 
     @Override
-    protected void configureTaskAction(GeneratePomAction a) {
+    protected TaskActionRunnable configureTaskAction(Params a) {
         a.getSpec().set(computeMavenPomSpec());
         a.getDestination().set(getDestination());
+        return () -> {
+            a.getSpec().get().writeTo(a.getDestination().get().getAsFile());
+        };
     }
 
-    public static abstract class GeneratePomAction implements Runnable {
+    public interface Params extends SeparatedTask.TaskParams {
         abstract Property<MavenPomFileGenerator.MavenPomSpec> getSpec();
-        abstract RegularFileProperty getDestination();
 
-        @Override
-        public void run() {
-            getSpec().get().writeTo(getDestination().get().getAsFile());
-        }
+        abstract RegularFileProperty getDestination();
     }
 
     private MavenPomFileGenerator.MavenPomSpec computeMavenPomSpec() {

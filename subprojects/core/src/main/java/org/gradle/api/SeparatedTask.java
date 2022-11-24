@@ -21,7 +21,13 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.serialization.Cached;
 
-public abstract class SeparatedTask<T extends Runnable> extends DefaultTask {
+import java.io.Serializable;
+
+public abstract class SeparatedTask<P extends SeparatedTask.TaskParams> extends DefaultTask {
+    public interface TaskParams {}
+
+    public interface TaskActionRunnable extends Runnable, Serializable {}
+
     private final Cached<Runnable> taskAction = Cached.of(this::createTaskAction);
 
     private ObjectFactory getObjectFactory() {
@@ -33,14 +39,38 @@ public abstract class SeparatedTask<T extends Runnable> extends DefaultTask {
         taskAction.get().run();
     }
 
-    private T createTaskAction() {
-        T publishAction = getObjectFactory().newInstance(getTaskActionType());
-        configureTaskAction(publishAction);
-        return publishAction;
+    private Runnable createTaskAction() {
+        P taskParams = getObjectFactory().newInstance(getTaskParamType());
+        return configureTaskAction(taskParams);
     }
 
-    @Internal
-    protected abstract Class<T> getTaskActionType();
+//    interface Params {
+//    }
+//
+//    interface AcType<P extends Params> {
+//        P getParameters();
+//    }
+//
+//    protected <P extends Params, A extends AcType<P>> void addAction(Class<A> actionClass, Action<P> configureAction) {
+//
+//    }
+//
+//    class Builder<P extends Params> {
+//        Builder<P> configure(Action<P> configureAction) {
+//            return this;
+//        }
+//
+//        <A extends AcType<P>> Builder<P> addAction(Class<A> actionClass) {
+//            return this;
+//        }
+//    }
+//
+//    protected <P extends Params> Builder<P> actionBuilder(Class<P> parameters) {
+//        return new Builder<>();
+//    }
 
-    protected abstract void configureTaskAction(T a);
+    @Internal
+    protected abstract Class<P> getTaskParamType();
+
+    protected abstract TaskActionRunnable configureTaskAction(P a);
 }

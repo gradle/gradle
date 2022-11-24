@@ -21,6 +21,7 @@ import org.gradle.api.SeparatedTask;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.credentials.Credentials;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.publish.internal.PublishOperation;
 import org.gradle.api.publish.ivy.IvyPublication;
@@ -44,7 +45,7 @@ import java.util.concurrent.Callable;
  * @since 1.3
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public abstract class PublishToIvyRepository extends SeparatedTask<PublishToIvyRepository.PublishAction> {
+public abstract class PublishToIvyRepository extends SeparatedTask<PublishToIvyRepository.Params> {
 
     private IvyPublicationInternal publication;
     private IvyArtifactRepository repository;
@@ -133,12 +134,12 @@ public abstract class PublishToIvyRepository extends SeparatedTask<PublishToIvyR
     }
 
     @Override
-    protected Class<PublishAction> getTaskActionType() {
-        return PublishAction.class;
+    protected Class<Params> getTaskParamType() {
+        return Params.class;
     }
 
     @Override
-    protected void configureTaskAction(PublishAction a) {
+    protected TaskActionRunnable configureTaskAction(Params a) {
         IvyPublicationInternal publicationInternal = getPublicationInternal();
         if (publicationInternal == null) {
             throw new InvalidUserDataException("The 'publication' property is required");
@@ -151,12 +152,25 @@ public abstract class PublishToIvyRepository extends SeparatedTask<PublishToIvyR
 
         a.getPublication().set(publicationInternal);
         a.getRepository().set(repository);
+
+        return getObjectFactory().newInstance(PublishAction.class, a);
     }
 
+    @Inject
+    public abstract ObjectFactory getObjectFactory();
 
-    public static abstract class PublishAction implements Runnable {
+    interface Params extends SeparatedTask.TaskParams {
         public abstract Property<IvyPublicationInternal> getPublication();
         public abstract Property<IvyArtifactRepository> getRepository();
+    }
+
+    public static abstract class PublishAction implements TaskActionRunnable {
+
+        private final Params params;
+
+        public PublishAction(Params params) {
+            this.params = params;
+        }
 
         @Inject
         protected abstract IvyPublisher getIvyPublisher();
@@ -166,8 +180,8 @@ public abstract class PublishToIvyRepository extends SeparatedTask<PublishToIvyR
 
         @Override
         public void run() {
-            IvyPublicationInternal publication = getPublication().get();
-            IvyArtifactRepository repository = getRepository().get();
+            IvyPublicationInternal publication = params.getPublication().get();
+            IvyArtifactRepository repository = params.getRepository().get();
             getDuplicatePublicationTracker().checkCanPublish(publication, repository.getUrl(), repository.getName());
 
             new PublishOperation(publication, repository.getName()) {
