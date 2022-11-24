@@ -35,11 +35,11 @@ public abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalke
     }
 
     @Override
-    public void walk(T root, PropertyMetadataVisitor<T> visitor) {
+    public void walk(T root, NodeMetadataVisitor<T> visitor) {
         walk(root, null, visitor);
     }
 
-    private void walk(T node, @Nullable String qualifiedName, PropertyMetadataVisitor<T> visitor) {
+    private void walk(T node, @Nullable String qualifiedName, NodeMetadataVisitor<T> visitor) {
         Class<?> nodeType = resolveType(node);
         TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(nodeType);
         if (Provider.class.isAssignableFrom(nodeType)) {
@@ -49,12 +49,14 @@ public abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalke
         } else if (Iterable.class.isAssignableFrom(nodeType) && !typeMetadata.hasAnnotatedProperties()) {
             handleIterable(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), visitor));
         } else {
-            visitor.visitProperty(typeMetadata, qualifiedName, node);
+            visitor.visitNested(typeMetadata, qualifiedName, node);
             typeMetadata.getPropertiesMetadata().forEach(propertyMetadata -> {
                 String childQualifiedName = getQualifiedName(qualifiedName, propertyMetadata.getPropertyName());
-                T child = getChild(node, propertyMetadata);
                 if (propertyMetadata.getPropertyType() == Nested.class) {
+                    T child = getChild(node, propertyMetadata);
                     walk(child, childQualifiedName, visitor);
+                } else {
+                    visitor.visitLeaf(childQualifiedName, () -> getChild(node, propertyMetadata));
                 }
             });
         }
