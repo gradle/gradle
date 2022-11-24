@@ -22,10 +22,16 @@ import groovy.lang.MissingPropertyException
 import groovy.lang.Script
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.project.ProjectScript
+import org.gradle.api.invocation.Gradle
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.configurationcache.serialization.decodeBean
+import org.gradle.configurationcache.serialization.encodeBean
+import org.gradle.initialization.InitScript
+import org.gradle.initialization.SettingsScript
 import org.gradle.internal.metaobject.ConfigureDelegate
 
 
@@ -35,7 +41,7 @@ object ClosureCodec : Codec<Closure<*>> {
         // Discard the delegate, this will be replaced by the caller
         writeReference(findOwningScript(value))
         writeReference(value.thisObject)
-        BeanCodec.run { encode(value.dehydrate()) }
+        encodeBean(value.dehydrate())
     }
 
     /**
@@ -44,63 +50,53 @@ object ClosureCodec : Codec<Closure<*>> {
     private
     fun findOwningScript(value: Any): Any? {
         return when (value) {
-            is org.gradle.api.Script -> {
-                value
-            }
-
-            is ConfigureDelegate -> {
-                findOwningScript(value._original_owner())
-            }
-
-            is Closure<*> -> {
-                findOwningScript(value.owner)
-            }
-
-            else -> {
-                null
-            }
+            is org.gradle.api.Script -> value
+            is ConfigureDelegate -> findOwningScript(value._original_owner())
+            is Closure<*> -> findOwningScript(value.owner)
+            else -> null
         }
     }
 
     private
     suspend fun WriteContext.writeReference(value: Any?) {
-        if (value is ProjectScript) {
-            // Cannot warn about an unsupported type here, because we don't know whether the closure will attempt to use the script object when it executes,
-            // and since almost every closure in a Groovy build script legitimately has the script as an owner, this will generate false problems.
-            // So instead, warn when the script object is used by the closure when executing
-            write(ScriptReference())
-        } else {
-            // Discard the value for now
-            write(null)
+        // Cannot warn about a script reference here, because we don't know whether the closure will attempt to use the script object when it executes,
+        // and since almost every closure in a Groovy build script legitimately has the script as an owner, this will generate false problems.
+        // So instead, warn when the script object is used by the closure when executing
+        when (value) {
+            is ProjectScript -> write(ClosureReference.Project)
+            is SettingsScript -> write(ClosureReference.Settings)
+            is InitScript -> write(ClosureReference.Init)
+            else -> write(ClosureReference.Other) // Discard the value for now
         }
     }
 
     override suspend fun ReadContext.decode(): Closure<*> {
         val owner = readReference()
         val thisObject = readReference()
-        return BeanCodec.run {
-            decode() as Closure<*>
-        }.rehydrate(null, owner, thisObject)
+        return (decodeBean() as Closure<*>).rehydrate(null, owner, thisObject)
     }
 
     private
-    suspend fun ReadContext.readReference(): Any? {
+    suspend fun ReadContext.readReference(): Any {
         val reference = read()
-        val trace = trace
-        return if (reference is ScriptReference) {
-            BrokenProjectScript()
-        } else {
-            reference
+        return when (reference) {
+            ClosureReference.Project -> BrokenProjectScript(Project::class.java)
+            ClosureReference.Settings -> BrokenProjectScript(Settings::class.java)
+            ClosureReference.Init -> BrokenProjectScript(Gradle::class.java)
+            ClosureReference.Other -> Any()
+            else -> throw IllegalArgumentException()
         }
     }
 
     private
-    class ScriptReference
+    enum class ClosureReference {
+        Project, Settings, Init, Other
+    }
 
     private
-    class BrokenProjectScript : Script() {
+    class BrokenProjectScript(targetType: Class<*>) : Script() {
         private
-        val projectMetadata = InvokerHelper.getMetaClass(Project::class.java)
+        val targetMetadata = InvokerHelper.getMetaClass(targetType)
 
         override fun run(): Any {
             scriptReferenced()
@@ -110,7 +106,7 @@ object ClosureCodec : Codec<Closure<*>> {
             // When the closure or a nested closure uses 'owner first' resolution strategy, the closure will attempt to locate the property on this object before trying to locate it on
             // the delegate. So, only treat references to `Project` properties as a problem and throw 'missing property' exception for anything unknown so that the closure can continue
             // with the delegate
-            if (projectMetadata.hasProperty(null, propertyName) == null) {
+            if (targetMetadata.hasProperty(null, propertyName) == null) {
                 throw MissingPropertyException(propertyName)
             }
             scriptReferenced()
@@ -118,7 +114,7 @@ object ClosureCodec : Codec<Closure<*>> {
 
         override fun setProperty(propertyName: String, newValue: Any?) {
             // See above for why this check happens
-            if (projectMetadata.hasProperty(null, propertyName) == null) {
+            if (targetMetadata.hasProperty(null, propertyName) == null) {
                 throw MissingPropertyException(propertyName)
             }
             scriptReferenced()
@@ -126,7 +122,7 @@ object ClosureCodec : Codec<Closure<*>> {
 
         override fun invokeMethod(name: String, args: Any): Any {
             // See above for why this check happens
-            if (projectMetadata.respondsTo(null, name).isEmpty()) {
+            if (targetMetadata.respondsTo(null, name).isEmpty()) {
                 throw MissingMethodException(name, Project::class.java, arrayOf())
             }
             scriptReferenced()
