@@ -59,7 +59,7 @@ class AbstractTypeMetadataWalkerTest extends Specification {
     def "should walk a type"() {
         when:
         List<CollectedInput> inputs = []
-        TypeMetadataWalker.typeWalker(metadataStore).walk(TypeToken.of(MyType), new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
+        TypeMetadataWalker.typeWalker(metadataStore, Nested.class).walk(TypeToken.of(MyTask), new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
             @Override
             void visitNested(TypeMetadata typeMetadata, @Nullable String qualifiedName, TypeToken<?> value) {
                 inputs.add(new CollectedInput(qualifiedName, value))
@@ -77,7 +77,7 @@ class AbstractTypeMetadataWalkerTest extends Specification {
 
     def "should walk type instance"() {
         given:
-        def myType = new MyType()
+        def myType = new MyTask()
         def nestedType = new NestedType()
         def propertyI1 = TestUtil.propertyFactory().property(String).value("value-i1")
         def propertyNI2 = TestUtil.propertyFactory().property(String).value("value-nI2")
@@ -96,7 +96,7 @@ class AbstractTypeMetadataWalkerTest extends Specification {
 
         when:
         Map<String, CollectedInput> inputs = [:]
-        TypeMetadataWalker.instanceWalker(metadataStore).walk(myType, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
+        TypeMetadataWalker.instanceWalker(metadataStore, Nested.class).walk(myType, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
             @Override
             void visitNested(TypeMetadata typeMetadata, @Nullable String qualifiedName, Object value) {
                 assert !inputs.containsKey(qualifiedName)
@@ -131,7 +131,56 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         inputs["i7.nI2"].value == nestedType.nI2
     }
 
-    class MyType {
+    def "type walker should handle types with nested cycles"() {
+        when:
+        List<CollectedInput> inputs = []
+        TypeMetadataWalker.typeWalker(metadataStore, Nested.class).walk(TypeToken.of(MyCycleTask), new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
+            @Override
+            void visitNested(TypeMetadata typeMetadata, @Nullable String qualifiedName, TypeToken<?> value) {
+                inputs.add(new CollectedInput(qualifiedName, value))
+            }
+
+            @Override
+            void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<TypeToken<?>> value) {
+                inputs.add(new CollectedInput(qualifiedName, value.get()))
+            }
+        })
+
+        then:
+        inputs.collect { it.qualifiedName } == [null, "a", "a.g", "b", "b.g", "c.*", "c.*.g", "d.<key>", "d.<key>.g", "e.*.*", "e.*.*.g"]
+    }
+
+    def "instance walker should handle instances with nested cycles"() {
+        given:
+        def instance = new MyCycleTask()
+        def cycleType = new CycleType()
+        cycleType.f = cycleType
+        cycleType.g = cycleType
+        instance.a = cycleType
+        instance.b = TestUtil.propertyFactory().property(CycleType).value(cycleType)
+        instance.c = [cycleType]
+        instance.d = ["key1": cycleType]
+        instance.e = [[cycleType]]
+
+        when:
+        List<CollectedInput> inputs = []
+        TypeMetadataWalker.instanceWalker(metadataStore, Nested.class).walk(instance, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
+            @Override
+            void visitNested(TypeMetadata typeMetadata, @Nullable String qualifiedName, Object value) {
+                inputs.add(new CollectedInput(qualifiedName, value))
+            }
+
+            @Override
+            void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<Object> value) {
+                inputs.add(new CollectedInput(qualifiedName, value.get()))
+            }
+        })
+
+        then:
+        inputs.collect { it.qualifiedName } == [null, "a", "a.g", "b", "b.g", "c.\$1", "c.\$1.g", "d.key1", "d.key1.g", "e.\$1.\$1", "e.\$1.\$1.g"]
+    }
+
+    class MyTask {
         @Input
         Property<String> i1
         @Nested
@@ -160,6 +209,26 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         String getName() {
             return "namedType"
         }
+    }
+
+    class MyCycleTask {
+        @Nested
+        CycleType a
+        @Nested
+        Property<CycleType> b
+        @Nested
+        List<CycleType> c
+        @Nested
+        Map<String, CycleType> d
+        @Nested
+        List<List<CycleType>> e
+    }
+
+    class CycleType {
+        @Nested
+        CycleType f
+        @Input
+        CycleType g
     }
 
     class CollectedInput {
