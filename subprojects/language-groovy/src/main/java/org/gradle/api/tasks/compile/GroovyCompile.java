@@ -355,45 +355,26 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         return javaLauncher;
     }
 
-    /**
-     * Injects and returns an instance of {@link IncrementalCompilerFactory}.
-     *
-     * @since 5.6
-     */
     @Inject
-    protected IncrementalCompilerFactory getIncrementalCompilerFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract IncrementalCompilerFactory getIncrementalCompilerFactory();
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract Deleter getDeleter();
 
     @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectLayout getProjectLayout();
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
 
     @Inject
-    protected GroovyCompilerFactory getGroovyCompilerFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract GroovyCompilerFactory getGroovyCompilerFactory();
 
     @Inject
-    protected FeatureFlags getFeatureFlags() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FeatureFlags getFeatureFlags();
 
     @Inject
-    protected JavaToolchainService getJavaToolchainService() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract JavaToolchainService getJavaToolchainService();
 
     private File getTemporaryDirWithoutCreating() {
         // Do not create the temporary folder, since that causes problems.
