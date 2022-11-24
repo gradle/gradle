@@ -198,7 +198,7 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
     }
 
-    def "each task receives is own copy of outer closure state"() {
+    def "each task receives is own copy of outer Groovy closure state"() {
         given:
         buildFile << """
             def values1 = new ${CopyOnWriteArrayList.name}()
@@ -236,107 +236,6 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         result.groupedOutput.task(":one").assertOutputContains("values1=[1]")
         result.groupedOutput.task(":one").assertOutputContains("values2=[2]")
         result.groupedOutput.task(":two").assertOutputContains("values1=[12]")
-    }
-
-    def "problem is reported when closure defined in Groovy script reads a project property"() {
-        given:
-        buildFile << """
-            tasks.register("some") {
-                doFirst {
-                    println(name) // task property is ok
-                    println(buildDir)
-                }
-            }
-        """
-
-        when:
-        configurationCacheRun ":some"
-
-        then:
-        noExceptionThrown()
-
-        when:
-        configurationCacheFails ":some"
-
-        then:
-        failure.assertHasFileName("Build file '$buildFile'")
-        failure.assertHasLineNumber(5)
-        failure.assertHasFailure("Execution failed for task ':some'.") {
-            it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
-        }
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Task `:some` of type `org.gradle.api.DefaultTask`: cannot reference a Gradle script object from a Groovy closure as these are not support with the configuration cache."
-            )
-            withProblemsWithStackTraceCount(0)
-        }
-    }
-
-    def "problem is reported when closure defined in Groovy script sets a project property"() {
-        given:
-        buildFile << """
-            tasks.register("some") {
-                doFirst {
-                    description = "broken" // task property is ok
-                    version = 1.2
-                }
-            }
-        """
-
-        when:
-        configurationCacheRun ":some"
-
-        then:
-        noExceptionThrown()
-
-        when:
-        configurationCacheFails ":some"
-
-        then:
-        failure.assertHasFileName("Build file '$buildFile'")
-        failure.assertHasLineNumber(5)
-        failure.assertHasFailure("Execution failed for task ':some'.") {
-            it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
-        }
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Task `:some` of type `org.gradle.api.DefaultTask`: cannot reference a Gradle script object from a Groovy closure as these are not support with the configuration cache."
-            )
-            withProblemsWithStackTraceCount(0)
-        }
-    }
-
-    def "problem is reported when closure defined in Groovy script invokes a project method"() {
-        given:
-        buildFile << """
-            tasks.register("some") {
-                doFirst {
-                    println(file("broken"))
-                }
-            }
-        """
-
-        when:
-        configurationCacheRun ":some"
-
-        then:
-        noExceptionThrown()
-
-        when:
-        configurationCacheFails ":some"
-
-        then:
-        failure.assertHasFileName("Build file '$buildFile'")
-        failure.assertHasLineNumber(4)
-        failure.assertHasFailure("Execution failed for task ':some'.") {
-            it.assertHasCause("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
-        }
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(
-                "Task `:some` of type `org.gradle.api.DefaultTask`: cannot reference a Gradle script object from a Groovy closure as these are not support with the configuration cache."
-            )
-            withProblemsWithStackTraceCount(0)
-        }
     }
 
     def "problem when closure defined in Kotlin script captures state from the script"() {
