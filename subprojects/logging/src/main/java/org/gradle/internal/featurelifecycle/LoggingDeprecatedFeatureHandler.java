@@ -72,18 +72,25 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                 message.append(SystemProperties.getInstance().getLineSeparator());
             }
             message.append(featureMessage);
-            appendLogTraceIfNecessary(usage.getStack(), message);
-            String messageString = message.toString();
-            if (messages.add(messageString)) {
-                LOGGER.warn(messageString);
-                if (warningMode == WarningMode.Fail) {
-                    if (error == null) {
-                        error = new GradleException(WARNING_SUMMARY + " " + DefaultGradleVersion.current().getNextMajorVersion().getVersion());
-                    }
+            displayDeprecationIfSameMessageNotDisplayedBefore(message, usage.getStack());
+        }
+        fireDeprecatedUsageBuildOperationProgress(usage);
+    }
+
+    private void displayDeprecationIfSameMessageNotDisplayedBefore(StringBuilder message, List<StackTraceElement> callStack) {
+        // Let's cut the first 10 lines of stack traces as the "key" to identify a deprecation message uniquely.
+        // Even when two deprecation messages are emitted from the same location,
+        // the stack traces at very bottom might be different due to thread pool scheduling.
+        appendLogTraceIfNecessary(message, callStack, 0, 10);
+        if (messages.add(message.toString())) {
+            appendLogTraceIfNecessary(message, callStack, 10, callStack.size());
+            LOGGER.warn(message.toString());
+            if (warningMode == WarningMode.Fail) {
+                if (error == null) {
+                    error = new GradleException(WARNING_SUMMARY + " " + DefaultGradleVersion.current().getNextMajorVersion().getVersion());
                 }
             }
         }
-        fireDeprecatedUsageBuildOperationProgress(usage);
     }
 
     private void fireDeprecatedUsageBuildOperationProgress(DeprecatedFeatureUsage usage) {
@@ -108,23 +115,25 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         }
     }
 
-    private static void appendLogTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
+    private static void appendLogTraceIfNecessary(StringBuilder message, List<StackTraceElement> stack, int startIndexInclusive, int endIndexExclusive) {
         final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
 
+        int endIndex = Math.min(stack.size(), endIndexExclusive);
         if (isTraceLoggingEnabled()) {
             // append full stack trace
-            for (StackTraceElement frame : stack) {
+            for (int i = startIndexInclusive; i < endIndex; ++i) {
+                StackTraceElement frame = stack.get(i);
                 appendStackTraceElement(frame, message, lineSeparator);
             }
-            return;
-        }
-
-        for (StackTraceElement element : stack) {
-            if (isGradleScriptElement(element)) {
-                // only print first Gradle script stack trace element
-                appendStackTraceElement(element, message, lineSeparator);
-                appendRunWithStacktraceInfo(message, lineSeparator);
-                return;
+        } else {
+            for (int i = startIndexInclusive; i < endIndex; ++i) {
+                StackTraceElement element = stack.get(i);
+                if (isGradleScriptElement(element)) {
+                    // only print first Gradle script stack trace element
+                    appendStackTraceElement(element, message, lineSeparator);
+                    appendRunWithStacktraceInfo(message, lineSeparator);
+                    return;
+                }
             }
         }
     }
