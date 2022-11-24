@@ -17,17 +17,13 @@
 package org.gradle.configurationcache.serialization.codecs
 
 import groovy.lang.Closure
-import groovy.lang.GroovyObjectSupport
 import groovy.lang.MissingMethodException
 import groovy.lang.MissingPropertyException
+import groovy.lang.Script
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.Project
-import org.gradle.configurationcache.problems.DocumentationSection
-import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.problems.StructuredMessage
+import org.gradle.api.internal.project.ProjectScript
 import org.gradle.configurationcache.serialization.Codec
-import org.gradle.configurationcache.serialization.IsolateContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.internal.metaobject.ConfigureDelegate
@@ -35,24 +31,29 @@ import org.gradle.internal.metaobject.ConfigureDelegate
 
 object ClosureCodec : Codec<Closure<*>> {
     override suspend fun WriteContext.encode(value: Closure<*>) {
-        writeReference(findRootOwner(value))
+        // Write the owning script for the closure
+        // Discard the delegate, this will be replaced by the caller
+        writeReference(findOwningScript(value))
         writeReference(value.thisObject)
         BeanCodec.run { encode(value.dehydrate()) }
     }
 
+    /**
+     * Travels up the 'owner' chain of a closure to locate the script that the closure belongs to, if any
+     */
     private
-    fun findRootOwner(value: Any): Any? {
+    fun findOwningScript(value: Any): Any? {
         return when (value) {
             is org.gradle.api.Script -> {
                 value
             }
 
             is ConfigureDelegate -> {
-                findRootOwner(value._original_owner())
+                findOwningScript(value._original_owner())
             }
 
             is Closure<*> -> {
-                findRootOwner(value.owner)
+                findOwningScript(value.owner)
             }
 
             else -> {
@@ -63,18 +64,14 @@ object ClosureCodec : Codec<Closure<*>> {
 
     private
     suspend fun WriteContext.writeReference(value: Any?) {
-        when (value) {
-            is org.gradle.api.Script -> {
-                // Cannot warn about an unsupported type here, because we don't know whether the closure will attempt to use the script object
-                // and almost every closure in a Groovy build script legitimately has the script as an owner
-                // So instead, warn when the script object is used by the closure when executing
-                write(ScriptReference())
-            }
-
-            else -> {
-                // Discard the value for now
-                write(null)
-            }
+        if (value is ProjectScript) {
+            // Cannot warn about an unsupported type here, because we don't know whether the closure will attempt to use the script object when it executes,
+            // and since almost every closure in a Groovy build script legitimately has the script as an owner, this will generate false problems.
+            // So instead, warn when the script object is used by the closure when executing
+            write(ScriptReference())
+        } else {
+            // Discard the value for now
+            write(null)
         }
     }
 
@@ -91,7 +88,7 @@ object ClosureCodec : Codec<Closure<*>> {
         val reference = read()
         val trace = trace
         return if (reference is ScriptReference) {
-            BrokenScript(trace, this)
+            BrokenProjectScript()
         } else {
             reference
         }
@@ -101,44 +98,43 @@ object ClosureCodec : Codec<Closure<*>> {
     class ScriptReference
 
     private
-    class BrokenScript(private val trace: PropertyTrace, private val context: IsolateContext) : GroovyObjectSupport() {
+    class BrokenProjectScript : Script() {
         private
         val projectMetadata = InvokerHelper.getMetaClass(Project::class.java)
 
+        override fun run(): Any {
+            scriptReferenced()
+        }
+
         override fun getProperty(propertyName: String): Any? {
+            // When the closure or a nested closure uses 'owner first' resolution strategy, the closure will attempt to locate the property on this object before trying to locate it on
+            // the delegate. So, only treat references to `Project` properties as a problem and throw 'missing property' exception for anything unknown so that the closure can continue
+            // with the delegate
             if (projectMetadata.hasProperty(null, propertyName) == null) {
                 throw MissingPropertyException(propertyName)
             }
-            reportReference()
-            throw IllegalStateException("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
+            scriptReferenced()
         }
 
         override fun setProperty(propertyName: String, newValue: Any?) {
+            // See above for why this check happens
             if (projectMetadata.hasProperty(null, propertyName) == null) {
                 throw MissingPropertyException(propertyName)
             }
-            reportReference()
-            throw IllegalStateException("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
+            scriptReferenced()
         }
 
         override fun invokeMethod(name: String, args: Any): Any {
+            // See above for why this check happens
             if (projectMetadata.respondsTo(null, name).isEmpty()) {
                 throw MissingMethodException(name, Project::class.java, arrayOf())
             }
-            reportReference()
-            throw IllegalStateException("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
+            scriptReferenced()
         }
 
         private
-        fun reportReference() {
-            context.onProblem(PropertyProblem(
-                trace,
-                StructuredMessage.build {
-                    text("cannot reference a Gradle script object from a Groovy closure as these are not support with the configuration cache.")
-                },
-                null,
-                DocumentationSection.RequirementsDisallowedTypes
-            ))
+        fun scriptReferenced(): Nothing {
+            throw IllegalStateException("Cannot reference a Gradle script object from a Groovy closure as these are not supported with the configuration cache.")
         }
     }
 }
