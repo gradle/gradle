@@ -19,9 +19,9 @@ package org.gradle.internal.properties.annotations;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.Nested;
 
 import javax.annotation.Nullable;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -29,9 +29,11 @@ import java.util.function.Consumer;
 
 abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
     private final TypeMetadataStore typeMetadataStore;
+    private final Class<? extends Annotation> nestedAnnotation;
 
-    private AbstractTypeMetadataWalker(TypeMetadataStore typeMetadataStore) {
+    private AbstractTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
         this.typeMetadataStore = typeMetadataStore;
+        this.nestedAnnotation = nestedAnnotation;
     }
 
     @Override
@@ -52,7 +54,7 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
             visitor.visitNested(typeMetadata, qualifiedName, node);
             typeMetadata.getPropertiesMetadata().forEach(propertyMetadata -> {
                 String childQualifiedName = getQualifiedName(qualifiedName, propertyMetadata.getPropertyName());
-                if (propertyMetadata.getPropertyType() == Nested.class) {
+                if (propertyMetadata.getPropertyType() == nestedAnnotation) {
                     T child = getChild(node, propertyMetadata);
                     walk(child, childQualifiedName, visitor);
                 } else {
@@ -79,8 +81,8 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
     abstract protected T getChild(T parent, PropertyMetadata property);
 
     static class InstanceTypeMetadataWalker extends AbstractTypeMetadataWalker<Object> {
-        public InstanceTypeMetadataWalker(TypeMetadataStore typeMetadataStore) {
-            super(typeMetadataStore);
+        public InstanceTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
+            super(typeMetadataStore, nestedAnnotation);
         }
 
         @Override
@@ -120,8 +122,8 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
     }
 
     static class StaticTypeMetadataWalker extends AbstractTypeMetadataWalker<TypeToken<?>> {
-        public StaticTypeMetadataWalker(TypeMetadataStore typeMetadataStore) {
-            super(typeMetadataStore);
+        public StaticTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
+            super(typeMetadataStore, nestedAnnotation);
         }
 
         @Override
