@@ -16,7 +16,6 @@
 
 package org.gradle.internal.properties.annotations;
 
-import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.GradleException;
 import org.gradle.api.Named;
@@ -26,6 +25,7 @@ import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -109,7 +109,7 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
 
     static class InstanceTypeMetadataWalker extends AbstractTypeMetadataWalker<Object> {
         public InstanceTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
-            super(typeMetadataStore, nestedAnnotation, Maps::newIdentityHashMap);
+            super(typeMetadataStore, nestedAnnotation, IdentityHashMap::new);
         }
 
         @Override
