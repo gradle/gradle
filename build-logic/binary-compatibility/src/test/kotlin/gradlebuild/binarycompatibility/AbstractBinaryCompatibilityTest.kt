@@ -16,22 +16,18 @@
 
 package gradlebuild.binarycompatibility
 
+import org.gradle.kotlin.dsl.*
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.UnexpectedBuildFailure
-
 import org.hamcrest.CoreMatchers
-
-import org.junit.Assert.assertFalse
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-
 import java.io.File
 import java.nio.file.Files
-
-import org.gradle.kotlin.dsl.*
 
 
 abstract class AbstractBinaryCompatibilityTest {
@@ -215,7 +211,6 @@ abstract class AbstractBinaryCompatibilityTest {
                 withBuildScript(
                     """
                     import japicmp.model.JApiChangeStatus
-                    import me.champeau.gradle.japicmp.JapicmpTask
                     import gradlebuild.binarycompatibility.*
                     import gradlebuild.binarycompatibility.filters.*
 
@@ -228,25 +223,25 @@ abstract class AbstractBinaryCompatibilityTest {
                         val v2 = rootProject.project(":v2")
                         val v2Jar = v2.tasks.named("jar")
 
-                        oldArchives = files(v1Jar)
-                        oldClasspath = files(v1.configurations.named("runtimeClasspath"), v1Jar)
+                        oldArchives.from(v1Jar)
+                        oldClasspath.from(v1.configurations.named("runtimeClasspath"), v1Jar)
 
-                        newArchives = files(v2Jar)
-                        newClasspath = files(v2.configurations.named("runtimeClasspath"), v2Jar)
+                        newArchives.from(v2Jar)
+                        newClasspath.from(v2.configurations.named("runtimeClasspath"), v2Jar)
 
-                        isOnlyModified = false
-                        isFailOnModification = false // we rely on the rich report to fail
+                        onlyModified.set(false)
+                        failOnModification.set(false) // we rely on the rich report to fail
 
-                        txtOutputFile = file("build/japi-report.txt")
+                        txtOutputFile.set(file("build/japi-report.txt"))
 
                         richReport {
 
-                            title = "Gradle Binary Compatibility Check"
-                            destinationDir = file("build/japi")
-                            reportName = "japi.html"
+                            title.set("Gradle Binary Compatibility Check")
+                            destinationDir.set(file("build/japi"))
+                            reportName.set("japi.html")
 
-                            includedClasses = listOf(".*")
-                            excludedClasses = emptyList()
+                            includedClasses.set(listOf(".*"))
+                            excludedClasses.set(emptyList())
 
                         }
 
@@ -254,7 +249,9 @@ abstract class AbstractBinaryCompatibilityTest {
                             this,
                             AcceptedApiChanges.parse("{acceptedApiChanges:[]}"),
                             rootProject.files("v2/src/main/kotlin"),
-                            "2.0"
+                            "2.0",
+                            file("test-api-changes.json"),
+                            rootProject.layout.projectDirectory
                         )
                     }
                     """

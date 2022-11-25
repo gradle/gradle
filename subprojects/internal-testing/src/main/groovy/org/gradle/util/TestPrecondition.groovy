@@ -19,6 +19,17 @@ import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 import org.testcontainers.DockerClientFactory
 
+/**
+ * Usage:
+ * <pre>
+ * <code>@</code>Requires(TestPrecondition.JDK17_OR_LATER)
+ * def "test with environment expectations"() {
+ *     // the test is executed with Java 17 or later
+ * }
+ * </pre>
+ *
+ * @see Requires
+ */
 enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NULL_REQUIREMENT({ true }),
     SYMLINKS({
@@ -53,6 +64,12 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     MAC_OS_X({
         OperatingSystem.current().macOsX
+    }),
+    MAC_OS_X_M1({
+        OperatingSystem.current().macOsX && OperatingSystem.current().toString().contains("aarch64")
+    }),
+    NOT_MAC_OS_X_M1({
+        !MAC_OS_X_M1.fulfilled
     }),
     NOT_MAC_OS_X({
         !OperatingSystem.current().macOsX
@@ -119,6 +136,18 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK16_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_16
     }),
+    JDK17_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_17
+    }),
+    JDK17_OR_EARLIER({
+        JavaVersion.current() <= JavaVersion.VERSION_17
+    }),
+    JDK18_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_18
+    }),
+    JDK19_OR_LATER({
+        JavaVersion.current() >= JavaVersion.VERSION_19
+    }),
     JDK_ORACLE({
         System.getProperty('java.vm.vendor') == 'Oracle Corporation'
     }),
@@ -150,7 +179,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     HIGH_PERFORMANCE(NOT_MAC_OS_X),
     NOT_EC2_AGENT({
         !InetAddress.getLocalHost().getHostName().startsWith("ip-")
-    })
+    }),
+    STABLE_GROOVY({ !GroovySystem.version.endsWith("-SNAPSHOT") }),
+    NOT_STABLE_GROOVY({ !STABLE_GROOVY.fulfilled })
 
     /**
      * A predicate for testing whether the precondition is fulfilled.

@@ -24,11 +24,11 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
+import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
@@ -58,11 +58,13 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.IncubationLogger;
@@ -82,7 +84,7 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION
  * Compiles Groovy source files, and optionally, Java source files.
  */
 @CacheableTask
-public class GroovyCompile extends AbstractCompile implements HasCompileOptions {
+public abstract class GroovyCompile extends AbstractCompile implements HasCompileOptions {
     private FileCollection groovyClasspath;
     private final ConfigurableFileCollection astTransformationClasspath;
     private final CompileOptions compileOptions;
@@ -95,6 +97,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         ObjectFactory objectFactory = getObjectFactory();
         CompileOptions compileOptions = objectFactory.newInstance(CompileOptions.class);
         compileOptions.setIncremental(false);
+        compileOptions.getIncrementalAfterFailure().convention(true);
         this.compileOptions = compileOptions;
         this.javaLauncher = objectFactory.property(JavaLauncher.class);
         this.astTransformationClasspath = objectFactory.fileCollection();
@@ -124,7 +127,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     }
 
     private boolean experimentalCompilationAvoidanceEnabled() {
-        return getFeaturePreviews().isFeatureEnabled(GROOVY_COMPILATION_AVOIDANCE);
+        return getFeatureFlags().isEnabled(GROOVY_COMPILATION_AVOIDANCE);
     }
 
     @TaskAction
@@ -132,8 +135,15 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         checkGroovyClasspathIsNonEmpty();
         warnIfCompileAvoidanceEnabled();
         GroovyJavaJointCompileSpec spec = createSpec();
+        maybeDisableIncrementalCompilationAfterFailure(spec);
         WorkResult result = getCompiler(spec, inputChanges).execute(spec);
         setDidWork(result.getDidWork());
+    }
+
+    private void maybeDisableIncrementalCompilationAfterFailure(GroovyJavaJointCompileSpec spec) {
+        if (CommandLineJavaCompileSpec.class.isAssignableFrom(spec.getClass())) {
+            spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(false);
+        }
     }
 
     /**
@@ -343,7 +353,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         }
         final File customHome = getOptions().getForkOptions().getJavaHome();
         if (customHome != null) {
-            return getServices().get(JvmMetadataDetector.class).getMetadata(customHome).getLanguageVersion().getMajorVersion();
+            return getServices().get(JvmMetadataDetector.class).getMetadata(new InstallationLocation(customHome, "JVM for Groovy compiler")).getLanguageVersion().getMajorVersion();
         }
         return JavaVersion.current().getMajorVersion();
     }
@@ -410,7 +420,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
     }
 
     @Inject
-    protected FeaturePreviews getFeaturePreviews() {
+    protected FeatureFlags getFeatureFlags() {
         throw new UnsupportedOperationException();
     }
 

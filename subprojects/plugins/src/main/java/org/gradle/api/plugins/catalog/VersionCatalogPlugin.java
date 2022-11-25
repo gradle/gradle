@@ -37,7 +37,7 @@ import javax.inject.Inject;
  *
  * @since 7.0
  */
-public class VersionCatalogPlugin implements Plugin<Project> {
+public abstract class VersionCatalogPlugin implements Plugin<Project> {
     public static final String GENERATE_CATALOG_FILE_TASKNAME = "generateCatalogAsToml";
     public static final String GRADLE_PLATFORM_DEPENDENCIES = "versionCatalog";
     public static final String VERSION_CATALOG_ELEMENTS = "versionCatalogElements";

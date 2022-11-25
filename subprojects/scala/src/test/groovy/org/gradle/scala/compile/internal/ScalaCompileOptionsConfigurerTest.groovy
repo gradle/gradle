@@ -17,11 +17,13 @@
 package org.gradle.scala.compile.internal
 
 import org.gradle.api.file.Directory
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.tasks.ScalaRuntime
 import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -29,15 +31,16 @@ import spock.lang.Subject
 class ScalaCompileOptionsConfigurerTest extends Specification {
 
     private final ScalaRuntime scalaRuntime = Mock(ScalaRuntime)
+    private final VersionParser versionParser = new VersionParser()
 
     def 'configuring target jvm for JVM #javaVersion and Scala #scalaLibraryVersion results in #expectedTarget'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions()
+        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
         File scalaLibrary = new File("scala-library-${scalaLibraryVersion}.jar")
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(javaVersion), classpath)
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(javaVersion), classpath, versionParser)
 
         then:
         !scalaCompileOptions.additionalParameters.empty
@@ -67,12 +70,12 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
     def 'does not configure target jvm if toolchain is not present'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions()
+        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
         File scalaLibrary = new File("scala-library-2.11.0.jar")
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, null, classpath)
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, null, classpath, getVersionParser())
 
         then:
         !scalaCompileOptions.additionalParameters
@@ -80,12 +83,12 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
     def 'does not configure target jvm if scala library is not present or invalid'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions()
+        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
         File scalaLibrary = new File("scala-invalid-2.11.0.jar")
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8), classpath)
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8), classpath, getVersionParser())
 
         then:
         !scalaCompileOptions.additionalParameters
@@ -99,12 +102,12 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
     def 'does not configure target jvm if scala compiler already has a target'() {
         given:
-        ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions()
+        ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
         scalaCompileOptions.additionalParameters = ['-target:8']
         Set<File> classpath = [new File("scala-library-2.13.1.jar")]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8), classpath)
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8), classpath, getVersionParser())
 
         then:
         scalaCompileOptions.additionalParameters
@@ -130,6 +133,9 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
 
             @Override
             Directory getInstallationPath() { return null }
+
+            @Override
+            boolean isCurrentJvm() { return false }
         }
     }
 }

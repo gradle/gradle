@@ -39,10 +39,15 @@ Note that this plugin takes no action unless applied in concert with the <<jvm_t
 
 There are now two ways to collect test results across multiple subprojects:
 
-1. From the distribution's project, such as an Android application or WAR subproject -> link:../samples/sample_jvm_multi_project_with_test_aggregation_distribution.html[distribution sample]
+1. From the distribution's project, such as an application or WAR subproject -> link:../samples/sample_jvm_multi_project_with_test_aggregation_distribution.html[distribution sample]
 2. Using a standalone project to specify subprojects -> link:../samples/sample_jvm_multi_project_with_test_aggregation_standalone.html[standalone sample]
 
 Example 2 could also be used to aggregate results via the root project.
+
+[WARNING]
+====
+The Test Report Aggregation plugin does not currently work with the ``com.android.application`` plugin.
+====
 
 [[sec:test_report_aggregation_tasks]]
 == Tasks
@@ -67,6 +72,11 @@ Collects variants of direct and transitive project dependencies via the `testRep
 More information about the variants produced by test execution are available in the <<jvm_test_suite_plugin#sec:outgoing_variants,Outgoing Variants>> section of the JVM Test Suite Plugin documentation.
 
 == Reports
+
+[IMPORTANT]
+====
+By default, Gradle stops executing tasks when any task fails -- including test failures. To ensure that your builds always generate aggregation reports, specify the `--continue` option in your Gradle command. For more information, see <<command_line_interface.adoc#sec:continue_build_on_failure, continuing the build when a failure occurs>>.
+====
 
 === Automatic report creation
 
@@ -100,10 +110,8 @@ The Test Report Aggregation plugin adds the following dependency configurations:
 
 | `testReportAggregation`
 | The configuration used to declare all project dependencies having test result data to be aggregated.
-| `__testReportName__Results`
+| `aggregateTestReportResults`
 | Consumes the project dependencies from the `testReportAggregation` configuration using <<variant_model#sec:variant-aware-matching,variant-aware matching>> to find the appropriate test suite type.
 |===
 
 It is not necessary to explicitly add dependencies to the `testReportAggregation` configuration if the project also applies the `jvm-test-suite` plugin.
-
-Note the `__testReportName__Results` configuration may display resolution errors for external dependencies, as these do not expose test result data.  This is expected behavior and does not affect the outcome of the build or test report aggregation process.

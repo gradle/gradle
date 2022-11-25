@@ -18,19 +18,23 @@ package org.gradle.api.plugins;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
+import org.gradle.api.internal.tasks.compile.JavaCompileExecutableUtils;
+import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
@@ -40,6 +44,7 @@ import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
+import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -47,20 +52,20 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
+import org.gradle.api.tasks.javadoc.internal.JavadocExecutableUtils;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.internal.Cast;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainService;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
-import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
-import org.gradle.jvm.toolchain.internal.ToolchainSpecInternal;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
@@ -71,7 +76,7 @@ import java.util.function.Supplier;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/java_plugin.html">Java plugin reference</a>
  */
-public class JavaBasePlugin implements Plugin<Project> {
+public abstract class JavaBasePlugin implements Plugin<Project> {
     public static final String CHECK_TASK_NAME = LifecycleBasePlugin.CHECK_TASK_NAME;
 
     public static final String VERIFICATION_GROUP = LifecycleBasePlugin.VERIFICATION_GROUP;
@@ -117,6 +122,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         project.getPluginManager().apply(BasePlugin.class);
         project.getPluginManager().apply(JvmEcosystemPlugin.class);
         project.getPluginManager().apply(ReportingBasePlugin.class);
+        project.getPluginManager().apply(JvmToolchainsPlugin.class);
 
         DefaultJavaPluginExtension javaPluginExtension = addExtensions(projectInternal);
 
@@ -133,8 +139,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         DefaultToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
         SourceSetContainer sourceSets = (SourceSetContainer) project.getExtensions().getByName("sourceSets");
         DefaultJavaPluginExtension javaPluginExtension = (DefaultJavaPluginExtension) project.getExtensions().create(JavaPluginExtension.class, "java", DefaultJavaPluginExtension.class, project, sourceSets, toolchainSpec, jvmPluginServices);
-        project.getConvention().getPlugins().put("java", new DefaultJavaPluginConvention(project, javaPluginExtension));
-        project.getExtensions().create(JavaToolchainService.class, "javaToolchains", DefaultJavaToolchainService.class, getJavaToolchainQueryService());
+        project.getConvention().getPlugins().put("java", project.getObjects().newInstance(DefaultJavaPluginConvention.class, project, javaPluginExtension));
         return javaPluginExtension;
     }
 
@@ -179,16 +184,21 @@ public class JavaBasePlugin implements Plugin<Project> {
             compileTask.getOptions().getHeaderOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(generatedHeadersDir));
             JavaPluginExtension javaPluginExtension = target.getExtensions().getByType(JavaPluginExtension.class);
             compileTask.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
-            compileTask.getJavaCompiler().convention(getToolchainTool(target, JavaToolchainService::compilerFor));
+            ObjectFactory objectFactory = target.getObjects();
+            Provider<JavaToolchainSpec> toolchainOverrideSpec = target.provider(() ->
+                JavaCompileExecutableUtils.getExecutableOverrideToolchainSpec(compileTask, objectFactory));
+            compileTask.getJavaCompiler().convention(getToolchainTool(target, JavaToolchainService::compilerFor, toolchainOverrideSpec));
         });
     }
 
     private void createProcessResourcesTask(final SourceSet sourceSet, final SourceDirectorySet resourceSet, final Project target) {
-        target.getTasks().register(sourceSet.getProcessResourcesTaskName(), ProcessResources.class, resourcesTask -> {
+        TaskProvider<ProcessResources> processResources = target.getTasks().register(sourceSet.getProcessResourcesTaskName(), ProcessResources.class, resourcesTask -> {
             resourcesTask.setDescription("Processes " + resourceSet + ".");
             new DslObject(resourcesTask.getRootSpec()).getConventionMapping().map("destinationDir", (Callable<File>) () -> sourceSet.getOutput().getResourcesDir());
             resourcesTask.from(resourceSet);
         });
+        DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
+        output.setResourcesContributor(processResources.map(Copy::getDestinationDir), processResources);
     }
 
     private void createClassesTask(final SourceSet sourceSet, Project target) {
@@ -228,7 +238,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         implementationConfiguration.setCanBeConsumed(false);
         implementationConfiguration.setCanBeResolved(false);
 
-        DeprecatableConfiguration compileOnlyConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(compileOnlyConfigurationName);
+        Configuration compileOnlyConfiguration = configurations.maybeCreate(compileOnlyConfigurationName);
         compileOnlyConfiguration.setVisible(false);
         compileOnlyConfiguration.setCanBeConsumed(false);
         compileOnlyConfiguration.setCanBeResolved(false);
@@ -256,7 +266,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         runtimeOnlyConfiguration.setCanBeResolved(false);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
-        ConfigurationInternal runtimeClasspathConfiguration = (ConfigurationInternal) configurations.maybeCreate(runtimeClasspathConfigurationName);
+        Configuration runtimeClasspathConfiguration = configurations.maybeCreate(runtimeClasspathConfigurationName);
         runtimeClasspathConfiguration.setVisible(false);
         runtimeClasspathConfiguration.setCanBeConsumed(false);
         runtimeClasspathConfiguration.setCanBeResolved(true);
@@ -268,53 +278,60 @@ public class JavaBasePlugin implements Plugin<Project> {
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
         sourceSet.setAnnotationProcessorPath(annotationProcessorConfiguration);
 
-        compileClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, compileOnlyConfigurationName);
-        runtimeClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
+        compileClasspathConfiguration.setCanBeDeclaredAgainst(false);
+        ((ConfigurationInternal) runtimeClasspathConfiguration).setCanBeDeclaredAgainst(false);
     }
 
     private void configureCompileDefaults(final Project project, final DefaultJavaPluginExtension javaExtension) {
         project.getTasks().withType(AbstractCompile.class).configureEach(compile -> {
             ConventionMapping conventionMapping = compile.getConventionMapping();
-            conventionMapping.map("sourceCompatibility", determineCompatibility(compile, javaExtension, javaExtension::getSourceCompatibility, javaExtension::getRawSourceCompatibility));
-            conventionMapping.map("targetCompatibility", determineCompatibility(compile, javaExtension, javaExtension::getTargetCompatibility, javaExtension::getRawTargetCompatibility));
+            conventionMapping.map("sourceCompatibility", () -> computeSourceCompatibilityConvention(javaExtension, compile).toString());
+            conventionMapping.map("targetCompatibility", () -> computeTargetCompatibilityConvention(javaExtension, compile).toString());
+
+            compile.getDestinationDirectory().convention(project.getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention(compile)));
         });
     }
 
-    private Callable<String> determineCompatibility(AbstractCompile compile, JavaPluginExtension javaExtension, Supplier<JavaVersion> javaVersionSupplier, Supplier<JavaVersion> rawJavaVersionSupplier) {
-        return () -> {
-            if (compile instanceof JavaCompile) {
-                JavaCompile javaCompile = (JavaCompile) compile;
-                if (javaCompile.getOptions().getRelease().isPresent()) {
-                    // Release set on the task wins, no need to check *Compat has having both is illegal anyway
-                    return JavaVersion.toVersion(javaCompile.getOptions().getRelease().get()).toString();
-                } else if (javaCompile.getJavaCompiler().isPresent()) {
-                    // Toolchains in use
-                    checkToolchainAndCompatibilityUsage(javaExtension, rawJavaVersionSupplier);
-                    return javaCompile.getJavaCompiler().get().getMetadata().getLanguageVersion().toString();
-                }
-            }
-            if (compile instanceof GroovyCompile) {
-                GroovyCompile groovyCompile = (GroovyCompile) compile;
-                if (groovyCompile.getJavaLauncher().isPresent()) {
-                    checkToolchainAndCompatibilityUsage(javaExtension, rawJavaVersionSupplier);
-                    return groovyCompile.getJavaLauncher().get().getMetadata().getLanguageVersion().toString();
-                }
-            }
-            return javaVersionSupplier.get().toString();
-        };
+    private static JavaVersion computeSourceCompatibilityConvention(DefaultJavaPluginExtension javaExtension, AbstractCompile compileTask) {
+        return computeCompatibilityConvention(compileTask, javaExtension.getRawSourceCompatibility(), javaExtension::getSourceCompatibility);
     }
 
-    private void checkToolchainAndCompatibilityUsage(JavaPluginExtension javaExtension, Supplier<JavaVersion> rawJavaVersionSupplier) {
-        if (((ToolchainSpecInternal) javaExtension.getToolchain()).isConfigured() && rawJavaVersionSupplier.get() != null) {
-            throw new InvalidUserDataException("The new Java toolchain feature cannot be used at the project level in combination with source and/or target compatibility");
+    private static JavaVersion computeTargetCompatibilityConvention(DefaultJavaPluginExtension javaExtension, AbstractCompile compileTask) {
+        JavaVersion rawTargetCompatibility = javaExtension.getRawTargetCompatibility();
+        if (rawTargetCompatibility == null) {
+            rawTargetCompatibility = JavaVersion.toVersion(compileTask.getSourceCompatibility());
         }
+        return computeCompatibilityConvention(compileTask, rawTargetCompatibility, javaExtension::getTargetCompatibility);
+    }
+
+    private static JavaVersion computeCompatibilityConvention(AbstractCompile compile, @Nullable JavaVersion rawConvention, Supplier<JavaVersion> javaVersionSupplier) {
+        if (compile instanceof JavaCompile) {
+            JavaCompile javaCompile = (JavaCompile) compile;
+            if (javaCompile.getOptions().getRelease().isPresent()) {
+                return JavaVersion.toVersion(javaCompile.getOptions().getRelease().get());
+            }
+            if (rawConvention != null) {
+                return rawConvention;
+            }
+            return JavaVersion.toVersion(javaCompile.getJavaCompiler().get().getMetadata().getLanguageVersion().toString());
+        } else if (compile instanceof GroovyCompile) {
+            GroovyCompile groovyCompile = (GroovyCompile) compile;
+            if (groovyCompile.getJavaLauncher().isPresent()) {
+                return JavaVersion.toVersion(groovyCompile.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
+            }
+        }
+
+        return javaVersionSupplier.get();
     }
 
     private void configureJavaDoc(final Project project, final JavaPluginExtension javaPluginExtension) {
         project.getTasks().withType(Javadoc.class).configureEach(javadoc -> {
             javadoc.getConventionMapping().map("destinationDir", () -> new File(javaPluginExtension.getDocsDir().get().getAsFile(), "javadoc"));
             javadoc.getConventionMapping().map("title", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
-            javadoc.getJavadocTool().convention(getToolchainTool(project, JavaToolchainService::javadocToolFor));
+            ObjectFactory objectFactory = project.getObjects();
+            Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
+                JavadocExecutableUtils.getExecutableOverrideToolchainSpec(javadoc, objectFactory));
+            javadoc.getJavadocTool().convention(getToolchainTool(project, JavaToolchainService::javadocToolFor, toolchainOverrideSpec));
         });
     }
 
@@ -346,19 +363,68 @@ public class JavaBasePlugin implements Plugin<Project> {
         htmlReport.getOutputLocation().convention(javaPluginExtension.getTestReportDir().dir(test.getName()));
         test.getBinaryResultsDirectory().convention(javaPluginExtension.getTestResultsDir().dir(test.getName() + "/binary"));
         test.workingDir(project.getProjectDir());
-        test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor));
+
+        ObjectFactory objectFactory = project.getObjects();
+        Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
+            TestExecutableUtils.getExecutableToolchainSpec(test, objectFactory));
+        test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
     }
 
-    private <T> Provider<T> getToolchainTool(Project project, BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<T>> toolMapper) {
-        final JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
-        final JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
-        return toolMapper.apply(service, extension.getToolchain());
+    private <T> Provider<T> getToolchainTool(
+        Project project,
+        BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<T>> toolMapper,
+        Provider<JavaToolchainSpec> toolchainOverride
+    ) {
+        JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
+        JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
+        return toolchainOverride.orElse(extension.getToolchain())
+            .flatMap(spec -> toolMapper.apply(service, spec));
     }
 
-    @Deprecated
-    @Inject
-    protected JavaToolchainQueryService getJavaToolchainQueryService() {
-        throw new UnsupportedOperationException();
-    }
+    /**
+     * Convention to fall back to the 'destinationDir' output for backwards compatibility with plugins that extend AbstractCompile
+     * and override the deprecated methods.
+     */
+    private static class BackwardCompatibilityOutputDirectoryConvention implements Callable<Directory> {
+        private final AbstractCompile compile;
+        private boolean recursiveCall;
 
+        public BackwardCompatibilityOutputDirectoryConvention(AbstractCompile compile) {
+            this.compile = compile;
+        }
+
+        @Override
+        @Nullable
+        public Directory call() throws Exception {
+            Method getter = GeneratedSubclasses.unpackType(compile).getMethod("getDestinationDir");
+            if (getter.getDeclaringClass() == AbstractCompile.class) {
+                // Subclass has not overridden the getter, so ignore
+                return null;
+            }
+
+            // Subclass has overridden the getter, so call it
+
+            if (recursiveCall) {
+                // Already querying AbstractCompile.getDestinationDirectory()
+                // In that case, this convention should not be used.
+                return null;
+            }
+            recursiveCall = true;
+            File legacyValue;
+            try {
+                // This will call a subclass implementation of getDestinationDir(), which possibly will not call the overridden getter
+                // In the Kotlin plugin, the subclass manages its own field which will be used here.
+                // This was to support tasks that extended AbstractCompile and had their own getDestinationDir().
+                // We actually need to keep this as compile.getDestinationDir to maintain compatibility.
+                legacyValue = compile.getDestinationDir();
+            } finally {
+                recursiveCall = false;
+            }
+            if (legacyValue == null) {
+                return null;
+            } else {
+                return compile.getProject().getLayout().getProjectDirectory().dir(legacyValue.getAbsolutePath());
+            }
+        }
+    }
 }

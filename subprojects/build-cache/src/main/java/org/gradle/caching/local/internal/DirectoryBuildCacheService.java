@@ -91,15 +91,12 @@ public class DirectoryBuildCacheService implements LocalBuildCacheService, Build
     @Override
     public void loadLocally(final BuildCacheKey key, final Action<? super File> reader) {
         // We need to lock other processes out here because garbage collection can be under way in another process
-        persistentCache.withFileLock(new Runnable() {
-            @Override
-            public void run() {
-                lock.readLock().lock();
-                try {
-                    loadInsideLock(key, reader);
-                } finally {
-                    lock.readLock().unlock();
-                }
+        persistentCache.withFileLock(() -> {
+            lock.readLock().lock();
+            try {
+                loadInsideLock(key, reader);
+            } finally {
+                lock.readLock().unlock();
             }
         });
     }

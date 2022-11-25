@@ -27,18 +27,18 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.ProjectExecutionServiceRegistry;
-import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.Cast;
 import org.gradle.internal.InternalListener;
+import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -47,16 +47,15 @@ import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.time.Time;
-import org.gradle.internal.time.Timer;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 @SuppressWarnings("deprecation")
 @NonNullApi
@@ -69,11 +68,10 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final ListenerBroadcast<TaskExecutionGraphListener> graphListeners;
     private final ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners;
     private final BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener;
-    private final ProjectStateRegistry projectStateRegistry;
     private final ServiceRegistry globalServices;
     private final BuildOperationExecutor buildOperationExecutor;
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
-    private ExecutionPlan executionPlan;
+    private FinalizedExecutionPlan executionPlan;
     private List<Task> allTasks;
     private boolean hasFiredWhenReady;
 
@@ -86,7 +84,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners,
         BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener,
-        ProjectStateRegistry projectStateRegistry,
         ServiceRegistry globalServices
     ) {
         this.planExecutor = planExecutor;
@@ -97,18 +94,13 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.graphListeners = graphListeners;
         this.taskListeners = taskListeners;
         this.buildScopeListenerRegistrationListener = buildScopeListenerRegistrationListener;
-        this.projectStateRegistry = projectStateRegistry;
         this.globalServices = globalServices;
-        this.executionPlan = ExecutionPlan.EMPTY;
+        this.executionPlan = FinalizedExecutionPlan.EMPTY;
     }
 
     @Override
-    public void setContinueOnFailure(boolean continueOnFailure) {
-        executionPlan.setContinueOnFailure(continueOnFailure);
-    }
-
-    @Override
-    public void populate(ExecutionPlan plan) {
+    public void populate(FinalizedExecutionPlan plan) {
+        executionPlan.close();
         executionPlan = plan;
         allTasks = null;
         if (!hasFiredWhenReady) {
@@ -120,36 +112,34 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
-    public void execute(ExecutionPlan plan, Collection<? super Throwable> failures) {
+    public ExecutionResult<Void> execute(FinalizedExecutionPlan plan) {
         assertIsThisGraphsPlan(plan);
         if (!hasFiredWhenReady) {
             throw new IllegalStateException("Task graph should be populated before execution starts.");
         }
         try (ProjectExecutionServiceRegistry projectExecutionServices = new ProjectExecutionServiceRegistry(globalServices)) {
-            executeWithServices(projectExecutionServices, failures);
+            return executeWithServices(projectExecutionServices);
         } finally {
-            executionPlan = ExecutionPlan.EMPTY;
+            executionPlan.close();
+            executionPlan = FinalizedExecutionPlan.EMPTY;
         }
     }
 
-    private void assertIsThisGraphsPlan(ExecutionPlan plan) {
+    private void assertIsThisGraphsPlan(FinalizedExecutionPlan plan) {
         if (plan != executionPlan) {
             // Temporarily handle only a single plan
             throw new IllegalArgumentException();
         }
     }
 
-    private void executeWithServices(ProjectExecutionServiceRegistry projectExecutionServices, Collection<? super Throwable> failures) {
-        Timer clock = Time.startTimer();
-        planExecutor.process(
-            executionPlan,
-            failures,
+    private ExecutionResult<Void> executeWithServices(ProjectExecutionServiceRegistry projectExecutionServices) {
+        return planExecutor.process(
+            executionPlan.asWorkSource(),
             new BuildOperationAwareExecutionAction(
                 buildOperationExecutor.getCurrentOperation(),
                 new InvokeNodeExecutorsAction(nodeExecutors, projectExecutionServices)
             )
         );
-        LOGGER.debug("Timing: Executing the DAG took {}", clock.getElapsed());
     }
 
     @Override
@@ -250,40 +240,46 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public boolean hasTask(Task task) {
-        return executionPlan.getTasks().contains(task);
+        return executionPlan.getContents().getTasks().contains(task);
+    }
+
+    @Nullable
+    @Override
+    public Task findTask(String path) {
+        for (Task task : executionPlan.getContents().getTasks()) {
+            if (task.getPath().equals(path)) {
+                return task;
+            }
+        }
+        return null;
     }
 
     @Override
     public boolean hasTask(String path) {
-        for (Task task : executionPlan.getTasks()) {
-            if (task.getPath().equals(path)) {
-                return true;
-            }
-        }
-        return false;
+        return findTask(path) != null;
     }
 
     @Override
     public int size() {
-        return executionPlan.size();
+        return executionPlan.getContents().size();
     }
 
     @Override
     public List<Task> getAllTasks() {
         if (allTasks == null) {
-            allTasks = ImmutableList.copyOf(executionPlan.getTasks());
+            allTasks = ImmutableList.copyOf(executionPlan.getContents().getTasks());
         }
         return allTasks;
     }
 
     @Override
-    public List<Node> getScheduledWorkPlusDependencies() {
-        return executionPlan.getScheduledNodesPlusDependencies();
+    public void visitScheduledNodes(Consumer<List<Node>> visitor) {
+        executionPlan.getContents().getScheduledNodes().visitNodes(visitor);
     }
 
     @Override
     public Set<Task> getDependencies(Task task) {
-        Node node = executionPlan.getNode(task);
+        Node node = executionPlan.getContents().getNode(task);
         ImmutableSet.Builder<Task> builder = ImmutableSet.builder();
         for (Node dependencyNode : node.getDependencySuccessors()) {
             if (dependencyNode instanceof TaskNode) {
@@ -348,12 +344,12 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             This is too drastic a change for the stage in the release cycle were exposing this information
             was necessary, therefore the minimal change solution was implemented.
          */
-        return executionPlan.getFilteredTasks();
+        return executionPlan.getContents().getFilteredTasks();
     }
 
     private void fireWhenReady() {
         // We know that we're running single-threaded here, so we can use coarse grained project locks
-        projectStateRegistry.withMutableStateOfAllProjects(
+        gradleInternal.getOwner().getProjects().withMutableStateOfAllProjects(
             () -> buildOperationExecutor.run(
                 new NotifyTaskGraphWhenReady(DefaultTaskExecutionGraph.this, graphListeners.getSource(), gradleInternal)
             )

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-@file:Suppress("DEPRECATION")
-
 package org.gradle.configurationcache.serialization.codecs
 
 import org.gradle.api.Action
@@ -23,7 +21,6 @@ import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformParameters
-import org.gradle.api.artifacts.transform.VariantTransform
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
@@ -117,9 +114,9 @@ class LocalFileDependencyBackedArtifactSetCodec(
                 if (selected == ResolvedArtifactSet.EMPTY) {
                     // Don't need to record the mapping
                 } else if (recordingSet.targetAttributes != null) {
-                    mappings.put(sourceAttributes, TransformMapping(recordingSet.targetAttributes!!, recordingSet.transformation!!))
+                    mappings[sourceAttributes] = TransformMapping(recordingSet.targetAttributes!!, recordingSet.transformation!!)
                 } else {
-                    mappings.put(sourceAttributes, IdentityMapping)
+                    mappings[sourceAttributes] = IdentityMapping
                 }
             }
             write(mappings)
@@ -177,6 +174,10 @@ class RecordingVariantSet(
     }
 
     override fun getVariants(): Set<ResolvedVariant> {
+        return setOf(this)
+    }
+
+    override fun getAllVariants(): Set<ResolvedVariant> {
         return setOf(this)
     }
 
@@ -269,15 +270,15 @@ class FixedVariantSelector(
     override fun select(candidates: ResolvedVariantSet, factory: VariantSelector.Factory): ResolvedArtifactSet {
         require(candidates.variants.size == 1)
         val variant = candidates.variants.first()
-        val spec = transforms.get(variant.attributes.asImmutable())
-        return when (spec) {
-            null ->
-                // was no mapping for extension, so it can be discarded
+        return when (val spec = transforms[variant.attributes.asImmutable()]) {
+            null -> {
+                // no mapping for extension, so it can be discarded
                 if (matchingOnArtifactFormat) {
                     ResolvedArtifactSet.EMPTY
                 } else {
                     variant.artifacts
                 }
+            }
             is IdentityMapping -> variant.artifacts
             is TransformMapping -> factory.asTransformed(variant, spec, EmptyDependenciesResolverFactory(fileCollectionFactory), transformedVariantFactory)
         }
@@ -337,7 +338,7 @@ class EmptyDependenciesResolverFactory(private val fileCollectionFactory: FileCo
     }
 
     override fun computeArtifacts(): Try<ArtifactTransformDependencies> {
-        return Try.successful(DefaultArtifactTransformDependencies(fileCollectionFactory.empty()))
+        return Try.successful(DefaultArtifactTransformDependencies(FileCollectionFactory.empty()))
     }
 }
 
@@ -366,10 +367,6 @@ object NoOpTransformedVariantFactory : TransformedVariantFactory {
 
 private
 object EmptyVariantTransformRegistry : VariantTransformRegistry {
-    override fun registerTransform(registrationAction: Action<in VariantTransform>) {
-        throw UnsupportedOperationException("Should not be called")
-    }
-
     override fun <T : TransformParameters?> registerTransform(actionType: Class<out TransformAction<T>>, registrationAction: Action<in org.gradle.api.artifacts.transform.TransformSpec<T>>) {
         throw UnsupportedOperationException("Should not be called")
     }

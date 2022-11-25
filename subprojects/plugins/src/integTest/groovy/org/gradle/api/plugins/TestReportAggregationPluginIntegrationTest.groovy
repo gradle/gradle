@@ -145,7 +145,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    def 'can aggregate unit test results from subprojects'() {
+    def 'can aggregate unit test results from dependent projects'() {
         given:
         file('application/build.gradle') << '''
             apply plugin: 'org.gradle.test-report-aggregation'
@@ -182,7 +182,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
                         testType = TestSuiteType.INTEGRATION_TEST
                         useJUnit()
                         dependencies {
-                          implementation project
+                          implementation project()
                         }
                     }
                 }
@@ -317,20 +317,8 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         aggregatedTestResults.assertTestClassesExecuted('application.AdderTest', 'direct.MultiplierTest', 'transitive.PowerizeTest')
     }
 
-    def 'can apply custom attributes to refine test results'() {
-        setup:
-        file('application/build.gradle') << '''
-            // add a additional Attribute to the test results for the application unit-test suite
-            configurations.testResultsElementsForTest.attributes {
-              attribute(Attribute.of('customAttribute', String), 'foo')
-            }
-        '''
-        file('transitive/build.gradle') << '''
-            // add a additional Attribute to the test results for the transitive unit-test suite
-            configurations.testResultsElementsForTest.attributes {
-              attribute(Attribute.of('customAttribute', String), 'bar')
-            }
-        '''
+    def 'can aggregate tests from root project when subproject does not have tests'() {
+        given:
         buildFile << '''
             apply plugin: 'org.gradle.test-report-aggregation'
 
@@ -346,31 +334,14 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
                     }
                 }
             }
-
-            // add an Attribute to the configuration tasked with collecting results
-            // as a result, variant selection should exclude the transitive project
-            reporting {
-                reports.withType(AggregateTestReport).configureEach { report ->
-                    Configuration reportConf = configurations.getByName("${report.name}Results")
-                    reportConf.attributes {
-                        attribute(Attribute.of('customAttribute', String), 'foo')
-                    }
-                }
-            }
         '''
+        // remove tests from transitive
+        file("transitive/src/test").deleteDir()
 
         when:
         succeeds(':testAggregateTestReport')
 
         then:
-        result.assertTaskNotExecuted(':transitive:test')
-
-        def directTestResults = new HtmlTestExecutionResult(testDirectory.file('direct'))
-        directTestResults.assertTestClassesExecuted('direct.MultiplierTest')
-
-        def applicationTestResults = new HtmlTestExecutionResult(testDirectory.file('application'))
-        applicationTestResults.assertTestClassesExecuted('application.AdderTest')
-
         def aggregatedTestResults = new HtmlTestExecutionResult(testDirectory, 'build/reports/tests/unit-test/aggregated-results')
         aggregatedTestResults.assertTestClassesExecuted('application.AdderTest', 'direct.MultiplierTest')
     }
@@ -399,7 +370,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasDescription("Execution failed for task ':direct:test'.")
                .assertThatCause(startsWith("There were failing tests"))
-        result.assertTaskNotExecuted(':application:testAggregateTestReport"')
+        result.assertTaskNotExecuted(':application:testAggregateTestReport')
 
         file("application/build/reports/tests/unit-test/aggregated-results").assertDoesNotExist()
     }
@@ -441,6 +412,33 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         applicationTestResults.assertTestClassesExecuted('application.AdderTest')
 
         def aggregatedResults = new HtmlTestExecutionResult(testDirectory, "application/build/reports/tests/unit-test/aggregated-results")
+        aggregatedResults.assertTestClassesExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
+    }
+
+    def 'test aggregated report can be put into a custom location'() {
+        given:
+        // Reordering the plugins so that Java is applied later
+        file("application/build.gradle").text = """
+                plugins {
+                    id 'org.gradle.test-report-aggregation'
+                    id 'java'
+                }
+
+                java {
+                    testReportDir = layout.buildDirectory.dir("non-default-location")
+                }
+                dependencies {
+                    implementation project(":direct")
+                }
+            """
+
+        when:
+        succeeds(":application:testAggregateTestReport", "--continue")
+
+        then:
+        result.assertTaskExecuted(":application:testAggregateTestReport")
+
+        def aggregatedResults = new HtmlTestExecutionResult(testDirectory, "application/build/non-default-location/unit-test/aggregated-results")
         aggregatedResults.assertTestClassesExecuted("application.AdderTest", "direct.MultiplierTest", "transitive.PowerizeTest")
     }
 

@@ -102,7 +102,7 @@ For this, you have two options:
 * Run `gradle dependencies --write-locks`.
 This will effectively lock all resolvable configurations that have locking enabled.
 Note that in a multi project setup, `dependencies` only is executed on _one_ project, the root one in this case.
-* Declare a custom task that will resolve all configurations
+* Declare a custom task that resolves all configurations. This does not work for Android projects.
 
 .Resolving all configurations
 ====

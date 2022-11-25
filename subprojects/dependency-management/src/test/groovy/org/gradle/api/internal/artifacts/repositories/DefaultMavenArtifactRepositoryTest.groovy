@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
@@ -58,10 +59,10 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
     final ProviderFactory providerFactory = Mock()
 
     final DefaultMavenArtifactRepository repository = new DefaultMavenArtifactRepository(
-        resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(),
-        artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, externalResourceFileStore,
-        Mock(FileResourceRepository), mavenMetadataFactory, SnapshotTestUtil.isolatableFactory(),
-        TestUtil.objectFactory(), urlArtifactRepositoryFactory, TestUtil.checksumService, providerFactory)
+            resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(),
+            artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, externalResourceFileStore,
+            Mock(FileResourceRepository), mavenMetadataFactory, SnapshotTestUtil.isolatableFactory(),
+            TestUtil.objectFactory(), urlArtifactRepositoryFactory, TestUtil.checksumService, providerFactory, new VersionParser())
 
     def "creates local repository"() {
         given:
@@ -75,7 +76,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo instanceof MavenResolver
@@ -93,7 +94,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo instanceof MavenResolver
@@ -116,7 +117,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.artifactUrls('repo1', 'repo2')
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo instanceof MavenResolver
@@ -138,7 +139,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo instanceof MavenResolver
@@ -148,7 +149,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
 
     def "fails when no root url specified"() {
         when:
-        repository.createRealResolver()
+        repository.createResolver()
 
         then:
         InvalidUserDataException e = thrown()
@@ -166,7 +167,7 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         repository.url = uri
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo instanceof MavenResolver

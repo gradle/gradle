@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.r54
 
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -98,6 +97,7 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
         assertExcludes(classPath, projectDependency)
     }
 
+    @TargetGradleVersion(">=5.4 <7.5")
     @LeaksFileHandles("Kotlin compiler daemon on buildSrc jar")
     def "sourcePath includes buildSrc source roots"() {
 
@@ -113,6 +113,7 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
             matchesProjectsSourceRoots(withMainSourceSetJavaKotlinIn("buildSrc")))
     }
 
+    @TargetGradleVersion(">=5.4 <7.5")
     @LeaksFileHandles("Kotlin compiler daemon on buildSrc jar")
     def "sourcePath includes buildSrc project dependencies source roots"() {
 

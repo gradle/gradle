@@ -24,4 +24,5 @@ import java.util.List;
 public interface ConfigurationVariantInternal extends ConfigurationVariant {
     void artifactsProvider(Factory<List<PublishArtifact>> artifacts);
     void preventFurtherMutation();
+    void setDescription(String description);
 }

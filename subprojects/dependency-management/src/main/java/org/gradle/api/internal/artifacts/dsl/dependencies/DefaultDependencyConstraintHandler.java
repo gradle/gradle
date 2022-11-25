@@ -23,6 +23,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencyConstraint;
+import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -32,21 +33,16 @@ import org.gradle.api.artifacts.dsl.DependencyConstraintHandler;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
-import org.gradle.api.internal.catalog.DependencyBundleValueSource;
-import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-import org.gradle.api.provider.ValueSource;
 import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class DefaultDependencyConstraintHandler implements DependencyConstraintHandler, MethodMixIn {
     private final static DependencyConstraint DUMMY_CONSTRAINT = new DependencyConstraintInternal() {
@@ -126,7 +122,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         }
     };
     private final ConfigurationContainer configurationContainer;
-    private final DependencyFactory dependencyFactory;
+    private final DependencyFactoryInternal dependencyFactory;
     private final DynamicAddDependencyMethods dynamicMethods;
     private final ObjectFactory objects;
     private final PlatformSupport platformSupport;
@@ -134,7 +130,7 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     private final Category enforcedPlatform;
 
     public DefaultDependencyConstraintHandler(ConfigurationContainer configurationContainer,
-                                              DependencyFactory dependencyFactory,
+                                              DependencyFactoryInternal dependencyFactory,
                                               ObjectFactory objects,
                                               PlatformSupport platformSupport) {
         this.configurationContainer = configurationContainer;
@@ -201,11 +197,15 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         return dependency;
     }
 
-    private DependencyConstraint doAddProvider(Configuration configuration, Provider<?> dependencyNotation, Action<? super DependencyConstraint> configureAction) {
-        if (dependencyNotation instanceof DefaultValueSourceProviderFactory.ValueSourceProvider) {
-            Class<? extends ValueSource<?, ?>> valueSourceType = ((DefaultValueSourceProviderFactory.ValueSourceProvider<?, ?>) dependencyNotation).getValueSourceType();
-            if (valueSourceType.isAssignableFrom(DependencyBundleValueSource.class)) {
-                return doAddListProvider(configuration, dependencyNotation, configureAction);
+    private DependencyConstraint doAddProvider(Configuration configuration, Provider<?> dependencyNotation, @Nullable Action<? super DependencyConstraint> configureAction) {
+        if (dependencyNotation instanceof ProviderInternal<?>) {
+            ProviderInternal<?> provider = (ProviderInternal<?>) dependencyNotation;
+            if (provider.getType() != null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
+                ExternalModuleDependencyBundle bundle = Cast.uncheckedCast(provider.get());
+                for (MinimalExternalModuleDependency dependency : bundle) {
+                    doAdd(configuration, dependency, configureAction);
+                }
+                return DUMMY_CONSTRAINT;
             }
         }
         Provider<DependencyConstraint> lazyConstraint = dependencyNotation.map(mapDependencyConstraintProvider(configureAction));
@@ -214,19 +214,8 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
         return DUMMY_CONSTRAINT;
     }
 
-    private DependencyConstraint doAddListProvider(Configuration configuration, Provider<?> dependencyNotation, Action<? super DependencyConstraint>  configureAction) {
-        // workaround for the fact that mapping to a list will not create a `CollectionProviderInternal`
-        ListProperty<DependencyConstraint> constraints = objects.listProperty(DependencyConstraint.class);
-        constraints.set(dependencyNotation.map(notation -> {
-            List<MinimalExternalModuleDependency> deps = Cast.uncheckedCast(notation);
-            return deps.stream().map(d -> create(d, configureAction)).collect(Collectors.toList());
-        }));
-        configuration.getDependencyConstraints().addAllLater(constraints);
-        return DUMMY_CONSTRAINT;
-    }
-
-    private <T> Transformer<DependencyConstraint, T> mapDependencyConstraintProvider(Action<? super DependencyConstraint> configurationAction) {
-        return lazyNotation -> create(lazyNotation, configurationAction);
+    private <T> Transformer<DependencyConstraint, T> mapDependencyConstraintProvider(@Nullable Action<? super DependencyConstraint> configurationAction) {
+        return lazyNotation -> doCreate(lazyNotation, configurationAction);
     }
 
     @Override

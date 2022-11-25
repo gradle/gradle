@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.file.TreeType;
 import org.slf4j.Logger;
@@ -26,7 +25,7 @@ import java.io.File;
 
 import static org.gradle.util.internal.GFileUtils.mkdirs;
 
-public class CreateOutputsStep<C extends WorkspaceContext, R extends Result> implements Step<C, R> {
+public class CreateOutputsStep<C extends ChangingOutputsContext, R extends Result> implements Step<C, R> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CreateOutputsStep.class);
 
     private final Step<? super C, ? extends R> delegate;
@@ -39,8 +38,8 @@ public class CreateOutputsStep<C extends WorkspaceContext, R extends Result> imp
     public R execute(UnitOfWork work, C context) {
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
-                ensureOutput(propertyName, root, type);
+            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+                ensureOutput(propertyName, value.getValue(), type);
             }
 
             @Override

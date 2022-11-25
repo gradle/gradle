@@ -25,6 +25,7 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
@@ -73,9 +74,13 @@ abstract class PerformanceTestReport : DefaultTask() {
     @get:Input
     abstract val branchName: Property<String>
 
-    @get:Option(option = "channel", description = "Channel to use when running the performance test. By default, 'commits'.")
+    @get:Option(option = "channel", description = "Channel to use when querying performance test results. By default, 'commits'.")
     @get:Input
     abstract val channel: Property<String>
+
+    @get:Option(option = "channel-pattern", description = "Pattern for channel to use for querying performance test history. By default, empty.")
+    @get:Input
+    abstract val channelPatterns: SetProperty<String>
 
     @get:Input
     abstract val commitId: Property<String>
@@ -110,6 +115,7 @@ abstract class PerformanceTestReport : DefaultTask() {
             performanceResults,
             databaseParameters.get(),
             channel.get(),
+            channelPatterns.get(),
             branchName.get(),
             commitId.get(),
             classpath,

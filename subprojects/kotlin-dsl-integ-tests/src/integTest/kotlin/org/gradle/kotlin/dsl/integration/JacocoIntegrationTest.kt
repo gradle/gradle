@@ -1,7 +1,6 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Test
@@ -11,7 +10,6 @@ import org.junit.Test
 class JacocoIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `jacoco ignore codegen`() {
         withBuildScript(
             """

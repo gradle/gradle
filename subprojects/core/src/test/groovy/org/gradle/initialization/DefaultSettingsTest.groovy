@@ -21,7 +21,6 @@ import org.gradle.api.Project
 import org.gradle.api.UnknownProjectException
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.FeaturePreviewsActivationFixture
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.FileResolver
@@ -30,6 +29,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.management.DependencyResolutionManagementInternal
 import org.gradle.internal.service.ServiceRegistry
@@ -51,7 +51,7 @@ class DefaultSettingsTest extends Specification {
     ScriptHandlerFactory scriptHandlerFactory = Mock(ScriptHandlerFactory)
     ScriptHandler settingsScriptHandler = Mock(ScriptHandler)
     DefaultPluginManager pluginManager = Mock(DefaultPluginManager)
-    FeaturePreviews previews = new FeaturePreviews()
+    FeatureFlags previews = Mock(FeatureFlags)
     DefaultSettings settings
 
     def setup() {
@@ -62,7 +62,7 @@ class DefaultSettingsTest extends Specification {
         settingsServices.get(ScriptPluginFactory) >> scriptPluginFactory
         settingsServices.get(ScriptHandlerFactory) >> scriptHandlerFactory
         settingsServices.get(ProjectDescriptorRegistry) >> projectDescriptorRegistry
-        settingsServices.get(FeaturePreviews) >> previews
+        settingsServices.get(FeatureFlags) >> previews
         settingsServices.get(DefaultPluginManager) >>> [pluginManager, null]
         settingsServices.get(InstantiatorFactory) >> Stub(InstantiatorFactory)
         settingsServices.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
@@ -222,7 +222,7 @@ class DefaultSettingsTest extends Specification {
         when:
         settings.enableFeaturePreview(feature.name())
         then:
-        previews.isFeatureEnabled(feature)
+        1 * previews.enable(feature)
         where:
         feature << FeaturePreviewsActivationFixture.activeFeatures()
     }

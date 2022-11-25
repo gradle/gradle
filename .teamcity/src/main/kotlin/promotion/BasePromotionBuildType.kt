@@ -19,7 +19,7 @@ package promotion
 import common.BuildToolBuildJvm
 import common.Os
 import common.paramsForBuildToolBuild
-import common.requiresNoEc2Agent
+import common.requiresNotEc2Agent
 import common.requiresOs
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
@@ -37,7 +37,7 @@ abstract class BasePromotionBuildType(vcsRootId: String, cleanCheckout: Boolean 
 
         requirements {
             requiresOs(Os.LINUX)
-            requiresNoEc2Agent()
+            requiresNotEc2Agent()
         }
 
         paramsForBuildToolBuild(BuildToolBuildJvm, Os.LINUX)

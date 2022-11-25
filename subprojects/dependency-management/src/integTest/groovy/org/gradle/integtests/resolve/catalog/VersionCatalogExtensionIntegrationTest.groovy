@@ -85,7 +85,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
 
         then: "extension is not regenerated"
         !operations.hasOperation("Executing generation of dependency accessors for libs")
-        outputContains 'Type-safe dependency accessors is an incubating feature.'
+        outputDoesNotContain 'Type-safe dependency accessors is an incubating feature.'
 
         where:
         notation << [
@@ -303,6 +303,69 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
                 constraints {
                     implementation libs.myLib //.asProvider() as a workaround
                     implementation libs.myLib.ext
+                }
+            }
+        """
+
+        when:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                constraint("org.gradle.test:lib-core:{strictly [1.0,1.1)}", "org.gradle.test:lib-core:1.0")
+                constraint("org.gradle.test:lib-ext:{strictly [1.0,1.1)}", "org.gradle.test:lib-ext:1.0")
+                edge("org.gradle.test:lib-core:1.+", "org.gradle.test:lib-core:1.0") {
+                    byReasons(["rejected version 1.1", "constraint"])
+                }
+                edge("org.gradle.test:lib-ext", "org.gradle.test:lib-ext:1.0")
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22650")
+    def "can use the generated extension to declare a dependency constraint with and without sub-group using bundles"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("myLib") {
+                            strictly "[1.0,1.1)"
+                        }
+                        library("myLib", "org.gradle.test", "lib-core").versionRef("myLib")
+                        library("myLib-ext", "org.gradle.test", "lib-ext").versionRef("myLib")
+                        bundle("myBundle", ["myLib"])
+                        bundle("myBundle-ext", ["myLib-ext"])
+                    }
+                }
+            }
+        """
+        def publishLib = { String artifactId, String version ->
+            def lib = mavenHttpRepo.module("org.gradle.test", artifactId, version)
+                .withModuleMetadata()
+                .publish()
+            lib.moduleMetadata.expectGet()
+            lib.pom.expectGet()
+            return lib
+        }
+        publishLib("lib-core", "1.0").with {
+            it.rootMetaData.expectGet()
+            it.artifact.expectGet()
+        }
+        publishLib("lib-core", "1.1")
+        publishLib("lib-ext", "1.0").with {
+            it.rootMetaData.expectGet()
+            it.artifact.expectGet()
+        }
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation "org.gradle.test:lib-core:1.+" // intentional!
+                implementation "org.gradle.test:lib-ext" // intentional!
+                constraints {
+                    implementation libs.bundles.myBundle
+                    implementation libs.bundles.myBundle.ext
                 }
             }
         """
@@ -663,44 +726,6 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
-    def "nags when not using a library name ending with 'Libs'"() {
-        settingsFile << """
-            dependencyResolutionManagement {
-                versionCatalogs {
-                    notLibsEnding {
-                        library("myLib", "org.gradle.test", "lib").version {
-                            require "1.0"
-                        }
-                    }
-                }
-            }
-        """
-        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
-        buildFile << """
-            apply plugin: 'java-library'
-
-            dependencies {
-                implementation notLibsEnding.myLib
-            }
-        """
-
-        when:
-        lib.pom.expectGet()
-        lib.artifact.expectGet()
-
-        then:
-        run ':checkDeps'
-
-        then:
-        executer.expectDeprecationWarning("The name of version catalogs must end with 'Libs' to reduce chances of extension conflicts.")
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module('org.gradle.test:lib:1.0')
-            }
-        }
-
-    }
-
     def "extension can be used in any subproject"() {
         settingsFile << """
             dependencyResolutionManagement {
@@ -1005,7 +1030,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                // always 1.0 because calling `getLibVersion` will always loose the rich aspect
+                // always 1.0 because calling `getLibVersion` will always lose the rich aspect
                 // of the version model
                 module("org.gradle.test:lib:1.0")
             }
@@ -1884,6 +1909,7 @@ Second: 1.1"""
         """
 
         when:
+        executer.withStacktraceEnabled()
         fails "help"
 
         then:
@@ -1916,6 +1942,7 @@ Second: 1.1"""
         """
 
         when:
+        executer.withStacktraceEnabled()
         fails "help"
 
         then:
@@ -2233,52 +2260,5 @@ Second: 1.1"""
         "versions.myVersion" | "1.0"
         "plugins.myPlugin"   | "org.gradle.test:1.0"
         "bundles.myBundle"   | "[org.gradle.test:lib:3.0.5]"
-    }
-
-    def "findDependency is deprecated"() {
-        given:
-        settingsFile << """
-            dependencyResolutionManagement {
-                versionCatalogs {
-                    libs {
-                        library("myLib", "org.gradle.test:lib:3.0.5")
-                    }
-                }
-            }
-        """
-
-        buildFile << """
-            def depProvider = project.extensions.getByType(VersionCatalogsExtension).named("libs").findDependency("myLib").orElse(null)
-            assert(depProvider != null)
-            assert("org.gradle.test:lib:3.0.5" == depProvider.get().toString())
-        """
-
-        executer.expectDocumentedDeprecationWarning("The VersionCatalog.findDependency(String) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the findLibrary(String) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#version_catalog_deprecations")
-
-        expect:
-        succeeds ':help'
-    }
-
-    def "getDependencyAliases is deprecated"() {
-        given:
-        settingsFile << """
-            dependencyResolutionManagement {
-                versionCatalogs {
-                    libs {
-                        library("myLib", "org.gradle.test:lib:3.0.5")
-                    }
-                }
-            }
-        """
-
-        buildFile << """
-            def aliases = project.extensions.getByType(VersionCatalogsExtension).named("libs").dependencyAliases
-            assert(aliases == ["myLib"])
-        """
-
-        executer.expectDocumentedDeprecationWarning("The VersionCatalog.getDependencyAliases() method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the getLibraryAliases() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#version_catalog_deprecations")
-
-        expect:
-        succeeds ':help'
     }
 }

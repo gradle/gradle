@@ -67,7 +67,7 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-native"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/language/nativeplatform/internal/**")
 }
 

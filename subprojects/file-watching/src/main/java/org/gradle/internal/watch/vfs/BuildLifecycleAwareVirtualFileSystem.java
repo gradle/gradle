@@ -20,6 +20,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.watch.registry.WatchMode;
 
 import java.io.File;
 
@@ -27,7 +28,7 @@ import java.io.File;
  * Controls the lifecycle and book-keeping for file system watching.
  */
 @ServiceScope(Scopes.UserHome.class)
-public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem {
+public interface BuildLifecycleAwareVirtualFileSystem extends VirtualFileSystem, FileSystemWatchingInformation {
 
     /**
      * Called when the build is started.

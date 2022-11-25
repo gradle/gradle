@@ -15,18 +15,18 @@
  */
 package org.gradle.execution
 
-
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
-import org.gradle.execution.plan.ExecutionPlan
+import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.internal.build.ExecutionResult
 import spock.lang.Specification
 
 class SelectedTaskExecutionActionTest extends Specification {
     final SelectedTaskExecutionAction action = new SelectedTaskExecutionAction()
     final TaskExecutionGraphInternal taskGraph = Mock()
     final GradleInternal gradleInternal = Mock()
-    final ExecutionPlan executionPlan = Mock()
+    final FinalizedExecutionPlan executionPlan = Mock()
     final StartParameterInternal startParameter = Mock()
 
     def setup() {
@@ -35,29 +35,17 @@ class SelectedTaskExecutionActionTest extends Specification {
     }
 
     def "executes selected tasks"() {
+        def result = Stub(ExecutionResult)
+
         given:
         _ * startParameter.continueOnFailure >> false
         _ * taskGraph.allTasks >> []
 
         when:
-        def result = action.execute(gradleInternal, executionPlan)
+        def r = action.execute(gradleInternal, executionPlan)
 
         then:
-        result.failures.empty
-        1 * taskGraph.execute(executionPlan, _)
-    }
-
-    def "executes selected tasks when continue specified"() {
-        given:
-        _ * startParameter.continueOnFailure >> true
-        _ * taskGraph.allTasks >> []
-
-        when:
-        def result = action.execute(gradleInternal, executionPlan)
-
-        then:
-        result.failures.empty
-        1 * taskGraph.setContinueOnFailure(true)
-        1 * taskGraph.execute(executionPlan, _)
+        r == result
+        1 * taskGraph.execute(executionPlan) >> result
     }
 }

@@ -33,8 +33,18 @@ public interface JvmInstallationMetadata {
         JAVA_COMPILER, J9_VIRTUAL_MACHINE
     }
 
-    static DefaultJvmInstallationMetadata from(File javaHome, String implementationVersion, String runtimeVersion, String jvmVersion, String vendor, String implementationName, String architecture) {
-        return new DefaultJvmInstallationMetadata(javaHome, implementationVersion, runtimeVersion, jvmVersion, vendor, implementationName, architecture);
+    static DefaultJvmInstallationMetadata from(
+        File javaHome,
+        String javaVersion,
+        String javaVendor,
+        String runtimeName,
+        String runtimeVersion,
+        String jvmName,
+        String jvmVersion,
+        String jvmVendor,
+        String architecture
+    ) {
+        return new DefaultJvmInstallationMetadata(javaHome, javaVersion, javaVendor, runtimeName, runtimeVersion, jvmName, jvmVersion, jvmVendor, architecture);
     }
 
     static JvmInstallationMetadata failure(File javaHome, String errorMessage) {
@@ -45,19 +55,54 @@ public interface JvmInstallationMetadata {
         return new FailureInstallationMetadata(javaHome, cause.getMessage(), cause);
     }
 
+    Path getJavaHome();
+
+    /**
+     * Parsed equivalent of {@link #getJavaVersion()}.
+     */
     JavaVersion getLanguageVersion();
 
-    String getImplementationVersion();
-
-    String getRuntimeVersion();
-
-    String getJvmVersion();
-
+    /**
+     * A wrapper around the raw value of the toolchain vendor.
+     * <p>
+     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#JAVA_VENDOR
+     */
     JvmVendor getVendor();
 
-    String getArchitecture();
+    /**
+     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#JAVA_VERSION
+     */
+    String getJavaVersion();
 
-    Path getJavaHome();
+    /**
+     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#RUNTIME_NAME
+     */
+    String getRuntimeName();
+
+    /**
+     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#RUNTIME_VERSION
+     */
+    String getRuntimeVersion();
+
+    /**
+     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#VM_NAME
+     */
+    String getJvmName();
+
+    /**
+     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#VM_VERSION
+     */
+    String getJvmVersion();
+
+    /**
+     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#VM_VENDOR
+     */
+    String getJvmVendor();
+
+    /**
+     * @see org.gradle.internal.jvm.inspection.ProbedSystemProperty#OS_ARCH
+     */
+    String getArchitecture();
 
     String getDisplayName();
 
@@ -71,25 +116,45 @@ public interface JvmInstallationMetadata {
 
     class DefaultJvmInstallationMetadata implements JvmInstallationMetadata {
 
-        private final JavaVersion languageVersion;
-        private final String vendor;
-        private final String implementationName;
-        private final String architecture;
         private final Path javaHome;
-        private final String implementationVersion;
+        private final JavaVersion languageVersion;
+        private final String javaVersion;
+        private final String javaVendor;
+        private final String runtimeName;
         private final String runtimeVersion;
+        private final String jvmName;
         private final String jvmVersion;
+        private final String jvmVendor;
+        private final String architecture;
+
         private final Cached<Set<JavaInstallationCapability>> capabilities = Cached.of(this::gatherCapabilities);
 
-        private DefaultJvmInstallationMetadata(File javaHome, String implementationVersion, String runtimeVersion, String jvmVersion, String vendor, String implementationName, String architecture) {
+        private DefaultJvmInstallationMetadata(
+            File javaHome,
+            String javaVersion,
+            String javaVendor,
+            String runtimeName,
+            String runtimeVersion,
+            String jvmName,
+            String jvmVersion,
+            String jvmVendor,
+            String architecture
+        ) {
             this.javaHome = javaHome.toPath();
-            this.implementationVersion = implementationVersion;
-            this.languageVersion = JavaVersion.toVersion(implementationVersion);
+            this.languageVersion = JavaVersion.toVersion(javaVersion);
+            this.javaVersion = javaVersion;
+            this.javaVendor = javaVendor;
+            this.runtimeName = runtimeName;
             this.runtimeVersion = runtimeVersion;
+            this.jvmName = jvmName;
             this.jvmVersion = jvmVersion;
-            this.vendor = vendor;
-            this.implementationName = implementationName;
+            this.jvmVendor = jvmVendor;
             this.architecture = architecture;
+        }
+
+        @Override
+        public Path getJavaHome() {
+            return javaHome;
         }
 
         @Override
@@ -98,8 +163,18 @@ public interface JvmInstallationMetadata {
         }
 
         @Override
-        public String getImplementationVersion() {
-            return implementationVersion;
+        public JvmVendor getVendor() {
+            return JvmVendor.fromString(javaVendor);
+        }
+
+        @Override
+        public String getJavaVersion() {
+            return javaVersion;
+        }
+
+        @Override
+        public String getRuntimeName() {
+            return runtimeName;
         }
 
         @Override
@@ -108,23 +183,23 @@ public interface JvmInstallationMetadata {
         }
 
         @Override
+        public String getJvmName() {
+            return jvmName;
+        }
+
+        @Override
         public String getJvmVersion() {
             return jvmVersion;
         }
 
         @Override
-        public JvmVendor getVendor() {
-            return JvmVendor.fromString(vendor);
+        public String getJvmVendor() {
+            return jvmVendor;
         }
 
         @Override
         public String getArchitecture() {
             return architecture;
-        }
-
-        @Override
-        public Path getJavaHome() {
-            return javaHome;
         }
 
         @Override
@@ -137,7 +212,7 @@ public interface JvmInstallationMetadata {
         private String determineVendorName() {
             JvmVendor.KnownJvmVendor vendor = getVendor().getKnownVendor();
             if (vendor == JvmVendor.KnownJvmVendor.ORACLE) {
-                if (implementationName != null && implementationName.contains("OpenJDK")) {
+                if (jvmName != null && jvmName.contains("OpenJDK")) {
                     return "OpenJDK";
                 }
             }
@@ -165,7 +240,7 @@ public interface JvmInstallationMetadata {
             if (javaCompiler.exists()) {
                 capabilities.add(JavaInstallationCapability.JAVA_COMPILER);
             }
-            boolean isJ9vm = implementationName.contains("J9");
+            boolean isJ9vm = jvmName.contains("J9");
             if (isJ9vm) {
                 capabilities.add(JavaInstallationCapability.J9_VIRTUAL_MACHINE);
             }
@@ -186,6 +261,21 @@ public interface JvmInstallationMetadata {
         public boolean isValidInstallation() {
             return true;
         }
+
+        @Override
+        public String toString() {
+            return "DefaultJvmInstallationMetadata{" +
+                    "languageVersion=" + languageVersion +
+                    ", javaVersion='" + javaVersion + '\'' +
+                    ", javaVendor='" + javaVendor + '\'' +
+                    ", runtimeName='" + runtimeName + '\'' +
+                    ", runtimeVersion='" + runtimeVersion + '\'' +
+                    ", jvmName='" + jvmName + '\'' +
+                    ", jvmVersion='" + jvmVersion + '\'' +
+                    ", jvmVendor='" + jvmVendor + '\'' +
+                    ", architecture='" + architecture + '\'' +
+                    '}';
+        }
     }
 
     class FailureInstallationMetadata implements JvmInstallationMetadata {
@@ -202,27 +292,12 @@ public interface JvmInstallationMetadata {
         }
 
         @Override
+        public Path getJavaHome() {
+            return javaHome.toPath();
+        }
+
+        @Override
         public JavaVersion getLanguageVersion() {
-            throw unsupportedOperation();
-        }
-
-        @Override
-        public String getImplementationVersion() {
-            throw unsupportedOperation();
-        }
-
-        @Override
-        public String getRuntimeVersion() {
-            throw unsupportedOperation();
-        }
-
-        @Override
-        public String getArchitecture() {
-            throw unsupportedOperation();
-        }
-
-        @Override
-        public String getJvmVersion() {
             throw unsupportedOperation();
         }
 
@@ -232,8 +307,38 @@ public interface JvmInstallationMetadata {
         }
 
         @Override
-        public Path getJavaHome() {
-            return javaHome.toPath();
+        public String getJavaVersion() {
+            throw unsupportedOperation();
+        }
+
+        @Override
+        public String getRuntimeName() {
+            throw unsupportedOperation();
+        }
+
+        @Override
+        public String getRuntimeVersion() {
+            throw unsupportedOperation();
+        }
+
+        @Override
+        public String getJvmName() {
+            throw unsupportedOperation();
+        }
+
+        @Override
+        public String getJvmVersion() {
+            throw unsupportedOperation();
+        }
+
+        @Override
+        public String getJvmVendor() {
+            throw unsupportedOperation();
+        }
+
+        @Override
+        public String getArchitecture() {
+            throw unsupportedOperation();
         }
 
         @Override

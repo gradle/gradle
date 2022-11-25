@@ -17,11 +17,9 @@
 package org.gradle.caching.internal.operations;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 public final class BuildCacheArchiveUnpackBuildOperationType implements BuildOperationType<BuildCacheArchiveUnpackBuildOperationType.Details, BuildCacheArchiveUnpackBuildOperationType.Result> {
 
-    @UsedByScanPlugin
     public interface Details {
 
         /**
@@ -33,7 +31,6 @@ public final class BuildCacheArchiveUnpackBuildOperationType implements BuildOpe
 
     }
 
-    @UsedByScanPlugin
     public interface Result {
 
         long getArchiveEntryCount();

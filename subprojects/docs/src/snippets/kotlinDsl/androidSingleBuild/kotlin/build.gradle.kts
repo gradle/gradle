@@ -1,9 +1,9 @@
 // tag::android[]
 plugins {
-    id("com.android.application") version "4.1.2"
+    id("com.android.application") version "7.3.0"
 // end::android[]
-    kotlin("android") version "1.5.31"
-    kotlin("android.extensions") version "1.5.31"
+    kotlin("android") version "1.7.10"
+    kotlin("android.extensions") version "1.7.10"
 // tag::android[]
 }
 

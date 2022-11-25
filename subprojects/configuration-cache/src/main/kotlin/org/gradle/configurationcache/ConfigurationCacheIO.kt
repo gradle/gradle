@@ -16,11 +16,13 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
 import org.gradle.cache.internal.streams.BlockAddressSerializer
 import org.gradle.configurationcache.cacheentry.EntryDetails
 import org.gradle.configurationcache.cacheentry.ModelKey
 import org.gradle.configurationcache.extensions.useToRun
+import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
@@ -54,6 +56,7 @@ import java.io.OutputStream
 
 @ServiceScope(Scopes.Gradle::class)
 class ConfigurationCacheIO internal constructor(
+    private val startParameter: ConfigurationCacheStartParameter,
     private val host: DefaultConfigurationCache.Host,
     private val problems: ConfigurationCacheProblems,
     private val scopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
@@ -132,10 +135,10 @@ class ConfigurationCacheIO internal constructor(
         }
 
     internal
-    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, graph: BuildTreeWorkGraph) {
-        readConfigurationCacheState(stateFile) { state ->
+    fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, loadAfterStore: Boolean, graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
+        return readConfigurationCacheState(stateFile) { state ->
             state.run {
-                readRootBuildState(graph, host::createBuild)
+                readRootBuildState(graph, startParameter.loadAfterStore, loadAfterStore, host::createBuild)
             }
         }
     }
@@ -150,10 +153,10 @@ class ConfigurationCacheIO internal constructor(
     }
 
     internal
-    fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild) =
+    fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild, synthesizeBuildOps: Boolean) =
         readConfigurationCacheState(stateFile) { state ->
             state.run {
-                readBuildState(includedBuild)
+                readBuildState(includedBuild, synthesizeBuildOps)
             }
         }
 
@@ -206,11 +209,23 @@ class ConfigurationCacheIO internal constructor(
         KryoBackedEncoder(outputStream).let { encoder ->
             writeContextFor(
                 encoder,
-                if (logger.isDebugEnabled) LoggingTracer(profile, encoder::getWritePosition, logger)
-                else null,
+                loggingTracerFor(profile, encoder),
                 codecs
             ) to codecs
         }
+
+    private
+    fun loggingTracerFor(profile: String, encoder: KryoBackedEncoder) =
+        loggingTracerLogLevel()?.let { level ->
+            LoggingTracer(profile, encoder::getWritePosition, logger, level)
+        }
+
+    private
+    fun loggingTracerLogLevel(): LogLevel? = when {
+        startParameter.isDebug -> LogLevel.LIFECYCLE
+        logger.isDebugEnabled -> LogLevel.DEBUG
+        else -> null
+    }
 
     internal
     fun writerContextFor(encoder: Encoder): Pair<DefaultWriteContext, Codecs> =
@@ -231,12 +246,14 @@ class ConfigurationCacheIO internal constructor(
                     initClassLoader(javaClass.classLoader)
                     runReadOperation {
                         readOperation(codecs)
+                    }.also {
+                        finish()
                     }
                 }
             }
         }
 
-    internal
+    private
     fun readerContextFor(
         inputStream: InputStream,
     ) = readerContextFor(KryoBackedDecoder(inputStream))
@@ -289,6 +306,7 @@ class ConfigurationCacheIO internal constructor(
             instantiator = service(),
             listenerManager = service(),
             taskNodeFactory = service(),
+            ordinalGroupFactory = service(),
             inputFingerprinter = service(),
             buildOperationExecutor = service(),
             classLoaderHierarchyHasher = service(),

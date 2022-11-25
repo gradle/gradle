@@ -151,30 +151,6 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest.faster abi change (build comparison)",
-    "groups" : [ {
-      "testProject" : "santaTrackerAndroidBuild",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest.faster non-abi change (build comparison)",
-    "groups" : [ {
-      "testProject" : "santaTrackerAndroidBuild",
-      "coverage" : {
-        "per_week" : [ "linux" ]
-      }
-    } ]
-  }, {
-    "testId" : "org.gradle.performance.regression.android.FasterIncrementalAndroidBuildsPerformanceTest.file system watching baseline non-abi change (build comparison)",
-    "groups" : [ {
-      "testProject" : "santaTrackerAndroidBuild",
-      "coverage" : {
-        "per_week" : [ "linux", "macOs", "windows" ]
-      }
-    } ]
-  }, {
     "testId" : "org.gradle.performance.regression.android.RealLifeAndroidBuildPerformanceTest.clean assembleDebug with clean transforms cache",
     "groups" : [ {
       "testProject" : "largeAndroidBuild",
@@ -225,7 +201,7 @@
       }
     } ]
   }, {
-    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidStudioMockupPerformanceTest.get IDE model for Android Studio",
+    "testId" : "org.gradle.performance.regression.android.RealLifeAndroidStudioPerformanceTest.run Android Studio sync",
     "groups" : [ {
       "testProject" : "largeAndroidBuild",
       "coverage" : {

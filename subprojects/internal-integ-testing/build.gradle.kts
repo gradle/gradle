@@ -6,6 +6,8 @@ plugins {
     id("gradlebuild.internal.java")
 }
 
+description = "Collection of test fixtures for integration tests, internal use only"
+
 dependencies {
     api(libs.jettyWebApp) {
         because("Part of the public API via HttpServer")
@@ -58,6 +60,7 @@ dependencies {
     implementation(libs.jettySecurity)
 
     implementation(libs.littleproxy)
+    implementation(libs.socksProxy)
     implementation(libs.gcs)
     implementation(libs.inject)
     implementation(libs.commonsHttpclient)
@@ -66,7 +69,7 @@ dependencies {
     implementation(libs.jacksonAnnotations)
     implementation(libs.jacksonDatabind)
     implementation(libs.ivy)
-    implementation(libs.ant)
+    implementation(libs.commonsCompress)
     implementation(libs.jgit) {
         because("Some tests require a git reportitory - see AbstractIntegrationSpec.initGitDir(")
     }
@@ -101,7 +104,7 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 

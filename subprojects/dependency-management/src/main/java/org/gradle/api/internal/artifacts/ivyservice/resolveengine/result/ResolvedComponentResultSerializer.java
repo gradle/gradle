@@ -19,17 +19,22 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedDependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultUnresolvedDependencyResult;
+import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,15 +42,21 @@ public class ResolvedComponentResultSerializer implements Serializer<ResolvedCom
     private final Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer;
     private final Serializer<ComponentIdentifier> componentIdSerializer;
     private final Serializer<ComponentSelector> componentSelectorSerializer;
+    private final Serializer<ResolvedVariantResult> resolvedVariantResultSerializer;
+    private final Serializer<ComponentSelectionReason> componentSelectionReasonSerializer;
 
     public ResolvedComponentResultSerializer(
         Serializer<ModuleVersionIdentifier> moduleVersionIdSerializer,
         Serializer<ComponentIdentifier> componentIdSerializer,
-        Serializer<ComponentSelector> componentSelectorSerializer
+        Serializer<ComponentSelector> componentSelectorSerializer,
+        Serializer<ResolvedVariantResult> resolvedVariantResultSerializer,
+        Serializer<ComponentSelectionReason> componentSelectionReasonSerializer
     ) {
         this.moduleVersionIdSerializer = moduleVersionIdSerializer;
         this.componentIdSerializer = componentIdSerializer;
         this.componentSelectorSerializer = componentSelectorSerializer;
+        this.resolvedVariantResultSerializer = resolvedVariantResultSerializer;
+        this.componentSelectionReasonSerializer = componentSelectionReasonSerializer;
     }
 
     @Override
@@ -73,6 +84,14 @@ public class ResolvedComponentResultSerializer implements Serializer<ResolvedCom
         encoder.writeSmallInt(id);
         moduleVersionIdSerializer.write(encoder, component.getModuleVersion());
         componentIdSerializer.write(encoder, component.getId());
+        componentSelectionReasonSerializer.write(encoder, component.getSelectionReason());
+        List<ResolvedVariantResult> allVariants = ((ResolvedComponentResultInternal) component).getAllVariants();
+        Set<ResolvedVariantResult> resolvedVariants = new HashSet<>(component.getVariants());
+        encoder.writeSmallInt(allVariants.size());
+        for (ResolvedVariantResult variant : allVariants) {
+            resolvedVariantResultSerializer.write(encoder, variant);
+            encoder.writeBoolean(resolvedVariants.contains(variant));
+        }
         Set<? extends DependencyResult> dependencies = component.getDependencies();
         encoder.writeSmallInt(dependencies.size());
         for (DependencyResult dependency : dependencies) {

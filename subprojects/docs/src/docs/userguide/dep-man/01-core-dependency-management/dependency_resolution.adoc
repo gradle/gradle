@@ -69,7 +69,8 @@ This flexibility comes with the price of making it hard to reason about.
 ====
 
 Gradle will consider _all_ requested versions, wherever they appear in the dependency graph.
-Out of these versions, it will select the _highest_ one.
+Out of these versions, it will select the _highest_ one. More information on version ordering
+<<single_versions#version_ordering,here>>.
 
 As you have seen, Gradle supports a concept of <<rich_versions.adoc#rich-version-constraints,rich version declaration>>, so what is the highest version depends on the way versions were declared:
 
@@ -77,11 +78,62 @@ As you have seen, Gradle supports a concept of <<rich_versions.adoc#rich-version
 ** If a version declared as `strictly` is lower than that version, selection will fail.
 * If ranges are involved:
 ** If there is a non range version that falls within the specified ranges or is higher than their upper bound, it will be selected.
-** If there are only ranges, the highest _existing_ version of the range with the highest upper bound will be selected.
+** If there are only ranges, the selection will depend on the intersection of ranges:
+*** If all the ranges intersect, then the highest _existing_ version of the intersection will be selected.
+*** If there is no clear intersection between all the ranges, the highest _existing_ version will be selected from the highest range. If there is no version available for the highest range, the resolution will fail.
 ** If a version declared as `strictly` is lower than that version, selection will fail.
 
 Note that in the case where ranges come into play, Gradle requires metadata to determine which versions do exist for the considered range.
 This causes an intermediate lookup for metadata, as described in <<#sec:how-gradle-downloads-deps>>.
+
+[[sec:base-version-comparison]]
+=== Qualifiers
+There is a caveat to comparing versions when it comes to selecting the _highest_ one.
+All the rules of <<single_versions#version_ordering,version ordering>> still apply, but the conflict resolver
+has a bias towards versions without qualifiers.
+
+The "qualifier" of a version, if it exists, is the tail end of the version string, starting at the first non-dot separator
+found in it. The other (first) part of the version string is called the "base form" of the version. Here are some examples
+to illustrate:
+
+[cols="1,1,1"]
+|===
+|Original version | Base version | Qualifier
+
+|1.2.3
+|1.2.3
+|<none>
+
+|1.2-3
+|1.2
+|3
+
+|1_alpha
+|1
+|alpha
+
+|abc
+|abc
+|<none>
+
+|1.2b3
+|1.2
+|b3
+
+|abc.1+3
+|abc.1
+|3
+
+|b1-2-3.3
+|b
+|2-3.3
+|===
+
+As you can see separators are any of the `.`, `-`, `_`, `+` characters, plus the empty string when a numeric and a non-numeric part of the version are next to each-other.
+
+When resolving the conflict between competing versions, the following logic applies:
+* first the versions with the highest base version are selected, the rest are discarded
+* if there are still multiple competing versions left, then one is picked with a preference for not having a qualifier or having release status.
 
 [[sec:implementation-conflict]]
 == Implementation conflict resolution
@@ -263,7 +315,8 @@ If multiple incompatible Gradle versions are in play, all should be used when se
 
 | `modules-2`           | `files-2.1`           | `metadata-2.96`           | Gradle 6.4 to Gradle 6.7
 
-| `modules-2`           | `files-2.1`           | `metadata-2.97`           | Gradle 6.8 and above
+| `modules-2`           | `files-2.1`           | `metadata-2.97`           | Gradle 6.8 to Gradle 7.4
+| `modules-2`           | `files-2.1`           | `metadata-2.98`           | Gradle 7.5 and above
 |===
 
 [[sub:shared-readonly-cache]]
@@ -318,3 +371,5 @@ For those use cases, Gradle provides lazy, thread-safe APIs, accessible by calli
 - the link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#getResolutionResult--[ResolutionResult API] gives access to a resolved dependency graph, whether the resolution was successful or not.
 - the link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#getArtifacts--[artifacts API] provides a simple access to the resolved artifacts, untransformed, but with lazy download of artifacts (they would only be downloaded on demand).
 - the link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#artifactView-org.gradle.api.Action-[artifact view API] provides an advanced, filtered view of artifacts, possibly <<artifact_transforms.adoc#sec:abm_artifact_transforms,transformed>>.
+
+NOTE: See the documentation on <<more_about_tasks.adoc#sec:task_input_using_dependency_resolution_results, using dependency resolution results>> for more details on how to consume the results in a task.

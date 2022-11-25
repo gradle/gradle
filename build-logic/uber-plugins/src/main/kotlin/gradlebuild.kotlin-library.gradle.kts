@@ -35,10 +35,6 @@ configurations.transitiveSourcesElements {
 tasks {
     withType<KotlinCompile>().configureEach {
         configureKotlinCompilerForGradleBuild()
-        if (name == "compileTestKotlin") {
-            // Make sure the classes dir is used for test compilation (required by tests accessing internal methods) - https://github.com/gradle/gradle/issues/11501
-            classpath = sourceSets.main.get().output.classesDirs + classpath - files(tasks.jar)
-        }
     }
 
     codeQuality {
@@ -47,7 +43,7 @@ tasks {
 
     runKtlintCheckOverKotlinScripts {
         // Only check the build files, not all *.kts files in the project
-        setIncludes(listOf("*.gradle.kts"))
+        includes += listOf("*.gradle.kts")
     }
 
     withType<Test>().configureEach {
@@ -65,14 +61,20 @@ tasks {
 fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
     kotlinOptions {
         incremental = true
-        allWarningsAsErrors = true
+        /*
+          w: Flag is not supported by this version of the compiler: -Xskip-runtime-version-check
+          w: Language version 1.4 is deprecated and its support will be removed in a future version of Kotlin
+          e: warnings found and -Werror specified
+         */
+        // allWarningsAsErrors = true
         apiVersion = "1.4"
         languageVersion = "1.4"
         freeCompilerArgs += listOf(
             "-Xjsr305=strict",
             "-java-parameters",
-            "-Xskip-runtime-version-check",
-            "-Xskip-metadata-version-check"
+            "-Xskip-metadata-version-check",
+            // TODO can be removed once we build against language version >= 1.5
+            "-Xsuppress-version-warnings"
         )
         jvmTarget = "1.8"
     }

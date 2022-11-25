@@ -23,7 +23,7 @@ import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWor
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_MAC_OS_X])
 class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"

@@ -59,8 +59,6 @@ abstract class AbstractUserTypeCodecTest {
                     override fun onProblem(problem: PropertyProblem) {
                         problems += problem
                     }
-
-                    override fun forIncompatibleType() = this
                 }
             )
         }
@@ -86,8 +84,6 @@ abstract class AbstractUserTypeCodecTest {
                 override fun onProblem(problem: PropertyProblem) {
                     println(problem)
                 }
-
-                override fun forIncompatibleType() = this
             }
         )
         return outputStream.toByteArray()
@@ -167,6 +163,7 @@ abstract class AbstractUserTypeCodecTest {
         instantiator = mock(),
         listenerManager = mock(),
         taskNodeFactory = mock(),
+        ordinalGroupFactory = mock(),
         inputFingerprinter = mock(),
         buildOperationExecutor = mock(),
         classLoaderHierarchyHasher = mock(),

@@ -77,7 +77,7 @@ abstract class AbstractFileSystemLeafSnapshotTest<T extends FileSystemLeafSnapsh
         def childAbsolutePath = childAbsolutePath("some/child")
 
         when:
-        FileSystemLocationSnapshot childSnapshot = initialRoot.getNode(childAbsolutePath, CASE_SENSITIVE) as FileSystemLocationSnapshot
+        FileSystemLocationSnapshot childSnapshot = initialRoot.getNode(childAbsolutePath, CASE_SENSITIVE).get() as FileSystemLocationSnapshot
         then:
         childSnapshot.type == FileType.Missing
         childSnapshot.absolutePath == childAbsolutePath.absolutePath

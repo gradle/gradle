@@ -43,6 +43,7 @@ dependencies {
     implementation(project(":execution"))
     implementation(project(":worker-processes"))
     implementation(project(":normalization-java"))
+    implementation(project(":wrapper-shared"))
 
     implementation(libs.groovy)
     implementation(libs.groovyAnt)
@@ -58,6 +59,7 @@ dependencies {
     implementation(libs.groovyTest)
     implementation(libs.groovyXml)
     implementation(libs.ant)
+    implementation(libs.fastutil)
     implementation(libs.guava)
     implementation(libs.inject)
     implementation(libs.asm)
@@ -65,6 +67,7 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.commonsCompress)
     implementation(libs.nativePlatform)
     implementation(libs.xmlApis)
     implementation(libs.tomlj)
@@ -72,7 +75,7 @@ dependencies {
         because("The Groovy compiler inspects the dependencies at compile time")
     }
 
-    testImplementation(project(":plugins"))
+    testImplementation(project(":platform-jvm"))
     testImplementation(project(":testing-base"))
     testImplementation(project(":platform-native"))
     testImplementation(libs.jsoup)
@@ -115,6 +118,10 @@ dependencies {
     testFixturesApi(project(":process-services")) {
         because("test fixtures expose exec handler types")
     }
+    testFixturesApi(testFixtures(project(":hashing"))) {
+        because("test fixtures expose test hash codes")
+    }
+    testFixturesImplementation(project(":build-option"))
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":persistent-cache"))
     testFixturesImplementation(project(":snapshots"))
@@ -174,7 +181,7 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 

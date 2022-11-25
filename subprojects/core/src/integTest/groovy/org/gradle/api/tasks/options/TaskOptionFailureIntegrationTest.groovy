@@ -27,7 +27,7 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
         given:
         buildFile << """
             task sample(type: SampleTask)
-            
+
             ${taskWithMultipleOptionsForSingleProperty('String', 'hello', 'Some description')}
         """
 
@@ -99,7 +99,7 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
 
     def "single dash user error yields decent error message"() {
         when:
-        runAndFail 'help', '-tsk'
+        runAndFail 'help', '-isk'
 
         then:
         failure.assertHasDescription("Problem configuring task :help from command line.")
@@ -200,21 +200,21 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
             import org.gradle.api.tasks.options.Option;
 
             import java.util.List;
-            
+
             public class SampleTask extends DefaultTask {
                 private $optionType myProp;
-                
+
                 @Option(option = "$optionName", description = "$optionDescription")
                 @Option(option = "myProp", description = "Configures command line option 'myProp'.")
                 public void setMyProp($optionType myProp) {
                     this.myProp = myProp;
                 }
-                
+
                 @TaskAction
                 public void renderOptionValue() {
                     System.out.println("Value of myProp: " + myProp);
                 }
-                
+
                 private static enum TestEnum {
                     OPT_1, OPT_2, OPT_3
                 }

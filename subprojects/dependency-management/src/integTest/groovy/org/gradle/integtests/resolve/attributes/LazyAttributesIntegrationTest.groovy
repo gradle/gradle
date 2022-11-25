@@ -17,10 +17,8 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "properties used as attribute values are read lazily"() {
         settingsFile << "rootProject.name = 'TestProject'"
 
@@ -49,17 +47,17 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "outgoingVariants"
-        outputContains("""
+        result.groupedOutput.task(':outgoingVariants').assertOutputContains("""
             --------------------------------------------------
             Variant sample
             --------------------------------------------------
+
             Capabilities
                 - :TestProject:unspecified (default capability)
             Attributes
                 - org.gradle.usage = new value""".stripIndent())
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "providers used as attribute values with mismatched value types fail properly"() {
         buildFile << """
             plugins {
@@ -87,7 +85,6 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Unexpected type for attribute 'org.gradle.usage' provided. Expected a value of type org.gradle.api.attributes.Usage but found a value of type java.lang.Integer.")
     }
 
-    @ToBeFixedForConfigurationCache(because = ":outgoingVariants")
     def "providers used as attribute values with mismatched Attribute types fail properly"() {
         buildFile << """
             plugins {

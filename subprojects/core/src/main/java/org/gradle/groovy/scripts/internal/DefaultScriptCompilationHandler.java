@@ -37,6 +37,7 @@ import org.gradle.configuration.ImportsReader;
 import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
+import org.gradle.initialization.ClassLoaderScopeOrigin;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ImplementationHashAware;
@@ -195,6 +196,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     private CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
         CompilerConfiguration configuration = new CompilerConfiguration();
         configuration.setScriptBaseClass(scriptBaseClass.getName());
+        configuration.setTargetBytecode(CompilerConfiguration.JDK8);
         return configuration;
     }
 
@@ -267,8 +269,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
     }
 
-
-
     private static class ClassesDirCompiledScript<T extends Script, M> implements CompiledScript<T, M> {
         private final boolean isEmpty;
         private final boolean hasMethods;
@@ -338,7 +338,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
         private ClassLoaderScope prepareClassLoaderScope() {
             String scopeName = "groovy-dsl:" + source.getFileName() + ":" + scriptBaseClass.getSimpleName();
-            return targetScope.createLockedChild(scopeName, scriptClassPath, sourceHashCode, parent -> new ScriptClassLoader(source, parent, scriptClassPath, sourceHashCode));
+            ClassLoaderScopeOrigin origin = new ClassLoaderScopeOrigin.Script(source.getFileName(), source.getDisplayName());
+            return targetScope.createLockedChild(scopeName, origin, scriptClassPath, sourceHashCode, parent -> new ScriptClassLoader(source, parent, scriptClassPath, sourceHashCode));
         }
     }
 

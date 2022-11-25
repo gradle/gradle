@@ -38,7 +38,7 @@ import java.util.jar.JarFile
 class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "test captures script reference")
     fun `Kotlin chooses withType extension specialized to container type`() {
 
         withBuildScript(
@@ -148,7 +148,6 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-    @ToBeFixedForConfigurationCache(because = "Kotlin Gradle Plugin")
     fun `can use Gradle API generated extensions in buildSrc`() {
 
         withKotlinBuildSrc()
@@ -159,17 +158,23 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
             package foo
 
             import org.gradle.api.*
+            import org.gradle.api.model.*
             import org.gradle.api.tasks.*
 
             import org.gradle.kotlin.dsl.*
 
+            import javax.inject.Inject
+
             import org.apache.tools.ant.filters.ReplaceTokens
 
-            open class FooTask : DefaultTask() {
+            abstract class FooTask : DefaultTask() {
+
+                @get:Inject
+                abstract val objects: ObjectFactory
 
                 @TaskAction
                 fun foo() {
-                    project.container(Long::class)
+                    objects.domainObjectContainer(Long::class)
                 }
             }
             """

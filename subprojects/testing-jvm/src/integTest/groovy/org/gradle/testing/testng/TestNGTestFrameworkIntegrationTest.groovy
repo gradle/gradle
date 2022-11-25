@@ -31,9 +31,9 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
         file('src/test/java/SomeTest.java') << """
             public class SomeTest {
                 @org.testng.annotations.Test
-                public void ${failingTestCaseName}() { 
+                public void ${failingTestCaseName}() {
                     System.err.println("some error output");
-                    assert false : "test failure message"; 
+                    assert false : "test failure message";
                 }
                 @org.testng.annotations.Test
                 public void ${passingTestCaseName}() {}
@@ -101,7 +101,7 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
             public class DisabledTest {
                 @org.testng.annotations.Test(enabled = false)
                 public void testOne() {}
-                
+
                 @org.testng.annotations.Test(enabled = false)
                 public void testTwo() {}
             }
@@ -112,5 +112,29 @@ class TestNGTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegratio
 
         then:
         testResult.assertNoTestClassesExecuted()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18566")
+    def "can run tests with timeout and it reports a valid error"() {
+        given:
+        file('src/test/java/TestNG18566.java') << """
+            import org.testng.annotations.Test;
+
+            public class TestNG18566 {
+                @Test(timeOut = 10)
+                public void testTimeout() throws Exception {
+                    Thread.sleep(1000);
+                }
+            }
+        """
+
+        when:
+        fails'test'
+
+        then:
+        testResult.assertTestClassesExecuted("TestNG18566")
+        testResult.testClass('TestNG18566')
+            .assertTestCount(1, 1, 0)
+            .testFailed("testTimeout",  containsNormalizedString("Method TestNG18566.testTimeout() didn't finish within the time-out 10"))
     }
 }

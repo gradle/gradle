@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner
 
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.NoDebug
@@ -25,6 +26,7 @@ import org.gradle.util.TestPrecondition
 import static org.junit.Assume.assumeTrue
 
 @SuppressWarnings('IntegrationTestFixtures')
+@LocalOnly
 class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     def setup() {

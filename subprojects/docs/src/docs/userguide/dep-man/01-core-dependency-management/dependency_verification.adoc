@@ -294,7 +294,7 @@ For example, the following configuration would check both the `md5` and `sha1` c
 <component group="org.apache.pdfbox" name="pdfbox" version="2.0.17">
    <artifact name="pdfbox-2.0.17.jar">
       <md5 value="c713a8e252d0add65e9282b151adf6b4" origin="official site"/>
-      <sha1 value="b5c8dff799bd967c70ccae75e6972327ae640d35" origin="official site"/>
+      <sha1 value="b5c8dff799bd967c70ccae75e6972327ae640d35" origin="official site" reason="Additional check for this artifact"/>
    </artifact>
 </component>
 ----
@@ -570,6 +570,18 @@ If you use git and use the binary version, make sure to make it treat this file 
 ----
 *.gpg           binary
 ----
+
+====
+
+You can also ask Gradle to export all trusted keys without updating the verification metadata file:
+
+----
+./gradlew --export-keys
+----
+
+[NOTE]
+====
+This command disables signature verification, similar to `--write-verification-metadata`.
 ====
 
 [[sec:bootstrapping-signature-verification]]
@@ -906,7 +918,7 @@ You can trust all artifacts in a group by adding this to your configuration:
 <verification-metadata>
    <configuration>
       <trusted-artifacts>
-         <trust group="com.mycompany"/>
+         <trust group="com.mycompany" reason="We trust mycompany artifacts"/>
       </trusted-artifacts>
    </configuration>
 </verification-metadata>
@@ -922,6 +934,7 @@ The `trust` element accepts those attributes:
 - `version`, the version of the artifact to trust
 - `file`, the name of the artifact _file_ to trust
 - `regex`, a boolean saying if the `group`, `name`, `version` and `file` attributes need to be interpreted as regular expressions (defaults to `false`)
+- `reason`, an optional reason, why matched artifacts are trusted
 
 In the example above it means that the trusted artifacts would be artifacts in `com.mycompany` but not `com.mycompany.other`.
 To trust all artifacts in `com.mycompany` and all subgroups, you can use:
@@ -932,7 +945,7 @@ To trust all artifacts in `com.mycompany` and all subgroups, you can use:
 <verification-metadata>
    <configuration>
       <trusted-artifacts>
-         <trust group="^com[.]mycompany($|([.].*))" regex="true"/>
+         <trust group="^com[.]mycompany($|([.].*))" regex="true" reason="We trust all mycompany artifacts"/>
       </trusted-artifacts>
    </configuration>
 </verification-metadata>

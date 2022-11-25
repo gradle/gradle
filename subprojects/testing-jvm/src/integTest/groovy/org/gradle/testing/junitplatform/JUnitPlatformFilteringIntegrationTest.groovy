@@ -17,6 +17,9 @@
 package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import spock.lang.Issue
+
+import static org.gradle.testing.fixture.JUnitCoverage.LATEST_ARCHUNIT_VERSION
 
 class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec {
 
@@ -132,4 +135,131 @@ class JUnitPlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec
             .assertTestPassed('superTest')
     }
 
+    /**
+     * This test documents the status quo behavior of the test runner, where tests based on fields
+     * are not filtered by exclude patterns.  It might be desirable to change this behavior in the
+     * future to filter on field names directly; if this is done, this test should be replaced.
+     */
+    @Issue("https://github.com/gradle/gradle/issues/19352")
+    def 'does not exclude tests with a non-standard test source if filter matches nothing'() {
+        given:
+        buildFile << """
+            dependencies {
+                testImplementation 'com.tngtech.archunit:archunit-junit5:${LATEST_ARCHUNIT_VERSION}'
+            }
+
+            test {
+                filter {
+                    excludeTestsMatching "*notMatchingAnythingSoEverythingShouldBeRun"
+                }
+            }
+        """
+        file('src/test/java/DeclaresTestsAsFieldsNotMethodsTest.java') << '''
+            import com.tngtech.archunit.junit.AnalyzeClasses;
+            import com.tngtech.archunit.junit.ArchTest;
+            import com.tngtech.archunit.lang.ArchRule;
+
+            import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+
+            @AnalyzeClasses(packages = "example")
+            class DeclaresTestsAsFieldsNotMethodsTest {
+                // this will create a JUnit Platform TestDescriptor with neither a Class- nor a MethodSource
+                @ArchTest
+                static final ArchRule example = classes().should().bePublic();
+            }
+        '''
+
+        when:
+        succeeds('test')
+
+        then:
+        new DefaultTestExecutionResult(testDirectory)
+            .assertTestClassesExecuted('DeclaresTestsAsFieldsNotMethodsTest')
+            .testClass('DeclaresTestsAsFieldsNotMethodsTest')
+            .assertTestCount(1, 0, 0)
+            .assertTestPassed('example')
+    }
+
+    /**
+     * This test documents the status quo behavior of the test runner, where tests based on fields
+     * are not filtered by exclude patterns.  It might be desirable to change this behavior in the
+     * future to filter on field names directly; if this is done, this test should be replaced.
+     */
+    @Issue("https://github.com/gradle/gradle/issues/19352")
+    def 'does not exclude tests with a non-standard test source if filter matches field name'() {
+        given:
+        buildFile << """
+            dependencies {
+                testImplementation 'com.tngtech.archunit:archunit-junit5:${LATEST_ARCHUNIT_VERSION}'
+            }
+
+            test {
+                filter {
+                    excludeTestsMatching "*example"
+                }
+            }
+        """
+        file('src/test/java/DeclaresTestsAsFieldsNotMethodsTest.java') << '''
+            import com.tngtech.archunit.junit.AnalyzeClasses;
+            import com.tngtech.archunit.junit.ArchTest;
+            import com.tngtech.archunit.lang.ArchRule;
+
+            import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+
+            @AnalyzeClasses(packages = "example")
+            class DeclaresTestsAsFieldsNotMethodsTest {
+                // this will create a JUnit Platform TestDescriptor with neither a Class- nor a MethodSource
+                @ArchTest
+                static final ArchRule example = classes().should().bePublic();
+            }
+        '''
+
+        when:
+        succeeds('test')
+
+        then:
+        new DefaultTestExecutionResult(testDirectory)
+            .assertTestClassesExecuted('DeclaresTestsAsFieldsNotMethodsTest')
+            .testClass('DeclaresTestsAsFieldsNotMethodsTest')
+            .assertTestCount(1, 0, 0)
+            .assertTestPassed('example')
+    }
+
+    /**
+     * This test demonstrates the workaround for the inabilty to filter fields - we can
+     * filter based on containing class name.
+     */
+    @Issue("https://github.com/gradle/gradle/issues/19352")
+    def 'can filter tests with a non-standard test source using containing class name'() {
+        given:
+        buildFile << """
+            dependencies {
+                testImplementation 'com.tngtech.archunit:archunit-junit5:${LATEST_ARCHUNIT_VERSION}'
+            }
+
+            test {
+                filter {
+                    excludeTestsMatching "*DeclaresTestsAsFieldsNotMethodsTest"
+                }
+            }
+        """
+        file('src/test/java/DeclaresTestsAsFieldsNotMethodsTest.java') << '''
+            import com.tngtech.archunit.junit.AnalyzeClasses;
+            import com.tngtech.archunit.junit.ArchTest;
+            import com.tngtech.archunit.lang.ArchRule;
+
+            import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+
+            @AnalyzeClasses(packages = "example")
+            class DeclaresTestsAsFieldsNotMethodsTest {
+                // this will create a JUnit Platform TestDescriptor with neither a Class- nor a MethodSource
+                @ArchTest
+                static final ArchRule example = classes().should().bePublic();
+            }
+        '''
+
+        expect:
+        fails('test')
+        errorOutput.contains("No tests found for given includes")
+    }
 }

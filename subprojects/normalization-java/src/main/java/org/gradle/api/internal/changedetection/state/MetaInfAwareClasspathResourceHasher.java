@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
 import org.gradle.internal.fingerprint.hashing.ResourceHasher;
 import org.gradle.internal.fingerprint.hashing.ZipEntryContext;
@@ -26,13 +25,13 @@ import org.gradle.internal.hash.Hashing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.jar.Attributes;
@@ -41,64 +40,57 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.join;
 
-public class MetaInfAwareClasspathResourceHasher implements ResourceHasher {
+public class MetaInfAwareClasspathResourceHasher extends FallbackHandlingResourceHasher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MetaInfAwareClasspathResourceHasher.class);
 
-    private final ResourceHasher delegate;
     private final ResourceEntryFilter attributeResourceFilter;
 
     public MetaInfAwareClasspathResourceHasher(ResourceHasher delegate, ResourceEntryFilter attributeResourceFilter) {
-        this.delegate = delegate;
+        super(delegate);
         this.attributeResourceFilter = attributeResourceFilter;
     }
 
     @Override
     public void appendConfigurationToHasher(Hasher hasher) {
-        delegate.appendConfigurationToHasher(hasher);
+        super.appendConfigurationToHasher(hasher);
         hasher.putString(getClass().getName());
         attributeResourceFilter.appendConfigurationToHasher(hasher);
     }
 
-    @Nullable
     @Override
-    public HashCode hash(RegularFileSnapshotContext snapshotContext) throws IOException {
-        String relativePath = join("/", snapshotContext.getRelativePathSegments().get());
-        if (isManifestFile(relativePath)) {
-            return tryHashWithFallback(snapshotContext);
-        } else {
-            return delegate.hash(snapshotContext);
-        }
+    boolean filter(RegularFileSnapshotContext context) {
+        return isManifestFile(join("/", context.getRelativePathSegments().get()));
     }
 
-    @Nullable
     @Override
-    public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
-        ZipEntry zipEntry = zipEntryContext.getEntry();
-        if (isManifestFile(zipEntry.getName())) {
-            return tryHashWithFallback(zipEntryContext);
-        } else {
-            return delegate.hash(zipEntryContext);
-        }
+    boolean filter(ZipEntryContext context) {
+        return !context.getEntry().isDirectory() && isManifestFile(context.getEntry().getName());
     }
 
-    @Nullable
-    private HashCode tryHashWithFallback(RegularFileSnapshotContext snapshotContext) throws IOException {
-        try (FileInputStream manifestFileInputStream = new FileInputStream(snapshotContext.getSnapshot().getAbsolutePath())) {
-            return hashManifest(manifestFileInputStream);
-        } catch (IOException e) {
-            LOGGER.debug("Could not load fingerprint for " + snapshotContext.getSnapshot().getAbsolutePath() + ". Falling back to full entry fingerprinting", e);
-            return delegate.hash(snapshotContext);
-        }
+    @Override
+    Optional<HashCode> tryHash(RegularFileSnapshotContext snapshotContext) {
+        return Optional.of(snapshotContext)
+            .map(context -> {
+                try (FileInputStream manifestFileInputStream = new FileInputStream(context.getSnapshot().getAbsolutePath())) {
+                    return hashManifest(manifestFileInputStream);
+                } catch (IOException e) {
+                    LOGGER.debug("Could not load fingerprint for " + context.getSnapshot().getAbsolutePath() + ". Falling back to full entry fingerprinting", e);
+                    return null;
+                }
+            });
     }
 
-    @Nullable
-    private HashCode tryHashWithFallback(ZipEntryContext zipEntryContext) throws IOException {
-        try {
-            return zipEntryContext.getEntry().withInputStream(this::hashManifest);
-        } catch (IOException e) {
-            LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
-            return delegate.hash(zipEntryContext);
-        }
+    @Override
+    Optional<HashCode> tryHash(ZipEntryContext zipEntryContext) {
+        return Optional.of(zipEntryContext)
+            .map(context -> {
+                try {
+                    return zipEntryContext.getEntry().withInputStream(this::hashManifest);
+                } catch (IOException e) {
+                    LOGGER.debug("Could not load fingerprint for " + zipEntryContext.getRootParentName() + "!" + zipEntryContext.getFullName() + ". Falling back to full entry fingerprinting", e);
+                    return null;
+                }
+            });
     }
 
     private static boolean isManifestFile(final String name) {

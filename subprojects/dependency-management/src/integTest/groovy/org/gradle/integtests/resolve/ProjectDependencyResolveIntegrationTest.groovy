@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
@@ -185,7 +186,7 @@ project(":b") {
                     variant('runtime')
                     module('org.other:externalA:1.2') {
                         byReason('also check dependency reasons')
-                        variant('runtime', ['org.gradle.status': 'release', 'org.gradle.category':'library', 'org.gradle.usage':'java-runtime', 'org.gradle.libraryelements': 'jar'])
+                        variant('runtime', ['org.gradle.status': 'release', 'org.gradle.category': 'library', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar'])
                     }
                 }
             }
@@ -280,6 +281,7 @@ project(':b') {
         executedAndNotSkipped ":a:aJar", ":b:bJar"
     }
 
+    @UnsupportedWithConfigurationCache(because = "configure task changes jar task")
     def "resolved project artifact can be changed by configuration task"() {
         given:
         file('settings.gradle') << "include 'a'"
@@ -361,7 +363,6 @@ project(":b") {
         executedAndNotSkipped ":a:yJar"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports project dependency that refers to an unknown artifact"() {
         given:
         file('settings.gradle') << """
@@ -392,7 +393,7 @@ project(":b") {
         fails ':b:test'
 
         and:
-        failure.assertHasCause("Could not resolve all files for configuration ':b:compile'.")
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':b:compile'.")
         failure.assertHasCause("Could not find b.jar (project :a).")
     }
 

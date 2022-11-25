@@ -17,7 +17,6 @@ package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Console;
@@ -38,7 +37,7 @@ import java.util.Map;
 /**
  * Compilation options to be passed to the Groovy compiler.
  */
-public class GroovyCompileOptions extends AbstractOptions {
+public abstract class GroovyCompileOptions extends AbstractOptions {
     private static final long serialVersionUID = 0;
 
     private boolean failOnError = true;
@@ -55,7 +54,7 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     private List<String> fileExtensions = ImmutableList.of("java", "groovy");
 
-    private GroovyForkOptions forkOptions = new GroovyForkOptions();
+    private GroovyForkOptions forkOptions = getObjectFactory().newInstance(GroovyForkOptions.class);
 
     private Map<String, Boolean> optimizationOptions = Maps.newHashMap();
 
@@ -300,7 +299,6 @@ public class GroovyCompileOptions extends AbstractOptions {
      * @see <a href="https://docs.groovy-lang.org/latest/html/api/org/codehaus/groovy/control/CompilerConfiguration.html#setDisabledGlobalASTTransformations(java.util.Set)">CompilerConfiguration</a>
      * @since 7.4
      */
-    @Incubating
     @Input
     public SetProperty<String> getDisabledGlobalASTTransformations() {
         return disabledGlobalASTTransformations;

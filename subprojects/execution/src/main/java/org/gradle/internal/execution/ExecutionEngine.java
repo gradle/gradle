@@ -20,13 +20,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.cache.Cache;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork.Identity;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterExecutionState;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 public interface ExecutionEngine {
     Request createRequest(UnitOfWork work);
@@ -50,24 +51,17 @@ public interface ExecutionEngine {
         Result execute();
 
         /**
-         * Use an identity cache to store execution results.
-         */
-        <O> CachedRequest<O> withIdentityCache(Cache<Identity, Try<O>> cache);
-    }
-
-    interface CachedRequest<O> {
-        /**
          * Load the unit of work from the given cache, or defer its execution.
          *
-         * If the cache already contains the outputs for the given work, it is passed directly to {@link DeferredExecutionHandler#processCachedOutput(Try)}.
-         * Otherwise the execution is wrapped in deferred via {@link DeferredExecutionHandler#processDeferredOutput(Supplier)}.
+         * If the cache already contains the outputs for the given work, an already finished {@link Deferrable} will be returned.
+         * Otherwise, the execution is wrapped in a not-yet-complete {@link Deferrable} to be evaluated later.
          * The work is looked up by its {@link UnitOfWork.Identity identity} in the given cache.
          */
-        <T> T getOrDeferExecution(DeferredExecutionHandler<O, T> handler);
+        <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, Try<T>> cache);
     }
 
     interface Result {
-        Try<ExecutionResult> getExecutionResult();
+        Try<Execution> getExecution();
 
         CachingState getCachingState();
 
@@ -87,5 +81,54 @@ public interface ExecutionEngine {
          */
         @VisibleForTesting
         Optional<AfterExecutionState> getAfterExecutionState();
+    }
+
+    // TOOD Make this a class
+    interface Execution {
+        /**
+         * Get how the outputs have been produced.
+         */
+        ExecutionOutcome getOutcome();
+
+        /**
+         * Get the object representing the produced output.
+         * The type of value returned here depends on the {@link UnitOfWork} implmenetation.
+         */
+        // TODO Parametrize UnitOfWork with this generated result
+        @Nullable
+        Object getOutput();
+    }
+
+    /**
+     * The way the outputs have been produced.
+     */
+    enum ExecutionOutcome {
+        /**
+         * The outputs haven't been changed, because the work is already up-to-date
+         * (i.e. its inputs and outputs match that of the previous execution in the
+         * same workspace).
+         */
+        UP_TO_DATE,
+
+        /**
+         * The outputs of the work have been loaded from the build cache.
+         */
+        FROM_CACHE,
+
+        /**
+         * Executing the work was not necessary to produce the outputs.
+         * This is usually due to the work having no inputs to process.
+         */
+        SHORT_CIRCUITED,
+
+        /**
+         * The work has been executed with information about the changes that happened since the previous execution.
+         */
+        EXECUTED_INCREMENTALLY,
+
+        /**
+         * The work has been executed with no incremental change information.
+         */
+        EXECUTED_NON_INCREMENTALLY
     }
 }

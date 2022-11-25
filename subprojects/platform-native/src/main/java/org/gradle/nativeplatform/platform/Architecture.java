@@ -21,7 +21,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A cpu architecture.
+ * A CPU architecture.
  *
  * <table>
  *     <tr>
@@ -52,7 +52,7 @@ import org.gradle.internal.HasInternalProtocol;
  *     <tr>
  *         <td>ARM</td>
  *         <td>"arm", "arm-v7", "armv7", "arm32"</td>
- *         <td>"arm64", "arm-v8"</td>
+ *         <td>"aarch64", "arm64", "arm-v8"</td>
  *     </tr>
  * </table>
  */

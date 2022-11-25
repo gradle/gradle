@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.AbstractHttpCrossVersionSpec
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.Flaky
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.OperationType
@@ -27,6 +28,7 @@ import org.gradle.tooling.events.OperationType
 @ToolingApiVersion(">=7.3")
 @TargetGradleVersion(">=7.3")
 class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHttpCrossVersionSpec {
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3638")
     def "generates typed events for downloads during dependency resolution"() {
         def modules = setupBuildWithArtifactDownloadDuringConfiguration()
         modules.useLargeJars()

@@ -16,9 +16,9 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 
 import java.util.function.Function;
@@ -40,7 +40,7 @@ public interface JvmLanguageSourceDirectoryBuilder {
      * Tells how to compile this source directory set.
      * @param taskBuilder the builder for the task which compiles sources
      */
-    JvmLanguageSourceDirectoryBuilder compiledBy(Action<? super CompileTaskDetails> taskBuilder);
+    JvmLanguageSourceDirectoryBuilder compiledBy(Function<DirectoryProperty, TaskProvider<? extends AbstractCompile>> taskBuilder);
 
     /**
      * Assumes that this source set will contain Java sources and therefore creates a Java
@@ -54,26 +54,4 @@ public interface JvmLanguageSourceDirectoryBuilder {
      * Includes this source directory in the "allJava" source set
      */
     JvmLanguageSourceDirectoryBuilder includeInAllJava();
-
-    /**
-     * A builder for compilation tasks.
-     */
-    interface CompileTaskDetails {
-        /**
-         * Returns the source directory of the compile task: this is the directory
-         * registered automatically by Gradle when constructing the source directory set.
-         */
-        DirectoryProperty getSourceDirectory();
-
-        /**
-         * Sets the compile task for this source directory. You must also set the
-         * directory provider for the generated classes (it's expected that this output
-         * directory property is found on the task itself, for example {@link JavaCompile#getDestinationDirectory()}.
-         *
-         * @param task a compilation task
-         * @param mapping the mapping from the task to its classes output directory
-         * @param <T> the type of the compile task
-         */
-        <T extends Task> void setCompileTask(TaskProvider<? extends Task> task, Function<T, DirectoryProperty> mapping);
-    }
 }

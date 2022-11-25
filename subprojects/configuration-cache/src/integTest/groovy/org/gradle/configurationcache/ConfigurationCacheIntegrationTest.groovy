@@ -18,12 +18,87 @@ package org.gradle.configurationcache
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.initialization.BuildIdentifiedProgressDetails
+import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.initialization.LoadProjectsBuildOperationType
+import org.gradle.initialization.ProjectsIdentifiedProgressDetails
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import spock.lang.Issue
 
 class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    def "configuration cache for Help plugin task '#task' on empty project"() {
+        given:
+        settingsFile.createFile()
+        configurationCacheRun(task, *options)
+        def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
+            .replaceAll(/Calculating task graph as no configuration cache is available for tasks: ${task}.*\n/, '')
+            .replaceAll(/Configuration cache entry stored.\n/, '')
+
+        when:
+        configurationCacheRun(task, *options)
+        def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
+            .replaceAll(/Reusing configuration cache.\n/, '')
+            .replaceAll(/Configuration cache entry reused.\n/, '')
+
+        then:
+        firstRunOutput == secondRunOutput
+
+        where:
+        task           | options
+        "help"         | []
+        "properties"   | []
+        "dependencies" | []
+        "help"         | ["--task", "help"]
+        "help"         | ["--rerun"]
+    }
+
+    def "can store task selection success/failure for :help --task"() {
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile.text = """
+        task aTask
+        """
+        when:
+        configurationCacheFails "help", "--task", "bTask"
+        then:
+        failure.assertHasCause("Task 'bTask' not found in root project")
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheFails "help", "--task", "cTask"
+        then:
+        failure.assertHasCause("Task 'cTask' not found in root project")
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheFails "help", "--task", "bTask"
+        then:
+        failure.assertHasCause("Task 'bTask' not found in root project")
+        configurationCache.assertStateLoaded()
+
+        when:
+        configurationCacheRun "help", "--task", "aTask"
+        then:
+        output.contains "Detailed task information for aTask"
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheFails "help", "--task", "cTask"
+        then:
+        failure.assertHasCause("Task 'cTask' not found in root project")
+        configurationCache.assertStateLoaded()
+
+        when:
+        buildFile << """
+        task bTask
+        """
+        configurationCacheRun "help", "--task", "bTask"
+        then:
+        output.contains "Detailed task information for bTask"
+        configurationCache.assertStateStored()
+    }
 
     @Issue("https://github.com/gradle/gradle/issues/18064")
     def "can build plugin with project dependencies"() {
@@ -99,22 +174,22 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         "jar.get().archiveFile"          | _
     }
 
-    def "configuration cache for help on empty project"() {
+    @Issue("gradle/gradle#20390")
+    def "can deserialize copy task with rename"() {
         given:
-        settingsFile.createFile()
-        configurationCacheRun "help"
-        def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
-            .replaceAll(/Calculating task graph as no configuration cache is available for tasks: help\n/, '')
-            .replaceAll(/Configuration cache entry stored.\n/, '')
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            tasks.register('copyAndRename', Copy) {
+                from('foo') { rename { 'bar' } }
+            }
+        """
 
         when:
-        configurationCacheRun "help"
-        def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
-            .replaceAll(/Reusing configuration cache.\n/, '')
-            .replaceAll(/Configuration cache entry reused.\n/, '')
+        configurationCacheRun "copyAndRename"
+        configurationCacheRun "copyAndRename"
 
         then:
-        firstRunOutput == secondRunOutput
+        configurationCache.assertStateLoaded()
     }
 
     private static String removeVfsLogOutput(String normalizedOutput) {
@@ -144,9 +219,11 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         outputContains("Recreating configuration cache")
     }
 
-    def "restores some details of the project structure"() {
+    def "restores some details of the project structure"(List<String> tasks) {
         def fixture = new BuildOperationsFixture(executer, temporaryFolder)
-
+        executer.beforeExecute {
+            withArgument("-Dorg.gradle.configuration-cache.internal.load-after-store=true")
+        }
         settingsFile << """
             rootProject.name = 'thing'
             include 'a', 'b', 'c'
@@ -160,73 +237,216 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         """
 
         when:
-        configurationCacheRun "help"
+        configurationCacheRun(tasks as String[])
 
         then:
-        def event = fixture.first(LoadProjectsBuildOperationType)
-        event.result.rootProject.name == 'thing'
-        event.result.rootProject.path == ':'
-        event.result.rootProject.children.size() == 3 // All projects are created when storing
+        with(fixture.only(LoadBuildBuildOperationType)) {
+            it.details.buildPath == ":"
+        }
+        with(fixture.only(LoadProjectsBuildOperationType)) {
+            result.rootProject.name == 'thing'
+            result.rootProject.path == ':'
+            result.rootProject.children.size() == 3 // All projects are created when storing
+            with(result.rootProject.children.first() as Map<String, Object>) {
+                name == 'a'
+                path == ':a'
+                projectDir == file('a').absolutePath
+                with(children.first()) {
+                    name == 'b'
+                    path == ':a:b'
+                    projectDir == file('custom').absolutePath
+                    children.empty
+                }
+            }
+        }
+        with(fixture.progress(BuildIdentifiedProgressDetails)) {
+            size() == 1
+            first().details.buildPath == ":"
+        }
+        with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
+            size() == 1
+            with(first()) {
+                details.rootProject.name == 'thing'
+                details.rootProject.path == ':'
+                details.rootProject.projectDir == testDirectory.absolutePath
+                details.rootProject.children.size() == 3
+                with(details.rootProject.children.first() as Map<String, Object>) {
+                    name == 'a'
+                    path == ':a'
+                    projectDir == file('a').absolutePath
+                    with(children.first()) {
+                        name == 'b'
+                        path == ':a:b'
+                        projectDir == file('custom').absolutePath
+                        children.empty
+                    }
+                }
+            }
+        }
 
         when:
-        configurationCacheRun "help"
+        configurationCacheRun(tasks as String[])
 
         then:
-        def event2 = fixture.first(LoadProjectsBuildOperationType)
-        event2.result.rootProject.name == 'thing'
-        event2.result.rootProject.path == ':'
-        event2.result.rootProject.projectDir == testDirectory.absolutePath
-        event2.result.rootProject.children.empty // None of the child projects are created when loading, as they have no tasks scheduled
+        fixture.none(LoadBuildBuildOperationType)
+        fixture.none(LoadProjectsBuildOperationType)
+        with(fixture.progress(BuildIdentifiedProgressDetails)) {
+            size() == 1
+            first().details.buildPath == ":"
+        }
+        with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
+            size() == 1
+            with(first()) {
+                details.rootProject.name == 'thing'
+                details.rootProject.path == ':'
+                details.rootProject.projectDir == testDirectory.absolutePath
+
+                // TODO The following demonstrates that this event currently only conveys the “used” part of the project structure.
+                // This needs to be updated to convey the entirety of the structure.
+
+                if (tasks == [":help"]) {
+                    assert details.rootProject.children.empty
+                }
+                if (tasks == [":a:thing"]) {
+                    assert details.rootProject.children.size() == 1
+                    with(details.rootProject.children.first() as Map<String, Object>) {
+                        name == 'a'
+                        path == ':a'
+                        projectDir == file('a').absolutePath
+                        children.empty
+                    }
+                }
+                if (tasks == [":a:b:thing"]) {
+                    assert details.rootProject.children.size() == 1
+                    with(details.rootProject.children.first() as Map<String, Object>) {
+                        name == 'a'
+                        path == ':a'
+                        projectDir == file('a').absolutePath
+                        children.size() == 1
+                        with(children.first() as Map<String, Object>) {
+                            name == 'b'
+                            path == ':a:b'
+                            projectDir == file('custom').absolutePath
+                        }
+                    }
+                }
+            }
+        }
+
+        where:
+        tasks << [
+            ["help"],
+            [":a:thing"],
+            [":a:b:thing"],
+        ]
+    }
+
+    def "restores some details of the project structure of included build"(String task) {
+        def fixture = new BuildOperationsFixture(executer, temporaryFolder)
+        executer.beforeExecute {
+            withArgument("-Dorg.gradle.configuration-cache.internal.load-after-store=true")
+        }
+
+
+        createDir("include") {
+            dir("inner-include") {
+                file("settings.gradle") << """
+                    rootProject.name = "inner-include"
+                    include "child"
+                    gradle.allprojects {
+                        task thing
+                    }
+                """
+            }
+            file("settings.gradle") << """
+                rootProject.name = "include"
+                includeBuild "inner-include"
+                include "child"
+                gradle.allprojects {
+                    task thing
+                }
+            """
+        }
+        settingsFile << """
+            rootProject.name = 'thing'
+            includeBuild "include"
+            include "child"
+            gradle.allprojects {
+                task thing
+            }
+        """
 
         when:
-        configurationCacheRun ":a:thing"
+        configurationCacheRun(task)
 
         then:
-        def event3 = fixture.first(LoadProjectsBuildOperationType)
-        event3.result.rootProject.name == 'thing'
-        event3.result.rootProject.children.size() == 3 // All projects are created when storing
+        with(fixture.all(LoadBuildBuildOperationType)) {
+            size() == 3
+            it.find { it.details.buildPath == ":" }
+            it.find { it.details.buildPath == ":include" }
+            it.find { it.details.buildPath == ":inner-include" }
+        }
+        with(fixture.all(LoadProjectsBuildOperationType)) {
+            size() == 3
+            it.find { it.details.buildPath == ":" }
+            it.find { it.details.buildPath == ":include" }
+            it.find { it.details.buildPath == ":inner-include" }
+        }
+        with(fixture.progress(BuildIdentifiedProgressDetails)) {
+            size() == 3
+            it.find { it.details.buildPath == ":" }
+            it.find { it.details.buildPath == ":include" }
+            it.find { it.details.buildPath == ":inner-include" }
+        }
+        with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
+            size() == 3
+            with(it.find { it.details.buildPath == ":" }) {
+                details.rootProject.children.size() == 1
+            }
+            with(it.find { it.details.buildPath == ":include" }) {
+                details.rootProject.children.size() == 1
+            }
+            with(it.find { it.details.buildPath == ":inner-include" }) {
+                details.rootProject.children.size() == 1
+            }
+        }
 
         when:
-        configurationCacheRun ":a:thing"
+        configurationCacheRun(task)
 
         then:
-        def event4 = fixture.first(LoadProjectsBuildOperationType)
-        event4.result.rootProject.name == 'thing'
-        event4.result.rootProject.path == ':'
-        event4.result.rootProject.projectDir == testDirectory.absolutePath
-        event4.result.rootProject.children.size() == 1 // Only project a is created when loading
-        def project1 = event4.result.rootProject.children.first()
-        project1.name == 'a'
-        project1.path == ':a'
-        project1.projectDir == file('a').absolutePath
-        project1.children.empty
+        fixture.none(LoadBuildBuildOperationType)
+        fixture.none(LoadProjectsBuildOperationType)
+        with(fixture.progress(BuildIdentifiedProgressDetails)) {
+            size() == 3
+            it.find { it.details.buildPath == ":" }
+            it.find { it.details.buildPath == ":include" }
+            it.find { it.details.buildPath == ":inner-include" }
+        }
+        // TODO The following demonstrates that this event currently only conveys the “used” part of the project structure.
+        // This needs to be updated to convey the entirety of the structure.
+        with(fixture.progress(ProjectsIdentifiedProgressDetails)) {
+            size() == 3
+            with(it.find { it.details.buildPath == ":" }) {
+                details.rootProject.children.size() == (task in [":child:thing"] ? 1 : 0)
+            }
+            with(it.find { it.details.buildPath == ":include" }) {
+                details.rootProject.children.size() == (task in [":include:child:thing"] ? 1 : 0)
+            }
+            with(it.find { it.details.buildPath == ":inner-include" }) {
+                details.rootProject.children.size() == (task in [":inner-include:child:thing"] ? 1 : 0)
+            }
+        }
 
-        when:
-        configurationCacheRun ":a:b:thing"
-
-        then:
-        def event5 = fixture.first(LoadProjectsBuildOperationType)
-        event5.result.rootProject.name == 'thing'
-        event5.result.rootProject.children.size() == 3 // All projects are created when storing
-
-        when:
-        configurationCacheRun ":a:b:thing"
-
-        then:
-        def event6 = fixture.first(LoadProjectsBuildOperationType)
-        event6.result.rootProject.name == 'thing'
-        event6.result.rootProject.path == ':'
-        event6.result.rootProject.projectDir == testDirectory.absolutePath
-        event6.result.rootProject.children.size() == 1
-        def project3 = event6.result.rootProject.children.first()
-        project3.name == 'a'
-        project3.path == ':a'
-        project3.projectDir == file('a').absolutePath
-        project3.children.size() == 1
-        def project4 = project3.children.first()
-        project4.name == 'b'
-        project4.path == ':a:b'
-        project4.projectDir == file('custom').absolutePath
+        where:
+        task << [
+            ":thing",
+            ":child:thing",
+            ":include:thing",
+            ":include:child:thing",
+            ":inner-include:thing",
+            ":inner-include:child:thing",
+        ]
     }
 
     def "does not configure build when task graph is already cached for requested tasks"() {
@@ -336,5 +556,32 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         then:
         outputContains("value = value")
+    }
+
+    def "can init two projects in a row"() {
+        def configurationCache = new ConfigurationCacheFixture(this)
+        when:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        configurationCacheRun "init", "--dsl", "groovy", "--type", "basic"
+
+        then:
+        outputContains("> Task :init")
+        configurationCache.assertStateStoredAndDiscarded {
+            assert totalProblems == 0
+        }
+        succeeds 'properties'
+        def projectName1 = testDirectory.name
+        outputContains("name: ${projectName1}")
+
+        when:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        configurationCacheRun "init", "--dsl", "groovy", "--type", "basic"
+
+        then:
+        outputContains("> Task :init")
+        succeeds 'properties'
+        def projectName2 = testDirectory.name
+        outputContains("name: ${projectName2}")
+        projectName1 != projectName2
     }
 }

@@ -19,24 +19,37 @@ package org.gradle.internal.serialize;
 import com.google.common.base.Objects;
 import org.gradle.internal.Cast;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
+/**
+ * Default implementation of {@link SerializerRegistry}.
+ *
+ * This class must be thread-safe because multiple tasks may be registering serializable classes concurrently, while other tasks are calling {@link #build(Class)}.
+ */
+@ThreadSafe
 public class DefaultSerializerRegistry implements SerializerRegistry {
-    private final Map<Class<?>, Serializer<?>> serializerMap = new TreeMap<Class<?>, Serializer<?>>(new Comparator<Class<?>>() {
+    private static final Comparator<Class<?>> CLASS_COMPARATOR = new Comparator<Class<?>>() {
         @Override
         public int compare(Class<?> o1, Class<?> o2) {
             return o1.getName().compareTo(o2.getName());
         }
-    });
-    private final Set<Class<?>> javaSerialization = new HashSet<Class<?>>();
+    };
+    private final Map<Class<?>, Serializer<?>> serializerMap = new ConcurrentSkipListMap<Class<?>, Serializer<?>>(CLASS_COMPARATOR);
+
+    // We are using a ConcurrentHashMap here because:
+    //   - We don't want to use a Set with CLASS_COMPARATOR, since that would treat two classes with the same name originating from different classloaders as identical, allowing only one in the Set.
+    //   - ConcurrentHashMap.newKeySet() isn't available on Java 6, yet, and that is where this code needs to run.
+    //   - CopyOnWriteArraySet has slower insert performance, since it is not hash based.
+    private final Map<Class<?>, Boolean> javaSerialization = new ConcurrentHashMap<Class<?>, Boolean>();
     private final SerializerClassMatcherStrategy classMatcher;
 
     public DefaultSerializerRegistry() {
@@ -54,7 +67,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
 
     @Override
     public <T> void useJavaSerialization(Class<T> implementationType) {
-        javaSerialization.add(implementationType);
+        javaSerialization.put(implementationType, Boolean.TRUE);
     }
 
     @Override
@@ -64,7 +77,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
                 return true;
             }
         }
-        for (Class<?> candidate : javaSerialization) {
+        for (Class<?> candidate : javaSerialization.keySet()) {
             if (classMatcher.matches(baseType, candidate)) {
                 return true;
             }
@@ -81,7 +94,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
             }
         }
         Set<Class<?>> matchingJavaSerialization = new LinkedHashSet<Class<?>>();
-        for (Class<?> candidate : javaSerialization) {
+        for (Class<?> candidate : javaSerialization.keySet()) {
             if (baseType.isAssignableFrom(candidate)) {
                 matchingJavaSerialization.add(candidate);
             }

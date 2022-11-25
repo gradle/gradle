@@ -17,8 +17,6 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.collect.Iterables;
-import org.gradle.api.execution.internal.DefaultTaskInputsListeners;
-import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultClassPathProvider;
@@ -38,6 +36,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.model.ObjectFactory;
@@ -67,8 +66,6 @@ import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector;
-import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
-import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
@@ -76,14 +73,12 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
+import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.DirectInstantiator;
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
@@ -142,10 +137,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         registration.add(DefaultScriptFileResolver.class);
     }
 
-    ResourceLockCoordinationService createWorkerLeaseCoordinationService() {
-        return new DefaultResourceLockCoordinationService();
-    }
-
     CurrentBuildOperationRef createCurrentBuildOperationRef() {
         return CurrentBuildOperationRef.instance();
     }
@@ -154,12 +145,12 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultBuildOperationListenerManager();
     }
 
-    BuildOperationProgressEventEmitter createBuildOperationProgressEventEmitter(
+    protected BuildOperationProgressEventEmitter createBuildOperationProgressEventEmitter(
         Clock clock,
         CurrentBuildOperationRef currentBuildOperationRef,
         BuildOperationListenerManager listenerManager
     ) {
-        return new BuildOperationProgressEventEmitter(
+        return new DefaultBuildOperationProgressEventEmitter(
             clock,
             currentBuildOperationRef,
             listenerManager.getBroadcaster()
@@ -221,10 +212,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultImportsReader();
     }
 
-    FileWatcherFactory createFileWatcherFactory(ExecutorFactory executorFactory, FileSystem fileSystem) {
-        return new DefaultFileWatcherFactory(executorFactory, fileSystem);
-    }
-
     StringInterner createStringInterner() {
         return new StringInterner();
     }
@@ -251,7 +238,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     ObjectFactory createObjectFactory(
         InstantiatorFactory instantiatorFactory, ServiceRegistry services, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
-        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory,
+        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
         DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
     ) {
         return new DefaultObjectFactory(
@@ -261,16 +248,13 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
             patternSetFactory,
             propertyFactory,
             filePropertyFactory,
+            taskDependencyFactory,
             fileCollectionFactory,
             domainObjectCollectionFactory);
     }
 
     DomainObjectCollectionFactory createDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
         return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity());
-    }
-
-    TaskInputsListeners createTaskInputsListener(ListenerManager listenerManager) {
-        return new DefaultTaskInputsListeners(listenerManager);
     }
 
     @Override

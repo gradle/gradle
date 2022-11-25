@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
+import org.gradle.internal.properties.StaticValue;
+
 public interface TaskPropertyRegistration {
     String getPropertyName();
     StaticValue getValue();

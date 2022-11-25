@@ -17,17 +17,25 @@
 package org.gradle.caching.internal.controller
 
 import org.gradle.api.Action
+import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheKey
 import org.gradle.caching.BuildCacheService
+import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration
+import org.gradle.caching.internal.origin.OriginMetadataFactory
+import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
 import org.gradle.caching.local.internal.LocalBuildCacheService
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import spock.lang.Specification
 import org.junit.Rule
+import spock.lang.Specification
+
+import java.time.Duration
 
 class DefaultBuildCacheControllerTest extends Specification {
 
@@ -35,6 +43,11 @@ class DefaultBuildCacheControllerTest extends Specification {
         getHashCode() >> "key"
         toString() >> "key"
     }
+
+    CacheableEntity cacheableEntity = Stub(CacheableEntity)
+    Duration executionTime = Duration.ofMillis(123)
+    Map<String, FileSystemSnapshot> snapshots = [:]
+
 
     def local = Mock(Local) {
         withTempFile(_ as BuildCacheKey, _ as Action) >> { key, action ->
@@ -45,37 +58,10 @@ class DefaultBuildCacheControllerTest extends Specification {
     def remote = Mock(BuildCacheService)
     def remotePush = true
     def loadmetadata = Mock(Object)
-
-    def storeCommand = Stub(BuildCacheStoreCommand) {
-        getKey() >> key
-        store(_ as OutputStream) >> { OutputStream output ->
-            output.close()
-            new BuildCacheStoreCommand.Result() {
-                @Override
-                long getArtifactEntryCount() {
-                    return 0
-                }
-            }
-        }
-    }
-
-    def loadCommand = Stub(BuildCacheLoadCommand) {
-        getKey() >> key
-        load(_ as InputStream) >> { InputStream input ->
-            input.close()
-            new BuildCacheLoadCommand.Result() {
-                @Override
-                long getArtifactEntryCount() {
-                    return 0
-                }
-
-                @Override
-                Object getMetadata() {
-                    return loadmetadata
-                }
-            }
-        }
-    }
+    FileSystemAccess fileSystemAccess = Stub(FileSystemAccess)
+    BuildCacheEntryPacker packer = Stub(BuildCacheEntryPacker)
+    OriginMetadataFactory originMetadataFactory = Stub(OriginMetadataFactory)
+    StringInterner stringInterner = Stub(StringInterner)
 
     def operations = new TestBuildOperationExecutor()
 
@@ -96,7 +82,11 @@ class DefaultBuildCacheControllerTest extends Specification {
             TestFiles.tmpDirTemporaryFileProvider(tmpDir.root),
             false,
             false,
-            disableRemoteOnError
+            disableRemoteOnError,
+            fileSystemAccess,
+            packer,
+            originMetadataFactory,
+            stringInterner
         )
     }
 
@@ -105,7 +95,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         1 * remote.load(key, _) >> { throw new RuntimeException() }
 
         when:
-        controller.load(loadCommand)
+        controller.load(key, cacheableEntity)
 
         then:
         1 * local.loadLocally(key, _)
@@ -117,7 +107,9 @@ class DefaultBuildCacheControllerTest extends Specification {
         1 * remote.store(key, _) >> { throw new RuntimeException() }
 
         when:
-        controller.store(storeCommand)
+        controller.store(key, cacheableEntity, snapshots, executionTime)
+
+        then:
 
         then:
         noExceptionThrown()
@@ -131,7 +123,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         localPush = false
 
         when:
-        controller.store(storeCommand)
+        controller.store(key, cacheableEntity, snapshots, executionTime)
 
         then:
         0 * local.storeLocally(key, _)
@@ -142,7 +134,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         local = null
 
         when:
-        controller.store(storeCommand)
+        controller.store(key, cacheableEntity, snapshots, executionTime)
 
         then:
         0 * local.store(key, _)
@@ -157,7 +149,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         }
 
         when:
-        controller.load(loadCommand)
+        controller.load(key, cacheableEntity)
 
         then:
         0 * local.storeLocally(key, _)
@@ -172,7 +164,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         }
 
         when:
-        controller.load(loadCommand)
+        controller.load(key, cacheableEntity)
 
         then:
         1 * local.storeLocally(key, _)
@@ -187,7 +179,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         }
 
         when:
-        controller.load(loadCommand)
+        controller.load(key, cacheableEntity)
 
         then:
         noExceptionThrown()
@@ -203,7 +195,7 @@ class DefaultBuildCacheControllerTest extends Specification {
         }
 
         when:
-        controller.load(loadCommand)
+        controller.load(key, cacheableEntity)
 
         then:
         0 * local.storeLocally(key, _)
@@ -214,9 +206,9 @@ class DefaultBuildCacheControllerTest extends Specification {
 
         when:
         def controller = getController()
-        controller.load(loadCommand)
-        controller.load(loadCommand)
-        controller.store(storeCommand)
+        controller.load(key, cacheableEntity)
+        controller.load(key, cacheableEntity)
+        controller.store(key, cacheableEntity, snapshots, executionTime)
 
         then:
         1 * remote.load(key, _) >> { throw new RuntimeException() }
@@ -229,9 +221,9 @@ class DefaultBuildCacheControllerTest extends Specification {
 
         when:
         def controller = getController()
-        controller.store(storeCommand)
-        controller.store(storeCommand)
-        controller.load(loadCommand)
+        controller.store(key, cacheableEntity, snapshots, executionTime)
+        controller.store(key, cacheableEntity, snapshots, executionTime)
+        controller.load(key, cacheableEntity)
 
         then:
         1 * remote.store(key, _) >> { BuildCacheKey key, BuildCacheEntryWriter writer ->
@@ -246,9 +238,9 @@ class DefaultBuildCacheControllerTest extends Specification {
 
         when:
         def controller = getController(false)
-        controller.load(loadCommand)
-        controller.load(loadCommand)
-        controller.store(storeCommand)
+        controller.load(key, cacheableEntity)
+        controller.load(key, cacheableEntity)
+        controller.store(key, cacheableEntity, snapshots, executionTime)
 
         then:
         1 * remote.load(key, _) >> { throw new RuntimeException() }
@@ -261,9 +253,9 @@ class DefaultBuildCacheControllerTest extends Specification {
 
         when:
         def controller = getController(false)
-        controller.store(storeCommand)
-        controller.store(storeCommand)
-        controller.load(loadCommand)
+        controller.store(key, cacheableEntity, snapshots, executionTime)
+        controller.store(key, cacheableEntity, snapshots, executionTime)
+        controller.load(key, cacheableEntity)
 
         then:
         1 * remote.store(key, _) >> { BuildCacheKey key, BuildCacheEntryWriter writer ->

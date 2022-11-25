@@ -32,6 +32,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -48,7 +49,7 @@ import java.util.concurrent.Callable;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/distribution_plugin.html">Distribution plugin reference</a>
  */
-public class DistributionPlugin implements Plugin<Project> {
+public abstract class DistributionPlugin implements Plugin<Project> {
     /**
      * Name of the main distribution
      */
@@ -120,6 +121,7 @@ public class DistributionPlugin implements Plugin<Project> {
             task.setDescription("Bundles the project as a distribution.");
             task.setGroup(DISTRIBUTION_GROUP);
             task.getArchiveBaseName().convention(distribution.getDistributionBaseName());
+            task.getArchiveClassifier().convention(distribution.getDistributionClassifier());
 
             final CopySpec childSpec = project.copySpec();
             childSpec.with(distribution.getContents());
@@ -127,7 +129,7 @@ public class DistributionPlugin implements Plugin<Project> {
             task.with(childSpec);
         });
 
-        PublishArtifact archiveArtifact = new LazyPublishArtifact(archiveTask, ((ProjectInternal) project).getFileResolver());
+        PublishArtifact archiveArtifact = new LazyPublishArtifact(archiveTask, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(archiveArtifact);
     }
 
@@ -136,7 +138,12 @@ public class DistributionPlugin implements Plugin<Project> {
             installTask.setDescription("Installs the project as a distribution as-is.");
             installTask.setGroup(DISTRIBUTION_GROUP);
             installTask.with(distribution.getContents());
-            installTask.into(project.getLayout().getBuildDirectory().dir(distribution.getDistributionBaseName().map(baseName -> "install/" + baseName)));
+            final Provider<String> installDirectoryName = project.provider(() -> {
+                String baseName = distribution.getDistributionBaseName().get();
+                String classifier = distribution.getDistributionClassifier().getOrNull();
+                return "install/" + baseName + (classifier != null ? "-" + classifier : "");
+            });
+            installTask.into(project.getLayout().getBuildDirectory().dir(installDirectoryName));
         });
     }
 

@@ -35,7 +35,7 @@ class ContinuousIntegrationTestFixtureTest extends Specification {
 
 BUILD SUCCESSFUL in 1s
 
-Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
+Waiting for changes to input files... (ctrl-d then enter to exit)
 '''
         when:
         sampleTest.succeeds("sometask")
@@ -73,7 +73,7 @@ BUILD FAILED in 0s
 
 BUILD SUCCESSFUL in 1s
 
-Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
+Waiting for changes to input files... (ctrl-d then enter to exit)
 [info] play - Listening for HTTP on /0:0:0:0:0:0:0:0:49788
 '''
         when:
@@ -91,14 +91,14 @@ Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
 
 BUILD SUCCESSFUL in 1s
 
-Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
+Waiting for changes to input files... (ctrl-d then enter to exit)
 new file: /some/new/file.txt
 Change detected, executing build...
 :sometask
 
 BUILD SUCCESSFUL in 1s
 
-Waiting for changes to input files of tasks... (ctrl-d then enter to exit)
+Waiting for changes to input files... (ctrl-d then enter to exit)
 '''
         when:
         sampleTest.succeeds("sometask")

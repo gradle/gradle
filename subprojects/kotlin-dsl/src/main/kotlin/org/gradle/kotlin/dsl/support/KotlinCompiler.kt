@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileBunchOfSources
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoot
+import org.jetbrains.kotlin.cli.jvm.config.addJvmSdkRoots
 
 import org.jetbrains.kotlin.codegen.CompilationException
 
@@ -46,6 +47,7 @@ import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.JDK_HOME
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.JVM_TARGET
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
 import org.jetbrains.kotlin.config.JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY
@@ -57,9 +59,6 @@ import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor.Companion.registerExtension
-import org.jetbrains.kotlin.load.java.JavaTypeEnhancementState
-import org.jetbrains.kotlin.load.java.Jsr305Settings
-import org.jetbrains.kotlin.load.java.ReportLevel
 
 import org.jetbrains.kotlin.name.NameUtils
 
@@ -345,6 +344,8 @@ fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfig
     CompilerConfiguration().apply {
         put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
         put(JVM_TARGET, JVM_1_8)
+        put(JDK_HOME, File(System.getProperty("java.home")))
+        addJvmSdkRoots(PathUtil.getJdkClassesRootsFromCurrentJre())
         put(CommonConfigurationKeys.LANGUAGE_VERSION_SETTINGS, gradleKotlinDslLanguageVersionSettings)
     }
 
@@ -355,7 +356,6 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
     apiVersion = ApiVersion.KOTLIN_1_4,
     analysisFlags = mapOf(
         AnalysisFlags.skipMetadataVersionCheck to true,
-        JvmAnalysisFlags.javaTypeEnhancementState to JavaTypeEnhancementState(Jsr305Settings(ReportLevel.STRICT, ReportLevel.STRICT)) { ReportLevel.STRICT },
         JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
     ),
     specificFeatures = mapOf(
@@ -507,6 +507,7 @@ class LoggingMessageCollector(
                 errors += ScriptCompilationError(message, location)
                 log.error { taggedMsg() }
             }
+
             in CompilerMessageSeverity.VERBOSE -> log.trace { msg() }
             CompilerMessageSeverity.STRONG_WARNING -> log.info { taggedMsg() }
             CompilerMessageSeverity.WARNING -> log.info { taggedMsg() }

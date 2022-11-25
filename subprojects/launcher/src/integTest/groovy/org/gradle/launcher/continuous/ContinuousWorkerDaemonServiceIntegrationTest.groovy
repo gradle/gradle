@@ -47,7 +47,7 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends AbstractContinuousInt
         triggerNewBuild()
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
 
         and:
         outputContains("Runnable executed...")
@@ -82,6 +82,9 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends AbstractContinuousInt
             abstract class DaemonTask extends DefaultTask {
                 @InputFile
                 File inputFile = new File("${TextUtil.normaliseFileAndLineSeparators(inputFile.absolutePath)}")
+
+                @OutputFile
+                File outputFile = new File("${TextUtil.normaliseFileAndLineSeparators(workerDaemonIdentityFile.absolutePath)}")
 
                 @Inject
                 abstract WorkerExecutor getWorkerExecutor()

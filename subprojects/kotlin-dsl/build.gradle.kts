@@ -8,10 +8,7 @@ description = "Kotlin DSL Provider"
 
 dependencies {
 
-    compileOnlyApi(libs.futureKotlin("compiler-embeddable"))
     compileOnlyApi(libs.futureKotlin("reflect"))
-
-    runtimeOnly(project(":kotlin-compiler-embeddable"))
 
     api(project(":kotlin-dsl-tooling-models"))
     api(libs.futureKotlin("stdlib-jdk8"))
@@ -36,6 +33,7 @@ dependencies {
     implementation(project(":tooling-api"))
     implementation(project(":execution"))
     implementation(project(":normalization-java"))
+    implementation(project(":wrapper-shared"))
 
     implementation(libs.groovy)
     implementation(libs.groovyJson)
@@ -44,6 +42,7 @@ dependencies {
     implementation(libs.inject)
     implementation(libs.asm)
 
+    implementation(libs.futureKotlin("compiler-embeddable"))
     implementation(libs.futureKotlin("script-runtime"))
     implementation(libs.futureKotlin("daemon-embeddable"))
 
@@ -65,7 +64,7 @@ dependencies {
     implementation(libs.futureKotlin("sam-with-receiver-compiler-plugin")) {
         isTransitive = false
     }
-    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.3.0") {
+    implementation("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.5.0") {
         isTransitive = false
     }
 
@@ -75,7 +74,7 @@ dependencies {
     testImplementation(project(":platform-native")) {
         because("BuildType from platform-native is used in ProjectAccessorsClassPathTest")
     }
-    testImplementation(project(":plugins"))
+    testImplementation(project(":platform-jvm"))
     testImplementation(project(":version-control"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.ant)
@@ -106,6 +105,10 @@ dependencies {
     testFixturesImplementation(project(":internal-testing"))
     testFixturesImplementation(project(":internal-integ-testing"))
 
+    testFixturesImplementation(testFixtures(project(":hashing")))
+
+    testFixturesImplementation(libs.futureKotlin("compiler-embeddable"))
+
     testFixturesImplementation(libs.junit)
     testFixturesImplementation(libs.mockitoKotlin)
     testFixturesImplementation(libs.jacksonKotlin)
@@ -114,8 +117,12 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/**")
 }
 
 testFilesCleanup.reportOnly.set(true)
+
+strictCompile {
+    ignoreDeprecations()
+}

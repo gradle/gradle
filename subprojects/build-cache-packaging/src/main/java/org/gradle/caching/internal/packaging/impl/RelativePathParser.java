@@ -34,7 +34,7 @@ public class RelativePathParser {
     public RelativePathParser(String rootPath) {
         this.directoryPaths.addLast(rootPath.substring(0, rootPath.length() - 1));
         this.rootLength = rootPath.length();
-        this.currentPath  = rootPath;
+        this.currentPath = rootPath;
     }
 
     public String getRelativePath() {
@@ -46,7 +46,7 @@ public class RelativePathParser {
     }
 
     public boolean nextPath(String nextPath, boolean directory, Runnable exitDirectoryHandler) {
-        currentPath = directory ? nextPath.substring(0, nextPath.length() - 1): nextPath;
+        currentPath = directory ? nextPath.substring(0, nextPath.length() - 1) : nextPath;
         String lastDirPath = directoryPaths.peekLast();
         sizeOfCommonPrefix = FilePathUtil.sizeOfCommonPrefix(lastDirPath, currentPath, 0, '/');
         int directoriesExited = determineDirectoriesExited(lastDirPath, sizeOfCommonPrefix);

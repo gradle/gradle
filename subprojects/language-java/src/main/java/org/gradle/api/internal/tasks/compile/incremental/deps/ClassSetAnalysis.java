@@ -144,10 +144,14 @@ public class ClassSetAnalysis {
      * - Classes and resources that were generated from this class
      */
     private DependentsSet findDirectDependents(String className) {
+        DependentsSet annotationProcessingDependentsSet = getAnnotationProcessingDependentsSet(className);
+        return DependentsSet.merge(Arrays.asList(classAnalysis.getDependents(className), compilerApiData.getConstantDependentsForClass(className), annotationProcessingDependentsSet));
+    }
+
+    public DependentsSet getAnnotationProcessingDependentsSet(String className) {
         Set<String> generatedClasses = annotationProcessingData.getGeneratedTypesByOrigin().getOrDefault(className, Collections.emptySet());
         Set<GeneratedResource> generatedResources = annotationProcessingData.getGeneratedResourcesByOrigin().getOrDefault(className, Collections.emptySet());
-        DependentsSet generatedDeps = DependentsSet.dependents(Collections.emptySet(), generatedClasses, generatedResources);
-        return DependentsSet.merge(Arrays.asList(classAnalysis.getDependents(className), compilerApiData.getConstantDependentsForClass(className), generatedDeps));
+        return DependentsSet.dependents(Collections.emptySet(), generatedClasses, generatedResources);
     }
 
     /**

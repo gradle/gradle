@@ -22,7 +22,6 @@ import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
-import java.io.File;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -73,16 +72,6 @@ public class MavenNormalizedPublication {
 
     public String getPackaging() {
         return packaging;
-    }
-
-    /**
-     * @deprecated Kept to not break third-party plugins
-     * Sadly this is still used by org.jfrog.buildinfo:build-info-extractor-gradle
-     * See https://github.com/jfrog/build-info/issues/249
-     */
-    @Deprecated
-    public File getPomFile() {
-        return pomArtifact.getFile();
     }
 
     public MavenArtifact getPomArtifact() {

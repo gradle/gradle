@@ -16,8 +16,6 @@
 
 package org.gradle.internal.enterprise;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 import javax.annotation.Nullable;
 
 /**
@@ -25,8 +23,9 @@ import javax.annotation.Nullable;
  *
  * Uses a specific listener to guarantee being invoked after user buildFinished callbacks.
  * Expected to be invoked once for a build tree.
+ *
+ * Implemented by the Enterprise plugin.
  */
-@UsedByScanPlugin("implemented by plugin")
 public interface GradleEnterprisePluginEndOfBuildListener {
 
     interface BuildResult {

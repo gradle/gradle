@@ -35,6 +35,7 @@ import org.gradle.api.Task;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -45,6 +46,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.SyncSpec;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.DynamicObjectAware;
@@ -68,6 +70,7 @@ import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -87,7 +90,6 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.extensibility.NoConventionMapping;
@@ -130,6 +132,7 @@ import org.gradle.util.Path;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.gradle.util.internal.ConfigureUtil;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
@@ -142,6 +145,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Collections.singletonMap;
@@ -188,6 +192,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private FileResolver fileResolver;
 
+    private TaskDependencyFactory taskDependencyFactory;
+
     private Factory<AntBuilder> antBuilderFactory;
 
     private AntBuilder ant;
@@ -207,6 +213,8 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     private final ListenerBroadcast<RuleBasedPluginListener> ruleBasedPluginListenerBroadcast = new ListenerBroadcast<>(RuleBasedPluginListener.class);
 
     private final ExtensibleDynamicObject extensibleDynamicObject;
+
+    private final DynamicLookupRoutine dynamicLookupRoutine;
 
     private String description;
 
@@ -246,14 +254,18 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         taskContainer = services.get(TaskContainerInternal.class);
 
         extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
-        if (parent != null) {
-            extensibleDynamicObject.setParent(parent.getInheritedScope());
+
+        @Nullable DynamicObject parentInherited = services.get(CrossProjectModelAccess.class).parentProjectDynamicInheritedScope(this);
+        if (parentInherited != null) {
+            extensibleDynamicObject.setParent(parentInherited);
         }
         extensibleDynamicObject.addObject(taskContainer.getTasksAsDynamicObject(), ExtensibleDynamicObject.Location.AfterConvention);
 
         evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
 
         ruleBasedPluginListenerBroadcast.add((RuleBasedPluginListener) project -> populateModelRegistry(services.get(ModelRegistry.class)));
+
+        dynamicLookupRoutine = services.get(DynamicLookupRoutine.class);
     }
 
     @SuppressWarnings("unused")
@@ -373,7 +385,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public GradleInternal getGradle() {
-        return gradle;
+        return getCrossProjectModelAccess().gradleInstanceForProject(this, gradle);
     }
 
     @Inject
@@ -494,12 +506,22 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public Map<String, Project> getChildProjects() {
+    public Map<String, Project> getChildProjectsUnchecked() {
         Map<String, Project> childProjects = Maps.newTreeMap();
         for (ProjectState project : owner.getChildProjects()) {
             childProjects.put(project.getName(), project.getMutableModel());
         }
         return childProjects;
+    }
+
+    @Override
+    public Map<String, Project> getChildProjects() {
+        return getChildProjectsUnchecked().entrySet().stream().collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> getCrossProjectModelAccess().access(this, (ProjectInternal) entry.getValue())
+            )
+        );
     }
 
     @Override
@@ -523,6 +545,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             fileResolver = services.get(FileResolver.class);
         }
         return fileResolver;
+    }
+
+    @Override
+    public TaskDependencyFactory getTaskDependencyFactory() {
+        if (taskDependencyFactory == null) {
+            taskDependencyFactory = services.get(TaskDependencyFactory.class);
+        }
+        return taskDependencyFactory;
     }
 
     public void setFileResolver(FileResolver fileResolver) {
@@ -612,6 +642,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
+    @Nonnull
     public Path getProjectPath() {
         return owner.getProjectPath();
     }
@@ -1027,6 +1058,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         return dependencyHandler;
     }
 
+    @Override
+    @Inject
+    public abstract DependencyFactory getDependencyFactory();
+
     public void setDependencyHandler(DependencyHandler dependencyHandler) {
         this.dependencyHandler = dependencyHandler;
     }
@@ -1088,32 +1123,27 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
-        return extensibleDynamicObject.getProperty(propertyName);
+        return dynamicLookupRoutine.property(extensibleDynamicObject, propertyName);
     }
 
     @Override
     public Object findProperty(String propertyName) {
-        return hasProperty(propertyName) ? property(propertyName) : null;
+        return dynamicLookupRoutine.findProperty(extensibleDynamicObject, propertyName);
     }
 
     @Override
     public void setProperty(String name, Object value) {
-        extensibleDynamicObject.setProperty(name, value);
+        dynamicLookupRoutine.setProperty(extensibleDynamicObject, name, value);
     }
 
     @Override
     public boolean hasProperty(String propertyName) {
-        return extensibleDynamicObject.hasProperty(propertyName);
+        return dynamicLookupRoutine.hasProperty(extensibleDynamicObject, propertyName);
     }
 
     @Override
     public Map<String, ?> getProperties() {
-        return DeprecationLogger.whileDisabled(new Factory<Map<String, ?>>() {
-            @Override
-            public Map<String, ?> create() {
-                return extensibleDynamicObject.getProperties();
-            }
-        });
+        return dynamicLookupRoutine.getProperties(extensibleDynamicObject);
     }
 
     @Override
@@ -1127,7 +1157,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public WorkResult sync(Action<? super CopySpec> action) {
+    public WorkResult sync(Action<? super SyncSpec> action) {
         return getFileOperations().sync(action);
     }
 

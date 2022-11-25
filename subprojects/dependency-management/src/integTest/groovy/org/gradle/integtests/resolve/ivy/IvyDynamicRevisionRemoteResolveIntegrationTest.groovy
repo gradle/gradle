@@ -142,7 +142,6 @@ dependencies {
         identifier << Identifier.all
     }
 
-    @ToBeFixedForConfigurationCache
     def "determines latest version with jar only if artifact metadata source is configured"() {
         given:
         useRepository ivyHttpRepo
@@ -189,7 +188,6 @@ dependencies {
             "group:projectB:latest.integration": "group:projectB:1.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses latest version with correct status for latest.release and latest.milestone"() {
         given:
         useRepository ivyHttpRepo
@@ -239,7 +237,6 @@ dependencies {
         checkResolve "group:projectA:latest.milestone": ["group:projectA:2.1", "didn't match version 2.2"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "reuses cached meta-data when resolving latest.status"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -294,7 +291,6 @@ task cache { doLast { configurations.staticVersions.files } }
         checkResolve "group:projectA:latest.milestone": ["group:projectA:1.1", "didn't match version 1.2"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can use latest version from different remote repositories"() {
         def repo1 = ivyHttpRepo("ivy1")
         def repo2 = ivyHttpRepo("ivy2")
@@ -328,7 +324,6 @@ task cache { doLast { configurations.staticVersions.files } }
         checkResolve "group:projectA:latest.milestone": ["group:projectA:1.1", "didn't match version 1.2"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "checks new repositories before returning any cached value"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -377,7 +372,6 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails on broken directory listing in subsequent resolution"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -413,7 +407,6 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses and caches latest of versions obtained from multiple HTTP repositories"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -623,7 +616,6 @@ dependencies {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "caches resolved revisions until cache expiry"() {
         given:
         useRepository ivyHttpRepo
@@ -665,7 +657,6 @@ if (project.hasProperty('noDynamicRevisionCache')) {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "uses and caches dynamic revisions for transitive dependencies"() {
         given:
         useRepository ivyHttpRepo
@@ -747,7 +738,6 @@ if (project.hasProperty('noDynamicRevisionCache')) {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "resolves dynamic version with 2 repositories where first repo results in 404 for directory listing"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -826,7 +816,6 @@ dependencies {
         checkResolve "org.test:a:[1.0,2.0)": "org.test:a:1.1:runtime"
     }
 
-    @ToBeFixedForConfigurationCache
     def "can resolve dynamic versions from repository with multiple ivy patterns"() {
         given:
         def repo1versions = [:]
@@ -950,7 +939,6 @@ configurations.all {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from no matching version for dynamic version"() {
         def repo2 = ivyHttpRepo("repo-2")
 
@@ -1040,7 +1028,6 @@ Required by:
         checkResolve "group:projectA:2.+": ["group:projectA:2.2", "didn't match versions 3.0, 1.2, 1.1, 4.4"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from missing directory available for dynamic version"() {
         given:
         useRepository ivyHttpRepo
@@ -1086,7 +1073,6 @@ Required by:
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from missing dynamic version when no repositories defined"() {
         given:
         buildFile << """
@@ -1109,7 +1095,6 @@ dependencies {
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from broken directory available for dynamic version"() {
         given:
         useRepository ivyHttpRepo
@@ -1141,7 +1126,6 @@ dependencies {
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from missing module for dynamic version that requires meta-data"() {
         given:
         useRepository ivyHttpRepo
@@ -1176,7 +1160,6 @@ Required by:
         checkResolve "group:projectA:latest.release": "group:projectA:1.2"
     }
 
-    @ToBeFixedForConfigurationCache
     def "reports and recovers from broken module for dynamic version that requires meta-data"() {
         given:
         useRepository ivyHttpRepo
@@ -1268,7 +1251,6 @@ configurations.all {
         "remote first" | false
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     def "fails with reasonable error message when no cached version list in offline mode"() {
         given:
         useRepository ivyHttpRepo

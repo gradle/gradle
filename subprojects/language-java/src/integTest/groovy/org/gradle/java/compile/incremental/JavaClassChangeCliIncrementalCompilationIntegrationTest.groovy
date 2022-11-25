@@ -42,4 +42,53 @@ class JavaClassChangeCliIncrementalCompilationIntegrationTest extends BaseJavaCl
         then:
         outputs.recompiledClasses 'B', 'A'
     }
+
+    /**
+     * Test scenario from {@link BaseIncrementalCompilationAfterFailureIntegrationTest#detects deletion of a source base class that leads to compilation failure but keeps old files()}
+     * but for the CLI compiler where incremental compilation after failure is not supported.
+     */
+    def "detects deletion of a source base class that leads to compilation failure"() {
+        def a = source "class A {}"
+        source "class B extends A {}"
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        assert a.delete()
+        then:
+        fails language.compileTaskName
+        outputs.noneRecompiled()
+        outputs.deletedClasses 'A', 'B'
+    }
+
+    /**
+     * Test scenario from {@link BaseIncrementalCompilationAfterFailureIntegrationTest#incremental compilation works after a compile failure()}
+     * but for the CLI compiler where incremental compilation after failure is not supported.
+     */
+    def "does full recompilation after a failure even if incrementalAfterFailure is set to true"() {
+        given:
+        buildFile << """
+        tasks.withType(JavaCompile) {
+            options.incremental = true
+            options.incrementalAfterFailure = true
+        }
+        """
+        source "class A {}", "class B extends A {}", "class C {}"
+
+        when: "First compilation is always full compilation"
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B", "C")
+
+        when: "Compilation after failure is full recompilation when optimization is disabled"
+        outputs.snapshot { source("class A { garbage }") }
+        runAndFail language.compileTaskName
+        outputs.snapshot { source("class A {}") }
+        run language.compileTaskName, "--info"
+
+        then:
+        outputs.recompiledClasses("A", "B", "C")
+        outputContains("Full recompilation is required")
+    }
 }

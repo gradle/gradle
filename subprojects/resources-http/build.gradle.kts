@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation for interacting with repositories over HTTP"
+
 dependencies {
     api(project(":resources"))
     implementation(project(":base-services"))
@@ -17,8 +19,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.commonsIo)
-    implementation(libs.xerces)
-    implementation(libs.nekohtml)
+    implementation(libs.jsoup)
 
     testImplementation(project(":internal-integ-testing"))
     testImplementation(libs.jettyWebApp)

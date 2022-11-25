@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.NOT_WINDOWS)
+@Requires([TestPrecondition.NOT_WINDOWS, TestPrecondition.NOT_MAC_OS_X])
 class SharedLibrarySoNameIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"

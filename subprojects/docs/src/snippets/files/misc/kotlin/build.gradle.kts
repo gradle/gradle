@@ -1,16 +1,24 @@
+import java.nio.file.Files
+
 // tag::mkdir-example[]
 tasks.register("ensureDirectory") {
+    // Store target directory into a variable to avoid project reference in the configuration cache
+    val directory = file("images")
+
     doLast {
-        mkdir("images")
+        Files.createDirectories(directory.toPath())
     }
 }
 // end::mkdir-example[]
 
 // tag::move-example[]
 tasks.register("moveReports") {
+    // Store the build directory into a variable to avoid project reference in the configuration cache
+    val dir = buildDir
+
     doLast {
         ant.withGroovyBuilder {
-            "move"("file" to "${buildDir}/reports", "todir" to "${buildDir}/toArchive")
+            "move"("file" to "${dir}/reports", "todir" to "${dir}/toArchive")
         }
     }
 }

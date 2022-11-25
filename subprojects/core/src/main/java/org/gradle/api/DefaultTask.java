@@ -45,7 +45,7 @@ import java.util.Set;
 @NoConventionMapping
 @SuppressWarnings("deprecation")
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
-public class DefaultTask extends org.gradle.api.internal.AbstractTask implements Task {
+public abstract class DefaultTask extends org.gradle.api.internal.AbstractTask implements Task {
     // NOTE: These methods are duplicated here because Eclipse treats methods implemented in the deprecated
     // AbstractTask as also deprecated in DefaultTask.
 
@@ -90,8 +90,18 @@ public class DefaultTask extends org.gradle.api.internal.AbstractTask implements
     }
 
     @Override
+    public void onlyIf(String onlyIfReason, Spec<? super Task> spec) {
+        super.onlyIf(onlyIfReason, spec);
+    }
+
+    @Override
     public void setOnlyIf(Spec<? super Task> spec) {
         super.setOnlyIf(spec);
+    }
+
+    @Override
+    public void setOnlyIf(String onlyIfReason, Spec<? super Task> spec) {
+        super.setOnlyIf(onlyIfReason, spec);
     }
 
     @Override

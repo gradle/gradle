@@ -27,9 +27,6 @@ class KotlinBuildScriptTemplateModelCrossVersionSpec extends AbstractKotlinScrip
 
     def "can load script template using classpath model"() {
 
-        given:
-        settingsFile << ""
-
         when:
         def model = loadToolingModel(KotlinBuildScriptTemplateModel)
 

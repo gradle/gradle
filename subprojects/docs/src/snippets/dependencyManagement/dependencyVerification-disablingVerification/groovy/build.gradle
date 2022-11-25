@@ -29,17 +29,18 @@ configurations {
 // end::disabling-one-configuration[]
 
 tasks.register("checkDependencies") {
-    inputs.files(configurations.myPluginClasspath)
+    FileCollection classpath = configurations.myPluginClasspath
+    inputs.files(classpath)
     doLast {
-        println(configurations.myPluginClasspath.files)
+        println(classpath.files)
     }
 }
 
 // tag::disabling-detached-configuration[]
 tasks.register("checkDetachedDependencies") {
+    def detachedConf = configurations.detachedConfiguration(dependencies.create("org.apache.commons:commons-lang3:3.3.1"))
+    detachedConf.resolutionStrategy.disableDependencyVerification()
     doLast {
-        def detachedConf = configurations.detachedConfiguration(dependencies.create("org.apache.commons:commons-lang3:3.3.1"))
-        detachedConf.resolutionStrategy.disableDependencyVerification()
         println(detachedConf.files)
     }
 }

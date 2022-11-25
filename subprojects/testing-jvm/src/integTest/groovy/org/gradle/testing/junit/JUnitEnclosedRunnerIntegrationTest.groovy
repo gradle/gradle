@@ -30,8 +30,8 @@ class JUnitEnclosedRunnerIntegrationTest extends JUnitMultiVersionIntegrationSpe
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { testImplementation '${dependencyNotation}' }
-"""
+            dependencies { ${dependencyNotation.collect { "testImplementation '$it'" }.join('\n')} }
+        """.stripIndent()
     }
 
     @Issue('https://github.com/gradle/gradle/issues/2319')
@@ -109,10 +109,10 @@ public class EnclosedTest {
       outer = 1;
   }
 
-  @Category(Fast.class) 
+  @Category(Fast.class)
   public static class InnerClass {
     private int inner;
-    
+
     @Before
     public void setUp() {
        inner = 2;
@@ -122,7 +122,7 @@ public class EnclosedTest {
     public void test() {
        Assert.assertTrue(outer==1 && inner==2);
     }
-  } 
+  }
 }
 '''
         file('src/test/java/Fast.java') << 'public interface Fast {}'

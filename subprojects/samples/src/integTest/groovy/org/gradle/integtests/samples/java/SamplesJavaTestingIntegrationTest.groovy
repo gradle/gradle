@@ -20,7 +20,6 @@ import groovy.xml.XmlSlurper
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -309,8 +308,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    // assertTaskOrder may fail with parallel executer
-    @Requires(adhoc = { TestPrecondition.JDK9_OR_LATER.fulfilled && !GradleContextualExecuter.isParallel() })
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     @UsesSample("java/basic")
     def "can run simple Java integration tests with #dsl dsl"() {
         given:
@@ -339,13 +337,20 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         given:
         configureExecuterForToolchains('11')
         TestFile dslDir = sample.dir.file(dsl)
-        executer.inDirectory(dslDir).withArgument("-PmySkipTests")
 
-        when:
+        when: "run first time to populate configuration cache if it is enabled"
+        executer.inDirectory(dslDir).withArgument("-PmySkipTests")
         def result = succeeds("build")
 
         then:
         result.assertTaskSkipped(":test")
+
+        when: "run second time to restore from configuration cache if it is enabled"
+        executer.inDirectory(dslDir).withArgument("-PmySkipTests")
+        def secondResult = succeeds("build")
+
+        then:
+        secondResult.assertTaskSkipped(":test")
 
         where:
         dsl << ['groovy', 'kotlin']

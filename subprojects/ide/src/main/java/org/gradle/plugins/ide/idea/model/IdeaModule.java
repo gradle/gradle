@@ -19,17 +19,19 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -71,13 +73,13 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *     sourceDirs += file('some-extra-source-folder')
  *
  *     //and some extra test source dirs
- *     testSourceDirs += file('some-extra-test-dir')
+ *     testSources.from(file('some-extra-test-dir'))
  *
  *     //and some extra resource dirs
  *     resourceDirs += file('some-extra-resource-dir')
  *
  *     //and some extra test resource dirs
- *     testResourceDirs += file('some-extra-test-resource-dir')
+ *     testResources.from(file('some-extra-test-resource-dir'))
  *
  *     //and hint to mark some of existing source dirs as generated sources
  *     generatedSourceDirs += file('some-extra-source-folder')
@@ -156,12 +158,15 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  *
  * </pre>
  */
-public class IdeaModule {
+public abstract class IdeaModule {
 
     private String name;
     private Set<File> sourceDirs;
     private Set<File> generatedSourceDirs = Sets.newLinkedHashSet();
     private Set<File> resourceDirs = Sets.newLinkedHashSet();
+    /**
+     * <strong>This field is {@code @Deprecated}, please use {@link #testResources} instead.</strong>
+     */
     @Deprecated
     private Set<File> testResourceDirs = Sets.newLinkedHashSet();
     private ConfigurableFileCollection testResources;
@@ -169,6 +174,9 @@ public class IdeaModule {
     private boolean downloadSources = true;
     private boolean downloadJavadoc;
     private File contentRoot;
+    /**
+     * <strong>This field is {@code @Deprecated}, please use {@link #testSources} instead.</strong>
+     */
     @Deprecated
     private Set<File> testSourceDirs;
     private ConfigurableFileCollection testSources;
@@ -186,6 +194,7 @@ public class IdeaModule {
     private boolean offline;
     private Map<String, Iterable<File>> singleEntryLibraries;
 
+    @Inject
     public IdeaModule(Project project, IdeaModuleIml iml) {
         this.project = project;
         this.iml = iml;
@@ -193,8 +202,9 @@ public class IdeaModule {
         this.testSources = project.getObjects().fileCollection();
         this.testResources = project.getObjects().fileCollection();
 
-        testSources.from(project.provider(() -> getTestSourceDirs()));
-        testResources.from(project.provider(() -> getTestResourceDirs()));
+        // TODO: remove this whileDisabled wrapping for Gradle 8.1
+        testSources.from(project.provider(() -> DeprecationLogger.whileDisabled(() -> getTestSourceDirs())));
+        testResources.from(project.provider(() -> DeprecationLogger.whileDisabled(() -> getTestResourceDirs())));
     }
 
     /**
@@ -331,12 +341,17 @@ public class IdeaModule {
      * <strong>Note that late changes to default test directories may NOT be reflected in this collection and {@link #getTestSources()} should be preferred.</strong>
      *
      * For example see docs for {@link IdeaModule}
+     *
+     * <strong>This field is {@code @Deprecated}, please use {@link #getTestSources()} instead.</strong>
      */
     @Deprecated
     public Set<File> getTestSourceDirs() {
         return testSourceDirs;
     }
 
+    /**
+     * <strong>This field is {@code @Deprecated}, please use {@link #getTestSources()} instead to access the new collection property.</strong>
+     */
     @Deprecated
     public void setTestSourceDirs(Set<File> testSourceDirs) {
         this.testSourceDirs = testSourceDirs;
@@ -350,7 +365,6 @@ public class IdeaModule {
      * @return lazily configurable collection of test source directories
      * @since 7.4
      */
-    @Incubating
     public ConfigurableFileCollection getTestSources() {
         return testSources;
     }
@@ -376,6 +390,8 @@ public class IdeaModule {
     /**
      * The directories containing the test resources. <p> For example see docs for {@link IdeaModule}
      *
+     * <strong>This field is {@code @Deprecated}, please use {@link #getTestResources()} instead.</strong>
+     *
      * @since 4.7
      */
     @Deprecated
@@ -385,6 +401,8 @@ public class IdeaModule {
 
     /**
      * Sets the directories containing the test resources. <p> For example see docs for {@link IdeaModule}
+     *
+     * <strong>This field is {@code @Deprecated}, please use {@link #getTestResources()} instead to access the new collection property.</strong>
      *
      * @since 4.7
      */
@@ -401,7 +419,6 @@ public class IdeaModule {
      * @return lazily configurable collection of test resource directories
      * @since 7.4
      */
-    @Incubating
     public ConfigurableFileCollection getTestResources() {
         return testResources;
     }
@@ -566,7 +583,7 @@ public class IdeaModule {
      * <p>
      * For example see docs for {@link IdeaModule}.
      */
-    public void iml(Closure closure) {
+    public void iml(@DelegatesTo(IdeaModuleIml.class) Closure closure) {
         configure(closure, getIml());
     }
 

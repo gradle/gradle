@@ -196,7 +196,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     private FileSystemLocationSnapshot snapshotOf(File file) {
-        return fileSystemAccess.read(file.getAbsolutePath(), s -> s);
+        return fileSystemAccess.read(file.getAbsolutePath());
     }
 
     private boolean shouldUseFromCache(File original) {

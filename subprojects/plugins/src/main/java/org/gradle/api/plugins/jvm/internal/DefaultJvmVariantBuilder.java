@@ -24,12 +24,12 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
-import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
+import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -37,7 +37,6 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
-import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.util.internal.TextUtil;
 
 import javax.annotation.Nullable;
@@ -192,6 +191,7 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
         Configuration apiElements = exposeApi ? jvmPluginServices.createOutgoingElements(apiElementsConfigurationName, builder -> {
             builder.fromSourceSet(sourceSet)
                 .providesApi()
+                .providesAttributes(JvmEcosystemAttributesDetails::apiCompileView)
                 .withDescription("API elements for " + displayName)
                 .extendsFrom(api, compileOnlyApi)
                 .withCapabilities(capabilities)
@@ -223,10 +223,34 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
         JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
         configureJavaDocTask(name, sourceSet, tasks, javaPluginExtension);
         if (javadocJar) {
-            configureDocumentationVariantWithArtifact(sourceSet.getJavadocElementsConfigurationName(), mainSourceSet ? null : name, displayName, JAVADOC, sourceSet.getJavadocJarTaskName(), tasks.named(sourceSet.getJavadocTaskName()), component);
+            JvmPluginsHelper.configureDocumentationVariantWithArtifact(sourceSet.getJavadocElementsConfigurationName(),
+                    mainSourceSet ? null : name,
+                    JAVADOC,
+                    capabilities,
+                    sourceSet.getJavadocJarTaskName(),
+                    tasks.named(sourceSet.getJavadocTaskName()),
+                    component,
+                    configurations,
+                    tasks,
+                    project.getObjects(),
+                    project.getFileResolver(),
+                    project.getTaskDependencyFactory()
+                );
         }
         if (sourcesJar) {
-            configureDocumentationVariantWithArtifact(sourceSet.getSourcesElementsConfigurationName(), mainSourceSet ? null : name, displayName, SOURCES, sourceSet.getSourcesJarTaskName(), sourceSet.getAllSource(), component);
+            JvmPluginsHelper.configureDocumentationVariantWithArtifact(sourceSet.getSourcesElementsConfigurationName(),
+                    mainSourceSet ? null : name,
+                    SOURCES,
+                    capabilities,
+                    sourceSet.getSourcesJarTaskName(),
+                    sourceSet.getAllSource(),
+                    component,
+                    configurations,
+                    tasks,
+                    project.getObjects(),
+                    project.getFileResolver(),
+                    project.getTaskDependencyFactory()
+                );
         }
 
         if (published && component != null) {
@@ -257,35 +281,6 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
             });
         }
         return tasks.named(jarTaskName);
-    }
-
-    public void configureDocumentationVariantWithArtifact(String variantName, @Nullable String name, @Nullable String displayName, String docsType, String jarTaskName, Object artifactSource, @Nullable AdhocComponentWithVariants component) {
-        Configuration variant = configurations.maybeCreate(variantName);
-        variant.setVisible(false);
-        variant.setDescription(docsType + " elements for " + (displayName == null ? "main" : displayName) + ".");
-        variant.setCanBeResolved(false);
-        variant.setCanBeConsumed(true);
-        jvmPluginServices.configureAttributes(variant, attributes -> attributes.documentation(docsType)
-            .runtimeUsage()
-            .withExternalDependencies());
-        capabilities.forEach(variant.getOutgoing()::capability);
-
-        if (!tasks.getNames().contains(jarTaskName)) {
-            TaskProvider<Jar> jarTask = tasks.register(jarTaskName, Jar.class, jar -> {
-                jar.setDescription("Assembles a jar archive containing the " + (displayName == null ? "main " + docsType + "." : (docsType + " of the '" + displayName + "'.")));
-                jar.setGroup(BasePlugin.BUILD_GROUP);
-                jar.from(artifactSource);
-                jar.getArchiveClassifier().set(TextUtil.camelToKebabCase(name == null ? docsType : (name + "-" + docsType)));
-            });
-            if (tasks.getNames().contains(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)) {
-                tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).configure(task -> task.dependsOn(jarTask));
-            }
-        }
-        TaskProvider<Task> jar = tasks.named(jarTaskName);
-        variant.getOutgoing().artifact(new LazyPublishArtifact(jar, project.getFileResolver()));
-        if (published && component != null) {
-            component.addVariantsFromConfiguration(variant, new JavaConfigurationVariantMapping("runtime", true));
-        }
     }
 
     @Nullable

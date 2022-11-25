@@ -22,7 +22,6 @@ import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVers
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.Flaky
 import org.hamcrest.Matcher
-import spock.lang.Ignore
 
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.equalTo
@@ -169,7 +168,6 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         )
     }
 
-    @Ignore("https://github.com/gradle/gradle-private/issues/3500")
     def "can fetch buildscript classpath for sub-project script"() {
 
         expect:
@@ -455,7 +453,6 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         )
     }
 
-    @Ignore("https://github.com/gradle/gradle-private/issues/3500")
     def "sourcePath includes buildscript classpath sources resolved against project"() {
 
         expect:
@@ -470,7 +467,6 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         )
     }
 
-    @Ignore("https://github.com/gradle/gradle-private/issues/3500")
     def "sourcePath includes buildscript classpath sources resolved against project hierarchy"() {
 
         expect:
@@ -485,7 +481,6 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         )
     }
 
-    @Ignore("https://github.com/gradle/gradle-private/issues/3500")
     def "sourcePath includes plugins classpath sources resolved against project"() {
 
         expect:
@@ -548,8 +543,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
             rootProjectScript,
             subProjectScript,
             hasItems(
-                equalTo("kotlin-gradle-plugin-${targetKotlinVersion}-sources.jar".toString()),
-                matching("annotations-[0-9.]+-sources\\.jar")
+                equalTo("kotlin-gradle-plugin-${targetKotlinVersion}-sources.jar".toString())
             )
         )
     }

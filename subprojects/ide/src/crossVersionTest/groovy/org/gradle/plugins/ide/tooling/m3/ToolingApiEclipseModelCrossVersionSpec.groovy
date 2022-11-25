@@ -20,11 +20,9 @@ import org.gradle.integtests.tooling.fixture.WithOldConfigurationsSupport
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
-import org.gradle.test.fixtures.Flaky
 
 class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
 
-    @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3439')
     def "can build the eclipse model for a java project"() {
 
         projectDir.file('build.gradle').text = '''
@@ -190,7 +188,6 @@ dependencies {
         minimalProject != null
     }
 
-    @Flaky(because = 'https://github.com/gradle/gradle-private/issues/3439')
     def "can build the eclipse project dependencies for a java project"() {
         projectDir.file("gradle.properties") << """
             org.gradle.parallel=$parallel

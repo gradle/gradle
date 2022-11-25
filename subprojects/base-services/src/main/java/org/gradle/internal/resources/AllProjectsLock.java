@@ -17,7 +17,7 @@
 package org.gradle.internal.resources;
 
 class AllProjectsLock extends ExclusiveAccessResourceLock {
-    public AllProjectsLock(String displayName, ResourceLockCoordinationService coordinationService, ProjectLockRegistry owner) {
+    public AllProjectsLock(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner) {
         super(displayName, coordinationService, owner);
     }
 

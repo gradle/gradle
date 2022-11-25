@@ -16,12 +16,10 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Unroll
 
 class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest {
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with a feature"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -34,11 +32,16 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, org.gradle.api.internal.artifacts.JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS))
                     }
                     outgoing.capability("org:optional-feature:\${version}")
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
+            }
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
 
             dependencies {
@@ -89,7 +92,6 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can group dependencies by feature"() {
         mavenRepo.module('org', 'optionaldep-g1', '1.0').publish()
         mavenRepo.module('org', 'optionaldep1-g2', '1.0').publish()
@@ -104,7 +106,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "java-runtime-jars"))
                     }
                     outgoing.capability("org:optional-feature1:\${version}")
                 }
@@ -116,11 +118,16 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "java-runtime-jars"))
                     }
                     outgoing.capability("org:optional-feature2:\${version}")
                 }
                 compileClasspath.extendsFrom(optionalFeature2Implementation)
+            }
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
 
             dependencies {
@@ -173,7 +180,6 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
     }
 
     @Unroll("publish java-library with feature with additional artifact #id (#optionalFeatureFileName)")
-    @ToBeFixedForConfigurationCache
     def "publish java-library with feature with additional artifact"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -186,11 +192,16 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "java-runtime-jars"))
                     }
                     outgoing.capability("org:optional-feature:\${version}")
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
+            }
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
 
             dependencies {
@@ -277,7 +288,6 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
 
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with a feature from a configuration with more than one outgoing variant"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -290,11 +300,16 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     canBeResolved = false
                     canBeConsumed = true
                     attributes {
-                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME_JARS))
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "java-runtime-jars"))
                     }
                     outgoing.capability("org:optional-feature:\${version}")
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
+            }
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
 
             dependencies {
@@ -358,7 +373,6 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with a feature from a configuration with more than one outgoing variant and filter out variants"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -376,6 +390,11 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
                     outgoing.capability("org:optional-feature:\${version}")
                 }
                 compileClasspath.extendsFrom(optionalFeatureImplementation)
+            }
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
 
             dependencies {

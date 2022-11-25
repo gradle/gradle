@@ -427,6 +427,146 @@ abstract class ProviderSpec<T> extends Specification implements ProviderAssertio
         copy.getOrNull() == someValue()
     }
 
+    def "runs side effect when calling '#method' on provider with value and attached side effect"() {
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def parent = providerWithValue(someValue())
+
+        when:
+        def provider = parent.withSideEffect(sideEffect)
+        def value = provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        def executionTimeValue = provider.calculateExecutionTimeValue()
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
+        def unpackedValue = value.get()
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        when:
+        unpackedValue = executionTimeValue.toValue().get()
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        when:
+        unpackedValue = getter(provider, method, someOtherValue())
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        where:
+        method      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
+    }
+
+    def "does not run side effect when calling '#method' on provider with no value and attached side effect"() {
+        given:
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def parent = providerWithNoValue()
+        def provider = parent.withSideEffect(sideEffect)
+
+        when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
+        def someValue = someValue()
+        def unpackedValue = getter(provider, method, someValue)
+
+        then:
+        unpackedValue == expectedValue(someValue)
+        0 * sideEffect.execute(_)
+        0 * _
+
+        where:
+        method      | expectedValue
+        "getOrNull" | { null }
+        "getOrElse" | { it }
+    }
+
+    def "does not run side effect when calling 'get' on provider with no value and attached side effect"() {
+        given:
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def parent = providerWithNoValue()
+        def provider = parent.withSideEffect(sideEffect)
+
+        when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
+        provider.get()
+
+        then:
+        thrown(IllegalStateException)
+        0 * sideEffect.execute(_)
+        0 * _
+    }
+
+    def "runs chained side effects when calling '#method' on provider with value"() {
+        given:
+        def sideEffect1 = Mock(ValueSupplier.SideEffect)
+        def sideEffect2 = Mock(ValueSupplier.SideEffect)
+        def parent = providerWithValue(someValue())
+        def provider = parent.withSideEffect(sideEffect1).withSideEffect(sideEffect2)
+
+        when:
+        provider.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        provider.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when values are not unpacked
+
+        when:
+        getter(provider, method, someOtherValue())
+
+        then:
+        1 * sideEffect1.execute(someValue())
+
+        then: // required to ensure invocation ordering
+        1 * sideEffect2.execute(someValue())
+        0 * _
+
+        where:
+        method      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
+    }
+
+    /**
+     * Convenience method to call getters on a provider by the getter name.
+     * <p>
+     * The expected usage is:
+     * <pre>
+     * getter(provider, method, someOtherValue())
+     * </pre>
+     *
+     * @param provider to call a getter on
+     * @param getter is either 'get', 'getOrNull' or 'getOrElse'
+     * @param orElse is passed to the getter only when it is 'getOrElse'
+     * @return the value that the provider returned for the getter
+     */
+    static <T> T getter(Provider<T> provider, String getter, T orElse) {
+        assert getter in ["get", "getOrNull", "getOrElse"]
+        return getter == "getOrElse"
+            ? provider."$getter"(orElse)
+            : provider."$getter"()
+    }
+
     /**
      * A test provider that always fails.
      */

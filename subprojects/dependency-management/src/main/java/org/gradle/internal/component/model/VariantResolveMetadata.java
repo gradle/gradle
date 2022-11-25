@@ -18,7 +18,7 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 /**
  * Metadata for a basic variant of a component, that defines only artifacts and no dependencies.
  */
-public interface VariantResolveMetadata {
+public interface VariantResolveMetadata extends VariantGraphResolveMetadata.Subvariant {
     String getName();
 
     /**
@@ -37,7 +37,7 @@ public interface VariantResolveMetadata {
 
     DisplayName asDescribable();
 
-    AttributeContainerInternal getAttributes();
+    ImmutableAttributes getAttributes();
 
     ImmutableList<? extends ComponentArtifactMetadata> getArtifacts();
 

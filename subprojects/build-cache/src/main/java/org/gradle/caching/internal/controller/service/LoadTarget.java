@@ -54,6 +54,10 @@ public class LoadTarget implements BuildCacheEntryReader {
         return loaded;
     }
 
+    public File getFile() {
+        return file;
+    }
+
     public long getLoadedSize() {
         if (loaded) {
             return file.length();

@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Publishing plugin for Ivy repositories"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
@@ -12,7 +14,6 @@ dependencies {
     implementation(project(":file-collections"))
     implementation(project(":resources"))
     implementation(project(":publish"))
-    implementation(project(":plugins")) // for base plugin to get archives conf
     implementation(project(":plugin-use"))
     implementation(project(":dependency-management"))
 

@@ -39,7 +39,7 @@ import java.io.IOException;
  * @since 3.4
  */
 @CacheableTask
-public class JacocoCoverageVerification extends JacocoReportBase {
+public abstract class JacocoCoverageVerification extends JacocoReportBase {
 
     private final JacocoViolationRulesContainer violationRules;
 
@@ -84,7 +84,7 @@ public class JacocoCoverageVerification extends JacocoReportBase {
             projectName,
             getAllClassDirs().filter(File::exists),
             getAllSourceDirs().filter(File::exists),
-            getExecutionData(),
+            getExecutionData().filter(File::exists),
             getViolationRules()
         );
 

@@ -19,7 +19,6 @@ package org.gradle.internal.watch.registry;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.WatchingNotSupportedException;
-import org.gradle.internal.watch.vfs.WatchMode;
 
 import javax.annotation.CheckReturnValue;
 import java.io.Closeable;
@@ -31,6 +30,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FileWatcherRegistry extends Closeable {
+
+    boolean isWatchingAnyLocations();
 
     interface ChangeHandler {
         void handleChange(Type type, Path path);

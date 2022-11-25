@@ -37,8 +37,8 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.process.ExecOperations;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class DefaultValueSourceProviderFactory implements ValueSourceProviderFactory {
@@ -47,7 +47,8 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     private final IsolatableFactory isolatableFactory;
     private final GradleProperties gradleProperties;
     private final ExecOperations execOperations;
-    private final AnonymousListenerBroadcast<Listener> broadcaster;
+    private final AnonymousListenerBroadcast<ValueListener> valueBroadcaster;
+    private final AnonymousListenerBroadcast<ComputationListener> computationBroadcaster;
     private final IsolationScheme<ValueSource, ValueSourceParameters> isolationScheme = new IsolationScheme<>(ValueSource.class, ValueSourceParameters.class, ValueSourceParameters.None.class);
     private final InstanceGenerator paramsInstantiator;
     private final InstanceGenerator specInstantiator;
@@ -60,7 +61,8 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         ExecOperations execOperations,
         ServiceLookup services
     ) {
-        this.broadcaster = listenerManager.createAnonymousBroadcaster(ValueSourceProviderFactory.Listener.class);
+        this.valueBroadcaster = listenerManager.createAnonymousBroadcaster(ValueListener.class);
+        this.computationBroadcaster = listenerManager.createAnonymousBroadcaster(ComputationListener.class);
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
         this.gradleProperties = gradleProperties;
@@ -90,28 +92,38 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     }
 
     @Override
-    public void addListener(Listener listener) {
-        broadcaster.add(listener);
+    public void addValueListener(ValueListener listener) {
+        valueBroadcaster.add(listener);
     }
 
     @Override
-    public void removeListener(Listener listener) {
-        broadcaster.remove(listener);
+    public void removeValueListener(ValueListener listener) {
+        valueBroadcaster.remove(listener);
     }
 
     @Override
-    @NotNull
+    public void addComputationListener(ComputationListener listener) {
+        computationBroadcaster.add(listener);
+    }
+
+    @Override
+    public void removeComputationListener(ComputationListener listener) {
+        computationBroadcaster.remove(listener);
+    }
+
+    @Override
+    @Nonnull
     public <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(
         Class<? extends ValueSource<T, P>> valueSourceType,
         @Nullable Class<P> parametersType,
         @Nullable P parameters
     ) {
-        return new ConfigurationTimeProvider<>(
+        return new ValueSourceProvider<>(
             new LazilyObtainedValue<>(valueSourceType, parametersType, parameters)
         );
     }
 
-    @NotNull
+    @Nonnull
     public <T, P extends ValueSourceParameters> ValueSource<T, P> instantiateValueSource(
         Class<? extends ValueSource<T, P>> valueSourceType,
         @Nullable Class<P> parametersType,
@@ -178,16 +190,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
     }
 
-    private static class ConfigurationTimeProvider<T, P extends ValueSourceParameters>
-        extends ValueSourceProvider<T, P> {
-
-        public ConfigurationTimeProvider(LazilyObtainedValue<T, P> value) {
-            super(value);
-        }
-    }
-
-    public abstract static class ValueSourceProvider<T, P extends ValueSourceParameters>
-        extends AbstractMinimalProvider<T> {
+    public static class ValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractMinimalProvider<T> {
 
         protected final LazilyObtainedValue<T, P> value;
 
@@ -197,6 +200,11 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         public Class<? extends ValueSource<T, P>> getValueSourceType() {
             return value.sourceType;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("valueof(%s)", getValueSourceType().getSimpleName());
         }
 
         @Nullable
@@ -285,17 +293,22 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
                 if (cached != null) {
                     return cached;
                 }
-                // TODO - add more information to exceptions
-                // Fail fast when source can't be instantiated.
-                source = source();
-                value = obtained = Try.ofFailable(source::obtain);
+                computationBroadcaster.getSource().beforeValueObtained();
+                try {
+                    // TODO - add more information to exceptions
+                    // Fail fast when source can't be instantiated.
+                    source = source();
+                    value = obtained = Try.ofFailable(source::obtain);
+                } finally {
+                    computationBroadcaster.getSource().afterValueObtained();
+                }
             }
             // Value obtained for the 1st time, notify listeners.
-            broadcaster.getSource().valueObtained(obtainedValue(obtained), source);
+            valueBroadcaster.getSource().valueObtained(obtainedValue(obtained), source);
             return obtained;
         }
 
-        @NotNull
+        @Nonnull
         private ValueSource<T, P> source() {
             return instantiateValueSource(
                 sourceType,
@@ -304,7 +317,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             );
         }
 
-        @NotNull
+        @Nonnull
         private DefaultObtainedValue<T, P> obtainedValue(Try<T> obtained) {
             return new DefaultObtainedValue<>(
                 obtained,
@@ -315,7 +328,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
     }
 
-    private static class DefaultObtainedValue<T, P extends ValueSourceParameters> implements Listener.ObtainedValue<T, P> {
+    private static class DefaultObtainedValue<T, P extends ValueSourceParameters> implements ValueListener.ObtainedValue<T, P> {
 
         private final Try<T> value;
         private final Class<? extends ValueSource<T, P>> valueSourceType;

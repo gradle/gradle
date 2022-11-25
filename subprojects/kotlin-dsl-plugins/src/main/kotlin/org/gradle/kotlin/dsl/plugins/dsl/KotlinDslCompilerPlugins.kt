@@ -31,7 +31,7 @@ import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugi
  * Configures the Kotlin compiler to recognise Gradle functional interface
  * annotated with [HasImplicitReceiver].
  */
-class KotlinDslCompilerPlugins : Plugin<Project> {
+abstract class KotlinDslCompilerPlugins : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 

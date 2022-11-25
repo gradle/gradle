@@ -11,7 +11,8 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":build-option"))
-    implementation(project(":wrapper"))
+    implementation(project(":logging"))
+    implementation(project(":wrapper-shared"))
     implementation(project(":tooling-api"))
     implementation(project(":file-temp"))
     implementation(libs.commonsIo)
@@ -20,8 +21,9 @@ dependencies {
     testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(project(":launcher"))
     testFixturesImplementation(project(":tooling-api"))
-    testFixturesImplementation(project(":wrapper"))
+    testFixturesImplementation(project(":wrapper-shared"))
     testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation(libs.guava)
 
     testImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))
@@ -50,7 +52,7 @@ tasks.jar {
     }
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/testkit/runner/internal/**")
 }
 

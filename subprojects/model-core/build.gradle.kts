@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation of configuration model types and annotation metadata handling (Providers, software model, conventions)"
+
 dependencies {
     api(project(":core-api"))
     api(project(":problems"))
@@ -58,7 +60,7 @@ tasks.withType<JavaCompile>().configureEach {
 
 integTest.usesJavadocCodeSnippets.set(true)
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/model/internal/core/**")
     excludePatterns.add("org/gradle/model/internal/inspect/**")
     excludePatterns.add("org/gradle/api/internal/tasks/**")

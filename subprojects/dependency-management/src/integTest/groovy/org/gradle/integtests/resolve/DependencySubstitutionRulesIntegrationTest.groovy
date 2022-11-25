@@ -17,12 +17,11 @@
 
 package org.gradle.integtests.resolve
 
-import org.gradle.api.attributes.Category
-import org.gradle.api.attributes.Usage
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
+
+import java.util.concurrent.CopyOnWriteArrayList
 
 class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec {
     def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
@@ -389,9 +388,10 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
             project(":api") {
                 task build {
+                    def outFile = file("artifact.txt")
+                    outputs.file(outFile)
                     doLast {
-                        mkdir(projectDir)
-                        file("artifact.txt") << "Lajos"
+                        outFile << "Lajos"
                     }
                 }
 
@@ -412,8 +412,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 task check(dependsOn: configurations.conf) {
+                    def files = configurations.conf
                     doLast {
-                        def files = configurations.conf.files
                         assert files*.name.sort() == ["api.jar", "artifact.txt"]
                         assert files[1].text == "Lajos"
                     }
@@ -901,7 +901,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     edge("org.utils:a:1.3", "org.utils:a:1.4").selectedByRule().byConflictResolution("between versions 1.4 and 1.3")
                 }
                 edge("org.utils:a:1.2", "org.utils:a:1.4")
-
             }
         }
     }
@@ -996,7 +995,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     void "rule selects unavailable version"() {
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
@@ -1012,8 +1010,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 
             task check {
+                def root = configurations.conf.incoming.resolutionResult.rootComponent
                 doLast {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    def deps = root.get().dependencies as List
                     assert deps.size() == 1
                     assert deps[0].attempted.group == 'org.utils'
                     assert deps[0].attempted.module == 'api'
@@ -1061,7 +1060,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 conf 'org.utils:impl:1.3', 'org.stuff:foo:2.0', 'org.stuff:bar:2.0'
             }
 
-            List requested = [].asSynchronized()
+            List requested = new ${CopyOnWriteArrayList.name}()
 
             configurations.conf.resolutionStrategy {
                 dependencySubstitution {
@@ -1072,8 +1071,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 
             task check {
+                def files = configurations.conf
                 doLast {
-                    configurations.conf.resolve()
+                    files.forEach { }
                     requested = requested.sort()
                     assert requested == [ 'api:1.3', 'api:1.5', 'bar:2.0', 'foo:2.0', 'impl:1.3']
                 }
@@ -1529,9 +1529,10 @@ configurations.all {
             }
 
             checkDeps {
+               def files = configurations.conf
                doLast {
                   // additional check on top of what the test fixture allows
-                  assert configurations.conf.files.name as Set == ['lib-1.1.jar', 'other-1.0.jar'] as Set
+                  assert files*.name as Set == ['lib-1.1.jar', 'other-1.0.jar'] as Set
                }
             }
         """
@@ -1610,9 +1611,10 @@ configurations.all {
             }
 
             checkDeps {
+               def files = configurations.conf
                doLast {
                   // additional check on top of what the test fixture allows
-                  assert configurations.conf.files.name as Set == ['lib-1.1-classy.jar', 'other-1.0.jar'] as Set
+                  assert files*.name as Set == ['lib-1.1-classy.jar', 'other-1.0.jar'] as Set
                }
             }
         """
@@ -1636,18 +1638,10 @@ configurations.all {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13658")
-    def "constraint shouldn't be converted to hard dependency when a dependency subsitution applies on an external module"() {
+    def "constraint shouldn't be converted to hard dependency when a dependency substitution applies on an external module"() {
         def fooModule = mavenRepo.module("org", "foo", "1.0")
         mavenRepo.module("org", "platform", "1.0")
-            .withModuleMetadata()
-            .adhocVariants()
-            .variant("apiElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_API, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
-                useDefaultArtifacts = false
-            }
-            .dependencyConstraint(fooModule)
-            .variant("runtimeElements", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM]) {
-                useDefaultArtifacts = false
-            }
+            .asGradlePlatform()
             .dependencyConstraint(fooModule)
             .publish()
 
@@ -1661,7 +1655,6 @@ configurations.all {
             }
         """
 
-        when:
         buildFile << """
             apply plugin: 'java-library'
 
@@ -1678,15 +1671,20 @@ configurations.all {
                     substitute module('org:foo:1.0') using project(':lib')
                 }
             }
-
-            task assertNotConvertedToHardDependency {
-                doLast {
-                    assert configurations.runtimeClasspath.files.empty
-                }
-            }
         """
 
+        when:
+        resolve.config = "runtimeClasspath"
+        resolve.prepare()
+        run(":checkDeps")
+
         then:
-        succeeds 'assertNotConvertedToHardDependency'
+        resolve.expectGraph {
+            root(":", ":depsub:") {
+                module("org:platform:1.0") {
+                    noArtifacts()
+                }
+            }
+        }
     }
 }

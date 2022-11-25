@@ -47,6 +47,15 @@ public interface ConsumerVariantMatchResult {
         }
 
         @Override
+        public String toString() {
+            if (previous != null) {
+                return previous + " <- (" + depth + ") " + transformationStep;
+            } else {
+                return "(" + depth + ") " + transformationStep;
+            }
+        }
+
+        @Override
         public ImmutableAttributes getTargetAttributes() {
             return attributes;
         }

@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.transform.ArtifactTransforms
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.specs.Spec
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import spock.lang.Specification
 
 class DefaultLenientConfigurationTest extends Specification {
@@ -56,7 +57,7 @@ class DefaultLenientConfigurationTest extends Specification {
         rootNode.children.add(child)
         def expectedResults = [child] as Set
 
-        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor, dependencyVerificationOverride)
+        def lenientConfiguration = newConfiguration()
 
         when:
         def results = lenientConfiguration.getFirstLevelModuleDependencies()
@@ -79,7 +80,7 @@ class DefaultLenientConfigurationTest extends Specification {
         def firstLevelDependencies = [(Mock(ModuleDependency)): node1, (Mock(ModuleDependency)): node2, (Mock(ModuleDependency)): node3]
         def firstLevelDependenciesEntries = firstLevelDependencies.entrySet() as List
 
-        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor, dependencyVerificationOverride)
+        def lenientConfiguration = newConfiguration()
 
         when:
         def result = lenientConfiguration.getFirstLevelModuleDependencies(spec)
@@ -97,7 +98,7 @@ class DefaultLenientConfigurationTest extends Specification {
 
     def "should flatten all resolved dependencies in dependency tree"() {
         given:
-        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor ,dependencyVerificationOverride)
+        def lenientConfiguration = newConfiguration()
 
         def (expected, root) = generateDependenciesWithChildren(treeStructure)
 
@@ -117,6 +118,10 @@ class DefaultLenientConfigurationTest extends Specification {
         [0: [1, 2, 3, 4, 5], 5: [6, 7, 8], 7: [9, 10], 9: [11, 12]] | 12
     }
 
+    private DefaultLenientConfiguration newConfiguration() {
+        new DefaultLenientConfiguration(configuration, false, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor, dependencyVerificationOverride, new TestWorkerLeaseService())
+    }
+
     def generateDependenciesWithChildren(Map treeStructure) {
         Map<Integer, TestResolvedDependency> dependenciesById = [:]
         for (Map.Entry entry : treeStructure.entrySet()) {
@@ -127,7 +132,7 @@ class DefaultLenientConfigurationTest extends Specification {
             Integer id = entry.getKey() as Integer
             dependenciesById.get(id).children = entry.getValue().collect {
                 def child = dependenciesById.get(it)
-                if(child == null) {
+                if (child == null) {
                     child = new TestResolvedDependency()
                     dependenciesById.put(it, child)
                 }

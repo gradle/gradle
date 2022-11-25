@@ -12,11 +12,14 @@
 .table-of-contents ul li:before,
 .topic ul li:before {
   color: #02303A;
-  content: '\00276F';
-  float: left;
-  font: 14px bold sans-serif;
+  content: '\002022';
+  font: 0.9em bold sans-serif;
   margin-left: -1em;
-  line-height: 25px;
+  margin-right: 0.4em;
+}
+
+pre {
+    overflow: auto;
 }
 
 ul.toc-sub {

@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -28,7 +29,8 @@ import javax.servlet.http.HttpServletResponse
 
 class MavenHttpRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
+    @Rule
+    ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
 
     def "can resolve and cache dependencies from HTTP Maven repository"() {
         given:
@@ -368,7 +370,6 @@ task listJars {
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     void "fails when configured with AwsCredentials"() {
         given:
         mavenHttpRepo.module('group', 'projectA', '1.2').publish()
@@ -396,7 +397,7 @@ task listJars {
         fails 'retrieve'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        GradleContextualExecuter.configCache || failure.assertHasDescription("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not resolve org.group.name:projectA:1.2.")
         failure.assertHasCause("Credentials must be an instance of: ${PasswordCredentials.canonicalName}")

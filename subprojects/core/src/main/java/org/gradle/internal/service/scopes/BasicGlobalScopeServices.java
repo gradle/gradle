@@ -43,8 +43,10 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
+import org.gradle.internal.jvm.inspection.InvalidInstallationWarningReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.jvm.inspection.ReportingJvmMetadataDetector;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
@@ -89,7 +91,12 @@ public class BasicGlobalScopeServices {
     }
 
     JvmMetadataDetector createJvmMetadataDetector(ExecHandleFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider) {
-        return new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider));
+        return new CachingJvmMetadataDetector(
+            new ReportingJvmMetadataDetector(
+                new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider),
+                new InvalidInstallationWarningReporter()
+            )
+        );
     }
 
     JvmVersionDetector createJvmVersionDetector(JvmMetadataDetector detector) {

@@ -24,6 +24,7 @@ import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.GradleProfilerReporter;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.performance.results.OutputDirSelector;
+import org.gradle.performance.results.OutputDirSelectorUtil;
 import org.gradle.profiler.BenchmarkResultCollector;
 import org.gradle.profiler.BuildMutator;
 import org.gradle.profiler.InvocationSettings;
@@ -133,7 +134,7 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
             String version = ((GradleBuildExperimentSpec) spec).getInvocation().getGradleDistribution().getVersion().getVersion();
             outputDir = new File(outputDirSelector.outputDirFor(testId), version);
         } else {
-            outputDir = new File(outputDirSelector.outputDirFor(testId), OutputDirSelector.fileSafeNameFor(spec.getDisplayName()));
+            outputDir = new File(outputDirSelector.outputDirFor(testId), OutputDirSelectorUtil.fileSafeNameFor(spec.getDisplayName()));
         }
         outputDir.mkdirs();
         return outputDir;
@@ -181,10 +182,12 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         return false;
     }
 
-    protected <T extends BuildInvocationResult> Consumer<T> consumerFor(ScenarioDefinition scenarioDefinition,
-                                                                        AtomicInteger iterationCount,
-                                                                        MeasuredOperationList results,
-                                                                        Consumer<T> scenarioReporter) {
+    protected <T extends BuildInvocationResult> Consumer<T> consumerFor(
+        ScenarioDefinition scenarioDefinition,
+        MeasuredOperationList results,
+        Consumer<T> scenarioReporter
+    ) {
+        AtomicInteger iterationCount = new AtomicInteger();
         return invocationResult -> {
             int currentIteration = iterationCount.incrementAndGet();
             if (currentIteration > scenarioDefinition.getWarmUpCount()) {

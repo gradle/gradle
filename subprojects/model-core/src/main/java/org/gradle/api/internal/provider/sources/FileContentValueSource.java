@@ -20,7 +20,6 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
-import org.gradle.api.tasks.InputFile;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -28,8 +27,6 @@ import java.io.File;
 public abstract class FileContentValueSource<T> implements ValueSource<T, FileContentValueSource.Parameters> {
 
     public interface Parameters extends ValueSourceParameters {
-
-        @InputFile
         RegularFileProperty getFile();
     }
 

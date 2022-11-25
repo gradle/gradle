@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -48,10 +49,10 @@ class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescripto
         !projectDependencyDescriptorFactory.canConvert(Mock(ExternalModuleDependency))
     }
 
-    def testCreateFromProjectDependency() {
+    def "test create from project dependency"() {
         when:
-        boolean withArtifacts = true
-        ProjectDependency projectDependency = createProjectDependency(null)
+        def configuration = withArtifacts ? null : TEST_DEP_CONF
+        ProjectDependency projectDependency = createProjectDependency(configuration)
         setUpDependency(projectDependency, withArtifacts)
         LocalOriginDependencyMetadata dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(componentId, TEST_CONF, null, projectDependency)
 
@@ -61,21 +62,9 @@ class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescripto
         !dependencyMetaData.force
         dependencyMetaData.selector == new DefaultProjectComponentSelector(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root", ImmutableAttributes.EMPTY, [])
         projectDependency == dependencyMetaData.source
-    }
 
-    def testCreateFromProjectDependencyWithoutArtifacts() {
-        when:
-        boolean withArtifacts = false
-        ProjectDependency projectDependency = createProjectDependency(TEST_DEP_CONF)
-        setUpDependency(projectDependency, withArtifacts)
-        LocalOriginDependencyMetadata dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(componentId, TEST_CONF, null, projectDependency)
-
-        then:
-        assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData, withArtifacts)
-        !dependencyMetaData.changing
-        !dependencyMetaData.force
-        dependencyMetaData.selector == new DefaultProjectComponentSelector(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root", ImmutableAttributes.EMPTY, [])
-        projectDependency == dependencyMetaData.source
+        where:
+        withArtifacts << [true, false]
     }
 
     private ProjectDependency createProjectDependency(String dependencyConfiguration) {
@@ -85,6 +74,6 @@ class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescripto
         if (dependencyConfiguration != null) {
             dependencyProject.configurations.create(dependencyConfiguration)
         }
-        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, true)
+        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, true, DefaultTaskDependencyFactory.withNoAssociatedProject())
     }
 }

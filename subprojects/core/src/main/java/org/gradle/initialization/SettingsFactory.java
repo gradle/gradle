@@ -53,7 +53,7 @@ public class SettingsFactory {
         StartParameter startParameter,
         ClassLoaderScope baseClassLoaderScope
     ) {
-        ClassLoaderScope classLoaderScope = baseClassLoaderScope.createChild("settings[" + gradle.getIdentityPath() + "]");
+        ClassLoaderScope classLoaderScope = baseClassLoaderScope.createChild("settings[" + gradle.getIdentityPath() + "]", null);
         DefaultSettings settings = instantiator.newInstance(
             DefaultSettings.class,
             serviceRegistryFactory,

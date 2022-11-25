@@ -16,6 +16,7 @@
 package org.gradle.api.invocation;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
@@ -178,7 +179,7 @@ public interface Gradle extends PluginAware {
      * @param closure The action to execute.
      * @since 6.0
      */
-    void beforeSettings(Closure<?> closure);
+    void beforeSettings(@DelegatesTo(Settings.class) Closure<?> closure);
 
     /**
      * Adds an action to be called before the build settings have been loaded and evaluated.

@@ -126,10 +126,6 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
     override fun artifactTypes(configureAction: Action<in ArtifactTypeContainer>) =
         delegate.artifactTypes(configureAction)
 
-    @Suppress("deprecation")
-    override fun registerTransform(registrationAction: Action<in org.gradle.api.artifacts.transform.VariantTransform>) =
-        delegate.registerTransform(registrationAction)
-
     override fun <T : TransformParameters?> registerTransform(actionType: Class<out TransformAction<T>>, registrationAction: Action<in TransformSpec<T>>) =
         delegate.registerTransform(actionType, registrationAction)
 

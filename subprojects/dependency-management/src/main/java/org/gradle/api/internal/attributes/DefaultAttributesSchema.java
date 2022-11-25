@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.attributes;
 
-import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -36,28 +33,35 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class DefaultAttributesSchema implements AttributesSchemaInternal, AttributesSchema {
     private final ComponentAttributeMatcher componentAttributeMatcher;
     private final InstantiatorFactory instantiatorFactory;
-    private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = Maps.newHashMap();
-    private final Map<String, Attribute<?>> attributesByName = Maps.newHashMap();
+    private final Map<Attribute<?>, AttributeMatchingStrategy<?>> strategies = new HashMap<>();
+    private final Map<String, Attribute<?>> attributesByName = new HashMap<>();
 
     private final DefaultAttributeMatcher matcher;
     private final IsolatableFactory isolatableFactory;
-    private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = Maps.newHashMap();
-    private final List<AttributeDescriber> consumerAttributeDescribers = Lists.newArrayList();
+    private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = new HashMap<>();
+    private final List<AttributeDescriber> consumerAttributeDescribers = new ArrayList<>();
+    private final Set<Attribute<?>> precedence = new LinkedHashSet<>();
 
     public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this.componentAttributeMatcher = componentAttributeMatcher;
         this.instantiatorFactory = instantiatorFactory;
-        matcher = new DefaultAttributeMatcher(componentAttributeMatcher, mergeWith(EmptySchema.INSTANCE));
+        this.matcher = new DefaultAttributeMatcher(componentAttributeMatcher, mergeWith(EmptySchema.INSTANCE));
         this.isolatableFactory = isolatableFactory;
     }
 
@@ -141,6 +145,26 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         consumerAttributeDescribers.add(describer);
     }
 
+    @Override
+    public void attributeDisambiguationPrecedence(Attribute<?>... attributes) {
+        for (Attribute<?> attribute : attributes) {
+            if (!precedence.add(attribute)) {
+                throw new IllegalArgumentException(String.format("Attribute '%s' precedence has already been set.", attribute.getName()));
+            }
+        }
+    }
+
+    @Override
+    public void setAttributeDisambiguationPrecedence(List<Attribute<?>> attributes) {
+        precedence.clear();
+        attributeDisambiguationPrecedence(attributes.toArray(new Attribute<?>[0]));
+    }
+
+    @Override
+    public List<Attribute<?>> getAttributeDisambiguationPrecedence() {
+        return Collections.unmodifiableList(new ArrayList<>(precedence));
+    }
+
     private static class DefaultAttributeMatcher implements AttributeMatcher {
         private final ComponentAttributeMatcher componentAttributeMatcher;
         private final AttributeSelectionSchema effectiveSchema;
@@ -216,7 +240,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
                 return Collections.singleton(requested);
             }
 
-            return candidates;
+            return null;
         }
 
         @Override
@@ -293,8 +317,46 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
         }
 
         @Override
+        public PrecedenceResult orderByPrecedence(Collection<Attribute<?>> requested) {
+            if (precedence.isEmpty() && producerSchema.getAttributeDisambiguationPrecedence().isEmpty()) {
+                // if no attribute precedence has been set anywhere, we can just iterate in order
+                return new PrecedenceResult(IntStream.range(0, requested.size()).boxed().collect(Collectors.toList()));
+            } else {
+                // Populate requested attribute -> position in requested attribute list
+                final Map<String, Integer> remaining = new LinkedHashMap<>();
+                int position = 0;
+                for (Attribute<?> requestedAttribute : requested) {
+                    remaining.put(requestedAttribute.getName(), position++);
+                }
+                List<Integer> sorted = new ArrayList<>(remaining.size());
+
+                // Add attribute index to sorted in the order of precedence by the consumer
+                for (Attribute<?> preferredAttribute : precedence) {
+                    if (requested.contains(preferredAttribute)) {
+                        sorted.add(remaining.remove(preferredAttribute.getName()));
+                    }
+                }
+                // Add attribute index to sorted in the order of precedence by the producer
+                for (Attribute<?> preferredAttribute : producerSchema.getAttributeDisambiguationPrecedence()) {
+                    if (remaining.containsKey(preferredAttribute.getName()) && requested.contains(preferredAttribute)) {
+                        sorted.add(remaining.remove(preferredAttribute.getName()));
+                    }
+                }
+                // If nothing was sorted, there were no attributes in the request that matched any attribute precedences
+                if (sorted.isEmpty()) {
+                    // Iterate in order
+                    return new PrecedenceResult(remaining.values());
+                } else {
+                    // sorted now contains any requested attribute indices in the order they appear in
+                    // the consumer and producer's attribute precedences
+                    return new PrecedenceResult(sorted, remaining.values());
+                }
+            }
+        }
+
+        @Override
         public int hashCode() {
-            return Objects.hashCode(producerSchema);
+            return producerSchema.hashCode();
         }
     }
 

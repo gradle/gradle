@@ -31,7 +31,7 @@ public interface BuildOperationContext {
     /**
      * Finishes the build operation which should only be done once.
      */
-    void setResult(Object result);
+    void setResult(@Nullable Object result);
 
     /**
      * Record a status or outcome for given build operation.

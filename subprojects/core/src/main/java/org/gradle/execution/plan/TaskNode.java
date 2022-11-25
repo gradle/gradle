@@ -17,64 +17,34 @@
 package org.gradle.execution.plan;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
-import org.gradle.api.Action;
-import org.gradle.api.Task;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.internal.deprecation.DeprecationLogger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.NavigableSet;
 import java.util.Set;
 
+import static org.gradle.execution.plan.NodeSets.newSortedNodeSet;
+
 public abstract class TaskNode extends Node {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaskNode.class);
-    public static final int UNKNOWN_ORDINAL = -1;
-
-    private final NavigableSet<Node> mustSuccessors = Sets.newTreeSet();
-    private final Set<Node> mustPredecessors = Sets.newHashSet();
-    private final NavigableSet<Node> shouldSuccessors = Sets.newTreeSet();
-    private final NavigableSet<Node> finalizers = Sets.newTreeSet();
-    private final NavigableSet<Node> finalizingSuccessors = Sets.newTreeSet();
-    private int ordinal;
-
-    public TaskNode(int ordinal) {
-        this.ordinal = ordinal;
-    }
+    private final NavigableSet<Node> shouldSuccessors = newSortedNodeSet();
+    private final NavigableSet<Node> finalizingSuccessors = newSortedNodeSet();
 
     @Override
-    public boolean doCheckDependenciesComplete() {
-        if (!super.doCheckDependenciesComplete()) {
-            return false;
+    protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
+        if (!finalizingSuccessors.isEmpty()) {
+            builder.append(", finalizes=").append(formatNodes(finalizingSuccessors));
         }
-        LOGGER.debug("Checking if all must successors are complete for {}", this);
-        for (Node dependency : mustSuccessors) {
-            if (!dependency.isComplete()) {
-                return false;
-            }
-        }
-
-        LOGGER.debug("Checking if all finalizing successors are complete for {}", this);
-        for (Node dependency : finalizingSuccessors) {
-            if (!dependency.isComplete()) {
-                return false;
-            }
-        }
-
-        LOGGER.debug("All task dependencies are complete for {}", this);
-        return true;
     }
 
     public Set<Node> getMustSuccessors() {
-        return mustSuccessors;
+        return getDependencyNodes().getMustSuccessors();
     }
+
+    public abstract Set<Node> getLifecycleSuccessors();
+
+    public abstract void setLifecycleSuccessors(Set<Node> successors);
 
     @Override
-    public Set<Node> getFinalizers() {
-        return finalizers;
-    }
-
     public Set<Node> getFinalizingSuccessors() {
         return finalizingSuccessors;
     }
@@ -83,20 +53,15 @@ public abstract class TaskNode extends Node {
         return shouldSuccessors;
     }
 
-    public void addMustSuccessor(TaskNode toNode) {
+    public void addMustSuccessor(Node toNode) {
         deprecateLifecycleHookReferencingNonLocalTask("mustRunAfter", toNode);
-        mustSuccessors.add(toNode);
-        toNode.mustPredecessors.add(this);
+        updateDependencyNodes(getDependencyNodes().addMustSuccessor(toNode));
+        toNode.addMustPredecessor(this);
     }
 
-    public void addFinalizingSuccessor(TaskNode finalized) {
+    public void addFinalizingSuccessor(Node finalized) {
         finalizingSuccessors.add(finalized);
-        finalized.finalizers.add(this);
-    }
-
-    public void addFinalizer(TaskNode finalizerNode) {
-        deprecateLifecycleHookReferencingNonLocalTask("finalizedBy", finalizerNode);
-        finalizerNode.addFinalizingSuccessor(this);
+        finalized.addFinalizer(this);
     }
 
     public void addShouldSuccessor(Node toNode) {
@@ -113,7 +78,7 @@ public abstract class TaskNode extends Node {
         return Iterables.concat(
             shouldSuccessors,
             finalizingSuccessors,
-            mustSuccessors,
+            getMustSuccessors(),
             super.getAllSuccessors()
         );
     }
@@ -122,72 +87,27 @@ public abstract class TaskNode extends Node {
     public Iterable<Node> getHardSuccessors() {
         return Iterables.concat(
             finalizingSuccessors,
-            mustSuccessors,
+            getMustSuccessors(),
             super.getHardSuccessors()
         );
     }
 
-    @Override
-    public Iterable<Node> getAllSuccessorsInReverseOrder() {
-        return Iterables.concat(
-            super.getAllSuccessorsInReverseOrder(),
-            mustSuccessors.descendingSet(),
-            finalizingSuccessors.descendingSet(),
-            shouldSuccessors.descendingSet()
-        );
-    }
-
-    @Override
-    public Iterable<Node> getAllPredecessors() {
-        return Iterables.concat(mustPredecessors, finalizers, super.getAllPredecessors());
-    }
-
-    @Override
-    public boolean hasHardSuccessor(Node successor) {
-        if (super.hasHardSuccessor(successor)) {
-            return true;
-        }
-        if (!(successor instanceof TaskNode)) {
-            return false;
-        }
-        return getMustSuccessors().contains(successor)
-            || getFinalizingSuccessors().contains(successor);
-    }
-
-    /**
-     * Attach an action to execute immediately after the <em>successful</em> completion of this task.
-     *
-     * <p>This is used to ensure that dependency resolution metadata for a particular artifact is calculated immediately after that artifact is produced and cached, to avoid consuming tasks having to lock the producing project in order to calculate this metadata.</p>
-     *
-     * <p>This action should really be modelled as a real node in the graph. This 'post action' concept is intended to be a step in this direction.</p>
-     */
-    public abstract void appendPostAction(Action<? super Task> action);
-
-    public abstract Action<? super Task> getPostAction();
-
     public abstract TaskInternal getTask();
 
-    @Override
-    public boolean isPublicNode() {
-        return true;
-    }
-
-    private void deprecateLifecycleHookReferencingNonLocalTask(String hookName, Node taskNode) {
+    protected void deprecateLifecycleHookReferencingNonLocalTask(String hookName, Node taskNode) {
         if (taskNode instanceof TaskInAnotherBuild) {
-            DeprecationLogger.deprecateAction("Using " + hookName + " to reference tasks from another build")
-                .willBecomeAnErrorInGradle8()
-                .withUpgradeGuideSection(6, "referencing_tasks_from_included_builds")
-                .nagUser();
+            throw new GradleException("Cannot use " + hookName + " to reference tasks from another build");
         }
     }
 
-    public int getOrdinal() {
-        return ordinal;
-    }
-
-    public void maybeSetOrdinal(int ordinal) {
-        if (this.ordinal == UNKNOWN_ORDINAL || this.ordinal > ordinal) {
-            this.ordinal = ordinal;
+    @Override
+    public void maybeInheritFinalizerGroups() {
+        super.maybeInheritFinalizerGroups();
+        if (!getFinalizingSuccessors().isEmpty()) {
+            // This node is a finalizer, decorate the current group to add finalizer behaviour
+            NodeGroup oldGroup = getGroup();
+            FinalizerGroup finalizerGroup = new FinalizerGroup(this, oldGroup);
+            setGroup(finalizerGroup);
         }
     }
 }

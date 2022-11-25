@@ -84,4 +84,9 @@ public class EnumValueSnapshot implements ValueSnapshot {
     public int hashCode() {
         return className.hashCode() ^ name.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return className + "." + name;
+    }
 }

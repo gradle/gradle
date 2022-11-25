@@ -112,6 +112,13 @@ class JsonModelWriter(val writer: Writer) {
                         comma()
                         property("declaringType", firstTypeFrom(trace.trace).name)
                     }
+                    PropertyKind.PropertyUsage -> {
+                        property("kind", trace.kind.name)
+                        comma()
+                        property("name", trace.name)
+                        comma()
+                        property("from", projectPathFrom(trace.trace))
+                    }
                     else -> {
                         property("kind", trace.kind.name)
                         comma()
@@ -120,6 +127,11 @@ class JsonModelWriter(val writer: Writer) {
                         property("task", taskPathFrom(trace.trace))
                     }
                 }
+            }
+            is PropertyTrace.SystemProperty -> {
+                property("kind", "SystemProperty")
+                comma()
+                property("name", trace.name)
             }
             is PropertyTrace.Task -> {
                 property("kind", "Task")
@@ -132,6 +144,11 @@ class JsonModelWriter(val writer: Writer) {
                 property("kind", "Bean")
                 comma()
                 property("type", trace.type.name)
+            }
+            is PropertyTrace.Project -> {
+                property("kind", "Project")
+                comma()
+                property("path", trace.path)
             }
             is PropertyTrace.BuildLogic -> {
                 property("kind", "BuildLogic")

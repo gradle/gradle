@@ -18,7 +18,7 @@ package org.gradle.kotlin.dsl.accessors
 
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.internal.execution.ExecutionEngine
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 

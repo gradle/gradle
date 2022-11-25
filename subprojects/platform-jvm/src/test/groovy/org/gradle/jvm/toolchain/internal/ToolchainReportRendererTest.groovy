@@ -36,12 +36,11 @@ class ToolchainReportRendererTest extends Specification {
         given:
         def metadata = JvmInstallationMetadata.from(
             new File("path"),
-            "1.8.0",
-            "1.8.0-b01",
-            "25.292-b01",
-            "vendorName",
-            "",
-            "myArch")
+            "1.8.0", "vendorName",
+            "runtimeName", "1.8.0-b01",
+            "jvmName", "25.292-b01", "jvmVendor",
+            "myArch"
+        )
         installation.source >> "SourceSupplier"
 
         expect:
@@ -61,12 +60,11 @@ class ToolchainReportRendererTest extends Specification {
         File javaHome = new File(temporaryFolder, "javahome").tap { mkdirs() }
         def metadata = JvmInstallationMetadata.from(
             javaHome,
-            "1.8.0",
-            "1.8.0-b01",
-            "25.292-b01",
-            "adoptopenjdk",
-            "",
-            "myArch")
+            "1.8.0", "adoptopenjdk",
+            "runtimeName", "1.8.0-b01",
+            "jvmName", "25.292-b01", "jvmVendor",
+            "myArch"
+        )
         installation.source >> "SourceSupplier"
 
         def binDir = new File(javaHome, "bin")
@@ -77,7 +75,7 @@ class ToolchainReportRendererTest extends Specification {
 
         expect:
         assertOutput(metadata, """{identifier} + AdoptOpenJDK 1.8.0-b01{normal}
-     | Location:           {description}$javaHome{normal}
+     | Location:           {description}${javaHome}{normal}
      | Language Version:   {description}8{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
      | Architecture:       {description}myArch{normal}

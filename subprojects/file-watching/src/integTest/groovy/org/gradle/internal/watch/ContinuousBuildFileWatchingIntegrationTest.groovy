@@ -16,12 +16,14 @@
 
 package org.gradle.internal.watch
 
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.FileSystemWatchingFixture
 import org.gradle.integtests.fixtures.FileSystemWatchingHelper
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
+@LocalOnly
 @IgnoreIf({
 	GradleContextualExecuter.noDaemon // There is no shared state without a daemon
 })
@@ -61,7 +63,7 @@ class ContinuousBuildFileWatchingIntegrationTest extends AbstractContinuousInteg
         sourceFile.text = "class Thing { public void doStuff() {} }"
 
         then:
-        succeeds()
+        buildTriggeredAndSucceeded()
         vfsLogs.getRetainedFilesSinceLastBuild() >= numberOfFilesInVfs - 1
         vfsLogs.getRetainedFilesInCurrentBuild() >= numberOfFilesInVfs
         executedAndNotSkipped(":compileJava")

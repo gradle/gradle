@@ -58,9 +58,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         server.start()
 
         when:
-        server.uri("a").toURL().text
-        server.uri("b").toURL().text
-        server.uri("c").toURL().text
+        succeeds("a")
+        succeeds("b")
+        succeeds("c")
         server.stop()
 
         then:
@@ -248,9 +248,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                server.uri("a").toURL().text
+                succeeds("a")
                 instant.aDone
-                server.uri("b").toURL().text
+                succeeds("b")
             }
             request1.waitUntilBlocked()
             instant.aBlocked
@@ -319,9 +319,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
         when:
         async {
-            start { server.uri("a").toURL().text }
-            start { server.uri("b").toURL().text }
-            start { server.uri("c").toURL().text }
+            start { succeeds("a") }
+            start { succeeds("b") }
+            start { succeeds("c") }
         }
         server.stop()
 
@@ -336,9 +336,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
         when:
         async {
-            start { server.uri("a").toURL().text }
-            start { server.uri("a").toURL().text }
-            start { server.uri("a").toURL().text }
+            start { succeeds("a") }
+            start { succeeds("a") }
+            start { succeeds("a") }
         }
         server.stop()
 
@@ -354,9 +354,9 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
         when:
         async {
-            start { server.uri("a").toURL().text }
-            start { server.uri("a").toURL().text }
-            start { server.uri("a").toURL().text }
+            start { succeeds("a") }
+            start { succeeds("a") }
+            start { succeeds("a") }
         }
         server.stop()
 
@@ -374,11 +374,11 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                server.uri("a").toURL().text
+                succeeds("a")
                 instant.aDone
             }
             start {
-                server.uri("b").toURL().text
+                succeeds("b")
                 instant.bDone
             }
             request1.waitUntilBlocked()
@@ -402,11 +402,11 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
         when:
         async {
-            start { server.uri("a").toURL().text }
-            start { server.uri("b").toURL().text }
+            start { succeeds("a") }
+            start { succeeds("b") }
             handle.waitForAllPendingCalls()
             handle.release(1)
-            start { server.uri("c").toURL().text }
+            start { succeeds("c") }
             handle.waitForAllPendingCalls()
             handle.release(1)
             handle.release(1)
@@ -425,11 +425,11 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
         when:
         async {
-            start { server.uri("a").toURL().text }
-            start { server.uri("a").toURL().text }
+            start { succeeds("a") }
+            start { succeeds("a") }
             handle.waitForAllPendingCalls()
             handle.release(1)
-            start { server.uri("a").toURL().text }
+            start { succeeds("a") }
             handle.waitForAllPendingCalls()
             handle.release(1)
             handle.release(1)
@@ -449,10 +449,10 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                server.uri("a").toURL().text
-                server.uri("b").toURL().text
+                succeeds("a")
+                succeeds("b")
             }
-            start { server.uri("c").toURL().text }
+            start { succeeds("c") }
             handle.waitForAllPendingCalls()
             handle.release("a")
             handle.waitForAllPendingCalls()
@@ -474,10 +474,10 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                server.uri("a").toURL().text
-                server.uri("b").toURL().text
+                succeeds("a")
+                succeeds("b")
             }
-            start { server.uri("c").toURL().text }
+            start { succeeds("c") }
             handle.waitForAllPendingCalls()
             handle.release("a")
             handle.waitForAllPendingCalls()
@@ -500,12 +500,12 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                server.uri("a").toURL().text
-                server.uri("b").toURL().text
+                succeeds("a")
+                succeeds("b")
             }
             start {
-                server.uri("a").toURL().text
-                server.uri("b").toURL().text
+                succeeds("a")
+                succeeds("b")
             }
             handle.waitForAllPendingCalls()
             handle.release("a")
@@ -534,11 +534,11 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                server.uri("a").toURL().text
+                succeeds("a")
                 instant.aDone
             }
             start {
-                server.uri("b").toURL().text
+                succeeds("b")
                 instant.bDone
             }
             handle.waitForAllPendingCalls()
@@ -568,22 +568,22 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                server.uri("a").toURL().text
+                succeeds("a")
             }
             start {
-                server.uri("b").toURL().text
+                succeeds("b")
             }
             server.waitForRequests(2)
-            server.uri("c").toURL().text
+            succeeds("c")
             start {
-                server.uri("d").toURL().text
+                succeeds("d")
             }
             start {
-                server.uri("e").toURL().text
+                succeeds("e")
             }
             handle.waitForAllPendingCalls()
             handle.releaseAll()
-            server.uri("f").toURL().text
+            succeeds("f")
         }
         server.stop()
 
@@ -598,7 +598,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         server.start()
 
         when:
-        server.uri("a").toURL().text
+        succeeds("a")
         server.stop()
 
         then:
@@ -613,8 +613,8 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         server.start()
 
         when:
-        server.uri("a").toURL().text
-        server.uri("a").toURL().text
+        succeeds("a")
+        succeeds("a")
 
         then:
         thrown(IOException)
@@ -693,7 +693,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         server.start()
 
         when:
-        server.uri("a").toURL().text
+        succeeds("a")
 
         then:
         thrown(IOException)
@@ -715,7 +715,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         server.start()
 
         when:
-        server.uri("a").toURL().text
+        succeeds("a")
 
         then:
         thrown(IOException)
@@ -737,7 +737,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         server.start()
 
         when:
-        server.uri("a").toURL().text
+        succeeds("a")
 
         then:
         thrown(IOException)
@@ -759,13 +759,13 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         server.start()
 
         when:
-        server.uri("a").toURL().text
+        succeeds("a")
 
         then:
         thrown(IOException)
 
         when:
-        server.uri("b").toURL().text
+        succeeds("b")
 
         then:
         thrown(IOException)
@@ -790,7 +790,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                server.uri("a").toURL().text
+                succeeds("a")
                 // TODO - probably should fail
             }
             server.waitForRequests(1)
@@ -811,7 +811,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         server.start()
 
         when:
-        server.uri("c").toURL().text
+        succeeds("c")
 
         then:
         thrown(IOException)
@@ -837,11 +837,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                try {
-                    server.uri("c").toURL().text
-                } catch (IOException e) {
-                    requestFailure = e
-                }
+                requestFailure = fails("c")
             }
             handle.waitForAllPendingCalls()
         }
@@ -885,19 +881,11 @@ class BlockingHttpServerTest extends ConcurrentSpec {
             }
             start {
                 server.waitForRequests(1)
-                try {
-                    server.uri("b").toURL().text
-                } catch (Throwable t) {
-                    failure2 = t
-                }
+                failure2 = fails("b")
             }
             start {
                 server.waitForRequests(2)
-                try {
-                    server.uri("c").toURL().text
-                } catch (Throwable t) {
-                    failure3 = t
-                }
+                failure3 = fails("c")
             }
         }
 
@@ -941,19 +929,11 @@ class BlockingHttpServerTest extends ConcurrentSpec {
             }
             start {
                 server.waitForRequests(1)
-                try {
-                    server.uri("b").toURL().text
-                } catch (Throwable t) {
-                    failure2 = t
-                }
+                failure2 = fails("b")
             }
             start {
                 server.waitForRequests(2)
-                try {
-                    server.uri("c").toURL().text
-                } catch (Throwable t) {
-                    failure3 = t
-                }
+                failure3 = fails("c")
             }
             server.waitForRequests(3)
             handle.waitForAllPendingCalls()
@@ -987,10 +967,10 @@ class BlockingHttpServerTest extends ConcurrentSpec {
 
         when:
         async {
-            start { server.uri("a").toURL().text }
-            start { server.uri("b").toURL().text }
+            start { succeeds("a") }
+            start { succeeds("b") }
         }
-        server.uri("c").toURL().text
+        succeeds("c")
 
         then:
         thrown(IOException)
@@ -1015,11 +995,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                try {
-                    server.uri("a").toURL().text
-                } catch (Throwable e) {
-                    requestFailure = e
-                }
+                requestFailure = fails("a")
             }
             handle.waitForAllPendingCalls()
         }
@@ -1051,11 +1027,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                try {
-                    server.uri("a").toURL().text
-                } catch (Throwable e) {
-                    requestFailure = e
-                }
+                requestFailure = fails("a")
             }
             handle.waitForAllPendingCalls()
         }
@@ -1067,7 +1039,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         requestFailure instanceof IOException
 
         when:
-        server.uri("b").toURL().text
+        succeeds("b")
 
         then:
         thrown(IOException)
@@ -1095,19 +1067,11 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                try {
-                    server.uri("a").toURL().text
-                } catch (Throwable t) {
-                    failure1 = t
-                }
+                failure1 = fails("a")
             }
             start {
                 server.waitForRequests(1)
-                try {
-                    server.uri("c").toURL().text
-                } catch (Throwable t) {
-                    failure2 = t
-                }
+                failure2 = fails("c")
             }
         }
         server.stop()
@@ -1135,19 +1099,11 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                try {
-                    server.uri("a").toURL().text
-                } catch (Throwable t) {
-                    failure1 = t
-                }
+                failure1 = fails("a")
             }
             start {
                 server.waitForRequests(1)
-                try {
-                    server.uri("d").toURL().text
-                } catch (Throwable t) {
-                    failure2 = t
-                }
+                failure2 = fails("d")
             }
             handle.waitForAllPendingCalls()
         }
@@ -1183,27 +1139,15 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                try {
-                    server.uri("a").toURL().text
-                } catch (Throwable t) {
-                    failure1 = t
-                }
+                failure1 = fails("a")
             }
             start {
                 server.waitForRequests(1)
-                try {
-                    server.uri("b").toURL().text
-                } catch (Throwable t) {
-                    failure2 = t
-                }
+                failure2 = fails("b")
             }
             start {
                 server.waitForRequests(2)
-                try {
-                    server.uri("c").toURL().text
-                } catch (Throwable t) {
-                    failure3 = t
-                }
+                failure3 = fails("c")
             }
             server.waitForRequests(3)
             handle.waitForAllPendingCalls()
@@ -1308,19 +1252,11 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                try {
-                    server.uri("a").toURL().text
-                } catch (Throwable t) {
-                    failure1 = t
-                }
+                failure1 = fails("a")
             }
             start {
                 server.waitForRequests(1)
-                try {
-                    server.uri("b").toURL().text
-                } catch (Throwable t) {
-                    failure2 = t
-                }
+                failure2 = fails("b")
             }
             handle.waitForAllPendingCalls()
             // Do not release the requests here
@@ -1351,7 +1287,7 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                server.uri("a").toURL().text
+                succeeds("a")
             }
             start {
                 handle.waitForAllPendingCalls()
@@ -1420,12 +1356,12 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                server.uri("c").toURL().text
-                server.uri("a").toURL().text
+                succeeds("c")
+                succeeds("a")
             }
             server.waitForRequests(1)
             start {
-                server.uri("b").toURL().text
+                succeeds("b")
             }
         }
         server.stop
@@ -1446,27 +1382,15 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                try {
-                    server.uri("a").toURL().text
-                } catch (IOException e) {
-                    failure1 = e
-                }
+                failure1 = fails("a")
             }
             server.waitForRequests(1)
             start {
-                try {
-                    server.uri("d").toURL().text
-                } catch (IOException e) {
-                    failure2 = e
-                }
+                failure2 = fails("d")
             }
             server.waitForRequests(2)
             start {
-                try {
-                    server.uri("c").toURL().text
-                } catch (IOException e) {
-                    failure3 = e
-                }
+                failure3 = fails("c")
             }
         }
         server.stop()
@@ -1498,27 +1422,15 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         when:
         async {
             start {
-                try {
-                    server.uri("c").toURL().text
-                } catch (IOException e) {
-                    failure1 = e
-                }
+                failure1 = fails("c")
             }
             server.waitForRequests(1)
             start {
-                try {
-                    server.uri("b").toURL().text
-                } catch (IOException e) {
-                    failure2 = e
-                }
+                failure2 = fails("b")
             }
             server.waitForRequests(2)
             start {
-                try {
-                    server.uri("a").toURL().text
-                } catch (IOException e) {
-                    failure3 = e
-                }
+                failure3 = fails("a")
             }
         }
         server.stop()
@@ -1536,6 +1448,117 @@ class BlockingHttpServerTest extends ConcurrentSpec {
         failure1 != null
         failure2 != null
         failure3 != null
+    }
+
+    def "succeeds when expected groups of requests are made"() {
+        given:
+        server.expectInAnyOrder(server.concurrent("a", "b"), server.concurrent("c", "d"))
+        server.start()
+
+        when:
+        async {
+            start { succeeds("c") }
+            start { succeeds("d") }
+            server.waitForRequests(2)
+            start { succeeds("a") }
+            start { succeeds("b") }
+        }
+        server.stop()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "fails when different groups of requests are received concurrently"() {
+        def failure1 = null
+        def failure2 = null
+
+        given:
+        server.expectInAnyOrder(server.concurrent("a", "b"), server.concurrent("c", "d"))
+        server.start()
+
+        when:
+        async {
+            start {
+                failure1 = fails("a")
+            }
+            server.waitForRequests(1)
+            failure2 = fails("c")
+        }
+        server.stop()
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Failed to handle all HTTP requests."
+        e.causes.message == [
+            'Failed to handle GET /a due to unexpected request GET /c. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b]',
+            'Unexpected request GET /c received. Waiting for 1 further requests, received [GET /a], released [], not yet received [GET /b]',
+            'Did not receive all expected requests. Waiting for 2 further requests, received [], released [], not yet received [GET /c, GET /d]'
+        ]
+
+        and:
+        failure1 != null
+        failure2 != null
+    }
+
+    def "fails when expected group of requests is not received"() {
+        given:
+        server.expectInAnyOrder(server.concurrent("a", "b"), server.concurrent("c", "d"))
+        server.start()
+
+        when:
+        async {
+            start { succeeds("a") }
+            start { succeeds("b") }
+        }
+        server.stop()
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Failed to handle all HTTP requests."
+        e.causes.message == [
+            'Did not receive all expected requests. Waiting for 2 further requests, received [], released [], not yet received [GET /c, GET /d]'
+        ]
+    }
+
+    def "fails when expected group of requests is partially received"() {
+        def failure1 = null
+
+        given:
+        server.expectInAnyOrder(server.concurrent("a", "b"), server.concurrent("c", "d"))
+        server.start()
+
+        when:
+        async {
+            start { succeeds("a") }
+            start { succeeds("b") }
+            server.waitForRequests(2)
+            failure1 = fails("c")
+        }
+        server.stop()
+
+        then:
+        def e = thrown(RuntimeException)
+        e.message == "Failed to handle all HTTP requests."
+        e.causes.message == [
+            'Failed to handle GET /c due to a timeout waiting for other requests. Waiting for 1 further requests, received [GET /c], released [], not yet received [GET /d]'
+        ]
+
+        and:
+        failure1 != null
+    }
+
+    void succeeds(String path) {
+        server.uri(path).toURL().text
+    }
+
+    IOException fails(String path) {
+        try {
+            server.uri(path).toURL().text
+            throw new IllegalStateException()
+        } catch (IOException e) {
+            return e
+        }
     }
 }
 

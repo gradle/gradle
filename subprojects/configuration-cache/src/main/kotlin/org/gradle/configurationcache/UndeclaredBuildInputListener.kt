@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.file.FileCollection
 import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.Scopes
 import java.io.File
@@ -31,4 +32,8 @@ interface UndeclaredBuildInputListener {
     fun envVariableRead(key: String, value: String?, consumer: String?)
 
     fun fileOpened(file: File, consumer: String?)
+
+    fun fileCollectionObserved(fileCollection: FileCollection, consumer: String)
+
+    fun fileObserved(file: File, consumer: String?)
 }

@@ -15,6 +15,6 @@
  */
 
 /**
- * The the distribution plugin itself.
+ * The distribution plugin itself.
  */
 package org.gradle.api.distribution.plugins;

@@ -16,14 +16,13 @@
 
 package org.gradle.internal.scan.config;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 /**
  * A service that provides the build scan configuration.
  *
+ * Obtained via the root project's gradle object's service registry.
+ *
  * @since 4.0
  */
-@UsedByScanPlugin("Obtained via the root project's gradle object's service registry")
 public interface BuildScanConfigProvider {
 
     /**

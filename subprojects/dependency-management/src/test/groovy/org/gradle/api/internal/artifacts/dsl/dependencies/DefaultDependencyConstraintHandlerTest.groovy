@@ -33,7 +33,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
     private static final String UNKNOWN_TEST_CONF_NAME = "unknown"
 
     private def configurationContainer = Mock(ConfigurationContainer)
-    private def dependencyFactory = Mock(DependencyFactory)
+    private def dependencyFactory = Mock(DependencyFactoryInternal)
     private def configuration = Mock(Configuration)
     private def dependencyConstraintSet = Mock(DependencyConstraintSet)
 

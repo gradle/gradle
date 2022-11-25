@@ -207,7 +207,7 @@ In this case, we're taking the runtime dependencies of the project — `configur
 
 Many tasks need to create directories to store the files they generate, which is why Gradle automatically manages this aspect of tasks when they explicitly define file and directory outputs. You can learn about this feature in the <<more_about_tasks.adoc#sec:up_to_date_checks,incremental build>> section of the user manual. All core Gradle tasks ensure that any output directories they need are created if necessary using this mechanism.
 
-In cases where you need to create a directory manually, you can use the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:mkdir(java.lang.Object)[Project.mkdir(java.lang.Object)] method from within your build scripts or custom task implementations. Here's a simple example that creates a single `images` directory in the project folder:
+In cases where you need to create a directory manually, you can use the standard `{javaApi}/java/nio/file/Files.html#createDirectories-java.nio.file.Path-java.nio.file.attribute.FileAttribute++...++-[Files.createDirectories]` or `{javaApi}/java/io/File.html#mkdirs--[File.mkdirs]` methods from within your build scripts or custom task implementations. Here's a simple example that creates a single `images` directory in the project folder:
 
 .Manually creating a directory
 ====
@@ -313,7 +313,7 @@ Relative paths are resolved relative to the project directory, while absolute pa
 
 [CAUTION]
 ====
-Never use `new File(relative path)` because this creates a path relative to the current working directory (CWD). Gradle can make no guarantees about the location of the CWD, which means builds that rely on it may break at any time.
+Never use `new File(relative path)` unless passed to `file()` or `files()` or `from()` or other methods being defined in terms of `file()` or `files()`. Otherwise this creates a path relative to the current working directory (CWD). Gradle can make no guarantees about the location of the CWD, which means builds that rely on it may break at any time.
 ====
 
 Here are some examples of using the `file()` method with different types of argument:
@@ -352,7 +352,7 @@ Learn about all the supported argument types in the reference guide.
 
 [CAUTION]
 ====
-Although the `files()` method accepts `File` instances, never use `new File(relative path)` with it because this creates a path relative to the current working directory (CWD). Gradle can make no guarantees about the location of the CWD, which means builds that rely on it may break at any time.
+`files()` properly handle relative paths and `File(relative path)` instances, resolving them relative to the project directory.
 ====
 
 As with the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method covered in the <<#sec:single_file_paths,previous section>>, all relative paths are evaluated relative to the current project directory. The following example demonstrates some of the variety of argument types you can use — strings, `File` instances, a list and a `{javaApi}/java/nio/file/Path.html[Path]`:
@@ -386,7 +386,7 @@ include::{snippetsPath}/files/fileCollections/tests/fileCollectionsWithClosure.o
 
 The key to lazy creation is passing a closure (in Groovy) or a `Provider` (in Kotlin) to the `files()` method. Your closure/provider simply needs to return a value of a type accepted by `files()`, such as `List<File>`, `String`, `FileCollection`, etc.
 
-_Iterating over a file collection_ can be done through the `each()` method (in Groovy) of `forEach` method (in Kotlin) on the collection or using the collection in a `for` loop. In both approaches, the file collection is treated as a set of `File` instances, i.e. your iteration variable will be of type `File`.
+_Iterating over a file collection_ can be done through the `each()` method (in Groovy) or `forEach` method (in Kotlin) on the collection or using the collection in a `for` loop. In both approaches, the file collection is treated as a set of `File` instances, i.e. your iteration variable will be of type `File`.
 
 The following example demonstrates such iteration as well as how you can convert file collections to other types using the `as` operator or supported properties:
 
@@ -495,7 +495,7 @@ You can see a practical example of extracting an archive file <<#sec:unpacking_a
 
 Many objects in Gradle have properties which accept a set of input files.
 For example, the link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] task has a `source` property that defines the source files to compile.
-You can set the value of this property using any of the types supported by the <<#sec:file_collections,files()>> method, as mentioned in the api docs.
+You can set the value of this property using any of the types supported by the <<#sec:file_collections,files()>> method, as mentioned in the API docs.
 This means you can, for example, set the property to a `File`, `String`, collection, `FileCollection` or even a closure or `Provider`.
 
 *This is a feature of specific tasks*!
@@ -640,7 +640,7 @@ Note that both variants assume the source files are text based. When you use the
 
 The `expand()` method treats the source files as https://docs.groovy-lang.org/latest/html/api/groovy/text/SimpleTemplateEngine.html[Groovy templates], which evaluate and expand expressions of the form `${expression}`. You can pass in property names and values that are then expanded in the source files. `expand()` allows for more than basic token substitution as the embedded expressions are full-blown Groovy expressions.
 
-NOTE: It's good practice to specify the character set when reading and writing the file, otherwise the transformations won't work properly for non-ASCII text. You configure the character set with the link:{javadocPath}/org/gradle/api/file/CopySpec.html#getFilteringCharset--[CopySpec.getFilteringCharset()] property. If it's not specified, the JVM default character set is used, which is likely to be different from the one you want.
+NOTE: It's good practice to specify the character set when reading and writing the file, otherwise the transformations won't work properly for non-ASCII text. You configure the character set with the link:{javadocPath}/org/gradle/api/file/CopySpec.html#setFilteringCharset-java.lang.String-[CopySpec.setFilteringCharset(String)] property. If it's not specified, the JVM default character set is used, which is likely to be different from the one you want.
 
 [[sec:using_the_copyspec_class]]
 === Using the `CopySpec` class

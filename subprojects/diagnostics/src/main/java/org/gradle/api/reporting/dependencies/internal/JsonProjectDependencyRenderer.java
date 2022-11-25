@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
@@ -146,10 +147,11 @@ public class JsonProjectDependencyRenderer {
         json.call(overall);
     }
 
-    private List<Configuration> getNonDeprecatedConfigurations(Project project) {
+    private List<Configuration> getConfigurationsWhichCouldHaveDependencyInfo(Project project) {
         List<Configuration> filteredConfigurations = new ArrayList<>();
         for (Configuration configuration : project.getConfigurations()) {
-            if (!((DeprecatableConfiguration) configuration).isFullyDeprecated()) {
+            ConfigurationInternal configurationInternal = (ConfigurationInternal)configuration;
+            if (configurationInternal.isDeclarableAgainstByExtension()) {
                 filteredConfigurations.add(configuration);
             }
         }
@@ -162,7 +164,7 @@ public class JsonProjectDependencyRenderer {
     }
 
     private List<Map<String, Object>> createConfigurations(Project project) {
-        Iterable<Configuration> configurations = getNonDeprecatedConfigurations(project);
+        Iterable<Configuration> configurations = getConfigurationsWhichCouldHaveDependencyInfo(project);
         return CollectionUtils.collect(configurations, configuration -> {
             LinkedHashMap<String, Object> map = new LinkedHashMap<>(4);
             map.put("name", configuration.getName());
@@ -179,7 +181,7 @@ public class JsonProjectDependencyRenderer {
             RenderableDependency root = new RenderableModuleResult(result.getRoot());
             return createDependencyChildren(root, new HashSet<>());
         } else {
-            return createDependencyChildren(new UnresolvableConfigurationResult(configuration), new HashSet<>());
+            return createDependencyChildren(UnresolvableConfigurationResult.of(configuration), new HashSet<>());
         }
     }
 
@@ -225,7 +227,7 @@ public class JsonProjectDependencyRenderer {
             ResolutionResult result = configuration.getIncoming().getResolutionResult();
             root = new RenderableModuleResult(result.getRoot());
         } else {
-            root = new UnresolvableConfigurationResult(configuration);
+            root = UnresolvableConfigurationResult.of(configuration);
         }
         Set<ModuleIdentifier> modules = Sets.newHashSet();
         Set<ComponentIdentifier> visited = Sets.newHashSet();

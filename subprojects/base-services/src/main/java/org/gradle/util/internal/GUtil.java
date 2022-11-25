@@ -24,7 +24,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.io.StreamByteBuffer;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -32,7 +31,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -153,6 +151,7 @@ public class GUtil {
         }
         return true;
     }
+
     /**
      * Prefer {@link #getOrDefault(Object, Factory)} if the value is expensive to compute or
      * would trigger early configuration.
@@ -405,22 +404,6 @@ public class GUtil {
         return builder.toString();
     }
 
-    public static byte[] serialize(Object object) {
-        StreamByteBuffer buffer = new StreamByteBuffer();
-        serialize(object, buffer.getOutputStream());
-        return buffer.readAsByteArray();
-    }
-
-    public static void serialize(Object object, OutputStream outputStream) {
-        try {
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
-            objectOutputStream.writeObject(object);
-            objectOutputStream.close();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
     public static <T> Comparator<T> last(final Comparator<? super T> comparator, final T lastValue) {
         return new Comparator<T>() {
             @Override
@@ -570,5 +553,4 @@ public class GUtil {
         final String scheme = url.getScheme();
         return !"http".equalsIgnoreCase(scheme);
     }
-
 }

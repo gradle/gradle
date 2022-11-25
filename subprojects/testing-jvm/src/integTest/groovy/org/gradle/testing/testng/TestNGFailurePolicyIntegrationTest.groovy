@@ -16,15 +16,17 @@
 
 package org.gradle.testing.testng
 
-import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestClassExecutionResult
 import org.gradle.integtests.fixtures.TestNGExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
-import static org.gradle.testing.fixture.TestNGCoverage.NEWEST
+import static org.hamcrest.CoreMatchers.containsString
+import static org.junit.Assume.assumeFalse
+import static org.junit.Assume.assumeTrue
 
-class TestNGFailurePolicyIntegrationTest extends AbstractSampleIntegrationTest {
+class TestNGFailurePolicyIntegrationTest extends AbstractTestNGVersionIntegrationTest {
 
     @Rule public TestResources resources = new TestResources(testDirectoryProvider)
 
@@ -32,7 +34,7 @@ class TestNGFailurePolicyIntegrationTest extends AbstractSampleIntegrationTest {
         new TestNGExecutionResult(testDirectory).testClass("org.gradle.failurepolicy.TestWithFailureInConfigMethod")
     }
 
-    void usingTestNG(String version) {
+    def setup() {
         buildFile << """
             testing {
                 suites {
@@ -45,10 +47,7 @@ class TestNGFailurePolicyIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     def "skips tests after a config method failure by default"() {
-        when:
-        usingTestNG(NEWEST)
-
-        then:
+        expect:
         fails "test"
 
         and:
@@ -58,7 +57,8 @@ class TestNGFailurePolicyIntegrationTest extends AbstractSampleIntegrationTest {
 
     def "can be configured to continue executing tests after a config method failure"() {
         when:
-        usingTestNG('6.14.3') // TODO test fails with TestNG 7.x; see https://github.com/gradle/gradle/issues/10507
+        assumeTrue(supportConfigFailurePolicy())
+
         buildFile << """
             testing {
                 suites {
@@ -87,7 +87,8 @@ class TestNGFailurePolicyIntegrationTest extends AbstractSampleIntegrationTest {
 
     def "informative error is shown when trying to use config failure policy and a version that does not support it"() {
         when:
-        usingTestNG("5.12.1")
+        assumeFalse(supportConfigFailurePolicy())
+
         buildFile << """
             testing {
                 suites {
@@ -110,6 +111,8 @@ class TestNGFailurePolicyIntegrationTest extends AbstractSampleIntegrationTest {
         fails "test"
 
         and:
-        failure.assertHasCause("The version of TestNG used does not support setting config failure policy to 'continue'.")
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClassStartsWith('Gradle Test Executor').assertExecutionFailedWithCause(
+            containsString("The version of TestNG used does not support setting config failure policy to 'continue'."))
     }
 }

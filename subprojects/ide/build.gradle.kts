@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugins and model builders for integration with Eclipse and IntelliJ IDEs"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
@@ -45,6 +47,7 @@ dependencies {
     testImplementation(libs.equalsverifier)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":dependency-management")))
+    testImplementation(testFixtures(project(":language-groovy")))
 
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
@@ -57,7 +60,7 @@ strictCompile {
     ignoreRawTypes()
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/plugins/ide/internal/*")
     excludePatterns.add("org/gradle/plugins/ide/eclipse/internal/*")
     excludePatterns.add("org/gradle/plugins/ide/idea/internal/*")

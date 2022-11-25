@@ -31,11 +31,13 @@ import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyGroupName;
+
 public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver {
 
     private static final String GRADLE_LIBS_REPO_URL = "https://repo.gradle.org/gradle/list/libs-releases";
     private static final String GRADLE_LIBS_REPO_OVERRIDE_VAR = "GRADLE_LIBS_REPO_OVERRIDE";
-    private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(-.+)?)-(\\d.*?).jar");
+    private static final Pattern FILE_NAME_PATTERN = Pattern.compile("(groovy(-.+?)?)-(\\d.+?)\\.jar");
 
     private final DetachedResolver resolver;
 
@@ -57,7 +59,7 @@ public class DefaultGradleApiSourcesResolver implements GradleApiSourcesResolver
 
     private File downloadLocalGroovySources(String artifact, VersionNumber version) {
         ArtifactResolutionResult result = resolver.getDependencies().createArtifactResolutionQuery()
-            .forModule("org.codehaus.groovy", artifact, version.toString())
+            .forModule(groovyGroupName(version), artifact, version.toString())
             .withArtifacts(JvmLibrary.class, Collections.singletonList(SourcesArtifact.class))
             .execute();
 

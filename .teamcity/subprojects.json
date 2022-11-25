@@ -147,13 +147,6 @@
     "crossVersionTests": true
   },
   {
-    "dirName": "configuration-cache-report",
-    "name": "configuration-cache-report",
-    "unitTests": true,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "dirName": "core",
     "name": "core",
     "unitTests": true,
@@ -248,7 +241,7 @@
     "dirName": "docs",
     "name": "docs",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -263,6 +256,13 @@
     "name": "enterprise",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "enterprise-logging",
+    "name": "enterprise-logging",
+    "unitTests": false,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -364,6 +364,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "internal-architecture-testing",
+    "name": "internal-architecture-testing",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "internal-build-reports",
     "name": "internal-build-reports",
     "unitTests": false,
@@ -417,13 +424,6 @@
     "name": "jvm-services",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
-  },
-  {
-    "dirName": "kotlin-compiler-embeddable",
-    "name": "kotlin-compiler-embeddable",
-    "unitTests": false,
-    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -508,6 +508,13 @@
     "name": "logging",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "logging-api",
+    "name": "logging-api",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
@@ -749,6 +756,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "testing-jvm-infrastructure",
+    "name": "testing-jvm-infrastructure",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "testing-native",
     "name": "testing-native",
     "unitTests": true,
@@ -786,7 +800,7 @@
   {
     "dirName": "worker-processes",
     "name": "worker-processes",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -807,8 +821,15 @@
   {
     "dirName": "wrapper",
     "name": "wrapper",
-    "unitTests": true,
+    "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
+  },
+  {
+    "dirName": "wrapper-shared",
+    "name": "wrapper-shared",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
   }
 ]

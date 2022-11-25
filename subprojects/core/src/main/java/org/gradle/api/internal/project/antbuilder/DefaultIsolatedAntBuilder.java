@@ -89,6 +89,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         // Need gradle core to pick up ant logging adapter, AntBuilder and such
         ClassPath gradleCoreUrls = moduleRegistry.getModule("gradle-core-api").getImplementationClasspath();
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-core").getImplementationClasspath());
+        gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-logging-api").getImplementationClasspath());
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-logging").getImplementationClasspath());
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy").getClasspath());
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getExternalModule("groovy-ant").getClasspath());

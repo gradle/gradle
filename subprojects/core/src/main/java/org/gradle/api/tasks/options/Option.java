@@ -40,6 +40,26 @@ import java.lang.annotation.Target;
  * <li>{@code List<String>}</li>
  * </ul>
  *
+ * <p>
+ * Note: Multiple {@code @Option}s with the same names are disallowed on different methods/fields.
+ * Methods with the same signature (i.e. the same name, return type, and parameter types) are allowed to use
+ * equal or unequal option names.
+ * </p>
+ * <p>
+ * When the option names are equal, the description and method linked to the option will be the one in the
+ * base class (if present), followed by super-classes, and finally interfaces, in an unspecified order.
+ * </p>
+ * <p>
+ * When the option names are unequal, the order described above is used when setting the option's value.
+ * If the base class has an option with the name "foo" and an interface has an option with the name "bar",
+ * the option "foo" will have precedence over the option "bar" and setting both will result in the value of "foo".
+ * </p>
+ * <p>
+ * <strong>
+ *     Depending on this behavior is discouraged. It is only in place to allow legacy migration to interface options.
+ * </strong>
+ * </p>
+ *
  * @since 4.6
  */
 @Retention(RetentionPolicy.RUNTIME)

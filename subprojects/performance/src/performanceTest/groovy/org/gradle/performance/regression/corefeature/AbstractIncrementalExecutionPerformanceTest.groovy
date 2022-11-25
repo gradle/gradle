@@ -24,13 +24,13 @@ class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPe
 
     def setup() {
         runner.useToolingApi = true
-        if (OperatingSystem.current().windows) {
-            // Reduce the number of iterations on Windows, since the performance tests take 3 times as long.
-            runner.warmUpRuns = 5
-            runner.runs = 20
-        } else {
+        if (OperatingSystem.current().linux) {
             runner.warmUpRuns = 10
             runner.runs = 40
+        } else {
+            // Reduce the number of iterations on Windows and macOS, since the performance tests are slower there
+            runner.warmUpRuns = 5
+            runner.runs = 20
         }
     }
 

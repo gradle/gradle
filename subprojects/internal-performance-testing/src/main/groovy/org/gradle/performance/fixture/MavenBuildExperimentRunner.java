@@ -32,7 +32,6 @@ import org.gradle.profiler.result.BuildInvocationResult;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -56,14 +55,13 @@ public class MavenBuildExperimentRunner extends AbstractBuildExperimentRunner {
 
         try {
             MavenScenarioInvoker scenarioInvoker = new MavenScenarioInvoker();
-            AtomicInteger iterationCount = new AtomicInteger(0);
             Logging.setupLogging(workingDirectory);
 
             Consumer<BuildInvocationResult> scenarioReporter = getResultCollector().scenario(
                 scenarioDefinition,
                 scenarioInvoker.samplesFor(invocationSettings, scenarioDefinition)
             );
-            Consumer<BuildInvocationResult> resultConsumer = consumerFor(scenarioDefinition, iterationCount, results, scenarioReporter);
+            Consumer<BuildInvocationResult> resultConsumer = consumerFor(scenarioDefinition, results, scenarioReporter);
             scenarioInvoker.run(scenarioDefinition, invocationSettings, resultConsumer);
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);

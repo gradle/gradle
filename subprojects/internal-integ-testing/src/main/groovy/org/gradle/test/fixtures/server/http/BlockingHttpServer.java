@@ -66,7 +66,7 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
     private String hostAlias;
 
     public BlockingHttpServer() throws IOException {
-        this(120000);
+        this(120_000);
     }
 
     public BlockingHttpServer(int timeoutMs) throws IOException {
@@ -132,22 +132,22 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
         String streamVar = "inputStream" + count;
         StringWriter result = new StringWriter();
         PrintWriter writer = new PrintWriter(result);
-        writer.print("String " + urlVar + " = " + uriExpression + ";");
-        writer.print("System.out.println(\"[G] calling \" + " + urlVar + ");");
-        writer.print("try {");
-        writer.print("  java.net.URLConnection " + connectionVar + " = new java.net.URL(" + urlVar + ").openConnection();");
-        writer.print("  " + connectionVar + ".setReadTimeout(0);"); // to avoid silent retry
-        writer.print("  " + connectionVar + ".connect();");
-        writer.print("  java.io.InputStream " + streamVar + " = " + connectionVar + ".getInputStream();");
-        writer.print("  try {");
-        writer.print("    while (" + streamVar + ".read() >= 0) {}"); // read entire response
-        writer.print("  } finally {");
-        writer.print("    " + streamVar + ".close();");
-        writer.print("  }");
-        writer.print("} catch(Exception e) {");
-        writer.print("  System.out.println(\"[G] error response received for \" + " + urlVar + ");");
-        writer.print("  throw new RuntimeException(\"Received error response from \" + " + urlVar + ", e);");
-        writer.print("};");
+        writer.println("String " + urlVar + " = " + uriExpression + ";");
+        writer.println("System.out.println(\"[G] calling \" + " + urlVar + ");");
+        writer.println("try {");
+        writer.println("  java.net.URLConnection " + connectionVar + " = new java.net.URL(" + urlVar + ").openConnection();");
+        writer.println("  " + connectionVar + ".setReadTimeout(0);"); // to avoid silent retry
+        writer.println("  " + connectionVar + ".connect();");
+        writer.println("  java.io.InputStream " + streamVar + " = " + connectionVar + ".getInputStream();");
+        writer.println("  try {");
+        writer.println("    while (" + streamVar + ".read() >= 0) {}"); // read entire response
+        writer.println("  } finally {");
+        writer.println("    " + streamVar + ".close();");
+        writer.println("  }");
+        writer.println("} catch(Exception e) {");
+        writer.println("  System.out.println(\"[G] error response received for \" + " + urlVar + ");");
+        writer.println("  throw new RuntimeException(\"Received error response from \" + " + urlVar + ", e);");
+        writer.println("};");
         writer.println("System.out.println(\"[G] response received for \" + " + urlVar + ");");
         return result.toString();
     }
@@ -206,8 +206,30 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
     }
 
     /**
-     * Expects the given requests to be made. Blocks until the given number of concurrent requests have been received, then releases the requests. Repeats
-     * until all of the requests have been received.
+     * Returns an expectation that the given requests are made concurrently. Blocks each request until they have all been received then releases them all.
+     */
+    public ExpectedRequests concurrent(String... expectedRequests) {
+        List<ResourceExpectation> expectations = new ArrayList<>();
+        for (String request : expectedRequests) {
+            expectations.add(doGet(request));
+        }
+        return new DefaultExpectedRequests(previous -> new ExpectAllRequestsThenReleaseAll(lock, serverId, timeout, previous, expectations, EXECUTOR_SERVICE));
+    }
+
+    /**
+     * Expects the given groups of requests. Asserts that at most one group runs at a given time, but that the groups can happen in any order.
+     */
+    public void expectInAnyOrder(ExpectedRequests... expectedRequests) {
+        List<DefaultExpectedRequests> expectations = new ArrayList<>();
+        for (ExpectedRequests expectedRequest : expectedRequests) {
+            expectations.add((DefaultExpectedRequests) expectedRequest);
+        }
+        handler.addHandler(previous -> new ExpectInAnyOrder(lock, previous, expectations));
+    }
+
+    /**
+     * Expects the given requests to be made. Blocks until the given number of concurrent requests have been received, then releases one of the requests and blocks again.
+     * Repeats until all of the requests have been received.
      */
     public void expectConcurrent(int concurrent, String... expectedRequests) {
         List<ResourceExpectation> expectations = new ArrayList<>();
@@ -406,6 +428,9 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
             return path.substring(1);
         }
         return path;
+    }
+
+    public interface ExpectedRequests {
     }
 
     /**

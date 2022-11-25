@@ -15,6 +15,7 @@
  */
 package org.gradle.tooling;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationType;
 
 import javax.annotation.Nullable;
@@ -119,6 +120,28 @@ public interface LongRunningOperation {
      * @since 5.0
      */
     LongRunningOperation addJvmArguments(String... jvmArguments);
+
+    /**
+     * Sets system properties to pass to the build.
+     * <p>
+     * By default, the Tooling API passes all system properties defined in the client to the build. If called, this method limits the system properties that are passed to the build, except for
+     * immutable system properties that need to match on both sides.
+     * <p>
+     * System properties can be also defined in the build scripts (and in the gradle.properties file), or with a JVM argument. In case of an overlapping system property definition the precedence is as follows:
+     * <ul>
+     *     <li>{@code withSystemProperties()} (highest)</li>
+     *     <li>{@code withJvmArguments()}</li>
+     *     <li>build scripts</li>
+     * </ul>
+     * <p>
+     * Note: this method has "setter" behavior, so the last invocation will overwrite previously set values.
+     *
+     * @param systemProperties the system properties add to the Gradle process. Passing {@code null} resets to the default behavior.
+     * @return this
+     * @since 7.6
+     */
+    @Incubating
+    LongRunningOperation withSystemProperties(Map<String, String> systemProperties);
 
     /**
      * Appends Java VM arguments to the existing list.

@@ -18,6 +18,7 @@ package org.gradle.testfixtures;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.internal.ProjectBuilderImpl;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -70,7 +71,7 @@ public class ProjectBuilder {
      * @param dir The project directory
      * @return The builder
      */
-    public ProjectBuilder withProjectDir(File dir) {
+    public ProjectBuilder withProjectDir(@Nullable File dir) {
         projectDir = dir;
         return this;
     }
@@ -81,7 +82,7 @@ public class ProjectBuilder {
      *
      * @return The builder
      */
-    public ProjectBuilder withGradleUserHomeDir(File dir) {
+    public ProjectBuilder withGradleUserHomeDir(@Nullable File dir) {
         gradleUserHomeDir = dir;
         return this;
     }
@@ -103,7 +104,7 @@ public class ProjectBuilder {
      * @param parent parent project
      * @return The builder
      */
-    public ProjectBuilder withParent(Project parent) {
+    public ProjectBuilder withParent(@Nullable Project parent) {
         this.parent = parent;
         return this;
     }

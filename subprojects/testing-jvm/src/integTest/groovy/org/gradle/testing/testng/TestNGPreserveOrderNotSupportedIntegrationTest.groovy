@@ -17,8 +17,11 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 
-public class TestNGPreserveOrderNotSupportedIntegrationTest extends AbstractIntegrationSpec {
+import static org.hamcrest.CoreMatchers.containsString
+
+class TestNGPreserveOrderNotSupportedIntegrationTest extends AbstractIntegrationSpec {
 
     def "run tests using TestNG version not supporting preserveOrder"() {
         given:
@@ -43,6 +46,8 @@ public class TestNGPreserveOrderNotSupportedIntegrationTest extends AbstractInte
         fails "test"
 
         then:
-        failure.assertHasCause("Preserving the order of tests is not supported by this version of TestNG.")
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClassStartsWith('Gradle Test Executor').assertExecutionFailedWithCause(
+            containsString("Preserving the order of tests is not supported by this version of TestNG."))
     }
 }

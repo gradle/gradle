@@ -80,20 +80,16 @@ public enum JavaVersion {
 
     /**
      * Java 18 major version.
-     * Not officially supported by Gradle. Use at your own risk.
      *
      * @since 7.0
      */
-    @Incubating
     VERSION_18,
 
     /**
      * Java 19 major version.
-     * Not officially supported by Gradle. Use at your own risk.
      *
      * @since 7.0
      */
-    @Incubating
     VERSION_19,
 
     /**
@@ -106,13 +102,48 @@ public enum JavaVersion {
     VERSION_20,
 
     /**
+     * Java 21 major version.
+     * Not officially supported by Gradle. Use at your own risk.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    VERSION_21,
+
+    /**
+     * Java 22 major version.
+     * Not officially supported by Gradle. Use at your own risk.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    VERSION_22,
+
+    /**
+     * Java 23 major version.
+     * Not officially supported by Gradle. Use at your own risk.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    VERSION_23,
+
+    /**
+     * Java 24 major version.
+     * Not officially supported by Gradle. Use at your own risk.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    VERSION_24,
+
+    /**
      * Higher version of Java.
      * @since 4.7
      */
     VERSION_HIGHER;
     // Since Java 9, version should be X instead of 1.X
-    // However, to keep backward compatibility, we change from 11
-    private static final int FIRST_MAJOR_VERSION_ORDINAL = 10;
+    private static final int FIRST_MAJOR_VERSION_ORDINAL = 9 - 1;
     private static JavaVersion currentJavaVersion;
     private final String versionName;
 

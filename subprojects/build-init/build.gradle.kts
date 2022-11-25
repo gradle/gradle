@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":workers"))
     implementation(project(":wrapper"))
+    implementation(project(":wrapper-shared"))
     implementation(project(":testing-base"))
 
     implementation(libs.groovy)
@@ -46,6 +47,7 @@ dependencies {
     testFixturesImplementation(project(":base-services"))
     testFixturesImplementation(project(":platform-base"))
     testFixturesImplementation(project(":core-api"))
+    testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":plugins"))
     testFixturesImplementation(project(":testing-base"))
 

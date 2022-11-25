@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 @Issue('https://github.com/gradle/gradle/issues/1789')
@@ -108,7 +107,6 @@ class MavenPomRelocationIntegrationTest extends AbstractHttpDependencyResolution
         file("compileClasspath").assertHasDescendants("artifactC-1.0.jar")
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails to resolve module if published artifact does not exist with relocated coordinates"() {
         given:
         def original = publishPomWithRelocation('groupA', 'artifactA', 'notExist', 'notExist')

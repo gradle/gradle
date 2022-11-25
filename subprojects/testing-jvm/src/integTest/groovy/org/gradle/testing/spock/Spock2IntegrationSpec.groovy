@@ -17,24 +17,30 @@
 package org.gradle.testing.spock
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.testing.fixture.GroovyCoverage
 
 class Spock2IntegrationSpec extends AbstractIntegrationSpec {
-    private static final String SPOCK_VERSION = "2.0-groovy-3.0"
-
     def setup() {
         buildScript("""
             plugins {
                 id("groovy")
             }
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
             dependencies {
-                testImplementation("org.spockframework:spock-core:$SPOCK_VERSION")
+                constraints {
+                    implementation("org.codehaus.groovy:groovy:${GroovyCoverage.MINIMAL_GROOVY_3}") {
+                        because("need a version of Groovy that supports the current JDK")
+                    }
+                }
             }
-            test {
-                useJUnitPlatform()
+
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                    }
+                }
             }
         """)
     }

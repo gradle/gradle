@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugins and integration with code quality (Checkstyle, PMD, CodeNarc)"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
@@ -13,8 +15,11 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":workers"))
     implementation(project(":reporting"))
+    implementation(project(":platform-jvm"))
+    implementation(project(":file-collections"))
 
     implementation(libs.groovy)
+    implementation(libs.groovyAnt)
     implementation(libs.groovyXml)
     implementation(libs.guava)
     implementation(libs.inject)
@@ -32,8 +37,10 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+
+    integTestImplementation(testFixtures(project(":language-groovy")))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/plugins/quality/internal/*")
 }

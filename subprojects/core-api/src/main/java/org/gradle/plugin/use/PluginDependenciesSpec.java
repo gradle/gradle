@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.use;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 
@@ -137,7 +136,6 @@ public interface PluginDependenciesSpec {
      *
      * @since 7.2
      */
-    @Incubating
     default PluginDependencySpec alias(Provider<PluginDependency> notation) {
         PluginDependency pluginDependency = notation.get();
         if (pluginDependency.getVersion().getRequiredVersion().isEmpty()) {
@@ -156,7 +154,6 @@ public interface PluginDependenciesSpec {
      *
      * @since 7.3
      */
-    @Incubating
     default PluginDependencySpec alias(ProviderConvertible<PluginDependency> notation) {
         return alias(notation.asProvider());
     }

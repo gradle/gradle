@@ -49,6 +49,11 @@ public abstract class FileHierarchySet {
     public abstract boolean contains(String path);
 
     /**
+     * Whether this hierarchy is empty, i.e. contains no directories.
+     */
+    public abstract boolean isEmpty();
+
+    /**
      * Returns a set that contains the union of this set and the given path. If the given path is a directory, the set will contain the directory itself, plus all its descendants.
      */
     @CheckReturnValue
@@ -85,6 +90,11 @@ public abstract class FileHierarchySet {
         @Override
         public boolean contains(String path) {
             return false;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
         }
 
         @Override
@@ -143,6 +153,11 @@ public abstract class FileHierarchySet {
         @Override
         public boolean contains(String path) {
             return rootNode.contains(path, 0);
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
         }
 
         @Override

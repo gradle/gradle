@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.test.fixtures.file.TestFile
@@ -44,7 +43,6 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationSpec {
         executer.run()
     }
 
-    @ToBeFixedForConfigurationCache
     void dependencyReportWithConflicts() {
         expect:
         executer.run()
