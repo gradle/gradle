@@ -77,10 +77,12 @@ public interface TaskProperties {
     /**
      * Validate the task type.
      */
+    // TODO This will be InstanceSchema.validate()
     void validateType(TypeValidationContext validationContext);
 
     /**
      * Validations for the properties.
      */
+    // TODO This will be InstanceModel.validate()
     void validate(PropertyValidationContext validationContext);
 }
