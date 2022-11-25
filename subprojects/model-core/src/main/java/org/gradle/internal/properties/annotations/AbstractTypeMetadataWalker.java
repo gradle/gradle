@@ -16,59 +16,63 @@
 
 package org.gradle.internal.properties.annotations;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
+import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
-import static java.util.Collections.emptySet;
+import static java.util.Objects.requireNonNull;
 
 abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
     private final TypeMetadataStore typeMetadataStore;
     private final Class<? extends Annotation> nestedAnnotation;
+    private final Supplier<Map<T, String>> nestedNodeToQualifiedNameMapFactory;
 
-    private AbstractTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
+    private AbstractTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation, Supplier<Map<T, String>> nestedNodeToQualifiedNameMapFactory) {
         this.typeMetadataStore = typeMetadataStore;
         this.nestedAnnotation = nestedAnnotation;
+        this.nestedNodeToQualifiedNameMapFactory = nestedNodeToQualifiedNameMapFactory;
     }
 
     @Override
     public void walk(T root, NodeMetadataVisitor<T> visitor) {
-        walk(root, null, visitor, emptySet());
+        walk(root, null, visitor, nestedNodeToQualifiedNameMapFactory.get());
     }
 
-    private void walk(T node, @Nullable String qualifiedName, NodeMetadataVisitor<T> visitor, Set<T> previousNestedNodesWalkedOnPath) {
+    private void walk(T node, @Nullable String qualifiedName, NodeMetadataVisitor<T> visitor, Map<T, String> nestedNodesWalkedOnPath) {
         Class<?> nodeType = resolveType(node);
         TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(nodeType);
         if (Provider.class.isAssignableFrom(nodeType)) {
-            handleProvider(node, child -> walk(child, qualifiedName, visitor, previousNestedNodesWalkedOnPath));
+            handleProvider(node, child -> walk(child, qualifiedName, visitor, nestedNodesWalkedOnPath));
         } else if (Map.class.isAssignableFrom(nodeType) && !typeMetadata.hasAnnotatedProperties()) {
-            handleMap(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), visitor, previousNestedNodesWalkedOnPath));
+            handleMap(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), visitor, nestedNodesWalkedOnPath));
         } else if (Iterable.class.isAssignableFrom(nodeType) && !typeMetadata.hasAnnotatedProperties()) {
-            handleIterable(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), visitor, previousNestedNodesWalkedOnPath));
+            handleIterable(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), visitor, nestedNodesWalkedOnPath));
         } else {
-            handleNested(node, typeMetadata, qualifiedName, visitor, previousNestedNodesWalkedOnPath);
+            handleNested(node, typeMetadata, qualifiedName, visitor, nestedNodesWalkedOnPath);
         }
     }
 
-    private void handleNested(T node, TypeMetadata typeMetadata, @Nullable String qualifiedName, NodeMetadataVisitor<T> visitor, Set<T> previousNestedNodesOnPath) {
-        if (previousNestedNodesOnPath.contains(node)) {
+    private void handleNested(T node, TypeMetadata typeMetadata, @Nullable String qualifiedName, NodeMetadataVisitor<T> visitor, Map<T, String> nestedNodesOnPath) {
+        if (nestedNodesOnPath.containsKey(node)) {
+            String firstOccurrenceQualifiedName = nestedNodesOnPath.get(node);
+            onNestedNodeCycle(firstOccurrenceQualifiedName, requireNonNull(qualifiedName));
             return;
         }
 
+        nestedNodesOnPath.put(node, qualifiedName);
         visitor.visitNested(typeMetadata, qualifiedName, node);
-        Set<T> nestedNodesOnPath = newIdentitySetOf(previousNestedNodesOnPath, node);
         typeMetadata.getPropertiesMetadata().forEach(propertyMetadata -> {
             String childQualifiedName = getQualifiedName(qualifiedName, propertyMetadata.getPropertyName());
             if (propertyMetadata.getPropertyType() == nestedAnnotation) {
@@ -78,7 +82,10 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
                 visitor.visitLeaf(childQualifiedName, propertyMetadata, () -> getChild(node, propertyMetadata).orElse(null));
             }
         });
+        nestedNodesOnPath.remove(node);
     }
+
+    abstract void onNestedNodeCycle(@Nullable String firstOccurrenceQualifiedName, String secondOccurrenceQualifiedName);
 
     abstract void handleProvider(T node, Consumer<T> handler);
 
@@ -90,8 +97,6 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
 
     abstract protected Optional<T> getChild(T parent, PropertyMetadata property);
 
-    abstract Set<T> newIdentitySetOf(Set<T> initialSet, T newElement);
-
     private static String getQualifiedName(@Nullable String parentPropertyName, String childPropertyName) {
         return parentPropertyName == null
             ? childPropertyName
@@ -100,12 +105,17 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
 
     static class InstanceTypeMetadataWalker extends AbstractTypeMetadataWalker<Object> {
         public InstanceTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
-            super(typeMetadataStore, nestedAnnotation);
+            super(typeMetadataStore, nestedAnnotation, Maps::newIdentityHashMap);
         }
 
         @Override
         protected Class<?> resolveType(Object value) {
             return value.getClass();
+        }
+
+        @Override
+        protected void onNestedNodeCycle(@Nullable String firstOccurrenceQualifiedName, String secondOccurrenceQualifiedName) {
+            throw new GradleException(String.format("Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.", firstOccurrenceQualifiedName, secondOccurrenceQualifiedName));
         }
 
         @Override
@@ -137,24 +147,21 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
                 throw new RuntimeException(e);
             }
         }
-
-        @Override
-        protected Set<Object> newIdentitySetOf(Set<Object> initialSet, Object newElement) {
-            Set<Object> set = Sets.newIdentityHashSet();
-            set.addAll(initialSet);
-            set.add(newElement);
-            return Collections.unmodifiableSet(set);
-        }
     }
 
     static class StaticTypeMetadataWalker extends AbstractTypeMetadataWalker<TypeToken<?>> {
         public StaticTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
-            super(typeMetadataStore, nestedAnnotation);
+            super(typeMetadataStore, nestedAnnotation, HashMap::new);
         }
 
         @Override
         protected Class<?> resolveType(TypeToken<?> type) {
             return type.getRawType();
+        }
+
+        @Override
+        protected void onNestedNodeCycle(@Nullable String firstOccurrenceQualifiedName, String secondOccurrenceQualifiedName) {
+            // For Types walk we don't need to do anything on a cycle
         }
 
         @SuppressWarnings("unchecked")
@@ -192,14 +199,6 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
         private static <T> TypeToken<?> extractNestedType(TypeToken<T> beanType, Class<? super T> parameterizedSuperClass, int typeParameterIndex) {
             ParameterizedType type = (ParameterizedType) beanType.getSupertype(parameterizedSuperClass).getType();
             return TypeToken.of(type.getActualTypeArguments()[typeParameterIndex]);
-        }
-
-        @Override
-        Set<TypeToken<?>> newIdentitySetOf(Set<TypeToken<?>> initialSet, TypeToken<?> newElement) {
-            return ImmutableSet.<TypeToken<?>>builder()
-                .addAll(initialSet)
-                .add(newElement)
-                .build();
         }
     }
 }

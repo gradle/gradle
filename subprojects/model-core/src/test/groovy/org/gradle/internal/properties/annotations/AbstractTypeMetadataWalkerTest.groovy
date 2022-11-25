@@ -18,6 +18,7 @@ package org.gradle.internal.properties.annotations
 
 import com.google.common.reflect.TypeToken
 import org.gradle.api.DefaultTask
+import org.gradle.api.GradleException
 import org.gradle.api.Named
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
@@ -153,14 +154,7 @@ class AbstractTypeMetadataWalkerTest extends Specification {
     def "instance walker should handle instances with nested cycles"() {
         given:
         def instance = new MyCycleTask()
-        def cycleType = new CycleType()
-        cycleType.f = cycleType
-        cycleType.g = cycleType
-        instance.a = cycleType
-        instance.b = TestUtil.propertyFactory().property(CycleType).value(cycleType)
-        instance.c = [cycleType]
-        instance.d = ["key1": cycleType]
-        instance.e = [[cycleType]]
+        instance[propertyWithCycle] = propertyValue
 
         when:
         List<CollectedInput> inputs = []
@@ -177,10 +171,19 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         })
 
         then:
-        inputs.collect { it.qualifiedName } == [null, "a", "a.g", "b", "b.g", "c.\$1", "c.\$1.g", "d.key1", "d.key1.g", "e.\$1.\$1", "e.\$1.\$1.g"]
+        def exception = thrown(GradleException)
+        exception.message == "Cycles between nested beans are not allowed. Cycle detected between: $expectedCycle."
+
+        where:
+        propertyWithCycle | propertyValue                                                                         | expectedCycle
+        'a'               | CycleType.newInitializedCycle()                                                       | "'a' and 'a.f'"
+        'b'               | TestUtil.propertyFactory().property(CycleType).value(CycleType.newInitializedCycle()) | "'b' and 'b.f'"
+        'c'               | [CycleType.newInitializedCycle()]                                                     | "'c.\$1' and 'c.\$1.f'"
+        'd'               | ['key1': CycleType.newInitializedCycle()]                                             | "'d.key1' and 'd.key1.f'"
+        'e'               | [[CycleType.newInitializedCycle()]]                                                   | "'e.\$1.\$1' and 'e.\$1.\$1.f'"
     }
 
-    class MyTask {
+    static class MyTask {
         @Input
         Property<String> i1
         @Nested
@@ -197,12 +200,12 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         Property<NestedType> i7
     }
 
-    class NestedType {
+    static class NestedType {
         @Input
         Property<String> nI2
     }
 
-    class NamedType implements Named {
+    static class NamedType implements Named {
         @Input
         Property<String> nI3
         @Internal
@@ -211,7 +214,7 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         }
     }
 
-    class MyCycleTask {
+    static class MyCycleTask {
         @Nested
         CycleType a
         @Nested
@@ -224,14 +227,21 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         List<List<CycleType>> e
     }
 
-    class CycleType {
+    static class CycleType {
         @Nested
         CycleType f
         @Input
         CycleType g
+
+        static CycleType newInitializedCycle() {
+            def cycleType = new CycleType()
+            cycleType.f = cycleType
+            cycleType.g = cycleType
+            return cycleType
+        }
     }
 
-    class CollectedInput {
+    static class CollectedInput {
         String qualifiedName
         Object value
 
