@@ -19,6 +19,7 @@ class FunctionalTest(
     enableTestDistribution: Boolean,
     subprojects: List<String> = listOf(),
     extraParameters: String = "",
+    maxParallelForks: String = "%maxParallelForks%",
     extraBuildSteps: BuildSteps.() -> Unit = {},
     preBuildSteps: BuildSteps.() -> Unit = {}
 ) : BaseGradleBuildType(stage = stage, init = {
@@ -40,6 +41,7 @@ class FunctionalTest(
                 extraParameters
             ).filter { it.isNotBlank() }.joinToString(separator = " "),
         timeout = testCoverage.testType.timeout,
+        maxParallelForks = testCoverage.testType.maxParallelForks.toString(),
         extraSteps = extraBuildSteps,
         preSteps = preBuildSteps
     )
