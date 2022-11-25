@@ -72,8 +72,8 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
 
         then:
         executedAndNotSkipped(":compileGroovy")
-        currentJdk.javaVersion == JavaVersion.forClass(groovyClassFile("Foo.class").bytes)
-        groovyTarget == JavaVersion.forClass(groovyClassFile("Bar.class").bytes)
+        JavaVersion.forClass(groovyClassFile("Foo.class").bytes) == currentJdk.javaVersion
+        JavaVersion.forClass(groovyClassFile("Bar.class").bytes) == groovyTarget
 
         where:
         option << ["executable", "javaHome"]
@@ -100,8 +100,8 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         then:
         executedAndNotSkipped(":compileGroovy")
         outputContains("Compiling with JDK Java compiler API")
-        targetJdk.javaVersion == JavaVersion.forClass(groovyClassFile("Foo.class").bytes)
-        groovyTarget == JavaVersion.forClass(groovyClassFile("Bar.class").bytes)
+        JavaVersion.forClass(groovyClassFile("Foo.class").bytes) == targetJdk.javaVersion
+        JavaVersion.forClass(groovyClassFile("Bar.class").bytes) == groovyTarget
 
         where:
         what             | when                         | withTool | withJavaHome | withExecutable | withJavaExtension | target
@@ -182,8 +182,8 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         outputContains("project.targetCompatibility = 11")
         outputContains("task.sourceCompatibility = $sourceOut")
         outputContains("task.targetCompatibility = $targetOut")
-        JavaVersion.toVersion(targetOut) == JavaVersion.forClass(groovyClassFile("Foo.class").bytes)
-        JavaVersion.toVersion(targetOut) == JavaVersion.forClass(groovyClassFile("Bar.class").bytes)
+        JavaVersion.forClass(groovyClassFile("Foo.class").bytes) == JavaVersion.toVersion(targetOut)
+        JavaVersion.forClass(groovyClassFile("Bar.class").bytes) == JavaVersion.toVersion(targetOut)
 
         where:
         source | target | sourceOut | targetOut
