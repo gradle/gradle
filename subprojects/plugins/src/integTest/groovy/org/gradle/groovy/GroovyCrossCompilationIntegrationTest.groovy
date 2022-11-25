@@ -44,15 +44,19 @@ class GroovyCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec 
                 implementation "${groovyModuleDependency("groovy", version)}"
                 testImplementation "org.spockframework:spock-core:${getSpockVersion(versionNumber)}"
             }
+
+            test {
+                useJUnitPlatform()
+            }
         """
 
         file("src/main/groovy/Thing.java") << "public class Thing {}"
         file("src/main/groovy/GroovyThing.groovy") << "public class GroovyThing { def run() {} }"
         file("src/test/groovy/ThingSpec.groovy") << """
-            class ThingSpec {
+            class ThingSpec extends spock.lang.Specification {
                 def verify() {
                     expect:
-                    System.getProperty("java.version").startsWith('$version.')
+                    System.getProperty("java.version").startsWith("$javaVersion")
                 }
             }
         """
