@@ -53,7 +53,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     private static CacheResourceConfiguration createResourceConfiguration(ObjectFactory objectFactory, int defaultDays) {
         CacheResourceConfiguration resourceConfiguration = objectFactory.newInstance(CacheResourceConfiguration.class);
-        resourceConfiguration.getRemoveUnusedEntries().convention(TimestampSupplier.olderThanInDays(defaultDays));
+        resourceConfiguration.getRemoveUnusedEntriesAfter().convention(TimestampSupplier.olderThanInDays(defaultDays));
         return resourceConfiguration;
     }
 
@@ -134,10 +134,10 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     @Override
     public void finalizeConfigurations() {
-        releasedWrappersConfiguration.getRemoveUnusedEntries().finalizeValue();
-        snapshotWrappersConfiguration.getRemoveUnusedEntries().finalizeValue();
-        downloadedResourcesConfiguration.getRemoveUnusedEntries().finalizeValue();
-        createdResourcesConfiguration.getRemoveUnusedEntries().finalizeValue();
+        releasedWrappersConfiguration.getRemoveUnusedEntriesAfter().finalizeValue();
+        snapshotWrappersConfiguration.getRemoveUnusedEntriesAfter().finalizeValue();
+        downloadedResourcesConfiguration.getRemoveUnusedEntriesAfter().finalizeValue();
+        createdResourcesConfiguration.getRemoveUnusedEntriesAfter().finalizeValue();
         getCleanup().finalizeValue();
     }
 

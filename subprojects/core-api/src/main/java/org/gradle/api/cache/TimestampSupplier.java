@@ -38,7 +38,9 @@ public interface TimestampSupplier extends Supplier<Long> {
         // This needs to be an anonymous inner class instead of a lambda for configuration cache compatibility
         return new TimestampSupplier() {
             @Override
-            public Long get() {return Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(days));}
+            public Long get() {
+                return Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(days));
+            }
         };
     }
 }

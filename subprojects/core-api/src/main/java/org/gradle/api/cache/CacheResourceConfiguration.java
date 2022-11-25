@@ -27,7 +27,18 @@ import org.gradle.api.provider.Property;
 @Incubating
 public interface CacheResourceConfiguration {
     /**
-     * Configures the maximum number of days an unused entry will be retained in the cache.
+     * Configures the the timestamp before which an unused entry will be removed from the cache.
+     *
+     * See {@link TimestampSupplier#olderThanInDays(int)}.
      */
-    Property<TimestampSupplier> getRemoveUnusedEntries();
+    Property<TimestampSupplier> getRemoveUnusedEntriesAfter();
+
+    /**
+     * Returns a timestamp supplier that calculates a timestamp exactly the given number
+     * of days prior to the current time, or 0 if the number of days extends beyond the
+     * epoch.
+     */
+    static TimestampSupplier days(int days) {
+        return TimestampSupplier.olderThanInDays(days);
+    }
 }
