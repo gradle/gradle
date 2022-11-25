@@ -95,7 +95,12 @@ public class PropertyValidationAccess {
         TypeToken<?> topLevelType = TypeToken.of(topLevelBean);
         TypeMetadataWalker.typeWalker(metadataStore, Nested.class).walk(topLevelType, new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
             @Override
-            public void visitNested(TypeMetadata typeMetadata, @Nullable String qualifiedName, TypeToken<?> value) {
+            public void visitRoot(TypeMetadata typeMetadata, TypeToken<?> value) {
+                typeMetadata.visitValidationFailures(null, validationContext);
+            }
+
+            @Override
+            public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, TypeToken<?> value) {
                 typeMetadata.visitValidationFailures(qualifiedName, validationContext);
             }
 
