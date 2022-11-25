@@ -37,17 +37,17 @@ import java.util.Set;
 
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
-public abstract class AbstractFileTree extends AbstractFileCollection implements FileTreeInternal {
+public abstract class AbstractFileTree extends AbstractOpaqueFileCollection implements FileTreeInternal {
     public AbstractFileTree() {
         super();
     }
 
-    public AbstractFileTree(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
-        super(taskDependencyFactory, patternSetFactory);
+    public AbstractFileTree(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, FileCollectionListener fileCollectionListener) {
+        super(taskDependencyFactory, patternSetFactory, fileCollectionListener);
     }
 
     @Override
-    public Set<File> getFiles() {
+    public Set<File> getIntrinsicFiles() {
         final Set<File> files = new LinkedHashSet<File>();
         visit(new EmptyFileVisitor() {
             @Override

@@ -41,8 +41,8 @@ public class CachingTaskInputFileCollection extends DefaultConfigurableFileColle
     private FileCollectionInternal cachedValue;
 
     // TODO - display name
-    public CachingTaskInputFileCollection(PathToFileResolver fileResolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost) {
-        super(null, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost);
+    public CachingTaskInputFileCollection(PathToFileResolver fileResolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, FileCollectionListener fileCollectionListener) {
+        super(null, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionListener);
     }
 
     @Override
@@ -51,7 +51,7 @@ public class CachingTaskInputFileCollection extends DefaultConfigurableFileColle
             if (cachedValue == null) {
                 ImmutableSet.Builder<File> files = ImmutableSet.builder();
                 super.visitChildren(files::addAll);
-                this.cachedValue = new FileCollectionAdapter(new ListBackedFileSet(files.build()), taskDependencyFactory, patternSetFactory);
+                this.cachedValue = new FileCollectionAdapter(new ListBackedFileSet(files.build()), taskDependencyFactory, patternSetFactory, fileCollectionListener);
             }
             visitor.accept(cachedValue);
         } else {

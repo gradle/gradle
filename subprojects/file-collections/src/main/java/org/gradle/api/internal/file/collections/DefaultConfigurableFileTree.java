@@ -151,7 +151,7 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     @Override
     protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
         File dir = getDir();
-        visitor.accept(new FileTreeAdapter(directoryFileTreeFactory.create(dir, patternSet), taskDependencyFactory, patternSetFactory));
+        visitor.accept(new FileTreeAdapter(directoryFileTreeFactory.create(dir, patternSet), taskDependencyFactory, patternSetFactory, fileCollectionListener));
     }
 
     @Override

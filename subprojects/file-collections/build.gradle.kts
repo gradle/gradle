@@ -8,6 +8,9 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
     implementation(project(":core-api"))
+    implementation(project(":core")) {
+        because("FileCollection using Instrumented in deprecated constructors")
+    }
     implementation(project(":files"))
     implementation(project(":model-core"))
     implementation(project(":logging"))

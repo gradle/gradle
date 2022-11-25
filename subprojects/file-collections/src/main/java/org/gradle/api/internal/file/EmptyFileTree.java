@@ -42,7 +42,7 @@ final class EmptyFileTree extends AbstractFileTree {
     }
 
     @Override
-    public Set<File> getFiles() {
+    public Set<File> getIntrinsicFiles() {
         return Collections.emptySet();
     }
 

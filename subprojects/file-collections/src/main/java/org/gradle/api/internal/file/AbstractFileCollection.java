@@ -38,11 +38,14 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -55,15 +58,21 @@ import java.util.stream.Collectors;
 public abstract class AbstractFileCollection implements FileCollectionInternal {
     protected final TaskDependencyFactory taskDependencyFactory;
     protected final Factory<PatternSet> patternSetFactory;
+    protected final FileCollectionListener fileCollectionListener;
 
-    protected AbstractFileCollection(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+    protected AbstractFileCollection(
+        TaskDependencyFactory taskDependencyFactory,
+        Factory<PatternSet> patternSetFactory,
+        FileCollectionListener fileCollectionListener
+    ) {
         this.taskDependencyFactory = taskDependencyFactory;
         this.patternSetFactory = patternSetFactory;
+        this.fileCollectionListener = fileCollectionListener;
     }
 
     @SuppressWarnings("deprecation")
-    protected AbstractFileCollection(TaskDependencyFactory taskDependencyFactory)  {
-        this(taskDependencyFactory, PatternSets.getNonCachingPatternSetFactory());
+    protected AbstractFileCollection(TaskDependencyFactory taskDependencyFactory) {
+        this(taskDependencyFactory, PatternSets.getNonCachingPatternSetFactory(), Instrumented::fileCollectionObserved);
     }
 
     @SuppressWarnings("deprecation")
@@ -344,7 +353,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileTreeInternal getAsFileTree() {
-        return new FileCollectionBackedFileTree(taskDependencyFactory, patternSetFactory, this);
+        return new FileCollectionBackedFileTree(taskDependencyFactory, patternSetFactory, this, fileCollectionListener);
     }
 
     @Override

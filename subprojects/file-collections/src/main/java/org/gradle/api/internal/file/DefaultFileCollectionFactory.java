@@ -57,15 +57,19 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     private final Factory<PatternSet> patternSetFactory;
     private final PropertyHost propertyHost;
     private final FileSystem fileSystem;
+    private final FileCollectionListener fileCollectionListener;
 
-    public DefaultFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
-                                        PropertyHost propertyHost, FileSystem fileSystem) {
+    public DefaultFileCollectionFactory(
+        PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
+        PropertyHost propertyHost, FileSystem fileSystem, FileCollectionListener fileCollectionListener
+    ) {
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.patternSetFactory = patternSetFactory;
         this.propertyHost = propertyHost;
         this.fileSystem = fileSystem;
+        this.fileCollectionListener = fileCollectionListener;
     }
 
     @Override
@@ -73,17 +77,17 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (fileResolver == this.fileResolver) {
             return this;
         }
-        return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem);
+        return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem, fileCollectionListener);
     }
 
     @Override
     public ConfigurableFileCollection configurableFiles() {
-        return new DefaultConfigurableFileCollection(null, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost);
+        return new DefaultConfigurableFileCollection(null, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionListener);
     }
 
     @Override
     public ConfigurableFileCollection configurableFiles(String displayName) {
-        return new DefaultConfigurableFileCollection(displayName, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost);
+        return new DefaultConfigurableFileCollection(displayName, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionListener);
     }
 
     @Override
@@ -104,12 +108,12 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public FileTreeInternal treeOf(MinimalFileTree tree) {
-        return new FileTreeAdapter(tree, taskDependencyFactory, patternSetFactory);
+        return new FileTreeAdapter(tree, taskDependencyFactory, patternSetFactory, fileCollectionListener);
     }
 
     @Override
     public FileCollectionInternal create(final TaskDependency builtBy, MinimalFileSet contents) {
-        return new FileCollectionAdapter(contents, taskDependencyFactory, patternSetFactory) {
+        return new FileCollectionAdapter(contents, taskDependencyFactory, patternSetFactory, fileCollectionListener) {
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
                 super.visitDependencies(context);
@@ -120,7 +124,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public FileCollectionInternal create(MinimalFileSet contents, Consumer<? super TaskDependencyResolveContext> visitTaskDependencies) {
-        return new FileCollectionAdapter(contents, taskDependencyFactory, patternSetFactory) {
+        return new FileCollectionAdapter(contents, taskDependencyFactory, patternSetFactory,fileCollectionListener) {
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
                 super.visitDependencies(context);
@@ -131,7 +135,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public FileCollectionInternal create(MinimalFileSet contents) {
-        return new FileCollectionAdapter(contents, taskDependencyFactory, patternSetFactory);
+        return new FileCollectionAdapter(contents, taskDependencyFactory, patternSetFactory, fileCollectionListener);
     }
 
     @Override
@@ -148,7 +152,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (isEmptyArray(sources)) {
             return FileCollectionFactory.empty(displayName);
         }
-        return new ResolvingFileCollection(displayName, fileResolver, taskDependencyFactory, patternSetFactory, providerResolutionStrategy, sources);
+        return new ResolvingFileCollection(displayName, fileResolver, taskDependencyFactory, patternSetFactory, providerResolutionStrategy, sources, fileCollectionListener);
     }
 
     @Override
@@ -184,7 +188,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (files.length == 0) {
             return new EmptyFileCollection(displayName);
         }
-        return new FixedFileCollection(displayName, taskDependencyFactory, patternSetFactory, ImmutableSet.copyOf(files));
+        return new FixedFileCollection(displayName, taskDependencyFactory, patternSetFactory, ImmutableSet.copyOf(files), fileCollectionListener);
     }
 
     @Override
@@ -200,20 +204,20 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (files.isEmpty()) {
             return new EmptyFileCollection(displayName);
         }
-        return new FixedFileCollection(displayName, taskDependencyFactory, patternSetFactory, ImmutableSet.copyOf(files));
+        return new FixedFileCollection(displayName, taskDependencyFactory, patternSetFactory, ImmutableSet.copyOf(files), fileCollectionListener);
     }
 
     @Override
     public FileTreeInternal generated(Factory<File> tmpDir, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentWriter) {
-        return new FileTreeAdapter(new GeneratedSingletonFileTree(tmpDir, fileName, fileGenerationListener, contentWriter, fileSystem), taskDependencyFactory, patternSetFactory);
+        return new FileTreeAdapter(new GeneratedSingletonFileTree(tmpDir, fileName, fileGenerationListener, contentWriter, fileSystem), taskDependencyFactory, patternSetFactory, fileCollectionListener);
     }
 
     private static final class FixedFileCollection extends AbstractOpaqueFileCollection {
         private final String displayName;
         private final ImmutableSet<File> files;
 
-        public FixedFileCollection(String displayName, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, ImmutableSet<File> files) {
-            super(taskDependencyFactory, patternSetFactory);
+        public FixedFileCollection(String displayName, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, ImmutableSet<File> files, FileCollectionListener fileCollectionListener) {
+            super(taskDependencyFactory, patternSetFactory, fileCollectionListener);
             this.displayName = displayName;
             this.files = files;
         }
@@ -235,8 +239,8 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         private final Object source;
         private final ProviderResolutionStrategy providerResolutionStrategy;
 
-        public ResolvingFileCollection(String displayName, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, ProviderResolutionStrategy providerResolutionStrategy, Object source) {
-            super(taskDependencyFactory, patternSetFactory);
+        public ResolvingFileCollection(String displayName, PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, ProviderResolutionStrategy providerResolutionStrategy, Object source, FileCollectionListener fileCollectionListener) {
+            super(taskDependencyFactory, patternSetFactory, fileCollectionListener);
             this.displayName = displayName;
             this.resolver = resolver;
             this.source = source;
@@ -250,7 +254,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
         @Override
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-            UnpackingVisitor nested = new UnpackingVisitor(visitor, resolver, taskDependencyFactory, patternSetFactory, providerResolutionStrategy, true);
+            UnpackingVisitor nested = new UnpackingVisitor(visitor, resolver, taskDependencyFactory, patternSetFactory, providerResolutionStrategy, fileCollectionListener, true);
             nested.add(source);
         }
 

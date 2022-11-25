@@ -21,6 +21,7 @@ import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
@@ -421,7 +422,7 @@ public class Instrumented {
         return command.stream().map(String::valueOf).collect(Collectors.joining(" "));
     }
 
-    public interface Listener {
+    public interface Listener extends FileCollectionListener {
         /**
          * Invoked when the code reads the system property with the String key.
          *
@@ -482,11 +483,6 @@ public class Instrumented {
         void fileOpened(File file, String consumer);
 
         void fileObserved(File file, String consumer);
-
-        /**
-         * Invoked when configuration logic observes the given file collection.
-         */
-        void fileCollectionObserved(FileCollection inputs, String consumer);
     }
 
     /**

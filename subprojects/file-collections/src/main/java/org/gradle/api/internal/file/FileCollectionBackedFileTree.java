@@ -38,8 +38,8 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
     private final AbstractFileCollection collection;
     private final TaskDependencyFactory taskDependencyFactory;
 
-    public FileCollectionBackedFileTree(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, AbstractFileCollection collection) {
-        super(taskDependencyFactory, patternSetFactory);
+    public FileCollectionBackedFileTree(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, AbstractFileCollection collection, FileCollectionListener fileCollectionListener) {
+        super(taskDependencyFactory, patternSetFactory, fileCollectionListener);
         this.taskDependencyFactory = taskDependencyFactory;
         this.collection = collection;
     }
@@ -101,7 +101,7 @@ public class FileCollectionBackedFileTree extends AbstractFileTree {
                 PatternSet patterns = patternSetFactory.create();
                 for (File file : contents) {
                     if (seen.add(file)) {
-                        new FileTreeAdapter(new DirectoryFileTree(file, patterns, FileSystems.getDefault()), taskDependencyFactory, patternSetFactory).visitStructure(visitor);
+                        new FileTreeAdapter(new DirectoryFileTree(file, patterns, FileSystems.getDefault()), taskDependencyFactory, patternSetFactory, fileCollectionListener).visitStructure(visitor);
                     }
                 }
             }

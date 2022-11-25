@@ -19,6 +19,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.AbstractFileTree;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -38,8 +39,8 @@ import java.util.function.Consumer;
 public final class FileTreeAdapter extends AbstractFileTree {
     private final MinimalFileTree tree;
 
-    public FileTreeAdapter(MinimalFileTree tree, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
-        super(taskDependencyFactory, patternSetFactory);
+    public FileTreeAdapter(MinimalFileTree tree, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, FileCollectionListener fileCollectionListener) {
+        super(taskDependencyFactory, patternSetFactory, fileCollectionListener);
         this.tree = tree;
     }
 
@@ -85,9 +86,9 @@ public final class FileTreeAdapter extends AbstractFileTree {
     public FileTreeInternal matching(PatternFilterable patterns) {
         if (tree instanceof PatternFilterableFileTree) {
             PatternFilterableFileTree filterableTree = (PatternFilterableFileTree) tree;
-            return new FileTreeAdapter(filterableTree.filter(patterns), taskDependencyFactory, patternSetFactory);
+            return new FileTreeAdapter(filterableTree.filter(patterns), taskDependencyFactory, patternSetFactory, fileCollectionListener);
         } else if (tree instanceof FileSystemMirroringFileTree) {
-            return new FileTreeAdapter(new FilteredMinimalFileTree((PatternSet) patterns, (FileSystemMirroringFileTree) tree), taskDependencyFactory, patternSetFactory);
+            return new FileTreeAdapter(new FilteredMinimalFileTree((PatternSet) patterns, (FileSystemMirroringFileTree) tree), taskDependencyFactory, patternSetFactory, fileCollectionListener);
         }
         throw new UnsupportedOperationException(String.format("Do not know how to filter %s.", tree));
     }
