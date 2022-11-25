@@ -62,7 +62,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
                 throw new IllegalStateException();
             });
         }
-        if (isConfigurationCacheEnabled && isUnsupported(pluginMetadata.getVersion())) {
+        if (isUnsupportedWithConfigurationCaching(pluginMetadata)) {
             manager.unsupported();
             return checkInResult(UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE, () -> {
                 throw new IllegalStateException();
@@ -87,9 +87,9 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
         };
     }
 
-    private static boolean isUnsupported(String pluginVersion) {
-        VersionNumber version = VersionNumber.parse(pluginVersion).getBaseVersion();
-        return MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.compareTo(version) > 0;
+    private boolean isUnsupportedWithConfigurationCaching(GradleEnterprisePluginMetadata pluginMetadata) {
+        VersionNumber version = VersionNumber.parse(pluginMetadata.getVersion()).getBaseVersion();
+        return isConfigurationCacheEnabled && MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING.compareTo(version) > 0;
     }
 
 }
