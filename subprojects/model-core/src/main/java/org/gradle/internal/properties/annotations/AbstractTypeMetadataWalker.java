@@ -32,8 +32,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static java.util.Objects.requireNonNull;
-
 abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
     private final TypeMetadataStore typeMetadataStore;
     private final Class<? extends Annotation> nestedAnnotation;
@@ -82,7 +80,7 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
     private void handleNested(T node, TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, NodeMetadataVisitor<T> visitor, Map<T, String> nestedNodesOnPath) {
         String firstOccurrenceQualifiedName = nestedNodesOnPath.putIfAbsent(node, qualifiedName);
         if (firstOccurrenceQualifiedName != null) {
-            onNestedNodeCycle(firstOccurrenceQualifiedName, requireNonNull(qualifiedName));
+            onNestedNodeCycle(firstOccurrenceQualifiedName, qualifiedName);
             return;
         }
 
