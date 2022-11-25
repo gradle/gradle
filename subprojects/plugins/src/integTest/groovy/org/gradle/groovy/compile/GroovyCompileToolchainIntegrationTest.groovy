@@ -25,6 +25,8 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.TextUtil
+import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 
 import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
 
@@ -32,8 +34,8 @@ import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependen
 class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
 
     def setup() {
-        file("src/main/groovy/Foo.java") << "public class Foo {}"
-        file("src/main/groovy/Bar.groovy") << "public class Bar { def bar() {} }"
+        file("src/main/groovy/JavaThing.java") << "public class JavaThing {}"
+        file("src/main/groovy/GroovyBar.groovy") << "public class GroovyBar { def bar() {} }"
 
         buildFile << """
             apply plugin: "groovy"
@@ -45,7 +47,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         """
     }
 
-    def "forkOptions #option is ignored"() {
+    def "forkOptions #option is ignored for Groovy "() {
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.getDifferentVersion()
 
@@ -72,14 +74,14 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
 
         then:
         executedAndNotSkipped(":compileGroovy")
-        JavaVersion.forClass(groovyClassFile("Foo.class").bytes) == currentJdk.javaVersion
-        JavaVersion.forClass(groovyClassFile("Bar.class").bytes) == groovyTarget
+        JavaVersion.forClass(groovyClassFile("JavaThing.class").bytes) == currentJdk.javaVersion
+        JavaVersion.forClass(groovyClassFile("GroovyBar.class").bytes) == groovyTarget
 
         where:
         option << ["executable", "javaHome"]
     }
 
-    def "uses #what toolchain #when"() {
+    def "uses #what toolchain #when for Groovy "() {
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.differentVersion
         def selectJdk = { it == "other" ? otherJdk : it == "current" ? currentJdk : null }
@@ -100,8 +102,8 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         then:
         executedAndNotSkipped(":compileGroovy")
         outputContains("Compiling with JDK Java compiler API")
-        JavaVersion.forClass(groovyClassFile("Foo.class").bytes) == targetJdk.javaVersion
-        JavaVersion.forClass(groovyClassFile("Bar.class").bytes) == groovyTarget
+        JavaVersion.forClass(groovyClassFile("JavaThing.class").bytes) == targetJdk.javaVersion
+        JavaVersion.forClass(groovyClassFile("GroovyBar.class").bytes) == groovyTarget
 
         where:
         what             | when                         | withTool | withJavaHome | withExecutable | withJavaExtension | target
@@ -111,7 +113,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         "assigned tool"  | "over java extension"        | "other"  | null         | null           | "current"         | "other"
     }
 
-    def "up-to-date depends on the toolchain"() {
+    def "up-to-date depends on the toolchain for Groovy "() {
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.getDifferentVersion()
 
@@ -150,7 +152,7 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         skipped(":compileGroovy")
     }
 
-    def 'source and target compatibility override toolchain (source #source, target #target)'() {
+    def 'source and target compatibility override toolchain (source #source, target #target) for Groovy '() {
         def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
 
         buildFile << """
@@ -182,14 +184,61 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         outputContains("project.targetCompatibility = 11")
         outputContains("task.sourceCompatibility = $sourceOut")
         outputContains("task.targetCompatibility = $targetOut")
-        JavaVersion.forClass(groovyClassFile("Foo.class").bytes) == JavaVersion.toVersion(targetOut)
-        JavaVersion.forClass(groovyClassFile("Bar.class").bytes) == JavaVersion.toVersion(targetOut)
+        JavaVersion.forClass(groovyClassFile("JavaThing.class").bytes) == JavaVersion.toVersion(targetOut)
+        JavaVersion.forClass(groovyClassFile("GroovyBar.class").bytes) == JavaVersion.toVersion(targetOut)
 
         where:
         source | target | sourceOut | targetOut
         '9'    | '10'   | '9'       | '10'
         '9'    | 'none' | '9'       | '9'
         'none' | 'none' | '11'      | '11'
+    }
+
+    def "can compile source and run tests using Java #javaVersion for Groovy "() {
+        def jdk = AvailableJavaHomes.getJdk(javaVersion)
+        Assume.assumeTrue(jdk != null)
+
+        configureJavaPluginToolchainVersion(jdk)
+
+        buildFile << """
+            dependencies {
+                testImplementation "org.spockframework:spock-core:${getSpockVersion(versionNumber)}"
+            }
+
+            test {
+                useJUnitPlatform()
+            }
+        """
+
+        file("src/test/groovy/GroovySpec.groovy") << """
+            class GroovySpec extends spock.lang.Specification {
+                def test() {
+                    given:
+                    def v = System.getProperty("java.version")
+                    println "Running Groovy test with Java version \$v"
+                }
+            }
+        """
+
+        def groovyTarget = GroovyCoverage.getEffectiveTarget(versionNumber, jdk.javaVersion)
+
+        when:
+        withInstallations(jdk).run(":test", "--info")
+
+        then:
+        executedAndNotSkipped(":test")
+        outputContains("Running Groovy test with Java version ${jdk.javaVersion}")
+
+        JavaVersion.forClass(groovyClassFile("JavaThing.class").bytes) == javaVersion
+        JavaVersion.forClass(groovyClassFile("GroovyBar.class").bytes) == groovyTarget
+        JavaVersion.forClass(classFile("groovy", "test", "GroovySpec.class").bytes) == groovyTarget
+
+        where:
+        javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it }
+    }
+
+    private def getSpockVersion(VersionNumber groovyVersion) {
+        return "2.3-groovy-${groovyVersion.major}.${groovyVersion.minor}"
     }
 
     private TestFile configureTool(Jvm jdk) {
