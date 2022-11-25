@@ -47,41 +47,47 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
 
     @Override
     public void walk(T root, NodeMetadataVisitor<T> visitor) {
-        walk(root, null, visitor, nestedNodeToQualifiedNameMapFactory.get());
+        Class<?> nodeType = resolveType(root);
+        TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(nodeType);
+        visitor.visitRoot(typeMetadata, root);
+        walkChildren(root, typeMetadata, null, visitor, nestedNodeToQualifiedNameMapFactory.get());
     }
 
-    private void walk(T node, @Nullable String qualifiedName, NodeMetadataVisitor<T> visitor, Map<T, String> nestedNodesWalkedOnPath) {
+    private void walk(T node, String qualifiedName, PropertyMetadata propertyMetadata, NodeMetadataVisitor<T> visitor, Map<T, String> nestedNodesWalkedOnPath) {
         Class<?> nodeType = resolveType(node);
         TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(nodeType);
         if (Provider.class.isAssignableFrom(nodeType)) {
-            handleProvider(node, child -> walk(child, qualifiedName, visitor, nestedNodesWalkedOnPath));
+            handleProvider(node, child -> walk(child, qualifiedName, propertyMetadata, visitor, nestedNodesWalkedOnPath));
         } else if (Map.class.isAssignableFrom(nodeType) && !typeMetadata.hasAnnotatedProperties()) {
-            handleMap(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), visitor, nestedNodesWalkedOnPath));
+            handleMap(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), propertyMetadata, visitor, nestedNodesWalkedOnPath));
         } else if (Iterable.class.isAssignableFrom(nodeType) && !typeMetadata.hasAnnotatedProperties()) {
-            handleIterable(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), visitor, nestedNodesWalkedOnPath));
+            handleIterable(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), propertyMetadata, visitor, nestedNodesWalkedOnPath));
         } else {
-            handleNested(node, typeMetadata, qualifiedName, visitor, nestedNodesWalkedOnPath);
+            handleNested(node, typeMetadata, qualifiedName, propertyMetadata, visitor, nestedNodesWalkedOnPath);
         }
     }
 
-    private void handleNested(T node, TypeMetadata typeMetadata, @Nullable String qualifiedName, NodeMetadataVisitor<T> visitor, Map<T, String> nestedNodesOnPath) {
-        if (nestedNodesOnPath.containsKey(node)) {
-            String firstOccurrenceQualifiedName = nestedNodesOnPath.get(node);
-            onNestedNodeCycle(firstOccurrenceQualifiedName, requireNonNull(qualifiedName));
-            return;
-        }
-
-        nestedNodesOnPath.put(node, qualifiedName);
-        visitor.visitNested(typeMetadata, qualifiedName, node);
+    private void walkChildren(T node, TypeMetadata typeMetadata, @Nullable String parentQualifiedName, NodeMetadataVisitor<T> visitor, Map<T, String> nestedNodesOnPath) {
         typeMetadata.getPropertiesMetadata().forEach(propertyMetadata -> {
-            String childQualifiedName = getQualifiedName(qualifiedName, propertyMetadata.getPropertyName());
+            String childQualifiedName = getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName());
             if (propertyMetadata.getPropertyType() == nestedAnnotation) {
                 Optional<T> childOptional = getChild(node, propertyMetadata);
-                childOptional.ifPresent(child -> walk(child, childQualifiedName, visitor, nestedNodesOnPath));
+                childOptional.ifPresent(child -> walk(child, childQualifiedName, propertyMetadata, visitor, nestedNodesOnPath));
             } else {
                 visitor.visitLeaf(childQualifiedName, propertyMetadata, () -> getChild(node, propertyMetadata).orElse(null));
             }
         });
+    }
+
+    private void handleNested(T node, TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, NodeMetadataVisitor<T> visitor, Map<T, String> nestedNodesOnPath) {
+        String firstOccurrenceQualifiedName = nestedNodesOnPath.putIfAbsent(node, qualifiedName);
+        if (firstOccurrenceQualifiedName != null) {
+            onNestedNodeCycle(firstOccurrenceQualifiedName, requireNonNull(qualifiedName));
+            return;
+        }
+
+        visitor.visitNested(typeMetadata, qualifiedName, propertyMetadata, node);
+        walkChildren(node, typeMetadata, qualifiedName, visitor, nestedNodesOnPath);
         nestedNodesOnPath.remove(node);
     }
 

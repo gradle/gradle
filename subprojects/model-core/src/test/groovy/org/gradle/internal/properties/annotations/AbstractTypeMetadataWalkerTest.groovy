@@ -32,7 +32,6 @@ import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadat
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.util.TestUtil
-import org.jetbrains.annotations.Nullable
 import spock.lang.Specification
 
 import java.lang.annotation.Annotation
@@ -62,7 +61,12 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         List<CollectedInput> inputs = []
         TypeMetadataWalker.typeWalker(metadataStore, Nested.class).walk(TypeToken.of(MyTask), new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
             @Override
-            void visitNested(TypeMetadata typeMetadata, @Nullable String qualifiedName, TypeToken<?> value) {
+            void visitRoot(TypeMetadata typeMetadata, TypeToken<?> value) {
+                inputs.add(new CollectedInput(null, value))
+            }
+
+            @Override
+            void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, TypeToken<?> value) {
                 inputs.add(new CollectedInput(qualifiedName, value))
             }
 
@@ -99,7 +103,12 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         Map<String, CollectedInput> inputs = [:]
         TypeMetadataWalker.instanceWalker(metadataStore, Nested.class).walk(myType, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
             @Override
-            void visitNested(TypeMetadata typeMetadata, @Nullable String qualifiedName, Object value) {
+            void visitRoot(TypeMetadata typeMetadata, Object value) {
+                inputs[null]= new CollectedInput(null, value)
+            }
+
+            @Override
+            void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, Object value) {
                 assert !inputs.containsKey(qualifiedName)
                 inputs[qualifiedName] = new CollectedInput(qualifiedName, value)
             }
@@ -137,7 +146,12 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         List<CollectedInput> inputs = []
         TypeMetadataWalker.typeWalker(metadataStore, Nested.class).walk(TypeToken.of(MyCycleTask), new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
             @Override
-            void visitNested(TypeMetadata typeMetadata, @Nullable String qualifiedName, TypeToken<?> value) {
+            void visitRoot(TypeMetadata typeMetadata, TypeToken<?> value) {
+                inputs.add(new CollectedInput(null, value))
+            }
+
+            @Override
+            void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, TypeToken<?> value) {
                 inputs.add(new CollectedInput(qualifiedName, value))
             }
 
@@ -160,7 +174,12 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         List<CollectedInput> inputs = []
         TypeMetadataWalker.instanceWalker(metadataStore, Nested.class).walk(instance, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
             @Override
-            void visitNested(TypeMetadata typeMetadata, @Nullable String qualifiedName, Object value) {
+            void visitRoot(TypeMetadata typeMetadata, Object value) {
+                inputs.add(new CollectedInput(null, value))
+            }
+
+            @Override
+            void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, Object value) {
                 inputs.add(new CollectedInput(qualifiedName, value))
             }
 
