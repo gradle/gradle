@@ -17,49 +17,24 @@
 package org.gradle.internal.properties.annotations
 
 import com.google.common.reflect.TypeToken
-import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Named
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.internal.tasks.properties.DefaultPropertyTypeResolver
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Nested
-import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
-import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
-import org.gradle.internal.service.ServiceRegistryBuilder
-import org.gradle.internal.service.scopes.ExecutionGlobalServices
+import org.gradle.internal.reflect.annotations.Ignored
+import org.gradle.internal.reflect.annotations.Long
+import org.gradle.internal.reflect.annotations.TestAnnotationHandlingSupport
+import org.gradle.internal.reflect.annotations.TestNested
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-import java.lang.annotation.Annotation
 import java.util.function.Supplier
 
-class AbstractTypeMetadataWalkerTest extends Specification {
-    // TODO: Use custom annotation instead `Input`
-    static final PROCESSED_PROPERTY_TYPE_ANNOTATIONS = [Input, Nested]
-    def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
-    def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
-    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
-        [],
-        ModifierAnnotationCategory.asMap((PROCESSED_PROPERTY_TYPE_ANNOTATIONS) as Set<Class<? extends Annotation>>),
-        ["java", "groovy"],
-        [DefaultTask],
-        [Object, GroovyObject],
-        [ConfigurableFileCollection, Property],
-        [],
-        { false },
-        cacheFactory
-    )
-    def propertyTypeResolver = new DefaultPropertyTypeResolver()
-    def metadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [], typeAnnotationMetadataStore, propertyTypeResolver, cacheFactory)
+class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnotationHandlingSupport {
 
     def "should walk a type"() {
         when:
         List<CollectedInput> inputs = []
-        TypeMetadataWalker.typeWalker(metadataStore, Nested.class).walk(TypeToken.of(MyTask), new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
+        TypeMetadataWalker.typeWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyTask), new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
             @Override
             void visitRoot(TypeMetadata typeMetadata, TypeToken<?> value) {
                 inputs.add(new CollectedInput(null, value))
@@ -77,31 +52,39 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         })
 
         then:
-        inputs.collect { it.qualifiedName } == [null, "i1", "i2", "i2.nI2", "i3.*", "i3.*.nI2", "i4.<key>", "i4.<key>.nI2", "i5.*.*", "i5.*.*.nI2", "i6.<name>", "i6.<name>.nI3", "i7", "i7.nI2"]
+        inputs.collect { it.qualifiedName } == [
+            null,
+            "inputProperty",
+            "nested", "nested.inputProperty",
+            "nestedList.*", "nestedList.*.inputProperty",
+            "nestedListOfLists.*.*", "nestedListOfLists.*.*.inputProperty",
+            "nestedMap.<key>", "nestedMap.<key>.inputProperty",
+            "nestedNamedList.<name>", "nestedNamedList.<name>.inputProperty",
+            "nestedProperty", "nestedProperty.inputProperty"
+        ]
     }
 
     def "should walk type instance"() {
         given:
+        def firstProperty = TestUtil.propertyFactory().property(String).value("first-property")
+        def secondProperty = TestUtil.propertyFactory().property(String).value("second-property")
+        def thirdProperty = TestUtil.propertyFactory().property(String).value("third-property")
         def myType = new MyTask()
         def nestedType = new NestedType()
-        def propertyI1 = TestUtil.propertyFactory().property(String).value("value-i1")
-        def propertyNI2 = TestUtil.propertyFactory().property(String).value("value-nI2")
-        nestedType.nI2 = propertyNI2
         def namedType = new NamedType()
-        def propertyNI3 = TestUtil.propertyFactory().property(String).value("value-nI3")
-        namedType.nI3 = propertyNI3
-        myType.i1 = propertyI1
-        myType.i2 = nestedType
-        myType.i3 = [nestedType, nestedType]
-        myType.i4 = ["key1": nestedType, "key2": nestedType]
-        myType.i5 = [[nestedType]]
-        myType.i5 = [[nestedType]]
-        myType.i6 = [namedType]
-        myType.i7 = TestUtil.propertyFactory().property(NestedType).value(nestedType)
+        nestedType.inputProperty = secondProperty
+        namedType.inputProperty = thirdProperty
+        myType.inputProperty = firstProperty
+        myType.nested = nestedType
+        myType.nestedList = [nestedType, nestedType]
+        myType.nestedMap = ["key1": nestedType, "key2": nestedType]
+        myType.nestedListOfLists = [[nestedType]]
+        myType.nestedNamedList = [namedType]
+        myType.nestedProperty = TestUtil.propertyFactory().property(NestedType).value(nestedType)
 
         when:
         Map<String, CollectedInput> inputs = [:]
-        TypeMetadataWalker.instanceWalker(metadataStore, Nested.class).walk(myType, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(myType, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
             @Override
             void visitRoot(TypeMetadata typeMetadata, Object value) {
                 inputs[null]= new CollectedInput(null, value)
@@ -122,29 +105,29 @@ class AbstractTypeMetadataWalkerTest extends Specification {
 
         then:
         inputs[null].value == myType
-        inputs["i1"].value == propertyI1
-        inputs["i2"].value == nestedType
-        inputs["i2.nI2"].value == propertyNI2
-        inputs["i3.\$1"].value == nestedType
-        inputs["i3.\$2"].value == nestedType
-        inputs["i3.\$1.nI2"].value == propertyNI2
-        inputs["i3.\$2.nI2"].value == propertyNI2
-        inputs["i4.key1"].value ==  nestedType
-        inputs["i4.key2"].value ==  nestedType
-        inputs["i4.key1.nI2"].value == propertyNI2
-        inputs["i4.key2.nI2"].value == propertyNI2
-        inputs["i5.\$1.\$1"].value == nestedType
-        inputs["i5.\$1.\$1.nI2"].value == propertyNI2
-        inputs["i6.\$1"].value == namedType
-        inputs["i6.\$1.nI3"].value == propertyNI3
-        inputs["i7"].value == nestedType
-        inputs["i7.nI2"].value == nestedType.nI2
+        inputs["inputProperty"].value == firstProperty
+        inputs["nested"].value == nestedType
+        inputs["nested.inputProperty"].value == secondProperty
+        inputs["nestedList.\$1"].value == nestedType
+        inputs["nestedList.\$2"].value == nestedType
+        inputs["nestedList.\$1.inputProperty"].value == secondProperty
+        inputs["nestedList.\$2.inputProperty"].value == secondProperty
+        inputs["nestedMap.key1"].value ==  nestedType
+        inputs["nestedMap.key2"].value ==  nestedType
+        inputs["nestedMap.key1.inputProperty"].value == secondProperty
+        inputs["nestedMap.key2.inputProperty"].value == secondProperty
+        inputs["nestedListOfLists.\$1.\$1"].value == nestedType
+        inputs["nestedListOfLists.\$1.\$1.inputProperty"].value == secondProperty
+        inputs["nestedNamedList.\$1"].value == namedType
+        inputs["nestedNamedList.\$1.inputProperty"].value == thirdProperty
+        inputs["nestedProperty"].value == nestedType
+        inputs["nestedProperty.inputProperty"].value == secondProperty
     }
 
     def "type walker should handle types with nested cycles"() {
         when:
         List<CollectedInput> inputs = []
-        TypeMetadataWalker.typeWalker(metadataStore, Nested.class).walk(TypeToken.of(MyCycleTask), new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
+        TypeMetadataWalker.typeWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyCycleTask), new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
             @Override
             void visitRoot(TypeMetadata typeMetadata, TypeToken<?> value) {
                 inputs.add(new CollectedInput(null, value))
@@ -162,7 +145,14 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         })
 
         then:
-        inputs.collect { it.qualifiedName } == [null, "a", "a.g", "b", "b.g", "c.*", "c.*.g", "d.<key>", "d.<key>.g", "e.*.*", "e.*.*.g"]
+        inputs.collect { it.qualifiedName } == [
+            null,
+            "nested", "nested.input",
+            "nestedList.*", "nestedList.*.input",
+            "nestedListOfLists.*.*", "nestedListOfLists.*.*.input",
+            "nestedMap.<key>", "nestedMap.<key>.input",
+            "nestedProperty", "nestedProperty.input"
+        ]
     }
 
     def "instance walker should handle instances with nested cycles"() {
@@ -172,7 +162,7 @@ class AbstractTypeMetadataWalkerTest extends Specification {
 
         when:
         List<CollectedInput> inputs = []
-        TypeMetadataWalker.instanceWalker(metadataStore, Nested.class).walk(instance, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
             @Override
             void visitRoot(TypeMetadata typeMetadata, Object value) {
                 inputs.add(new CollectedInput(null, value))
@@ -194,68 +184,69 @@ class AbstractTypeMetadataWalkerTest extends Specification {
         exception.message == "Cycles between nested beans are not allowed. Cycle detected between: $expectedCycle."
 
         where:
-        propertyWithCycle | propertyValue                                                                         | expectedCycle
-        'a'               | CycleType.newInitializedCycle()                                                       | "'a' and 'a.f'"
-        'b'               | TestUtil.propertyFactory().property(CycleType).value(CycleType.newInitializedCycle()) | "'b' and 'b.f'"
-        'c'               | [CycleType.newInitializedCycle()]                                                     | "'c.\$1' and 'c.\$1.f'"
-        'd'               | ['key1': CycleType.newInitializedCycle()]                                             | "'d.key1' and 'd.key1.f'"
-        'e'               | [[CycleType.newInitializedCycle()]]                                                   | "'e.\$1.\$1' and 'e.\$1.\$1.f'"
+        propertyWithCycle   | propertyValue                                                                         | expectedCycle
+        'nested'            | CycleType.newInitializedCycle()                                                       | "'nested' and 'nested.nested'"
+        'nestedProperty'    | TestUtil.propertyFactory().property(CycleType).value(CycleType.newInitializedCycle()) | "'nestedProperty' and 'nestedProperty.nested'"
+        'nestedList'        | [CycleType.newInitializedCycle()]                                                     | "'nestedList.\$1' and 'nestedList.\$1.nested'"
+        'nestedMap'         | ['key1': CycleType.newInitializedCycle()]                                             | "'nestedMap.key1' and 'nestedMap.key1.nested'"
+        'nestedListOfLists' | [[CycleType.newInitializedCycle()]]                                                   | "'nestedListOfLists.\$1.\$1' and 'nestedListOfLists.\$1.\$1.nested'"
     }
 
     static class MyTask {
-        @Input
-        Property<String> i1
-        @Nested
-        NestedType i2
-        @Nested
-        List<NestedType> i3
-        @Nested
-        Map<String, NestedType> i4
-        @Nested
-        List<List<NestedType>> i5
-        @Nested
-        List<NamedType> i6
-        @Nested
-        Property<NestedType> i7
+        @Long
+        Property<String> inputProperty
+        @TestNested
+        NestedType nested
+        @TestNested
+        List<NestedType> nestedList
+        @TestNested
+        Map<String, NestedType> nestedMap
+        @TestNested
+        List<List<NestedType>> nestedListOfLists
+        @TestNested
+        List<NamedType> nestedNamedList
+        @TestNested
+        Property<NestedType> nestedProperty
     }
 
     static class NestedType {
-        @Input
-        Property<String> nI2
+        @Long
+        Property<String> inputProperty
     }
 
     static class NamedType implements Named {
-        @Input
-        Property<String> nI3
-        @Internal
+        @Long
+        Property<String> inputProperty
+
+        @Ignored
         String getName() {
             return "namedType"
         }
     }
 
     static class MyCycleTask {
-        @Nested
-        CycleType a
-        @Nested
-        Property<CycleType> b
-        @Nested
-        List<CycleType> c
-        @Nested
-        Map<String, CycleType> d
-        @Nested
-        List<List<CycleType>> e
+        @TestNested
+        CycleType nested
+        @TestNested
+        Property<CycleType> nestedProperty
+        @TestNested
+        List<CycleType> nestedList
+        @TestNested
+        Map<String, CycleType> nestedMap
+        @TestNested
+        List<List<CycleType>> nestedListOfLists
     }
 
     static class CycleType {
-        @Nested
-        CycleType f
-        @Input
-        CycleType g
+        @TestNested
+        CycleType nested
+        @Long
+        CycleType input
 
         static CycleType newInitializedCycle() {
             def cycleType = new CycleType()
-            cycleType.f = cycleType
-            cycleType.g = cycleType
+            cycleType.nested = cycleType
+            cycleType.input = cycleType
             return cycleType
         }
     }
