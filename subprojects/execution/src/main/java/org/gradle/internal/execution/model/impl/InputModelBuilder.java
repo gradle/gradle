@@ -21,15 +21,15 @@ import org.gradle.internal.execution.model.InputFilePropertyModel;
 import org.gradle.internal.execution.model.InputModel;
 import org.gradle.internal.execution.model.InputPropertyModel;
 
-public class InputModelBuilderVisitor {
+public class InputModelBuilder {
     private final ImmutableList.Builder<InputPropertyModel> inputProperties = ImmutableList.builder();
     private final ImmutableList.Builder<InputFilePropertyModel> inputFileProperties = ImmutableList.builder();
 
-    public void visitInputPropertyModel(InputPropertyModel model) {
+    public void addInputProperty(InputPropertyModel model) {
         inputProperties.add(model);
     }
 
-    public void visitInputFilePropertyModel(InputFilePropertyModel model) {
+    public void addInputFilePropertyModel(InputFilePropertyModel model) {
         inputFileProperties.add(model);
     }
 

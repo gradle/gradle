@@ -16,38 +16,69 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.execution.model.InputFilePropertyModel;
 import org.gradle.internal.execution.model.InputModel;
+import org.gradle.internal.execution.model.InputPropertyModel;
 import org.gradle.internal.execution.model.impl.InputDirectoryPropertyModelBuilder;
 import org.gradle.internal.execution.model.impl.InputFilePropertyModelBuilder;
 import org.gradle.internal.execution.model.impl.InputFilesPropertyModelBuilder;
-import org.gradle.internal.execution.model.impl.InputModelBuilderVisitor;
+import org.gradle.internal.execution.model.impl.InputModelBuilder;
 import org.gradle.internal.execution.model.impl.InputPropertyModelBuilder;
-import org.gradle.internal.model.AbstractInstanceModelBuilder;
+import org.gradle.internal.model.PropertyModelBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.schema.InstanceSchema;
 import org.gradle.internal.schema.InstanceSchemaExtractor;
 
-public class DefaultTaskInputModelBuilder extends AbstractInstanceModelBuilder<InputModelBuilderVisitor> implements TaskInputModelBuilder {
+import java.lang.annotation.Annotation;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
+public class DefaultTaskInputModelBuilder implements TaskInputModelBuilder {
     private final InstanceSchemaExtractor schemaExtractor;
+    private final ImmutableMap<Class<? extends Annotation>, PropertyModelBuilder<? extends Annotation, InputPropertyModel>> propertyModelBuilders;
+    private final ImmutableMap<Class<? extends Annotation>, PropertyModelBuilder<? extends Annotation, InputFilePropertyModel>> filePropertyModelBuilders;
 
     public DefaultTaskInputModelBuilder(InstanceSchemaExtractor schemaExtractor, FileCollectionFactory fileCollectionFactory) {
-        super(
-            new InputPropertyModelBuilder(),
+        this.propertyModelBuilders = Stream.of(new InputPropertyModelBuilder())
+            .collect(ImmutableMap.toImmutableMap(
+                PropertyModelBuilder::getHandledPropertyType,
+                Function.identity()
+            ));
+        this.filePropertyModelBuilders = Stream.of(
             new InputFilePropertyModelBuilder(fileCollectionFactory::resolving),
             new InputFilesPropertyModelBuilder(fileCollectionFactory::resolving),
             new InputDirectoryPropertyModelBuilder(fileCollectionFactory::resolving)
-        );
+        ).collect(ImmutableMap.toImmutableMap(
+            PropertyModelBuilder::getHandledPropertyType,
+            Function.identity()
+        ));
         this.schemaExtractor = schemaExtractor;
     }
 
     @Override
     public InputModel buildModelFrom(Task task, TypeValidationContext validationContext) {
         // TODO The schema should come from the task instance itself
-        InstanceSchema schema = schemaExtractor.extractSchema(task, validationContext);
-        InputModelBuilderVisitor visitor = new InputModelBuilderVisitor();
-        handleProperties(schema, visitor);
-        return visitor.buildModel();
+        InstanceSchema instanceSchema = schemaExtractor.extractSchema(task, validationContext);
+        InputModelBuilder builder = new InputModelBuilder();
+
+        // Collect properties
+        instanceSchema.properties().forEach(schema -> {
+            PropertyModelBuilder<? extends Annotation, InputPropertyModel> propertyBuilder = propertyModelBuilders.get(schema.getMetadata().getPropertyType());
+            if (propertyBuilder != null) {
+                builder.addInputProperty(propertyBuilder.getModel(schema));
+            }
+        });
+
+        // Collect file properties
+        instanceSchema.properties().forEach(schema -> {
+            PropertyModelBuilder<? extends Annotation, InputFilePropertyModel> propertyBuilder = filePropertyModelBuilders.get(schema.getMetadata().getPropertyType());
+            if (propertyBuilder != null) {
+                builder.addInputFilePropertyModel(propertyBuilder.getModel(schema));
+            }
+        });
+        return builder.buildModel();
     }
 }

@@ -20,8 +20,8 @@ import org.gradle.internal.schema.PropertySchema;
 
 import java.lang.annotation.Annotation;
 
-public interface PropertyModelBuilder<A extends Annotation, V> {
+public interface PropertyModelBuilder<A extends Annotation, R extends PropertyModel<?>> {
     Class<A> getHandledPropertyType();
 
-    void acceptVisitor(PropertySchema schema, V visitor);
+    R getModel(PropertySchema schema);
 }

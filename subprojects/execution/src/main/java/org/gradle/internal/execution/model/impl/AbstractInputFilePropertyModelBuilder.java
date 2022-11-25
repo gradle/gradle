@@ -24,11 +24,12 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.execution.model.FileCollectionResolver;
+import org.gradle.internal.execution.model.InputFilePropertyModel;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.model.AbstractPropertyModelBuilder;
+import org.gradle.internal.model.PropertyModelBuilder;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.schema.PropertySchema;
@@ -40,29 +41,35 @@ import java.lang.annotation.Annotation;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
 
-public abstract class AbstractInputFilePropertyModelBuilder<A extends Annotation> extends AbstractPropertyModelBuilder<A, InputModelBuilderVisitor> {
+public abstract class AbstractInputFilePropertyModelBuilder<A extends Annotation> implements PropertyModelBuilder<A, InputFilePropertyModel> {
+    private final Class<A> propertyType;
     private final FileCollectionResolver fileCollectionResolver;
 
     public AbstractInputFilePropertyModelBuilder(Class<A> propertyType, FileCollectionResolver fileCollectionResolver) {
-        super(propertyType);
+        this.propertyType = propertyType;
         this.fileCollectionResolver = fileCollectionResolver;
     }
 
     @Override
-    protected void acceptVisitor(@Nullable A propertyType, PropertySchema schema, InputModelBuilderVisitor visitor) {
+    public Class<A> getHandledPropertyType() {
+        return propertyType;
+    }
+
+    @Override
+    public InputFilePropertyModel getModel(PropertySchema schema) {
         Object value = schema.getValue();
         PropertyMetadata metadata = schema.getMetadata();
         FileCollection fileValue = (value == null || value instanceof FileCollection)
             ? (FileCollection) value
             : fileCollectionResolver.resolveFileCollection(value);
-        visitor.visitInputFilePropertyModel(new DefaultInputFilePropertyModel(
+        return new DefaultInputFilePropertyModel(
             schema.getQualifiedName(),
             determineNormalizer(metadata),
             determineBehavior(metadata),
             determineDirectorySensitivity(metadata),
             determineLineEndingSensitivity(metadata),
             fileValue
-        ));
+        );
     }
 
     // TODO Emit a warning here and fall back to ABSOLUTE here instead of using null
