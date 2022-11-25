@@ -60,11 +60,14 @@ public class DefaultInstanceSchemaExtractor implements InstanceSchemaExtractor {
         }
 
         @Override
-        public void visitNested(TypeMetadata typeMetadata, @Nullable String qualifiedName, Object value) {
+        public void visitRoot(TypeMetadata typeMetadata, Object value) {
+            typeMetadata.visitValidationFailures(null, validationContext);
+        }
+
+        @Override
+        public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, Object value) {
             typeMetadata.visitValidationFailures(qualifiedName, validationContext);
-            if (qualifiedName != null) {
-                properties.add(new NestedPropertySchema(qualifiedName, value));
-            }
+            properties.add(new NestedPropertySchema(qualifiedName, value));
         }
 
         @Override
