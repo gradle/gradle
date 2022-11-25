@@ -14,7 +14,7 @@ java {
 dependencies {
     compileOnly("com.gradle:gradle-enterprise-gradle-plugin:3.11.4")
 
-    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:3.2.0")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10")
+    implementation("org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:3.2.1")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.20")
     implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.8.0")
 }
