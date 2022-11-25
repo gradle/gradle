@@ -28,10 +28,10 @@ class DefaultCacheConfigurationsTest extends Specification {
 
     def "cannot modify cache configurations once finalized"() {
         when:
-        cacheConfigurations.createdResources.removeUnusedEntries.set(olderThanInDays(2))
-        cacheConfigurations.downloadedResources.removeUnusedEntries.set(olderThanInDays(2))
-        cacheConfigurations.releasedWrappers.removeUnusedEntries.set(olderThanInDays(2))
-        cacheConfigurations.snapshotWrappers.removeUnusedEntries.set(olderThanInDays(2))
+        cacheConfigurations.createdResources.removeUnusedEntriesAfter.set(olderThanInDays(2))
+        cacheConfigurations.downloadedResources.removeUnusedEntriesAfter.set(olderThanInDays(2))
+        cacheConfigurations.releasedWrappers.removeUnusedEntriesAfter.set(olderThanInDays(2))
+        cacheConfigurations.snapshotWrappers.removeUnusedEntriesAfter.set(olderThanInDays(2))
         cacheConfigurations.cleanup.set(Cleanup.DISABLED)
 
         then:
@@ -41,25 +41,25 @@ class DefaultCacheConfigurationsTest extends Specification {
         cacheConfigurations.finalizeConfigurations()
 
         and:
-        cacheConfigurations.createdResources.removeUnusedEntries.set(olderThanInDays(1))
+        cacheConfigurations.createdResources.removeUnusedEntriesAfter.set(olderThanInDays(1))
 
         then:
         thrown(IllegalStateException)
 
         when:
-        cacheConfigurations.downloadedResources.removeUnusedEntries.set(olderThanInDays(1))
+        cacheConfigurations.downloadedResources.removeUnusedEntriesAfter.set(olderThanInDays(1))
 
         then:
         thrown(IllegalStateException)
 
         when:
-        cacheConfigurations.releasedWrappers.removeUnusedEntries.set(olderThanInDays(1))
+        cacheConfigurations.releasedWrappers.removeUnusedEntriesAfter.set(olderThanInDays(1))
 
         then:
         thrown(IllegalStateException)
 
         when:
-        cacheConfigurations.snapshotWrappers.removeUnusedEntries.set(olderThanInDays(1))
+        cacheConfigurations.snapshotWrappers.removeUnusedEntriesAfter.set(olderThanInDays(1))
 
         then:
         thrown(IllegalStateException)
