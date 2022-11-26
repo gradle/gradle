@@ -138,7 +138,7 @@ class ConfigurationCacheIO internal constructor(
     fun readRootBuildStateFrom(stateFile: ConfigurationCacheStateFile, loadAfterStore: Boolean, graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
         return readConfigurationCacheState(stateFile) { state ->
             state.run {
-                readRootBuildState(graph, startParameter.loadAfterStore, loadAfterStore, host::createBuild)
+                readRootBuildState(graph, loadAfterStore, host::createBuild)
             }
         }
     }
@@ -153,10 +153,10 @@ class ConfigurationCacheIO internal constructor(
     }
 
     internal
-    fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild, synthesizeBuildOps: Boolean) =
+    fun readIncludedBuildStateFrom(stateFile: ConfigurationCacheStateFile, includedBuild: ConfigurationCacheBuild) =
         readConfigurationCacheState(stateFile) { state ->
             state.run {
-                readBuildState(includedBuild, synthesizeBuildOps)
+                readBuildState(includedBuild)
             }
         }
 
