@@ -20,7 +20,6 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.build.CompositeBuildParticipantBuildState
-import org.gradle.internal.build.IncludedBuildState
 import org.gradle.util.Path
 import java.io.File
 
@@ -37,5 +36,5 @@ interface ConfigurationCacheBuild {
 
     fun registerProjects()
 
-    fun addIncludedBuild(buildDefinition: BuildDefinition): IncludedBuildState
+    fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, rootProjectName: String): ConfigurationCacheBuild
 }

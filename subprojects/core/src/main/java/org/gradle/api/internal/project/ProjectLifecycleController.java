@@ -39,6 +39,10 @@ public class ProjectLifecycleController {
         controller = factory.newController(displayName, State.NotCreated);
     }
 
+    public boolean isCreated() {
+        return controller.isInStateOrLater(State.Created);
+    }
+
     public void createMutableModel(
         DefaultProjectDescriptor descriptor,
         BuildState build,

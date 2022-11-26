@@ -30,7 +30,6 @@ import org.gradle.internal.configurationcache.ConfigurationCacheStoreBuildOperat
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.internal.ToBeImplemented
 
 class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -80,8 +79,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         configurationCacheRun 'assemble'
 
         then:
-        hasOperationsForStore()
-        compositeBuildWorkGraphCalculated()
+        compositeBuildWorkGraphStored()
 
         when:
         inDirectory 'app'
@@ -137,17 +135,15 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
 
         then:
         outputContains('In script plugin')
-        hasOperationsForStore()
-        buildLogicBuiltAndWorkGraphCalculated()
+        buildLogicBuiltAndWorkGraphStored()
 
         when:
         configurationCacheRun 'help'
 
         then:
-        compositeBuildWorkGraphLoaded()
+        compositeBuildRootBuildWorkGraphLoaded()
     }
 
-    @ToBeImplemented("progress events are not fired for buildSrc")
     def "emits relevant build operations when configuration cache is used - buildSrc"() {
         given:
         withBuildSrc()
@@ -156,23 +152,13 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         configurationCacheRun 'assemble'
 
         then:
-        hasOperationsForStore()
-        buildLogicBuiltAndWorkGraphCalculated(':buildSrc')
+        buildLogicBuiltAndWorkGraphStored(':buildSrc')
 
         when:
         configurationCacheRun 'assemble'
 
         then:
-        hasOperationsForLoad()
-
-        operations.none(ConfigurationCacheStoreBuildOperationType)
-        operations.progress(BuildIdentifiedProgressDetails).size() == 1 // Not yet fired for buildSrc
-        operations.none(LoadBuildBuildOperationType)
-        operations.none(LoadProjectsBuildOperationType)
-        operations.progress(ProjectsIdentifiedProgressDetails).size() == 1 // Not yet fired for buildSrc
-        operations.none(EvaluateSettingsBuildOperationType)
-        operations.none(ConfigureBuildBuildOperationType)
-        operations.none(ConfigureProjectBuildOperationType)
+        compositeBuildRootBuildWorkGraphLoaded(':buildSrc')
     }
 
     private void workGraphStored() {
@@ -206,6 +192,11 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         operations.none(ConfigureProjectBuildOperationType)
 
         hasWorkGraphPopulated()
+    }
+
+    private void compositeBuildWorkGraphStored() {
+        hasOperationsForStore()
+        compositeBuildWorkGraphCalculated()
     }
 
     private void compositeBuildWorkGraphCalculated() {
@@ -274,15 +265,75 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
     }
 
     private void buildLogicBuiltAndWorkGraphCalculated(String buildLogicBuild = ':lib') {
-        compositeBuildsIdentified(buildLogicBuild)
+        def loadBuildOps = operations.all(LoadBuildBuildOperationType)
+        assert loadBuildOps.size() == 2
+        def loadRootBuild = loadBuildOps[0]
+        with(loadRootBuild) {
+            assert details.buildPath == ':'
+        }
+        def loadBuildLogicBuild = loadBuildOps[1]
+        with(loadBuildLogicBuild) {
+            assert details.buildPath == buildLogicBuild
+            // parent is different for buildSrc and included build
+        }
 
-        assert operations.all(LoadBuildBuildOperationType).size() == 2
-        assert operations.all(LoadProjectsBuildOperationType).size() == 2
-        assert operations.all(EvaluateSettingsBuildOperationType).size() == 2
-        assert operations.all(ConfigureBuildBuildOperationType).size() == 2
-        assert operations.all(ConfigureProjectBuildOperationType).size() == 2
-        assert operations.all(CalculateTreeTaskGraphBuildOperationType).size() == 2
-        assert operations.all(CalculateTaskGraphBuildOperationType).size() == 2
+        def evaluateSettingsOps = operations.all(EvaluateSettingsBuildOperationType)
+        assert evaluateSettingsOps.size() == 2
+        with(evaluateSettingsOps[0]) {
+            assert details.buildPath == ':'
+            assert parentId == loadRootBuild.id
+        }
+        with(evaluateSettingsOps[1]) {
+            assert details.buildPath == buildLogicBuild
+            assert parentId == loadBuildLogicBuild.id
+        }
+
+        def configureBuildOps = operations.all(ConfigureBuildBuildOperationType)
+        assert configureBuildOps.size() == 2
+        def configureRootBuild = configureBuildOps[0]
+        with(configureRootBuild) {
+            assert details.buildPath == ':'
+        }
+        def configureBuildLogicBuild = configureBuildOps[1]
+        with(configureBuildLogicBuild) {
+            assert details.buildPath == buildLogicBuild
+        }
+
+        def loadProjectsOps = operations.all(LoadProjectsBuildOperationType)
+        assert loadProjectsOps.size() == 2
+        with(loadProjectsOps[0]) {
+            assert details.buildPath == ':'
+            assert parentId == configureRootBuild.id
+        }
+        with(loadProjectsOps[1]) {
+            assert details.buildPath == buildLogicBuild
+            assert parentId == configureBuildLogicBuild.id
+        }
+
+        def configureProjectOps = operations.all(ConfigureProjectBuildOperationType)
+        assert configureProjectOps.size() == 2
+        with(configureProjectOps.find { it.details.buildPath == ':' }) {
+            assert details.projectPath == ':'
+            assert parentId == configureRootBuild.id
+        }
+        with(configureProjectOps.find { it.details.buildPath == buildLogicBuild }) {
+            assert details.projectPath == ':'
+            assert parentId == configureBuildLogicBuild.id
+        }
+
+        def workGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
+        assert workGraphOps.size() == 2
+
+        def calculateWorkOps = operations.all(CalculateTaskGraphBuildOperationType)
+        assert calculateWorkOps.size() == 2
+        with(calculateWorkOps[0]) {
+            assert details.buildPath == buildLogicBuild
+            assert parentId == workGraphOps[0].id
+        }
+        with(calculateWorkOps[1]) {
+            assert details.buildPath == ':'
+            assert parentId == workGraphOps[1].id
+        }
         assert operations.all(NotifyTaskGraphWhenReadyBuildOperationType).size() == 2
     }
 
@@ -310,6 +361,27 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         operations.none(ConfigureProjectBuildOperationType)
 
         hasCompositeBuildsWorkGraphPopulated()
+    }
+
+    private void buildLogicBuiltAndWorkGraphStored(String buildLogicBuild = ':lib') {
+        hasOperationsForStore()
+        compositeBuildsIdentified(buildLogicBuild)
+        buildLogicBuiltAndWorkGraphCalculated(buildLogicBuild)
+    }
+
+    private void compositeBuildRootBuildWorkGraphLoaded(String childBuild = ':lib') {
+        hasOperationsForLoad()
+        compositeBuildsIdentified(childBuild)
+
+        operations.none(LoadBuildBuildOperationType)
+        operations.none(LoadProjectsBuildOperationType)
+        operations.none(EvaluateSettingsBuildOperationType)
+        operations.none(ConfigureBuildBuildOperationType)
+        operations.none(ConfigureProjectBuildOperationType)
+
+        operations.only(CalculateTreeTaskGraphBuildOperationType)
+        operations.only(CalculateTaskGraphBuildOperationType)
+        operations.only(NotifyTaskGraphWhenReadyBuildOperationType)
     }
 
     private void buildIdentified() {

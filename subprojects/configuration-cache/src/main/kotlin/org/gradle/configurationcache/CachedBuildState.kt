@@ -50,13 +50,33 @@ class ProjectWithNoWork(
 ) : CachedProjectState(path, projectDir, buildDir)
 
 
+data class BuildToStore(val build: VintageGradleBuild, val hasWork: Boolean)
+
+
 /**
  * State cached for a build in the tree.
  */
 internal
-data class CachedBuildState(
-    val build: ConfigurationCacheBuild,
+sealed class CachedBuildState(
+    val identityPath: Path,
+    val rootProjectName: String,
     val projects: List<CachedProjectState>,
-    val workGraph: List<Node>,
-    val children: List<CachedBuildState>
 )
+
+
+internal
+class BuildWithWork(
+    identityPath: Path,
+    val build: ConfigurationCacheBuild,
+    rootProjectName: String,
+    projects: List<CachedProjectState>,
+    val workGraph: List<Node>
+) : CachedBuildState(identityPath, rootProjectName, projects)
+
+
+internal
+class BuildWithNoWork(
+    identityPath: Path,
+    rootProjectName: String,
+    projects: List<ProjectWithNoWork>
+) : CachedBuildState(identityPath, rootProjectName, projects)
