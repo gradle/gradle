@@ -1385,7 +1385,7 @@ Eager population of the publication can happen if the following methods are call
 * link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getConfigurations--[IvyPublication.getConfigurations()]
 * link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#configurations(Action)--[IvyPublication.configurations(Action)]
 
-Before, it was possible to have this code block without any warnings, but it created inconsistencies between the published artifacts:
+Previously, this code block did not generate warnings, but it created inconsistencies between published artifacts:
 
 ```kotlin
 publishing {
