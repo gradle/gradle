@@ -89,8 +89,7 @@ class ConfigurationCacheHost internal constructor(
             }
         }
 
-        override fun createProject(path: String, dir: File, buildDir: File) {
-            val projectPath = Path.path(path)
+        override fun createProject(projectPath: Path, dir: File, buildDir: File) {
             val name = projectPath.name
             val projectDescriptor = DefaultProjectDescriptor(
                 getProjectDescriptor(projectPath.parent),

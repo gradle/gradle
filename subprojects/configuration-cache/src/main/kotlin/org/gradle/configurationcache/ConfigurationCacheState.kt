@@ -22,20 +22,19 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
-import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
-import org.gradle.configurationcache.CachedProjectState.Companion.computeCachedState
-import org.gradle.configurationcache.CachedProjectState.Companion.configureProjectFromCachedState
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
+import org.gradle.configurationcache.serialization.ReadContext
+import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.codecs.Codecs
 import org.gradle.configurationcache.serialization.logNotImplemented
 import org.gradle.configurationcache.serialization.readCollection
@@ -43,7 +42,6 @@ import org.gradle.configurationcache.serialization.readFile
 import org.gradle.configurationcache.serialization.readList
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.configurationcache.serialization.readStrings
-import org.gradle.configurationcache.serialization.runReadOperation
 import org.gradle.configurationcache.serialization.withDebugFrame
 import org.gradle.configurationcache.serialization.withGradleIsolate
 import org.gradle.configurationcache.serialization.writeCollection
@@ -56,6 +54,7 @@ import org.gradle.initialization.BuildStructureOperationProject
 import org.gradle.initialization.ProjectsIdentifiedProgressDetails
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor
 import org.gradle.internal.Actions
+import org.gradle.internal.build.BuildProjectRegistry
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.CompositeBuildParticipantBuildState
 import org.gradle.internal.build.IncludedBuildState
@@ -69,9 +68,8 @@ import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
 import org.gradle.internal.execution.BuildOutputCleanupRegistry
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
-import org.gradle.internal.serialize.Decoder
-import org.gradle.internal.serialize.Encoder
 import org.gradle.plugin.management.internal.PluginRequests
+import org.gradle.util.Path
 import org.gradle.vcs.internal.VcsMappingsStore
 import java.io.File
 import java.io.InputStream
@@ -100,7 +98,8 @@ interface ConfigurationCacheStateFile {
 internal
 class ConfigurationCacheState(
     private val codecs: Codecs,
-    private val stateFile: ConfigurationCacheStateFile
+    private val stateFile: ConfigurationCacheStateFile,
+    private val eventEmitter: BuildOperationProgressEventEmitter
 ) {
     /**
      * Writes the state for the whole build starting from the given root [build] and returns the set
@@ -126,13 +125,37 @@ class ConfigurationCacheState(
     private
     fun identifyBuild(state: CachedBuildState) {
         val gradle = state.build.gradle
-        val emitter = gradle.serviceOf<BuildOperationProgressEventEmitter>()
-        emitter.emitNowForCurrent(BuildIdentifiedProgressDetails { gradle.identityPath.toString() })
-        emitter.emitNowForCurrent(object : ProjectsIdentifiedProgressDetails {
-            override fun getBuildPath() = gradle.identityPath.toString()
-            override fun getRootProject() = BuildStructureOperationProject.from(gradle)
+        val identityPath = gradle.identityPath.toString()
+
+        eventEmitter.emitNowForCurrent(BuildIdentifiedProgressDetails { identityPath })
+
+        val projects = convertProjects(state.projects, gradle.rootProject.name)
+        eventEmitter.emitNowForCurrent(object : ProjectsIdentifiedProgressDetails {
+            override fun getBuildPath() = identityPath
+            override fun getRootProject() = projects
         })
         state.children.forEach(::identifyBuild)
+    }
+
+    private fun convertProjects(projects: List<CachedProjectState>, rootProjectName: String): ProjectsIdentifiedProgressDetails.Project {
+        val children = projects.groupBy { it.path.parent }
+        val converted = mutableMapOf<Path, BuildStructureOperationProject>()
+        for (project in projects) {
+            convertProject(converted, project, rootProjectName, children)
+        }
+        return converted.getValue(Path.ROOT)
+    }
+
+    private fun convertProject(converted: MutableMap<Path, BuildStructureOperationProject>,
+                               project: CachedProjectState,
+                               rootProjectName: String,
+                               children: Map<Path?, List<CachedProjectState>>): BuildStructureOperationProject {
+        val childProjects = children.getOrDefault(project.path, emptyList()).map { convertProject(converted, it, rootProjectName, children) }.toSet()
+        return converted.computeIfAbsent(project.path) {
+            // Root project name is serialized separately, could perhaps move it to the cached project state
+            val projectName = project.path.name ?: rootProjectName
+            BuildStructureOperationProject(projectName, project.path.path, project.path.path, project.projectDir.absolutePath, project.buildDir.absolutePath, childProjects)
+        }
     }
 
     private
@@ -200,9 +223,8 @@ class ConfigurationCacheState(
         }
         withDebugFrame({ "Work Graph" }) {
             val scheduledNodes = build.scheduledWork
-            val relevantProjects = getRelevantProjectsFor(scheduledNodes, gradle.serviceOf())
-            writeRelevantProjectRegistrations(relevantProjects)
-            writeProjectStates(gradle, relevantProjects)
+            val projects = collectProjects(gradle.owner.projects, scheduledNodes, gradle.serviceOf())
+            writeProjects(gradle, projects)
             writeRequiredBuildServicesOf(gradle, buildTreeState)
             writeWorkGraphOf(gradle, scheduledNodes)
         }
@@ -216,33 +238,21 @@ class ConfigurationCacheState(
 
         val gradle = build.gradle
 
-        lateinit var children: List<CachedBuildState>
+        val children = readGradleState(build)
 
-        val readOperation: suspend DefaultReadContext.() -> Unit = {
-            children = readGradleState(build)
-        }
-
-        runReadOperation(readOperation)
-
-        readRelevantProjectRegistrations(build)
+        val projects = readProjects(gradle, build)
 
         build.registerProjects()
 
         initProjectProvider(build::getProject)
 
-        readProjectStates(gradle)
+        applyProjectStates(projects, gradle)
         readRequiredBuildServicesOf(gradle)
 
         val workGraph = readWorkGraph(gradle)
         readBuildOutputCleanupRegistrations(gradle)
-        return CachedBuildState(build, workGraph, children)
+        return CachedBuildState(build, projects, workGraph, children)
     }
-
-    data class CachedBuildState(
-        val build: ConfigurationCacheBuild,
-        val workGraph: List<Node>,
-        val children: List<CachedBuildState>
-    )
 
     private
     suspend fun DefaultWriteContext.writeWorkGraphOf(gradle: GradleInternal, scheduledNodes: List<Node>) {
@@ -276,23 +286,11 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultWriteContext.writeProjectStates(gradle: GradleInternal, relevantProjects: List<ProjectState>) {
-        withGradleIsolate(gradle, userTypesCodec) {
-            // Do not serialize trivial states to speed up deserialization.
-            val nonTrivialProjectStates = relevantProjects.asSequence()
-                .map { project -> project.mutableModel.computeCachedState() }
-                .filterNotNull()
-                .toList()
-
-            writeCollection(nonTrivialProjectStates)
-        }
-    }
-
-    private
-    suspend fun DefaultReadContext.readProjectStates(gradle: GradleInternal) {
-        withGradleIsolate(gradle, userTypesCodec) {
-            readCollection {
-                configureProjectFromCachedState(read() as CachedProjectState)
+    fun applyProjectStates(projects: List<CachedProjectState>, gradle: GradleInternal) {
+        for (project in projects) {
+            if (project is ProjectWithWork && project.normalizationState != null) {
+                val projectState = gradle.owner.projects.getProject(project.path)
+                projectState.mutableModel.normalization.configureFromCachedState(project.normalizationState)
             }
         }
     }
@@ -641,38 +639,37 @@ class ConfigurationCacheState(
     }
 
     private
-    fun getRelevantProjectsFor(nodes: List<Node>, relevantProjectsRegistry: RelevantProjectsRegistry): List<ProjectState> {
-        return fillTheGapsOf(relevantProjectsRegistry.relevantProjects(nodes))
-    }
-
-    private
-    fun Encoder.writeRelevantProjectRegistrations(relevantProjects: List<ProjectState>) {
-        writeCollection(relevantProjects) { project ->
-            writeProjectRegistration(project)
+    fun collectProjects(projects: BuildProjectRegistry, nodes: List<Node>, relevantProjectsRegistry: RelevantProjectsRegistry): List<CachedProjectState> {
+        val relevantProjects = relevantProjectsRegistry.relevantProjects(nodes)
+        return projects.allProjects.map { project ->
+            val mutableModel = project.mutableModel
+            mutableModel.layout.buildDirectory.finalizeValue()
+            if (relevantProjects.contains(project)) {
+                ProjectWithWork(project.projectPath, mutableModel.projectDir, mutableModel.buildDir, mutableModel.normalization.computeCachedState())
+            } else {
+                ProjectWithNoWork(project.projectPath, mutableModel.projectDir, mutableModel.buildDir)
+            }
         }
     }
 
     private
-    fun Decoder.readRelevantProjectRegistrations(build: ConfigurationCacheBuild) {
-        readCollection {
-            readProjectRegistration(build)
+    suspend fun WriteContext.writeProjects(gradle: GradleInternal, projects: List<CachedProjectState>) {
+        withGradleIsolate(gradle, userTypesCodec) {
+            writeCollection(projects)
         }
     }
 
     private
-    fun Encoder.writeProjectRegistration(project: ProjectState) {
-        val mutableModel = project.mutableModel
-        writeString(mutableModel.path)
-        writeFile(mutableModel.projectDir)
-        writeFile(mutableModel.layout.buildDirectory.apply { finalizeValue() }.get().asFile)
-    }
-
-    private
-    fun Decoder.readProjectRegistration(build: ConfigurationCacheBuild) {
-        val projectPath = readString()
-        val projectDir = readFile()
-        val buildDir = readFile()
-        build.createProject(projectPath, projectDir, buildDir)
+    suspend fun ReadContext.readProjects(gradle: GradleInternal, build: ConfigurationCacheBuild): List<CachedProjectState> {
+        withGradleIsolate(gradle, userTypesCodec) {
+            return readList {
+                val project = readNonNull<CachedProjectState>()
+                if (project is ProjectWithWork) {
+                    build.createProject(project.path, project.projectDir, project.buildDir)
+                }
+                project
+            }
+        }
     }
 
     private
@@ -725,26 +722,4 @@ interface StoredBuilds {
      * Returns false if the build has already been stored to the cache.
      */
     fun store(build: BuildDefinition): Boolean
-}
-
-
-internal
-fun fillTheGapsOf(projects: Collection<ProjectState>): List<ProjectState> {
-    val projectsWithoutGaps = ArrayList<ProjectState>(projects.size)
-    var index = 0
-    projects.forEach { project ->
-        var parent = project.parent
-        var added = 0
-        while (parent !== null && parent !in projectsWithoutGaps) {
-            projectsWithoutGaps.add(index, parent)
-            added += 1
-            parent = parent.parent
-        }
-        if (project !in projectsWithoutGaps) {
-            projectsWithoutGaps.add(project)
-            added += 1
-        }
-        index += added
-    }
-    return projectsWithoutGaps
 }
