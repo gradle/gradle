@@ -1369,9 +1369,9 @@ Migrate your artifact transform to use `TransformAction` and use link:{groovyDsl
 See the <<artifact_transforms#sec:abm_artifact_transforms,user manual>> for more information on implementing `TransformAction`.
 
 [[gmm_modification_after_publication_populated]]
-==== Modifying GMM after a publication has been populated
+==== Modifying Gradle Module Metadata after a publication has been populated
 
-Altering the link:publishing_gradle_module_metadata.html[Gradle Module Metadata] (e.g. changing a component configuration variants) *after* a Maven or Ivy publication has been populated from their components is now deprecated. This feature will be removed in Gradle 9.0.
+Altering the link:publishing_gradle_module_metadata.html[GMM] (e.g. changing a component configuration variants) *after* a Maven or Ivy publication has been populated from their components is now deprecated. This feature will be removed in Gradle 9.0.
 
 Eager population of the publication can happen if the following methods are called:
 
@@ -1409,4 +1409,4 @@ publishing {
 }
 ```
 
-In this example, the Maven and Ivy publications will contain the main JAR artifacts for the project, whereas the GMM link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[module file] will have them skipped.
+In this example, the Maven and Ivy publications will contain the main JAR artifacts for the project, whereas the GMM link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[module file] will omit them.
