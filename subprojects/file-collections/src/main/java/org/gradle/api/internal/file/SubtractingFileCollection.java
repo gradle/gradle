@@ -28,7 +28,7 @@ public class SubtractingFileCollection extends AbstractOpaqueFileCollection {
     private final FileCollection right;
 
     public SubtractingFileCollection(AbstractFileCollection left, FileCollection right) {
-        super(left.taskDependencyFactory, left.patternSetFactory);
+        super(left.taskDependencyFactory, left.patternSetFactory, left.fileCollectionListener);
         this.left = left;
         this.right = right;
     }

@@ -30,16 +30,16 @@ public class UnionFileTree extends CompositeFileTree {
     private final Set<FileTreeInternal> sourceTrees;
     private final String displayName;
 
-    public UnionFileTree(TaskDependencyFactory taskDependencyFactory, FileTreeInternal... sourceTrees) {
-        this(taskDependencyFactory, "file tree", Arrays.asList(sourceTrees));
+    public UnionFileTree(TaskDependencyFactory taskDependencyFactory, FileCollectionListener fileCollectionListener, FileTreeInternal... sourceTrees) {
+        this(taskDependencyFactory, "file tree", fileCollectionListener, Arrays.asList(sourceTrees));
     }
 
-    public UnionFileTree(TaskDependencyFactory taskDependencyFactory, String displayName, FileTreeInternal... sourceTrees) {
-        this(taskDependencyFactory, displayName, Arrays.asList(sourceTrees));
+    public UnionFileTree(TaskDependencyFactory taskDependencyFactory, String displayName, FileCollectionListener fileCollectionListener, FileTreeInternal... sourceTrees) {
+        this(taskDependencyFactory, displayName, fileCollectionListener, Arrays.asList(sourceTrees));
     }
 
-    public UnionFileTree(TaskDependencyFactory taskDependencyFactory, String displayName, Collection<? extends FileTreeInternal> sourceTrees) {
-        super(taskDependencyFactory);
+    public UnionFileTree(TaskDependencyFactory taskDependencyFactory, String displayName, FileCollectionListener fileCollectionListener, Collection<? extends FileTreeInternal> sourceTrees) {
+        super(taskDependencyFactory, fileCollectionListener);
         this.displayName = displayName;
         this.sourceTrees = Sets.newLinkedHashSet(sourceTrees);
     }

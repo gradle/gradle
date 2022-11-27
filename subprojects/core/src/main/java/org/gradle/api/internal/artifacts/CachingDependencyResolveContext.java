@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
@@ -34,11 +35,13 @@ public class CachingDependencyResolveContext implements DependencyResolveContext
     private final TaskDependencyFactory taskDependencyFactory;
     private final boolean transitive;
     private final Map<String, String> attributes;
+    private final FileCollectionListener fileCollectionListener;
 
-    public CachingDependencyResolveContext(TaskDependencyFactory taskDependencyFactory, boolean transitive, Map<String, String> attributes) {
+    public CachingDependencyResolveContext(TaskDependencyFactory taskDependencyFactory, boolean transitive, Map<String, String> attributes, FileCollectionListener fileCollectionListener) {
         this.taskDependencyFactory = taskDependencyFactory;
         this.transitive = transitive;
         this.attributes = attributes;
+        this.fileCollectionListener = fileCollectionListener;
     }
 
     @Override
@@ -54,7 +57,7 @@ public class CachingDependencyResolveContext implements DependencyResolveContext
     public FileCollection resolve() {
         try {
             walker.add(queue);
-            return new UnionFileCollection(taskDependencyFactory, walker.findValues());
+            return new UnionFileCollection(taskDependencyFactory, fileCollectionListener, walker.findValues());
         } finally {
             queue.clear();
         }

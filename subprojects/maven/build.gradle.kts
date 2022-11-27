@@ -19,6 +19,7 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":publish"))
     implementation(project(":resources"))
+    implementation(project(":messaging"))
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)

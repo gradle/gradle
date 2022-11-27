@@ -23,6 +23,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.file.collections.FailingFileCollection;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -30,6 +31,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.plugins.scala.ScalaPluginExtension;
 import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
+import org.gradle.internal.event.ListenerManager;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -80,7 +82,8 @@ public abstract class ScalaRuntime {
     public FileCollection inferScalaClasspath(final Iterable<File> classpath) {
         // alternatively, we could return project.getLayout().files(Runnable)
         // would differ in the following ways: 1. live (not sure if we want live here) 2. no autowiring (probably want autowiring here)
-        return new LazilyInitializedFileCollection(((ProjectInternal) project).getTaskDependencyFactory()) {
+        FileCollectionListener fileCollectionListener = ((ProjectInternal) project).getServices().get(ListenerManager.class).getBroadcaster(FileCollectionListener.class);
+        return new LazilyInitializedFileCollection(((ProjectInternal) project).getTaskDependencyFactory(), fileCollectionListener) {
             @Override
             public String getDisplayName() {
                 return "Scala runtime classpath";
@@ -91,7 +94,7 @@ public abstract class ScalaRuntime {
                 try {
                     return inferScalaClasspath();
                 } catch (RuntimeException e) {
-                    return new FailingFileCollection(getDisplayName(), e);
+                    return new FailingFileCollection(getDisplayName(), e, fileCollectionListener);
                 }
             }
 
@@ -130,8 +133,8 @@ public abstract class ScalaRuntime {
                 DefaultExternalModuleDependency compilerInterfaceJar = getScalaCompilerInterfaceDependency(scalaVersion, zincVersion);
 
                 Configuration scalaRuntimeClasspath = isScala3 ?
-                  project.getConfigurations().detachedConfiguration(getScalaCompilerDependency(scalaVersion), compilerBridgeJar, compilerInterfaceJar, getScaladocDependency(scalaVersion)) :
-                  project.getConfigurations().detachedConfiguration(getScalaCompilerDependency(scalaVersion), compilerBridgeJar, compilerInterfaceJar);
+                    project.getConfigurations().detachedConfiguration(getScalaCompilerDependency(scalaVersion), compilerBridgeJar, compilerInterfaceJar, getScaladocDependency(scalaVersion)) :
+                    project.getConfigurations().detachedConfiguration(getScalaCompilerDependency(scalaVersion), compilerBridgeJar, compilerInterfaceJar);
                 jvmEcosystemUtilities.configureAsRuntimeClasspath(scalaRuntimeClasspath);
                 return scalaRuntimeClasspath;
             }

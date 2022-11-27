@@ -18,6 +18,7 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 
@@ -36,11 +37,11 @@ public abstract class LazilyInitializedFileCollection extends CompositeFileColle
      */
     @Deprecated
     public LazilyInitializedFileCollection() {
-        this(DefaultTaskDependencyFactory.withNoAssociatedProject());
+        this(DefaultTaskDependencyFactory.withNoAssociatedProject(), (fileCollection, consumer) -> {/*no op*/});
     }
 
-    public LazilyInitializedFileCollection(TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+    public LazilyInitializedFileCollection(TaskDependencyFactory taskDependencyFactory, FileCollectionListener fileCollectionListener) {
+        super(taskDependencyFactory, fileCollectionListener);
     }
 
     private FileCollectionInternal delegate;

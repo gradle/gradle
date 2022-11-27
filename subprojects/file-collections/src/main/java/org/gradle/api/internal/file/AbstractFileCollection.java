@@ -26,10 +26,10 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.provider.BuildableBackedSetProvider;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -38,14 +38,11 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
-import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -71,13 +68,13 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @SuppressWarnings("deprecation")
-    protected AbstractFileCollection(TaskDependencyFactory taskDependencyFactory) {
-        this(taskDependencyFactory, PatternSets.getNonCachingPatternSetFactory(), Instrumented::fileCollectionObserved);
+    protected AbstractFileCollection(TaskDependencyFactory taskDependencyFactory, FileCollectionListener fileCollectionListener) {
+        this(taskDependencyFactory, PatternSets.getNonCachingPatternSetFactory(), fileCollectionListener);
     }
 
     @SuppressWarnings("deprecation")
     public AbstractFileCollection() {
-        this(DefaultTaskDependencyFactory.withNoAssociatedProject());
+        this(DefaultTaskDependencyFactory.withNoAssociatedProject(), (fileCollection, consumer) -> {/*no op*/});
     }
 
     /**
@@ -214,7 +211,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileCollection plus(FileCollection collection) {
-        return new UnionFileCollection(taskDependencyFactory, this, (FileCollectionInternal) collection);
+        return new UnionFileCollection(taskDependencyFactory, fileCollectionListener, this, (FileCollectionInternal) collection);
     }
 
     @Override

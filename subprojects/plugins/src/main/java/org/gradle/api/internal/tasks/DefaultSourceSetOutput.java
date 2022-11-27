@@ -21,10 +21,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
@@ -47,8 +49,8 @@ public abstract class DefaultSourceSetOutput extends CompositeFileCollection imp
     private DirectoryContribution resourcesContributor;
 
     @Inject
-    public DefaultSourceSetOutput(String sourceSetDisplayName, TaskDependencyFactory taskDependencyFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-        super(taskDependencyFactory);
+    public DefaultSourceSetOutput(String sourceSetDisplayName, TaskDependencyFactory taskDependencyFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ListenerManager listenerManager) {
+        super(taskDependencyFactory, listenerManager.getBroadcaster(FileCollectionListener.class));
         this.fileResolver = fileResolver;
 
         this.classesDirs = fileCollectionFactory.configurableFiles(sourceSetDisplayName + " classesDirs");

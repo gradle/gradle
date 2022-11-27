@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":plugins")) // for base plugin to get archives conf
     implementation(project(":plugin-use"))
     implementation(project(":dependency-management"))
+    implementation(project(":messaging"))
 
     implementation(libs.groovy) // for 'Closure' and 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
     implementation(libs.guava)

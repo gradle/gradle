@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.file.WorkspaceTest
 class DefaultCompositeFileTreeTest extends WorkspaceTest {
 
     private DefaultCompositeFileTree newCompositeFileTree(List<? extends FileTreeInternal> fileTrees) {
-        new DefaultCompositeFileTree(TestFiles.taskDependencyFactory(), TestFiles.patternSetFactory, fileTrees)
+        new DefaultCompositeFileTree(TestFiles.taskDependencyFactory(), TestFiles.patternSetFactory, fileTrees, TestFiles.fileCollectionListener())
     }
 
     def "can be empty"() {

@@ -18,16 +18,17 @@ package org.gradle.api.plugins.antlr.internal;
 
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.plugins.antlr.AntlrSourceDirectorySet;
+import org.gradle.internal.event.ListenerManager;
 
 import javax.inject.Inject;
 
 public abstract class DefaultAntlrSourceDirectorySet extends DefaultSourceDirectorySet implements AntlrSourceDirectorySet {
 
     @Inject
-
-    public DefaultAntlrSourceDirectorySet(SourceDirectorySet sourceDirectorySet, TaskDependencyFactory taskDependencyFactory) {
-        super(sourceDirectorySet, taskDependencyFactory);
+    public DefaultAntlrSourceDirectorySet(SourceDirectorySet sourceDirectorySet, TaskDependencyFactory taskDependencyFactory, ListenerManager listenerManager) {
+        super(sourceDirectorySet, taskDependencyFactory, listenerManager.getBroadcaster(FileCollectionListener.class));
     }
 }

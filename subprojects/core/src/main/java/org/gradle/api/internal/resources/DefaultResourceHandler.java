@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.resources;
 
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -54,8 +55,8 @@ public class DefaultResourceHandler implements ResourceHandler {
     public interface Factory {
         ResourceHandler create(FileOperations fileOperations);
 
-        static Factory from(FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, FileSystem fileSystem, TemporaryFileProvider tempFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory) {
-            return new FactoryImpl(fileResolver, taskDependencyFactory, fileSystem, tempFileProvider, textResourceAdapterFactory);
+        static Factory from(FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, FileSystem fileSystem, TemporaryFileProvider tempFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory, FileCollectionListener fileCollectionListener) {
+            return new FactoryImpl(fileResolver, taskDependencyFactory, fileSystem, tempFileProvider, textResourceAdapterFactory, fileCollectionListener);
         }
 
         class FactoryImpl implements Factory {
@@ -64,18 +65,20 @@ public class DefaultResourceHandler implements ResourceHandler {
             private final TemporaryFileProvider tempFileProvider;
             private final TaskDependencyFactory taskDependencyFactory;
             private final ApiTextResourceAdapter.Factory textResourceAdapterFactory;
+            private final FileCollectionListener fileCollectionListener;
 
-            public FactoryImpl(FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, FileSystem fileSystem, TemporaryFileProvider tempFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory) {
+            public FactoryImpl(FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, FileSystem fileSystem, TemporaryFileProvider tempFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory, FileCollectionListener fileCollectionListener) {
                 this.fileResolver = fileResolver;
                 this.taskDependencyFactory = taskDependencyFactory;
                 this.fileSystem = fileSystem;
                 this.tempFileProvider = tempFileProvider;
                 this.textResourceAdapterFactory = textResourceAdapterFactory;
+                this.fileCollectionListener = fileCollectionListener;
             }
 
             public DefaultResourceHandler create(FileOperations fileOperations) {
                 ResourceResolver resourceResolver = new DefaultResourceResolver(fileResolver, fileSystem);
-                DefaultTextResourceFactory textResourceFactory = new DefaultTextResourceFactory(fileOperations, tempFileProvider, textResourceAdapterFactory, taskDependencyFactory);
+                DefaultTextResourceFactory textResourceFactory = new DefaultTextResourceFactory(fileOperations, tempFileProvider, textResourceAdapterFactory, taskDependencyFactory, fileCollectionListener);
                 return new DefaultResourceHandler(resourceResolver, textResourceFactory);
             }
         }

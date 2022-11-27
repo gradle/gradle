@@ -37,12 +37,12 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * A {@link FileTree} that contains the union of zero or more file trees.
  */
 public abstract class CompositeFileTree extends CompositeFileCollection implements FileTreeInternal {
-    public CompositeFileTree(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
-        super(taskDependencyFactory, patternSetFactory);
+    public CompositeFileTree(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, FileCollectionListener fileCollectionListener) {
+        super(taskDependencyFactory, patternSetFactory, fileCollectionListener);
     }
 
-    public CompositeFileTree(TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+    public CompositeFileTree(TaskDependencyFactory taskDependencyFactory, FileCollectionListener fileCollectionListener) {
+        super(taskDependencyFactory, fileCollectionListener);
     }
 
     public CompositeFileTree() {
@@ -56,7 +56,7 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
 
     @Override
     public FileTree plus(FileTree fileTree) {
-        return new UnionFileTree(taskDependencyFactory, this, Cast.cast(FileTreeInternal.class, fileTree));
+        return new UnionFileTree(taskDependencyFactory, fileCollectionListener, this, Cast.cast(FileTreeInternal.class, fileTree));
     }
 
     @Override
@@ -121,6 +121,6 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
     }
 
     private FileTreeInternal newFilteredFileTree(Supplier<? extends PatternSet> patternSetSupplier) {
-        return new FilteredFileTree(this, taskDependencyFactory, patternSetFactory, patternSetSupplier);
+        return new FilteredFileTree(this, taskDependencyFactory, patternSetFactory, patternSetSupplier, fileCollectionListener);
     }
 }

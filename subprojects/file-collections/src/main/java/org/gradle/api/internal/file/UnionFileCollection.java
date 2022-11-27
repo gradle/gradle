@@ -30,13 +30,13 @@ import java.util.function.Supplier;
 public class UnionFileCollection extends CompositeFileCollection {
     private final ImmutableSet<FileCollectionInternal> source;
 
-    public UnionFileCollection(TaskDependencyFactory taskDependencyFactory, FileCollectionInternal... source) {
-        super(taskDependencyFactory);
+    public UnionFileCollection(TaskDependencyFactory taskDependencyFactory, FileCollectionListener fileCollectionListener, FileCollectionInternal... source) {
+        super(taskDependencyFactory, fileCollectionListener);
         this.source = ImmutableSet.copyOf(source);
     }
 
-    public UnionFileCollection(TaskDependencyFactory taskDependencyFactory, Iterable<? extends FileCollectionInternal> source) {
-        super(taskDependencyFactory);
+    public UnionFileCollection(TaskDependencyFactory taskDependencyFactory, FileCollectionListener fileCollectionListener, Iterable<? extends FileCollectionInternal> source) {
+        super(taskDependencyFactory, fileCollectionListener);
         this.source = ImmutableSet.copyOf(source);
     }
 
@@ -69,7 +69,7 @@ public class UnionFileCollection extends CompositeFileCollection {
             newSource.add(newCollection);
         }
         if (hasChanges) {
-            return new UnionFileCollection(taskDependencyFactory, newSource.build());
+            return new UnionFileCollection(taskDependencyFactory, fileCollectionListener, newSource.build());
         } else {
             return this;
         }

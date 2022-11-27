@@ -88,6 +88,7 @@ import org.gradle.api.internal.attributes.IncubatingAttributesChecker;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -193,6 +194,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private ResolutionStrategyInternal resolutionStrategy;
     private final FileCollectionFactory fileCollectionFactory;
     private final DocumentationRegistry documentationRegistry;
+    private final FileCollectionListener fileCollectionListener;
 
     private final Set<MutationValidator> childMutationValidators = Sets.newHashSet();
     private final MutationValidator parentMutationValidator = DefaultConfiguration.this::validateParentMutation;
@@ -276,9 +278,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
-        TaskDependencyFactory taskDependencyFactory
+        TaskDependencyFactory taskDependencyFactory,
+        FileCollectionListener fileCollectionListener
     ) {
-        super(taskDependencyFactory);
+        super(taskDependencyFactory, fileCollectionListener);
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.projectStateRegistry = projectStateRegistry;
         this.workerThreadRegistry = workerThreadRegistry;
@@ -300,6 +303,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.domainObjectContext = domainObjectContext;
         this.intrinsicFiles = fileCollectionFromSpec(Specs.satisfyAll());
         this.documentationRegistry = documentationRegistry;
+        this.fileCollectionListener = fileCollectionListener;
         this.resolvableDependencies = instantiator.newInstance(ConfigurationResolvableDependencies.class, this);
 
         displayName = Describables.memoize(new ConfigurationDescription(identityPath));
@@ -555,7 +559,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private ConfigurationFileCollection fileCollectionFromSpec(Spec<? super Dependency> dependencySpec) {
         return new ConfigurationFileCollection(
-            new SelectedArtifactsProvider(), dependencySpec, configurationAttributes, Specs.satisfyAll(), false, false, false, new DefaultResolutionHost(), taskDependencyFactory
+            new SelectedArtifactsProvider(), dependencySpec, configurationAttributes, Specs.satisfyAll(), false, false, false, new DefaultResolutionHost(), taskDependencyFactory, fileCollectionListener
         );
     }
 
@@ -853,7 +857,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             dependenciesResolverFactory = new DefaultExtraExecutionGraphDependenciesResolverFactory(new DefaultResolutionResultProvider(), domainObjectContext, calculatedValueContainerFactory,
                 (attributes, filter) -> {
                     ImmutableAttributes fullAttributes = attributesFactory.concat(configurationAttributes.asImmutable(), attributes);
-                    return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), fullAttributes, filter, false, false, false, new DefaultResolutionHost(), taskDependencyFactory);
+                    return new ConfigurationFileCollection(new SelectedArtifactsProvider(), Specs.satisfyAll(), fullAttributes, filter, false, false, false, new DefaultResolutionHost(), taskDependencyFactory, fileCollectionListener);
                 });
         }
         return dependenciesResolverFactory;
@@ -1473,6 +1477,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         private final boolean selectFromAllVariants;
         private final ResolutionResultProvider<VisitedArtifactSet> resultProvider;
         private final ResolutionHost resolutionHost;
+        private final FileCollectionListener fileCollectionListener;
         private SelectedArtifactSet selectedArtifacts;
 
         private ConfigurationFileCollection(
@@ -1484,9 +1489,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 boolean allowNoMatchingVariants,
                 boolean selectFromAllVariants,
                 ResolutionHost resolutionHost,
-                TaskDependencyFactory taskDependencyFactory
+                TaskDependencyFactory taskDependencyFactory,
+                FileCollectionListener fileCollectionListener
         ) {
-            super(taskDependencyFactory);
+            super(taskDependencyFactory, fileCollectionListener);
             this.resultProvider = resultProvider;
             this.dependencySpec = dependencySpec;
             this.viewAttributes = viewAttributes;
@@ -1495,6 +1501,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             this.allowNoMatchingVariants = allowNoMatchingVariants;
             this.selectFromAllVariants = selectFromAllVariants;
             this.resolutionHost = resolutionHost;
+            this.fileCollectionListener = fileCollectionListener;
         }
 
         @Override
@@ -1814,7 +1821,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         ImmutableAttributes viewAttributes = attributes.asImmutable();
         DefaultResolutionHost failureHandler = new DefaultResolutionHost();
         ConfigurationFileCollection files = new ConfigurationFileCollection(
-            new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, failureHandler, taskDependencyFactory
+            new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, failureHandler, taskDependencyFactory, fileCollectionListener
         );
         return new ConfigurationArtifactCollection(files, lenient, failureHandler, calculatedValueContainerFactory);
     }
@@ -1944,7 +1951,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             public FileCollection getFiles() {
                 // TODO maybe make detached configuration is flag is true
                 return new ConfigurationFileCollection(
-                    new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, new DefaultResolutionHost(), taskDependencyFactory
+                    new SelectedArtifactsProvider(), Specs.satisfyAll(), viewAttributes, componentFilter, lenient, allowNoMatchingVariants, selectFromAllVariants, new DefaultResolutionHost(), taskDependencyFactory, fileCollectionListener
                 );
             }
         }

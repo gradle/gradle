@@ -106,7 +106,7 @@ public abstract class AbstractFileTree extends AbstractOpaqueFileCollection impl
 
     @Override
     public FileTree plus(FileTree fileTree) {
-        return new UnionFileTree(taskDependencyFactory, this, Cast.cast(FileTreeInternal.class, fileTree));
+        return new UnionFileTree(taskDependencyFactory, fileCollectionListener, this, Cast.cast(FileTreeInternal.class, fileTree));
     }
 
     @Override

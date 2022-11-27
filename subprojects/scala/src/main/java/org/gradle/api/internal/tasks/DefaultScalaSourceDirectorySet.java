@@ -18,13 +18,15 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.tasks.ScalaSourceDirectorySet;
+import org.gradle.internal.event.ListenerManager;
 
 import javax.inject.Inject;
 
 public abstract class DefaultScalaSourceDirectorySet extends DefaultSourceDirectorySet implements ScalaSourceDirectorySet {
     @Inject
-    public DefaultScalaSourceDirectorySet(SourceDirectorySet sourceDirectorySet, TaskDependencyFactory taskDependencyFactory) {
-        super(sourceDirectorySet, taskDependencyFactory);
+    public DefaultScalaSourceDirectorySet(SourceDirectorySet sourceDirectorySet, TaskDependencyFactory taskDependencyFactory, ListenerManager listenerManager) {
+        super(sourceDirectorySet, taskDependencyFactory, listenerManager.getBroadcaster(FileCollectionListener.class));
     }
 }

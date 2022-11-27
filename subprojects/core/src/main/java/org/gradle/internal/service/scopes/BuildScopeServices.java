@@ -38,6 +38,7 @@ import org.gradle.api.internal.file.DefaultArchiveOperations;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultFileSystemOperations;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
@@ -280,13 +281,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(buildDefinition.getStartParameter()));
     }
 
-    protected DefaultResourceHandler.Factory createResourceHandlerFactory(FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, FileSystem fileSystem, TemporaryFileProvider temporaryFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory) {
+    protected DefaultResourceHandler.Factory createResourceHandlerFactory(FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, FileSystem fileSystem, TemporaryFileProvider temporaryFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory, ListenerManager listenerManager) {
         return DefaultResourceHandler.Factory.from(
             fileResolver,
             taskDependencyFactory,
             fileSystem,
             temporaryFileProvider,
-            textResourceAdapterFactory
+            textResourceAdapterFactory,
+            listenerManager.getBroadcaster(FileCollectionListener.class)
         );
     }
 

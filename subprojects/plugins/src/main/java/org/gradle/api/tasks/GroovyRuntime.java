@@ -22,12 +22,14 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.file.collections.FailingFileCollection;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.plugins.GroovyJarFile;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.internal.VersionNumber;
 
 import javax.annotation.Nullable;
@@ -95,7 +97,8 @@ public abstract class GroovyRuntime {
     public FileCollection inferGroovyClasspath(final Iterable<File> classpath) {
         // alternatively, we could return project.getLayout().files(Runnable)
         // would differ in at least the following ways: 1. live 2. no autowiring
-        return new LazilyInitializedFileCollection(project.getTaskDependencyFactory()) {
+        FileCollectionListener fileCollectionListener = project.getServices().get(ListenerManager.class).getBroadcaster(FileCollectionListener.class);
+        return new LazilyInitializedFileCollection(project.getTaskDependencyFactory(), fileCollectionListener) {
 
             @Override
             public String getDisplayName() {
@@ -107,7 +110,7 @@ public abstract class GroovyRuntime {
                 try {
                     return inferGroovyClasspath();
                 } catch (RuntimeException e) {
-                    return new FailingFileCollection(getDisplayName(), e);
+                    return new FailingFileCollection(getDisplayName(), e, fileCollectionListener);
                 }
             }
 

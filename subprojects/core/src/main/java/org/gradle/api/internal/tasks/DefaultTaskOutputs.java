@@ -28,6 +28,7 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilesCollector;
@@ -61,10 +62,10 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final TaskInternal task;
     private final TaskMutator taskMutator;
 
-    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory) {
+    public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, FileCollectionListener fileCollectionListener) {
         this.task = task;
         this.taskMutator = taskMutator;
-        this.allOutputFiles = new TaskOutputUnionFileCollection(taskDependencyFactory, task);
+        this.allOutputFiles = new TaskOutputUnionFileCollection(taskDependencyFactory, task, fileCollectionListener);
         this.propertyWalker = propertyWalker;
         this.fileCollectionFactory = fileCollectionFactory;
     }
@@ -221,8 +222,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private class TaskOutputUnionFileCollection extends CompositeFileCollection implements Describable {
         private final TaskInternal buildDependencies;
 
-        public TaskOutputUnionFileCollection(TaskDependencyFactory taskDependencyFactory, TaskInternal buildDependencies) {
-            super(taskDependencyFactory);
+        public TaskOutputUnionFileCollection(TaskDependencyFactory taskDependencyFactory, TaskInternal buildDependencies, FileCollectionListener fileCollectionListener) {
+            super(taskDependencyFactory, fileCollectionListener);
             this.buildDependencies = buildDependencies;
         }
 

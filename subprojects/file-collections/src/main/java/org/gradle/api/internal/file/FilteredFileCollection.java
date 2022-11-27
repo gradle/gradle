@@ -32,7 +32,7 @@ public class FilteredFileCollection extends AbstractFileCollection {
     private final Spec<? super File> filterSpec;
 
     public FilteredFileCollection(AbstractFileCollection collection, Spec<? super File> filterSpec) {
-        super(collection.taskDependencyFactory, collection.patternSetFactory);
+        super(collection.taskDependencyFactory, collection.patternSetFactory, collection.fileCollectionListener);
         this.collection = collection;
         this.filterSpec = filterSpec;
     }

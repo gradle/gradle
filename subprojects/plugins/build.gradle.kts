@@ -26,6 +26,7 @@ dependencies {
     implementation(project(":execution")) {
         because("We need it for BuildOutputCleanupRegistry")
     }
+    implementation(project(":messaging"))
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)

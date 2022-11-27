@@ -44,8 +44,8 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
         super(taskDependencyFactory, patternSetFactory, fileCollectionListener);
     }
 
-    public CompositeFileCollection(TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+    public CompositeFileCollection(TaskDependencyFactory taskDependencyFactory, FileCollectionListener fileCollectionListener) {
+        super(taskDependencyFactory, fileCollectionListener);
     }
 
     public CompositeFileCollection() {

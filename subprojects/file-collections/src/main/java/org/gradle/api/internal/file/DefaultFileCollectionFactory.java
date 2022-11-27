@@ -92,7 +92,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public ConfigurableFileTree fileTree() {
-        return new DefaultConfigurableFileTree(fileResolver, patternSetFactory, taskDependencyFactory, directoryFileTreeFactory);
+        return new DefaultConfigurableFileTree(fileResolver, patternSetFactory, taskDependencyFactory, directoryFileTreeFactory, fileCollectionListener);
     }
 
     @Override
@@ -102,7 +102,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         } else if (fileTrees.size() == 1) {
             return fileTrees.get(0);
         } else {
-            return new DefaultCompositeFileTree(taskDependencyFactory, patternSetFactory, ImmutableList.copyOf(fileTrees));
+            return new DefaultCompositeFileTree(taskDependencyFactory, patternSetFactory, ImmutableList.copyOf(fileTrees), fileCollectionListener);
         }
     }
 

@@ -29,6 +29,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
@@ -187,10 +188,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.services = project.getServices();
 
         PropertyWalker propertyWalker = services.get(PropertyWalker.class);
+        FileCollectionListener fileCollectionListener = services.get(ListenerManager.class).getBroadcaster(FileCollectionListener.class);
         FileCollectionFactory fileCollectionFactory = services.get(FileCollectionFactory.class);
         taskMutator = new TaskMutator(this);
-        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, project.getTaskDependencyFactory(), fileCollectionFactory);
-        taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, project.getTaskDependencyFactory(), fileCollectionFactory);
+        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, project.getTaskDependencyFactory(), fileCollectionFactory, fileCollectionListener);
+        taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, project.getTaskDependencyFactory(), fileCollectionFactory, fileCollectionListener);
         taskDestroyables = new DefaultTaskDestroyables(taskMutator, fileCollectionFactory);
         taskLocalState = new DefaultTaskLocalState(taskMutator, fileCollectionFactory);
         this.dependencies = taskDependencyFactory.configurableDependency(ImmutableSet.of(taskInputs, lifecycleDependencies));

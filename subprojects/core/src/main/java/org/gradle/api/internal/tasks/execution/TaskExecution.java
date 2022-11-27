@@ -24,6 +24,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskAction;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
@@ -158,7 +159,7 @@ public class TaskExecution implements UnitOfWork {
     @Override
     public WorkOutput execute(ExecutionRequest executionRequest) {
         FileCollection previousFiles = executionRequest.getPreviouslyProducedOutputs()
-            .<FileCollection>map(previousOutputs -> new PreviousOutputFileCollection(task, taskDependencyFactory, fileCollectionFactory, previousOutputs))
+            .<FileCollection>map(previousOutputs -> new PreviousOutputFileCollection(task, taskDependencyFactory, fileCollectionFactory, previousOutputs, listenerManager.getBroadcaster(FileCollectionListener.class)))
             .orElseGet(FileCollectionFactory::empty);
         TaskOutputsInternal outputs = task.getOutputs();
         outputs.setPreviousOutputFiles(previousFiles);
@@ -486,8 +487,8 @@ public class TaskExecution implements UnitOfWork {
         private final FileCollectionFactory fileCollectionFactory;
         private final ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs;
 
-        public PreviousOutputFileCollection(TaskInternal task, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs) {
-            super(taskDependencyFactory);
+        public PreviousOutputFileCollection(TaskInternal task, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs, FileCollectionListener fileCollectionListener) {
+            super(taskDependencyFactory, fileCollectionListener);
             this.task = task;
             this.fileCollectionFactory = fileCollectionFactory;
             this.previousOutputs = previousOutputs;

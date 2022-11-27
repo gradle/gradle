@@ -17,6 +17,7 @@
 package org.gradle.api.internal.resources;
 
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -34,13 +35,15 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
     private final FileOperations fileOperations;
     private final TemporaryFileProvider tempFileProvider;
     private final TaskDependencyFactory taskDependencyFactory;
-    private ApiTextResourceAdapter.Factory apiTextResourcesAdapterFactory;
+    private final ApiTextResourceAdapter.Factory apiTextResourcesAdapterFactory;
+    private final FileCollectionListener fileCollectionListener;
 
-    public DefaultTextResourceFactory(FileOperations fileOperations, TemporaryFileProvider tempFileProvider, ApiTextResourceAdapter.Factory apiTextResourcesAdapterFactory, TaskDependencyFactory taskDependencyFactory) {
+    public DefaultTextResourceFactory(FileOperations fileOperations, TemporaryFileProvider tempFileProvider, ApiTextResourceAdapter.Factory apiTextResourcesAdapterFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionListener fileCollectionListener) {
         this.fileOperations = fileOperations;
         this.tempFileProvider = tempFileProvider;
         this.apiTextResourcesAdapterFactory = apiTextResourcesAdapterFactory;
         this.taskDependencyFactory = taskDependencyFactory;
+        this.fileCollectionListener = fileCollectionListener;
     }
 
     @Override
@@ -60,7 +63,7 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
 
     @Override
     public TextResource fromArchiveEntry(Object archive, String entryPath, String charset) {
-        return new FileCollectionBackedArchiveTextResource(fileOperations, taskDependencyFactory, tempFileProvider, fileOperations.immutableFiles(archive), entryPath, Charset.forName(charset));
+        return new FileCollectionBackedArchiveTextResource(fileOperations, taskDependencyFactory, tempFileProvider, fileOperations.immutableFiles(archive), fileCollectionListener, entryPath, Charset.forName(charset));
     }
 
     @Override

@@ -18,6 +18,7 @@ package org.gradle.api.internal.resources;
 import com.google.common.io.Files;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
@@ -33,8 +34,9 @@ public class FileCollectionBackedArchiveTextResource extends FileCollectionBacke
                                                    final TaskDependencyFactory taskDependencyFactory,
                                                    final TemporaryFileProvider tempFileProvider,
                                                    final FileCollection fileCollection,
+                                                   final FileCollectionListener fileCollectionListener,
                                                    final String path, Charset charset) {
-        super(tempFileProvider, new LazilyInitializedFileCollection(taskDependencyFactory) {
+        super(tempFileProvider, new LazilyInitializedFileCollection(taskDependencyFactory, fileCollectionListener) {
             @Override
             public String getDisplayName() {
                 return String.format("entry '%s' in archive %s", path, fileCollection);

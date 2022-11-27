@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":platform-native"))
     implementation(project(":language-native"))
     implementation(project(":testing-base"))
+    implementation(project(":messaging"))
 
     implementation(libs.groovy)
     implementation(libs.guava)

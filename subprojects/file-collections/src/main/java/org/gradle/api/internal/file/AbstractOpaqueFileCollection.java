@@ -31,8 +31,8 @@ public abstract class AbstractOpaqueFileCollection extends AbstractFileCollectio
     public AbstractOpaqueFileCollection() {
     }
 
-    public AbstractOpaqueFileCollection(TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+    public AbstractOpaqueFileCollection(TaskDependencyFactory taskDependencyFactory, FileCollectionListener fileCollectionListener) {
+        super(taskDependencyFactory, fileCollectionListener);
     }
 
     public AbstractOpaqueFileCollection(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, FileCollectionListener fileCollectionListener) {

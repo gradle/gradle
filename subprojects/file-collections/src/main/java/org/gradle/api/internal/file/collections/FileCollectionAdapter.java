@@ -36,8 +36,8 @@ public class FileCollectionAdapter extends AbstractOpaqueFileCollection {
         this.fileSet = fileSet;
     }
 
-    public FileCollectionAdapter(MinimalFileSet fileSet, TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+    public FileCollectionAdapter(MinimalFileSet fileSet, TaskDependencyFactory taskDependencyFactory, FileCollectionListener fileCollectionListener) {
+        super(taskDependencyFactory, fileCollectionListener);
         this.fileSet = fileSet;
     }
 

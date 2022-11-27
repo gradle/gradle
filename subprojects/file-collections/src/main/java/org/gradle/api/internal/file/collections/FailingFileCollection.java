@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 
 /**
@@ -27,8 +28,8 @@ public class FailingFileCollection extends LazilyInitializedFileCollection {
     private final String displayName;
     private final RuntimeException failure;
 
-    public FailingFileCollection(String displayName, RuntimeException failure) {
-        super(DefaultTaskDependencyFactory.withNoAssociatedProject());
+    public FailingFileCollection(String displayName, RuntimeException failure, FileCollectionListener fileCollectionListener) {
+        super(DefaultTaskDependencyFactory.withNoAssociatedProject(), fileCollectionListener);
         this.displayName = displayName;
         this.failure = failure;
     }

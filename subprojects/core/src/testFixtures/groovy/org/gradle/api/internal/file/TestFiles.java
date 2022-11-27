@@ -155,7 +155,8 @@ public class TestFiles {
             taskDependencyFactory(),
             fileSystem,
             temporaryFileProvider,
-            textResourceAdapterFactory(temporaryFileProvider)
+            textResourceAdapterFactory(temporaryFileProvider),
+            fileCollectionListener()
         );
 
         return new DefaultFileOperations(
@@ -173,7 +174,8 @@ public class TestFiles {
             deleter(),
             documentationRegistry(),
             taskDependencyFactory(),
-            providerFactory());
+            providerFactory(),
+            fileCollectionListener());
     }
 
     public static ApiTextResourceAdapter.Factory textResourceAdapterFactory(@Nullable TemporaryFileProvider temporaryFileProvider) {

@@ -40,6 +40,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.internal.GUtil;
 
 import javax.inject.Inject;
@@ -69,19 +70,19 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private TaskProvider<?> compileTaskProvider;
 
     @Inject
-    public DefaultSourceDirectorySet(String name, String displayName, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
-        this(name, displayName, patternSetFactory.create(), patternSetFactory.create(), taskDependencyFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory.directoryProperty(), objectFactory.directoryProperty());
+    public DefaultSourceDirectorySet(String name, String displayName, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory, ListenerManager listenerManager) {
+        this(name, displayName, patternSetFactory.create(), patternSetFactory.create(), taskDependencyFactory, fileCollectionFactory, directoryFileTreeFactory, objectFactory.directoryProperty(), objectFactory.directoryProperty(), listenerManager.getBroadcaster(FileCollectionListener.class));
     }
 
-    DefaultSourceDirectorySet(String name, String displayName, PatternSet patterns, PatternSet filters, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, DirectoryProperty destinationDirectory, DirectoryProperty classesDirectory) {
-        super(taskDependencyFactory);
+    DefaultSourceDirectorySet(String name, String displayName, PatternSet patterns, PatternSet filters, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, DirectoryProperty destinationDirectory, DirectoryProperty classesDirectory, FileCollectionListener fileCollectionListener) {
+        super(taskDependencyFactory, fileCollectionListener);
         this.name = name;
         this.displayName = displayName;
         this.fileCollectionFactory = fileCollectionFactory;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.patterns = patterns;
         this.filter = filters;
-        this.dirs = new FileCollectionAdapter(new SourceDirectories(), taskDependencyFactory);
+        this.dirs = new FileCollectionAdapter(new SourceDirectories(), taskDependencyFactory, fileCollectionListener);
         this.destinationDirectory = destinationDirectory;
         this.classesDirectory = classesDirectory;
     }
@@ -94,11 +95,11 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
      */
     @Deprecated
     public DefaultSourceDirectorySet(SourceDirectorySet sourceSet) {
-        this(sourceSet, DefaultTaskDependencyFactory.withNoAssociatedProject());
+        this(sourceSet, DefaultTaskDependencyFactory.withNoAssociatedProject(), (fileCollection, consumer) -> {/*no op*/});
     }
 
-    public DefaultSourceDirectorySet(SourceDirectorySet sourceSet, TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+    public DefaultSourceDirectorySet(SourceDirectorySet sourceSet, TaskDependencyFactory taskDependencyFactory, FileCollectionListener fileCollectionListener) {
+        super(taskDependencyFactory, fileCollectionListener);
         if (!(sourceSet instanceof DefaultSourceDirectorySet)) {
             throw new RuntimeException("Invalid source set type:" + source.getClass());
         }
@@ -109,7 +110,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         this.directoryFileTreeFactory = defaultSourceSet.directoryFileTreeFactory;
         this.patterns = defaultSourceSet.patterns;
         this.filter = defaultSourceSet.filter;
-        this.dirs = new FileCollectionAdapter(new SourceDirectories(), defaultSourceSet.taskDependencyFactory);
+        this.dirs = new FileCollectionAdapter(new SourceDirectories(), defaultSourceSet.taskDependencyFactory, fileCollectionListener);
         this.destinationDirectory = defaultSourceSet.destinationDirectory;
         this.classesDirectory = defaultSourceSet.classesDirectory;
     }

@@ -32,8 +32,8 @@ public class CalculatedTaskInputFileCollection extends AbstractFileCollection im
     private Set<File> cachedFiles;
     private boolean taskIsExecuting;
 
-    public CalculatedTaskInputFileCollection(TaskDependencyFactory taskDependencyFactory, String taskPath, MinimalFileSet calculatedFiles, Object[] inputs) {
-        super(taskDependencyFactory);
+    public CalculatedTaskInputFileCollection(TaskDependencyFactory taskDependencyFactory, String taskPath, MinimalFileSet calculatedFiles, FileCollectionListener fileCollectionListener, Object[] inputs) {
+        super(taskDependencyFactory, fileCollectionListener);
         this.taskPath = taskPath;
         this.calculatedFiles = calculatedFiles;
         targets = new ArrayList<>(1 + inputs.length);

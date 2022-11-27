@@ -30,8 +30,8 @@ public class FilteredFileTree extends CompositeFileTree implements FileCollectio
     private final FileTreeInternal tree;
     private final Supplier<? extends PatternSet> patternSupplier;
 
-    public FilteredFileTree(FileTreeInternal tree, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, Supplier<? extends PatternSet> patternSupplier) {
-        super(taskDependencyFactory, patternSetFactory);
+    public FilteredFileTree(FileTreeInternal tree, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, Supplier<? extends PatternSet> patternSupplier, FileCollectionListener fileCollectionListener) {
+        super(taskDependencyFactory, patternSetFactory, fileCollectionListener);
         this.tree = tree;
         this.patternSupplier = patternSupplier;
     }

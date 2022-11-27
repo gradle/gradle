@@ -318,7 +318,8 @@ public class DefaultFileOperations implements FileOperations {
             taskDependencyFactory,
             fileSystem,
             null,
-            textResourceAdapterFactory
+            textResourceAdapterFactory,
+            fileCollectionListener
         );
 
         return new DefaultFileOperations(

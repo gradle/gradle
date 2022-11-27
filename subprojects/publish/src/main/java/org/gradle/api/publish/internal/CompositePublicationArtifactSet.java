@@ -20,9 +20,11 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionListener;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.publish.PublicationArtifact;
+import org.gradle.internal.event.ListenerManager;
 
 public class CompositePublicationArtifactSet<T extends PublicationArtifact> extends DelegatingDomainObjectSet<T> implements PublicationArtifactSet<T> {
 
@@ -30,13 +32,14 @@ public class CompositePublicationArtifactSet<T extends PublicationArtifact> exte
 
     @SafeVarargs
     @SuppressWarnings("varargs")
-    public CompositePublicationArtifactSet(TaskDependencyFactory taskDependencyFactory, Class<T> type, PublicationArtifactSet<T>... artifactSets) {
+    public CompositePublicationArtifactSet(TaskDependencyFactory taskDependencyFactory, Class<T> type, ListenerManager listenerManager, PublicationArtifactSet<T>... artifactSets) {
         super(CompositeDomainObjectSet.create(type, artifactSets));
+        FileCollectionListener fileCollectionListener = listenerManager.getBroadcaster(FileCollectionListener.class);
         FileCollectionInternal[] fileCollections = new FileCollectionInternal[artifactSets.length];
         for (int i = 0; i < artifactSets.length; i++) {
             fileCollections[i] = (FileCollectionInternal) artifactSets[i].getFiles();
         }
-        files = new UnionFileCollection(taskDependencyFactory, fileCollections);
+        files = new UnionFileCollection(taskDependencyFactory, fileCollectionListener, fileCollections);
     }
 
     @Override

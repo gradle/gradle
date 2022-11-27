@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":workers"))
     implementation(project(":files"))
     implementation(project(":file-collections"))
+    implementation(project(":messaging"))
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)
