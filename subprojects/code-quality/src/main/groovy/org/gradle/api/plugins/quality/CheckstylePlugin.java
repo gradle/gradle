@@ -113,7 +113,7 @@ public abstract class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkst
         ProviderFactory providers = project.getProviders();
         Provider<RegularFile> reportsDir = layout.file(providers.provider(() -> extension.getReportsDir()));
         task.getReports().all(action(report -> {
-            report.getRequired().convention(true);
+            report.getRequired().convention(!report.getName().equals("sarif"));
             report.getOutputLocation().convention(
                 layout.getProjectDirectory().file(providers.provider(() -> {
                     String reportFileName = baseName + "." + report.getName();
