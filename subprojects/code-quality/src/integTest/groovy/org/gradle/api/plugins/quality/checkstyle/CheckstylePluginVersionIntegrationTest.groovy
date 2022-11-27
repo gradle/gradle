@@ -23,6 +23,7 @@ import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.gradle.util.Matchers
 import org.gradle.util.internal.Resources
 import org.gradle.util.internal.ToBeImplemented
+import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
 import org.junit.Rule
 import spock.lang.IgnoreIf
@@ -132,6 +133,21 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
+    }
+
+    @IgnoreIf({ !isSarifSupported(version.toString()) })
+    def "analyze bad code"() {
+        defaultLanguage('en')
+        badCode()
+
+        expect:
+        fails("check")
+        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
+        failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
+        failure.assertHasErrorOutput("Name 'class1' must match pattern")
+
+        file("build/reports/checkstyle/main.sarif").assertContents(containsClass("org.gradle.class1"))
+        file("build/reports/checkstyle/main.sarif").assertContents(containsClass("org.gradle.class2"))
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12270")
@@ -262,6 +278,23 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         executedAndNotSkipped(":checkstyleMain")
     }
 
+    @IgnoreIf({ !isSarifSupported(version.toString()) })
+    def "can configure reporting"() {
+        given:
+        goodCode()
+
+        when:
+        buildFile << """
+            checkstyleMain.reports {
+                sarif.outputLocation = file("baz.html")
+            }
+        """
+
+        then:
+        succeeds "checkstyleMain"
+        file("baz.xml").exists()
+    }
+
     def "can configure reporting"() {
         given:
         goodCode()
@@ -318,6 +351,31 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").exists()
         !file("build/reports/checkstyle/main.xml").exists()
         !file("build/tmp/checkstyleMain/main.xml").exists()
+    }
+
+    @IgnoreIf({ !isSarifSupported(version.toString()) })
+    def "output SARIF report only when SARIF report is enabled"() {
+        given:
+        goodCode()
+        buildFile << '''
+            tasks.withType(Checkstyle) {
+                reports {
+                    xml.required = false
+                    html.required = false
+                    sarif.required = true
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        succeeds 'checkstyleMain'
+
+        then:
+        file("build/reports/checkstyle/main.sarif").exists()
+        !file("build/reports/checkstyle/main.xml").exists()
+        !file("build/tmp/checkstyleMain/main.xml").exists()
+        !file("build/reports/checkstyle/main.html").exists()
+        !file("build/tmp/checkstyleMain/main.html").exists()
     }
 
     def "changes to files in configDirectory make the task out-of-date"() {
@@ -391,6 +449,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
                 reports {
                     html.required = false
                     xml.required = false
+                    sarif.required = false
                 }
             }
         """
@@ -402,6 +461,10 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         then:
         executedAndNotSkipped(':checkstyleMain')
         result.hasErrorOutput("[ant:checkstyle] [WARN]") || result.hasErrorOutput("warning: Name 'class1' must match pattern")
+    }
+
+    private static isSarifSupported(String version) {
+        return VersionNumber.parse(version) >= VersionNumber.parse("10.3.3")
     }
 
     private goodCode() {

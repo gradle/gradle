@@ -25,6 +25,7 @@ import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.util.internal.GFileUtils
+import org.gradle.util.internal.VersionNumber
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -58,6 +59,8 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
         def stylesheetString = parameters.stylesheetString
         def htmlOutputLocation = parameters.htmlOuputLocation.asFile.getOrElse(null)
         def sarifOutputLocation = parameters.sarifOutputLocation.asFile.getOrElse(null)
+        VersionNumber currentToolVersion = determineCheckstyleVersion(Thread.currentThread().getContextClassLoader())
+        def sarifSupported = isSarifSupported(currentToolVersion)
 
         if (isHtmlReportEnabledOnly(isXmlRequired, isHtmlRequired)) {
             xmlOutputLocation = new File(parameters.temporaryDir.asFile.get(), xmlOutputLocation.name)
@@ -92,7 +95,11 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
                 }
 
                 if (isSarifRequired) {
-                    formatter(type: 'sarif', toFile: sarifOutputLocation)
+                    if (sarifSupported) {
+                        formatter(type: 'sarif', toFile: sarifOutputLocation)
+                    } else {
+                        assertUnsupportedReportFormatSARIF(currentToolVersion)
+                    }
                 }
 
                 configProperties.each { key, value ->
@@ -129,6 +136,24 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
                 LOGGER.warn(getMessage(isXmlRequired, xmlOutputLocation, isHtmlRequired, htmlOutputLocation, isSarifRequired, sarifOutputLocation, reportXml))
             }
         }
+    }
+
+    private static VersionNumber determineCheckstyleVersion(ClassLoader antLoader) {
+        Class checkstyleTaskClass
+        try {
+            checkstyleTaskClass = antLoader.loadClass("com.puppycrawl.tools.checkstyle.CheckStyleTask")
+        } catch (ClassNotFoundException e) {
+            checkstyleTaskClass = antLoader.loadClass("com.puppycrawl.tools.checkstyle.ant.CheckstyleAntTask")
+        }
+        return VersionNumber.parse(checkstyleTaskClass.getPackage().getImplementationVersion())
+    }
+
+    private static boolean isSarifSupported(VersionNumber versionNumber) {
+        return versionNumber >= VersionNumber.parse("10.3.3")
+    }
+
+    private static void assertUnsupportedReportFormatSARIF(VersionNumber version) {
+        throw new GradleException("SARIF report format is supported on Checkstyle versions greater than 10.3.3 and newer. Please upgrade from Checkstyle " + version +" or disable the SARIF format.")
     }
 
     private static parseCheckstyleXml(Boolean isXmlRequired, File xmlOutputLocation) {
