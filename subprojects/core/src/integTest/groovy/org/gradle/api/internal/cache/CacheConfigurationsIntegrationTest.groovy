@@ -17,7 +17,7 @@
 package org.gradle.api.internal.cache
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
+import org.gradle.internal.time.TimestampSuppliers
 
 class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
     private static final int MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS + 1
@@ -48,10 +48,45 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
         settingsFile << """
             caches {
-                assert releasedWrappers.removeUnusedEntriesAfter.get() != null
-                assert snapshotWrappers.removeUnusedEntriesAfter.get() != null
-                assert downloadedResources.removeUnusedEntriesAfter.get() != null
-                assert createdResources.removeUnusedEntriesAfter.get() != null
+                releasedWrappers { ${assertValueIsSameInDays(MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS)} }
+                snapshotWrappers { ${assertValueIsSameInDays(MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS)} }
+                downloadedResources { ${assertValueIsSameInDays(MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES)} }
+                createdResources { ${assertValueIsSameInDays(MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES)} }
+            }
+        """
+
+        expect:
+        succeeds("help")
+    }
+
+    def "can configure caches to a custom supplier"() {
+        def initDir = new File(executer.gradleUserHomeDir, "init.d")
+        initDir.mkdirs()
+
+        def releasedDistTimestamp = TimestampSuppliers.daysAgo(MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS).get()
+        def snapshotDistTimestamp = TimestampSuppliers.daysAgo(MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS).get()
+        def downloadedResourcesTimestamp = TimestampSuppliers.daysAgo(MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES).get()
+        def createdResourcesTimestamp = TimestampSuppliers.daysAgo(MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES).get()
+
+        new File(initDir, "cache-settings.gradle") << """
+            import java.util.function.Supplier
+
+            beforeSettings { settings ->
+                settings.caches {
+                    cleanup = Cleanup.DISABLED
+                    releasedWrappers { removeUnusedEntriesAfter.set({${releasedDistTimestamp}} as Supplier) }
+                    snapshotWrappers { removeUnusedEntriesAfter.set({${snapshotDistTimestamp}} as Supplier) }
+                    downloadedResources { removeUnusedEntriesAfter.set({${downloadedResourcesTimestamp}} as Supplier) }
+                    createdResources { removeUnusedEntriesAfter.set({${createdResourcesTimestamp}} as Supplier) }
+                }
+            }
+        """
+        settingsFile << """
+            caches {
+                assert releasedWrappers.removeUnusedEntriesAfter.get().get() == ${releasedDistTimestamp}
+                assert snapshotWrappers.removeUnusedEntriesAfter.get().get() == ${snapshotDistTimestamp}
+                assert downloadedResources.removeUnusedEntriesAfter.get().get() == ${downloadedResourcesTimestamp}
+                assert createdResources.removeUnusedEntriesAfter.get().get() == ${createdResourcesTimestamp}
             }
         """
 
@@ -82,6 +117,14 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
     static String modifyCacheConfiguration(String property, String value) {
         return """
             ${property} = ${value}
+        """
+    }
+
+    static String assertValueIsSameInDays(int configuredDaysAgo) {
+        return """
+            def timestamp = removeUnusedEntriesAfter.get().get()
+            def daysAgo = java.util.concurrent.TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - timestamp)
+            assert daysAgo == ${configuredDaysAgo}
         """
     }
 }

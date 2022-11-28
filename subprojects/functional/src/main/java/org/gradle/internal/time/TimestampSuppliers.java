@@ -24,12 +24,12 @@ import java.util.function.Supplier;
  *
  * @since 8.0
  */
-public interface TimestampSuppliers {
+public class TimestampSuppliers {
     /**
-     * Returns a timestamp supplier that calculates a timestamp exactly the given amount of time
+     * Returns a supplier that calculates a timestamp exactly the given amount of time
      * prior to the current time, or 0 if the amount of time extends beyond the epoch.
      */
-    static Supplier<Long> since(int value, TimeUnit timeUnit) {
+    public static Supplier<Long> inThePast(int value, TimeUnit timeUnit) {
         // This needs to be an anonymous inner class instead of a lambda for configuration cache compatibility
         return new Supplier<Long>() {
             @Override
@@ -43,7 +43,7 @@ public interface TimestampSuppliers {
      * Returns a supplier that calculates a timestamp exactly the given number of days
      * prior to the current time, or 0 if the number of days extends beyond the epoch.
      */
-    static Supplier<Long> daysAgo(int days) {
-        return since(days, TimeUnit.DAYS);
+    public static Supplier<Long> daysAgo(int days) {
+        return inThePast(days, TimeUnit.DAYS);
     }
 }
