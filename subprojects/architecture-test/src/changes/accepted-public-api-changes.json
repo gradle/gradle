@@ -1346,6 +1346,32 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getAntBuilder()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getObjectFactory()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is less accessible",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getWorkerExecutor()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is less accessible",
+                "Method is now abstract"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.scala.ScalaDocOptions",
             "member": "Class org.gradle.api.tasks.scala.ScalaDocOptions",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
