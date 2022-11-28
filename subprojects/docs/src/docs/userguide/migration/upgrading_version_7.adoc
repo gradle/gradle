@@ -283,7 +283,7 @@ Gradle changes the compression library used for creating archives from an Ant ba
 
 === Updates to Attribute Disambiguation Rules related methods
 
-The `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
+The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
 
 [[strict-kotlin-dsl-precompiled-scripts-accessors]]
 === Strict Kotlin DSL precompiled script plugins accessors generation
@@ -728,7 +728,7 @@ If you are using TestNG, versions prior to `5.14.6` perform illegal reflection. 
 
 The <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle plugin>> now uses the Gradle worker API to run Checkstyle as an external worker process. Multiple Checkstyle tasks may now run in parallel within a project.
 
-Some projects will need to increase the amount of memory available to Checkstyle to avoid out of memory errors. You can <<checkstyle_plugin.adoc#sec:checkstyle_customize_memory,increase the maximum memory for the Checkstyle process>> by setting the `maxHeapSize` for the Checkstyle task. By default, the process will start with a maximum heap size of 512MB. 
+Some projects will need to increase the amount of memory available to Checkstyle to avoid out of memory errors. You can <<checkstyle_plugin.adoc#sec:checkstyle_customize_memory,increase the maximum memory for the Checkstyle process>> by setting the `maxHeapSize` for the Checkstyle task. By default, the process will start with a maximum heap size of 512MB.
 
 We also recommend to update Checkstyle to version 9.3 or later.
 
@@ -752,7 +752,7 @@ In version 7.5 and above, Gradle consistently sets the current working directory
 Java has the concept of a path separator which is used to separate individual paths in a list of paths, for example in a classpath string.
 The individual paths must not contain the path separator.
 Consequently, using
-`@link:{javadocPath}/javadoc/org/gradle/api/file/FileCollection.html#getAsPath--[FileCollection.getAsPath()]` for files with paths that contain a path separator has been deprecated, and it will be an error in Gradle 8.0 and later.
+`@link:{javadocPath}/org/gradle/api/file/FileCollection.html#getAsPath--[FileCollection.getAsPath()]` for files with paths that contain a path separator has been deprecated, and it will be an error in Gradle 8.0 and later.
 Using a file collection with paths which contain a path separator may lead to incorrect builds, since Gradle doesn't find the files as inputs, or even to build failures when the path containing the path separator is illegal on the operating system.
 
 [[dependencyinsight_singlepath]]
@@ -829,7 +829,7 @@ This way, Gradle is able to apply optimizations like up-to-date checks instead o
 [[unique_attribute_sets]]
 ==== Unique attribute sets
 
-The set of link:{javadocPath}/org/gradle/api/attribute/Attribute.html[Attribute]s associated with a _consumable_ configuration within a project, must be unique across all other configurations within that project which share the same set of link:{javadocPath}/org/gradle/api/capabilities/Capability.html[Capability]s.  This will be checked at the end of configuring variant configurations, as they are locked against further mutation.
+The set of link:{javadocPath}/org/gradle/api/attributes/Attribute.html[Attribute]s associated with a _consumable_ configuration within a project, must be unique across all other configurations within that project which share the same set of link:{javadocPath}/org/gradle/api/capabilities/Capability.html[Capability]s.  This will be checked at the end of configuring variant configurations, as they are locked against further mutation.
 
 If the set of attributes is shared across configurations, consider adding an additional attribute to one of the variants for the sole purpose of disambiguation.
 
@@ -1223,7 +1223,7 @@ Existing clients should migrate to the <<publishing_maven.adoc#publishing_maven,
 The concept of conventions is outdated and superseded by extensions. To reflect this in the Gradle API, the following elements are now deprecated:
 
 - link:{javadocPath}/org/gradle/api/Project.html#getConvention--[Project.html#getConvention()]
-- link:{javadocPath}/org/gradle/api/internal/HasConvention.html[HasConvention]
+- `org.gradle.api.internal.HasConvention` (deprecated)
 
 The internal usages of conventions have been also cleaned up (see the deprecated items below).
 
@@ -1343,7 +1343,7 @@ link:{javadocPath}/org/gradle/plugins/ear/EarPluginConvention.html[EarPluginConv
 The following source set interfaces are now deprecated and scheduled for removal in Gradle 8.0:
 
 - link:{javadocPath}/org/gradle/api/tasks/GroovySourceSet.html[GroovySourceSet]
-- link:{javadocPath}/org/gradle/api/plugins/antlr/AntlrSourceVirtualDirectory.html[AntlrSourceVirtualDirectory]
+- `org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory` (removed)
 - link:{javadocPath}/org/gradle/api/tasks/ScalaSourceSet.html[ScalaSourceSet]
 
 Clients should configure the sources with their plugin-specific configuration:
