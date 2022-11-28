@@ -89,9 +89,9 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
         nestedNodesOnPath.remove(node);
     }
 
-    abstract void onNestedNodeCycle(@Nullable String firstOccurrenceQualifiedName, String secondOccurrenceQualifiedName);
+    abstract protected void onNestedNodeCycle(@Nullable String firstOccurrenceQualifiedName, String secondOccurrenceQualifiedName);
 
-    abstract void handleProvider(T node, Consumer<T> handler);
+    abstract protected void handleProvider(T node, Consumer<T> handler);
 
     abstract protected void handleMap(T node, BiConsumer<String, T> handler);
 
