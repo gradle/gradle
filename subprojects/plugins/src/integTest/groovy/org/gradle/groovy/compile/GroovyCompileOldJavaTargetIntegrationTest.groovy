@@ -27,7 +27,6 @@ class GroovyCompileOldJavaTargetIntegrationTest extends AbstractIntegrationSpec 
 
     def "can compile source to Java target #javaVersion"() {
         def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
-        def version = "2.5.8"
 
         buildFile << """
             apply plugin: "groovy"
@@ -41,7 +40,7 @@ class GroovyCompileOldJavaTargetIntegrationTest extends AbstractIntegrationSpec 
             }
 
             dependencies {
-                implementation "${groovyModuleDependency("groovy", version)}"
+                implementation "${groovyModuleDependency("groovy", "2.5.8")}"
             }
         """
 
