@@ -213,7 +213,7 @@ The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttri
         }
 
         static DeadLink forJavadoc(File file, String path) {
-            return new DeadLink(file, "Missing Javadoc file for $path in ${file.name}" + (path.startsWith("javadoc") ? " (Did you mean to include the leading `javadoc` path component?)" : ""))
+            return new DeadLink(file, "Missing Javadoc file for $path in ${file.name}" + (path.startsWith("javadoc") ? " (You may need to remove the leading `javadoc` path component)" : ""))
         }
     }
 }

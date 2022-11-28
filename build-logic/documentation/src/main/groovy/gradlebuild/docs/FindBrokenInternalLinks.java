@@ -169,7 +169,7 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
             if (!referencedFile.exists() || referencedFile.isDirectory()) {
                 String errMsg = "Missing Javadoc file for " + link + " in " + sourceFile.getName();
                 if (link.startsWith("javadoc")) {
-                    errMsg += " (Did you mean to include the leading `javadoc` path component?)";
+                    errMsg += " (You may need to remove the leading `javadoc` path component)";
                 }
                 errorsForFile.add(new Error(lineNumber, line, errMsg));
             }
