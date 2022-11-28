@@ -283,7 +283,7 @@ Gradle changes the compression library used for creating archives from an Ant ba
 
 === Updates to Attribute Disambiguation Rules related methods
 
-The `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
+The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
 
 [[strict-kotlin-dsl-precompiled-scripts-accessors]]
 === Strict Kotlin DSL precompiled script plugins accessors generation
@@ -728,7 +728,7 @@ If you are using TestNG, versions prior to `5.14.6` perform illegal reflection. 
 
 The <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle plugin>> now uses the Gradle worker API to run Checkstyle as an external worker process. Multiple Checkstyle tasks may now run in parallel within a project.
 
-Some projects will need to increase the amount of memory available to Checkstyle to avoid out of memory errors. You can <<checkstyle_plugin.adoc#sec:checkstyle_customize_memory,increase the maximum memory for the Checkstyle process>> by setting the `maxHeapSize` for the Checkstyle task. By default, the process will start with a maximum heap size of 512MB. 
+Some projects will need to increase the amount of memory available to Checkstyle to avoid out of memory errors. You can <<checkstyle_plugin.adoc#sec:checkstyle_customize_memory,increase the maximum memory for the Checkstyle process>> by setting the `maxHeapSize` for the Checkstyle task. By default, the process will start with a maximum heap size of 512MB.
 
 We also recommend to update Checkstyle to version 9.3 or later.
 
