@@ -21,6 +21,8 @@ import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import java.util.function.Supplier
+
 import static org.gradle.internal.time.TimestampSuppliers.daysAgo
 
 class DefaultCacheConfigurationsTest extends Specification {
@@ -69,5 +71,27 @@ class DefaultCacheConfigurationsTest extends Specification {
 
         then:
         thrown(IllegalStateException)
+    }
+
+    def "suppliers reflect changes in property values"() {
+        when:
+        def createdResources = cacheConfigurations.createdResources.removeUnusedEntriesAfterAsSupplier
+        def downloadedResources = cacheConfigurations.downloadedResources.removeUnusedEntriesAfterAsSupplier
+        def releasedWrappers = cacheConfigurations.releasedWrappers.removeUnusedEntriesAfterAsSupplier
+        def snapshotWrappers = cacheConfigurations.snapshotWrappers.removeUnusedEntriesAfterAsSupplier
+
+        and:
+        def twoDaysAgo = daysAgo(2).get()
+        def twoDaysAgoSupplier = { twoDaysAgo } as Supplier<Long>
+        cacheConfigurations.createdResources.removeUnusedEntriesAfter.set(twoDaysAgoSupplier)
+        cacheConfigurations.downloadedResources.removeUnusedEntriesAfter.set(twoDaysAgoSupplier)
+        cacheConfigurations.releasedWrappers.removeUnusedEntriesAfter.set(twoDaysAgoSupplier)
+        cacheConfigurations.snapshotWrappers.removeUnusedEntriesAfter.set(twoDaysAgoSupplier)
+
+        then:
+        createdResources.get() == twoDaysAgo
+        downloadedResources.get() == twoDaysAgo
+        releasedWrappers.get() == twoDaysAgo
+        snapshotWrappers.get() == twoDaysAgo
     }
 }
