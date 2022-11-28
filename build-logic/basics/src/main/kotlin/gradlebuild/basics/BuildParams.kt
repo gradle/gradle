@@ -359,8 +359,7 @@ val Project.maxTestDistributionPartitionSecond: Long?
 
 
 val Project.maxParallelForks: Int
-    get() = gradleProperty(MAX_PARALLEL_FORKS).getOrElse("4").toInt() *
-        environmentVariable("BUILD_AGENT_VARIANT").getOrElse("").let { if (it == "AX41") 2 else 1 }
+    get() = gradleProperty(MAX_PARALLEL_FORKS).getOrElse("4").toInt()
 
 
 val Project.autoDownloadAndroidStudio: Boolean

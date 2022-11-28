@@ -19,8 +19,6 @@ package org.gradle.api.plugins.jvm;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.dsl.DependencyAdder;
 import org.gradle.api.artifacts.dsl.GradleDependencies;
-import org.gradle.api.artifacts.dsl.PlatformDependencyModifiers;
-import org.gradle.api.artifacts.dsl.TestFixturesDependencyModifiers;
 
 /**
  * This DSL element is used to add dependencies to a component, like {@link JvmTestSuite}.
@@ -29,8 +27,11 @@ import org.gradle.api.artifacts.dsl.TestFixturesDependencyModifiers;
  *     <li><code>implementation</code> dependencies are used at compilation and runtime.</li>
  *     <li><code>compileOnly</code> dependencies are used only at compilation and are not available at runtime.</li>
  *     <li><code>runtimeOnly</code> dependencies are not available at compilation and are used only at runtime.</li>
- *     <li><code>annotationProcessor</code> dependencies are used only at compilation, and are added to the annotation processor classpath</li>
+ *     <li><code>annotationProcessor</code> dependencies are used only at compilation for the annotation processor classpath</li>
  * </ul>
+ *
+ * This API is <strong>incubating</strong> and is likely to change until it's made stable.
+ * These methods are not intended to be implemented by end users or plugin authors.
  *
  * @see org.gradle.api.artifacts.dsl.DependencyHandler For more information.
  * @since 7.3

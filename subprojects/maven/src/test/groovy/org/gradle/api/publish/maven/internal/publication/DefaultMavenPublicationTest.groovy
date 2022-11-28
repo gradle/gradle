@@ -563,7 +563,7 @@ class DefaultMavenPublicationTest extends Specification {
         def objectFactory = TestUtil.objectFactory()
         def publication = new DefaultMavenPublication("pub-name", module, notationParser, instantiator, objectFactory, projectDependencyResolver, TestFiles.fileCollectionFactory()
             , AttributeTestUtil.attributesFactory(), CollectionCallbackActionDecorator.NOOP, Mock(VersionMappingStrategyInternal), DependencyManagementTestUtil.platformSupport(),
-            Mock(DocumentationRegistry))
+            Mock(DocumentationRegistry), TestFiles.taskDependencyFactory())
         publication.setPomGenerator(createArtifactGenerator(pomFile))
         publication.setModuleDescriptorGenerator(createArtifactGenerator(gradleMetadataFile))
         return publication

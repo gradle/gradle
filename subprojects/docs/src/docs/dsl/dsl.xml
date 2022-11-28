@@ -583,10 +583,10 @@
                 <td>org.gradle.api.artifacts.dsl.GradleDependencies</td>
             </tr>
             <tr>
-                <td>org.gradle.api.artifacts.dsl.TestFixturesDependencyModifiers</td>
+                <td>org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers</td>
             </tr>
             <tr>
-                <td>org.gradle.api.artifacts.dsl.PlatformDependencyModifiers</td>
+                <td>org.gradle.api.plugins.jvm.PlatformDependencyModifiers</td>
             </tr>
             <tr>
                 <td>org.gradle.api.plugins.jvm.JvmComponentDependencies</td>

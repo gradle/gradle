@@ -79,7 +79,7 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaResolutionRules = "9.0.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("6.0.0", "6.1.0", "7.0.0", "7.1.2")
+        static shadow = Versions.of("7.0.0", "7.1.2")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
         static asciidoctor = Versions.of("3.3.2")

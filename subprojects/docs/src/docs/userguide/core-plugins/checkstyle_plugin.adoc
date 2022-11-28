@@ -122,3 +122,16 @@ include::sample[dir="snippets/codeQuality/codeQuality/kotlin",files="build.gradl
 ====
 
 https://github.com/checkstyle/contribution/tree/master/xsl[View a sample Checkstyle stylesheet.]
+
+[[sec:checkstyle_customize_memory]]
+== Changing the amount of memory given to Checkstyle
+
+Checkstyle analysis is performed in a separate process. By default, the Checkstyle process is given a max heap of 512MB. When analyzing many source files, you may need to provide additional memory to this process.
+You can change the amount of memory for Checkstyle by configuring the link:{groovyDslPath}/org.gradle.api.plugins.quality.Checkstyle.html#org.gradle.api.plugins.quality.Checkstyle:maxHeapSize[Checkstyle.maxHeapSize].
+
+.Customizing the amount of memory given to Checkstyle
+====
+include::sample[dir="snippets/codeQuality/codeQuality/groovy",files="build.gradle[tags=customize-checkstyle-memory]"]
+include::sample[dir="snippets/codeQuality/codeQuality/kotlin",files="build.gradle.kts[tags=customize-checkstyle-memory]"]
+====
+

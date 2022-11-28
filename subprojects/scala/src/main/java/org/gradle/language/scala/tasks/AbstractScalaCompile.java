@@ -105,13 +105,6 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));
     }
 
-    @Deprecated // Kept to preserve binary compatibility; will be removed in Gradle 8.
-    @SuppressWarnings("unused")
-    protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
-        this.scalaCompileOptions = scalaCompileOptions;
-        this.scalaCompileOptions.setIncrementalOptions(getObjectFactory().newInstance(IncrementalCompileOptions.class));
-    }
-
     /**
      * Returns the Scala compilation options.
      */

@@ -58,7 +58,7 @@ class SettingsFactoryTest extends Specification {
         1 * settingsServices.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
         1 * projectDescriptorRegistry.addProject(_ as DefaultProjectDescriptor)
         1 * scriptHandlerFactory.create(scriptSource, _ as ClassLoaderScope) >> Mock(ScriptHandlerInternal)
-        1 * scope.createChild(_) >> scope
+        1 * scope.createChild(_, _) >> scope
         1 * gradleProperties.mergeProperties(_) >> ['myKey': 'myValue']
 
         when:

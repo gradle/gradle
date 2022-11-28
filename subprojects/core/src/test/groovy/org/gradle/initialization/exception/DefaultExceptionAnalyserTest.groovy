@@ -20,7 +20,9 @@ import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.internal.event.ListenerManager
+import org.gradle.initialization.ClassLoaderScopeId
+import org.gradle.initialization.ClassLoaderScopeOrigin
+import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager
 import org.gradle.internal.exceptions.Contextual
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.exceptions.MultiCauseException
@@ -28,7 +30,7 @@ import spock.lang.Specification
 
 class DefaultExceptionAnalyserTest extends Specification {
 
-    private final ListenerManager listenerManager = Mock(ListenerManager.class)
+    private final ClassLoaderScopeRegistryListenerManager listenerManager = Mock(ClassLoaderScopeRegistryListenerManager.class)
     private final StackTraceElement element = new StackTraceElement("class", "method", "filename", 7)
     private final StackTraceElement callerElement = new StackTraceElement("class", "method", "filename", 11)
     private final StackTraceElement otherElement = new StackTraceElement("class", "method", "otherfile", 11)
@@ -324,6 +326,16 @@ class DefaultExceptionAnalyserTest extends Specification {
         failure.causes == [otherFailure1, otherFailure2]
     }
 
+    def 'removes self as listener on close'() {
+        def analyser = analyser()
+
+        when:
+        analyser.close()
+
+        then:
+        1 * listenerManager.remove(analyser)
+    }
+
     private Throwable locationAwareException(final Throwable cause) {
         final Throwable failure = Mock(TestException.class)
         failure.getCause() >> cause
@@ -332,11 +344,11 @@ class DefaultExceptionAnalyserTest extends Specification {
     }
 
     private void notifyAnalyser(DefaultExceptionAnalyser analyser, final ScriptSource source) {
-        analyser.onScriptClassLoaded(source, Script.class)
+        analyser.childScopeCreated(Stub(ClassLoaderScopeId), Stub(ClassLoaderScopeId), new ClassLoaderScopeOrigin.Script(source.fileName, source.displayName))
     }
 
     private DefaultExceptionAnalyser analyser() {
-        1 * listenerManager.addListener(_ as DefaultExceptionAnalyser)
+        1 * listenerManager.add(_ as DefaultExceptionAnalyser)
         return new DefaultExceptionAnalyser(listenerManager)
     }
 

@@ -8,6 +8,8 @@ import configurations.FunctionalTest
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
+import model.TestSplitType.EXCLUDE
+import model.TestSplitType.INCLUDE
 import java.io.File
 
 /**
@@ -41,7 +43,9 @@ val ALL_CROSS_VERSION_BUCKETS = listOf(
     listOf("6.1", "6.4"), // 6.1 <=version < 6.4
     listOf("6.4", "6.7"), // 6.4 <=version < 6.7
     listOf("6.7", "7.0"), // 6.7 <=version < 7.0
-    listOf("7.0", "99.0") // 7.0 <=version < 99.0
+    listOf("7.0", "7.3"), // 7.0 <=version < 7.3
+    listOf("7.3", "7.6"), // 7.3 <=version < 7.6
+    listOf("7.6", "99.0") // 7.0 <=version < 99.0
 )
 
 typealias BuildProjectToSubprojectTestClassTimes = Map<String, Map<String, List<TestClassTime>>>
@@ -93,7 +97,7 @@ class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBu
                 if (it is SmallSubprojectBucket) it.subprojects.map { it.name }
                 else listOf((it as LargeSubprojectSplitBucket).subproject.name)
             }.toSet()
-            val allSubprojectsInModel = model.subprojects.subprojects.filter { it.hasTestsOf(testCoverage.testType) }.map { it.name }
+            val allSubprojectsInModel = model.subprojects.getSubprojectsForFunctionalTest(testCoverage).map { it.name }
             val subprojectsInModelButNotInBucketJson = allSubprojectsInModel.toMutableList().apply { removeAll(allSubprojectsInBucketJson) }
 
             if (subprojectsInModelButNotInBucketJson.isEmpty()) {
@@ -169,43 +173,44 @@ class LargeSubprojectSplitBucket(
             subprojects = listOf(subproject.name),
             enableTestDistribution = false,
             extraParameters = if (include) "-PincludeTestClasses=true -x ${subproject.name}:test" else "-PexcludeTestClasses=true", // Only run unit test in last bucket
-            preBuildSteps = prepareTestClassesStep(testCoverage.os)
+            preBuildSteps = prepareTestClassesStep(testCoverage.os, if (include) INCLUDE else EXCLUDE, classes.map { it.toPropertiesLine() })
         )
+}
 
-    private fun prepareTestClassesStep(os: Os): BuildSteps.() -> Unit {
-        val testClasses = classes.map { it.toPropertiesLine() }
-        val action = if (include) "include" else "exclude"
-        val unixScript = """
+enum class TestSplitType(val action: String) {
+    INCLUDE("include"), EXCLUDE("exclude")
+}
+
+fun prepareTestClassesStep(os: Os, type: TestSplitType, testClasses: List<String>): BuildSteps.() -> Unit {
+    val action = type.action
+    val unixScript = """
 mkdir -p test-splits
 rm -rf test-splits/*-test-classes.properties
 cat > test-splits/$action-test-classes.properties << EOL
 ${testClasses.joinToString("\n")}
 EOL
-
 echo "Tests to be ${action}d in this build"
 cat test-splits/$action-test-classes.properties
 """
 
-        val linesWithEcho = testClasses.joinToString("\n") { "echo $it" }
+    val linesWithEcho = testClasses.joinToString("\n") { "echo $it" }
 
-        val windowsScript = """
+    val windowsScript = """
 mkdir test-splits
 del /f /q test-splits\include-test-classes.properties
 del /f /q test-splits\exclude-test-classes.properties
 (
 $linesWithEcho
 ) > test-splits\$action-test-classes.properties
-
 echo "Tests to be ${action}d in this build"
 type test-splits\$action-test-classes.properties
 """
 
-        return {
-            script {
-                name = "PREPARE_TEST_CLASSES"
-                executionMode = BuildStep.ExecutionMode.ALWAYS
-                scriptContent = if (os == Os.WINDOWS) windowsScript else unixScript
-            }
+    return {
+        script {
+            name = "PREPARE_TEST_CLASSES"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            scriptContent = if (os == Os.WINDOWS) windowsScript else unixScript
         }
     }
 }

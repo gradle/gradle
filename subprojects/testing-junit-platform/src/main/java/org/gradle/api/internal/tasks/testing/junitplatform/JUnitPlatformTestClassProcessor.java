@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.filter.TestFilterSpec;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.internal.tasks.testing.junit.AbstractJUnitTestClassProcessor;
 import org.gradle.internal.UncheckedException;
@@ -35,11 +35,14 @@ import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
+import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.PostDiscoveryFilter;
+import org.junit.platform.launcher.TestExecutionListener;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.WillCloseWhenClosed;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +58,8 @@ import static org.junit.platform.launcher.TagFilter.includeTags;
 public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProcessor {
     JUnitPlatformSpec spec;
     private CollectAllTestClassesExecutor testClassExecutor;
+    private BackwardsCompatibleLauncherSession launcherSession;
+    private ClassLoader junitClassLoader;
 
     public JUnitPlatformTestClassProcessor(JUnitPlatformSpec spec, IdGenerator<?> idGenerator, ActorFactory actorFactory, Clock clock) {
         super(idGenerator, actorFactory, clock);
@@ -69,6 +74,8 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     @Override
     protected Action<String> createTestExecutor(Actor resultProcessorActor) {
         TestResultProcessor threadSafeResultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
+        launcherSession = BackwardsCompatibleLauncherSession.open();
+        junitClassLoader = Thread.currentThread().getContextClassLoader();
         testClassExecutor = new CollectAllTestClassesExecutor(threadSafeResultProcessor);
         return testClassExecutor;
     }
@@ -76,6 +83,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     @Override
     public void stop() {
         testClassExecutor.processAllTestClasses();
+        launcherSession.close();
         super.stop();
     }
 
@@ -97,9 +105,9 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
         }
 
         private void processAllTestClasses() {
-            Launcher launcher = LauncherFactory.create();
-            launcher.registerTestExecutionListeners(new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator));
-            launcher.execute(createLauncherDiscoveryRequest(testClasses));
+            LauncherDiscoveryRequest discoveryRequest = createLauncherDiscoveryRequest(testClasses);
+            TestExecutionListener executionListener = new JUnitPlatformTestExecutionListener(resultProcessor, clock, idGenerator);
+            launcherSession.getLauncher().execute(discoveryRequest, executionListener);
         }
     }
 
@@ -110,9 +118,8 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
      */
     private boolean supportsVintageTests() {
         try {
-            ClassLoader applicationClassloader = Thread.currentThread().getContextClassLoader();
-            Class.forName("org.junit.vintage.engine.VintageTestEngine", false, applicationClassloader);
-            Class.forName("org.junit.runner.Request", false, applicationClassloader);
+            Class.forName("org.junit.vintage.engine.VintageTestEngine", false, junitClassLoader);
+            Class.forName("org.junit.runner.Request", false, junitClassLoader);
             return true;
         } catch (ClassNotFoundException e) {
             return false;
@@ -125,8 +132,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
 
     private Class<?> loadClass(String className) {
         try {
-            ClassLoader applicationClassloader = Thread.currentThread().getContextClassLoader();
-            return Class.forName(className, false, applicationClassloader);
+            return Class.forName(className, false, junitClassLoader);
         } catch (ClassNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -240,6 +246,40 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
                 .filter(ClassSource.class::isInstance)
                 .map(ClassSource.class::cast)
                 .map(ClassSource::getClassName);
+        }
+    }
+
+    private static class BackwardsCompatibleLauncherSession implements AutoCloseable {
+
+        static BackwardsCompatibleLauncherSession open() {
+            try {
+                LauncherSession launcherSession = LauncherFactory.openSession();
+                return new BackwardsCompatibleLauncherSession(launcherSession);
+            } catch (NoSuchMethodError ignore) {
+                // JUnit Platform version on test classpath does not yet support launcher sessions
+                return new BackwardsCompatibleLauncherSession(LauncherFactory.create(), () -> {});
+            }
+        }
+
+        private final Launcher launcher;
+        private final Runnable onClose;
+
+        BackwardsCompatibleLauncherSession(@WillCloseWhenClosed LauncherSession session) {
+            this(session.getLauncher(), session::close);
+        }
+
+        BackwardsCompatibleLauncherSession(Launcher launcher, Runnable onClose) {
+            this.launcher = launcher;
+            this.onClose = onClose;
+        }
+
+        Launcher getLauncher() {
+            return launcher;
+        }
+
+        @Override
+        public void close() {
+            onClose.run();
         }
     }
 
