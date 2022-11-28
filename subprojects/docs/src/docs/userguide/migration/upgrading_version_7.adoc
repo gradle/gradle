@@ -301,7 +301,7 @@ test {
 
 The `outputLocation` property of the link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report[Report] now returns a value of type `Property<? extends FileSystemLocation>`.  Previously, `outputLocation` returned a value of type `Provider<? extends FileSystemLocation>`.
 
-This change makes the Report API more internally consistent, and allows for more idiomatic configuration of reporting tasks, using:
+This change makes the Report API more internally consistent, and allows for more idiomatic configuration of reporting tasks with the following syntax:
 
 ```groovy
 tasks.named('test') {
