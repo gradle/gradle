@@ -299,7 +299,7 @@ test {
 
 ==== Report `getOutputLocation` return type changed from Provider to Property
 
-In the link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report[Report] interface the return type of the `outputLocation` property is now `Property<? extends FileSystemLocation>`.  It was previously `Provider<? extends FileSystemLocation>`.
+The `outputLocation` property of the link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report[Report] now returns a value of type `Property<? extends FileSystemLocation>`.  Previously, `outputLocation` returned a value of type `Provider<? extends FileSystemLocation>`.
 
 This change makes the Report API more internally consistent, and allows for more idiomatic configuration of reporting tasks, using:
 
