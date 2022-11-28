@@ -24,7 +24,7 @@ import javax.inject.Inject;
 
 public abstract class DefaultScalaSourceDirectorySet extends DefaultSourceDirectorySet implements ScalaSourceDirectorySet {
     @Inject
-    public DefaultScalaSourceDirectorySet(SourceDirectorySet sourceDirectorySet) {
-        super(sourceDirectorySet);
+    public DefaultScalaSourceDirectorySet(SourceDirectorySet sourceDirectorySet, TaskDependencyFactory taskDependencyFactory) {
+        super(sourceDirectorySet, taskDependencyFactory);
     }
 }

@@ -133,6 +133,12 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
     }
 
     private boolean areCredentialsSafe(String identity, Credentials toCheck) {
+        // TODO:RC not using a provider does not necessarily imply unsafe credentials
+        // https://github.com/gradle/gradle/issues/22618
+        return true /* isUsingCredentialsProvider(identity, toCheck) */;
+    }
+
+    private boolean isUsingCredentialsProvider(String identity, Credentials toCheck) {
         ProviderFactory providerFactory = getServices().get(ProviderFactory.class);
         Credentials referenceCredentials;
         try {

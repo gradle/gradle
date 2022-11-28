@@ -70,7 +70,7 @@ public class TestFiles {
         DefaultExecActionFactory.of(resolver(), fileCollectionFactory(), new DefaultExecutorFactory(), NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class));
 
     public static FileCollectionInternal empty() {
-        return fileCollectionFactory().empty();
+        return FileCollectionFactory.empty();
     }
 
     public static FileCollectionInternal fixed(File... files) {
@@ -151,6 +151,7 @@ public class TestFiles {
 
         DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
             fileResolver,
+            taskDependencyFactory(),
             fileSystem,
             temporaryFileProvider,
             textResourceAdapterFactory(temporaryFileProvider)
@@ -170,6 +171,7 @@ public class TestFiles {
             getPatternSetFactory(),
             deleter(),
             documentationRegistry(),
+            taskDependencyFactory(),
             providerFactory());
     }
 
@@ -258,6 +260,10 @@ public class TestFiles {
     @SuppressWarnings("deprecation")
     public static Factory<PatternSet> getPatternSetFactory() {
         return PatternSets.getNonCachingPatternSetFactory();
+    }
+
+    public static TaskDependencyFactory taskDependencyFactory() {
+        return DefaultTaskDependencyFactory.withNoAssociatedProject();
     }
 
     public static DocumentationRegistry documentationRegistry() {

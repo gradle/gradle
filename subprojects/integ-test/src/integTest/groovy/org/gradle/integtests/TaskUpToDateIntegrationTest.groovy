@@ -30,7 +30,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
                 @Output${files ? "Files" : "Directories"} FileCollection out
 
                 @TaskAction def exec() {
-                    out.each { it${files ? ".text = 'data'" : ".mkdirs()"} }
+                    out.each { it${files ? ".text = 'data' + it.name" : ".mkdirs(); new File(it, 'contents').text = 'data' + it.name"} }
                 }
             }
 
@@ -187,6 +187,44 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
     private static String[] customTaskWithOutputs(List<String> outputs) {
         (["customTask", "-PnumOutputs=${outputs.size()}"] + outputs.withIndex().collect { value, idx -> "-Poutput${idx}" + (value ? "=${value}" : '') }) as String[]
+    }
+
+    def "output files moved from one location to another marks task up-to-date"() {
+        buildFile << """
+            abstract class CustomTask extends DefaultTask {
+                @OutputDirectory
+                abstract DirectoryProperty getOutputDirectory()
+
+                @TaskAction
+                void doAction() {
+                    getOutputDirectory().file("output.txt").get().asFile.text = "output"
+                }
+            }
+
+            task customTask(type: CustomTask) {
+                outputDirectory = project.file(project.providers.gradleProperty('outputDir'))
+            }
+        """
+
+        when:
+        succeeds ":customTask", "-PoutputDir=build/output1"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        when:
+        succeeds ":customTask", "-PoutputDir=build/output2"
+        then:
+        executedAndNotSkipped ":customTask"
+
+        when:
+        succeeds ":customTask", "-PoutputDir=build/output1"
+        then:
+        skipped ":customTask"
+
+        when:
+        succeeds ":customTask", "-PoutputDir=build/output2"
+        then:
+        skipped ":customTask"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3073")

@@ -109,9 +109,9 @@
          <trusted-key id="31fae244a81d64507b47182e1b2718089ce964b8" group="com.thoughtworks.qdox"/>
          <trusted-key id="34441e504a937f43eb0daef96a65176a0fb1cd0b">
             <trusting group="org.apache.groovy"/>
-            <trusting group="org.codehaus.groovy" name="groovy"/>
-            <trusting group="org.codehaus.groovy"/>
             <trusting group="org.apache.groovy" name="groovy"/>
+            <trusting group="org.codehaus.groovy"/>
+            <trusting group="org.codehaus.groovy" name="groovy"/>
          </trusted-key>
          <trusted-key id="34d6ff19930adf43ac127792a50569c7ca7fa1f0" group="com.jcraft"/>
          <trusted-key id="36390de6a0e61ee4c7b4ba02c1d3063467f1ebd1" group="org.asciidoctor"/>
@@ -595,16 +595,6 @@
       <component group="com.googlecode.juniversalchardet" name="juniversalchardet" version="1.0.3">
          <artifact name="juniversalchardet-1.0.3.jar">
             <pgp value="31bae2e51d95e0f8ad9b7bcc40a3c4432bd7308c"/>
-         </artifact>
-      </component>
-      <component group="com.gradle.publish" name="plugin-publish-plugin" version="0.14.0">
-         <artifact name="plugin-publish-plugin-0.14.0.jar">
-            <sha256 value="e5f60ab215d43f2614872bac5fdf9aaae3fd734bd67e93bf11a40007ec78d3f2" origin="Artifact is not signed"/>
-         </artifact>
-      </component>
-      <component group="com.gradle.publish" name="plugin-publish-plugin" version="1.0.0">
-         <artifact name="plugin-publish-plugin-1.0.0.jar">
-            <sha256 value="34b81aba1dc0b18f9a35b0a28e800b460b6df105dcb92893c3a0e78276bd756c" origin="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="com.h2database" name="h2" version="1.4.192">
@@ -1471,7 +1461,12 @@
       </component>
       <component group="org.ysb33r.gradle" name="grolifant" version="0.16.1">
          <artifact name="grolifant-0.16.1.jar">
-            <sha256 value="362c450c9738834181fdfac1147fa11cf21cefd59d7a5368756e174f93567a43" origin="Artifact is not signed"/>
+            <ignored-keys>
+               <ignored-key id="54ac8e2d98cfeac6" reason="also-trust requires ignoring signatures"/>
+            </ignored-keys>
+            <sha256 value="a867e911d060a240b8aa111896b7379282fe61940dfb949e72600f7ca67cb92f" origin="Maven Central (also is JCenter)">
+               <also-trust value="362c450c9738834181fdfac1147fa11cf21cefd59d7a5368756e174f93567a43"/>
+            </sha256>
          </artifact>
       </component>
       <component group="software.amazon.ion" name="ion-java" version="1.0.2">

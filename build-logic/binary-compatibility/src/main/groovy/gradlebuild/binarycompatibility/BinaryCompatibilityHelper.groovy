@@ -31,7 +31,6 @@ import gradlebuild.binarycompatibility.rules.NullabilityBreakingChangesRule
 import gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRule
 import gradlebuild.binarycompatibility.rules.SinceAnnotationMissingRuleCurrentGradleVersionSetup
 import japicmp.model.JApiChangeStatus
-import me.champeau.gradle.japicmp.JapicmpTask
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 

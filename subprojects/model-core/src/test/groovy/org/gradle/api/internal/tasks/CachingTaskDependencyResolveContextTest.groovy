@@ -26,7 +26,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
     private final CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext([WorkDependencyResolver.TASK_AS_TASK])
     private final Task task = Mock()
     private final Task target = Mock()
-    private final TaskDependencyInternal dependency = Mock()
+    private final TaskDependencyContainerInternal dependency = Mock(TaskDependencyContainerInternal)
 
     def determinesTaskDependenciesByResolvingDependencyObjectForTask() {
         when:
@@ -66,7 +66,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
 
         then:
         1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(otherDependency) }
-        1 * otherDependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(target) }
+        1 * otherDependency.getDependenciesForInternalUse(_) >> { [target] as Set }
         tasks == [target] as LinkedHashSet
     }
 
@@ -98,7 +98,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
 
     def resolvesBuildableWithInternalTaskDependency() {
         Buildable buildable = Mock()
-        TaskDependencyInternal otherDependency = Mock()
+        TaskDependency otherDependency = Mock(TaskDependencyContainerInternal)
 
         when:
         def tasks = context.getDependencies(task, dependency)
@@ -122,8 +122,8 @@ class CachingTaskDependencyResolveContextTest extends Specification {
     }
 
     def cachesResultForTaskDependency() {
-        TaskDependencyInternal otherDependency = Mock()
-        TaskDependency otherDependency2 = Mock()
+        TaskDependencyInternal otherDependency = Mock(TaskDependencyContainerInternal)
+        TaskDependencyInternal otherDependency2 = Mock()
 
         when:
         def tasks = context.getDependencies(task, dependency)
@@ -134,13 +134,13 @@ class CachingTaskDependencyResolveContextTest extends Specification {
             context.add(otherDependency2)
         }
         1 * otherDependency.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(otherDependency2) }
-        1 * otherDependency2.getDependencies(task) >> { [target] as Set }
+        1 * otherDependency2.getDependenciesForInternalUse(task) >> { [target] as Set }
         tasks == [target] as LinkedHashSet
     }
 
     def cachesResultForTaskDependencyInternal() {
-        TaskDependencyInternal otherDependency = Mock()
-        TaskDependencyInternal otherDependency2 = Mock()
+        TaskDependencyInternal otherDependency = Mock(TaskDependencyContainerInternal)
+        TaskDependencyInternal otherDependency2 = Mock(TaskDependencyContainerInternal)
 
         when:
         def tasks = context.getDependencies(task, dependency)
@@ -156,7 +156,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
     }
 
     def cachesResultForBuildable() {
-        TaskDependencyInternal otherDependency = Mock()
+        TaskDependencyInternal otherDependency = Mock(TaskDependencyContainerInternal)
         Buildable buildable = Mock()
         TaskDependency otherDependency2 = Mock()
 
@@ -175,9 +175,9 @@ class CachingTaskDependencyResolveContextTest extends Specification {
     }
 
     def cachesResultForBuildableInternal() {
-        TaskDependencyInternal otherDependency = Mock()
+        TaskDependencyInternal otherDependency = Mock(TaskDependencyContainerInternal)
         Buildable buildable = Mock()
-        TaskDependencyInternal otherDependency2 = Mock()
+        TaskDependencyInternal otherDependency2 = Mock(TaskDependencyContainerInternal)
 
         when:
         def tasks = context.getDependencies(task, dependency)

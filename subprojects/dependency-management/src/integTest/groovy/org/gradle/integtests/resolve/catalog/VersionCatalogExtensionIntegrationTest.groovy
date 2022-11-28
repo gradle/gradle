@@ -323,6 +323,69 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/22650")
+    def "can use the generated extension to declare a dependency constraint with and without sub-group using bundles"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        version("myLib") {
+                            strictly "[1.0,1.1)"
+                        }
+                        library("myLib", "org.gradle.test", "lib-core").versionRef("myLib")
+                        library("myLib-ext", "org.gradle.test", "lib-ext").versionRef("myLib")
+                        bundle("myBundle", ["myLib"])
+                        bundle("myBundle-ext", ["myLib-ext"])
+                    }
+                }
+            }
+        """
+        def publishLib = { String artifactId, String version ->
+            def lib = mavenHttpRepo.module("org.gradle.test", artifactId, version)
+                .withModuleMetadata()
+                .publish()
+            lib.moduleMetadata.expectGet()
+            lib.pom.expectGet()
+            return lib
+        }
+        publishLib("lib-core", "1.0").with {
+            it.rootMetaData.expectGet()
+            it.artifact.expectGet()
+        }
+        publishLib("lib-core", "1.1")
+        publishLib("lib-ext", "1.0").with {
+            it.rootMetaData.expectGet()
+            it.artifact.expectGet()
+        }
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation "org.gradle.test:lib-core:1.+" // intentional!
+                implementation "org.gradle.test:lib-ext" // intentional!
+                constraints {
+                    implementation libs.bundles.myBundle
+                    implementation libs.bundles.myBundle.ext
+                }
+            }
+        """
+
+        when:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                constraint("org.gradle.test:lib-core:{strictly [1.0,1.1)}", "org.gradle.test:lib-core:1.0")
+                constraint("org.gradle.test:lib-ext:{strictly [1.0,1.1)}", "org.gradle.test:lib-ext:1.0")
+                edge("org.gradle.test:lib-core:1.+", "org.gradle.test:lib-core:1.0") {
+                    byReasons(["rejected version 1.1", "constraint"])
+                }
+                edge("org.gradle.test:lib-ext", "org.gradle.test:lib-ext:1.0")
+            }
+        }
+    }
+
     def "can use the generated extension to declare a dependency and override the version"() {
         settingsFile << """
             dependencyResolutionManagement {

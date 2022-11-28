@@ -24,12 +24,12 @@ import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.FileCollectionSnapshotter;
 import org.gradle.internal.execution.FileNormalizationSpec;
 import org.gradle.internal.execution.InputFingerprinter;
-import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.UnitOfWork.ValueSupplier;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 

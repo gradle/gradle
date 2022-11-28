@@ -35,8 +35,8 @@ import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
+import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
@@ -56,10 +56,10 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.gradle.internal.execution.UnitOfWork.InputBehavior.INCREMENTAL;
-import static org.gradle.internal.execution.UnitOfWork.InputBehavior.NON_INCREMENTAL;
 import static org.gradle.internal.file.TreeType.DIRECTORY;
 import static org.gradle.internal.file.TreeType.FILE;
+import static org.gradle.internal.properties.InputBehavior.INCREMENTAL;
+import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL;
 
 public class DefaultTransformerInvocationFactory implements TransformerInvocationFactory {
     private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
@@ -367,7 +367,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 // since it is part of the ComponentArtifactIdentifier returned by the transform.
                 // For absolute paths, the name is already part of the normalized path,
                 // and for all the other normalization strategies we use the name directly.
-                transformer.getInputArtifactNormalizer().equals(AbsolutePathInputNormalizer.class)
+                transformer.getInputArtifactNormalizer() == InputNormalizer.ABSOLUTE_PATH
                     ? inputArtifact.getAbsolutePath()
                     : inputArtifact.getName());
             visitor.visitInputFileProperty(DEPENDENCIES_PROPERTY_NAME, NON_INCREMENTAL,
@@ -377,7 +377,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                     transformer.getInputArtifactDependenciesDirectorySensitivity(),
                     transformer.getInputArtifactDependenciesLineEndingNormalization(),
                     () -> dependencies.getFiles()
-                        .orElse(fileCollectionFactory.empty())));
+                        .orElse(FileCollectionFactory.empty())));
         }
 
         @Override

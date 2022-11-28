@@ -19,7 +19,6 @@ import gradlebuild.EnrichedReportRenderer
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicKotlinDslApi
 import gradlebuild.basics.GradleModuleApiAttribute
-import me.champeau.gradle.japicmp.JapicmpTask
 import gradlebuild.binarycompatibility.AcceptedApiChanges
 import gradlebuild.binarycompatibility.BinaryCompatibilityHelper
 import gradlebuild.binarycompatibility.CleanAcceptedApiChanges
@@ -107,7 +106,7 @@ dependencies {
     }
 }
 
-def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
+def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", gradlebuild.binarycompatibility.JapicmpTask) {
     def baseVersion = moduleIdentity.version.map { it.baseVersion.version }
     def isSnapshot = moduleIdentity.snapshot
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())

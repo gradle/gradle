@@ -157,7 +157,9 @@ class DefaultProjectSpec extends Specification {
         _ * serviceRegistry.get(InstantiatorFactory) >> Stub(InstantiatorFactory)
         _ * serviceRegistry.get(AttributesSchema) >> Stub(AttributesSchema)
         _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)
+        _ * serviceRegistry.get(CrossProjectModelAccess) >> Stub(CrossProjectModelAccess)
         _ * serviceRegistry.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
+        _ * serviceRegistry.get(DynamicLookupRoutine) >> Stub(DynamicLookupRoutine)
 
         def fileOperations = Stub(FileOperations)
         fileOperations.fileTree(_) >> TestFiles.fileOperations(tmpDir.testDirectory).fileTree('tree')

@@ -108,6 +108,10 @@
                 <td>javaLauncher</td>
                 <td><literal>java.toolchain</literal></td>
             </tr>
+            <tr>
+                <td>debugOptions</td>
+                <td/>
+            </tr>
         </table>
     </section>
     <section>
@@ -156,6 +160,9 @@
             </tr>
             <tr>
                 <td>options</td>
+            </tr>
+            <tr>
+                <td>debugOptions</td>
             </tr>
         </table>
     </section>

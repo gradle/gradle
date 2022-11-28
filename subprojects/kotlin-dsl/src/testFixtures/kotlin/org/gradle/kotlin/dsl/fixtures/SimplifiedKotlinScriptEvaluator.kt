@@ -23,6 +23,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configuration.DefaultImportsReader
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.Describables
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
@@ -172,6 +173,7 @@ class SimplifiedKotlinScriptEvaluator(
         override fun loadClassInChildScopeOf(
             classLoaderScope: ClassLoaderScope,
             childScopeId: String,
+            origin: ClassLoaderScopeOrigin,
             location: File,
             className: String,
             accessorsClassPath: ClassPath

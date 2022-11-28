@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.TaskDestroyables;
+import org.gradle.internal.properties.PropertyVisitor;
 
 
 /**

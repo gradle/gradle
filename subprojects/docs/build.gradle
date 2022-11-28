@@ -616,13 +616,17 @@ tasks.named("docsTest") { task ->
         if (!javaVersion.java9Compatible) {
             excludeTestsMatching "org.gradle.docs.samples.*.java-modules-*.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.incubating-java-modules-*.sample"
+            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-application*.sample'
             excludeTestsMatching 'org.gradle.docs.samples.*.snippet-java-library-module*.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-testing-patch-module*.sample'
         }
+
         if (OperatingSystem.current().windows && javaVersion.isCompatibleWith(JavaVersion.VERSION_18)) {
             // Disable tests that suffer from charset issues under JDK 18 for now
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-custom-model-internal-views_*_softwareModelExtend-iv-model.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.snippet-model-rules-basic-rule-source-plugin_*_basicRuleSourcePlugin-model-task.sample"
         }
+
         if (!javaVersion.java11Compatible) {
             // Android requires Java 11+
             excludeTestsMatching "org.gradle.docs.samples.*.building-android-*.sample"
@@ -631,6 +635,12 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*android-app.sample"
             // Umbrella build project contains also Android projects so it requires Java 11+
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects_*_umbrella-build.sample"
+            // This test sets source and target compatibility to 11
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-kotlin-dsl-accessors_*.sample"
+        }
+
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_12)) {
+            excludeTestsMatching "org.gradle.docs.samples.*.snippet-test-kit-gradle-version_*_testKitFunctionalTestSpockGradleDistribution.sample"
         }
 
         if (OperatingSystem.current().macOsX && System.getProperty("os.arch") == "aarch64") {
@@ -641,6 +651,11 @@ tasks.named("docsTest") { task ->
             excludeTestsMatching "org.gradle.docs.samples.*.building-android-*.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*android-app.sample"
         }
+    }
+
+    filter {
+        // TODO(https://github.com/gradle/gradle/issues/22538)
+        excludeTestsMatching "org.gradle.docs.samples.*.snippet-groovy-cross-compilation_*_crossCompilation.sample"
     }
 
     if (isConfigurationCacheEnabledForDocsTests(project)) {
@@ -726,17 +741,13 @@ tasks.named("docsTest") { task ->
             // These tests cover features that the configuration cache doesn't support yet, but we plan to do that before hitting stable.
             // The tests should be removed from this list when the feature becomes supported.
             def testsForNotYetSupportedFeatures = [
-                // TODO(https://github.com/gradle/gradle/issues/21642)
-                "publishing-credentials_groovy_publishCommandLineCredentials.sample",
-                "publishing-credentials_kotlin_publishCommandLineCredentials.sample",
-
                 // TODO(https://github.com/gradle/gradle/issues/14880)
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_groovy_iterating-dependencies.sample",
                 "snippet-dependency-management-working-with-dependencies-iterate-dependencies_kotlin_iterating-dependencies.sample",
 
                 // TODO(https://github.com/gradle/gradle/issues/19725) EAR plugin support
-                "snippet-ear-ear-customized_groovy_earCustomized.groovy.sample",
-                "snippet-ear-ear-customized_kotlin_earCustomized.kotlin.sample",
+                "snippet-ear-ear-customized_groovy_earCustomized.sample",
+                "snippet-ear-ear-customized_kotlin_earCustomized.sample",
                 "snippet-ear-ear-with-war_groovy_earWithWar.sample",
                 "snippet-ear-ear-with-war_kotlin_earWithWar.sample",
 
@@ -750,11 +761,9 @@ tasks.named("docsTest") { task ->
                 "snippet-ivy-publish-quickstart_groovy_publishingIvyPublishSingle.sample",
                 "snippet-ivy-publish-quickstart_kotlin_publishingIvyPublishLifecycle.sample",
                 "snippet-ivy-publish-quickstart_kotlin_publishingIvyPublishSingle.sample",
+                "snippet-plugins-publishing_groovy_publishToIvy.sample",
+                "snippet-plugins-publishing_kotlin_publishToIvy.sample",
                 "snippet-tooling-api-custom-model_groovy_sanityCheck.sample",
-
-                // TODO(https://github.com/gradle/gradle/issues/21717)
-                "snippet-java-toolchain-filters_groovy_toolchainFilters.sample",
-                "snippet-java-toolchain-filters_kotlin_toolchainFilters.sample",
 
                 // TODO(https://github.com/gradle/gradle/issues/13470) Signing plugin support
                 "snippet-signing-configurations_groovy_signingArchivesOutput.sample",
@@ -802,9 +811,6 @@ configurations {
     }
 }
 
-tasks.named('platformTest') {
-    dependsOn(tasks.named('checkSamples'))
-}
 tasks.named("check") {
     dependsOn(tasks.named('checkstyleApi'))
 }
@@ -842,7 +848,7 @@ class GradleInstallationForTestEnvironmentProvider implements CommandLineArgumen
 }
 
 tasks.withType(CheckLinks).configureEach {
-    enabled = !gradle.startParameter.taskNames.contains("docs:platformTest")
+    enabled = !gradle.startParameter.taskNames.contains("docs:docsTest")
 }
 
 tasks.register("checkLinks") {
