@@ -95,7 +95,7 @@ You often need to locate the tasks that you have defined in the build file, for 
 There are a number of ways of doing this. Firstly, just like with defining tasks there are language specific syntaxes for the Groovy and Kotlin DSL:
 
 In general, tasks are available through the `tasks` collection.
-You should use of the methods that return a _task provider_ – `register()` or `named()` – to make sure you do not break <<task_configuration_avoidance#task_configuration_avoidance,task configuration avoidance>>.
+You should use the methods that return a _task provider_ – `register()` or `named()` – to make sure you do not break <<task_configuration_avoidance#task_configuration_avoidance,task configuration avoidance>>.
 
 .Accessing tasks via tasks collection
 ====
