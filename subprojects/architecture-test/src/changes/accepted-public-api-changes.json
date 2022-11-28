@@ -1325,7 +1325,8 @@
             "member": "Class org.gradle.api.tasks.scala.ScalaCompile",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
             "changes": [
-                "Class is now abstract"
+                "Class is now abstract",
+                "Abstract method has been added to a superclass"
             ]
         },
         {
@@ -1662,6 +1663,30 @@
             "acceptation": "Remove deprecated constructor in Gradle 8.0",
             "changes": [
                 "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getDeleter()",
+            "acceptation": "injected property in abstract class should be abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getObjectFactory()",
+            "acceptation": "injected property in abstract class should be abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getProjectLayout()",
+            "acceptation": "injected property in abstract class should be abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {

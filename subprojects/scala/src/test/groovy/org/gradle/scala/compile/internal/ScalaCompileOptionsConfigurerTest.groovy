@@ -18,7 +18,6 @@ package org.gradle.scala.compile.internal
 
 import org.gradle.api.file.Directory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
-import org.gradle.api.tasks.ScalaRuntime
 import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
@@ -30,7 +29,6 @@ import spock.lang.Subject
 @Subject(ScalaCompileOptionsConfigurer)
 class ScalaCompileOptionsConfigurerTest extends Specification {
 
-    private final ScalaRuntime scalaRuntime = Mock(ScalaRuntime)
     private final VersionParser versionParser = new VersionParser()
 
     def 'configuring target jvm for JVM #javaVersion and Scala #scalaLibraryVersion results in #expectedTarget'() {

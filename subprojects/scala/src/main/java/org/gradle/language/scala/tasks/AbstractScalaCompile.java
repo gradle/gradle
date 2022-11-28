@@ -43,7 +43,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
@@ -53,22 +52,19 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * An abstract Scala compile task sharing common functionality for compiling scala.
@@ -89,7 +85,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         this.analysisMappingFile = objectFactory.fileProperty();
         this.analysisFiles = getProject().files();
         this.compileOptions = objectFactory.newInstance(CompileOptions.class);
-        this.javaLauncher = objectFactory.property(JavaLauncher.class);
+        JavaToolchainService javaToolchainService = getJavaToolchainService();
+        this.javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaToolchainService.launcherFor(it -> {}));
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
     }
 
@@ -141,11 +138,9 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
      * @since 7.2
      */
     @Nested
-    @Optional
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }
-
 
     private boolean isNonIncrementalCompilation() {
         File analysisFile = getScalaCompileOptions().getIncrementalOptions().getAnalysisFile().getAsFile().get();
@@ -156,14 +151,13 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         return false;
     }
 
-    @Nullable
     @Internal
     protected JavaInstallationMetadata getToolchain() {
-        return javaLauncher.map(JavaLauncher::getMetadata).getOrNull();
+        return javaLauncher.map(JavaLauncher::getMetadata).get();
     }
 
     protected ScalaJavaJointCompileSpec createSpec() {
-        validateConfiguration();
+        // TODO: do we need to introduce validations for inconsistent toolchain vs executable/javaHome?
         DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpecFactory(compileOptions, getToolchain()).create();
         spec.setSourceFiles(getSource().getFiles());
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
@@ -182,41 +176,23 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     }
 
     private void configureExecutable(MinimalJavaCompilerDaemonForkOptions forkOptions) {
-        if (javaLauncher.isPresent()) {
-            forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-        } else {
-            forkOptions.setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath());
-        }
+        String executable = getJavaLauncher().get().getExecutablePath().getAsFile().getAbsolutePath();
+        forkOptions.setExecutable(executable);
     }
 
     private void configureCompatibilityOptions(DefaultScalaJavaJointCompileSpec spec) {
-        JavaInstallationMetadata toolchain = getToolchain();
-        if (toolchain != null) {
-            boolean isSourceOrTargetConfigured = false;
-            if (super.getSourceCompatibility() != null) {
-                spec.setSourceCompatibility(getSourceCompatibility());
-                isSourceOrTargetConfigured = true;
-            }
-            if (super.getTargetCompatibility() != null) {
-                spec.setTargetCompatibility(getTargetCompatibility());
-                isSourceOrTargetConfigured = true;
-            }
-            if (!isSourceOrTargetConfigured) {
-                String languageVersion = toolchain.getLanguageVersion().toString();
-                spec.setSourceCompatibility(languageVersion);
-                spec.setTargetCompatibility(languageVersion);
-            }
-        } else {
-            spec.setSourceCompatibility(getSourceCompatibility());
-            spec.setTargetCompatibility(getTargetCompatibility());
+        String toolchainVersion = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
+        String sourceCompatibility = getSourceCompatibility();
+        if (sourceCompatibility == null) {
+            sourceCompatibility = toolchainVersion;
         }
-    }
+        String targetCompatibility = getTargetCompatibility();
+        if (targetCompatibility == null) {
+            targetCompatibility = sourceCompatibility;
+        }
 
-    private void validateConfiguration() {
-        if (javaLauncher.isPresent()) {
-            checkState(getOptions().getForkOptions().getJavaHome() == null, "Must not use `javaHome` property on `ForkOptions` together with `javaLauncher` property");
-            checkState(getOptions().getForkOptions().getExecutable() == null, "Must not use `executable` property on `ForkOptions` together with `javaLauncher` property");
-        }
+        spec.setSourceCompatibility(sourceCompatibility);
+        spec.setTargetCompatibility(targetCompatibility);
     }
 
     private void configureIncrementalCompilation(ScalaCompileSpec spec) {
@@ -316,17 +292,14 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     }
 
     @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
+    protected abstract Deleter getDeleter();
 
     @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ProjectLayout getProjectLayout();
 
     @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    protected abstract JavaToolchainService getJavaToolchainService();
 }
