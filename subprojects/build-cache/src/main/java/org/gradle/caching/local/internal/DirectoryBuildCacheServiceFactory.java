@@ -82,10 +82,11 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         }
         checkDirectory(target);
 
-        Supplier<Long> removeUnusedEntriesTimestamp = TimestampSuppliers.daysAgo(configuration.getRemoveUnusedEntriesAfterDays());
+        int removeUnusedEntriesAfterDays = configuration.getRemoveUnusedEntriesAfterDays();
+        Supplier<Long> removeUnusedEntriesTimestamp = TimestampSuppliers.daysAgo(removeUnusedEntriesAfterDays);
         describer.type(DIRECTORY_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath()).
-            config("removeUnusedEntriesAfter", String.valueOf(removeUnusedEntriesTimestamp) + " days");
+            config("removeUnusedEntriesAfter", String.valueOf(removeUnusedEntriesAfterDays) + " days");
 
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
         PersistentCache persistentCache = cacheRepository
