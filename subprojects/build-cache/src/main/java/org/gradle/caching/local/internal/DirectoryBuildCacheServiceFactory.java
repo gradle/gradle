@@ -17,7 +17,6 @@
 package org.gradle.caching.local.internal;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.cache.TimestampSupplier;
 import org.gradle.api.internal.cache.DefaultCacheCleanup;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.CacheBuilder;
@@ -35,9 +34,11 @@ import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 import org.gradle.internal.resource.local.PathKeyFileStore;
+import org.gradle.internal.time.TimestampSuppliers;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.function.Supplier;
 
 import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
@@ -81,7 +82,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         }
         checkDirectory(target);
 
-        TimestampSupplier removeUnusedEntriesTimestamp = TimestampSupplier.olderThanInDays(configuration.getRemoveUnusedEntriesAfterDays());
+        Supplier<Long> removeUnusedEntriesTimestamp = TimestampSuppliers.daysAgo(configuration.getRemoveUnusedEntriesAfterDays());
         describer.type(DIRECTORY_BUILD_CACHE_TYPE).
             config("location", target.getAbsolutePath()).
             config("removeUnusedEntriesAfter", String.valueOf(removeUnusedEntriesTimestamp) + " days");
@@ -100,11 +101,11 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         return new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, fileAccessTracker, FAILED_READ_SUFFIX);
     }
 
-    private DefaultCacheCleanup createCacheCleanup(TimestampSupplier removeUnusedEntriesTimestamp) {
+    private DefaultCacheCleanup createCacheCleanup(Supplier<Long> removeUnusedEntriesTimestamp) {
         return DefaultCacheCleanup.from(cleanupActionDecorator.decorate(createCleanupAction(removeUnusedEntriesTimestamp)));
     }
 
-    private LeastRecentlyUsedCacheCleanup createCleanupAction(TimestampSupplier removeUnusedEntriesTimestamp) {
+    private LeastRecentlyUsedCacheCleanup createCleanupAction(Supplier<Long> removeUnusedEntriesTimestamp) {
         return new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, removeUnusedEntriesTimestamp);
     }
 

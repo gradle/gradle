@@ -20,7 +20,6 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.DefaultCacheCleanup;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
@@ -132,11 +131,11 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         );
     }
 
-    private static CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurations cacheConfigurations) {
+    private static CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurationsInternal cacheConfigurations) {
         return new LeastRecentlyUsedCacheCleanup(
             new SingleDepthFilesFinder(treeDepthToTrackAndCleanup),
             fileAccessTimeJournal,
-            cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesAfter().get()
+            cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesAfterAsSupplier()
         );
     }
 

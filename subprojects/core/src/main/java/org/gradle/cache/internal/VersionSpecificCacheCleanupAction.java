@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
-import org.gradle.api.cache.TimestampSupplier;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.CleanupFrequency;
@@ -38,6 +37,7 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.SortedSet;
+import java.util.function.Supplier;
 
 public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction {
     private final static String FILE_HASHES_CACHE_KEY =  CrossBuildFileHashCache.Kind.FILE_HASHES.getCacheId();
@@ -46,19 +46,19 @@ public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction
     private static final Logger LOGGER = LoggerFactory.getLogger(VersionSpecificCacheCleanupAction.class);
 
     private final VersionSpecificCacheDirectoryScanner versionSpecificCacheDirectoryScanner;
-    private final TimestampSupplier releaseTimestampSupplier;
-    private final TimestampSupplier snapshotTimestampSupplier;
+    private final Supplier<Long> releaseTimestampSupplier;
+    private final Supplier<Long> snapshotTimestampSupplier;
     private final Deleter deleter;
     private final CleanupFrequency cleanupFrequency;
 
-    public VersionSpecificCacheCleanupAction(File cacheBaseDir, TimestampSupplier releasesAndSnapshotTimestampSupplier, Deleter deleter, CleanupFrequency cleanupFrequency) {
+    public VersionSpecificCacheCleanupAction(File cacheBaseDir, Supplier<Long> releasesAndSnapshotTimestampSupplier, Deleter deleter, CleanupFrequency cleanupFrequency) {
         this(cacheBaseDir, releasesAndSnapshotTimestampSupplier, releasesAndSnapshotTimestampSupplier, deleter, cleanupFrequency);
     }
 
-    public VersionSpecificCacheCleanupAction(File cacheBaseDir, TimestampSupplier releaseTimestampSupplier, TimestampSupplier snapshotTimestampSupplier, Deleter deleter, CleanupFrequency cleanupFrequency) {
+    public VersionSpecificCacheCleanupAction(File cacheBaseDir, Supplier<Long> releaseTimestampSupplier, Supplier<Long> snapshotTimestampSupplier, Deleter deleter, CleanupFrequency cleanupFrequency) {
         this.deleter = deleter;
         Preconditions.checkArgument(releaseTimestampSupplier.get() <= snapshotTimestampSupplier.get(),
-            "releaseTimestampSupplier (%s) must supply a timestamp older than or equal to snapshotTimestampSupplier (%s)", releaseTimestampSupplier, snapshotTimestampSupplier);
+            "release timestamp (%s) must supply a timestamp older than or equal to snapshot timestamp (%s)", releaseTimestampSupplier.get(), snapshotTimestampSupplier.get());
         this.versionSpecificCacheDirectoryScanner = new VersionSpecificCacheDirectoryScanner(cacheBaseDir);
         this.releaseTimestampSupplier = releaseTimestampSupplier;
         this.snapshotTimestampSupplier = snapshotTimestampSupplier;
@@ -124,7 +124,7 @@ public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction
         return cacheDirsByBaseVersion;
     }
 
-    private void performCleanup(SortedSet<VersionSpecificCacheDirectory> cacheDirsWithSameBaseVersion, TimestampSupplier releaseTimestampSupplier, TimestampSupplier snapshotTimestampSupplier, CleanupProgressMonitor progressMonitor) {
+    private void performCleanup(SortedSet<VersionSpecificCacheDirectory> cacheDirsWithSameBaseVersion, Supplier<Long> releaseTimestampSupplier, Supplier<Long> snapshotTimestampSupplier, CleanupProgressMonitor progressMonitor) {
         Spec<VersionSpecificCacheDirectory> cleanupCondition = new CleanupCondition(cacheDirsWithSameBaseVersion, releaseTimestampSupplier, snapshotTimestampSupplier);
         for (VersionSpecificCacheDirectory cacheDir : cacheDirsWithSameBaseVersion) {
             if (cleanupCondition.isSatisfiedBy(cacheDir)) {
@@ -147,10 +147,10 @@ public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction
 
     private static class CleanupCondition implements Spec<VersionSpecificCacheDirectory> {
         private final SortedSet<VersionSpecificCacheDirectory> cacheDirsWithSameBaseVersion;
-        private final TimestampSupplier releaseTimestampSupplier;
-        private final TimestampSupplier snapshotTimestampSupplier;
+        private final Supplier<Long> releaseTimestampSupplier;
+        private final Supplier<Long> snapshotTimestampSupplier;
 
-        CleanupCondition(SortedSet<VersionSpecificCacheDirectory> cacheDirsWithSameBaseVersion, TimestampSupplier releaseTimestampSupplier, TimestampSupplier snapshotTimestampSupplier) {
+        CleanupCondition(SortedSet<VersionSpecificCacheDirectory> cacheDirsWithSameBaseVersion, Supplier<Long> releaseTimestampSupplier, Supplier<Long> snapshotTimestampSupplier) {
             this.cacheDirsWithSameBaseVersion = cacheDirsWithSameBaseVersion;
             this.releaseTimestampSupplier = releaseTimestampSupplier;
             this.snapshotTimestampSupplier = snapshotTimestampSupplier;

@@ -11,6 +11,7 @@ dependencies {
     implementation(project(":base-services-groovy"))
     implementation(project(":enterprise-operations"))
     implementation(project(":files"))
+    implementation(project(":functional"))
     implementation(project(":logging"))
     implementation(project(":persistent-cache"))
     implementation(project(":resources"))

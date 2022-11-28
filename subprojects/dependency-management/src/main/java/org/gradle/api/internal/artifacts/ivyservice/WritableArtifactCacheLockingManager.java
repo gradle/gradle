@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.cache.TimestampSupplier;
+import org.gradle.internal.time.TimestampSuppliers;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.DefaultCacheCleanup;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
-import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
@@ -41,6 +40,7 @@ import org.gradle.internal.serialize.Serializer;
 import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
@@ -70,7 +70,7 @@ public class WritableArtifactCacheLockingManager implements ArtifactCacheLocking
         );
     }
 
-    private CleanupAction createCleanupAction(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions, CacheConfigurations cacheConfigurations) {
+    private CleanupAction createCleanupAction(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions, CacheConfigurationsInternal cacheConfigurations) {
         return CompositeCleanupAction.builder()
                 .add(UnusedVersionsCacheCleanup.create(CacheLayout.ROOT.getName(), CacheLayout.ROOT.getVersionMapping(), usedGradleVersions))
                 .add(cacheMetaData.getExternalResourcesStoreDirectory(),
@@ -84,12 +84,12 @@ public class WritableArtifactCacheLockingManager implements ArtifactCacheLocking
                 .build();
     }
 
-    private TimestampSupplier getMaxAgeTimestamp(CacheConfigurations cacheConfigurations) {
+    private Supplier<Long> getMaxAgeTimestamp(CacheConfigurationsInternal cacheConfigurations) {
         Integer maxAgeProperty = Integer.getInteger("org.gradle.internal.cleanup.external.max.age");
         if (maxAgeProperty == null) {
-            return cacheConfigurations.getDownloadedResources().getRemoveUnusedEntriesAfter().get();
+            return cacheConfigurations.getDownloadedResources().getRemoveUnusedEntriesAfterAsSupplier();
         } else {
-            return TimestampSupplier.olderThanInDays(maxAgeProperty);
+            return TimestampSuppliers.daysAgo(maxAgeProperty);
         }
     }
 

@@ -40,7 +40,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 
-import static org.gradle.api.cache.TimestampSupplier.olderThanInDays;
+import static org.gradle.internal.time.TimestampSuppliers.daysAgo;
 import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 import static org.gradle.internal.hash.Hashing.hashString;
@@ -60,7 +60,7 @@ public class DefaultVersionControlRepositoryFactory implements VersionControlRep
     private DefaultCacheCleanup createCacheCleanup(CleanupActionDecorator cleanupActionDecorator) {
         return DefaultCacheCleanup.from(
             cleanupActionDecorator.decorate(
-                new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(1), new ModificationTimeFileAccessTimeJournal(), olderThanInDays(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES))
+                new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(1), new ModificationTimeFileAccessTimeJournal(), daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES))
             )
         );
     }

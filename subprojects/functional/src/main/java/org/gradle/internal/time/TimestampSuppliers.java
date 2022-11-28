@@ -14,33 +14,36 @@
  * limitations under the License.
  */
 
-package org.gradle.api.cache;
-
-import org.gradle.api.Incubating;
+package org.gradle.internal.time;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
- * A supplier of timestamps for the purposes of calculating expiration dates
- * on cache entries.
+ * Suppliers for the purposes of calculating timestamps for dates in the past.
  *
  * @since 8.0
  */
-@Incubating
-public interface TimestampSupplier extends Supplier<Long> {
+public interface TimestampSuppliers {
     /**
-     * Returns a timestamp supplier that calculates a timestamp exactly the given number
-     * of days prior to the current time, or 0 if the number of days extends beyond the
-     * epoch.
+     * Returns a timestamp supplier that calculates a timestamp exactly the given amount of time
+     * prior to the current time, or 0 if the amount of time extends beyond the epoch.
      */
-    static TimestampSupplier olderThanInDays(int days) {
+    static Supplier<Long> since(int value, TimeUnit timeUnit) {
         // This needs to be an anonymous inner class instead of a lambda for configuration cache compatibility
-        return new TimestampSupplier() {
+        return new Supplier<Long>() {
             @Override
             public Long get() {
-                return Math.max(0, System.currentTimeMillis() - TimeUnit.DAYS.toMillis(days));
+                return Math.max(0, System.currentTimeMillis() - timeUnit.toMillis(value));
             }
         };
+    }
+
+    /**
+     * Returns a supplier that calculates a timestamp exactly the given number of days
+     * prior to the current time, or 0 if the number of days extends beyond the epoch.
+     */
+    static Supplier<Long> daysAgo(int days) {
+        return since(days, TimeUnit.DAYS);
     }
 }

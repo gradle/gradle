@@ -16,7 +16,7 @@
 
 package org.gradle.initialization.layout;
 
-import org.gradle.api.cache.TimestampSupplier;
+import org.gradle.internal.time.TimestampSuppliers;
 import org.gradle.cache.CleanupFrequency;
 import org.gradle.cache.internal.DefaultCleanupProgressMonitor;
 import org.gradle.cache.internal.VersionSpecificCacheCleanupAction;
@@ -69,7 +69,7 @@ public class ProjectCacheDir implements Stoppable {
         }
         VersionSpecificCacheCleanupAction cleanupAction = new VersionSpecificCacheCleanupAction(
             dir,
-            TimestampSupplier.olderThanInDays(MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS),
+            TimestampSuppliers.daysAgo(MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS),
             deleter,
             CleanupFrequency.DAILY
         );
