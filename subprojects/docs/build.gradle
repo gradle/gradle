@@ -721,8 +721,6 @@ tasks.named("docsTest") { task ->
                 "snippet-native-binaries-cunit_groovy_dependentComponentsReportAll.sample",
                 "snippet-tutorial-ant-loadfile-with-method_groovy_antLoadfileWithMethod.sample",
                 "snippet-tutorial-ant-loadfile-with-method_kotlin_antLoadfileWithMethod.sample",
-                "snippet-tutorial-ant-loadfile_groovy_antLoadfile.sample",
-                "snippet-tutorial-ant-loadfile_kotlin_antLoadfile.sample",
             ]
 
             // These tests use third-party plugins at versions that may not support the configuration cache properly.
