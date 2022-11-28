@@ -56,6 +56,10 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getDocumentationRoot();
 
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract DirectoryProperty getJavadocRoot();
+
     @OutputFile
     public abstract RegularFileProperty getReportFile();
 
@@ -157,12 +161,11 @@ public abstract class FindBrokenInternalLinks extends DefaultTask {
     }
 
     private void gatherDeadJavadocLinksInLine(File sourceFile, String line, int lineNumber, List<Error> errorsForFile) {
-        File javadocRoot = new File(getDocumentationRoot().get().getAsFile(), "javadoc");
         Matcher matcher = javadocLinkPattern.matcher(line);
         while (matcher.find()) {
             MatchResult linkMatcher = matcher.toMatchResult();
             String link = linkMatcher.group(1);
-            File referencedFile = new File(javadocRoot, link);
+            File referencedFile = new File(getJavadocRoot().get().getAsFile(), link);
             if (!referencedFile.exists() || referencedFile.isDirectory()) {
                 String errMsg = "Missing Javadoc file for " + link + " in " + sourceFile.getName();
                 if (link.startsWith("javadoc")) {
