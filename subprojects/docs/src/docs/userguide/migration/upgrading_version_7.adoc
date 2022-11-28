@@ -301,7 +301,18 @@ test {
 
 The `outputLocation` property of the link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report[Report] now returns a value of type `Property<? extends FileSystemLocation>`.  Previously, `outputLocation` returned a value of type `Provider<? extends FileSystemLocation>`.
 
-This change makes the Report API more internally consistent, and allows for more idiomatic configuration of reporting tasks with the following syntax:
+This change makes the Report API more internally consistent, and allows for more idiomatic configuration of reporting tasks.
+
+The former, now `@Deprecated` usage:
+
+```groovy
+tasks.named('test') {
+    reports.junitXml.setDestination(layout.buildDirectory.file('reports/my-report-old').get().asFile) // DEPRECATED
+}
+
+```
+
+can be replaced with:
 
 ```groovy
 tasks.named('test') {
@@ -309,14 +320,6 @@ tasks.named('test') {
 }
 ```
 
-versus the now `@Deprecated` former usage of:
-
-```groovy
-tasks.named('test') {
-    reports.junitXml.setDestination(layout.buildDirectory.file('reports/my-report-old').get().asFile)
-}
-
-```
 
 Many built-in and custom reports, such as those used by JUnit, implement this interface.
 Plugins compiled against an earlier version of Gradle containing the previous method signature may need to be recompiled to be used with newer versions of Gradle containing the new signature.
