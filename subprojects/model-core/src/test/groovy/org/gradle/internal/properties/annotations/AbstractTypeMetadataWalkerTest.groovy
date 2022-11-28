@@ -20,6 +20,7 @@ import com.google.common.reflect.TypeToken
 import org.gradle.api.GradleException
 import org.gradle.api.Named
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.internal.reflect.annotations.Ignored
 import org.gradle.internal.reflect.annotations.Long
 import org.gradle.internal.reflect.annotations.TestAnnotationHandlingSupport
@@ -31,121 +32,109 @@ import java.util.function.Supplier
 
 class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnotationHandlingSupport {
 
-    def "should walk a type"() {
+    def "type walker should correctly visit empty type"() {
+        given:
+        def visitor = new TestNodeMetadataVisitor()
+
         when:
-        List<CollectedInput> inputs = []
-        TypeMetadataWalker.typeWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyTask), new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
-            @Override
-            void visitRoot(TypeMetadata typeMetadata, TypeToken<?> value) {
-                inputs.add(new CollectedInput(null, value))
-            }
-
-            @Override
-            void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, TypeToken<?> value) {
-                inputs.add(new CollectedInput(qualifiedName, value))
-            }
-
-            @Override
-            void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<TypeToken<?>> value) {
-                inputs.add(new CollectedInput(qualifiedName, value.get()))
-            }
-        })
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyEmptyTask), visitor)
 
         then:
-        inputs.collect { it.qualifiedName } == [
-            null,
-            "inputProperty",
-            "nested", "nested.inputProperty",
-            "nestedList.*", "nestedList.*.inputProperty",
-            "nestedListOfLists.*.*", "nestedListOfLists.*.*.inputProperty",
-            "nestedMap.<key>", "nestedMap.<key>.inputProperty",
-            "nestedNamedList.<name>", "nestedNamedList.<name>.inputProperty",
-            "nestedProperty", "nestedProperty.inputProperty"
+        visitor.allToString == ["null::MyEmptyTask"]
+    }
+
+    def "instance walker should correctly visit instance with null values"() {
+        given:
+        def myTask = new MyTask()
+        def visitor = new TestNodeMetadataVisitor()
+
+        when:
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(myTask, visitor)
+
+        then:
+        visitor.allToString == ["null::$myTask", "inputProperty::null"] as List<String>
+    }
+
+    def "type walker should visit all nested nodes and properties"() {
+        when:
+        def visitor = new TestNodeMetadataVisitor()
+        TypeMetadataWalker.typeWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyTask), visitor)
+
+        then:
+        visitor.rootsToString == ["null::MyTask"]
+        visitor.nestedToString == [
+            "nested::NestedType",
+            "nestedList.*::NestedType",
+            "nestedListOfLists.*.*::NestedType",
+            "nestedMap.<key>::NestedType",
+            "nestedNamedList.<name>::NamedType",
+            "nestedProperty::NestedType"
+        ]
+        visitor.leavesToString == [
+            "inputProperty::org.gradle.api.provider.Property<java.lang.String>",
+            "nested.inputProperty::org.gradle.api.provider.Property<java.lang.String>",
+            "nestedList.*.inputProperty::org.gradle.api.provider.Property<java.lang.String>",
+            "nestedListOfLists.*.*.inputProperty::org.gradle.api.provider.Property<java.lang.String>",
+            "nestedMap.<key>.inputProperty::org.gradle.api.provider.Property<java.lang.String>",
+            "nestedNamedList.<name>.inputProperty::org.gradle.api.provider.Property<java.lang.String>",
+            "nestedProperty.inputProperty::org.gradle.api.provider.Property<java.lang.String>"
         ]
     }
 
-    def "should walk type instance"() {
+    def "instance walker should visit all nested nodes and properties"() {
         given:
         def firstProperty = TestUtil.propertyFactory().property(String).value("first-property")
         def secondProperty = TestUtil.propertyFactory().property(String).value("second-property")
         def thirdProperty = TestUtil.propertyFactory().property(String).value("third-property")
-        def myType = new MyTask()
+        def myTask = new MyTask()
         def nestedType = new NestedType()
         def namedType = new NamedType()
         nestedType.inputProperty = secondProperty
         namedType.inputProperty = thirdProperty
-        myType.inputProperty = firstProperty
-        myType.nested = nestedType
-        myType.nestedList = [nestedType, nestedType]
-        myType.nestedMap = ["key1": nestedType, "key2": nestedType]
-        myType.nestedListOfLists = [[nestedType]]
-        myType.nestedNamedList = [namedType]
-        myType.nestedProperty = TestUtil.propertyFactory().property(NestedType).value(nestedType)
+        myTask.inputProperty = firstProperty
+        myTask.nested = nestedType
+        myTask.nestedList = [nestedType, nestedType]
+        myTask.nestedMap = ["key1": nestedType, "key2": nestedType]
+        myTask.nestedListOfLists = [[nestedType]]
+        myTask.nestedNamedList = [namedType]
+        myTask.nestedProperty = TestUtil.propertyFactory().property(NestedType).value(nestedType)
+        def visitor = new TestNodeMetadataVisitor()
 
         when:
-        Map<String, CollectedInput> inputs = [:]
-        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(myType, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
-            @Override
-            void visitRoot(TypeMetadata typeMetadata, Object value) {
-                inputs[null] = new CollectedInput(null, value)
-            }
-
-            @Override
-            void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, Object value) {
-                assert !inputs.containsKey(qualifiedName)
-                inputs[qualifiedName] = new CollectedInput(qualifiedName, value)
-            }
-
-            @Override
-            void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<Object> value) {
-                assert !inputs.containsKey(qualifiedName)
-                inputs[qualifiedName] = new CollectedInput(qualifiedName, value.get())
-            }
-        })
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(myTask, visitor)
 
         then:
-        inputs[null].value == myType
-        inputs["inputProperty"].value == firstProperty
-        inputs["nested"].value == nestedType
-        inputs["nested.inputProperty"].value == secondProperty
-        inputs["nestedList.\$1"].value == nestedType
-        inputs["nestedList.\$2"].value == nestedType
-        inputs["nestedList.\$1.inputProperty"].value == secondProperty
-        inputs["nestedList.\$2.inputProperty"].value == secondProperty
-        inputs["nestedMap.key1"].value == nestedType
-        inputs["nestedMap.key2"].value == nestedType
-        inputs["nestedMap.key1.inputProperty"].value == secondProperty
-        inputs["nestedMap.key2.inputProperty"].value == secondProperty
-        inputs["nestedListOfLists.\$1.\$1"].value == nestedType
-        inputs["nestedListOfLists.\$1.\$1.inputProperty"].value == secondProperty
-        inputs["nestedNamedList.\$1"].value == namedType
-        inputs["nestedNamedList.\$1.inputProperty"].value == thirdProperty
-        inputs["nestedProperty"].value == nestedType
-        inputs["nestedProperty.inputProperty"].value == secondProperty
+        visitor.rootsToString == ["null::$myTask"] as List<String>
+        visitor.nestedToString == [
+            "nested::$nestedType",
+            "nestedList.\$1::$nestedType",
+            "nestedList.\$2::$nestedType",
+            "nestedListOfLists.\$1.\$1::$nestedType",
+            "nestedMap.key1::$nestedType",
+            "nestedMap.key2::$nestedType",
+            "nestedNamedList.\$1::$namedType",
+            "nestedProperty::$nestedType"
+        ] as List<String>
+        visitor.leavesToString == [
+            "inputProperty::Property[first-property]",
+            "nested.inputProperty::Property[second-property]",
+            "nestedList.\$1.inputProperty::Property[second-property]",
+            "nestedList.\$2.inputProperty::Property[second-property]",
+            "nestedListOfLists.\$1.\$1.inputProperty::Property[second-property]",
+            "nestedMap.key1.inputProperty::Property[second-property]",
+            "nestedMap.key2.inputProperty::Property[second-property]",
+            "nestedNamedList.\$1.inputProperty::Property[third-property]",
+            "nestedProperty.inputProperty::Property[second-property]"
+        ]
     }
 
     def "type walker should handle types with nested cycles"() {
         when:
-        List<CollectedInput> inputs = []
-        TypeMetadataWalker.typeWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyCycleTask), new TypeMetadataWalker.NodeMetadataVisitor<TypeToken<?>>() {
-            @Override
-            void visitRoot(TypeMetadata typeMetadata, TypeToken<?> value) {
-                inputs.add(new CollectedInput(null, value))
-            }
-
-            @Override
-            void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, TypeToken<?> value) {
-                inputs.add(new CollectedInput(qualifiedName, value))
-            }
-
-            @Override
-            void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<TypeToken<?>> value) {
-                inputs.add(new CollectedInput(qualifiedName, value.get()))
-            }
-        })
+        def visitor = new TestNodeMetadataVisitor()
+        TypeMetadataWalker.typeWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyCycleTask), visitor)
 
         then:
-        inputs.collect { it.qualifiedName } == [
+        visitor.all.collect { it.qualifiedName } == [
             null,
             "nested", "nested.secondNested", "nested.secondNested.thirdNested", "nested.secondNested.thirdNested.input",
             "nestedList.*", "nestedList.*.secondNested", "nestedList.*.secondNested.thirdNested", "nestedList.*.secondNested.thirdNested.input",
@@ -155,25 +144,14 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         ]
     }
 
-    def "instance walker should handle instances with nested cycles for '#propertyWithCycle' property"() {
+    def "instance walker should throw exception with nested cycles for '#propertyWithCycle' property"() {
         given:
         def instance = new MyCycleTask()
         instance[propertyWithCycle] = propertyValue
+        def visitor = new TestNodeMetadataVisitor()
 
         when:
-        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
-            @Override
-            void visitRoot(TypeMetadata typeMetadata, Object value) {
-            }
-
-            @Override
-            void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, Object value) {
-            }
-
-            @Override
-            void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<Object> value) {
-            }
-        })
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
 
         then:
         def exception = thrown(GradleException)
@@ -188,7 +166,65 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         'nestedListOfLists' | [[CycleFirstNode.newInitializedCycle()]]                                                        | "'nestedListOfLists.\$1.\$1' and 'nestedListOfLists.\$1.\$1.secondNested.thirdNested.fourthNested'"
     }
 
-    static class MyTask {
+    static String normalizeToString(String toString) {
+        return toString.replace("$AbstractTypeMetadataWalkerTest.class.name\$", "")
+    }
+
+    static class TestNodeMetadataVisitor<T> implements TypeMetadataWalker.NodeMetadataVisitor<T> {
+        List<CollectedNode> all = []
+        List<CollectedNode> roots = []
+        List<CollectedNode> nested = []
+        List<CollectedNode> leaves = []
+
+        @Override
+        void visitRoot(TypeMetadata typeMetadata, T value) {
+            def node = new CollectedNode(null, value)
+            all.add(node)
+            roots.add(node)
+        }
+
+        @Override
+        void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, T value) {
+            def node = new CollectedNode(qualifiedName, value)
+            all.add(node)
+            nested.add(node)
+        }
+
+        @Override
+        void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<T> value) {
+            def node = new CollectedNode(qualifiedName, value.get())
+            all.add(node)
+            leaves.add(node)
+        }
+
+        List<String> getAllToString() {
+            return all.collect { it.toString() }
+        }
+
+        List<String> getRootsToString() {
+            return roots.collect { it.toString() }
+        }
+
+        List<String> getNestedToString() {
+            return nested.collect { it.toString() }
+        }
+
+        List<String> getLeavesToString() {
+            return leaves.collect { it.toString() }
+        }
+    }
+
+    interface WithNormalizedToString {
+        @Override
+        default String toString() {
+            return normalizeToString(super.toString())
+        }
+    }
+
+    static class MyEmptyTask implements WithNormalizedToString {
+    }
+
+    static class MyTask implements WithNormalizedToString {
         @Long
         Property<String> inputProperty
         @TestNested
@@ -205,12 +241,12 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         Property<NestedType> nestedProperty
     }
 
-    static class NestedType {
+    static class NestedType implements WithNormalizedToString {
         @Long
         Property<String> inputProperty
     }
 
-    static class NamedType implements Named {
+    static class NamedType implements Named, WithNormalizedToString {
         @Long
         Property<String> inputProperty
 
@@ -220,7 +256,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         }
     }
 
-    static class MyCycleTask {
+    static class MyCycleTask implements WithNormalizedToString {
         @TestNested
         CycleFirstNode nested
         @TestNested
@@ -233,7 +269,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         List<List<CycleFirstNode>> nestedListOfLists
     }
 
-    static class CycleFirstNode {
+    static class CycleFirstNode implements WithNormalizedToString {
         @TestNested
         CycleSecondNode secondNested
 
@@ -249,25 +285,40 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         }
     }
 
-    static class CycleSecondNode {
+    static class CycleSecondNode implements WithNormalizedToString {
         @TestNested
         CycleThirdNode thirdNested
     }
 
-    static class CycleThirdNode {
+    static class CycleThirdNode implements WithNormalizedToString {
         @TestNested
         CycleFirstNode fourthNested
         @Long
         CycleFirstNode input
     }
 
-    static class CollectedInput {
+    static class CollectedNode {
         String qualifiedName
         Object value
 
-        CollectedInput(String qualifiedName, Object value) {
+        CollectedNode(String qualifiedName, Object value) {
             this.qualifiedName = qualifiedName
             this.value = value
+        }
+
+        @Override
+        String toString() {
+            return normalizeToString("$qualifiedName::${valueToString()}")
+        }
+
+        private String valueToString() {
+            if (value instanceof Property<?>) {
+                return "Property[" + value.get() + "]"
+            } else if (value instanceof Provider<?>) {
+                return "Provider[" + value.get() + "]"
+            } else {
+                return Objects.toString(value)
+            }
         }
     }
 }
