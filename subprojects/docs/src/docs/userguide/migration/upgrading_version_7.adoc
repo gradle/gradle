@@ -319,7 +319,7 @@ tasks.named('test') {
 ```
 
 Many built-in and custom reports, such as those used by JUnit, implement this interface.
-Plugins that compiled against an earlier version of Gradle containing the previous method signature may need to be recompiled to be used with newer versions of Gradle containing the new signature.
+Plugins compiled against an earlier version of Gradle containing the previous method signature may need to be recompiled to be used with newer versions of Gradle containing the new signature.
 
 ==== Removed external plugin validation plugin
 
