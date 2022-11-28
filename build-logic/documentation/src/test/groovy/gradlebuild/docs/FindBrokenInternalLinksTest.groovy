@@ -95,7 +95,7 @@ More text
         assertNoDeadLinks()
     }
 
-    def "finds broken javadoc links"() {
+    def "finds broken javadoc method links"() {
         given:
         sampleDoc << """
 === Invalid Javadoc Links
@@ -120,6 +120,33 @@ The `link:{javadocPath}/nowhere/gradle/api/attributes/AttributesSchema.html#setA
 
         then:
         assertFoundDeadJavadocLinks(sampleDoc, "nowhere/gradle/api/attributes/AttributesSchema.html", "org/gradle/api/nowhere/AttributesSchema.html")
+    }
+
+    def "finds broken javadoc class links"() {
+        given:
+        sampleDoc << """
+=== Invalid Javadoc Links
+
+Be sure to see: `@link:{javadocPath}/org/gradle/nowhere/tasks/InputDirectory.html[InputDirectory]`
+        """
+
+        new File(projectDir, "build.gradle") << """
+            plugins {
+                id 'java'
+                id 'checkstyle'
+                id 'gradlebuild.documentation'
+            }
+
+            tasks.named("checkDeadInternalLinks").configure {
+                documentationRoot = project.layout.projectDirectory.dir('docsRoot')
+            }
+        """
+
+        when:
+        run('checkDeadInternalLinks').buildAndFail()
+
+        then:
+        assertFoundDeadJavadocLinks(sampleDoc, "org/gradle/nowhere/tasks/InputDirectory.html")
     }
 
     def "finds broken javadoc links with leading javadoc path component"() {
@@ -154,10 +181,12 @@ The `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#
         sampleDoc << """
 === Valid Javadoc Links
 
+Be sure to see: `@link:{javadocPath}/org/gradle/api/tasks/InputDirectory.html[InputDirectory]`
 The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
         """
 
-        createJavadocFile("javadoc/org/gradle/api/attributes/AttributesSchema.html")
+        createJavadocForClass("org/gradle/api/tasks/InputDirectory")
+        createJavadocForClass("org/gradle/api/attributes/AttributesSchema")
 
         new File(projectDir, "build.gradle") << """
             plugins {
@@ -178,8 +207,8 @@ The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttri
         assertNoDeadLinks()
     }
 
-    private File createJavadocFile(String path) {
-        new File(docsRoot, path).tap {
+    private File createJavadocForClass(String path) {
+        new File(docsRoot, "javadoc/${path}.html").tap {
             parentFile.mkdirs()
             createNewFile()
             text = "Generated javadoc HTML goes here"

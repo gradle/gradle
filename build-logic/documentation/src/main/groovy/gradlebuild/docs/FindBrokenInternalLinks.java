@@ -50,7 +50,7 @@ import java.util.regex.Pattern;
 public abstract class FindBrokenInternalLinks extends DefaultTask {
     private final Pattern linkPattern = Pattern.compile("<<([^,>]+)[^>]*>>");
     private final Pattern linkWithHashPattern = Pattern.compile("([a-zA-Z_0-9-.]*)#(.*)");
-    private final Pattern javadocLinkPattern = Pattern.compile("`link:\\{javadocPath}/(.*?)(#.*?)--\\[.*?\\]");
+    private final Pattern javadocLinkPattern = Pattern.compile("link:\\{javadocPath\\}/(.*?\\.html)");
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
