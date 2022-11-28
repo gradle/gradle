@@ -139,7 +139,7 @@ public abstract class PublishToIvyRepository extends SeparatedTask<PublishToIvyR
     }
 
     @Override
-    protected TaskActionRunnable configureTaskAction(Params a) {
+    protected void configureTaskAction(Builder b, Params a) {
         IvyPublicationInternal publicationInternal = getPublicationInternal();
         if (publicationInternal == null) {
             throw new InvalidUserDataException("The 'publication' property is required");
@@ -153,7 +153,7 @@ public abstract class PublishToIvyRepository extends SeparatedTask<PublishToIvyR
         a.getPublication().set(publicationInternal);
         a.getRepository().set(repository);
 
-        return getObjectFactory().newInstance(PublishAction.class, a);
+        b.addAction(PublishAction.class, a);
     }
 
     @Inject
@@ -168,6 +168,7 @@ public abstract class PublishToIvyRepository extends SeparatedTask<PublishToIvyR
 
         private final Params params;
 
+        @Inject
         public PublishAction(Params params) {
             this.params = params;
         }

@@ -121,12 +121,12 @@ public abstract class GenerateMavenPom extends SeparatedTask<GenerateMavenPom.Pa
     }
 
     @Override
-    protected TaskActionRunnable configureTaskAction(Params a) {
+    protected void configureTaskAction(SeparatedTask.Builder b, Params a) {
         a.getSpec().set(computeMavenPomSpec());
         a.getDestination().set(getDestination());
-        return () -> {
+        b.addAction(() -> {
             a.getSpec().get().writeTo(a.getDestination().get().getAsFile());
-        };
+        });
     }
 
     public interface Params extends SeparatedTask.TaskParams {

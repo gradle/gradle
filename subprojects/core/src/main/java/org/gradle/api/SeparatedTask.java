@@ -22,6 +22,8 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.serialization.Cached;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class SeparatedTask<P extends SeparatedTask.TaskParams> extends DefaultTask {
     public interface TaskParams {}
@@ -41,36 +43,36 @@ public abstract class SeparatedTask<P extends SeparatedTask.TaskParams> extends 
 
     private Runnable createTaskAction() {
         P taskParams = getObjectFactory().newInstance(getTaskParamType());
-        return configureTaskAction(taskParams);
+        Builder b = new Builder(getObjectFactory());
+        configureTaskAction(b, taskParams);
+        return b.build();
     }
 
-//    interface Params {
-//    }
-//
-//    interface AcType<P extends Params> {
-//        P getParameters();
-//    }
-//
-//    protected <P extends Params, A extends AcType<P>> void addAction(Class<A> actionClass, Action<P> configureAction) {
-//
-//    }
-//
-//    class Builder<P extends Params> {
-//        Builder<P> configure(Action<P> configureAction) {
-//            return this;
-//        }
-//
-//        <A extends AcType<P>> Builder<P> addAction(Class<A> actionClass) {
-//            return this;
-//        }
-//    }
-//
-//    protected <P extends Params> Builder<P> actionBuilder(Class<P> parameters) {
-//        return new Builder<>();
-//    }
+    public static class Builder {
+        private final List<TaskActionRunnable> actions = new ArrayList<>();
+        private final ObjectFactory objectFactory;
+
+        public Builder(ObjectFactory objectFactory) {
+            this.objectFactory = objectFactory;
+        }
+
+        public Builder addAction(Class<? extends TaskActionRunnable> actionClass, Object... params) {
+            actions.add(objectFactory.newInstance(actionClass, params));
+            return this;
+        }
+
+        public Builder addAction(TaskActionRunnable action) {
+            actions.add(action);
+            return this;
+        }
+
+        private TaskActionRunnable build() {
+            return () -> actions.forEach(Runnable::run);
+        }
+    }
 
     @Internal
     protected abstract Class<P> getTaskParamType();
 
-    protected abstract TaskActionRunnable configureTaskAction(P a);
+    protected abstract void configureTaskAction(Builder b, P parameters);
 }
