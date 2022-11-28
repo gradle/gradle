@@ -754,6 +754,14 @@
         },
         {
             "type": "org.gradle.api.reporting.Report",
+            "member": "Method org.gradle.api.reporting.Report.getOutputLocation()",
+            "acceptation": "Now returns a Property in Gradle 8.0",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.Report",
             "member": "Method org.gradle.api.reporting.Report.isEnabled()",
             "acceptation": "Deprecated method removed",
             "changes": [
