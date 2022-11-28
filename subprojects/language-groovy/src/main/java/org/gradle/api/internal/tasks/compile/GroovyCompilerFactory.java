@@ -28,7 +28,6 @@ import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerFactory;
-import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
@@ -75,25 +74,18 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     }
 
     public static class DaemonSideCompiler implements Compiler<GroovyJavaJointCompileSpec> {
-        private final ExecHandleFactory execHandleFactory;
         private final ProjectLayout projectLayout;
         private final List<File> javaCompilerPlugins;
 
         @Inject
-        public DaemonSideCompiler(ExecHandleFactory execHandleFactory, ProjectLayout projectLayout, List<File> javaCompilerPlugins) {
-            this.execHandleFactory = execHandleFactory;
+        public DaemonSideCompiler(ProjectLayout projectLayout, List<File> javaCompilerPlugins) {
             this.projectLayout = projectLayout;
             this.javaCompilerPlugins = javaCompilerPlugins;
         }
 
         @Override
         public WorkResult execute(GroovyJavaJointCompileSpec spec) {
-            Compiler<JavaCompileSpec> javaCompiler;
-            if (CommandLineJavaCompileSpec.class.isAssignableFrom(spec.getClass())) {
-                javaCompiler = new CommandLineJavaCompiler(execHandleFactory);
-            } else {
-                javaCompiler = new JdkJavaCompiler(new JavaHomeBasedJavaCompilerFactory(javaCompilerPlugins));
-            }
+            Compiler<JavaCompileSpec> javaCompiler = new JdkJavaCompiler(new JavaHomeBasedJavaCompilerFactory(javaCompilerPlugins));
             Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler, projectLayout);
             return groovyCompiler.execute(spec);
         }

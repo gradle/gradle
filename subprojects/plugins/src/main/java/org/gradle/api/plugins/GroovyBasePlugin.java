@@ -43,7 +43,6 @@ import org.gradle.api.tasks.javadoc.GroovydocAccess;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.internal.JavaToolchain;
 
 import javax.inject.Inject;
 import java.util.function.BiFunction;
@@ -126,8 +125,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
                 JvmPluginsHelper.configureForSourceSet(sourceSet, groovySource, compile, compile.getOptions(), project);
                 compile.setDescription("Compiles the " + sourceSet.getName() + " Groovy source.");
                 compile.setSource(groovySource);
-                Provider<JavaLauncher> javaLauncherConvention = getToolchainTool(project, JavaToolchainService::launcherFor)
-                    .map(it -> ((JavaToolchain) it.getMetadata()).isFallbackToolchain() ? null : it);
+                Provider<JavaLauncher> javaLauncherConvention = getToolchainTool(project, JavaToolchainService::launcherFor);
                 compile.getJavaLauncher().convention(javaLauncherConvention);
                 compile.getGroovyOptions().getDisabledGlobalASTTransformations().convention(Sets.newHashSet("groovy.grape.GrabAnnotationTransformation"));
             });
@@ -178,7 +176,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
         });
     }
 
-    private <T> Provider<T> getToolchainTool(Project project, BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<T>> toolMapper) {
+    private static <T> Provider<T> getToolchainTool(Project project, BiFunction<JavaToolchainService, JavaToolchainSpec, Provider<T>> toolMapper) {
         final JavaPluginExtension extension = extensionOf(project, JavaPluginExtension.class);
         final JavaToolchainService service = extensionOf(project, JavaToolchainService.class);
         return toolMapper.apply(service, extension.getToolchain());
@@ -192,7 +190,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
         return extensionOf(project, type);
     }
 
-    private <T> T extensionOf(ExtensionAware extensionAware, Class<T> type) {
+    private static <T> T extensionOf(ExtensionAware extensionAware, Class<T> type) {
         return extensionAware.getExtensions().getByType(type);
     }
 }
