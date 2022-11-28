@@ -19,7 +19,7 @@ package org.gradle.api.internal.cache;
 import org.gradle.api.Action;
 import org.gradle.api.cache.CacheResourceConfiguration;
 import org.gradle.api.cache.Cleanup;
-import org.gradle.api.cache.TimestampSupplier;
+import org.gradle.internal.time.TimestampSuppliers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -31,14 +31,15 @@ import org.gradle.internal.cache.MonitoredCleanupAction;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 
 import javax.inject.Inject;
+import java.util.function.Supplier;
 
 abstract public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
     private final GradleUserHomeCacheCleanupActionDecorator delegate;
 
-    private CacheResourceConfiguration releasedWrappersConfiguration;
-    private CacheResourceConfiguration snapshotWrappersConfiguration;
-    private CacheResourceConfiguration downloadedResourcesConfiguration;
-    private CacheResourceConfiguration createdResourcesConfiguration;
+    private CacheResourceConfigurationInternal releasedWrappersConfiguration;
+    private CacheResourceConfigurationInternal snapshotWrappersConfiguration;
+    private CacheResourceConfigurationInternal downloadedResourcesConfiguration;
+    private CacheResourceConfigurationInternal createdResourcesConfiguration;
     private Property<Cleanup> cleanup;
 
     @Inject
@@ -51,9 +52,9 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         this.delegate = new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeDirProvider);
     }
 
-    private static CacheResourceConfiguration createResourceConfiguration(ObjectFactory objectFactory, int defaultDays) {
-        CacheResourceConfiguration resourceConfiguration = objectFactory.newInstance(CacheResourceConfiguration.class);
-        resourceConfiguration.getRemoveUnusedEntriesAfter().convention(TimestampSupplier.olderThanInDays(defaultDays));
+    private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, int defaultDays) {
+        CacheResourceConfigurationInternal resourceConfiguration = objectFactory.newInstance(DefaultCacheResourceConfiguration.class);
+        resourceConfiguration.getRemoveUnusedEntriesAfter().convention(TimestampSuppliers.daysAgo(defaultDays));
         return resourceConfiguration;
     }
 
@@ -63,12 +64,12 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
-    public CacheResourceConfiguration getReleasedWrappers() {
+    public CacheResourceConfigurationInternal getReleasedWrappers() {
         return releasedWrappersConfiguration;
     }
 
     @Override
-    public void setReleasedWrappers(CacheResourceConfiguration releasedWrappers) {
+    public void setReleasedWrappers(CacheResourceConfigurationInternal releasedWrappers) {
         this.releasedWrappersConfiguration = releasedWrappers;
     }
 
@@ -78,12 +79,12 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
-    public CacheResourceConfiguration getSnapshotWrappers() {
+    public CacheResourceConfigurationInternal getSnapshotWrappers() {
         return snapshotWrappersConfiguration;
     }
 
     @Override
-    public void setSnapshotWrappers(CacheResourceConfiguration snapshotWrappers) {
+    public void setSnapshotWrappers(CacheResourceConfigurationInternal snapshotWrappers) {
         this.snapshotWrappersConfiguration = snapshotWrappers;
     }
 
@@ -93,12 +94,12 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
-    public CacheResourceConfiguration getDownloadedResources() {
+    public CacheResourceConfigurationInternal getDownloadedResources() {
         return downloadedResourcesConfiguration;
     }
 
     @Override
-    public void setDownloadedResources(CacheResourceConfiguration downloadedResources) {
+    public void setDownloadedResources(CacheResourceConfigurationInternal downloadedResources) {
         this.downloadedResourcesConfiguration = downloadedResources;
     }
 
@@ -108,12 +109,12 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
-    public CacheResourceConfiguration getCreatedResources() {
+    public CacheResourceConfigurationInternal getCreatedResources() {
         return createdResourcesConfiguration;
     }
 
     @Override
-    public void setCreatedResources(CacheResourceConfiguration createdResources) {
+    public void setCreatedResources(CacheResourceConfigurationInternal createdResources) {
         this.createdResourcesConfiguration = createdResources;
     }
 
@@ -169,5 +170,20 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     private boolean isEnabled() {
         return getCleanupFrequency().get() != CleanupFrequency.NEVER;
+    }
+
+    static abstract class DefaultCacheResourceConfiguration implements CacheResourceConfigurationInternal {
+        @Inject
+        public DefaultCacheResourceConfiguration() {
+        }
+
+        /**
+         * Returns a supplier mapped from the property.  This provides a supplier that is resilient
+         * to subsequent changes to the property value as opposed to just calling get() on the property.
+         */
+        @Override
+        public Supplier<Long> getRemoveUnusedEntriesAfterAsSupplier() {
+            return () -> getRemoveUnusedEntriesAfter().map(Supplier::get).get();
+        }
     }
 }
