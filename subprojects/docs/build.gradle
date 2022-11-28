@@ -719,8 +719,6 @@ tasks.named("docsTest") { task ->
                 "snippet-native-binaries-cunit_groovy_completeCUnitExample.sample",
                 "snippet-native-binaries-cunit_groovy_dependentComponentsReport.sample",
                 "snippet-native-binaries-cunit_groovy_dependentComponentsReportAll.sample",
-                "snippet-tutorial-ant-loadfile-with-method_groovy_antLoadfileWithMethod.sample",
-                "snippet-tutorial-ant-loadfile-with-method_kotlin_antLoadfileWithMethod.sample",
             ]
 
             // These tests use third-party plugins at versions that may not support the configuration cache properly.
@@ -772,6 +770,10 @@ tasks.named("docsTest") { task ->
                 "snippet-signing-maven-publish_kotlin_signingPluginSignPublication.sample",
                 "snippet-signing-tasks_groovy_signingTaskOutput.sample",
                 "snippet-signing-tasks_kotlin_signingTaskOutput.sample",
+
+                // TODO(https://github.com/gradle/gradle/issues/22879) The snippet extracts build logic into a method and calls the method at execution time
+                "snippet-tutorial-ant-loadfile-with-method_groovy_antLoadfileWithMethod.sample",
+                "snippet-tutorial-ant-loadfile-with-method_kotlin_antLoadfileWithMethod.sample",
             ]
 
             // Tests that can and has to be fixed to run with the configuration cache enabled.

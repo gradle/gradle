@@ -241,6 +241,8 @@ include::{snippetsPath}/tutorial/antLoadfileWithMethod/tests/antLoadfileWithMeth
 ----
 ====
 
+WARNING: Accessing top-level methods and variables is not yet compatible with the <<configuration_cache#config_cache:not_yet_implemented:accessing_top_level_at_execution,configuration cache>>.
+
 Later you will see that such methods can be shared among subprojects in multi-project builds. If your build logic becomes more complex, Gradle offers you other very convenient ways to organize it. We have devoted a whole chapter to this. See <<organizing_gradle_projects.adoc#organizing_gradle_projects,Organizing Gradle Projects>>.
 
 [[sec:default_tasks]]
