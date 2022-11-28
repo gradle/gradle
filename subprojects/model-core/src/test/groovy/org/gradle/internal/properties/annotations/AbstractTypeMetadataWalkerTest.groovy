@@ -40,7 +40,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyEmptyTask), visitor)
 
         then:
-        visitor.allToString == ["null::MyEmptyTask"]
+        visitor.all == ["null::MyEmptyTask"]
     }
 
     def "instance walker should correctly visit instance with null values"() {
@@ -52,7 +52,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(myTask, visitor)
 
         then:
-        visitor.allToString == ["null::$myTask", "inputProperty::null"] as List<String>
+        visitor.all == ["null::$myTask", "inputProperty::null"] as List<String>
     }
 
     def "type walker should visit all nested nodes and properties"() {
@@ -61,8 +61,8 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         TypeMetadataWalker.typeWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyTask), visitor)
 
         then:
-        visitor.rootsToString == ["null::MyTask"]
-        visitor.nestedToString == [
+        visitor.roots == ["null::MyTask"]
+        visitor.nested == [
             "nested::NestedType",
             "nestedList.*::NestedType",
             "nestedListOfLists.*.*::NestedType",
@@ -70,7 +70,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
             "nestedNamedList.<name>::NamedType",
             "nestedProperty::NestedType"
         ]
-        visitor.leavesToString == [
+        visitor.leaves == [
             "inputProperty::org.gradle.api.provider.Property<java.lang.String>",
             "nested.inputProperty::org.gradle.api.provider.Property<java.lang.String>",
             "nestedList.*.inputProperty::org.gradle.api.provider.Property<java.lang.String>",
@@ -104,8 +104,8 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(myTask, visitor)
 
         then:
-        visitor.rootsToString == ["null::$myTask"] as List<String>
-        visitor.nestedToString == [
+        visitor.roots == ["null::$myTask"] as List<String>
+        visitor.nested == [
             "nested::$nestedType",
             "nestedList.\$1::$nestedType",
             "nestedList.\$2::$nestedType",
@@ -115,7 +115,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
             "nestedNamedList.\$1::$namedType",
             "nestedProperty::$nestedType"
         ] as List<String>
-        visitor.leavesToString == [
+        visitor.leaves == [
             "inputProperty::Property[first-property]",
             "nested.inputProperty::Property[second-property]",
             "nestedList.\$1.inputProperty::Property[second-property]",
@@ -134,7 +134,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         TypeMetadataWalker.typeWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyCycleTask), visitor)
 
         then:
-        visitor.all.collect { it.qualifiedName } == [
+        visitor.allQualifiedNames == [
             null,
             "nested", "nested.secondNested", "nested.secondNested.thirdNested", "nested.secondNested.thirdNested.input",
             "nestedList.*", "nestedList.*.secondNested", "nestedList.*.secondNested.thirdNested", "nestedList.*.secondNested.thirdNested.input",
@@ -171,10 +171,10 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
     }
 
     static class TestNodeMetadataVisitor<T> implements TypeMetadataWalker.NodeMetadataVisitor<T> {
-        List<CollectedNode> all = []
-        List<CollectedNode> roots = []
-        List<CollectedNode> nested = []
-        List<CollectedNode> leaves = []
+        private List<CollectedNode> all = []
+        private List<CollectedNode> roots = []
+        private List<CollectedNode> nested = []
+        private List<CollectedNode> leaves = []
 
         @Override
         void visitRoot(TypeMetadata typeMetadata, T value) {
@@ -197,20 +197,24 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
             leaves.add(node)
         }
 
-        List<String> getAllToString() {
+        List<String> getAll() {
             return all.collect { it.toString() }
         }
 
-        List<String> getRootsToString() {
+        List<String> getRoots() {
             return roots.collect { it.toString() }
         }
 
-        List<String> getNestedToString() {
+        List<String> getNested() {
             return nested.collect { it.toString() }
         }
 
-        List<String> getLeavesToString() {
+        List<String> getLeaves() {
             return leaves.collect { it.toString() }
+        }
+
+        List<String> getAllQualifiedNames() {
+            return all.collect { it.qualifiedName }
         }
     }
 
