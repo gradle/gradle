@@ -227,7 +227,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
                     .includeLink()
             })
         ]
-        store.getTypeAnnotationMetadata(TypeWithIsAndGetProperty).propertiesAnnotationMetadata[0].method.name == "getBool"
+        store.getTypeAnnotationMetadata(TypeWithIsAndGetProperty).propertiesAnnotationMetadata[0].getter.name == "getBool"
     }
 
     @SuppressWarnings("unused")
@@ -258,7 +258,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         assertProperties TypeWithIgnoredIsGetterBooleanProperty, [
             bool: [(TYPE): Small],
         ]
-        store.getTypeAnnotationMetadata(TypeWithIgnoredIsGetterBooleanProperty).propertiesAnnotationMetadata[0].method.name == "getBool"
+        store.getTypeAnnotationMetadata(TypeWithIgnoredIsGetterBooleanProperty).propertiesAnnotationMetadata[0].getter.name == "getBool"
     }
 
     @SuppressWarnings("unused")
@@ -276,7 +276,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         assertProperties TypeWithIgnoredGetGetterBooleanProperty, [
             bool: [(TYPE): Small],
         ]
-        store.getTypeAnnotationMetadata(TypeWithIgnoredGetGetterBooleanProperty).propertiesAnnotationMetadata[0].method.name == "isBool"
+        store.getTypeAnnotationMetadata(TypeWithIgnoredGetGetterBooleanProperty).propertiesAnnotationMetadata[0].getter.name == "isBool"
     }
 
     @SuppressWarnings("unused")
@@ -487,7 +487,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         when:
         def metadata = store.getTypeAnnotationMetadata(TypeWithOverride)
         then:
-        metadata.propertiesAnnotationMetadata[0].method.declaringClass == TypeWithOverride
+        metadata.propertiesAnnotationMetadata[0].getter.declaringClass == TypeWithOverride
     }
 
     @SuppressWarnings("unused")

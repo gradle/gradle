@@ -28,13 +28,13 @@ import java.util.Optional;
 
 public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMetadata {
     private final String propertyName;
-    private final Method method;
+    private final Method getter;
     private final ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory;
     private final ImmutableMap<Class<? extends Annotation>, Annotation> annotationsByType;
 
-    public DefaultPropertyAnnotationMetadata(String propertyName, Method method, ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory) {
+    public DefaultPropertyAnnotationMetadata(String propertyName, Method getter, ImmutableMap<AnnotationCategory, Annotation> annotationsByCategory) {
         this.propertyName = propertyName;
-        this.method = method;
+        this.getter = getter;
         this.annotationsByCategory = annotationsByCategory;
         this.annotationsByType = collectAnnotationsByType(annotationsByCategory);
     }
@@ -48,8 +48,8 @@ public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMeta
     }
 
     @Override
-    public Method getMethod() {
-        return method;
+    public Method getGetter() {
+        return getter;
     }
 
     @Override
@@ -74,11 +74,11 @@ public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMeta
 
     @Override
     public int compareTo(@Nonnull PropertyAnnotationMetadata o) {
-        return method.getName().compareTo(o.getMethod().getName());
+        return getter.getName().compareTo(o.getGetter().getName());
     }
 
     @Override
     public String toString() {
-        return String.format("%s / %s()", propertyName, method.getName());
+        return String.format("%s / %s()", propertyName, getter.getName());
     }
 }
