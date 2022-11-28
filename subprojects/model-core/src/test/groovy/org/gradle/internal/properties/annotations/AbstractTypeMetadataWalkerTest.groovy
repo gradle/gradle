@@ -87,7 +87,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(myType, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
             @Override
             void visitRoot(TypeMetadata typeMetadata, Object value) {
-                inputs[null]= new CollectedInput(null, value)
+                inputs[null] = new CollectedInput(null, value)
             }
 
             @Override
@@ -112,8 +112,8 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         inputs["nestedList.\$2"].value == nestedType
         inputs["nestedList.\$1.inputProperty"].value == secondProperty
         inputs["nestedList.\$2.inputProperty"].value == secondProperty
-        inputs["nestedMap.key1"].value ==  nestedType
-        inputs["nestedMap.key2"].value ==  nestedType
+        inputs["nestedMap.key1"].value == nestedType
+        inputs["nestedMap.key2"].value == nestedType
         inputs["nestedMap.key1.inputProperty"].value == secondProperty
         inputs["nestedMap.key2.inputProperty"].value == secondProperty
         inputs["nestedListOfLists.\$1.\$1"].value == nestedType
@@ -147,35 +147,31 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         then:
         inputs.collect { it.qualifiedName } == [
             null,
-            "nested", "nested.input",
-            "nestedList.*", "nestedList.*.input",
-            "nestedListOfLists.*.*", "nestedListOfLists.*.*.input",
-            "nestedMap.<key>", "nestedMap.<key>.input",
-            "nestedProperty", "nestedProperty.input"
+            "nested", "nested.secondNested", "nested.secondNested.thirdNested", "nested.secondNested.thirdNested.input",
+            "nestedList.*", "nestedList.*.secondNested", "nestedList.*.secondNested.thirdNested", "nestedList.*.secondNested.thirdNested.input",
+            "nestedListOfLists.*.*", "nestedListOfLists.*.*.secondNested", "nestedListOfLists.*.*.secondNested.thirdNested", "nestedListOfLists.*.*.secondNested.thirdNested.input",
+            "nestedMap.<key>", "nestedMap.<key>.secondNested", "nestedMap.<key>.secondNested.thirdNested", "nestedMap.<key>.secondNested.thirdNested.input",
+            "nestedProperty", "nestedProperty.secondNested", "nestedProperty.secondNested.thirdNested", "nestedProperty.secondNested.thirdNested.input",
         ]
     }
 
-    def "instance walker should handle instances with nested cycles"() {
+    def "instance walker should handle instances with nested cycles for '#propertyWithCycle' property"() {
         given:
         def instance = new MyCycleTask()
         instance[propertyWithCycle] = propertyValue
 
         when:
-        List<CollectedInput> inputs = []
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
             @Override
             void visitRoot(TypeMetadata typeMetadata, Object value) {
-                inputs.add(new CollectedInput(null, value))
             }
 
             @Override
             void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, Object value) {
-                inputs.add(new CollectedInput(qualifiedName, value))
             }
 
             @Override
             void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<Object> value) {
-                inputs.add(new CollectedInput(qualifiedName, value.get()))
             }
         })
 
@@ -184,12 +180,12 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         exception.message == "Cycles between nested beans are not allowed. Cycle detected between: $expectedCycle."
 
         where:
-        propertyWithCycle   | propertyValue                                                                         | expectedCycle
-        'nested'            | CycleType.newInitializedCycle()                                                       | "'nested' and 'nested.nested'"
-        'nestedProperty'    | TestUtil.propertyFactory().property(CycleType).value(CycleType.newInitializedCycle()) | "'nestedProperty' and 'nestedProperty.nested'"
-        'nestedList'        | [CycleType.newInitializedCycle()]                                                     | "'nestedList.\$1' and 'nestedList.\$1.nested'"
-        'nestedMap'         | ['key1': CycleType.newInitializedCycle()]                                             | "'nestedMap.key1' and 'nestedMap.key1.nested'"
-        'nestedListOfLists' | [[CycleType.newInitializedCycle()]]                                                   | "'nestedListOfLists.\$1.\$1' and 'nestedListOfLists.\$1.\$1.nested'"
+        propertyWithCycle   | propertyValue                                                                                   | expectedCycle
+        'nested'            | CycleFirstNode.newInitializedCycle()                                                            | "'nested' and 'nested.secondNested.thirdNested.fourthNested'"
+        'nestedProperty'    | TestUtil.propertyFactory().property(CycleFirstNode).value(CycleFirstNode.newInitializedCycle()) | "'nestedProperty' and 'nestedProperty.secondNested.thirdNested.fourthNested'"
+        'nestedList'        | [CycleFirstNode.newInitializedCycle()]                                                          | "'nestedList.\$1' and 'nestedList.\$1.secondNested.thirdNested.fourthNested'"
+        'nestedMap'         | ['key1': CycleFirstNode.newInitializedCycle()]                                                  | "'nestedMap.key1' and 'nestedMap.key1.secondNested.thirdNested.fourthNested'"
+        'nestedListOfLists' | [[CycleFirstNode.newInitializedCycle()]]                                                        | "'nestedListOfLists.\$1.\$1' and 'nestedListOfLists.\$1.\$1.secondNested.thirdNested.fourthNested'"
     }
 
     static class MyTask {
@@ -226,29 +222,43 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
 
     static class MyCycleTask {
         @TestNested
-        CycleType nested
+        CycleFirstNode nested
         @TestNested
-        Property<CycleType> nestedProperty
+        Property<CycleFirstNode> nestedProperty
         @TestNested
-        List<CycleType> nestedList
+        List<CycleFirstNode> nestedList
         @TestNested
-        Map<String, CycleType> nestedMap
+        Map<String, CycleFirstNode> nestedMap
         @TestNested
-        List<List<CycleType>> nestedListOfLists
+        List<List<CycleFirstNode>> nestedListOfLists
     }
 
-    static class CycleType {
+    static class CycleFirstNode {
         @TestNested
-        CycleType nested
-        @Long
-        CycleType input
+        CycleSecondNode secondNested
 
-        static CycleType newInitializedCycle() {
-            def cycleType = new CycleType()
-            cycleType.nested = cycleType
-            cycleType.input = cycleType
-            return cycleType
+        static CycleFirstNode newInitializedCycle() {
+            def cycleFirstNode = new CycleFirstNode()
+            def cycleSecondNode = new CycleSecondNode()
+            def cycleThirdNode = new CycleThirdNode()
+            cycleFirstNode.secondNested = cycleSecondNode
+            cycleSecondNode.thirdNested = cycleThirdNode
+            cycleThirdNode.fourthNested = cycleFirstNode
+            cycleThirdNode.input = cycleFirstNode
+            return cycleFirstNode
         }
+    }
+
+    static class CycleSecondNode {
+        @TestNested
+        CycleThirdNode thirdNested
+    }
+
+    static class CycleThirdNode {
+        @TestNested
+        CycleFirstNode fourthNested
+        @Long
+        CycleFirstNode input
     }
 
     static class CollectedInput {
