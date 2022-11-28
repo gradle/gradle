@@ -30,18 +30,10 @@ class FindBrokenInternalLinksTest extends Specification {
 
     private setup() {
         docsRoot = new File(projectDir, "docsRoot")
-        docsRoot.mkdirs()
+        new File(docsRoot, 'javadoc').mkdirs()
         sampleDoc = new File(docsRoot, "sample.adoc")
         linkErrors = new File(projectDir, "build/reports/dead-internal-links.txt")
-    }
 
-    def "finds broken section links"() {
-        given:
-        sampleDoc << """
-=== Dead Section Links
-This section doesn't exist: <<missing_section>>
-Also see this one, which is another dead link: <<other_missing_section>>
-        """
 
         new File(projectDir, "build.gradle") << """
             plugins {
@@ -50,9 +42,30 @@ Also see this one, which is another dead link: <<other_missing_section>>
                 id 'gradlebuild.documentation'
             }
 
-            tasks.named("checkDeadInternalLinks").configure {
-                documentationRoot = project.layout.projectDirectory.dir('docsRoot')
+            gradleDocumentation {
+                javadocs {
+                    javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
+                    groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-3/html/gapi")
+                }
             }
+
+            javadocAll {
+                enabled = false
+            }
+
+            tasks.named('checkDeadInternalLinks').configure {
+                documentationRoot = project.layout.projectDirectory.dir('docsRoot')
+                javadocRoot = documentationRoot.dir('javadoc')
+            }
+        """
+    }
+
+    def "finds broken section links"() {
+        given:
+        sampleDoc << """
+=== Dead Section Links
+This section doesn't exist: <<missing_section>>
+Also see this one, which is another dead link: <<other_missing_section>>
         """
 
         when:
@@ -76,18 +89,6 @@ This section comes later: <<subsequent_section>>
 More text
         """
 
-        new File(projectDir, "build.gradle") << """
-            plugins {
-                id 'java'
-                id 'checkstyle'
-                id 'gradlebuild.documentation'
-            }
-
-            tasks.named("checkDeadInternalLinks").configure {
-                documentationRoot = project.layout.projectDirectory.dir('docsRoot')
-            }
-        """
-
         when:
         run('checkDeadInternalLinks').build()
 
@@ -101,18 +102,6 @@ More text
 === Invalid Javadoc Links
 
 The `link:{javadocPath}/nowhere/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/org/gradle/api/nowhere/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
-        """
-
-        new File(projectDir, "build.gradle") << """
-            plugins {
-                id 'java'
-                id 'checkstyle'
-                id 'gradlebuild.documentation'
-            }
-
-            tasks.named("checkDeadInternalLinks").configure {
-                documentationRoot = project.layout.projectDirectory.dir('docsRoot')
-            }
         """
 
         when:
@@ -130,18 +119,6 @@ The `link:{javadocPath}/nowhere/gradle/api/attributes/AttributesSchema.html#setA
 Be sure to see: `@link:{javadocPath}/org/gradle/nowhere/tasks/InputDirectory.html[InputDirectory]`
         """
 
-        new File(projectDir, "build.gradle") << """
-            plugins {
-                id 'java'
-                id 'checkstyle'
-                id 'gradlebuild.documentation'
-            }
-
-            tasks.named("checkDeadInternalLinks").configure {
-                documentationRoot = project.layout.projectDirectory.dir('docsRoot')
-            }
-        """
-
         when:
         run('checkDeadInternalLinks').buildAndFail()
 
@@ -155,18 +132,6 @@ Be sure to see: `@link:{javadocPath}/org/gradle/nowhere/tasks/InputDirectory.htm
 === Invalid Javadoc Links
 
 The `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
-        """
-
-        new File(projectDir, "build.gradle") << """
-            plugins {
-                id 'java'
-                id 'checkstyle'
-                id 'gradlebuild.documentation'
-            }
-
-            tasks.named("checkDeadInternalLinks").configure {
-                documentationRoot = project.layout.projectDirectory.dir('docsRoot')
-            }
         """
 
         when:
@@ -187,18 +152,6 @@ The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttri
 
         createJavadocForClass("org/gradle/api/tasks/InputDirectory")
         createJavadocForClass("org/gradle/api/attributes/AttributesSchema")
-
-        new File(projectDir, "build.gradle") << """
-            plugins {
-                id 'java'
-                id 'checkstyle'
-                id 'gradlebuild.documentation'
-            }
-
-            tasks.named("checkDeadInternalLinks").configure {
-                documentationRoot = project.layout.projectDirectory.dir('docsRoot')
-            }
-        """
 
         when:
         run('checkDeadInternalLinks').build()
