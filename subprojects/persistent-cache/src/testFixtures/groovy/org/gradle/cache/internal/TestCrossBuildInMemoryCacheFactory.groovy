@@ -22,6 +22,12 @@ import java.util.function.Function
 import java.util.function.Predicate
 
 class TestCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFactory {
+    private final static CrossBuildInMemoryCacheFactory INSTANCE = new TestCrossBuildInMemoryCacheFactory()
+
+    static CrossBuildInMemoryCacheFactory instance() {
+        INSTANCE
+    }
+
     @Override
     <K, V> CrossBuildInMemoryCache<K, V> newCache() {
         return new TestCache<K, V>()

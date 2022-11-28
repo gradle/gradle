@@ -115,6 +115,9 @@ dependencies {
     testFixturesApi(project(":resources")) {
         because("test fixtures expose file resource types")
     }
+    testFixturesApi(testFixtures(project(":persistent-cache"))) {
+        because("test fixtures expose cross-build cache factory")
+    }
     testFixturesApi(project(":process-services")) {
         because("test fixtures expose exec handler types")
     }
