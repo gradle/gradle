@@ -16,8 +16,8 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheCleanup;
 import org.gradle.cache.CacheOpenException;
-import org.gradle.cache.CleanupAction;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
@@ -50,7 +50,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     private final CacheBuilder.LockTarget lockTarget;
     private final LockOptions lockOptions;
     @Nullable
-    private final CleanupAction cleanupAction;
+    private final CacheCleanup cacheCleanup;
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
     private final String displayName;
@@ -64,7 +64,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         @Nullable String displayName,
         CacheBuilder.LockTarget lockTarget,
         LockOptions lockOptions,
-        @Nullable CleanupAction cleanupAction,
+        @Nullable CacheCleanup cacheCleanup,
         FileLockManager fileLockManager,
         ExecutorFactory executorFactory,
         ProgressLoggerFactory progressLoggerFactory
@@ -72,7 +72,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         this.dir = dir;
         this.lockTarget = lockTarget;
         this.lockOptions = lockOptions;
-        this.cleanupAction = cleanupAction;
+        this.cacheCleanup = cacheCleanup;
         this.lockManager = fileLockManager;
         this.executorFactory = executorFactory;
         this.propertiesFile = new File(dir, "cache.properties");
@@ -206,14 +206,14 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     private class Cleanup implements CacheCleanupAction {
         @Override
         public boolean requiresCleanup() {
-            if (cleanupAction != null) {
+            if (cacheCleanup != null) {
                 if (!gcFile.exists()) {
                     GFileUtils.touch(gcFile);
                 } else {
                     long duration = System.currentTimeMillis() - gcFile.lastModified();
                     long timeInHours = TimeUnit.MILLISECONDS.toHours(duration);
                     LOGGER.debug("{} has last been fully cleaned up {} hours ago", DefaultPersistentDirectoryStore.this, timeInHours);
-                    return timeInHours >= CLEANUP_INTERVAL_IN_HOURS;
+                    return cacheCleanup.getCleanupFrequency().requiresCleanup(gcFile.lastModified());
                 }
             }
             return false;
@@ -221,12 +221,12 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
         @Override
         public void cleanup() {
-            if (cleanupAction != null) {
+            if (cacheCleanup != null) {
                 String description = "Cleaning " + getDisplayName();
                 ProgressLogger progressLogger = progressLoggerFactory.newOperation(CacheCleanupAction.class).start(description, description);
                 Timer timer = Time.startTimer();
                 try {
-                    cleanupAction.clean(DefaultPersistentDirectoryStore.this, new DefaultCleanupProgressMonitor(progressLogger));
+                    cacheCleanup.getCleanupAction().clean(DefaultPersistentDirectoryStore.this, new DefaultCleanupProgressMonitor(progressLogger));
                     GFileUtils.touch(gcFile);
                 } finally {
                     LOGGER.info("{} cleaned up in {}.", DefaultPersistentDirectoryStore.this, timer.getElapsed());

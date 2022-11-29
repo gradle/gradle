@@ -14,14 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal;
+package org.gradle.api.cache;
+
+import org.gradle.api.Incubating;
+import org.gradle.api.internal.cache.DefaultCleanup;
+import org.gradle.cache.CleanupFrequency;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
- * Allows {@link MonitoredCleanupAction} instances to be decorated with additional functionality, such as checking whether cleanup has been disabled or not.
+ * Configures cache cleanup settings that apply to all caches.
+ *
+ * @since 8.0
  */
-public interface MonitoredCleanupActionDecorator {
+@HasInternalProtocol
+@Incubating
+public interface Cleanup {
     /**
-     * Decorates the provided {@link MonitoredCleanupAction}
+     * Perform cache cleanup periodically (default is only once every 24 hours).
      */
-    MonitoredCleanupAction decorate(MonitoredCleanupAction cleanupAction);
+    Cleanup DEFAULT = new DefaultCleanup(CleanupFrequency.DAILY);
+
+    /**
+     * Never perform cache cleanup.
+     */
+    Cleanup DISABLED = new DefaultCleanup(CleanupFrequency.NEVER);
 }

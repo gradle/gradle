@@ -16,9 +16,10 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.api.cache.CacheConfigurations;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.internal.cache.MonitoredCleanupActionDecorator;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.service.ServiceRegistration;
@@ -32,7 +33,7 @@ public class GradleUserHomeCleanupServices {
         GradleUserHomeDirProvider gradleUserHomeDirProvider,
         ProgressLoggerFactory progressLoggerFactory,
         MonitoredCleanupActionDecorator monitoredCleanupActionDecorator,
-        CacheConfigurations cacheConfigurations
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         UsedGradleVersions usedGradleVersions = new UsedGradleVersionsFromGradleUserHomeCaches(globalScopedCache);
         registration.add(UsedGradleVersions.class, usedGradleVersions);

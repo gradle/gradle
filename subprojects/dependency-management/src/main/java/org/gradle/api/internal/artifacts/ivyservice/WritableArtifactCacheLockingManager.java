@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
+import org.gradle.api.internal.cache.DefaultCacheCleanup;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -49,15 +51,22 @@ public class WritableArtifactCacheLockingManager implements ArtifactCacheLocking
                                                FileAccessTimeJournal fileAccessTimeJournal,
                                                UsedGradleVersions usedGradleVersions,
                                                CleanupActionDecorator cleanupActionDecorator,
-                                               CacheConfigurations cacheConfigurations
+                                               CacheConfigurationsInternal cacheConfigurations
                                                ) {
         cache = cacheRepository
                 .cache(cacheMetaData.getCacheDir())
                 .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
                 .withDisplayName("artifact cache")
                 .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Don't need to lock anything until we use the caches
-                .withCleanup(cleanupActionDecorator.decorate(createCleanupAction(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations)))
+                .withCleanup(createCacheCleanup(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cleanupActionDecorator, cacheConfigurations))
                 .open();
+    }
+
+    private DefaultCacheCleanup createCacheCleanup(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions, CleanupActionDecorator cleanupActionDecorator, CacheConfigurationsInternal cacheConfigurations) {
+        return DefaultCacheCleanup.from(
+            cleanupActionDecorator.decorate(createCleanupAction(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations)),
+            cacheConfigurations.getCleanupFrequency()
+        );
     }
 
     private CleanupAction createCleanupAction(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions, CacheConfigurations cacheConfigurations) {
