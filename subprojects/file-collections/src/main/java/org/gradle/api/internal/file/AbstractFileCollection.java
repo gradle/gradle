@@ -374,7 +374,12 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         }
     }
 
-    protected void visitContents(FileCollectionStructureVisitor visitor) {
+    @Override
+    public final void visitContentsInternal(FileCollectionStructureVisitor visitor) {
         visitor.visitCollection(OTHER, this);
+    }
+
+    protected void visitContents(FileCollectionStructureVisitor visitor) {
+        visitContentsInternal(visitor);
     }
 }

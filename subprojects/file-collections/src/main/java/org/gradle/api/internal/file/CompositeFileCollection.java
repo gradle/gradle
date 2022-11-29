@@ -121,7 +121,13 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
 
     @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
-        visitChildren(child -> child.visitStructure(visitor));
+        visitChildren(child -> visitChild(child, visitor));
         fileCollectionListener.fileCollectionObserved(this, "Consumer?");
+    }
+
+    private void visitChild(FileCollectionInternal child, FileCollectionStructureVisitor visitor) {
+        if (visitor.startVisit(OTHER, this)) {
+            child.visitContentsInternal(visitor);
+        }
     }
 }

@@ -57,7 +57,7 @@ public abstract class AbstractOpaqueFileCollection extends AbstractFileCollectio
 
     @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
-        visitor.visitCollection(OTHER, this);
+        super.visitContents(visitor);
         fileCollectionListener.fileCollectionObserved(this, "Consumer?");
     }
 

@@ -48,6 +48,8 @@ public interface FileCollectionInternal extends FileCollection, TaskDependencyCo
      */
     void visitStructure(FileCollectionStructureVisitor visitor);
 
+    void visitContentsInternal(FileCollectionStructureVisitor visitor);
+
     /**
      * Appends diagnostic information about the contents of this collection to the given formatter.
      */
