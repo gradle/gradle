@@ -30,7 +30,6 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.DslObject;
@@ -254,10 +253,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         jvmPluginServices.configureAsCompileClasspath(compileClasspathConfiguration);
 
-        // Need to be able to declare against and resolve this; but NOT consume it - this is NOT a standard role
-        ConfigurationRole annotationProcessorRole = ConfigurationRole.forUsage("Annotation Processor Usage", false, true, true, false, false, false);
         warnIfConfigurationAlreadyExists(configurations, annotationProcessorConfigurationName);
-        ConfigurationInternal annotationProcessorConfiguration = configurations.maybeCreateWithRole(annotationProcessorConfigurationName, annotationProcessorRole, false, false);
+        ConfigurationInternal annotationProcessorConfiguration = configurations.maybeCreateWithRole(annotationProcessorConfigurationName, ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET, false, false);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);

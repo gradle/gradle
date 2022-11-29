@@ -30,6 +30,7 @@ class ConfigurationRoleSpec extends Specification {
         true        | true          | true              | false                 | false                 | false                         || ConfigurationRoles.LEGACY
         true        | false         | false             | false                 | false                 | false                         || ConfigurationRoles.INTENDED_CONSUMABLE
         false       | true          | false             | false                 | false                 | false                         || ConfigurationRoles.INTENDED_RESOLVABLE
+        false       | true          | true              | false                 | false                 | false                         || ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET
         false       | false         | true              | false                 | false                 | false                         || ConfigurationRoles.INTENDED_BUCKET
         true        | true          | true              | false                 | true                  | true                          || ConfigurationRoles.DEPRECATED_CONSUMABLE
         true        | true          | true              | true                  | false                 | true                          || ConfigurationRoles.DEPRECATED_RESOLVABLE
@@ -73,7 +74,7 @@ class ConfigurationRoleSpec extends Specification {
 
     def "custom role can be given custom description"() {
         when:
-        def customRole = ConfigurationRole.forUsage('custom', consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated, 'custom description')
+        def customRole = ConfigurationRole.forUsage('custom', consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated, 'custom description', false)
 
         then:
         customRole !in ConfigurationRoles.values()
@@ -94,18 +95,19 @@ class ConfigurationRoleSpec extends Specification {
         assertDescriptionContains(role, usages)
 
         where:
-        role                                        || usages
-        ConfigurationRoles.LEGACY                   || [CONSUMABLE, RESOLVABLE, DECLARABLE_AGAINST]
-        ConfigurationRoles.INTENDED_CONSUMABLE      || [CONSUMABLE]
-        ConfigurationRoles.INTENDED_RESOLVABLE      || [RESOLVABLE]
-        ConfigurationRoles.INTENDED_BUCKET          || [DECLARABLE_AGAINST]
-        ConfigurationRoles.DEPRECATED_CONSUMABLE    || [CONSUMABLE, deprecatedFor(RESOLVABLE), deprecatedFor(DECLARABLE_AGAINST)]
-        ConfigurationRoles.DEPRECATED_RESOLVABLE    || [RESOLVABLE, deprecatedFor(CONSUMABLE), deprecatedFor(DECLARABLE_AGAINST)]
+        role                                            || usages
+        ConfigurationRoles.LEGACY                       || [CONSUMABLE, RESOLVABLE, DECLARABLE_AGAINST]
+        ConfigurationRoles.INTENDED_CONSUMABLE          || [CONSUMABLE]
+        ConfigurationRoles.INTENDED_RESOLVABLE          || [RESOLVABLE]
+        ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET   || [RESOLVABLE, DECLARABLE_AGAINST]
+        ConfigurationRoles.INTENDED_BUCKET              || [DECLARABLE_AGAINST]
+        ConfigurationRoles.DEPRECATED_CONSUMABLE        || [CONSUMABLE, deprecatedFor(RESOLVABLE), deprecatedFor(DECLARABLE_AGAINST)]
+        ConfigurationRoles.DEPRECATED_RESOLVABLE        || [RESOLVABLE, deprecatedFor(CONSUMABLE), deprecatedFor(DECLARABLE_AGAINST)]
     }
 
     def "custom role can't deprecate what it doesn't allow"() {
         when:
-        ConfigurationRole.forUsage(consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated, )
+        ConfigurationRole.forUsage(consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated)
 
         then:
         def e = thrown(IllegalArgumentException)

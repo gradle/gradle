@@ -43,10 +43,18 @@ public enum ConfigurationRoles implements ConfigurationRole {
      */
     INTENDED_CONSUMABLE(true, false, false, false, false, false),
 
-    /**d
+    /**
      * Meant to be used only for resolving dependencies.
      */
     INTENDED_RESOLVABLE(false, true, false, false, false, false),
+
+    /**
+     * Meant as a temporary solution for situations where we need to declare dependencies against a resolvable configuration.
+     *
+     * These situations should be updated to use a separate bucket configuration for declaring dependencies and extend it with a separate resolvable configuration.
+     */
+    @Deprecated
+    INTENDED_RESOLVABLE_BUCKET(false, true, true, false, false, false),
 
     /**
      * Meant to be used only for declaring dependencies.
