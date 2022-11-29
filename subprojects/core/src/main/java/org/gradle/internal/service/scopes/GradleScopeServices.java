@@ -31,7 +31,7 @@ import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.services.internal.BuildServiceProvider;
-import org.gradle.api.services.internal.BuildServiceProviderValidator;
+import org.gradle.api.services.internal.BuildServiceProviderNagger;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
 import org.gradle.cache.GlobalCacheLocations;
@@ -248,7 +248,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             isolatableFactory,
             sharedResourceLeaseRegistry,
             featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
-                ? new BuildServiceProviderValidator(services.get(TaskExecutionTracker.class))
+                ? new BuildServiceProviderNagger(services.get(TaskExecutionTracker.class))
                 : BuildServiceProvider.Listener.EMPTY
         );
     }

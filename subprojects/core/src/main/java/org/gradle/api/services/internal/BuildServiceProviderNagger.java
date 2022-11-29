@@ -21,11 +21,13 @@ import org.gradle.internal.execution.TaskExecutionTracker;
 
 import java.util.Optional;
 
-public class BuildServiceProviderValidator implements BuildServiceProvider.Listener {
+import static org.gradle.internal.deprecation.DeprecationLogger.deprecateBehaviour;
+
+public class BuildServiceProviderNagger implements BuildServiceProvider.Listener {
 
     private final TaskExecutionTracker taskExecutionTracker;
 
-    public BuildServiceProviderValidator(TaskExecutionTracker taskExecutionTracker) {
+    public BuildServiceProviderNagger(TaskExecutionTracker taskExecutionTracker) {
         this.taskExecutionTracker = taskExecutionTracker;
     }
 
@@ -33,7 +35,7 @@ public class BuildServiceProviderValidator implements BuildServiceProvider.Liste
     public void beforeGet(BuildServiceProvider<?, ?> provider) {
         currentTask().ifPresent(task -> {
             if (!isServiceRequiredBy(task, provider)) {
-                throwUndeclaredUsageOf(provider, task);
+                nagAboutUndeclaredUsageOf(provider, task);
             }
         });
     }
@@ -46,8 +48,12 @@ public class BuildServiceProviderValidator implements BuildServiceProvider.Liste
         return task.getRequiredServices().isServiceRequired(provider);
     }
 
-    private static void throwUndeclaredUsageOf(BuildServiceProvider<?, ?> provider, TaskInternal task) {
-        throw new UnsupportedOperationException(undeclaredBuildServiceUsage(provider, task));
+    private static void nagAboutUndeclaredUsageOf(BuildServiceProvider<?, ?> provider, TaskInternal task) {
+        deprecateBehaviour(undeclaredBuildServiceUsage(provider, task))
+            .withAdvice("Declare the association between the task and the build service using 'Task#usesService'.")
+            .willBecomeAnErrorInGradle8()
+            .withUpgradeGuideSection(7, "undeclared_build_service_usage")
+            .nagUser();
     }
 
     private static String undeclaredBuildServiceUsage(BuildServiceProvider<?, ?> provider, TaskInternal task) {
