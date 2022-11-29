@@ -55,7 +55,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, int defaultDays) {
         CacheResourceConfigurationInternal resourceConfiguration = objectFactory.newInstance(DefaultCacheResourceConfiguration.class);
-        resourceConfiguration.getRemoveUnusedEntriesAfter().convention(providerFromSupplier(TimestampSuppliers.daysAgo(defaultDays)));
+        resourceConfiguration.getRemoveUnusedEntriesOlderThan().convention(providerFromSupplier(TimestampSuppliers.daysAgo(defaultDays)));
         return resourceConfiguration;
     }
 
@@ -136,10 +136,10 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     @Override
     public void finalizeConfigurations() {
-        releasedWrappersConfiguration.getRemoveUnusedEntriesAfter().finalizeValue();
-        snapshotWrappersConfiguration.getRemoveUnusedEntriesAfter().finalizeValue();
-        downloadedResourcesConfiguration.getRemoveUnusedEntriesAfter().finalizeValue();
-        createdResourcesConfiguration.getRemoveUnusedEntriesAfter().finalizeValue();
+        releasedWrappersConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
+        snapshotWrappersConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
+        downloadedResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
+        createdResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         getCleanup().finalizeValue();
     }
 
@@ -187,14 +187,14 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
          * to subsequent changes to the property value as opposed to just calling get() on the property.
          */
         @Override
-        public Supplier<Long> getRemoveUnusedEntriesAfterAsSupplier() {
-            return () -> getRemoveUnusedEntriesAfter().get();
+        public Supplier<Long> getRemoveUnusedEntriesOlderThanAsSupplier() {
+            return () -> getRemoveUnusedEntriesOlderThan().get();
         }
 
 
         @Override
         public void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays) {
-            getRemoveUnusedEntriesAfter().set(providerFromSupplier(TimestampSuppliers.daysAgo(removeUnusedEntriesAfterDays)));
+            getRemoveUnusedEntriesOlderThan().set(providerFromSupplier(TimestampSuppliers.daysAgo(removeUnusedEntriesAfterDays)));
         }
     }
 }

@@ -73,17 +73,17 @@ class DefaultCacheConfigurationsTest extends Specification {
 
     def "suppliers reflect changes in property values"() {
         when:
-        def createdResources = cacheConfigurations.createdResources.removeUnusedEntriesAfterAsSupplier
-        def downloadedResources = cacheConfigurations.downloadedResources.removeUnusedEntriesAfterAsSupplier
-        def releasedWrappers = cacheConfigurations.releasedWrappers.removeUnusedEntriesAfterAsSupplier
-        def snapshotWrappers = cacheConfigurations.snapshotWrappers.removeUnusedEntriesAfterAsSupplier
+        def createdResources = cacheConfigurations.createdResources.removeUnusedEntriesOlderThanAsSupplier
+        def downloadedResources = cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThanAsSupplier
+        def releasedWrappers = cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThanAsSupplier
+        def snapshotWrappers = cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThanAsSupplier
 
         and:
         def twoDaysAgo = daysAgo(2).get()
-        cacheConfigurations.createdResources.removeUnusedEntriesAfter.set(twoDaysAgo)
-        cacheConfigurations.downloadedResources.removeUnusedEntriesAfter.set(twoDaysAgo)
-        cacheConfigurations.releasedWrappers.removeUnusedEntriesAfter.set(twoDaysAgo)
-        cacheConfigurations.snapshotWrappers.removeUnusedEntriesAfter.set(twoDaysAgo)
+        cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+        cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+        cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+        cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
 
         then:
         createdResources.get() == twoDaysAgo

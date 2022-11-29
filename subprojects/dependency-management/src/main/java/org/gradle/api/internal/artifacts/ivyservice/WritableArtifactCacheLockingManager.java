@@ -87,7 +87,7 @@ public class WritableArtifactCacheLockingManager implements ArtifactCacheLocking
     private Supplier<Long> getMaxAgeTimestamp(CacheConfigurationsInternal cacheConfigurations) {
         Integer maxAgeProperty = Integer.getInteger("org.gradle.internal.cleanup.external.max.age");
         if (maxAgeProperty == null) {
-            return cacheConfigurations.getDownloadedResources().getRemoveUnusedEntriesAfterAsSupplier();
+            return cacheConfigurations.getDownloadedResources().getRemoveUnusedEntriesOlderThanAsSupplier();
         } else {
             return TimestampSuppliers.daysAgo(maxAgeProperty);
         }

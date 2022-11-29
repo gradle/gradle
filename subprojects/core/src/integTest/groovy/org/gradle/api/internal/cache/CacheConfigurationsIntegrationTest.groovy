@@ -26,7 +26,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
     private static final int MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1
 
     private static final String THIS_PROPERTY_FINAL_ERROR = "The value for this property is final and cannot be changed any further"
-    private static final String REMOVE_UNUSED_ENTRIES_FINAL_ERROR = "The value for property 'removeUnusedEntriesAfter' is final and cannot be changed any further"
+    private static final String REMOVE_UNUSED_ENTRIES_FINAL_ERROR = "The value for property 'removeUnusedEntriesOlderThan' is final and cannot be changed any further"
 
     def setup() {
         requireOwnGradleUserHomeDir()
@@ -39,10 +39,10 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             beforeSettings { settings ->
                 settings.caches {
                     cleanup = Cleanup.DISABLED
-                    releasedWrappers { removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS} }
-                    snapshotWrappers { removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS} }
-                    downloadedResources { removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES} }
-                    createdResources { removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES} }
+                    releasedWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}
+                    snapshotWrappers.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}
+                    downloadedResources.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}
+                    createdResources.removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}
                 }
             }
         """
@@ -74,19 +74,19 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             beforeSettings { settings ->
                 settings.caches {
                     cleanup = Cleanup.DISABLED
-                    releasedWrappers { removeUnusedEntriesAfter = ${releasedDistTimestamp} }
-                    snapshotWrappers { removeUnusedEntriesAfter = ${snapshotDistTimestamp} }
-                    downloadedResources { removeUnusedEntriesAfter = ${downloadedResourcesTimestamp} }
-                    createdResources { removeUnusedEntriesAfter = ${createdResourcesTimestamp} }
+                    releasedWrappers.removeUnusedEntriesOlderThan = ${releasedDistTimestamp}
+                    snapshotWrappers.removeUnusedEntriesOlderThan = ${snapshotDistTimestamp}
+                    downloadedResources.removeUnusedEntriesOlderThan = ${downloadedResourcesTimestamp}
+                    createdResources.removeUnusedEntriesOlderThan = ${createdResourcesTimestamp}
                 }
             }
         """
         settingsFile << """
             caches {
-                assert releasedWrappers.removeUnusedEntriesAfter.get() == ${releasedDistTimestamp}
-                assert snapshotWrappers.removeUnusedEntriesAfter.get() == ${snapshotDistTimestamp}
-                assert downloadedResources.removeUnusedEntriesAfter.get() == ${downloadedResourcesTimestamp}
-                assert createdResources.removeUnusedEntriesAfter.get() == ${createdResourcesTimestamp}
+                assert releasedWrappers.removeUnusedEntriesOlderThan.get() == ${releasedDistTimestamp}
+                assert snapshotWrappers.removeUnusedEntriesOlderThan.get() == ${snapshotDistTimestamp}
+                assert downloadedResources.removeUnusedEntriesOlderThan.get() == ${downloadedResourcesTimestamp}
+                assert createdResources.removeUnusedEntriesOlderThan.get() == ${createdResourcesTimestamp}
             }
         """
 
@@ -122,7 +122,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     static String assertValueIsSameInDays(int configuredDaysAgo) {
         return """
-            def timestamp = removeUnusedEntriesAfter.get()
+            def timestamp = removeUnusedEntriesOlderThan.get()
             def daysAgo = java.util.concurrent.TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - timestamp)
             assert daysAgo == ${configuredDaysAgo}
         """

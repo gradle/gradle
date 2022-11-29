@@ -33,13 +33,13 @@ public interface CacheResourceConfiguration {
      *
      * See {@link #setRemoveUnusedEntriesAfterDays(int)}.
      */
-    Property<Long> getRemoveUnusedEntriesAfter();
+    Property<Long> getRemoveUnusedEntriesOlderThan();
 
     /**
      * Sets the timestamp before which unused entries will be removed to be calculated exactly
      * the given number of days previous to the current time.
      *
-     * See {@link #getRemoveUnusedEntriesAfter()}
+     * See {@link #getRemoveUnusedEntriesOlderThan()}
      */
     void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays);
 }

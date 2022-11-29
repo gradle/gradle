@@ -53,7 +53,7 @@ class DefaultArtifactCacheLockingManagerTest extends Specification {
     }
     def cacheConfigurations = Stub(CacheConfigurationsInternal) {
         getDownloadedResources() >> Stub(CacheResourceConfigurationInternal) {
-            getRemoveUnusedEntriesAfterAsSupplier() >> TimestampSuppliers.daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES)
+            getRemoveUnusedEntriesOlderThanAsSupplier() >> TimestampSuppliers.daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES)
         }
     }
 
