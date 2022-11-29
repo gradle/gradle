@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.cache
 
+import org.gradle.api.cache.Cleanup
+import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 
 class DefaultCacheConfigurationsTest extends Specification {
-    def cacheConfigurations = new DefaultCacheConfigurations(TestUtil.objectFactory())
+    def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class, Stub(GradleUserHomeDirProvider))
 
     def "cannot modify cache configurations once finalized"() {
         when:
@@ -29,6 +31,7 @@ class DefaultCacheConfigurationsTest extends Specification {
         cacheConfigurations.downloadedResources.removeUnusedEntriesAfterDays.set(2)
         cacheConfigurations.releasedWrappers.removeUnusedEntriesAfterDays.set(2)
         cacheConfigurations.snapshotWrappers.removeUnusedEntriesAfterDays.set(2)
+        cacheConfigurations.cleanup.set(Cleanup.DISABLED)
 
         then:
         noExceptionThrown()
@@ -56,6 +59,12 @@ class DefaultCacheConfigurationsTest extends Specification {
 
         when:
         cacheConfigurations.snapshotWrappers.removeUnusedEntriesAfterDays.set(1)
+
+        then:
+        thrown(IllegalStateException)
+
+        when:
+        cacheConfigurations.cleanup.set(Cleanup.DEFAULT)
 
         then:
         thrown(IllegalStateException)

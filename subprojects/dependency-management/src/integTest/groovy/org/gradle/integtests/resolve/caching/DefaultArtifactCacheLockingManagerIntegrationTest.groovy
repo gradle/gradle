@@ -172,14 +172,14 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         findFiles(cacheDir, 'files-*/*').isEmpty()
     }
 
-    def "does not clean up resources and files when cache cleanup is disabled"() {
+    def "does not clean up resources and files when cache cleanup is disabled via #method"() {
         given:
         buildscriptWithDependency(snapshotModule)
 
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
-        disableCacheCleanup()
+        disableCacheCleanup(method)
         succeeds 'resolve'
 
         then:
@@ -205,6 +205,9 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         resource.assertExists()
         files[0].assertExists()
         files[1].assertExists()
+
+        where:
+        method << CleanupMethod.values()
     }
 
     @ToBeFixedForConfigurationCache

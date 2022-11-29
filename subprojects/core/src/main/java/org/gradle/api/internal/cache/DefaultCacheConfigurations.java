@@ -17,20 +17,34 @@
 package org.gradle.api.internal.cache;
 
 import org.gradle.api.Action;
-import org.gradle.api.cache.CacheConfigurations;
+import org.gradle.api.cache.CacheResourceConfiguration;
+import org.gradle.api.cache.Cleanup;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.cache.CleanupAction;
+import org.gradle.cache.CleanupFrequency;
+import org.gradle.cache.CleanupProgressMonitor;
+import org.gradle.cache.internal.GradleUserHomeCacheCleanupActionDecorator;
+import org.gradle.internal.cache.MonitoredCleanupAction;
+import org.gradle.initialization.GradleUserHomeDirProvider;
 
-public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
-    private final CacheConfigurations.CacheResourceConfiguration releasedWrappersConfiguration;
-    private final CacheConfigurations.CacheResourceConfiguration snapshotWrappersConfiguration;
-    private final CacheConfigurations.CacheResourceConfiguration downloadedResourcesConfiguration;
-    private final CacheConfigurations.CacheResourceConfiguration createdResourcesConfiguration;
+import javax.inject.Inject;
 
-    public DefaultCacheConfigurations(ObjectFactory objectFactory) {
+abstract public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
+    private final CacheResourceConfiguration releasedWrappersConfiguration;
+    private final CacheResourceConfiguration snapshotWrappersConfiguration;
+    private final CacheResourceConfiguration downloadedResourcesConfiguration;
+    private final CacheResourceConfiguration createdResourcesConfiguration;
+    private final GradleUserHomeCacheCleanupActionDecorator delegate;
+
+    @Inject
+    public DefaultCacheConfigurations(ObjectFactory objectFactory, GradleUserHomeDirProvider gradleUserHomeDirProvider) {
         this.releasedWrappersConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS);
         this.snapshotWrappersConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
         this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
         this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
+        this.delegate = new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeDirProvider);
+        getCleanup().convention(Cleanup.DEFAULT);
     }
 
     private static CacheResourceConfiguration createResourceConfiguration(ObjectFactory objectFactory, int defaultDays) {
@@ -80,10 +94,46 @@ public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
     }
 
     @Override
+    public Provider<CleanupFrequency> getCleanupFrequency() {
+        return getCleanup().map(cleanup -> ((CleanupInternal)cleanup).getCleanupFrequency());
+    }
+
+    @Override
     public void finalizeConfigurations() {
         releasedWrappersConfiguration.getRemoveUnusedEntriesAfterDays().finalizeValue();
         snapshotWrappersConfiguration.getRemoveUnusedEntriesAfterDays().finalizeValue();
         downloadedResourcesConfiguration.getRemoveUnusedEntriesAfterDays().finalizeValue();
         createdResourcesConfiguration.getRemoveUnusedEntriesAfterDays().finalizeValue();
+        getCleanup().finalizeValue();
+    }
+
+    @Override
+    public MonitoredCleanupAction decorate(MonitoredCleanupAction cleanupAction) {
+        MonitoredCleanupAction decoratedCleanupAction = delegate.decorate(cleanupAction);
+        return new MonitoredCleanupAction() {
+            @Override
+            public boolean execute(CleanupProgressMonitor progressMonitor) {
+                return isEnabled() && decoratedCleanupAction.execute(progressMonitor);
+            }
+
+            @Override
+            public String getDisplayName() {
+                return decoratedCleanupAction.getDisplayName();
+            }
+        };
+    }
+
+    @Override
+    public CleanupAction decorate(CleanupAction cleanupAction) {
+        CleanupAction decoratedCleanupAction = delegate.decorate(cleanupAction);
+        return (cleanableStore, progressMonitor) -> {
+            if (isEnabled()) {
+                decoratedCleanupAction.clean(cleanableStore, progressMonitor);
+            }
+        };
+    }
+
+    private boolean isEnabled() {
+        return getCleanupFrequency().get() != CleanupFrequency.NEVER;
     }
 }

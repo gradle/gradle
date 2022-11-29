@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal;
-
-import org.gradle.api.Describable;
-import org.gradle.cache.CleanupProgressMonitor;
+package org.gradle.internal.cache;
 
 /**
- * An action that cleans up some resource and reports to a {@link CleanupProgressMonitor}.
+ * Allows {@link MonitoredCleanupAction} instances to be decorated with additional functionality, such as checking whether cleanup has been disabled or not.
  */
-public interface MonitoredCleanupAction extends Describable {
+public interface MonitoredCleanupActionDecorator {
     /**
-     * Perform the cleanup action, returning true if any resources were actually cleaned up.
-     *
-     * @param progressMonitor
-     * @return true if resources were cleaned
+     * Decorates the provided {@link MonitoredCleanupAction}
      */
-    boolean execute(CleanupProgressMonitor progressMonitor);
+    MonitoredCleanupAction decorate(MonitoredCleanupAction cleanupAction);
 }
