@@ -119,7 +119,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
     private TestFile setFoojayDiscoToolchainProvider() {
         settingsFile << """
             plugins {
-                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.1'
+                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.2'
             }
         """
     }
