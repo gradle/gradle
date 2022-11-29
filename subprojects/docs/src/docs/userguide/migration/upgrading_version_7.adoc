@@ -783,7 +783,7 @@ If you are using TestNG, versions prior to `5.14.6` perform illegal reflection. 
 
 The <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle plugin>> now uses the Gradle worker API to run Checkstyle as an external worker process. Multiple Checkstyle tasks may now run in parallel within a project.
 
-Some projects will need to increase the amount of memory available to Checkstyle to avoid out of memory errors. You can <<checkstyle_plugin.adoc#sec:checkstyle_customize_memory,increase the maximum memory for the Checkstyle process>> by setting the `maxHeapSize` for the Checkstyle task. By default, the process will start with a maximum heap size of 512MB.
+Some projects will need to increase the amount of memory available to Checkstyle to avoid out of memory errors. You can <<checkstyle_plugin.adoc#sec:checkstyle_customize_memory,increase the maximum memory for the Checkstyle process>> by setting the `maxHeapSize` for the Checkstyle task. By default, the process will start with a maximum heap size of 512MB. 
 
 We also recommend to update Checkstyle to version 9.3 or later.
 
@@ -1353,7 +1353,7 @@ The following plugin configurations have been deprecated for consumption:
 
 If your use case needs to consume any of the above mentioned configurations in another project, please create a separate consumable
 configuration that extends from the internal ones. For example:
-```kotlin
+```
 plugins {
     id("codenarc")
 }
@@ -1422,46 +1422,3 @@ Gradle 5.3 introduced the interface `TransformAction` for implementing artifact 
 Using the registration method link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(org.gradle.api.Action)[DependencyHandler.registerTransform(Action)] for `ArtifactTransform` has been deprecated.
 Migrate your artifact transform to use `TransformAction` and use link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(java.lang.Class,%20org.gradle.api.Action)[DependencyHandler.registerTransform(Class, Action)] instead.
 See the <<artifact_transforms#sec:abm_artifact_transforms,user manual>> for more information on implementing `TransformAction`.
-
-[[gmm_modification_after_publication_populated]]
-==== Modifying GMM after publications have been populated
-
-Altering the link:publishing_gradle_module_metadata.html[Gradle Module Metadata] (e.g. changing a component configuration variants) after a Maven or Ivy publication have been populated from their components, is now deprecated.
-
-Eager "realization" of the publication can happen if the following methods are called:
-
-====== Maven
-
-* link:{javadocPath}/org/gradle/api/publish/maven/MavenPublication.html#getArtifacts--[MavenPublication.getArtifacts()]
-
-====== Ivy
-
-* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getArtifacts--[IvyPublication.getArtifacts()]
-* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getConfigurations--[IvyPublication.getConfigurations()]
-* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#configurations(Action)--[IvyPublication.configurations(Action)]
-
-Before, it was possible to have this code block without any warnings, but it created inconsistencies between the published artifacts:
-
-```kotlin
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-        }
-        create<IvyPublication>("ivy") {
-            from(components["java"])
-        }
-    }
-}
-
-// These calls eagerly populate the Maven and Ivy publications
-(publishing.publications["maven"] as MavenPublication).artifacts
-(publishing.publications["ivy"] as IvyPublication).artifacts
-
-(components["java"] as DefaultAdhocSoftwareComponent).apply {
-  withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
-  withVariantsFromConfiguration(configurations["runtimeElements"]) { skip() }
-}
-```
-
-In this example, the Maven and Ivy publications will contain the main JAR artifacts for the project, whereas the GMM link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[module file] will have them skipped.
