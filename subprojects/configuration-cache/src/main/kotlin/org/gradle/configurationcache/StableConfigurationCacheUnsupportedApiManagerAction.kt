@@ -62,10 +62,7 @@ class StableConfigurationCacheUnsupportedApiManagerAction(
 
         override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
             if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
-                DeprecationLogger.deprecateAction("Invocation of $invocationDescription at execution time")
-                    .willBecomeAnErrorInGradle8()
-                    .withUpgradeGuideSection(7, "task_project")
-                    .nagUser()
+                throw UnsupportedOperationException("Invocation of $invocationDescription at execution time")
             }
         }
 
