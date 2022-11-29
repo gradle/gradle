@@ -21,9 +21,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
+import org.gradle.jvm.toolchain.internal.JavaToolchain;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -34,6 +36,7 @@ import java.util.Set;
  * @since 7.3
  */
 public class ScalaCompileOptionsConfigurer {
+    private static final int FALLBACK_JVM_TARGET = 8;
     private static final DefaultVersionComparator VERSION_COMPARATOR = new DefaultVersionComparator();
 
     public static void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath, VersionParser versionParser) {
@@ -42,35 +45,36 @@ public class ScalaCompileOptionsConfigurer {
         }
 
         File scalaJar = ScalaRuntimeHelper.findScalaJar(scalaClasspath, "library");
-        if(scalaJar == null) {
+        if (scalaJar == null) {
             return;
         }
 
         String scalaVersion = ScalaRuntimeHelper.getScalaVersion(scalaJar);
-        if(scalaVersion == null) {
+        if (scalaVersion == null) {
             return;
         }
 
-        if(scalaCompileOptions.getAdditionalParameters() != null && scalaCompileOptions.getAdditionalParameters().stream().anyMatch(s -> s.startsWith("-target:"))) {
+        List<String> additionalParameters = scalaCompileOptions.getAdditionalParameters();
+        if (additionalParameters != null && additionalParameters.stream().anyMatch(s -> s.startsWith("-target:"))) {
             return;
         }
 
-        Integer jvmVersion = toolchain.getLanguageVersion().asInt();
-        String targetParameter = determineTargetParameter(scalaVersion, jvmVersion, versionParser);
-        if(scalaCompileOptions.getAdditionalParameters() == null) {
+        String targetParameter = determineTargetParameter(scalaVersion, (JavaToolchain) toolchain, versionParser);
+        if (additionalParameters == null) {
             scalaCompileOptions.setAdditionalParameters(Collections.singletonList(targetParameter));
         } else {
-            scalaCompileOptions.getAdditionalParameters().add(targetParameter);
+            additionalParameters.add(targetParameter);
         }
     }
 
-    private static String determineTargetParameter(String scalaVersion, Integer jvmVersion, VersionParser versionParser) {
+    private static String determineTargetParameter(String scalaVersion, JavaToolchain javaToolchain, VersionParser versionParser) {
+        int effectiveTarget = javaToolchain.isFallbackToolchain() ? FALLBACK_JVM_TARGET : javaToolchain.getLanguageVersion().asInt();
         VersionInfo currentScalaVersion = new VersionInfo(versionParser.transform(scalaVersion));
-        int compareWith2131 = VERSION_COMPARATOR.compare(currentScalaVersion, new VersionInfo(versionParser.transform("2.13.1")));
-        if(compareWith2131 < 0) {
-            return String.format("-target:jvm-1.%s", jvmVersion);
+        boolean scalaBefore2131 = VERSION_COMPARATOR.compare(currentScalaVersion, new VersionInfo(versionParser.transform("2.13.1"))) < 0;
+        if (scalaBefore2131) {
+            return String.format("-target:jvm-1.%s", effectiveTarget);
         } else {
-            return String.format("-target:%s", jvmVersion);
+            return String.format("-target:%s", effectiveTarget);
         }
     }
 }
