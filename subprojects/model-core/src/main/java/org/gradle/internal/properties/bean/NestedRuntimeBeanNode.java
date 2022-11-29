@@ -28,7 +28,7 @@ import java.util.Queue;
 class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
     private final ImplementationValue implementation;
 
-    public NestedRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Object bean, ImplementationValue implementation, TypeMetadata typeMetadata) {
+    public NestedRuntimeBeanNode(RuntimeBeanNode<Object> parentNode, String propertyName, Object bean, ImplementationValue implementation, TypeMetadata typeMetadata) {
         super(parentNode, propertyName, bean, typeMetadata);
         this.implementation = implementation;
     }
