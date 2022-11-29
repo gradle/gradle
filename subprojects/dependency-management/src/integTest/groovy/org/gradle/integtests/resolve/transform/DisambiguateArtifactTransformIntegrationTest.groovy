@@ -85,14 +85,14 @@ project(':app') {
     }
 
     dependencies {
-        registerTransform(FileSizer) {
+        registerTransform(FileSizer) { // B
             from.attribute(artifactType, 'java-classes-directory')
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
             from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
 
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, 'size'))
         }
-        registerTransform(FileSizer) {
+        registerTransform(FileSizer) { // A
             from.attribute(artifactType, 'jar')
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
             from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
@@ -134,7 +134,7 @@ ${artifactTransform("FileSizer")}
         output.count("Transforming test-1.3.jar.txt to test-1.3.jar.txt.txt") == 1
     }
 
-    def "disambiguates A -> B and C -> B by selecting the latter iff attributes match"() {
+    def "disambiguates A -> C and B -> C by selecting the latter iff attributes match"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
 
@@ -179,7 +179,7 @@ project(':app') {
     def hasExtraAttribute = providers.gradleProperty('extraAttribute').isPresent()
 
     dependencies {
-        registerTransform(TestTransform) {
+        registerTransform(TestTransform) { // A
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
             from.attribute(artifactType, 'java-classes-directory')
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
@@ -190,7 +190,7 @@ project(':app') {
                 to.attribute(extraAttribute, 'value1')
             }
         }
-        registerTransform(TestTransform) {
+        registerTransform(TestTransform) { // B
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
             from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
             from.attribute(artifactType, 'jar')
