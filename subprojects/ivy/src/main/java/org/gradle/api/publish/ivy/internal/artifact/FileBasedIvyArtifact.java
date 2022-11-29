@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import com.google.common.io.Files;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.tasks.TaskDependency;
@@ -28,7 +29,8 @@ public class FileBasedIvyArtifact extends AbstractIvyArtifact {
     private final String extension;
     private final IvyPublicationIdentity identity;
 
-    public FileBasedIvyArtifact(File file, IvyPublicationIdentity identity) {
+    public FileBasedIvyArtifact(File file, IvyPublicationIdentity identity, TaskDependencyFactory taskDependencyFactory) {
+        super(taskDependencyFactory);
         this.file = file;
         extension = Files.getFileExtension(file.getName());
         this.identity = identity;

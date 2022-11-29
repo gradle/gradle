@@ -326,6 +326,8 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         TaskProvider<FindBrokenInternalLinks> checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", FindBrokenInternalLinks.class, task -> {
             task.getReportFile().convention(layout.getBuildDirectory().file("reports/dead-internal-links.txt"));
             task.getDocumentationRoot().convention(extension.getUserManual().getStagedDocumentation());
+            task.getJavadocRoot().convention(layout.getBuildDirectory().dir("javadoc"));
+            task.dependsOn(tasks.named("javadocAll"));
         });
 
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkDeadInternalLinks));

@@ -26,18 +26,6 @@ import static org.gradle.testing.fixture.JUnitCoverage.LATEST_PLATFORM_VERSION
 import static org.hamcrest.CoreMatchers.containsString
 
 class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
-    void createSimpleJupiterTest() {
-        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
-            package org.gradle;
-
-            import org.junit.jupiter.api.Test;
-
-            public class JUnitJupiterTest {
-                @Test
-                public void ok() { }
-            }
-            '''
-    }
 
     def 'can work with junit-platform-runner'() {
         given:

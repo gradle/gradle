@@ -182,7 +182,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
         DefaultSourceSetOutput.DirectoryContribution resourcesContribution = output.getResourcesContribution();
         if (resourcesContribution != null) {
-            variant.artifact(new JvmPluginsHelper.ProviderBasedIntermediateJavaArtifact(ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, resourcesContribution.getTask(), resourcesContribution.getDirectory()));
+            variant.artifact(new JvmPluginsHelper.ProviderBasedIntermediateJavaArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, resourcesContribution.getTask(), resourcesContribution.getDirectory()));
         }
         return variant;
     }
@@ -196,7 +196,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         variant.artifactsProvider(() ->  {
             FileCollection classesDirs = sourceSet.getOutput().getClassesDirs();
             return classesDirs.getFiles().stream().map(file ->
-                    new JvmPluginsHelper.ImmediateIntermediateJavaArtifact(ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs, file))
+                    new JvmPluginsHelper.ImmediateIntermediateJavaArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs, file))
                 .collect(Collectors.toList());
         });
         return variant;

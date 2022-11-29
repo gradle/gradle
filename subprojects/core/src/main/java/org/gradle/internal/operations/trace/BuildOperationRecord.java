@@ -19,6 +19,7 @@ package org.gradle.internal.operations.trace;
 import com.google.common.base.Function;
 import com.google.common.collect.Ordering;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,6 +124,19 @@ public final class BuildOperationRecord {
 
     public Class<?> getResultType() throws ClassNotFoundException {
         return resultClassName == null ? null : getClass().getClassLoader().loadClass(resultClassName);
+    }
+
+    /**
+     * Returns all progress events with details of the given type.
+     */
+    public List<Progress> progress(Class<?> clazz) throws ClassNotFoundException {
+        List<Progress> result = new ArrayList<>();
+        for (Progress progress : progress) {
+            if (progress.hasDetailsOfType(clazz)) {
+                result.add(progress);
+            }
+        }
+        return result;
     }
 
     @Override

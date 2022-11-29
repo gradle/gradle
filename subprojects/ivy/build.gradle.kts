@@ -14,7 +14,6 @@ dependencies {
     implementation(project(":file-collections"))
     implementation(project(":resources"))
     implementation(project(":publish"))
-    implementation(project(":plugins")) // for base plugin to get archives conf
     implementation(project(":plugin-use"))
     implementation(project(":dependency-management"))
 

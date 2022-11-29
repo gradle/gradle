@@ -48,6 +48,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
@@ -128,6 +129,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
     private final PlatformSupport platformSupport;
     private final ImmutableAttributesFactory immutableAttributesFactory;
+    private final TaskDependencyFactory taskDependencyFactory;
     private final VersionMappingStrategyInternal versionMappingStrategy;
     private final Set<String> silencedVariants = new HashSet<>();
     private IvyArtifact ivyDescriptorArtifact;
@@ -149,7 +151,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
         ImmutableAttributesFactory immutableAttributesFactory,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy, PlatformSupport platformSupport,
-        DocumentationRegistry documentationRegistry) {
+        DocumentationRegistry documentationRegistry, TaskDependencyFactory taskDependencyFactory) {
         this.name = name;
         this.publicationIdentity = publicationIdentity;
         this.projectDependencyResolver = projectDependencyResolver;
@@ -160,10 +162,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         this.mainArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory, collectionCallbackActionDecorator);
         this.metadataArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         this.derivedArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
-        this.publishableArtifacts = new CompositePublicationArtifactSet<>(IvyArtifact.class, Cast.uncheckedCast(new PublicationArtifactSet<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}));
+        this.publishableArtifacts = new CompositePublicationArtifactSet<>(taskDependencyFactory, IvyArtifact.class, Cast.uncheckedCast(new PublicationArtifactSet<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}));
         this.ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, collectionCallbackActionDecorator);
         this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this, instantiator, objectFactory);
         this.documentationRegistry = documentationRegistry;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
@@ -212,7 +215,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (ivyDescriptorArtifact != null) {
             metadataArtifacts.remove(ivyDescriptorArtifact);
         }
-        ivyDescriptorArtifact = new SingleOutputTaskIvyArtifact(descriptorGenerator, publicationIdentity, "xml", "ivy", null);
+        ivyDescriptorArtifact = new SingleOutputTaskIvyArtifact(descriptorGenerator, publicationIdentity, "xml", "ivy", null, taskDependencyFactory);
         ivyDescriptorArtifact.setName("ivy");
         metadataArtifacts.add(ivyDescriptorArtifact);
     }
@@ -234,7 +237,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (moduleDescriptorGenerator == null) {
             return;
         }
-        gradleModuleDescriptorArtifact = new SingleOutputTaskIvyArtifact(moduleDescriptorGenerator, publicationIdentity, "module", "json", null);
+        gradleModuleDescriptorArtifact = new SingleOutputTaskIvyArtifact(moduleDescriptorGenerator, publicationIdentity, "module", "json", null, taskDependencyFactory);
         metadataArtifacts.add(gradleModuleDescriptorArtifact);
         moduleDescriptorGenerator = null;
     }
@@ -526,7 +529,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     @Override
     public IvyArtifact addDerivedArtifact(IvyArtifact originalArtifact, DerivedArtifact fileProvider) {
-        IvyArtifact artifact = new DerivedIvyArtifact(originalArtifact, fileProvider);
+        IvyArtifact artifact = new DerivedIvyArtifact(originalArtifact, fileProvider, taskDependencyFactory);
         derivedArtifacts.add(artifact);
         return artifact;
     }
@@ -667,7 +670,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    @Nullable
     public VersionMappingStrategyInternal getVersionMappingStrategy() {
         return versionMappingStrategy;
     }

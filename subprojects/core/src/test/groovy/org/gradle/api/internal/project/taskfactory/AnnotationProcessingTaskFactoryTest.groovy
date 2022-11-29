@@ -24,11 +24,8 @@ import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.tasks.properties.DefaultPropertyWalker
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties
-import org.gradle.api.internal.tasks.properties.DefaultTypeMetadataStore
-import org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory
-import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
+import org.gradle.api.internal.tasks.properties.bean.TestImplementationResolver
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.SkipWhenEmpty
@@ -36,6 +33,11 @@ import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.execution.WorkValidationExceptionChecker
+import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory
+import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
+import org.gradle.internal.properties.annotations.PropertyAnnotationHandler
+import org.gradle.internal.properties.annotations.TestPropertyTypeResolver
+import org.gradle.internal.properties.bean.DefaultPropertyWalker
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -114,7 +116,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         { false },
         cacheFactory
     )
-    def propertyWalker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [Optional, SkipWhenEmpty], typeAnnotationMetadataStore, cacheFactory))
+    def typeMetadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [Optional, SkipWhenEmpty], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
+    def propertyWalker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver())
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"
