@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Queue;
 
 class MapRuntimeBeanNode extends RuntimeBeanNode<Map<?, ?>> {
-    public MapRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Map<?, ?> map) {
+    public MapRuntimeBeanNode(RuntimeBeanNode<Map<?, ?>> parentNode, String propertyName, Map<?, ?> map) {
         super(parentNode, propertyName, map);
     }
 

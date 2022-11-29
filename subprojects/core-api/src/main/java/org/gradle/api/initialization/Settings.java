@@ -359,7 +359,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
-    @Incubating
     void dependencyResolutionManagement(Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration);
 
     /**
@@ -367,7 +366,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
-    @Incubating
     DependencyResolutionManagement getDependencyResolutionManagement();
 
     /**

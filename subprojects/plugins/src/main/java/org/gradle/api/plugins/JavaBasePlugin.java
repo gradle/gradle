@@ -316,9 +316,10 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             return JavaVersion.toVersion(javaCompile.getJavaCompiler().get().getMetadata().getLanguageVersion().toString());
         } else if (compile instanceof GroovyCompile) {
             GroovyCompile groovyCompile = (GroovyCompile) compile;
-            if (groovyCompile.getJavaLauncher().isPresent()) {
-                return JavaVersion.toVersion(groovyCompile.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
+            if (rawConvention != null) {
+                return rawConvention;
             }
+            return JavaVersion.toVersion(groovyCompile.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
         }
 
         return javaVersionSupplier.get();

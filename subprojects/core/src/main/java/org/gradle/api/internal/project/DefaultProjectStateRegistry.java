@@ -327,6 +327,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
         }
 
         @Override
+        public boolean isCreated() {
+            return controller.isCreated();
+        }
+
+        @Override
         public void createMutableModel(ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
             controller.createMutableModel(descriptor, owner, this, selfClassLoaderScope, baseClassLoaderScope, projectFactory);
         }
