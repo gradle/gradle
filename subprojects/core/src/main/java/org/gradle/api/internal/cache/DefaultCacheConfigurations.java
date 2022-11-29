@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.cache.CacheResourceConfiguration;
 import org.gradle.api.cache.Cleanup;
 import org.gradle.api.internal.provider.DefaultProvider;
-import org.gradle.internal.time.TimestampSuppliers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -34,6 +33,8 @@ import org.gradle.initialization.GradleUserHomeDirProvider;
 import javax.inject.Inject;
 import java.util.function.Supplier;
 
+import static org.gradle.internal.time.TimestampSuppliers.daysAgo;
+
 abstract public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
     private final GradleUserHomeCacheCleanupActionDecorator delegate;
 
@@ -45,17 +46,17 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     @Inject
     public DefaultCacheConfigurations(ObjectFactory objectFactory, GradleUserHomeDirProvider gradleUserHomeDirProvider) {
-        this.releasedWrappersConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS);
-        this.snapshotWrappersConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
-        this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
-        this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
+        this.releasedWrappersConfiguration = createResourceConfiguration(objectFactory, "releasedWrappers", DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS);
+        this.snapshotWrappersConfiguration = createResourceConfiguration(objectFactory, "snapshotWrappers", DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
+        this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, "downloadedResources", DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
+        this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, "createdResources", DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
         this.cleanup = objectFactory.property(Cleanup.class).convention(Cleanup.DEFAULT);
         this.delegate = new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeDirProvider);
     }
 
-    private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, int defaultDays) {
-        CacheResourceConfigurationInternal resourceConfiguration = objectFactory.newInstance(DefaultCacheResourceConfiguration.class);
-        resourceConfiguration.getRemoveUnusedEntriesOlderThan().convention(providerFromSupplier(TimestampSuppliers.daysAgo(defaultDays)));
+    private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, String name, int defaultDays) {
+        CacheResourceConfigurationInternal resourceConfiguration = objectFactory.newInstance(DefaultCacheResourceConfiguration.class, name);
+        resourceConfiguration.getRemoveUnusedEntriesOlderThan().convention(providerFromSupplier(daysAgo(defaultDays)));
         return resourceConfiguration;
     }
 
@@ -178,8 +179,11 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     static abstract class DefaultCacheResourceConfiguration implements CacheResourceConfigurationInternal {
+        private final String name;
+
         @Inject
-        public DefaultCacheResourceConfiguration() {
+        public DefaultCacheResourceConfiguration(String name) {
+            this.name = name;
         }
 
         /**
@@ -194,7 +198,10 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
         @Override
         public void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays) {
-            getRemoveUnusedEntriesOlderThan().set(providerFromSupplier(TimestampSuppliers.daysAgo(removeUnusedEntriesAfterDays)));
+            if (removeUnusedEntriesAfterDays < 1) {
+                throw new IllegalArgumentException(name + " cannot be set to retain entries for " + removeUnusedEntriesAfterDays + " days.  For time frames shorter than one day, use the 'removeUnusedEntriesOlderThan' property.");
+            }
+            getRemoveUnusedEntriesOlderThan().set(providerFromSupplier(daysAgo(removeUnusedEntriesAfterDays)));
         }
     }
 }
