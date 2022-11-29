@@ -17,7 +17,7 @@ toolchainManagement {
     jvm { // <1>
         javaRepositories {
             repository("disco") { // <2>
-                resolverClass.set(org.gradle.disco.DiscoToolchainResolver::class.java)
+                resolverClass.set(org.gradle.toolchains.foojay.FoojayToolchainResolver::class.java)
                 credentials {
                     username = "user"
                     password = "password"
