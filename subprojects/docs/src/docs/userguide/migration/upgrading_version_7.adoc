@@ -529,7 +529,7 @@ These deprecated elements will be removed in a future version of Gradle.
 ==== Deprecated implicit references to outer scope methods in some configuration blocks
 
 Prior to Gradle 7.6, Groovy scripts permitted access to root project configure methods
-within named container configure methods that throw `MissingMethodException`s.
+within named container configure methods that throw `MissingMethodException`.
 Consider the following snippets for examples of this behavior:
 
 Gradle permits access to the top-level `repositories` block from within the `configurations` block
@@ -1353,7 +1353,7 @@ The following plugin configurations have been deprecated for consumption:
 
 If your use case needs to consume any of the above mentioned configurations in another project, please create a separate consumable
 configuration that extends from the internal ones. For example:
-```
+```kotlin
 plugins {
     id("codenarc")
 }
@@ -1422,3 +1422,46 @@ Gradle 5.3 introduced the interface `TransformAction` for implementing artifact 
 Using the registration method link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(org.gradle.api.Action)[DependencyHandler.registerTransform(Action)] for `ArtifactTransform` has been deprecated.
 Migrate your artifact transform to use `TransformAction` and use link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(java.lang.Class,%20org.gradle.api.Action)[DependencyHandler.registerTransform(Class, Action)] instead.
 See the <<artifact_transforms#sec:abm_artifact_transforms,user manual>> for more information on implementing `TransformAction`.
+
+[[gmm_modification_after_publication_populated]]
+==== Modifying Gradle Module Metadata after a publication has been populated
+
+Altering the link:publishing_gradle_module_metadata.html[GMM] (e.g. changing a component configuration variants) *after* a Maven or Ivy publication has been populated from their components is now deprecated. This feature will be removed in Gradle 9.0.
+
+Eager population of the publication can happen if the following methods are called:
+
+====== Maven
+
+* link:{javadocPath}/org/gradle/api/publish/maven/MavenPublication.html#getArtifacts--[MavenPublication.getArtifacts()]
+
+====== Ivy
+
+* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getArtifacts--[IvyPublication.getArtifacts()]
+* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getConfigurations--[IvyPublication.getConfigurations()]
+* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#configurations(Action)--[IvyPublication.configurations(Action)]
+
+Previously, this code block did not generate warnings, but it created inconsistencies between published artifacts:
+
+```kotlin
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+        create<IvyPublication>("ivy") {
+            from(components["java"])
+        }
+    }
+}
+
+// These calls eagerly populate the Maven and Ivy publications
+(publishing.publications["maven"] as MavenPublication).artifacts
+(publishing.publications["ivy"] as IvyPublication).artifacts
+
+(components["java"] as DefaultAdhocSoftwareComponent).apply {
+  withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
+  withVariantsFromConfiguration(configurations["runtimeElements"]) { skip() }
+}
+```
+
+In this example, the Maven and Ivy publications will contain the main JAR artifacts for the project, whereas the GMM link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[module file] will omit them.
