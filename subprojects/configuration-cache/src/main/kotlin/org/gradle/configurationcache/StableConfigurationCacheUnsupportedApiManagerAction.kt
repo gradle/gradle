@@ -37,7 +37,6 @@ import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.internal.buildoption.FeatureFlags
-import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction
 
@@ -68,10 +67,7 @@ class StableConfigurationCacheUnsupportedApiManagerAction(
 
         override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal) {
             if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
-                DeprecationLogger.deprecateAction("Invocation of $invocationDescription at execution time")
-                    .willBecomeAnErrorInGradle8()
-                    .withUpgradeGuideSection(7, "task_dependencies")
-                    .nagUser()
+                throw UnsupportedOperationException("Invocation of $invocationDescription at execution time")
             }
         }
     }
