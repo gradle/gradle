@@ -21,5 +21,5 @@ import org.gradle.api.cache.CacheResourceConfiguration;
 import java.util.function.Supplier;
 
 public interface CacheResourceConfigurationInternal extends CacheResourceConfiguration {
-    Supplier<Long> getRemoveUnusedEntriesAfterAsSupplier();
+    Supplier<Long> getRemoveUnusedEntriesOlderThanAsSupplier();
 }

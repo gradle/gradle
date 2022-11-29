@@ -135,7 +135,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         return new LeastRecentlyUsedCacheCleanup(
             new SingleDepthFilesFinder(treeDepthToTrackAndCleanup),
             fileAccessTimeJournal,
-            cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesAfterAsSupplier()
+            cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesOlderThanAsSupplier()
         );
     }
 
