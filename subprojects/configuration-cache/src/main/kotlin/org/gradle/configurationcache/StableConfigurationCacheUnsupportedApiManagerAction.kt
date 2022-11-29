@@ -55,20 +55,24 @@ class StableConfigurationCacheUnsupportedApiManagerAction(
     ) : BuildScopeListenerRegistrationListener, TaskExecutionAccessListener {
         override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
             if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
-                throw UnsupportedOperationException("Listener registration using $invocationDescription()")
+                throwUnsupported("Listener registration using $invocationDescription()")
             }
         }
 
         override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
             if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
-                throw UnsupportedOperationException("Invocation of $invocationDescription at execution time")
+                throwUnsupported("Invocation of $invocationDescription at execution time")
             }
         }
 
         override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal) {
             if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
-                throw UnsupportedOperationException("Invocation of $invocationDescription at execution time")
+                throwUnsupported("Invocation of $invocationDescription at execution time")
             }
         }
+
+        private
+        fun throwUnsupported(reason: String): Nothing =
+            throw UnsupportedOperationException("$reason is unsupported with the STABLE_CONFIGURATION_CACHE feature preview.")
     }
 }
