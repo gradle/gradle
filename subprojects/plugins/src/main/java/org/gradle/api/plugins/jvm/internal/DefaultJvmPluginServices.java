@@ -31,7 +31,6 @@ import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.ConfigurationVariantDetails;
-import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
@@ -44,7 +43,6 @@ import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -56,7 +54,6 @@ import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.instantiation.InstanceGenerator;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -98,7 +95,10 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
     @Override
     public <T> void configureAsCompileClasspath(HasConfigurableAttributes<T> configuration) {
-        configureAttributes(configuration, details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM().apiCompileView());
+        configureAttributes(
+            configuration,
+            details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM().apiCompileView()
+        );
     }
 
     @Override
@@ -122,20 +122,12 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         ConfigurationInternal configurationInternal = (ConfigurationInternal) configuration;
         Set<TaskProvider<?>> compileTasks = configurationToCompileTasks.computeIfAbsent(configurationInternal, key -> {
             HashSet<TaskProvider<?>> taskProviders = new HashSet<>();
-            configurationInternal.beforeLocking(
-                configureDefaultTargetPlatform(configuration.isCanBeConsumed(), (Set) taskProviders));
+            configurationInternal.beforeLocking(conf ->
+                configureDefaultTargetPlatform(conf, (Set) taskProviders)
+            );
             return taskProviders;
         });
         compileTasks.add(compileTask);
-    }
-
-    @Override
-    public void replaceArtifacts(Configuration outgoingConfiguration, Object... providers) {
-        clearArtifacts(outgoingConfiguration);
-        ConfigurationPublications outgoing = outgoingConfiguration.getOutgoing();
-        for (Object provider : providers) {
-            outgoing.artifact(provider);
-        }
     }
 
     @Override
@@ -155,22 +147,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             sourceSet);
         configuration.execute(builder);
         builder.build();
-    }
-
-    @Override
-    public Provider<Configuration> registerDependencyBucket(String name, String description) {
-        return project.getConfigurations().register(name, cnf -> {
-            cnf.setCanBeResolved(false);
-            cnf.setCanBeConsumed(false);
-            cnf.setDescription(description);
-        });
-    }
-
-    private void clearArtifacts(Configuration outgoingConfiguration) {
-        outgoingConfiguration.getOutgoing().getArtifacts().clear();
-        for (Configuration configuration : outgoingConfiguration.getExtendsFrom()) {
-            clearArtifacts(configuration);
-        }
     }
 
     @Override
@@ -202,29 +178,27 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         return variant;
     }
 
-    private <COMPILE extends AbstractCompile & HasCompileOptions> Action<ConfigurationInternal> configureDefaultTargetPlatform(boolean alwaysEnabled, Set<TaskProvider<COMPILE>> compileTasks) {
-        return conf -> {
-            JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
-            if (alwaysEnabled || javaPluginExtension == null || !javaPluginExtension.getAutoTargetJvmDisabled()) {
-                int majorVersion = 0;
-                for (TaskProvider<COMPILE> compileTaskProvider : compileTasks) {
-                    COMPILE compileTask = compileTaskProvider.get();
-                    if (compileTask.getOptions().getRelease().isPresent()) {
-                        majorVersion = Math.max(majorVersion, compileTask.getOptions().getRelease().get());
+    private <COMPILE extends AbstractCompile & HasCompileOptions> void configureDefaultTargetPlatform(Configuration conf, Set<TaskProvider<COMPILE>> compileTasks) {
+        JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
+        if (conf.isCanBeConsumed() || javaPluginExtension == null || !javaPluginExtension.getAutoTargetJvmDisabled()) {
+            int majorVersion = 0;
+            for (TaskProvider<COMPILE> compileTaskProvider : compileTasks) {
+                COMPILE compileTask = compileTaskProvider.get();
+                if (compileTask.getOptions().getRelease().isPresent()) {
+                    majorVersion = Math.max(majorVersion, compileTask.getOptions().getRelease().get());
+                } else {
+                    int releaseFlag = getReleaseOption(compileTask.getOptions().getCompilerArgs());
+                    if (releaseFlag != 0) {
+                        majorVersion = Math.max(majorVersion, releaseFlag);
                     } else {
-                        int releaseFlag = getReleaseOption(compileTask.getOptions().getCompilerArgs());
-                        if (releaseFlag != 0) {
-                            majorVersion = Math.max(majorVersion, releaseFlag);
-                        } else {
-                            majorVersion = Math.max(majorVersion, Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersion()));
-                        }
+                        majorVersion = Math.max(majorVersion, Integer.parseInt(JavaVersion.toVersion(compileTask.getTargetCompatibility()).getMajorVersion()));
                     }
                 }
-                if (majorVersion != 0) {
-                    JavaEcosystemSupport.configureDefaultTargetPlatform(conf, majorVersion);
-                }
             }
-        };
+            if (majorVersion != 0) {
+                JavaEcosystemSupport.configureDefaultTargetPlatform(conf, majorVersion);
+            }
+        }
     }
 
     @Override
@@ -345,7 +319,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
                 jvmEcosystemUtilities.configureClassesDirectoryVariant(cnf, sourceSet);
             }
             if (published) {
-                AdhocComponentWithVariants component = findJavaComponent();
+                AdhocComponentWithVariants component = JvmPluginsHelper.findJavaComponent(components);
                 if (component != null) {
                     component.addVariantsFromConfiguration(cnf, ConfigurationVariantDetails::mapToOptional);
                 }
@@ -414,15 +388,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         public OutgoingElementsBuilder published() {
             this.published = true;
             return this;
-        }
-
-        @Nullable
-        public AdhocComponentWithVariants findJavaComponent() {
-            SoftwareComponent component = components.findByName("java");
-            if (component instanceof AdhocComponentWithVariants) {
-                return (AdhocComponentWithVariants) component;
-            }
-            return null;
         }
     }
 

@@ -20,14 +20,13 @@ import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.ConfigurationPublications
 import org.gradle.api.artifacts.PublishArtifact
-import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.CompileView
 import org.gradle.api.attributes.DocsType
 import org.gradle.api.attributes.HasConfigurableAttributes
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
-import org.gradle.api.attributes.CompileView
 import org.gradle.api.attributes.java.TargetJvmEnvironment
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal
@@ -46,11 +45,11 @@ import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE
 import static org.gradle.api.attributes.Category.DOCUMENTATION
 import static org.gradle.api.attributes.Category.LIBRARY
 import static org.gradle.api.attributes.Category.REGULAR_PLATFORM
+import static org.gradle.api.attributes.CompileView.VIEW_ATTRIBUTE
 import static org.gradle.api.attributes.DocsType.DOCS_TYPE_ATTRIBUTE
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
 import static org.gradle.api.attributes.Usage.JAVA_RUNTIME
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
-import static org.gradle.api.attributes.CompileView.VIEW_ATTRIBUTE
 import static org.gradle.api.attributes.java.TargetJvmEnvironment.STANDARD_JVM
 import static org.gradle.api.attributes.java.TargetJvmEnvironment.TARGET_JVM_ENVIRONMENT_ATTRIBUTE
 import static org.gradle.api.attributes.java.TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE
@@ -118,34 +117,6 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             (LIBRARY_ELEMENTS_ATTRIBUTE): named(LibraryElements, LibraryElements.JAR),
             (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM)
         ]
-    }
-
-    def "can replace the artifacts of an outgoing configuration"() {
-        def outgoing = Mock(ConfigurationPublications)
-        def artifacts = Mock(PublishArtifactSet)
-        def artifacts2 = Mock(PublishArtifactSet)
-        def config = Stub(ConfigurationInternal) {
-            getOutgoing() >> outgoing
-            getExtendsFrom() >> [Stub(ConfigurationInternal) {
-                getOutgoing() >> Stub(ConfigurationPublications) {
-                    getArtifacts() >> artifacts2
-                }
-            }]
-        }
-
-        def artifact1 = Stub(TaskProvider)
-        def artifact2 = Stub(File)
-
-        when:
-        services.replaceArtifacts(config, artifact1, artifact2)
-
-        then:
-        1 * outgoing.getArtifacts() >> artifacts
-        1 * artifacts.clear()
-        1 * artifacts2.clear()
-        1 * outgoing.artifact(artifact1)
-        1 * outgoing.artifact(artifact2)
-        0 * _
     }
 
     def "can setup a classes directory secondary variant"() {

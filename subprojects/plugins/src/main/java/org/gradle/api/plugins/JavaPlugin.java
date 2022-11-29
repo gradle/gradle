@@ -44,6 +44,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
+import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.publish.PublishingExtension;
@@ -66,7 +67,6 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static org.gradle.api.plugins.JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME;
-import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocTask;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -290,7 +290,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         configureBuiltInTest(project, mainSourceSet);
         configureSourceSets(javaExtension, buildOutputCleanupRegistry);
         createConsumableConfigurations(project, mainSourceSet, jarArtifact);
-        configureJavaDocTask(null, mainSourceSet, project.getTasks(), javaExtension);
+        JvmPluginsHelper.configureJavaDocTask(null, mainSourceSet, project.getTasks(), javaExtension);
         configureBuild(project);
         configurePublishing(project, mainSourceSet);
     }

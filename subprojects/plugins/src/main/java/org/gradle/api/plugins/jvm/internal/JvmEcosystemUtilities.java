@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -68,16 +67,6 @@ public interface JvmEcosystemUtilities {
     <T> void configureAttributes(HasConfigurableAttributes<T> configurableAttributes, Action<? super JvmEcosystemAttributesDetails> details);
 
     /**
-     * Replaces the artifacts of an outgoing configuration with a new set of artifacts.
-     * This can be used whenever the default artifacts configured are not the ones you want to publish.
-     * If this configuration inherits from other configurations, their artifacts will be removed.
-     *
-     * @param outgoingConfiguration the configuration for which to replace artifacts
-     * @param providers the artifacts or providers of artifacts (e.g tasks providers) which should be associated with this configuration
-     */
-    void replaceArtifacts(Configuration outgoingConfiguration, Object... providers);
-
-    /**
      * Configures a configuration so that its exposed target jvm version is inferred from
      * the specified source set.
      * @param configuration the configuration to configure
@@ -95,13 +84,4 @@ public interface JvmEcosystemUtilities {
     void registerJvmLanguageSourceDirectory(SourceSet sourceSet, String name, Action<? super JvmLanguageSourceDirectoryBuilder> configuration);
 
     void registerJvmLanguageGeneratedSourceDirectory(SourceSet sourceSet, Action<? super JvmLanguageGeneratedSourceDirectoryBuilder> configuration);
-
-    /**
-     * Registers a configuration which will be used to declare dependencies, that is to say which is
-     * neither resolvable, nor consumable.
-     * @param name the name of the configuration
-     * @param description the description of the bucket
-     * @return a handle on the registered dependency bucket
-     */
-    Provider<Configuration> registerDependencyBucket(String name, String description);
 }

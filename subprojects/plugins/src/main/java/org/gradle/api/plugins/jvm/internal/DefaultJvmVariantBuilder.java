@@ -45,7 +45,6 @@ import java.util.List;
 
 import static org.gradle.api.attributes.DocsType.JAVADOC;
 import static org.gradle.api.attributes.DocsType.SOURCES;
-import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocTask;
 
 public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
     private final String name;
@@ -221,7 +220,7 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
 
         final AdhocComponentWithVariants component = findJavaComponent();
         JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
-        configureJavaDocTask(name, sourceSet, tasks, javaPluginExtension);
+        JvmPluginsHelper.configureJavaDocTask(name, sourceSet, tasks, javaPluginExtension);
         if (javadocJar) {
             JvmPluginsHelper.configureDocumentationVariantWithArtifact(sourceSet.getJavadocElementsConfigurationName(),
                     mainSourceSet ? null : name,

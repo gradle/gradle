@@ -19,7 +19,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -52,7 +51,28 @@ public abstract class JavaLibraryPlugin implements Plugin<Project> {
         SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
         ConfigurationContainer configurations = project.getConfigurations();
         SourceSet sourceSet = sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        JvmPluginsHelper.addApiToSourceSet(sourceSet, configurations);
+
+        Configuration apiConfiguration = configurations.maybeCreate(sourceSet.getApiConfigurationName());
+        apiConfiguration.setVisible(false);
+        apiConfiguration.setDescription("API dependencies for " + sourceSet + ".");
+        apiConfiguration.setCanBeResolved(false);
+        apiConfiguration.setCanBeConsumed(false);
+
+        Configuration compileOnlyApiConfiguration = configurations.maybeCreate(sourceSet.getCompileOnlyApiConfigurationName());
+        compileOnlyApiConfiguration.setVisible(false);
+        compileOnlyApiConfiguration.setDescription("Compile only API dependencies for " + sourceSet + ".");
+        compileOnlyApiConfiguration.setCanBeResolved(false);
+        compileOnlyApiConfiguration.setCanBeConsumed(false);
+
+        Configuration apiElementsConfiguration = configurations.getByName(sourceSet.getApiElementsConfigurationName());
+        apiElementsConfiguration.extendsFrom(apiConfiguration, compileOnlyApiConfiguration);
+
+        Configuration implementationConfiguration = configurations.getByName(sourceSet.getImplementationConfigurationName());
+        implementationConfiguration.extendsFrom(apiConfiguration);
+
+        Configuration compileOnlyConfiguration = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
+        compileOnlyConfiguration.extendsFrom(compileOnlyApiConfiguration);
+
         makeCompileOnlyApiVisibleToTests(configurations);
 
         Configuration apiElements = configurations.getByName(sourceSet.getApiElementsConfigurationName());
