@@ -98,14 +98,6 @@ public class DefaultSwiftStaticLibrary extends DefaultSwiftBinary implements Swi
         return runtimeElements;
     }
 
-    @Override
-    public void finalizeValue() {
-        SoftwareComponentInternal.super.finalizeValue();
-        runtimeElements.finalizeValue();
-        linkElements.finalizeValue();
-        linkFileProducer.finalizeValue();
-    }
-
     @Nullable
     @Override
     public Linkage getLinkage() {
