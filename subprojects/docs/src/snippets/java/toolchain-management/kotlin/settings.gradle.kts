@@ -1,11 +1,5 @@
-pluginManagement {
-    repositories {
-        maven(url = "https://plugins.grdev.net/m2/")
-    }
-} //TODO (#22138): use PROD portal for plugin, when published
-
 plugins {
-    id("org.gradle.disco-toolchains") version "0.1"
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.1")
 }
 
 import org.gradle.api.Plugin

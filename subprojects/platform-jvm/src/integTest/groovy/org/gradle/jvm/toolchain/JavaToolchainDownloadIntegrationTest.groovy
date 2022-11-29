@@ -118,28 +118,10 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
     private TestFile setFoojayDiscoToolchainProvider() {
         settingsFile << """
-            pluginManagement {
-                repositories {
-                    maven {
-                        url 'https://plugins.grdev.net/m2/'
-                    }
-                }
-            }
-
             plugins {
-                id 'org.gradle.disco-toolchains' version '0.1'
+                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.1'
             }
-            
-            toolchainManagement {
-                jvm {
-                    javaRepositories {
-                        repository('disco') {
-                            resolverClass = org.gradle.disco.DiscoToolchainResolver
-                        }
-                    }
-                }
-            }
-        """ //TODO (#22138): use PROD portal for plugin, when published
+        """
     }
 
     private TestFile setUnsecuredToolchainProvider() {
