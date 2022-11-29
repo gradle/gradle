@@ -58,25 +58,23 @@ abstract class AbstractSmokeTest extends Specification {
          * @see BuildScanPluginSmokeTest
          */
 
-        // https://plugins.gradle.org/plugin/nebula.dependency-recommender
-        static nebulaDependencyRecommender = "11.0.0"
+        // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-recommender
+        static nebulaDependencyRecommender = "12.0.0"
 
-        // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "17.1.0"
+        // https://plugins.gradle.org/plugin/com.netflix.nebula.plugin-plugin
+        static nebulaPluginPlugin = "20.0.0"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "17.7.0"
+        static nebulaLint = "17.7.1"
 
         // https://plugins.gradle.org/plugin/org.jetbrains.gradle.plugin.idea-ext
         static ideaExt = "1.1.6"
 
-        // https://plugins.gradle.org/plugin/nebula.dependency-lock
-        // TODO: Re-add "8.8.x", "9.4.x" and "10.1.x" if fixed:
-        //   https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/215
-        static nebulaDependencyLock = Versions.of("12.6.1")
+        // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-lock
+        static nebulaDependencyLock = Versions.of("13.1.0")
 
-        // https://plugins.gradle.org/plugin/nebula.resolution-rules
-        static nebulaResolutionRules = "9.0.0"
+        // https://plugins.gradle.org/plugin/com.netflix.nebula.resolution-rules
+        static nebulaResolutionRules = "10.0.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
         static shadow = Versions.of("7.0.0", "7.1.2")
