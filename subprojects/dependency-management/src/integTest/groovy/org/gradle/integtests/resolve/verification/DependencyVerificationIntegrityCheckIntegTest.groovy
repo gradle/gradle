@@ -608,9 +608,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
 
     def "dependency verification also checks included build dependencies (terse output=#terse)"() {
         createMetadataFile {
-            addChecksum("org:foo", "sha1", "d48c8da6999eb2191744f01691f84675e7ff520b")
         }
-        uncheckedModule("org", "foo")
         uncheckedModule("org", "bar")
 
         given:
@@ -618,7 +616,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         javaLibrary()
         buildFile << """
             dependencies {
-                implementation "org:foo:1.0"
                 implementation "org:included:1.0"
             }
         """
@@ -633,7 +630,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
                 maven { url "${mavenHttpRepo.uri}" }
             }
             dependencies {
-               implementation "org:bar:1.0"
+               compileOnly "org:bar:1.0"
             }
         """
         file("included/src/main/java/org/included/Included.java") << """
