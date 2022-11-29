@@ -43,7 +43,7 @@ import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction
 
 
 internal
-class DeprecatedFeaturesListenerManagerAction(
+class StableConfigurationCacheUnsupportedApiManagerAction(
     private val featureFlags: FeatureFlags
 ) : BuildScopeListenerManagerAction {
     override fun execute(manager: ListenerManager) {
