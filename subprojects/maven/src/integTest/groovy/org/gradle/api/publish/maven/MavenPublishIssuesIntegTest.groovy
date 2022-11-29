@@ -414,7 +414,7 @@ subprojects {
         succeeds "prepareKotlinBuildScriptModel"
 
         then:
-        outputContains("Gradle Module Metadata is modified after an eagerly populated publication.")
+        result.assertOutputContains("Gradle Module Metadata is modified after an eagerly populated publication.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/20581")
@@ -459,6 +459,6 @@ subprojects {
         succeeds "prepareKotlinBuildScriptModel"
 
         then:
-        outputContains("Gradle Module Metadata is modified after an eagerly populated publication.")
+        result.assertOutputContains("Gradle Module Metadata is modified after an eagerly populated publication.")
     }
 }
