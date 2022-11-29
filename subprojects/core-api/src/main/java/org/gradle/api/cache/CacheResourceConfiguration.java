@@ -19,9 +19,6 @@ package org.gradle.api.cache;
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.time.TimestampSuppliers;
-
-import java.util.function.Supplier;
 
 /**
  * Represents the configuration of a given type of cache resource.
@@ -32,18 +29,17 @@ import java.util.function.Supplier;
 @HasInternalProtocol
 public interface CacheResourceConfiguration {
     /**
-     * Configures the the timestamp before which an unused entry will be removed from the cache.
+     * Configures the timestamp before which an unused entry will be removed from the cache.
      *
-     * See {@link TimestampSuppliers#daysAgo(int)}.
+     * See {@link #setRemoveUnusedEntriesAfterDays(int)}.
      */
-    Property<Supplier<Long>> getRemoveUnusedEntriesAfter();
+    Property<Long> getRemoveUnusedEntriesAfter();
 
     /**
-     * Returns a timestamp supplier that calculates a timestamp exactly the given number
-     * of days prior to the current time, or 0 if the number of days extends beyond the
-     * epoch.
+     * Sets the timestamp before which unused entries will be removed to be calculated exactly
+     * the given number of days previous to the current time.
+     *
+     * See {@link #getRemoveUnusedEntriesAfter()}
      */
-    static Supplier<Long> days(int days) {
-        return TimestampSuppliers.daysAgo(days);
-    }
+    void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays);
 }

@@ -39,10 +39,10 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             beforeSettings { settings ->
                 settings.caches {
                     cleanup = Cleanup.DISABLED
-                    releasedWrappers { removeUnusedEntriesAfter = days(${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}) }
-                    snapshotWrappers { removeUnusedEntriesAfter = days(${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}) }
-                    downloadedResources { removeUnusedEntriesAfter = days(${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}) }
-                    createdResources { removeUnusedEntriesAfter = days(${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}) }
+                    releasedWrappers { removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS} }
+                    snapshotWrappers { removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS} }
+                    downloadedResources { removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES} }
+                    createdResources { removeUnusedEntriesAfterDays = ${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES} }
                 }
             }
         """
@@ -59,7 +59,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
     }
 
-    def "can configure caches to a custom supplier"() {
+    def "can configure caches to a custom timestamp"() {
         def initDir = new File(executer.gradleUserHomeDir, "init.d")
         initDir.mkdirs()
 
@@ -74,19 +74,19 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
             beforeSettings { settings ->
                 settings.caches {
                     cleanup = Cleanup.DISABLED
-                    releasedWrappers { removeUnusedEntriesAfter.set({${releasedDistTimestamp}} as Supplier) }
-                    snapshotWrappers { removeUnusedEntriesAfter.set({${snapshotDistTimestamp}} as Supplier) }
-                    downloadedResources { removeUnusedEntriesAfter.set({${downloadedResourcesTimestamp}} as Supplier) }
-                    createdResources { removeUnusedEntriesAfter.set({${createdResourcesTimestamp}} as Supplier) }
+                    releasedWrappers { removeUnusedEntriesAfter = ${releasedDistTimestamp} }
+                    snapshotWrappers { removeUnusedEntriesAfter = ${snapshotDistTimestamp} }
+                    downloadedResources { removeUnusedEntriesAfter = ${downloadedResourcesTimestamp} }
+                    createdResources { removeUnusedEntriesAfter = ${createdResourcesTimestamp} }
                 }
             }
         """
         settingsFile << """
             caches {
-                assert releasedWrappers.removeUnusedEntriesAfter.get().get() == ${releasedDistTimestamp}
-                assert snapshotWrappers.removeUnusedEntriesAfter.get().get() == ${snapshotDistTimestamp}
-                assert downloadedResources.removeUnusedEntriesAfter.get().get() == ${downloadedResourcesTimestamp}
-                assert createdResources.removeUnusedEntriesAfter.get().get() == ${createdResourcesTimestamp}
+                assert releasedWrappers.removeUnusedEntriesAfter.get() == ${releasedDistTimestamp}
+                assert snapshotWrappers.removeUnusedEntriesAfter.get() == ${snapshotDistTimestamp}
+                assert downloadedResources.removeUnusedEntriesAfter.get() == ${downloadedResourcesTimestamp}
+                assert createdResources.removeUnusedEntriesAfter.get() == ${createdResourcesTimestamp}
             }
         """
 
@@ -106,12 +106,12 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains(error)
 
         where:
-        property                                       | error                             | value
-        'cleanup'                                      | THIS_PROPERTY_FINAL_ERROR         | 'Cleanup.DISABLED'
-        'releasedWrappers.removeUnusedEntriesAfter'    | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "CacheResourceConfiguration.days(${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS})"
-        'snapshotWrappers.removeUnusedEntriesAfter'    | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "CacheResourceConfiguration.days(${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS})"
-        'downloadedResources.removeUnusedEntriesAfter' | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "CacheResourceConfiguration.days(${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES})"
-        'createdResources.removeUnusedEntriesAfter'    | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "CacheResourceConfiguration.days(${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES})"
+        property                                           | error                             | value
+        'cleanup'                                          | THIS_PROPERTY_FINAL_ERROR         | 'Cleanup.DISABLED'
+        'releasedWrappers.removeUnusedEntriesAfterDays'    | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}"
+        'snapshotWrappers.removeUnusedEntriesAfterDays'    | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}"
+        'downloadedResources.removeUnusedEntriesAfterDays' | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}"
+        'createdResources.removeUnusedEntriesAfterDays'    | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}"
     }
 
     static String modifyCacheConfiguration(String property, String value) {
@@ -122,7 +122,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     static String assertValueIsSameInDays(int configuredDaysAgo) {
         return """
-            def timestamp = removeUnusedEntriesAfter.get().get()
+            def timestamp = removeUnusedEntriesAfter.get()
             def daysAgo = java.util.concurrent.TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - timestamp)
             assert daysAgo == ${configuredDaysAgo}
         """

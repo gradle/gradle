@@ -19,6 +19,7 @@ package org.gradle.api.internal.cache;
 import org.gradle.api.Action;
 import org.gradle.api.cache.CacheResourceConfiguration;
 import org.gradle.api.cache.Cleanup;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.internal.time.TimestampSuppliers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -54,7 +55,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, int defaultDays) {
         CacheResourceConfigurationInternal resourceConfiguration = objectFactory.newInstance(DefaultCacheResourceConfiguration.class);
-        resourceConfiguration.getRemoveUnusedEntriesAfter().convention(TimestampSuppliers.daysAgo(defaultDays));
+        resourceConfiguration.getRemoveUnusedEntriesAfter().convention(providerFromSupplier(TimestampSuppliers.daysAgo(defaultDays)));
         return resourceConfiguration;
     }
 
@@ -172,6 +173,10 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         return getCleanupFrequency().get() != CleanupFrequency.NEVER;
     }
 
+    private static <T> Provider<T> providerFromSupplier(Supplier<T> supplier) {
+        return new DefaultProvider<>(supplier::get);
+    }
+
     static abstract class DefaultCacheResourceConfiguration implements CacheResourceConfigurationInternal {
         @Inject
         public DefaultCacheResourceConfiguration() {
@@ -183,7 +188,13 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
          */
         @Override
         public Supplier<Long> getRemoveUnusedEntriesAfterAsSupplier() {
-            return () -> getRemoveUnusedEntriesAfter().map(Supplier::get).get();
+            return () -> getRemoveUnusedEntriesAfter().get();
+        }
+
+
+        @Override
+        public void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays) {
+            getRemoveUnusedEntriesAfter().set(providerFromSupplier(TimestampSuppliers.daysAgo(removeUnusedEntriesAfterDays)));
         }
     }
 }
