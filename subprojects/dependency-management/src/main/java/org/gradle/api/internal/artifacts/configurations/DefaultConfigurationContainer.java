@@ -172,7 +172,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     @Override
     public ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockUsage, Action<? super ConfigurationInternal> configureAction) {
-        assertMutable("create(String, Action)");
+        assertMutable("createWithRole(String, ConfigurationRole, boolean, Action)");
         assertCanAdd(name);
         ConfigurationInternal object = doCreate(name, role, lockUsage);
         add(object);
