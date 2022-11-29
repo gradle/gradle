@@ -152,12 +152,12 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                 println(
                     configurations.classpath.incoming.artifactView {
                             attributes.attribute(artifactType, "size")
-                        }.artifacts.artifactFiles.files
+                        }.files.files
                 )
                 println(
                     configurations.classpath.incoming.artifactView {
                             attributes.attribute(artifactType, "size")
-                        }.artifacts.artifactFiles.files
+                        }.files.files
                 )
             }
         """
@@ -1024,6 +1024,30 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
     @Issue("https://github.com/gradle/gradle/issues/22735")
     def "transform selection prioritizes shorter transforms over attribute schema matching"() {
+
+        // The lib project defines two variants:
+        // primary:
+        // - artifactType=jar
+        // - extraAttribute=preferred
+        // secondary:
+        // - artifactType=intermediate
+
+        // We make a request with the artifactType=final attribute
+
+        // Given the following transforms:
+        // A) FileSizer from artifactType=jar to artifactType=intermediate
+        // B) FileSizer from artifactType=intermediate to artifactType=final
+
+        // We could potentially construct the following transform chains:
+        // 1) primary -> A -> B -> requested
+        //  - artifactType=final
+        //  - extraAttribute=preferred
+        // 2) secondary -> B -> requested
+        //  - artifactType=final
+
+        // Both of these potential transforms are compatible, except (1) has a favorable attribute set
+        // with respect to the attribute schema. However, we want to choose (2) since it is the shorter chain.
+
         buildFile << """
             project(':lib') {
                 task jar(type: Jar) {
@@ -1092,7 +1116,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
                         config.attributes {
                             attribute(artifactType, "final")
                         }
-                    }.artifacts.artifactFiles
+                    }.files
                     inputs.files(artifactFiles)
                     doLast {
                         println "files: " + artifactFiles.files.collect { it.name }
@@ -1104,10 +1128,6 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         when:
         succeeds ":app:resolve"
 
-        // Ensure we consume the `secondary` variant of `:lib` using only a single transform
-        // instead of consuming the `primary` variant using both transforms, even though
-        // the primary transformed variant has an attribute which is preferred according to
-        // the attribute schema.
         then:
         output.count("Creating FileSizer") == 1
         output.count("Transforming") == 1
@@ -2302,7 +2322,7 @@ Found the following transforms:
                     config.attributes {
                         attribute(artifactType, "final")
                     }
-                }.artifacts.artifactFiles
+                }.files
                 inputs.files(artifactFiles)
                 doLast {
                     println "files: " + artifactFiles.files.collect { it.name }
