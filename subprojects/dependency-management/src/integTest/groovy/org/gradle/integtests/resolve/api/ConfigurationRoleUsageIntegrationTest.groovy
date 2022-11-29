@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.api
 
+
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
@@ -237,6 +238,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         role                    | customRoleBasedConf               || consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
         'consumable'            | "consumable('custom')"            || true        | false         | false             | false                 | false                 | false
         'resolvable'            | "resolvable('custom')"            || false       | true          | false             | false                 | false                 | false
+        'resolvableBucket'      | "resolvableBucket('custom')"      || false       | true          | true              | false                 | false                 | false
         'bucket'                | "bucket('custom')"                || false       | false         | true              | false                 | false                 | false
         'deprecated consumable' | "deprecatedConsumable('custom')"  || true        | true          | true              | false                 | true                  | true
         'deprecated resolvable' | "deprecatedResolvable('custom')"  || true        | true          | true              | true                  | false                 | true
@@ -277,12 +279,14 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
             configurations {
                 consumable('consumable1')
                 resolvable('resolvable1')
+                resolvableBucket('resolvableBucket1')
                 bucket('bucket1')
                 deprecatedConsumable('deprecatedConsumable1')
                 deprecatedResolvable('deprecatedResolvable1')
 
                 consumable('consumable2', true)
                 resolvable('resolvable2', true)
+                resolvableBucket('resolvableBucket2', true)
                 bucket('bucket2', true)
                 deprecatedConsumable('deprecatedConsumable2', true)
                 deprecatedResolvable('deprecatedResolvable2', true)
@@ -357,7 +361,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
                 maybeCreateWithRole('implementation', ConfigurationRoles.INTENDED_RESOLVABLE, false, true)
             }
         """
-        executer.expectDocumentedDeprecationWarning("Custom configuration roles are deprecated. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Use one of the standard roles defined in ConfigurationRoles instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#custom_configuration_roles")
 
         expect:
         fails 'help'
@@ -379,7 +382,6 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
                 maybeCreateWithRole('custom', ConfigurationRoles.INTENDED_RESOLVABLE, false, true)
             }
         """
-        executer.expectDocumentedDeprecationWarning("Custom configuration roles are deprecated. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Use one of the standard roles defined in ConfigurationRoles instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#custom_configuration_roles")
 
         expect:
         fails 'help'
@@ -436,9 +438,10 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
                 def c1 = createWithRole('c1', ConfigurationRoles.LEGACY)
                 def c2 = createWithRole('c2', ConfigurationRoles.INTENDED_CONSUMABLE)
                 def c3 = createWithRole('c3', ConfigurationRoles.INTENDED_RESOLVABLE)
-                def c4 = createWithRole('c4', ConfigurationRoles.INTENDED_BUCKET)
-                def c5 = createWithRole('c5', ConfigurationRoles.DEPRECATED_CONSUMABLE)
-                def c6 = createWithRole('c6', ConfigurationRoles.DEPRECATED_RESOLVABLE)
+                def c4 = createWithRole('c4', ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET)
+                def c5 = createWithRole('c5', ConfigurationRoles.INTENDED_BUCKET)
+                def c6 = createWithRole('c6', ConfigurationRoles.DEPRECATED_CONSUMABLE)
+                def c7 = createWithRole('c7', ConfigurationRoles.DEPRECATED_RESOLVABLE)
             }
 
             configurations.all {
@@ -572,6 +575,27 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         assertUsageLockedFailure('custom', 'custom')
+    }
+
+
+    def "custom role warns on creation if asked"() {
+        given:
+        buildFile << """
+            import org.gradle.api.internal.artifacts.configurations.ConfigurationRole
+
+            ConfigurationRole customRole = ConfigurationRole.forUsage('custom', $consumable, $resolvable, $declarableAgainst, $consumptionDeprecated, $resolutionDeprecated, $declarationAgainstDeprecated, null, $warn)
+        """
+        if (warn) {
+            executer.expectDocumentedDeprecationWarning("Custom configuration roles are deprecated. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Use one of the standard roles defined in ConfigurationRoles instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#custom_configuration_roles")
+        }
+
+        expect:
+        succeeds 'help'
+
+        where:
+        consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated | warn
+        true        | true         | false             | false                 | false                 | false                        | true
+        true        | true         | false             | false                 | false                 | false                        | false
     }
     // endregion Custom Roles
 

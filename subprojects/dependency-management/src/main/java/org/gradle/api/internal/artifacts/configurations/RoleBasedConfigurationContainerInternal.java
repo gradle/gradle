@@ -42,6 +42,15 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
+     * using the role of {@link ConfigurationRoles#INTENDED_RESOLVABLE_BUCKET}.
+     */
+    @SuppressWarnings("deprecation")
+    default ConfigurationInternal resolvableBucket(String name, boolean lockRole) {
+        return createWithRole(name, ConfigurationRoles.INTENDED_RESOLVABLE_BUCKET, lockRole);
+    }
+
+    /**
+     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
      * using the role of {@link ConfigurationRoles#INTENDED_BUCKET}.
      */
     default ConfigurationInternal bucket(String name, boolean lockRole) {
@@ -64,6 +73,15 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      */
     default ConfigurationInternal resolvable(String name) {
         return resolvable(name, false);
+    }
+
+    /**
+     * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
+     * using the role of {@link ConfigurationRoles#INTENDED_RESOLVABLE_BUCKET} that is <strong>NOT</strong> locked
+     * against further usage mutations.
+     */
+    default ConfigurationInternal resolvableBucket(String name) {
+        return resolvableBucket(name, false);
     }
 
     /**
