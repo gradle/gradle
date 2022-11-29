@@ -56,10 +56,7 @@ class StableConfigurationCacheUnsupportedApiManagerAction(
     ) : BuildScopeListenerRegistrationListener, TaskExecutionAccessListener {
         override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
             if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
-                DeprecationLogger.deprecateAction("Listener registration using $invocationDescription()")
-                    .willBecomeAnErrorInGradle8()
-                    .withUpgradeGuideSection(7, "task_execution_events")
-                    .nagUser()
+                throw UnsupportedOperationException("Listener registration using $invocationDescription()")
             }
         }
 
