@@ -17,28 +17,85 @@
 package org.gradle.internal.properties.bean;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.tasks.Nested;
+import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
+import org.gradle.internal.properties.annotations.TypeMetadataWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.snapshot.impl.ImplementationValue;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayDeque;
 import java.util.Queue;
+import java.util.function.Supplier;
 
 @NonNullApi
 public class DefaultPropertyWalker implements PropertyWalker {
-    private final RuntimeBeanNodeFactory nodeFactory;
+    private final TypeMetadataWalker<Object> walker;
+    private final ImplementationResolver implementationResolver;
 
     public DefaultPropertyWalker(TypeMetadataStore typeMetadataStore, ImplementationResolver implementationResolver) {
-        this.nodeFactory = new RuntimeBeanNodeFactory(typeMetadataStore, implementationResolver);
+        this.walker = TypeMetadataWalker.instanceWalker(typeMetadataStore, Nested.class);
+        this.implementationResolver = implementationResolver;
     }
 
     @Override
     public void visitProperties(Object bean, TypeValidationContext validationContext, PropertyVisitor visitor) {
-        Queue<RuntimeBeanNode<?>> queue = new ArrayDeque<RuntimeBeanNode<?>>();
-        queue.add(nodeFactory.createRoot(bean));
-        while (!queue.isEmpty()) {
-            RuntimeBeanNode<?> node = queue.remove();
-            node.visitNode(visitor, queue, nodeFactory, validationContext);
+        walker.walk(bean, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
+            @Override
+            public void visitRoot(TypeMetadata typeMetadata, Object value) {
+                // TODO What to do here?
+            }
+
+            @Override
+            public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, Object value) {
+                ImplementationValue implementation = implementationResolver.resolveImplementation(value);
+                visitor.visitInputProperty(
+                    qualifiedName,
+                    new ImplementationPropertyValue(implementation),
+                    false
+                );
+            }
+
+            @Override
+            public void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<Object> value) {
+                Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
+                whateverRegistry.getPropertyHandler(propertyType).acceptVisitor(visitor);
+            }
+        });
+    }
+
+    private static class ImplementationPropertyValue implements PropertyValue {
+
+        private final ImplementationValue implementationValue;
+
+        public ImplementationPropertyValue(ImplementationValue implementationValue) {
+            this.implementationValue = implementationValue;
+        }
+
+        @Override
+        public Object call() {
+            return implementationValue;
+        }
+
+        @Override
+        public TaskDependencyContainer getTaskDependencies() {
+            // Ignore
+            return TaskDependencyContainer.EMPTY;
+        }
+
+        @Override
+        public void maybeFinalizeValue() {
+            // Ignore
+        }
+
+        @Override
+        public String toString() {
+            return "Implementation: " + implementationValue;
         }
     }
 }
