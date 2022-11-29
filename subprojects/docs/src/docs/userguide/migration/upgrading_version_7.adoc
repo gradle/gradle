@@ -535,7 +535,7 @@ These deprecated elements will be removed in a future version of Gradle.
 ==== Deprecated implicit references to outer scope methods in some configuration blocks
 
 Prior to Gradle 7.6, Groovy scripts permitted access to root project configure methods
-within named container configure methods that throw `MissingMethodException`.
+within named container configure methods that throw `MissingMethodException`s.
 Consider the following snippets for examples of this behavior:
 
 Gradle permits access to the top-level `repositories` block from within the `configurations` block
@@ -1432,7 +1432,7 @@ See the <<artifact_transforms#sec:abm_artifact_transforms,user manual>> for more
 [[gmm_modification_after_publication_populated]]
 ==== Modifying GMM after publications have been populated
 
-Altering the link:publishing_gradle_module_metadata.html[Gradle Module Metadata] (e.g. changing a component configuration variants) after a Maven or Ivy publication have been populated from their components, is now deprecated and scheduled to be disallowed in Gradle 9.0.
+Altering the link:publishing_gradle_module_metadata.html[Gradle Module Metadata] (e.g. changing a component configuration variants) after a Maven or Ivy publication have been populated from their components, is now deprecated.
 
 Eager "realization" of the publication can happen if the following methods are called:
 
