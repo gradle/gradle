@@ -140,14 +140,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      */
     boolean isCanBeDeclaredAgainst();
 
-    boolean isDeprecatedForConsumption();
-    boolean isDeprecatedForResolution();
-    boolean isDeprecatedForDeclarationAgainst();
-
-    void setDeprecatedForConsumption(boolean deprecated);
-    void setDeprecatedForResolution(boolean deprecated);
-    void setDeprecatedForDeclarationAgainst(boolean deprecated);
-
     /**
      * Prevents any calls to methods that change this configuration's allowed usage (e.g. {@link #setCanBeConsumed(boolean)},
      * {@link #setCanBeResolved(boolean)}, {@link #deprecateForResolution(String...)}) from succeeding; and causes them

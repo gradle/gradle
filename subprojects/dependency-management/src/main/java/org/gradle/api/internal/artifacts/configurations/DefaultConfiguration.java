@@ -220,12 +220,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private boolean insideBeforeResolve;
 
     private boolean dependenciesModified;
-    private boolean canBeConsumed = true;
-    private boolean canBeResolved = true;
-    private boolean canBeDeclaredAgainst = true;
-    private boolean consumptionDeprecated = false;
-    private boolean resolutionDeprecated = false;
-    private boolean declarationDeprecated = false;
+    private boolean canBeConsumed;
+    private boolean canBeResolved;
+    private boolean canBeDeclaredAgainst;
+    private boolean consumptionDeprecated;
+    private boolean resolutionDeprecated;
+    private boolean declarationDeprecated;
     private boolean usageCanBeMutated = true;
     private final ConfigurationRole roleAtCreation;
     private boolean warnOnChangingUsage = false; // TODO: This should always be true in Gradle 8.1, and can be removed
@@ -399,9 +399,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         // Calling these during construction is not ideal, but we'd have to call the deprecateForConsumption(), etc.
         // methods anyway even if replicated the code inside these methods here, so at least this keeps a single
         // code path for the deprecation.
-        this.setDeprecatedForConsumption(roleAtCreation.isConsumptionDeprecated());
-        this.setDeprecatedForResolution(roleAtCreation.isResolutionDeprecated());
-        this.setDeprecatedForDeclarationAgainst(roleAtCreation.isDeclarationAgainstDeprecated());
+        if (roleAtCreation.isConsumptionDeprecated()) {
+            deprecateForConsumption();
+        }
+        if (roleAtCreation.isResolutionDeprecated()) {
+            deprecateForResolution();
+        }
+        if (roleAtCreation.isDeclarationAgainstDeprecated()) {
+            deprecateForDeclarationAgainst();
+        }
         if (lockUsage) {
             preventUsageMutation();
         }
@@ -1292,7 +1298,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints) {
-        DefaultConfiguration copiedConfiguration = newConfiguration();
+        DefaultConfiguration copiedConfiguration = newConfiguration(ConfigurationRole.forConfiguration(this), this.usageCanBeMutated);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
 
@@ -1303,10 +1309,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.defaultDependencyActions = defaultDependencyActions;
         copiedConfiguration.withDependencyActions = withDependencyActions;
         copiedConfiguration.dependencyResolutionListeners = dependencyResolutionListeners.copy();
-
-        copiedConfiguration.canBeConsumed = canBeConsumed;
-        copiedConfiguration.canBeResolved = canBeResolved;
-        copiedConfiguration.canBeDeclaredAgainst = canBeDeclaredAgainst;
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
@@ -1335,7 +1337,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return copiedConfiguration;
     }
 
-    private DefaultConfiguration newConfiguration() {
+    private DefaultConfiguration newConfiguration(ConfigurationRole role, boolean usageCanBeMutated) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         RootComponentMetadataBuilder rootComponentMetadataBuilder = this.rootComponentMetadataBuilder.withConfigurationsProvider(configurationsProvider);
 
@@ -1346,7 +1348,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             newName,
             configurationsProvider,
             childResolutionStrategy,
-            rootComponentMetadataBuilder
+            rootComponentMetadataBuilder,
+            role,
+            !usageCanBeMutated
         );
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         return copiedConfiguration;
@@ -1814,63 +1818,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void setDeprecatedForConsumption(boolean deprecated) {
-        if (consumptionDeprecated != deprecated) {
-            if (deprecated) {
-                deprecateForConsumption(depSpec -> DeprecationLogger.deprecateConfiguration(getName())
-                        .forConsumption()
-                        .willBecomeAnErrorInGradle9()
-                        .withUserManual("dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations"));
-            } else {
-                undeprecateForConsumption();
-            }
-        }
-    }
-
-    @Override
-    public void setDeprecatedForResolution(boolean deprecated) {
-        if (resolutionDeprecated != deprecated) {
-            if (deprecated) {
-                deprecateForResolution();
-            } else {
-                undeprecateForResolution();
-            }
-        }
-    }
-
-    @Override
-    public void setDeprecatedForDeclarationAgainst(boolean deprecated) {
-        if (declarationDeprecated != deprecated) {
-            if (deprecated) {
-                deprecateForDeclarationAgainst();
-            } else {
-                undeprecateForDeclarationAgainst();
-            }
-        }
-    }
-
-    private void undeprecateForConsumption() {
-        validateMutation(MutationType.USAGE);
-        consumptionDeprecation = null;
-        consumptionDeprecated = false;
-        logChangingUsage("deprecated for consumption", false);
-    }
-
-    private void undeprecateForResolution() {
-        validateMutation(MutationType.USAGE);
-        resolutionAlternatives = null;
-        resolutionDeprecated = false;
-        logChangingUsage("deprecated for resolution", false);
-    }
-
-    private void undeprecateForDeclarationAgainst() {
-        validateMutation(MutationType.USAGE);
-        declarationAlternatives = null;
-        declarationDeprecated = false;
-        logChangingUsage("deprecated for declaration against", false);
-    }
-
-    @Override
     public DeprecatableConfiguration deprecateForDeclarationAgainst(String... alternativesForDeclaring) {
         validateMutation(MutationType.USAGE);
         this.declarationAlternatives = ImmutableList.copyOf(alternativesForDeclaring);
@@ -1882,17 +1829,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public DeprecatableConfiguration deprecateForConsumption(Function<DeprecationMessageBuilder.DeprecateConfiguration, DeprecationMessageBuilder.WithDocumentation> deprecation) {
-        validateMutation(MutationType.USAGE);
-        this.consumptionDeprecation = deprecation.apply(DeprecationLogger.deprecateConfiguration(name).forConsumption());
-        if (!consumptionDeprecated) {
-            logChangingUsage("deprecated for consumption", true);
-        }
-        consumptionDeprecated = true;
-        return this;
-    }
-
-    @Override
     public DeprecatableConfiguration deprecateForResolution(String... alternativesForResolving) {
         validateMutation(MutationType.USAGE);
         this.resolutionAlternatives = ImmutableList.copyOf(alternativesForResolving);
@@ -1900,6 +1836,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             logChangingUsage("deprecated for resolution", true);
         }
         resolutionDeprecated = true;
+        return this;
+    }
+
+    @Override
+    public DeprecatableConfiguration deprecateForConsumption(Function<DeprecationMessageBuilder.DeprecateConfiguration, DeprecationMessageBuilder.WithDocumentation> deprecation) {
+        validateMutation(MutationType.USAGE);
+        this.consumptionDeprecation = deprecation.apply(DeprecationLogger.deprecateConfiguration(name).forConsumption());
+        if (!consumptionDeprecated) {
+            logChangingUsage("deprecated for consumption", true);
+        }
+        consumptionDeprecated = true;
         return this;
     }
 
