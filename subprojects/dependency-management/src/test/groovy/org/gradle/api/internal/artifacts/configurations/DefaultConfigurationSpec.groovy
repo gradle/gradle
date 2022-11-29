@@ -1747,25 +1747,6 @@ All Artifacts:
         'declarable against'    | { it.setCanBeDeclaredAgainst(!it.isCanBeDeclaredAgainst()) }
     }
 
-    def "locking usage changes prevents #usageName deprecation changes"() {
-        given:
-        def conf = conf()
-        conf.preventUsageMutation()
-
-        when:
-        changeUsage(conf)
-
-        then:
-        GradleException t = thrown()
-        t.message == "Cannot change the allowed usage of configuration ':conf', as it has been locked."
-
-        where:
-        usageName               | changeUsage
-        'consumable'            | { it.setDeprecatedForConsumption(!it.isDeprecatedForConsumption()) }
-        'resolvable'            | { it.setDeprecatedForResolution(!it.isDeprecatedForResolution()) }
-        'declarable against'    | { it.setDeprecatedForDeclarationAgainst(!it.isDeprecatedForDeclarationAgainst()) }
-    }
-
     def "locking all changes prevents #usageName usage changes"() {
         given:
         def conf = conf()
@@ -1783,51 +1764,6 @@ All Artifacts:
         'consumable'            | { it.setCanBeConsumed(!it.isCanBeConsumed()) }
         'resolvable'            | { it.setCanBeResolved(!it.isCanBeResolved()) }
         'declarable against'    | { it.setCanBeDeclaredAgainst(!it.isCanBeDeclaredAgainst()) }
-    }
-
-    def "locking all changes prevents #usageName deprecation changes"() {
-        given:
-        def conf = conf()
-        conf.preventFromFurtherMutation()
-
-        when:
-        changeUsage(conf)
-
-        then:
-        GradleException t = thrown()
-        t.message == "Cannot change the allowed usage of configuration ':conf', as it has been locked."
-
-        where:
-        usageName               | changeUsage
-        'consumable'            | { it.setDeprecatedForConsumption(!it.isDeprecatedForConsumption()) }
-        'resolvable'            | { it.setDeprecatedForResolution(!it.isDeprecatedForResolution()) }
-        'declarable against'    | { it.setDeprecatedForDeclarationAgainst(!it.isDeprecatedForDeclarationAgainst()) }
-    }
-
-    def "can unallow deprecation usage"() {
-        given:
-        def conf = conf()
-        conf.setCanBeConsumed(true)
-        conf.setCanBeResolved(true)
-        conf.setCanBeDeclaredAgainst(true)
-        conf.setDeprecatedForConsumption(true)
-        conf.setDeprecatedForResolution(true)
-        conf.setDeprecatedForDeclarationAgainst(true)
-
-        expect:
-        assert conf.isDeprecatedForConsumption()
-        assert conf.isDeprecatedForResolution()
-        assert conf.isDeprecatedForDeclarationAgainst()
-
-        when:
-        conf.setDeprecatedForConsumption(false)
-        conf.setDeprecatedForResolution(false)
-        conf.setDeprecatedForDeclarationAgainst(false)
-
-        then:
-        assert !conf.isDeprecatedForConsumption()
-        assert !conf.isDeprecatedForResolution()
-        assert !conf.isDeprecatedForDeclarationAgainst()
     }
 
     private DefaultConfiguration configurationWithExcludeRules(ExcludeRule... rules) {
