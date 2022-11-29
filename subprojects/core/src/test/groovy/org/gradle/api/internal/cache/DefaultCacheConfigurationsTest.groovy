@@ -91,4 +91,30 @@ class DefaultCacheConfigurationsTest extends Specification {
         releasedWrappers.get() == twoDaysAgo
         snapshotWrappers.get() == twoDaysAgo
     }
+
+    def "cannot set values in days to less than one"() {
+        when:
+        cacheConfigurations.createdResources.setRemoveUnusedEntriesAfterDays(0)
+
+        then:
+        thrown(IllegalArgumentException)
+
+        when:
+        cacheConfigurations.downloadedResources.setRemoveUnusedEntriesAfterDays(0)
+
+        then:
+        thrown(IllegalArgumentException)
+
+        when:
+        cacheConfigurations.releasedWrappers.setRemoveUnusedEntriesAfterDays(0)
+
+        then:
+        thrown(IllegalArgumentException)
+
+        when:
+        cacheConfigurations.snapshotWrappers.setRemoveUnusedEntriesAfterDays(0)
+
+        then:
+        thrown(IllegalArgumentException)
+    }
 }
