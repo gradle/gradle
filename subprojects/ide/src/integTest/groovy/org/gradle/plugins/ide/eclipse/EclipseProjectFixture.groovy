@@ -72,7 +72,7 @@ class EclipseProjectFixture extends IdeProjectFixture {
     }
 
     void assertHasNatures(String... natures) {
-        assert this.project.natures.nature*.text() == natures as List
+        assert this.project.natures.nature*.text() as Set == natures as Set
     }
 
     void assertHasJavaFacetBuilders() {
@@ -83,11 +83,11 @@ class EclipseProjectFixture extends IdeProjectFixture {
     }
 
     void assertHasBuilders(String... builders) {
-        assert this.project.buildSpec.buildCommand.name*.text() == builders as List
+        assert this.project.buildSpec.buildCommand.name*.text() as Set == builders as Set
     }
 
     void assertHasLinkedResources(String... names) {
-        assert this.project.linkedResources.link.name*.text() == names as List
+        assert this.project.linkedResources.link.name*.text() as Set == names as Set
     }
 
     void assertHasBuilder(String builderName, Map args) {

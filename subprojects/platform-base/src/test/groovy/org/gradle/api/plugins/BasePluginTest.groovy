@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
 import org.gradle.api.tasks.Delete
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -67,15 +66,15 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
 
     def "assemble task builds the published artifacts"() {
         given:
-        def someJar = project.tasks.create('someJar', Jar)
+        def someZip = project.tasks.create('someZip', Zip)
 
         when:
         project.pluginManager.apply(BasePlugin)
-        project.artifacts.archives someJar
+        project.artifacts.archives someZip
 
         then:
         def assemble = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
-        assemble dependsOn('someJar')
+        assemble dependsOn('someZip')
     }
 
     def "adds rules when a configuration is added"() {
@@ -88,25 +87,25 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
 
     def "adds implicit tasks for configuration"() {
         given:
-        def someJar = project.tasks.create('someJar', Jar)
+        def someZip = project.tasks.create('someZip', Zip)
 
         when:
         project.pluginManager.apply(BasePlugin)
-        project.artifacts.archives someJar
+        project.artifacts.archives someZip
 
         then:
         def buildArchives = project.tasks['buildArchives']
         buildArchives instanceOf(DefaultTask)
-        buildArchives dependsOn('someJar')
+        buildArchives dependsOn('someZip')
 
         when:
         project.configurations.create('conf')
-        project.artifacts.conf someJar
+        project.artifacts.conf someZip
 
         then:
         def buildConf = project.tasks['buildConf']
         buildConf instanceOf(DefaultTask)
-        buildConf dependsOn('someJar')
+        buildConf dependsOn('someZip')
 
     }
 
@@ -145,12 +144,6 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         project.version = '1.0'
 
         then:
-        def someJar = project.tasks.create('someJar', Jar)
-        someJar.destinationDirectory.get().asFile == project.libsDirectory.get().asFile
-        someJar.archiveVersion.get() == project.version
-        someJar.archiveBaseName.get() == project.archivesBaseName
-
-        and:
         def someZip = project.tasks.create('someZip', Zip)
         someZip.destinationDirectory.get().asFile == project.distsDirectory.get().asFile
         someZip.archiveVersion.get() == project.version
@@ -168,7 +161,7 @@ class BasePluginTest extends AbstractProjectBuilderSpec {
         project.pluginManager.apply(BasePlugin)
 
         then:
-        def task = project.tasks.create('someJar', Jar)
+        def task = project.tasks.create('someZip', Zip)
         task.archiveVersion.getOrNull() == null
 
         when:

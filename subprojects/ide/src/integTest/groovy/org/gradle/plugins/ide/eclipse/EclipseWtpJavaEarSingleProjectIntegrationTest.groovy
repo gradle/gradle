@@ -61,7 +61,8 @@ class EclipseWtpJavaEarSingleProjectIntegrationTest extends AbstractEclipseInteg
                 'org.eclipse.wst.common.modulecore.ModuleCoreNature',
                 'org.eclipse.jem.workbench.JavaEMFNature',
                 'org.eclipse.jdt.core.javanature')
-        project.assertHasBuilders('org.eclipse.wst.common.project.facet.core.builder',
+        project.assertHasBuilders('org.eclipse.jdt.core.javabuilder',
+                'org.eclipse.wst.common.project.facet.core.builder',
                 'org.eclipse.wst.validation.validationbuilder')
 
         // Classpath

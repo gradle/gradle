@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.api.plugins.BasePluginExtension;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
@@ -25,7 +24,7 @@ import org.gradle.api.reflect.TypeOf;
 import javax.inject.Inject;
 
 @Deprecated
-public abstract class DefaultBasePluginConvention extends BasePluginConvention implements HasPublicType {
+public abstract class DefaultBasePluginConvention extends org.gradle.api.plugins.BasePluginConvention implements HasPublicType {
 
     private BasePluginExtension extension;
 
@@ -35,7 +34,7 @@ public abstract class DefaultBasePluginConvention extends BasePluginConvention i
     }
     @Override
     public TypeOf<?> getPublicType() {
-        return TypeOf.typeOf(BasePluginConvention.class);
+        return TypeOf.typeOf(org.gradle.api.plugins.BasePluginConvention.class);
     }
 
     @Override

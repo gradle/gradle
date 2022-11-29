@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
+import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginContainer;
@@ -75,7 +76,7 @@ public abstract class EarPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
-        project.getPluginManager().apply(BasePlugin.class);
+        project.getPluginManager().apply(JavaBasePlugin.class);
 
         EarPluginConvention earPluginConvention = objectFactory.newInstance(org.gradle.plugins.ear.internal.DefaultEarPluginConvention.class);
         project.getConvention().getPlugins().put("ear", earPluginConvention);
