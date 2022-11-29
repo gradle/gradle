@@ -370,8 +370,6 @@ The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are no
 
 The [Maven Publish Plugin](userguide/publishing_maven.html) is now compatible with the configuration cache.
 
-Note that when using credentials, the configuration cache requires [safe credential containers](userguide/configuration_cache.html#config_cache:requirements:safe_credentials).
-
 #### Improved handling of `--offline` option
 
 Gradle now stores configuration caches for online and offline modes separately.

@@ -956,15 +956,6 @@ include::sample[dir="snippets/valueProviders/fileContentsDo/kotlin",files="build
 In general, you should avoid reading files at configuration time, to avoid invalidating configuration cache entries when the file content changes.
 Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[providers.fileContents()] to task properties.
 
-[[config_cache:requirements:safe_credentials]]
-
-=== Safe credentials
-
-For security reasons, the configuration cache does not store credentials declared inline.
-
-To use credentials in build scripts with the configuration cache, declare credentials with Gradle Properties. To learn more about using credentials with Gradle Properties, check out the example in the
-<<declaring_repositories.adoc#sec:handling_credentials,credential handling documentation>>.
-
 [[config_cache:not_yet_implemented]]
 == Not yet implemented
 
