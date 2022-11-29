@@ -21,8 +21,6 @@ import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-import java.util.function.Supplier
-
 import static org.gradle.internal.time.TimestampSuppliers.daysAgo
 
 class DefaultCacheConfigurationsTest extends Specification {
@@ -30,10 +28,10 @@ class DefaultCacheConfigurationsTest extends Specification {
 
     def "cannot modify cache configurations once finalized"() {
         when:
-        cacheConfigurations.createdResources.removeUnusedEntriesAfter.set(daysAgo(2))
-        cacheConfigurations.downloadedResources.removeUnusedEntriesAfter.set(daysAgo(2))
-        cacheConfigurations.releasedWrappers.removeUnusedEntriesAfter.set(daysAgo(2))
-        cacheConfigurations.snapshotWrappers.removeUnusedEntriesAfter.set(daysAgo(2))
+        cacheConfigurations.createdResources.setRemoveUnusedEntriesAfterDays(2)
+        cacheConfigurations.downloadedResources.setRemoveUnusedEntriesAfterDays(2)
+        cacheConfigurations.releasedWrappers.setRemoveUnusedEntriesAfterDays(2)
+        cacheConfigurations.snapshotWrappers.setRemoveUnusedEntriesAfterDays(2)
         cacheConfigurations.cleanup.set(Cleanup.DISABLED)
 
         then:
@@ -43,25 +41,25 @@ class DefaultCacheConfigurationsTest extends Specification {
         cacheConfigurations.finalizeConfigurations()
 
         and:
-        cacheConfigurations.createdResources.removeUnusedEntriesAfter.set(daysAgo(1))
+        cacheConfigurations.createdResources.setRemoveUnusedEntriesAfterDays(1)
 
         then:
         thrown(IllegalStateException)
 
         when:
-        cacheConfigurations.downloadedResources.removeUnusedEntriesAfter.set(daysAgo(1))
+        cacheConfigurations.downloadedResources.setRemoveUnusedEntriesAfterDays(1)
 
         then:
         thrown(IllegalStateException)
 
         when:
-        cacheConfigurations.releasedWrappers.removeUnusedEntriesAfter.set(daysAgo(1))
+        cacheConfigurations.releasedWrappers.setRemoveUnusedEntriesAfterDays(1)
 
         then:
         thrown(IllegalStateException)
 
         when:
-        cacheConfigurations.snapshotWrappers.removeUnusedEntriesAfter.set(daysAgo(1))
+        cacheConfigurations.snapshotWrappers.setRemoveUnusedEntriesAfterDays(1)
 
         then:
         thrown(IllegalStateException)
@@ -82,11 +80,10 @@ class DefaultCacheConfigurationsTest extends Specification {
 
         and:
         def twoDaysAgo = daysAgo(2).get()
-        def twoDaysAgoSupplier = { twoDaysAgo } as Supplier<Long>
-        cacheConfigurations.createdResources.removeUnusedEntriesAfter.set(twoDaysAgoSupplier)
-        cacheConfigurations.downloadedResources.removeUnusedEntriesAfter.set(twoDaysAgoSupplier)
-        cacheConfigurations.releasedWrappers.removeUnusedEntriesAfter.set(twoDaysAgoSupplier)
-        cacheConfigurations.snapshotWrappers.removeUnusedEntriesAfter.set(twoDaysAgoSupplier)
+        cacheConfigurations.createdResources.removeUnusedEntriesAfter.set(twoDaysAgo)
+        cacheConfigurations.downloadedResources.removeUnusedEntriesAfter.set(twoDaysAgo)
+        cacheConfigurations.releasedWrappers.removeUnusedEntriesAfter.set(twoDaysAgo)
+        cacheConfigurations.snapshotWrappers.removeUnusedEntriesAfter.set(twoDaysAgo)
 
         then:
         createdResources.get() == twoDaysAgo
