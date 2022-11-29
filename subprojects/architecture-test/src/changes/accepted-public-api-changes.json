@@ -857,6 +857,30 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.GradleBuild",
+            "member": "Method org.gradle.api.tasks.GradleBuild.getBuildFile()",
+            "acceptation": "Removed deprecated components in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.GradleBuild",
+            "member": "Method org.gradle.api.tasks.GradleBuild.setBuildFile(java.io.File)",
+            "acceptation": "Removed deprecated components in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.GradleBuild",
+            "member": "Method org.gradle.api.tasks.GradleBuild.setBuildFile(java.lang.Object)",
+            "acceptation": "Removed deprecated components in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.GroovyRuntime",
             "member": "Class org.gradle.api.tasks.GroovyRuntime",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
