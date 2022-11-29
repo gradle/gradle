@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,8 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.plugins.internal.DefaultBasePluginConvention;
 import org.gradle.api.plugins.internal.DefaultBasePluginExtension;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
 /**
@@ -46,9 +44,12 @@ public abstract class BasePlugin implements Plugin<Project> {
         project.getPluginManager().apply(LifecycleBasePlugin.class);
 
         BasePluginExtension baseExtension = project.getExtensions().create(BasePluginExtension.class, "base", DefaultBasePluginExtension.class, project);
-        BasePluginConvention convention = project.getObjects().newInstance(DefaultBasePluginConvention.class, baseExtension);
 
-        project.getConvention().getPlugins().put("base", convention);
+        @SuppressWarnings("deprecation")
+        BasePluginConvention convention = project.getObjects().newInstance(org.gradle.api.plugins.internal.DefaultBasePluginConvention.class, baseExtension);
+        @SuppressWarnings("deprecation")
+        Convention projectConvention = project.getConvention();
+        projectConvention.getPlugins().put("base", convention);
 
         configureExtension(project, baseExtension);
         configureBuildConfigurationRule(project);
@@ -65,12 +66,7 @@ public abstract class BasePlugin implements Plugin<Project> {
 
     private void configureArchiveDefaults(final Project project, final BasePluginExtension extension) {
         project.getTasks().withType(AbstractArchiveTask.class).configureEach(task -> {
-            if (task instanceof Jar) {
-                task.getDestinationDirectory().convention(extension.getLibsDirectory());
-            } else {
-                task.getDestinationDirectory().convention(extension.getDistsDirectory());
-            }
-
+            task.getDestinationDirectory().convention(extension.getDistsDirectory());
             task.getArchiveVersion().convention(
                 project.provider(() -> project.getVersion() == Project.DEFAULT_VERSION ? null : project.getVersion().toString())
             );
