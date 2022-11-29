@@ -80,7 +80,7 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
 
     protected void checkNotFinalized() {
         if (finalized) {
-            DeprecationLogger.deprecateBehaviour("Gradle Module Metadata is modified after an eagerly populated publication.")
+            DeprecationLogger.deprecateBehaviour("Gradle Module Metadata modification after publication has been populated")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(7, "gmm_modification_after_publication_populated")
                 .nagUser();
