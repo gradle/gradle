@@ -21,23 +21,23 @@ import org.gradle.cache.CacheCleanup;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupFrequency;
 
-import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 public class DefaultCacheCleanup implements CacheCleanup {
     private final CleanupAction cleanupAction;
-    private final Provider<CleanupFrequency> cleanupFrequency;
+    private final Supplier<CleanupFrequency> cleanupFrequency;
 
-    private DefaultCacheCleanup(CleanupAction cleanupAction, @Nullable Provider<CleanupFrequency> cleanupFrequency) {
+    private DefaultCacheCleanup(CleanupAction cleanupAction, Supplier<CleanupFrequency> cleanupFrequency) {
         this.cleanupAction = cleanupAction;
         this.cleanupFrequency = cleanupFrequency;
     }
 
     public static DefaultCacheCleanup from(CleanupAction cleanupAction, Provider<CleanupFrequency> cleanupFrequency) {
-        return new DefaultCacheCleanup(cleanupAction, cleanupFrequency);
+        return new DefaultCacheCleanup(cleanupAction, cleanupFrequency::get);
     }
 
     public static DefaultCacheCleanup from(CleanupAction cleanupAction) {
-        return new DefaultCacheCleanup(cleanupAction, null);
+        return new DefaultCacheCleanup(cleanupAction, () -> CleanupFrequency.DAILY);
     }
 
     @Override
@@ -47,6 +47,6 @@ public class DefaultCacheCleanup implements CacheCleanup {
 
     @Override
     public CleanupFrequency getCleanupFrequency() {
-        return cleanupFrequency != null ? cleanupFrequency.get() : CleanupFrequency.DAILY;
+        return cleanupFrequency.get();
     }
 }
