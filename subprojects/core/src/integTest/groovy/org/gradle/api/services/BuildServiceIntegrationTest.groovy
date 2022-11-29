@@ -74,21 +74,25 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain "'Task#usesService'"
     }
 
-    def "fails when service is used by task without a corresponding usesService call and feature preview is enabled"() {
+    def "does nag when service is used by task without a corresponding usesService call and feature preview is enabled"() {
         given:
         serviceImplementation()
         adhocTaskUsingUndeclaredService(1)
         enableStableConfigurationCache()
+        executer.expectDocumentedDeprecationWarning(
+            "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
+                "This behavior has been deprecated. " +
+                "This will fail with an error in Gradle 8.0. " +
+                "Declare the association between the task and the build service using 'Task#usesService'. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
+        )
 
-        when:
-        fails 'broken'
-
-        then:
-        failureHasCause("Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'.")
+        expect:
+        succeeds 'broken'
     }
 
     @Issue("https://github.com/gradle/configuration-cache/issues/97")
-    def "fails when service is used indirectly via another service even if task declares service reference and feature preview is enabled"() {
+    def "does nag when service is used indirectly via another service even if task declares service reference and feature preview is enabled"() {
         given:
         serviceImplementation()
         buildFile """
@@ -123,16 +127,20 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         enableStableConfigurationCache()
+        executer.expectDocumentedDeprecationWarning(
+            "Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'. " +
+                "This behavior has been deprecated. " +
+                "This will fail with an error in Gradle 8.0. " +
+                "Declare the association between the task and the build service using 'Task#usesService'. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
+        )
 
-        when:
-        fails 'broken'
-
-        then:
-        failureHasCause("Build service 'counter' is being used by task ':broken' without the corresponding declaration via 'Task#usesService'.")
+        expect:
+        succeeds 'broken'
     }
 
     @Issue("https://github.com/gradle/configuration-cache/issues/156")
-    def "fails when service is used by artifact transform parameters and feature preview is enabled"() {
+    def "does nag when service is used by artifact transform parameters and feature preview is enabled"() {
         given:
         serviceImplementation()
         buildFile """
@@ -194,12 +202,27 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         file("src/main/java").createDir()
         file("src/main/java/Foo.java").createFile().text = """class Foo {}"""
         enableStableConfigurationCache()
+        // should not be expected
+        executer.expectDocumentedDeprecationWarning(
+            "Build service 'counter' is being used by task ':compileJava' without the corresponding declaration via 'Task#usesService'. " +
+                "This behavior has been deprecated. " +
+                "This will fail with an error in Gradle 8.0. " +
+                "Declare the association between the task and the build service using 'Task#usesService'. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#undeclared_build_service_usage"
+        )
 
         when:
-        fails 'build'
+        succeeds 'build'
 
         then:
-        failureHasCause("Build service 'counter' is being used by task ':compileJava' without the corresponding declaration via 'Task#usesService'.")
+        outputContains "Transforming"
+        outputContains """
+service: created with value = 10
+service: value is 11
+        """
+        outputContains """
+service: closed with value 11
+        """
     }
 
     def "does not nag when service is used by task with an explicit usesService call and feature preview is enabled"() {
