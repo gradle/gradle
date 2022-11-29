@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
     @UnsupportedWithConfigurationCache(because = "tests listener behaviour")
-    def "nags when #type is registered via #path and feature preview is enabled"() {
+    def "fails when #type is registered via #path and feature preview is enabled"() {
         settingsFile """
             enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
         """
@@ -41,11 +41,10 @@ class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Listener registration using ${registrationPoint}() has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
-        run("broken")
+        fails("broken")
 
         then:
-        noExceptionThrown()
+        failureHasCause("Listener registration using ${registrationPoint}() is unsupported with the STABLE_CONFIGURATION_CACHE feature preview.")
 
         where:
         type                  | listener                | path                                        | registrationPoint
@@ -55,7 +54,7 @@ class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @UnsupportedWithConfigurationCache(because = "tests listener behaviour")
-    def "nags when task execution hook #path is used and feature preview is enabled"() {
+    def "fails when task execution hook #path is used and feature preview is enabled"() {
         settingsFile """
             enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
         """
@@ -65,11 +64,10 @@ class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Listener registration using ${registrationPoint}() has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
-        run("broken")
+        fails("broken")
 
         then:
-        noExceptionThrown()
+        failureHasCause("Listener registration using ${registrationPoint}() is unsupported with the STABLE_CONFIGURATION_CACHE feature preview.")
 
         where:
         path                          | registrationPoint
