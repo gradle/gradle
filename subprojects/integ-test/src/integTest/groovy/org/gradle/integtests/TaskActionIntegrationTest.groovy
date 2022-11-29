@@ -35,11 +35,10 @@ class TaskActionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Invocation of ${invocation} at execution time has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#${docSection}")
-        run("broken")
+        fails("broken")
 
         then:
-        noExceptionThrown()
+        failureHasCause("Invocation of ${invocation} at execution time is unsupported with the STABLE_CONFIGURATION_CACHE feature preview.")
 
         where:
         expression         | invocation              | docSection
