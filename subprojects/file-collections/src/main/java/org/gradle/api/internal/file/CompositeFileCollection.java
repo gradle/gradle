@@ -39,8 +39,8 @@ import java.util.function.Supplier;
  * <p>The dependencies of this collection are calculated from the result of calling {@link #visitDependencies(TaskDependencyResolveContext)}.</p>
  */
 public abstract class CompositeFileCollection extends AbstractFileCollection implements TaskDependencyContainer {
-    public CompositeFileCollection(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
-        super(taskDependencyFactory, patternSetFactory);
+    public CompositeFileCollection(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, FileCollectionListener fileCollectionListener) {
+        super(taskDependencyFactory, patternSetFactory, fileCollectionListener);
     }
 
     public CompositeFileCollection(TaskDependencyFactory taskDependencyFactory) {
@@ -79,7 +79,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
 
     @Override
     public FileCollectionInternal filter(final Spec<? super File> filterSpec) {
-        return new CompositeFileCollection(taskDependencyFactory, patternSetFactory) {
+        return new CompositeFileCollection(taskDependencyFactory, patternSetFactory, fileCollectionListener) {
             @Override
             public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
                 FileCollectionInternal newCollection = CompositeFileCollection.this.replace(original, supplier);
@@ -122,5 +122,6 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
         visitChildren(child -> child.visitStructure(visitor));
+        fileCollectionListener.fileCollectionObserved(this, "Consumer?");
     }
 }

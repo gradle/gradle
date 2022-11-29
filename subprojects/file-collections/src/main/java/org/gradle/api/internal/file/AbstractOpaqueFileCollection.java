@@ -35,8 +35,8 @@ public abstract class AbstractOpaqueFileCollection extends AbstractFileCollectio
         super(taskDependencyFactory);
     }
 
-    public AbstractOpaqueFileCollection(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
-        super(taskDependencyFactory, patternSetFactory);
+    public AbstractOpaqueFileCollection(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, FileCollectionListener fileCollectionListener) {
+        super(taskDependencyFactory, patternSetFactory, fileCollectionListener);
     }
 
     /**
@@ -58,6 +58,7 @@ public abstract class AbstractOpaqueFileCollection extends AbstractFileCollectio
     @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
         visitor.visitCollection(OTHER, this);
+        fileCollectionListener.fileCollectionObserved(this, "Consumer?");
     }
 
     abstract protected Set<File> getIntrinsicFiles();
