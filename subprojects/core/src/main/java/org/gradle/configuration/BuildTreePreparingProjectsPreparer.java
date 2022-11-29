@@ -49,7 +49,7 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         // Setup classloader for root project, all other projects will be derived from this.
         SettingsInternal settings = gradle.getSettings();
         ClassLoaderScope settingsClassLoaderScope = settings.getClassLoaderScope();
-        ClassLoaderScope buildSrcClassLoaderScope = settingsClassLoaderScope.createChild("buildSrc[" + gradle.getIdentityPath() + "]");
+        ClassLoaderScope buildSrcClassLoaderScope = settingsClassLoaderScope.createChild("buildSrc[" + gradle.getIdentityPath() + "]", null);
         gradle.setBaseProjectClassLoaderScope(buildSrcClassLoaderScope);
         generateDependenciesAccessorsAndAssignPluginVersions(gradle.getServices(), settings, buildSrcClassLoaderScope);
         // attaches root project

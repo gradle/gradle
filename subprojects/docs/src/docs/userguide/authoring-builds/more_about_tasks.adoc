@@ -863,13 +863,13 @@ This runtime API is provided through a couple of aptly named properties that are
 These objects have methods that allow you to specify files, directories and values which constitute the task’s inputs and outputs.
 In fact, the runtime API has almost feature parity with the annotations.
 
-It lacks equivalents for 
+It lacks equivalents for
 
 * `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`
 * `@link:{javadocPath}/org/gradle/api/tasks/Classpath.html[Classpath]`
 * `@link:{javadocPath}/org/gradle/api/tasks/CompileClasspath.html[CompileClasspath]`
 * `@link:{javadocPath}/org/gradle/api/tasks/LocalState.html[LocalState]`
-* `@link:{javadocPath}/org/gradle/api/tasks/ReplacedBy.html[ReplacedBy]`
+* `@link:{javadocPath}/org/gradle/api/model/ReplacedBy.html[ReplacedBy]`
 * `@link:{javadocPath}/org/gradle/api/tasks/Internal.html[Internal]`
 
 Let’s take the template processing example from before and see how it would look as an ad-hoc task that uses the runtime API:
