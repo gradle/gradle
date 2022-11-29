@@ -86,7 +86,7 @@ public abstract class WarPlugin implements Plugin<Project> {
             warTask.setGroup(BasePlugin.BUILD_GROUP);
         });
 
-        PublishArtifact warArtifact = new LazyPublishArtifact(war, ((ProjectInternal) project).getFileResolver());
+        PublishArtifact warArtifact = new LazyPublishArtifact(war, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(warArtifact);
         configureConfigurations(project.getConfigurations());
         configureComponent(project, warArtifact);

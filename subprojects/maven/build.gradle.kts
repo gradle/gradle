@@ -16,7 +16,6 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":model-core"))
     implementation(project(":plugin-use"))
-    implementation(project(":plugins"))
     implementation(project(":publish"))
     implementation(project(":resources"))
 

@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * The build level object/service provided by Gradle which Java Toolchain Provisioning SPI plugins can access
+ * The build level object/service provided by Gradle which Java toolchain provisioning plugins can access
  * to register their <code>JavaToolchainResolver</code> implementations/build services into.
  *
  * @since 7.6

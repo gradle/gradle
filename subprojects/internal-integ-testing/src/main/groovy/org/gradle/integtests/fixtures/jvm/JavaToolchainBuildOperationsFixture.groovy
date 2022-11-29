@@ -106,9 +106,7 @@ trait JavaToolchainBuildOperationsFixture {
         def buildOperationRecord = operations.first(buildOperationType) { it.details.taskPath == taskPath }
         List<BuildOperationRecord.Progress> events = []
         operations.walk(buildOperationRecord) {
-            events.addAll(it.progress.findAll {
-                detailsType.isAssignableFrom(it.detailsType)
-            })
+            events.addAll(it.progress(detailsType))
         }
         return events
     }

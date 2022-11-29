@@ -213,6 +213,14 @@ If you use the `@Input` annotation on a file-based property, Gradle wouldn't con
 To fix this problem, you need to tell Gradle if the file property represents an input file, in which case you should annotate it with `@InputFile`, or a directory, in which case it should be annotated with `@InputDirectory`.
 If what you really wanted to say is that the actual file path is an input, then you should return a `String` instead which corresponds to the absolute path of the file.
 
+
+[[service_reference_must_be_a_build_service]]
+== Property annotated with `@ServiceReference` is not a BuildService
+
+This error indicates that a property annotated with `@ServiceReference` has a type that does not implement the `link:{javadocPath}/org/gradle/api/services/BuildService.html[BuildService]` interface.
+
+Properties annotated with `link:{javadocPath}/org/gradle/api/services/ServiceReference.html[@ServiceReference]` are meant to hold references to <<build_services#build_services,shared build services>>.
+
 [[implicit_dependency]]
 == Implicit dependencies between tasks
 

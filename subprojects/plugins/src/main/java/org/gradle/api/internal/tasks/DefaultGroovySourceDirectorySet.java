@@ -25,7 +25,7 @@ import javax.inject.Inject;
 public abstract class DefaultGroovySourceDirectorySet extends DefaultSourceDirectorySet implements GroovySourceDirectorySet {
 
     @Inject
-    public DefaultGroovySourceDirectorySet(SourceDirectorySet sourceDirectorySet) {
-        super(sourceDirectorySet);
+    public DefaultGroovySourceDirectorySet(SourceDirectorySet sourceDirectorySet, TaskDependencyFactory taskDependencyFactory) {
+        super(sourceDirectorySet, taskDependencyFactory);
     }
 }

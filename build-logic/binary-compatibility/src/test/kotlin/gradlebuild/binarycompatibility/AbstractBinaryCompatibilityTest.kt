@@ -211,7 +211,6 @@ abstract class AbstractBinaryCompatibilityTest {
                 withBuildScript(
                     """
                     import japicmp.model.JApiChangeStatus
-                    import me.champeau.gradle.japicmp.JapicmpTask
                     import gradlebuild.binarycompatibility.*
                     import gradlebuild.binarycompatibility.filters.*
 

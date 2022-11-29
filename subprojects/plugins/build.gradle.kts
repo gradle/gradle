@@ -23,6 +23,9 @@ dependencies {
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
     implementation(project(":snapshots"))
+    implementation(project(":publish"))
+    implementation(project(":ivy"))
+    implementation(project(":maven"))
     implementation(project(":execution")) {
         because("We need it for BuildOutputCleanupRegistry")
     }

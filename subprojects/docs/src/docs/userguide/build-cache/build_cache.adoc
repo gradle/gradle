@@ -137,7 +137,7 @@ Currently, the following built-in Gradle tasks are cacheable:
     link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Groovydoc.html[Groovydoc]
 * Scala toolchain:
     link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaCompile.html[ScalaCompile],
-    link:{javadocPath}/org/gradle/language/scala/tasks/PlatformScalaCompile.html[PlatformScalaCompile],
+    `org.gradle.language.scala.tasks.PlatformScalaCompile` (removed),
     link:{groovyDslPath}/org.gradle.api.tasks.scala.ScalaDoc.html[ScalaDoc]
 * Native toolchain:
     link:{javadocPath}/org/gradle/language/cpp/tasks/CppCompile.html[CppCompile],

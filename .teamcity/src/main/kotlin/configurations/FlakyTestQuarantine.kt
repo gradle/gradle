@@ -11,6 +11,7 @@ import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import model.CIBuildModel
 import model.Stage
 import model.StageName
@@ -31,11 +32,23 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
         )
     }.flatMap { it.functionalTests }.filter { it.os == os }
 
-    testsWithOs.forEach { testCoverage ->
+    if (os == Os.LINUX) {
+        steps {
+            script {
+                // Because we exclude tests in `distributions-integ-tests` below, `@Flaky` won't work in that subproject.
+                // Here we check the existence of `@Flaky` annotation to make sure nobody use that annotation in `distributions-integ-tests` subproject.
+                name = "MAKE_SURE_NO_@FLAKY_IN_DISTRIBUTIONS_INTEG_TESTS"
+                executionMode = BuildStep.ExecutionMode.ALWAYS
+                scriptContent = "! grep 'org.gradle.test.fixtures.Flaky' -r subprojects/distributions-integ-tests/src"
+            }
+        }
+    }
+
+    testsWithOs.forEachIndexed { index, testCoverage ->
         val extraParameters = functionalTestExtraParameters("FlakyTestQuarantine", os, arch, testCoverage.testJvmVersion.major.toString(), testCoverage.vendor.name)
         val parameters = (
             buildToolGradleParameters(true) +
-                listOf("-PflakyTests=only") +
+                listOf("-PflakyTests=only", "-x", ":docs:platformTest", "-x", ":distributions-integ-tests:quickTest", "-x", ":distributions-integ-tests:platformTest") +
                 listOf(extraParameters) +
                 functionalTestParameters(os) +
                 listOf(buildScanTag(functionalTestTag))
@@ -43,7 +56,7 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
         steps {
             gradleWrapper {
                 name = "FLAKY_TEST_QUARANTINE_${testCoverage.testType.name.uppercase()}_${testCoverage.testJvmVersion.name.uppercase()}"
-                tasks = "${testCoverage.testType.name}Test"
+                tasks = "${if (index == 0) "clean " else ""}${testCoverage.testType.name}Test"
                 gradleParams = parameters
                 executionMode = BuildStep.ExecutionMode.ALWAYS
             }

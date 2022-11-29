@@ -252,7 +252,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * Show all variants of each displayed dependency.
      *
      * <p>
-     * Due to internal limitations, this option only works when the {@linkplain #getConfiguration() configuration} is
+     * Due to internal limitations, this option only works when the {@link #getConfiguration() configuration} is
      * unresolved before the execution of this task.
      * </p>
      *

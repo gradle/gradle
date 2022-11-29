@@ -28,6 +28,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
@@ -113,6 +114,7 @@ class Interpreter(val host: Host) {
         fun loadClassInChildScopeOf(
             classLoaderScope: ClassLoaderScope,
             childScopeId: String,
+            origin: ClassLoaderScopeOrigin,
             location: File,
             className: String,
             accessorsClassPath: ClassPath
@@ -366,6 +368,7 @@ class Interpreter(val host: Host) {
         return host.loadClassInChildScopeOf(
             baseScope,
             childScopeId = classLoaderScopeIdFor(scriptPath, scriptTemplateId),
+            origin = ClassLoaderScopeOrigin.Script(scriptSource.fileName, scriptSource.displayName),
             accessorsClassPath = accessorsClassPath,
             location = classesDir,
             className = "Program"

@@ -59,7 +59,6 @@ import org.gradle.internal.Cast;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
-import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.language.jvm.tasks.ProcessResources;
 
@@ -317,9 +316,10 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             return JavaVersion.toVersion(javaCompile.getJavaCompiler().get().getMetadata().getLanguageVersion().toString());
         } else if (compile instanceof GroovyCompile) {
             GroovyCompile groovyCompile = (GroovyCompile) compile;
-            if (groovyCompile.getJavaLauncher().isPresent()) {
-                return JavaVersion.toVersion(groovyCompile.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
+            if (rawConvention != null) {
+                return rawConvention;
             }
+            return JavaVersion.toVersion(groovyCompile.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
         }
 
         return javaVersionSupplier.get();
@@ -380,12 +380,6 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         JavaPluginExtension extension = project.getExtensions().getByType(JavaPluginExtension.class);
         return toolchainOverride.orElse(extension.getToolchain())
             .flatMap(spec -> toolMapper.apply(service, spec));
-    }
-
-    @Deprecated
-    @Inject
-    protected JavaToolchainQueryService getJavaToolchainQueryService() {
-        throw new UnsupportedOperationException();
     }
 
     /**

@@ -42,7 +42,7 @@ public class FingerprinterRegistration {
 
     public static FingerprinterRegistration registration(DirectorySensitivity directorySensitivity, LineEndingSensitivity lineEndingSensitivity, FileCollectionFingerprinter fingerprinter) {
         return new FingerprinterRegistration(
-            DefaultFileNormalizationSpec.from(fingerprinter.getRegisteredType(), directorySensitivity, lineEndingSensitivity),
+            DefaultFileNormalizationSpec.from(fingerprinter.getNormalizer(), directorySensitivity, lineEndingSensitivity),
             fingerprinter
         );
     }

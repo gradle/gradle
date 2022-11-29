@@ -41,7 +41,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.junit.ComparisonFailure
 
 /**
- * A test fixture that injects a task into a build that resolves a dependency configuration and does some validation of the resulting graph, to
+ * A test fixture that injects a "checkDeps" task into a build that resolves a dependency configuration and does some validation of the resulting graph, to
  * ensure that the old and new dependency graphs plus the artifacts and files are as expected and well-formed.
  */
 class ResolveTestFixture {
@@ -728,19 +728,11 @@ $content
         }
 
         /**
-         * Defines a dependency from the current node to the given node.
-         */
-        NodeBuilder edge(String requested, String selectedModuleVersionId) {
-            def node = graph.node(selectedModuleVersionId, selectedModuleVersionId)
-            deps << new EdgeBuilder(this, requested, node)
-            return node
-        }
-
-        /**
          * Defines a dependency from the current node to the given node. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
-        NodeBuilder edge(String requested, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl) {
-            def node = edge(requested, selectedModuleVersionId)
+        NodeBuilder edge(String requested, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
+            def node = graph.node(selectedModuleVersionId, selectedModuleVersionId)
+            deps << new EdgeBuilder(this, requested, node)
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = node
             cl.call()
@@ -750,7 +742,7 @@ $content
         /**
          * Defines a dependency from the current node to the given node. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
-        NodeBuilder edge(String requested, String id, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl) {
+        NodeBuilder edge(String requested, String id, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
             def node = graph.node(id, selectedModuleVersionId)
             deps << new EdgeBuilder(this, requested, node)
             cl.resolveStrategy = Closure.DELEGATE_ONLY
