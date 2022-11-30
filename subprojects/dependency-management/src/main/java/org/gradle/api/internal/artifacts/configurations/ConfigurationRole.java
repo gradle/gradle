@@ -72,52 +72,9 @@ public interface ConfigurationRole {
 
         ConfigurationRole result = ConfigurationRoles.byUsage(consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated)
                 .map(ConfigurationRole.class::cast)
-                .orElse(new ConfigurationRole() {
-                    @Override
-                    public String getName() {
-                        return name;
-                    }
+                .orElse(new CustomConfigurationRole(name, consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated, description));
 
-                    @Override
-                    public boolean isConsumable() {
-                        return consumable;
-                    }
-
-                    @Override
-                    public boolean isResolvable() {
-                        return resolvable;
-                    }
-
-                    @Override
-                    public boolean isDeclarableAgainst() {
-                        return declarableAgainst;
-                    }
-
-                    @Override
-                    public boolean isConsumptionDeprecated() {
-                        return consumptionDeprecated;
-                    }
-
-                    @Override
-                    public boolean isResolutionDeprecated() {
-                        return resolutionDeprecated;
-                    }
-
-                    @Override
-                    public boolean isDeclarationAgainstDeprecated() {
-                        return declarationAgainstDeprecated;
-                    }
-
-                    @Override
-                    public String describeUsage() {
-                        if (description != null) {
-                            return description;
-                        } else {
-                            return RoleDescriber.describeRole(this);
-                        }
-                    }
-                });
-
+        //noinspection SuspiciousMethodCalls
         if (warnOnCustomRole && !Arrays.asList(ConfigurationRoles.values()).contains(result)) {
             DeprecationLogger.deprecateBehaviour("Custom configuration roles are deprecated.")
                     .withAdvice("Use one of the standard roles defined in ConfigurationRoles instead.")
@@ -188,6 +145,76 @@ public interface ConfigurationRole {
 
         private static String describeDeprecation(boolean deprecated) {
             return deprecated ? " " + IS_DEPRECATED : "";
+        }
+    }
+
+    /**
+     * A custom implementation of {@link ConfigurationRole} that allows for non-standard combinations of usage characteristics and deprecations.
+     */
+    final class CustomConfigurationRole implements ConfigurationRole {
+        private final String name;
+        private final boolean consumable;
+        private final boolean resolvable;
+        private final boolean declarableAgainst;
+        private final boolean consumptionDeprecated;
+        private final boolean resolutionDeprecated;
+        private final boolean declarationAgainstDeprecated;
+        @Nullable
+        private final String description;
+
+        private CustomConfigurationRole(String name, boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated, @Nullable String description) {
+            this.name = name;
+            this.consumable = consumable;
+            this.resolvable = resolvable;
+            this.declarableAgainst = declarableAgainst;
+            this.consumptionDeprecated = consumptionDeprecated;
+            this.resolutionDeprecated = resolutionDeprecated;
+            this.declarationAgainstDeprecated = declarationAgainstDeprecated;
+            this.description = description;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public boolean isConsumable() {
+            return consumable;
+        }
+
+        @Override
+        public boolean isResolvable() {
+            return resolvable;
+        }
+
+        @Override
+        public boolean isDeclarableAgainst() {
+            return declarableAgainst;
+        }
+
+        @Override
+        public boolean isConsumptionDeprecated() {
+            return consumptionDeprecated;
+        }
+
+        @Override
+        public boolean isResolutionDeprecated() {
+            return resolutionDeprecated;
+        }
+
+        @Override
+        public boolean isDeclarationAgainstDeprecated() {
+            return declarationAgainstDeprecated;
+        }
+
+        @Override
+        public String describeUsage() {
+            if (description != null) {
+                return description;
+            } else {
+                return RoleDescriber.describeRole(this);
+            }
         }
     }
 }
