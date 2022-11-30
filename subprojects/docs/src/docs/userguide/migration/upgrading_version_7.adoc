@@ -337,7 +337,7 @@ Gradle changes the compression library used for creating archives from an Ant ba
 ==== Upgrade to Kotlin 1.7.22
 
 The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.7.22[Kotlin 1.7.22].
-Also see release notes for https://github.com/JetBrains/kotlin/releases/tag/v1.7.20[1.7.20] and https://github.com/JetBrains/kotlin/releases/tag/v1.7.21[1.7.21].
+For more information, see the release notes for Kotlin https://github.com/JetBrains/kotlin/releases/tag/v1.7.20[1.7.20] and https://github.com/JetBrains/kotlin/releases/tag/v1.7.21[1.7.21].
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
