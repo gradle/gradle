@@ -41,18 +41,18 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     def "selects transform that can produce variant that is compatible with requested"() {
-        def requested = AttributeTestUtil.attributes([a1: "requested"])
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
 
-        def fromSource = AttributeTestUtil.attributes(a1: "1", a2: 1)
-        def compatible = AttributeTestUtil.attributes(a1: "1", a2: 2)
-        def incompatible = AttributeTestUtil.attributes(a1: "1", a2: 3)
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def compatible = AttributeTestUtil.attributes(usage: "compatible")
+        def incompatible = AttributeTestUtil.attributes(usage: "incompatible")
 
         def transform1 = registration(fromSource, incompatible)
         def transform2 = registration(fromSource, compatible)
         def transform3 = registration(compatible, incompatible)
 
-        def sourceVariant = variant([a1: "source"])
-        def otherVariant = variant([a1: "source2"])
+        def sourceVariant = variant([usage: "source"])
+        def otherVariant = variant([usage: "other"])
         def variants = [ sourceVariant, otherVariant ]
 
         given:
@@ -74,20 +74,20 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     def "selects all transforms that can produce variant that is compatible with requested"() {
-        def requested = AttributeTestUtil.attributes([a1: "requested"])
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
 
-        def fromSource = AttributeTestUtil.attributes(a1: "1", a2: 1)
-        def fromOther = AttributeTestUtil.attributes(a1: "1", a2: 2)
-        def compatible = AttributeTestUtil.attributes(a1: "1", a2: 3)
-        def compatible2 = AttributeTestUtil.attributes(a1: "1", a2: 4)
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def fromOther = AttributeTestUtil.attributes(usage: "fromOther")
+        def compatible = AttributeTestUtil.attributes(usage: "compatible")
+        def compatible2 = AttributeTestUtil.attributes(usage: "compatible2")
 
         def transform1 = registration(fromSource, compatible)
         def transform2 = registration(fromSource, compatible2)
         def transform3 = registration(fromOther, compatible2)
         def transform4 = registration(fromOther, compatible)
 
-        def sourceVariant = variant([a1: "source"])
-        def otherVariant = variant([a1: "source2"])
+        def sourceVariant = variant([usage: "source"])
+        def otherVariant = variant([usage: "other"])
         def variants = [ sourceVariant, otherVariant ]
 
         given:
@@ -114,17 +114,17 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     def "transform match is reused"() {
-        def requested = AttributeTestUtil.attributes([a1: "requested"])
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
 
-        def fromSource = AttributeTestUtil.attributes(a1: "1", a2: 1)
-        def compatible = AttributeTestUtil.attributes(a1: "1", a2: 2)
-        def incompatible = AttributeTestUtil.attributes(a1: "1", a2: 3)
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def compatible = AttributeTestUtil.attributes(usage: "compatible")
+        def incompatible = AttributeTestUtil.attributes(usage: "incompatible")
 
         def transform1 = registration(fromSource, incompatible)
         def transform2 = registration(fromSource, compatible)
 
-        def sourceVariant = variant([a1: "source"])
-        def otherVariant = variant([a1: "source2"])
+        def sourceVariant = variant([usage: "source"])
+        def otherVariant = variant([usage: "other"])
         def variants = [ sourceVariant, otherVariant ]
 
         given:
@@ -160,25 +160,25 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     def "selects chain of transforms that can produce variant that is compatible with requested"() {
-        def requested = AttributeTestUtil.attributes([a1: "requested"])
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
 
-        def fromSource = AttributeTestUtil.attributes(a1: "1", a2: 1)
-        def fromOther = AttributeTestUtil.attributes([a1: "6"])
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def fromOther = AttributeTestUtil.attributes([usage: "fromOther"])
 
-        def fromIntermediate = AttributeTestUtil.attributes([a1: "4"])
-        def intermediate = AttributeTestUtil.attributes(a1: "1", a2: 2)
+        def fromIntermediate = AttributeTestUtil.attributes([usage: "fromIntermediate"])
+        def intermediate = AttributeTestUtil.attributes(usage: "intermediate")
 
-        def fromIntermediate2 = AttributeTestUtil.attributes([a1: "8"])
-        def intermediate2 = AttributeTestUtil.attributes([a1: "7"])
+        def fromIntermediate2 = AttributeTestUtil.attributes([usage: "fromIntermediate2"])
+        def intermediate2 = AttributeTestUtil.attributes([usage: "intermediate2"])
 
-        def compatible = AttributeTestUtil.attributes([a1: "5"])
-        def compatible2 = AttributeTestUtil.attributes([a1: "9"])
+        def compatible = AttributeTestUtil.attributes([usage: "compatible"])
+        def compatible2 = AttributeTestUtil.attributes([usage: "compatible2"])
 
-        def incompatible = AttributeTestUtil.attributes(a1: "1", a2: 3)
-        def incompatible2 = AttributeTestUtil.attributes([a1: "10"])
+        def incompatible = AttributeTestUtil.attributes(usage: "incompatible")
+        def incompatible2 = AttributeTestUtil.attributes([usage: "incompatible2"])
 
-        def sourceVariant = variant([a1: "source"])
-        def otherVariant = variant([a1: "source2"])
+        def sourceVariant = variant([usage: "source"])
+        def otherVariant = variant([usage: "other"])
         def variants = [ sourceVariant, otherVariant ]
 
         def transform1 = registration(fromSource, incompatible)
@@ -196,7 +196,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         then:
         result.size() == 2
-        assertTransformChain(result[0], sourceVariant, AttributeTestUtil.attributes([a1: "5", a2: 2]), transform2, transform3)
+        assertTransformChain(result[0], sourceVariant, compatible, transform2, transform3)
         assertTransformChain(result[1], otherVariant, compatible2, transform4, transform5)
 
         and:
@@ -211,19 +211,19 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     def "prefers direct transformation over indirect"() {
-        def requested = AttributeTestUtil.attributes([a1: "requested"])
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
 
-        def fromIndirect = AttributeTestUtil.attributes(a1: "1", a2: 1)
-        def compatibleIndirect = AttributeTestUtil.attributes(a1: "1", a2: 2)
-        def incompatible = AttributeTestUtil.attributes(a1: "1", a2: 3)
+        def fromIndirect = AttributeTestUtil.attributes(usage: "fromIndirect")
+        def compatibleIndirect = AttributeTestUtil.attributes(usage: "compatibleIndirect")
+        def incompatible = AttributeTestUtil.attributes(usage: "incompatible")
 
-        def fromSource = AttributeTestUtil.attributes([a1: "4"])
-        def compatible = AttributeTestUtil.attributes([a1: "5"])
-        def fromOther = AttributeTestUtil.attributes([a1: "6"])
-        def compatible2 = AttributeTestUtil.attributes([a1: "7"])
+        def fromSource = AttributeTestUtil.attributes([usage: "fromSource"])
+        def compatible = AttributeTestUtil.attributes([usage: "compatible"])
+        def fromOther = AttributeTestUtil.attributes([usage: "fromOther"])
+        def compatible2 = AttributeTestUtil.attributes([usage: "compatible2"])
 
-        def sourceVariant = variant([a1: "source"])
-        def otherVariant = variant([a1: "source2"])
+        def sourceVariant = variant([usage: "source"])
+        def otherVariant = variant([usage: "other"])
         def variants = [ sourceVariant, otherVariant ]
 
         def transform1 = registration(fromIndirect, incompatible)
@@ -258,15 +258,15 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     def "prefers shortest chain of transforms #registrationsIndex"() {
-        def requested = AttributeTestUtil.attributes([a1: "requested"])
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
 
-        def fromSource = AttributeTestUtil.attributes(a1: "1", a2: 2)
-        def fromOther = AttributeTestUtil.attributes(a1: "1", a2: 3)
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def fromOther = AttributeTestUtil.attributes(usage: "fromOther")
 
-        def intermediate = AttributeTestUtil.attributes([a1: "4"])
-        def compatible = AttributeTestUtil.attributes([a1: "5"])
+        def intermediate = AttributeTestUtil.attributes([usage: "intermediate"])
+        def compatible = AttributeTestUtil.attributes([usage: "compatible"])
 
-        def sourceVariant = variant([a1: "source"])
+        def sourceVariant = variant([usage: "source"])
         def variants = [ sourceVariant ]
 
         def transform1 = registration(fromSource, fromOther)
@@ -304,20 +304,18 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
     @Issue("gradle/gradle#7061")
     def "selects chain of transforms that only all the attributes are satisfied"() {
-        def requested = AttributeTestUtil.attributes([a1: "3", a2: 3])
+        def requested = AttributeTestUtil.attributes([usage: "requested", other: "transform3"])
 
-        def fromSource = AttributeTestUtil.attributes(a1: "1", a2: 1)
-        def fromIntermediate = AttributeTestUtil.attributes([a1: "2"])
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource", other: "fromSource")
+        def fromIntermediate = AttributeTestUtil.attributes([usage: "fromIntermediate"])
+        def partialTransformed = AttributeTestUtil.attributes([usage: "fromIntermediate", other: "transform3"])
 
-        def incompatible = AttributeTestUtil.attributes([a1: "2", a2: 2])
-        def intermediate = AttributeTestUtil.attributes([a1: "2", a2: 3])
-        def compatible = AttributeTestUtil.attributes([a1: "3"])
+        def incompatible = AttributeTestUtil.attributes([usage: "incompatible"])
+        def intermediate = AttributeTestUtil.attributes([usage: "intermediate", other: "transform2"])
+        def compatible = AttributeTestUtil.attributes([usage: "compatible", other: "transform3"])
 
-
-        def sourceVariant = variant([a1: "1", a2: 1])
-        def variants = [
-                sourceVariant
-        ]
+        def sourceVariant = variant([usage: "source"])
+        def variants = [ sourceVariant ]
 
         def transform1 = registration(fromSource, incompatible)
         def transform2 = registration(fromSource, intermediate)
@@ -331,34 +329,31 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         then:
         result.size() == 1
-        assertTransformChain(result.first(), sourceVariant, requested, transform2, transform3)
+        assertTransformChain(result.first(), sourceVariant, compatible, transform2, transform3)
 
         and:
         1 * attributeMatcher.isMatching(incompatible, requested) >> false
         1 * attributeMatcher.isMatching(intermediate, requested) >> false
         1 * attributeMatcher.isMatching(compatible, requested) >> true
         1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromIntermediate) >> false
-        1 * attributeMatcher.isMatching(incompatible, intermediate) >> false
-        // TODO: Suspicious?
-        1 * attributeMatcher.isMatching(intermediate, intermediate) >> true
         1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
+        1 * attributeMatcher.isMatching(incompatible, partialTransformed) >> false
+        1 * attributeMatcher.isMatching(intermediate, partialTransformed) >> true
         0 * attributeMatcher._
     }
 
     def "returns empty list when no transforms are available to produce requested variant"() {
-        def requested = AttributeTestUtil.attributes([a1: "requested"])
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
 
-        def fromSource = AttributeTestUtil.attributes(a1: "1", a2: 1)
-        def incompatible = AttributeTestUtil.attributes(a1: "1", a2: 2)
-        def incompatible2 = AttributeTestUtil.attributes(a1: "1", a2: 3)
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def incompatible = AttributeTestUtil.attributes(usage: "incompatible")
+        def incompatible2 = AttributeTestUtil.attributes(usage: "incompatible2")
 
         def transform1 = registration(fromSource, incompatible)
         def transform2 = registration(fromSource, incompatible2)
 
-        def sourceVariant = variant([a1: "source"])
-        def variants = [
-                sourceVariant
-        ]
+        def sourceVariant = variant([usage: "source"])
+        def variants = [ sourceVariant ]
 
         given:
         transformRegistry.transforms >> [transform1, transform2]
@@ -376,19 +371,17 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     def "caches negative match"() {
-        def requested = AttributeTestUtil.attributes([a1: "requested"])
+        def requested = AttributeTestUtil.attributes([usage: "requested"])
 
-        def fromSource = AttributeTestUtil.attributes(a1: "1", a2: 1)
-        def incompatible = AttributeTestUtil.attributes(a1: "1", a2: 2)
-        def incompatible2 = AttributeTestUtil.attributes(a1: "1", a2: 3)
+        def fromSource = AttributeTestUtil.attributes(usage: "fromSource")
+        def incompatible = AttributeTestUtil.attributes(usage: "incompatible")
+        def incompatible2 = AttributeTestUtil.attributes(usage: "incompatible2")
 
         def transform1 = registration(fromSource, incompatible2)
         def transform2 = registration(fromSource, incompatible)
 
-        def sourceVariant = variant([a1: "source"])
-        def variants = [
-                sourceVariant
-        ]
+        def sourceVariant = variant([usage: "source"])
+        def variants = [ sourceVariant ]
 
         given:
         transformRegistry.transforms >> [transform1, transform2]
@@ -415,15 +408,13 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     }
 
     def "does not match on unrelated transform"() {
-        def requested = AttributeTestUtil.attributes([a1: "hello"])
+        def requested = AttributeTestUtil.attributes([usage: "hello"])
 
-        def fromSource = AttributeTestUtil.attributes([a2: 1])
-        def compatible = AttributeTestUtil.attributes([a2: 42])
+        def fromSource = AttributeTestUtil.attributes([other: "fromSource"])
+        def compatible = AttributeTestUtil.attributes([other: "compatible"])
 
-        def sourceVariant = variant([a1: "source"])
-        def variants = [
-                sourceVariant
-        ]
+        def sourceVariant = variant([usage: "source"])
+        def variants = [ sourceVariant ]
 
         def transform1 = registration(fromSource, compatible)
 
