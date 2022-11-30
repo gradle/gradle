@@ -116,8 +116,9 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         { false },
         cacheFactory
     )
-    def typeMetadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [Optional, SkipWhenEmpty], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
-    def propertyWalker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver())
+    def propertyHandlers = services.getAll(PropertyAnnotationHandler)
+    def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [Optional, SkipWhenEmpty], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
+    def propertyWalker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver(), propertyHandlers)
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     private String inputValue = "value"

@@ -258,7 +258,8 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
             { false },
             cacheFactory
         )
-        def typeMetadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [PathSensitive], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
-        new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver()).visitProperties(task, validationContext, visitor)
+        def propertyHandlers = services.getAll(PropertyAnnotationHandler)
+        def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [PathSensitive], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory)
+        new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver(), propertyHandlers).visitProperties(task, validationContext, visitor)
     }
 }
