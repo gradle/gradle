@@ -16,9 +16,6 @@
 package org.gradle.internal.execution.model.annotations;
 
 import org.gradle.api.tasks.InputDirectory;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.properties.InputFilePropertyType;
-import org.gradle.internal.properties.annotations.PropertyMetadata;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.INCREMENTAL;
@@ -30,14 +27,7 @@ public class InputDirectoryPropertyAnnotationHandler extends AbstractInputFilePr
     public InputDirectoryPropertyAnnotationHandler() {
         super(
             InputDirectory.class,
-            InputFilePropertyType.DIRECTORY,
             ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, OPTIONAL, IGNORE_EMPTY_DIRECTORIES, NORMALIZE_LINE_ENDINGS)
         );
-    }
-
-    @Override
-    protected DirectorySensitivity determineDirectorySensitivity(PropertyMetadata propertyMetadata) {
-        // Being an input directory implies ignoring of empty directories.
-        return DirectorySensitivity.IGNORE_DIRECTORIES;
     }
 }

@@ -18,8 +18,6 @@ package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.tasks.Nested;
-import org.gradle.internal.properties.PropertyValue;
-import org.gradle.internal.properties.PropertyVisitor;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;
@@ -32,14 +30,5 @@ public class NestedBeanAnnotationHandler extends AbstractPropertyAnnotationHandl
     @Override
     public boolean isPropertyRelevant() {
         return true;
-    }
-
-    @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
-        Object nested = value.call();
-        if (nested == null
-            && getAllowedModifiers().stream().noneMatch(propertyMetadata::isAnnotationPresent)) {
-            visitor.visitInputProperty(propertyName, PropertyValue.ABSENT, false);
-        }
     }
 }

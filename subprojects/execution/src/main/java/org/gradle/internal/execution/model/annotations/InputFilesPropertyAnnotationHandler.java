@@ -16,7 +16,6 @@
 package org.gradle.internal.execution.model.annotations;
 
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.internal.properties.InputFilePropertyType;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.INCREMENTAL;
@@ -28,7 +27,6 @@ public class InputFilesPropertyAnnotationHandler extends AbstractInputFileProper
     public InputFilesPropertyAnnotationHandler() {
         super(
             InputFiles.class,
-            InputFilePropertyType.FILES,
             ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, OPTIONAL, IGNORE_EMPTY_DIRECTORIES, NORMALIZE_LINE_ENDINGS)
         );
     }

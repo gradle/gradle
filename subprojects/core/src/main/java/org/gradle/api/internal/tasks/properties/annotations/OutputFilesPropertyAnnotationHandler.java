@@ -16,10 +16,9 @@
 package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.tasks.OutputFiles;
-import org.gradle.internal.properties.OutputFilePropertyType;
 
 public class OutputFilesPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
     public OutputFilesPropertyAnnotationHandler() {
-        super(OutputFiles.class, OutputFilePropertyType.FILES);
+        super(OutputFiles.class);
     }
 }

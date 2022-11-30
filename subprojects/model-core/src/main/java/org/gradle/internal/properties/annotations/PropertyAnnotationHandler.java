@@ -16,8 +16,6 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.internal.properties.PropertyValue;
-import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
@@ -44,11 +42,6 @@ public interface PropertyAnnotationHandler {
      * Should consider splitting up this type, perhaps into something that inspects the properties and produces the actual handlers and validation problems.
      */
     boolean isPropertyRelevant();
-
-    /**
-     * Visit the value of a property with this annotation attached.
-     */
-    void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor);
 
     /**
      * Visits problems associated with the given property, if any.
