@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -100,10 +101,12 @@ class DefaultArtifactTransformsTest extends Specification {
     }
 
     def "fails when multiple transforms match"() {
+        def requested = typeAttributes("dll")
         def variant1 = resolvedVariant()
         def variant2 = resolvedVariant()
         def set = resolvedVariantSet()
         def variants = [variant1, variant2] as Set
+        def transformedVariants = variants.collect { transformedVariant(it, requested)}
 
         given:
         set.schema >> producerSchema
@@ -115,13 +118,11 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.asDescribable() >> Describables.of('<variant2>')
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
-        attributeMatcher.matches(_, _, _) >> []
+        attributeMatcher.matches(ImmutableList.copyOf(variants), _, _) >> []
+        attributeMatcher.matches(transformedVariants, _, _) >> transformedVariants
+        matchingCache.findTransformedVariants(_, _) >> transformedVariants
 
-        matchingCache.findTransformedVariants(_, _) >> { List<ResolvedVariant> from, ImmutableAttributes to ->
-            from.collect { transformedVariant(it, to) }
-        }
-
-        def selector = transforms.variantSelector(typeAttributes("dll"), true, false, dependenciesResolver)
+        def selector = transforms.variantSelector(requested, true, false, dependenciesResolver)
 
         when:
         def result = selector.select(set, factory)

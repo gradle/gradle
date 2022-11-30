@@ -42,6 +42,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * A {@link VariantSelector} which uses attribute matching to select a matching variant. If no producer variant
+ * is compatible with the requested attributes, this selector will attempt to construct a chain of artifact
+ * transformations that can produce a variant compatible with the requested attributes.
+ */
 class AttributeMatchingVariantSelector implements VariantSelector {
     private final ConsumerProvidedVariantFinder consumerProvidedVariantFinder;
     private final AttributesSchemaInternal schema;
@@ -49,24 +54,24 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     private final TransformedVariantFactory transformedVariantFactory;
     private final ImmutableAttributes requested;
     private final boolean ignoreWhenNoMatches;
-
     private final boolean selectFromAllVariants;
     private final ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver;
 
     AttributeMatchingVariantSelector(
-            ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
-            AttributesSchemaInternal schema,
-            ImmutableAttributesFactory attributesFactory,
-            TransformedVariantFactory transformedVariantFactory,
-            AttributeContainerInternal requested,
-            boolean ignoreWhenNoMatches,
-            boolean selectFromAllVariants, ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver
+        ConsumerProvidedVariantFinder consumerProvidedVariantFinder,
+        AttributesSchemaInternal schema,
+        ImmutableAttributesFactory attributesFactory,
+        TransformedVariantFactory transformedVariantFactory,
+        ImmutableAttributes requested,
+        boolean ignoreWhenNoMatches,
+        boolean selectFromAllVariants,
+        ExtraExecutionGraphDependenciesResolverFactory dependenciesResolver
     ) {
         this.consumerProvidedVariantFinder = consumerProvidedVariantFinder;
         this.schema = schema;
         this.attributesFactory = attributesFactory;
         this.transformedVariantFactory = transformedVariantFactory;
-        this.requested = requested.asImmutable();
+        this.requested = requested;
         this.ignoreWhenNoMatches = ignoreWhenNoMatches;
         this.selectFromAllVariants = selectFromAllVariants;
         this.dependenciesResolver = dependenciesResolver;
@@ -140,32 +145,51 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, variants, matcher, DescriberSelector.selectDescriber(componentRequested, schema));
     }
 
-    private List<TransformedVariant> tryDisambiguate(AttributeMatcher matcher, List<TransformedVariant> candidates, ImmutableAttributes componentRequested, AttributeMatchingExplanationBuilder explanationBuilder) {
+    /**
+     * Attempt to disambiguate between multiple potential transformation candidates. This first performs attribute matching on the {@code candidates}.
+     * If that does not produce a single result, then a subset of the results of attribute matching is returned, where the candidates which have
+     * incompatible attributes values with the <strong>last</strong> candidate are included.
+     */
+    private List<TransformedVariant> tryDisambiguate(
+        AttributeMatcher matcher,
+        List<TransformedVariant> candidates,
+        ImmutableAttributes componentRequested,
+        AttributeMatchingExplanationBuilder explanationBuilder
+    ) {
         List<TransformedVariant> matches = matcher.matches(candidates, componentRequested, explanationBuilder);
-        if (candidates.size() == 1) {
+        if (matches.size() == 1) {
             return matches;
         }
-        if (matches.size() > 0 && matches.size() < candidates.size()) {
-            candidates = matches;
-        }
+
+        assert matches.size() > 0;
 
         List<TransformedVariant> differentTransforms = new ArrayList<>(1);
 
-        TransformedVariant last = candidates.get(candidates.size() - 1);
+        // Choosing the last candidate here is arbitrary.
+        TransformedVariant last = matches.get(matches.size() - 1);
         differentTransforms.add(last);
 
         // Find any other candidate which does not match with the last candidate.
-        for (int i = 0; i < candidates.size() - 1; i++) {
-            TransformedVariant current = candidates.get(i);
+        for (int i = 0; i < matches.size() - 1; i++) {
+            TransformedVariant current = matches.get(i);
             if (candidatesDifferent(matcher, current, last)) {
                 differentTransforms.add(current);
             }
         }
 
-        return differentTransforms.size() == candidates.size() ? candidates : differentTransforms;
+        return differentTransforms;
     }
 
+    /**
+     * Determines whether two candidates differ based on their attributes.
+     *
+     * @return true if for each shared candidate key, according to the attribute schema, the corresponding attribute value
+     *      in each candidate is compatible. false otherwise.
+     */
     private static boolean candidatesDifferent(AttributeMatcher matcher, TransformedVariant firstCandidate, TransformedVariant secondCandidate) {
+        // We check both directions to verify these candidates differ. If a.matches(b) but !b.matches(a), we still consider variants a and b to be matching.
+        // This is because attribute schema compatibility rules can be directional, where for two attribute values x and y, x may be compatible with y
+        // while y may not be compatible with x. We accept compatibility in either direction as sufficient for this method.
         return !matcher.isMatching(firstCandidate.getAttributes(), secondCandidate.getAttributes()) &&
             !matcher.isMatching(secondCandidate.getAttributes(), firstCandidate.getAttributes());
     }
