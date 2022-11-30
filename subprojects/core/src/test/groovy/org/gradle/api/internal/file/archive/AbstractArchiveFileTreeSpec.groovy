@@ -22,8 +22,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.MinimalFileTree
 import org.gradle.api.provider.Provider
-import org.gradle.cache.internal.CacheFactory
-import org.gradle.initialization.GradleUserHomeDirProvider
+import org.gradle.cache.scopes.ScopedCache
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -40,10 +39,7 @@ class AbstractArchiveFileTreeSpec extends Specification {
         def visitor = Mock(MinimalFileTree.MinimalFileTreeStructureVisitor)
         def backingFile = tmpDir.createFile("thing.bin")
 
-        def fileTree = new TestArchiveFileTree(
-                TestFiles.cacheFactory(),
-                () -> tmpDir.createDir("user-home"),
-                backingFile)
+        def fileTree = new TestArchiveFileTree(TestFiles.scopedCache(tmpDir.createDir("cache-dir")), backingFile)
 
         when:
         fileTree.visitStructure(visitor, owner)
@@ -57,8 +53,8 @@ class AbstractArchiveFileTreeSpec extends Specification {
         File backingFile
         final String displayName = "<display>"
 
-        TestArchiveFileTree(CacheFactory cacheFactory, GradleUserHomeDirProvider userHomeDirProvider, File backingFile) {
-            super(cacheFactory, userHomeDirProvider)
+        TestArchiveFileTree(ScopedCache cache, File backingFile) {
+            super(cache)
             this.backingFile = backingFile
         }
 
