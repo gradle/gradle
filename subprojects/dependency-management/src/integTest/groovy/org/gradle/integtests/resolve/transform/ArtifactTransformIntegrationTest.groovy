@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformatio
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.file.FileType
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.hamcrest.Matcher
@@ -1421,6 +1422,8 @@ Found the following transforms:
     }
 
     def "result is applied for all query methods"() {
+        def fixture = new ResolveTestFixture(buildFile, "compile")
+
         given:
         buildFile << """
             project(':lib') {
@@ -1457,32 +1460,20 @@ Found the following transforms:
                 ext.checkFiles = { config ->
                     assert config.collect { it.name } == ['lib.jar.txt']
                 }
-                task resolve {
-                    doLast {
-                        checkFiles configurations.compile
-                        checkFiles configurations.compile.files
-                        checkFiles configurations.compile.incoming.files
-                        checkFiles configurations.compile.resolvedConfiguration.files
-
-                        checkFiles configurations.compile.resolvedConfiguration.lenientConfiguration.files
-                        checkFiles configurations.compile.resolve()
-                        checkFiles configurations.compile.files { true }
-                        checkFiles configurations.compile.fileCollection { true }
-                        checkFiles configurations.compile.resolvedConfiguration.getFiles { true }
-                        checkFiles configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }
-
-                        checkLegacyArtifacts configurations.compile.resolvedConfiguration.resolvedArtifacts
-                        checkLegacyArtifacts configurations.compile.resolvedConfiguration.lenientConfiguration.artifacts
-
-                        checkArtifacts configurations.compile.incoming.artifacts
-                        checkArtifacts configurations.compile.incoming.artifactView { }.artifacts
-                    }
-                }
             }
         """
+        fixture.expectDefaultConfiguration("compile")
+        fixture.prepare()
 
         expect:
-        succeeds "resolve"
+        succeeds ":app:checkDeps"
+        fixture.expectGraph {
+            root(":app", "root:app:") {
+                project(":lib", "root:lib:") {
+                    artifact(name: "lib", type: "jar.txt")
+                }
+            }
+        }
     }
 
     def "transforms are applied lazily in file collections"() {
