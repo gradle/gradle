@@ -41,8 +41,7 @@ public class ZipFileTreeTest extends AbstractArchiveFileTreeTest {
             fileSystem(),
             directoryFileTreeFactory(),
             fileHasher(),
-            TestFiles.cacheFactory(),
-            () -> userHome);
+            TestFiles.scopedCache(tempDirProvider.getTestDirectory().createDir("cache-dir")));
 
     @Override
     protected void archiveFileToRoot(TestFile file) {

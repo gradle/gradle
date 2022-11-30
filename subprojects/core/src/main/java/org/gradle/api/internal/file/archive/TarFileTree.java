@@ -26,8 +26,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
-import org.gradle.cache.internal.CacheFactory;
-import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.cache.scopes.ScopedCache;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -54,9 +53,8 @@ public class TarFileTree extends AbstractArchiveFileTree {
             Chmod chmod,
             DirectoryFileTreeFactory directoryFileTreeFactory,
             FileHasher fileHasher,
-            CacheFactory cacheFactory,
-            GradleUserHomeDirProvider userHomeDirProvider) {
-        super(cacheFactory, userHomeDirProvider);
+            ScopedCache cacheBuilder) {
+        super(cacheBuilder);
         this.tarFileProvider = tarFileProvider;
         this.resource = resource;
         this.chmod = chmod;

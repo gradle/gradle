@@ -21,16 +21,9 @@ import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.CacheFactory;
-import org.gradle.cache.internal.CacheScopeMapping;
-import org.gradle.cache.internal.DefaultCacheRepository;
-import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
-import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.initialization.layout.GlobalCacheDir;
-import org.gradle.util.GradleVersion;
+import org.gradle.cache.scopes.ScopedCache;
 
 import java.io.File;
 
@@ -42,10 +35,8 @@ public abstract class AbstractArchiveFileTree implements FileSystemMirroringFile
 
     protected final PersistentCache expansionCache;
 
-    protected AbstractArchiveFileTree(CacheFactory cacheFactory, GradleUserHomeDirProvider userHomeDirProvider) {
-        CacheScopeMapping cacheScopeMapping = new DefaultCacheScopeMapping(new GlobalCacheDir(userHomeDirProvider).getDir(), GradleVersion.current());
-        CacheRepository cacheRepository = new DefaultCacheRepository(cacheScopeMapping, cacheFactory);
-        this.expansionCache = cacheRepository.cache(EXPANSION_CACHE_KEY)
+    protected AbstractArchiveFileTree(ScopedCache cacheBuilder) {
+        this.expansionCache = cacheBuilder.cache(EXPANSION_CACHE_KEY)
                 .withDisplayName(EXPANSION_CACHE_NAME)
                 .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
                 .open();

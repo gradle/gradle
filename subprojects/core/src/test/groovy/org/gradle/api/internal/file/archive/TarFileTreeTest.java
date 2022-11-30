@@ -24,7 +24,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.api.resources.internal.LocalResourceAdapter;
 import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.testfixtures.internal.TestInMemoryCacheFactory;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
 
@@ -52,8 +51,7 @@ public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
             fileSystem(),
             directoryFileTreeFactory(),
             fileHasher(),
-            TestFiles.cacheFactory(),
-            () -> userHome);
+            TestFiles.scopedCache(tempDirProvider.getTestDirectory().createDir("cache-dir")));
 
     private static <T> Provider<T> asProvider(T object) {
         return TestUtil.providerFactory().provider(() -> object);
@@ -88,7 +86,7 @@ public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
         rootDir.tgzTo(tgz);
 
         MaybeCompressedFileResource resource = new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tgz)));
-        TarFileTree tree = new TarFileTree(asProvider(tgz), asProvider(resource), fileSystem(), directoryFileTreeFactory(), fileHasher(), new TestInMemoryCacheFactory(), () -> userHome);
+        TarFileTree tree = new TarFileTree(asProvider(tgz), asProvider(resource), fileSystem(), directoryFileTreeFactory(), fileHasher(), TestFiles.scopedCache(tempDirProvider.getTestDirectory().createDir("cache-dir")));
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
@@ -103,7 +101,7 @@ public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
         rootDir.tbzTo(tbz2);
 
         MaybeCompressedFileResource resource = new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tbz2)));
-        TarFileTree tree = new TarFileTree(asProvider(tbz2), asProvider(resource), fileSystem(), directoryFileTreeFactory(), fileHasher(), new TestInMemoryCacheFactory(), () -> userHome);
+        TarFileTree tree = new TarFileTree(asProvider(tbz2), asProvider(resource), fileSystem(), directoryFileTreeFactory(), fileHasher(), TestFiles.scopedCache(tempDirProvider.getTestDirectory().createDir("cache-dir")));
 
         assertVisits(tree, toList("subdir/file1.txt", "subdir2/file2.txt"), toList("subdir", "subdir2"));
         assertSetContainsForAllTypes(tree, toList("subdir/file1.txt", "subdir2/file2.txt"));
