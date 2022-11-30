@@ -56,7 +56,7 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
         Class<?> nodeType = resolveType(node);
         TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(nodeType);
         if (Provider.class.isAssignableFrom(nodeType)) {
-            handleProvider(node, child -> walk(child, qualifiedName, propertyMetadata, visitor, nestedNodesWalkedOnPath));
+            handleProvider(qualifiedName, node, visitor, child -> walk(child, qualifiedName, propertyMetadata, visitor, nestedNodesWalkedOnPath));
         } else if (Map.class.isAssignableFrom(nodeType) && !typeMetadata.hasAnnotatedProperties()) {
             handleMap(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), propertyMetadata, visitor, nestedNodesWalkedOnPath));
         } else if (Iterable.class.isAssignableFrom(nodeType) && !typeMetadata.hasAnnotatedProperties()) {
@@ -92,7 +92,7 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
 
     abstract protected void onNestedNodeCycle(@Nullable String firstOccurrenceQualifiedName, String secondOccurrenceQualifiedName);
 
-    abstract protected void handleProvider(T node, Consumer<T> handler);
+    abstract protected void handleProvider(String qualifiedName, T node, NodeMetadataVisitor<T> visitor, Consumer<T> handler);
 
     abstract protected void handleMap(T node, BiConsumer<String, T> handler);
 
@@ -124,8 +124,18 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
         }
 
         @Override
-        protected void handleProvider(Object node, Consumer<Object> handler) {
-            handler.accept(((Provider<?>) node).get());
+        protected void handleProvider(String qualifiedName, Object node, NodeMetadataVisitor<Object> visitor, Consumer<Object> handler) {
+            Provider<?> nodeAsProvider = (Provider<?>) node;
+            if (nodeAsProvider.isPresent()) {
+                Object value;
+                try {
+                    value = nodeAsProvider.get();
+                } catch (Exception e) {
+                    visitor.visitErroneousNestedProvider(qualifiedName, e);
+                    return;
+                }
+                handler.accept(value);
+            }
         }
 
         @SuppressWarnings("unchecked")
@@ -173,7 +183,7 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
 
         @SuppressWarnings("unchecked")
         @Override
-        protected void handleProvider(TypeToken<?> node, Consumer<TypeToken<?>> handler) {
+        protected void handleProvider(String qualifiedName, TypeToken<?> node, NodeMetadataVisitor<TypeToken<?>> visitor, Consumer<TypeToken<?>> handler) {
             handler.accept(extractNestedType((TypeToken<Provider<?>>) node, Provider.class, 0));
         }
 

@@ -25,9 +25,11 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.StaticValue;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
@@ -71,23 +73,29 @@ public class DefaultPropertyWalker implements PropertyWalker {
                 typeMetadata.visitValidationFailures(qualifiedName, validationContext);
                 ImplementationValue implementation = implementationResolver.resolveImplementation(value);
                 visitor.visitInputProperty(qualifiedName, new ImplementationPropertyValue(implementation), false);
-                visitValue(qualifiedName, propertyMetadata, () -> value, visitor);
+                PropertyValue staticValue = new StaticValue(value);
+                visitValue(qualifiedName, propertyMetadata, staticValue, visitor);
+            }
+
+            @Override
+            public void visitErroneousNestedProvider(String qualifiedName, Exception e) {
+                visitor.visitInputProperty(qualifiedName, new InvalidValue(e), false);
             }
 
             @Override
             public void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<Object> value) {
-                visitValue(qualifiedName, propertyMetadata, value, visitor);
+                PropertyValue lazyValue = new LazyPropertyValue(value, propertyMetadata.getGetterMethod());
+                visitValue(qualifiedName, propertyMetadata, lazyValue, visitor);
             }
         });
     }
 
-    private void visitValue(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<Object> value, PropertyVisitor visitor) {
+    private void visitValue(String qualifiedName, PropertyMetadata propertyMetadata, PropertyValue value, PropertyVisitor visitor) {
         PropertyAnnotationHandler handler = handlers.get(propertyMetadata.getPropertyType());
         if (handler == null) {
             throw new IllegalStateException("Property handler should not be null for: " + propertyMetadata.getPropertyType());
         }
-        LazyPropertyValue dynamicValue = new LazyPropertyValue(value, propertyMetadata.getGetterMethod());
-        handler.visitPropertyValue(qualifiedName, dynamicValue, propertyMetadata, visitor);
+        handler.visitPropertyValue(qualifiedName, value, propertyMetadata, visitor);
     }
 
     private static class LazyPropertyValue implements PropertyValue {
@@ -161,7 +169,6 @@ public class DefaultPropertyWalker implements PropertyWalker {
         }
     }
 
-
     private static class ImplementationPropertyValue implements PropertyValue {
 
         private final ImplementationValue implementationValue;
@@ -189,6 +196,36 @@ public class DefaultPropertyWalker implements PropertyWalker {
         @Override
         public String toString() {
             return "Implementation: " + implementationValue;
+        }
+    }
+
+    private static class InvalidValue implements PropertyValue {
+        private final Exception exception;
+
+        public InvalidValue(Exception exception) {
+            this.exception = exception;
+        }
+
+        @Nullable
+        @Override
+        public Object call() {
+            throw UncheckedException.throwAsUncheckedException(exception);
+        }
+
+        @Override
+        public TaskDependencyContainer getTaskDependencies() {
+            // Ignore
+            return TaskDependencyContainer.EMPTY;
+        }
+
+        @Override
+        public void maybeFinalizeValue() {
+            // Ignore
+        }
+
+        @Override
+        public String toString() {
+            return "INVALID: " + exception.getMessage();
         }
     }
 }

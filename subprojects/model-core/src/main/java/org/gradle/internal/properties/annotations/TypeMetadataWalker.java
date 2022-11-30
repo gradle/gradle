@@ -17,6 +17,7 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.reflect.TypeToken;
+import org.gradle.internal.UncheckedException;
 
 import java.lang.annotation.Annotation;
 import java.util.function.Supplier;
@@ -36,5 +37,8 @@ public interface TypeMetadataWalker<T> {
         void visitRoot(TypeMetadata typeMetadata, T value);
         void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, T value);
         void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<T> value);
+        default void visitErroneousNestedProvider(String qualifiedName, Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 }
