@@ -29,13 +29,20 @@ import java.lang.annotation.Annotation;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 
 public abstract class AbstractOutputPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
+    private final OutputFilePropertyType filePropertyType;
 
-    public AbstractOutputPropertyAnnotationHandler(Class<? extends Annotation> annotationType) {
+    public AbstractOutputPropertyAnnotationHandler(Class<? extends Annotation> annotationType, OutputFilePropertyType filePropertyType) {
         super(annotationType, Kind.OUTPUT, ModifierAnnotationCategory.annotationsOf(OPTIONAL));
+        this.filePropertyType = filePropertyType;
     }
 
     @Override
     public boolean isPropertyRelevant() {
         return true;
+    }
+
+    @Override
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+        visitor.visitOutputFileProperty(propertyName, propertyMetadata.isAnnotationPresent(Optional.class), value, filePropertyType);
     }
 }

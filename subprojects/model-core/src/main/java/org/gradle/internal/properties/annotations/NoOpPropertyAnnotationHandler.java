@@ -17,6 +17,8 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
 
 import java.lang.annotation.Annotation;
 
@@ -27,5 +29,9 @@ public class NoOpPropertyAnnotationHandler extends AbstractPropertyAnnotationHan
     @Override
     public boolean isPropertyRelevant() {
         return false;
+    }
+
+    @Override
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
     }
 }

@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.internal.execution.model.annotations.AbstractInputFilePropertyAnnotationHandler;
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
+import org.gradle.internal.properties.InputFilePropertyType;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.IGNORE_EMPTY_DIRECTORIES;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.INCREMENTAL;
@@ -30,6 +31,7 @@ public class InputArtifactAnnotationHandler extends AbstractInputFilePropertyAnn
     public InputArtifactAnnotationHandler() {
         super(
             InputArtifact.class,
+            InputFilePropertyType.FILE,
             ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, IGNORE_EMPTY_DIRECTORIES, NORMALIZE_LINE_ENDINGS));
     }
 }

@@ -33,4 +33,9 @@ public class LocalStatePropertyAnnotationHandler extends AbstractPropertyAnnotat
     public boolean isPropertyRelevant() {
         return true;
     }
+
+    @Override
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+        visitor.visitLocalStateProperty(value);
+    }
 }

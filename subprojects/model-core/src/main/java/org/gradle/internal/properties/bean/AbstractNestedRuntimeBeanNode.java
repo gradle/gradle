@@ -67,8 +67,12 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
                 }
                 value = new StaticValue(nested);
             }
-            // TODO Whole class should be removed
-            // annotationHandler.visitPropertyValue(propertyName, value, propertyMetadata, visitor);
+            annotationHandler.visitPropertyValue(
+                propertyName,
+                value,
+                propertyMetadata,
+                visitor
+            );
         }
     }
 

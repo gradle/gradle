@@ -17,10 +17,27 @@
 package org.gradle.internal.execution.model.annotations;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.IgnoreEmptyDirectories;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.internal.execution.model.InputNormalizer;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.properties.InputBehavior;
+import org.gradle.internal.properties.InputFilePropertyType;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.work.Incremental;
+import org.gradle.work.NormalizeLineEndings;
 
 import java.lang.annotation.Annotation;
 
@@ -28,13 +45,64 @@ import static org.gradle.internal.execution.model.annotations.ModifierAnnotation
 
 public abstract class AbstractInputFilePropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
 
-    public AbstractInputFilePropertyAnnotationHandler(Class<? extends Annotation> annotationType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
+    private final InputFilePropertyType filePropertyType;
+
+    public AbstractInputFilePropertyAnnotationHandler(Class<? extends Annotation> annotationType, InputFilePropertyType filePropertyType, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
         super(annotationType, allowedModifiers);
+        this.filePropertyType = filePropertyType;
     }
 
     @Override
     public boolean isPropertyRelevant() {
         return true;
+    }
+
+    @Override
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+        FileNormalizer normalizer = propertyMetadata.getAnnotationForCategory(NORMALIZATION)
+            .map(fileNormalization -> {
+                if (fileNormalization instanceof PathSensitive) {
+                    PathSensitivity pathSensitivity = ((PathSensitive) fileNormalization).value();
+                    return InputNormalizer.determineNormalizerForPathSensitivity(pathSensitivity);
+                } else if (fileNormalization instanceof Classpath) {
+                    return InputNormalizer.RUNTIME_CLASSPATH;
+                } else if (fileNormalization instanceof CompileClasspath) {
+                    return InputNormalizer.COMPILE_CLASSPATH;
+                } else {
+                    throw new IllegalStateException("Unknown normalization annotation used: " + fileNormalization);
+                }
+            })
+            .orElse(null);
+        visitor.visitInputFileProperty(
+            propertyName,
+            propertyMetadata.isAnnotationPresent(Optional.class),
+            determineBehavior(propertyMetadata),
+            determineDirectorySensitivity(propertyMetadata),
+            determineLineEndingSensitivity(propertyMetadata),
+            normalizer,
+            value,
+            filePropertyType
+        );
+    }
+
+    private static InputBehavior determineBehavior(PropertyMetadata propertyMetadata) {
+        return propertyMetadata.isAnnotationPresent(SkipWhenEmpty.class)
+            ? InputBehavior.PRIMARY
+            : propertyMetadata.isAnnotationPresent(Incremental.class)
+            ? InputBehavior.INCREMENTAL
+            : InputBehavior.NON_INCREMENTAL;
+    }
+
+    private static LineEndingSensitivity determineLineEndingSensitivity(PropertyMetadata propertyMetadata) {
+        return propertyMetadata.isAnnotationPresent(NormalizeLineEndings.class)
+            ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS
+            : LineEndingSensitivity.DEFAULT;
+    }
+
+    protected DirectorySensitivity determineDirectorySensitivity(PropertyMetadata propertyMetadata) {
+        return propertyMetadata.isAnnotationPresent(IgnoreEmptyDirectories.class)
+            ? DirectorySensitivity.IGNORE_DIRECTORIES
+            : DirectorySensitivity.DEFAULT;
     }
 
     @Override

@@ -19,8 +19,11 @@ package org.gradle.internal.reflect.annotations
 import com.google.common.collect.ImmutableSet
 import groovy.transform.Generated
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.properties.PropertyValue
+import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler
 import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
+import org.gradle.internal.properties.annotations.PropertyMetadata
 import org.gradle.internal.properties.annotations.TypeAnnotationHandler
 import org.gradle.internal.properties.annotations.TypeMetadataStore
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
@@ -97,6 +100,11 @@ trait TestAnnotationHandlingSupport {
         @Override
         boolean isPropertyRelevant() {
             return true
+        }
+
+        @Override
+        void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+            // NO OP
         }
     }
 }
