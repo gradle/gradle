@@ -24,8 +24,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.cache.internal.CacheFactory;
-import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.cache.scopes.ScopedCache;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -53,10 +52,9 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         Chmod chmod,
         DirectoryFileTreeFactory directoryFileTreeFactory,
         FileHasher fileHasher,
-        CacheFactory cacheFactory,
-        GradleUserHomeDirProvider userHomeDirProvider
+        ScopedCache cacheBuilder
     ) {
-        super(cacheFactory, userHomeDirProvider);
+        super(cacheBuilder);
         this.fileProvider = zipFile;
         this.chmod = chmod;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
