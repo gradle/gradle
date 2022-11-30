@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -32,6 +33,7 @@ import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.tasks.scala.DefaultScalaPluginExtension;
 import org.gradle.api.model.ObjectFactory;
@@ -39,6 +41,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.provider.Provider;
@@ -109,7 +112,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         Usage incrementalAnalysisUsage = objectFactory.named(Usage.class, "incremental-analysis");
         configureConfigurations(project, incrementalAnalysisUsage, scalaPluginExtension);
 
-        configureCompileDefaults(project, scalaRuntime);
+        configureCompileDefaults(project, scalaRuntime, (DefaultJavaPluginExtension) extensionOf(project, JavaPluginExtension.class));
         configureSourceSetDefaults(project, incrementalAnalysisUsage, objectFactory, scalaRuntime);
         configureScaladoc(project, scalaRuntime);
     }
@@ -246,13 +249,32 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         project.getTasks().named(sourceSet.getClassesTaskName(), task -> task.dependsOn(scalaCompileTask));
     }
 
-    private static void configureCompileDefaults(final Project project, final ScalaRuntime scalaRuntime) {
+    private static void configureCompileDefaults(final Project project, final ScalaRuntime scalaRuntime, final DefaultJavaPluginExtension javaExtension) {
         project.getTasks().withType(ScalaCompile.class).configureEach(compile -> {
-            compile.getConventionMapping().map("scalaClasspath", (Callable<FileCollection>) () -> scalaRuntime.inferScalaClasspath(compile.getClasspath()));
-            compile.getConventionMapping().map("zincClasspath", (Callable<Configuration>) () -> project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME));
-            compile.getConventionMapping().map("scalaCompilerPlugins", (Callable<FileCollection>) () -> project.getConfigurations().getAt(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME));
+            ConventionMapping conventionMapping = compile.getConventionMapping();
+            conventionMapping.map("scalaClasspath", (Callable<FileCollection>) () -> scalaRuntime.inferScalaClasspath(compile.getClasspath()));
+            conventionMapping.map("zincClasspath", (Callable<Configuration>) () -> project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME));
+            conventionMapping.map("scalaCompilerPlugins", (Callable<FileCollection>) () -> project.getConfigurations().getAt(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME));
+            conventionMapping.map("sourceCompatibility", () -> computeJavaSourceCompatibilityConvention(javaExtension, compile).toString());
+            conventionMapping.map("targetCompatibility", () -> computeJavaTargetCompatibilityConvention(javaExtension, compile).toString());
             compile.getScalaCompileOptions().getKeepAliveMode().convention(KeepAliveMode.SESSION);
         });
+    }
+
+    private static JavaVersion computeJavaSourceCompatibilityConvention(DefaultJavaPluginExtension javaExtension, ScalaCompile compileTask) {
+        JavaVersion rawSourceCompatibility = javaExtension.getRawSourceCompatibility();
+        if (rawSourceCompatibility != null) {
+            return rawSourceCompatibility;
+        }
+        return JavaVersion.toVersion(compileTask.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
+    }
+
+    private static JavaVersion computeJavaTargetCompatibilityConvention(DefaultJavaPluginExtension javaExtension, ScalaCompile compileTask) {
+        JavaVersion rawTargetCompatibility = javaExtension.getRawTargetCompatibility();
+        if (rawTargetCompatibility != null) {
+            return rawTargetCompatibility;
+        }
+        return JavaVersion.toVersion(compileTask.getSourceCompatibility());
     }
 
     private void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {
