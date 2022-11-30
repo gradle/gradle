@@ -22,8 +22,6 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.properties.PropertyValue;
-import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
@@ -43,11 +41,6 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
     @Override
     public boolean isPropertyRelevant() {
         return true;
-    }
-
-    @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
-        visitor.visitInputProperty(propertyName, value, propertyMetadata.isAnnotationPresent(Optional.class));
     }
 
     @Override

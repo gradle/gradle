@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.api.tasks.LocalState;
-import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory;
+package org.gradle.internal.properties.bean;
+
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
+import java.lang.annotation.Annotation;
 
-public class LocalStatePropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
-    public LocalStatePropertyAnnotationHandler() {
-        super(LocalState.class, Kind.OTHER, ModifierAnnotationCategory.annotationsOf(OPTIONAL));
+public abstract class PropertyValueHandler {
+    private final Class<? extends Annotation> annotation;
+
+    public PropertyValueHandler(Class<? extends Annotation> annotation) {
+        this.annotation = annotation;
     }
 
-    @Override
-    public boolean isPropertyRelevant() {
-        return true;
+    Class<? extends Annotation> getAnnotation() {
+        return annotation;
     }
+
+    protected abstract void acceptVisitor(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor);
 }

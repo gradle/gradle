@@ -20,7 +20,6 @@ import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.internal.execution.model.annotations.AbstractInputFilePropertyAnnotationHandler;
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
-import org.gradle.internal.properties.InputFilePropertyType;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
 
@@ -28,7 +27,6 @@ public class InputArtifactDependenciesAnnotationHandler extends AbstractInputFil
     public InputArtifactDependenciesAnnotationHandler() {
         super(
             InputArtifactDependencies.class,
-            InputFilePropertyType.FILES,
             ModifierAnnotationCategory.annotationsOf(NORMALIZATION)
         );
     }
