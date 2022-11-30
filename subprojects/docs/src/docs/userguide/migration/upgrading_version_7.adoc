@@ -333,10 +333,11 @@ Use the link:java_gradle_plugin.html[`java-gradle-plugin`]'s `validatePlugins` t
 
 Gradle changes the compression library used for creating archives from an Ant based one to https://commons.apache.org/proper/commons-compress/[Apache Commons Compress™]. As a consequence archives created from the same content, are unlikely to end up identical byte-by-byte to their older versions, created with the old library.
 
-[[kotlin_1_7_20]]
-==== Upgrade to Kotlin 1.7.20
+[[kotlin_1_7_22]]
+==== Upgrade to Kotlin 1.7.22
 
-The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.7.20[Kotlin 1.7.20].
+The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.7.22[Kotlin 1.7.22].
+Also see release notes for https://github.com/JetBrains/kotlin/releases/tag/v1.7.20[1.7.20] and https://github.com/JetBrains/kotlin/releases/tag/v1.7.21[1.7.21].
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
