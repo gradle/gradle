@@ -1330,6 +1330,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.scala.ScalaCompile",
+            "member": "Method org.gradle.api.tasks.scala.ScalaCompile.getVersionParser()",
+            "acceptation": "injected property is not required anymore",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.scala.ScalaCompileOptions",
             "member": "Class org.gradle.api.tasks.scala.ScalaCompileOptions",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",

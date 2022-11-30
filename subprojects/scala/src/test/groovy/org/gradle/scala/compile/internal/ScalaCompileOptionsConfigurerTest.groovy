@@ -16,7 +16,6 @@
 
 package org.gradle.scala.compile.internal
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.tasks.scala.ScalaCompileOptions
 import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer
 import org.gradle.jvm.toolchain.JavaLanguageVersion
@@ -28,21 +27,18 @@ import spock.lang.Subject
 @Subject(ScalaCompileOptionsConfigurer)
 class ScalaCompileOptionsConfigurerTest extends Specification {
 
-    private final VersionParser versionParser = new VersionParser()
-
     def 'using Java #toolchain and Scala #scalaLibraryVersion results in #expectedTarget'() {
         given:
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
-        File scalaLibrary = new File("scala-library-${scalaLibraryVersion}.jar")
+        def isScala3 = scalaLibraryVersion.startsWith("3.")
+        File scalaLibrary = new File(isScala3 ? "scala3-library_3-${scalaLibraryVersion}.jar" : "scala-library-${scalaLibraryVersion}.jar")
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(javaToolchain, fallbackToolchain), classpath, versionParser)
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(javaToolchain, fallbackToolchain), classpath)
 
         then:
-        !scalaCompileOptions.additionalParameters.empty
-        scalaCompileOptions.additionalParameters.count { it.startsWith("-target:") } == 1
-        scalaCompileOptions.additionalParameters.find { it == expectedTarget }
+        scalaCompileOptions.additionalParameters.last() == expectedTarget
 
         where:
         javaToolchain | fallbackToolchain | scalaLibraryVersion | expectedTarget
@@ -80,6 +76,14 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         17            | true              | '2.13.1'            | '-target:8'
         17            | true              | '2.13.2'            | '-target:8'
 
+        17            | false             | '2.13.9'            | '-release:17'
+        17            | false             | '2.13.10'           | '-release:17'
+        17            | false             | '3.2.1'             | '-release:17'
+
+        17            | true              | '2.13.9'            | '-release:8'
+        17            | true              | '2.13.10'           | '-release:8'
+        17            | true              | '3.2.1'             | '-release:8'
+
         toolchain = fallbackToolchain ? "$javaToolchain (fallback)" : javaToolchain
     }
 
@@ -90,7 +94,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, null, classpath, getVersionParser())
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, null, classpath)
 
         then:
         !scalaCompileOptions.additionalParameters
@@ -103,7 +107,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         Set<File> classpath = [scalaLibrary]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8, false), classpath, getVersionParser())
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8, false), classpath)
 
         then:
         !scalaCompileOptions.additionalParameters
@@ -115,19 +119,21 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
         ]
     }
 
-    def 'does not configure target jvm if scala compiler already has a target'() {
+    def 'does not configure target jvm if scala compiler already has a target via #targetFlag flag'() {
         given:
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
-        scalaCompileOptions.additionalParameters = ['-target:8']
+        scalaCompileOptions.additionalParameters = [targetFlag]
         Set<File> classpath = [new File("scala-library-2.13.1.jar")]
 
         when:
-        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(8, false), classpath, getVersionParser())
+        ScalaCompileOptionsConfigurer.configure(scalaCompileOptions, createToolchain(17, false), classpath)
 
         then:
-        scalaCompileOptions.additionalParameters
-        scalaCompileOptions.additionalParameters.find { it == '-target:8' }
-        !scalaCompileOptions.additionalParameters.find { it == '-target:17' }
+        scalaCompileOptions.additionalParameters.find { it == targetFlag }
+        scalaCompileOptions.additionalParameters.find { it.contains("17") } == null
+
+        where:
+        targetFlag << ['-target:8', '--target:8', '-release:8', '--release:8', '-Xtarget:8', '-java-output-version:8', '-Xunchecked-java-output-version:8']
     }
 
     private JavaToolchain createToolchain(int javaVersion, boolean isFallback) {
