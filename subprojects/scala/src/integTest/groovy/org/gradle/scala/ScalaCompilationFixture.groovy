@@ -41,9 +41,9 @@ class ScalaCompilationFixture {
         this.analysisFile = this.root.file("build/tmp/scala/compilerAnalysis/compileScala.analysis")
         this.sourceSet = 'main'
         this.sourceDir = 'src/main/scala'
-        this.scalaVersion = ScalaCoverage.NEWEST
+        this.scalaVersion = ScalaCoverage.SCALA_2.last()
         this.zincVersion = ScalaBasePlugin.DEFAULT_ZINC_VERSION
-        this.sourceCompatibility = '1.7'
+        this.sourceCompatibility = '1.8'
         basicClassSource = new ScalaClass(
             'Person',
             '''
@@ -88,7 +88,7 @@ class ScalaCompilationFixture {
             }
 
             dependencies {
-                implementation "${scalaDependency}"
+                implementation "${scalaDependency(scalaVersion)}"
             }
 
             sourceSets {
@@ -104,7 +104,7 @@ class ScalaCompilationFixture {
         """.stripIndent()
     }
 
-    String getScalaDependency() {
+    static String scalaDependency(String scalaVersion) {
         if (VersionNumber.parse(scalaVersion) < VersionNumber.parse('3.0')) {
             return "org.scala-lang:scala-library:${scalaVersion}"
         } else {
