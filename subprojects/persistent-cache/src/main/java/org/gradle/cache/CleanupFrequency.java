@@ -43,6 +43,11 @@ public enum CleanupFrequency {
         public boolean requiresCleanup(long lastCleanupTimestamp) {
             return true;
         }
+
+        @Override
+        public boolean shouldCleanupOnEndOfSession() {
+            return true;
+        }
     },
     /**
      * Disable cleanup completely
@@ -55,4 +60,7 @@ public enum CleanupFrequency {
     };
 
     public abstract boolean requiresCleanup(long lastCleanupTimestamp);
+    public boolean shouldCleanupOnEndOfSession() {
+        return false;
+    }
 }
