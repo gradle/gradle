@@ -74,6 +74,12 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+#### Warning modes `all` and `fail` are more verbose
+
+Warning modes that are supposed to print all warnings were printing only one for each specific warning message.
+If there were two warnings with the same message, but originating from different steps of the build process (i.e. different stack traces), only one of them was printed. 
+Now one gets printed for each combination of message and stack trace.
+
 #### PMD and CodeNarc tasks execute in parallel by default
 The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process and therefore their tasks may now run in parallel within one project.
 
@@ -169,6 +175,11 @@ The following type and method are now considered stable:
 ### Promoted features in the war plugin
 
 - The `War.getWebAppDirectory()` method is now considered stable.
+
+### Promoted features in the `Settings` API
+
+- The methods `Settings.dependencyResolutionManagement(Action)`  and `Settings.getDependencyResolutionManagement()` are now considered stable.
+  - All the methods in `DependencyResolutionManagement` are now stable, except the ones for central repository declaration.
 
 ## Fixed issues
 

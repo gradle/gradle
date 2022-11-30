@@ -18,6 +18,7 @@ package org.gradle.testfixtures.internal;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheCleanup;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupProgressMonitor;
@@ -32,6 +33,7 @@ import org.gradle.internal.Pair;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.internal.GFileUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,9 +47,9 @@ public class TestInMemoryCacheFactory implements CacheFactory {
     final Map<Pair<File, String>, PersistentIndexedCache<?, ?>> caches = Collections.synchronizedMap(Maps.newLinkedHashMap());
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, CleanupAction cleanup) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanup cacheCleanup) throws CacheOpenException {
         GFileUtils.mkdirs(cacheDir);
-        InMemoryCache cache = new InMemoryCache(cacheDir, displayName, cleanup);
+        InMemoryCache cache = new InMemoryCache(cacheDir, displayName, cacheCleanup != null ? cacheCleanup.getCleanupAction() : null);
         if (initializer != null) {
             initializer.execute(cache);
         }
@@ -64,7 +66,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         private boolean closed;
         private final CleanupAction cleanup;
 
-        public InMemoryCache(File cacheDir, String displayName, CleanupAction cleanup) {
+        public InMemoryCache(File cacheDir, String displayName, @Nullable CleanupAction cleanup) {
             this.cacheDir = cacheDir;
             this.displayName = displayName;
             this.cleanup = cleanup;

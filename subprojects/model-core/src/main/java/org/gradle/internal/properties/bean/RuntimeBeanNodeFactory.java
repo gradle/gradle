@@ -25,17 +25,18 @@ import java.util.Map;
 public class RuntimeBeanNodeFactory {
 
     private final TypeMetadataStore metadataStore;
-    private ImplementationIdentifier implementationIdentifier;
+    private final ImplementationResolver implementationResolver;
 
-    public RuntimeBeanNodeFactory(TypeMetadataStore metadataStore, ImplementationIdentifier implementationIdentifier) {
+    public RuntimeBeanNodeFactory(TypeMetadataStore metadataStore, ImplementationResolver implementationResolver) {
         this.metadataStore = metadataStore;
-        this.implementationIdentifier = implementationIdentifier;
+        this.implementationResolver = implementationResolver;
     }
 
     public RuntimeBeanNode<?> createRoot(Object bean) {
         return new RootRuntimeBeanNode(bean, metadataStore.getTypeMetadata(bean.getClass()));
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public RuntimeBeanNode<?> create(RuntimeBeanNode parentNode, String propertyName, Object bean) {
         parentNode.checkCycles(propertyName, bean);
         TypeMetadata typeMetadata = metadataStore.getTypeMetadata(bean.getClass());
@@ -47,7 +48,7 @@ public class RuntimeBeanNodeFactory {
                 return new IterableRuntimeBeanNode(parentNode, propertyName, (Iterable<?>) bean);
             }
         }
-        ImplementationValue implementation = implementationIdentifier.identify(bean);
+        ImplementationValue implementation = implementationResolver.resolveImplementation(bean);
         return new NestedRuntimeBeanNode(parentNode, propertyName, bean, implementation, typeMetadata);
     }
 }

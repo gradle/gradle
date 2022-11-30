@@ -26,13 +26,10 @@ import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Specification
 
-import static org.gradle.internal.properties.annotations.PropertyAnnotationHandler.BeanPropertyContext
-
 class NestedBeanAnnotationHandlerTest extends Specification {
 
     def value = Mock(PropertyValue)
     def propertyVisitor = Mock(PropertyVisitor)
-    def context = Mock(BeanPropertyContext)
     def propertyMetadata = Mock(PropertyMetadata)
     private NestedBeanAnnotationHandler handler = new NestedBeanAnnotationHandler([TestOptional])
 
@@ -44,7 +41,7 @@ class NestedBeanAnnotationHandlerTest extends Specification {
         def validationContext = Mock(PropertyValidationContext)
 
         when:
-        handler.visitPropertyValue("name", value, propertyMetadata, propertyVisitor, context)
+        handler.visitPropertyValue("name", value, propertyMetadata, propertyVisitor)
 
         then:
         1 * value.call() >> null
@@ -66,49 +63,11 @@ class NestedBeanAnnotationHandlerTest extends Specification {
 
     def "absent optional nested property is ignored"() {
         when:
-        handler.visitPropertyValue("name", value, propertyMetadata, propertyVisitor, context)
+        handler.visitPropertyValue("name", value, propertyMetadata, propertyVisitor)
 
         then:
         1 * value.call() >> null
         1 * propertyMetadata.isAnnotationPresent(TestOptional) >> true
-        0 * _
-    }
-
-    def "exception thrown by nested property is propagated"() {
-        PropertyValue validatingValue = null
-        def exception = new RuntimeException("BOOM!")
-
-        when:
-        handler.visitPropertyValue("name", value, propertyMetadata, propertyVisitor, context)
-
-        then:
-        1 * value.call() >> {
-            throw exception
-        }
-        1 * propertyVisitor.visitInputProperty("name", _, false) >> { arguments ->
-            validatingValue = arguments[1]
-        }
-        0 * _
-
-        when:
-        validatingValue.call()
-
-        then:
-        0 * _
-        def thrown = thrown(RuntimeException)
-        exception == thrown
-    }
-
-    def "nested bean is added"() {
-        def nestedBean = new Object()
-        def nestedPropertyName = "someProperty"
-
-        when:
-        handler.visitPropertyValue(nestedPropertyName, value, propertyMetadata, propertyVisitor, context)
-
-        then:
-        1 * value.call() >> nestedBean
-        1 * context.addNested(nestedBean)
         0 * _
     }
 }

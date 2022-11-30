@@ -25,4 +25,6 @@ import java.util.Set;
  */
 public interface SoftwareComponentInternal extends SoftwareComponent {
     Set<? extends UsageContext> getUsages();
+
+    default void finalizeValue() {}
 }

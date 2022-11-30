@@ -21,7 +21,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.execution.model.InputNormalizer;
-import org.gradle.internal.fingerprint.Normalizer;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.properties.InputFilePropertyType;
 
 import javax.annotation.Nullable;
@@ -30,7 +30,7 @@ import java.util.Set;
 
 public class FileParameterUtils {
 
-    public static Normalizer normalizerOrDefault(@Nullable Normalizer fileNormalizer) {
+    public static FileNormalizer normalizerOrDefault(@Nullable FileNormalizer fileNormalizer) {
         // If this default is ever changed, ensure the documentation on PathSensitive is updated as well as this guide:
         // https://docs.gradle.org/current/userguide/build_cache_concepts.html#relocatability
         return fileNormalizer == null

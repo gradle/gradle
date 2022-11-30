@@ -19,7 +19,7 @@ package org.gradle.internal.fingerprint.impl;
 import org.gradle.internal.execution.FileCollectionSnapshotter;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.Normalizer;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 
 public class NameOnlyFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
@@ -29,7 +29,7 @@ public class NameOnlyFileCollectionFingerprinter extends AbstractFileCollectionF
     }
 
     @Override
-    public Normalizer getNormalizer() {
+    public FileNormalizer getNormalizer() {
         return InputNormalizer.NAME_ONLY;
     }
 }

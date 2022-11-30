@@ -377,6 +377,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.JavaBasePlugin",
+            "member": "Method org.gradle.api.plugins.JavaBasePlugin.getJavaToolchainQueryService()",
+            "acceptation": "Removed deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.plugins.JavaLibraryDistributionPlugin",
             "member": "Class org.gradle.api.plugins.JavaLibraryDistributionPlugin",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
@@ -422,6 +430,22 @@
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
             "changes": [
                 "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPlugin",
+            "member": "Class org.gradle.api.plugins.MavenPlugin",
+            "acceptation": "Remove deprecated class in Gradle 8.0",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.MavenPlugin",
+            "member": "Method org.gradle.api.plugins.MavenPlugin.apply(org.gradle.api.Project)",
+            "acceptation": "Remove deprecated method in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {
@@ -726,6 +750,14 @@
             "acceptation": "Deprecated method removed",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.Report",
+            "member": "Method org.gradle.api.reporting.Report.getOutputLocation()",
+            "acceptation": "Now returns a Property in Gradle 8.0",
+            "changes": [
+                "Method return type has changed"
             ]
         },
         {
@@ -1090,10 +1122,50 @@
         },
         {
             "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getDeleter()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
             "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getFeaturePreviews()",
             "acceptation": "Changed type of injected property",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getGroovyCompilerFactory()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getIncrementalCompilerFactory()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getObjectFactory()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.compile.GroovyCompile",
+            "member": "Method org.gradle.api.tasks.compile.GroovyCompile.getProjectLayout()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {
@@ -1505,6 +1577,22 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt.getBuild-scan$annotations(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed deprecated methods for Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt.getBuild-scan(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Removed deprecated methods for Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.language.base.plugins.LifecycleBasePlugin",
             "member": "Class org.gradle.language.base.plugins.LifecycleBasePlugin",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
@@ -1590,6 +1678,14 @@
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
             "changes": [
                 "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Constructor org.gradle.language.scala.tasks.AbstractScalaCompile(org.gradle.language.scala.tasks.BaseScalaCompileOptions)",
+            "acceptation": "Remove deprecated constructor in Gradle 8.0",
+            "changes": [
+                "Constructor has been removed"
             ]
         },
         {
