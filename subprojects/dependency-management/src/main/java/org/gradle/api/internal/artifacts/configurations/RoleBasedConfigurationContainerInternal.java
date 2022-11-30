@@ -235,11 +235,14 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
 
         private static String describeDifferenceFromRole(ConfigurationInternal configuration, ConfigurationRole role) {
             if (!isUsageConsistentWithRole(configuration, role)) {
+                ConfigurationRole currentUsage = ConfigurationRole.forUsage(
+                        configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclaredAgainst(),
+                        configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst());
                 return "Usage for configuration: " + configuration.getName() + " is not consistent with the role: " + role.getName() + ".\n" +
                         "Expected that it is:\n" +
                         role.describeUsage() + "\n" +
                         "But is actually is:\n" +
-                        ConfigurationRole.forConfiguration(configuration).describeUsage();
+                        currentUsage.describeUsage();
             } else {
                 return "Usage for configuration: " + configuration.getName() + " is consistent with the role: " + role.getName() + ".";
             }
