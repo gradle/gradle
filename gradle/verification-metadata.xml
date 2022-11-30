@@ -1210,9 +1210,9 @@
             <sha256 value="843245599385e906a4133fed1765c4d9f2e697b0091bb681cffd71dc426ff76b" origin="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.gradle" name="test-retry-gradle-plugin" version="1.4.0">
-         <artifact name="test-retry-gradle-plugin-1.4.0.jar">
-            <sha256 value="fc7ee40f9d73a6a9575c0335baf8084c51cdaf85dea4d220110659a80546bd7c" origin="Artifact is not signed"/>
+      <component group="org.gradle" name="test-retry-gradle-plugin" version="1.5.0">
+         <artifact name="test-retry-gradle-plugin-1.5.0.jar">
+            <sha256 value="8fdac2ede2237b381b2bd99e735b93d648bc580e1115ee95ced673f6a1c4bbcd" origin="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle.ci.health" name="common" version="0.63">
