@@ -333,6 +333,12 @@ Use the link:java_gradle_plugin.html[`java-gradle-plugin`]'s `validatePlugins` t
 
 Gradle changes the compression library used for creating archives from an Ant based one to https://commons.apache.org/proper/commons-compress/[Apache Commons Compress™]. As a consequence archives created from the same content, are unlikely to end up identical byte-by-byte to their older versions, created with the old library.
 
+==== Changes to configurations created by the War Plugin
+
+The link:war_plugin.html[War Plugin] creates configurations named `providedCompile` and `providedRuntime`.  These were previously used for both declaring dependencies and resolving them into classpaths.
+
+These configurations are no longer resolvable.  They are extended by the new `providedCompileClasspath` and `providedRuntimeClasspath` configurations, ,which are resolvable.  The plugin will now use these new configurations internally to resolve dependencies.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 

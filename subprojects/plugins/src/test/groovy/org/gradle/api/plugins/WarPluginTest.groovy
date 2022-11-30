@@ -54,6 +54,21 @@ class WarPluginTest extends AbstractProjectBuilderSpec {
         !providedRuntimeConfiguration.visible
         providedRuntimeConfiguration.transitive
 
+        when:
+        def providedCompileClasspathConfiguration = project.configurations.getByName(WarPlugin.PROVIDED_COMPILE_CLASSPATH_CONFIGURATION_NAME)
+
+        then:
+        providedCompileClasspathConfiguration.extendsFrom  == [providedCompileConfiguration] as Set
+        !providedCompileClasspathConfiguration.visible
+        providedCompileClasspathConfiguration.transitive
+
+        when:
+        def providedRuntimeClasspathConfiguration = project.configurations.getByName(WarPlugin.PROVIDED_RUNTIME_CLASSPATH_CONFIGURATION_NAME)
+
+        then:
+        providedRuntimeClasspathConfiguration.extendsFrom == [providedRuntimeConfiguration] as Set
+        !providedRuntimeClasspathConfiguration.visible
+        providedRuntimeClasspathConfiguration.transitive
     }
 
     def "adds tasks"() {

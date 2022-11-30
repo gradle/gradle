@@ -16,14 +16,16 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.java.WebApplication;
@@ -46,7 +48,23 @@ import java.util.concurrent.Callable;
  */
 public abstract class WarPlugin implements Plugin<Project> {
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";
+    /**
+     * This is the resolvable configuration that should be used to resolve the classpath containing the dependencies
+     * added to the {@link #PROVIDED_COMPILE_CONFIGURATION_NAME} configuration.
+     *
+     * @since 8.0
+     */
+    @Incubating
+    public static final String PROVIDED_COMPILE_CLASSPATH_CONFIGURATION_NAME = "providedCompileClasspath";
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
+    /**
+     * This is the resolvable configuration that should be used to resolve the classpath containing the dependencies
+     * added to the {@link #PROVIDED_RUNTIME_CONFIGURATION_NAME} configuration.
+     *
+     * @since 8.0
+     */
+    @Incubating
+    public static final String PROVIDED_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "providedRuntimeClasspath";
     public static final String WAR_TASK_NAME = "war";
     public static final String WEB_APP_GROUP = "web application";
 
@@ -76,8 +94,8 @@ public abstract class WarPlugin implements Plugin<Project> {
             task.classpath((Callable) () -> {
                 FileCollection runtimeClasspath = project.getExtensions().getByType(JavaPluginExtension.class)
                     .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
-                Configuration providedRuntime = project.getConfigurations().getByName(PROVIDED_RUNTIME_CONFIGURATION_NAME);
-                return runtimeClasspath.minus(providedRuntime);
+                Configuration providedRuntimeClasspath = project.getConfigurations().getByName(PROVIDED_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
+                return runtimeClasspath.minus(providedRuntimeClasspath);
             });
         });
 
@@ -88,24 +106,34 @@ public abstract class WarPlugin implements Plugin<Project> {
 
         PublishArtifact warArtifact = new LazyPublishArtifact(war, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory());
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidate(warArtifact);
-        configureConfigurations(project.getConfigurations());
+        configureConfigurations((RoleBasedConfigurationContainerInternal) project.getConfigurations());
         configureComponent(project, warArtifact);
     }
 
-    public void configureConfigurations(ConfigurationContainer configurationContainer) {
-        Configuration providedCompileConfiguration = configurationContainer.create(PROVIDED_COMPILE_CONFIGURATION_NAME).setVisible(false).
-            setDescription("Additional compile classpath for libraries that should not be part of the WAR archive.");
-        providedCompileConfiguration.setCanBeConsumed(false);
+    private void configureConfigurations(RoleBasedConfigurationContainerInternal configurationContainer) {
+        Configuration providedCompileConfiguration = configurationContainer.createWithRole(PROVIDED_COMPILE_CONFIGURATION_NAME, ConfigurationRoles.INTENDED_BUCKET)
+                .setVisible(false)
+                .setDescription("Additional libraries needed for compilation that should not be part of the WAR archive.");
 
-        Configuration providedRuntimeConfiguration = configurationContainer.create(PROVIDED_RUNTIME_CONFIGURATION_NAME).setVisible(false).
-            extendsFrom(providedCompileConfiguration).
-            setDescription("Additional runtime classpath for libraries that should not be part of the WAR archive.");
-        providedRuntimeConfiguration.setCanBeConsumed(false);
+        Configuration providedRuntimeConfiguration = configurationContainer.createWithRole(PROVIDED_RUNTIME_CONFIGURATION_NAME, ConfigurationRoles.INTENDED_BUCKET)
+                .setVisible(false)
+                .extendsFrom(providedCompileConfiguration)
+                .setDescription("Additional libraries needed at runtime that should not be part of the WAR archive.");
 
         configurationContainer.getByName(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME).extendsFrom(providedCompileConfiguration);
         configurationContainer.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
         configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
         configurationContainer.getByName(JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME).extendsFrom(providedRuntimeConfiguration);
+
+        Configuration providedCompileClasspathConfiguration = configurationContainer.createWithRole(PROVIDED_COMPILE_CLASSPATH_CONFIGURATION_NAME, ConfigurationRoles.INTENDED_RESOLVABLE)
+                .setVisible(false)
+                .extendsFrom(providedCompileConfiguration)
+                .setDescription("The resolvable classpath for compiling the WAR archive.");
+
+        Configuration providedRuntimeClasspathConfiguration = configurationContainer.createWithRole(PROVIDED_RUNTIME_CLASSPATH_CONFIGURATION_NAME, ConfigurationRoles.INTENDED_RESOLVABLE)
+                .setVisible(false)
+                .extendsFrom(providedRuntimeConfiguration)
+                .setDescription("The resolvable classpath for running the WAR archive.");
     }
 
     private void configureComponent(Project project, PublishArtifact warArtifact) {
