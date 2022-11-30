@@ -16,14 +16,13 @@
 
 package org.gradle.api.tasks.scala.internal;
 
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionInfo;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
+import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -36,30 +35,45 @@ import java.util.Set;
  * @since 7.3
  */
 public class ScalaCompileOptionsConfigurer {
-    private static final int FALLBACK_JVM_TARGET = 8;
-    private static final DefaultVersionComparator VERSION_COMPARATOR = new DefaultVersionComparator();
 
-    public static void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath, VersionParser versionParser) {
+    private static final int FALLBACK_JVM_TARGET = 8;
+    private static final List<String> TARGET_DEFINING_PARAMETERS = Arrays.asList(
+        // Scala 2
+        "-target:", "--target:",
+        // Scala 2 and 3
+        "-release:", "--release:",
+        // Scala 3
+        "-Xtarget:", "-java-output-version:", "-Xunchecked-java-output-version:"
+    );
+
+    private static final VersionNumber PLAIN_TARGET_FORMAT_SINCE_VERSION = VersionNumber.parse("2.13.1");
+    private static final VersionNumber RELEASE_REPLACES_TARGET_SINCE_VERSION = VersionNumber.parse("2.13.9");
+
+    public static void configure(ScalaCompileOptions scalaCompileOptions, JavaInstallationMetadata toolchain, Set<File> scalaClasspath) {
         if (toolchain == null) {
             return;
         }
 
-        File scalaJar = ScalaRuntimeHelper.findScalaJar(scalaClasspath, "library");
+        // When Scala 3 is used it appears on the classpath together with Scala 2
+        File scalaJar = ScalaRuntimeHelper.findScalaJar(scalaClasspath, "library_3");
         if (scalaJar == null) {
-            return;
+            scalaJar = ScalaRuntimeHelper.findScalaJar(scalaClasspath, "library");
+            if (scalaJar == null) {
+                return;
+            }
         }
 
-        String scalaVersion = ScalaRuntimeHelper.getScalaVersion(scalaJar);
-        if (scalaVersion == null) {
+        VersionNumber scalaVersion = VersionNumber.parse(ScalaRuntimeHelper.getScalaVersion(scalaJar));
+        if (VersionNumber.UNKNOWN.equals(scalaVersion)) {
             return;
         }
 
         List<String> additionalParameters = scalaCompileOptions.getAdditionalParameters();
-        if (additionalParameters != null && additionalParameters.stream().anyMatch(s -> s.startsWith("-target:"))) {
+        if (additionalParameters != null && hasTargetDefiningParameter(additionalParameters)) {
             return;
         }
 
-        String targetParameter = determineTargetParameter(scalaVersion, (JavaToolchain) toolchain, versionParser);
+        String targetParameter = determineTargetParameter(scalaVersion, (JavaToolchain) toolchain);
         if (additionalParameters == null) {
             scalaCompileOptions.setAdditionalParameters(Collections.singletonList(targetParameter));
         } else {
@@ -67,14 +81,18 @@ public class ScalaCompileOptionsConfigurer {
         }
     }
 
-    private static String determineTargetParameter(String scalaVersion, JavaToolchain javaToolchain, VersionParser versionParser) {
+    private static boolean hasTargetDefiningParameter(List<String> additionalParameters) {
+        return additionalParameters.stream().anyMatch(s -> TARGET_DEFINING_PARAMETERS.stream().anyMatch(s::startsWith));
+    }
+
+    private static String determineTargetParameter(VersionNumber scalaVersion, JavaToolchain javaToolchain) {
         int effectiveTarget = javaToolchain.isFallbackToolchain() ? FALLBACK_JVM_TARGET : javaToolchain.getLanguageVersion().asInt();
-        VersionInfo currentScalaVersion = new VersionInfo(versionParser.transform(scalaVersion));
-        boolean scalaBefore2131 = VERSION_COMPARATOR.compare(currentScalaVersion, new VersionInfo(versionParser.transform("2.13.1"))) < 0;
-        if (scalaBefore2131) {
-            return String.format("-target:jvm-1.%s", effectiveTarget);
-        } else {
+        if (scalaVersion.compareTo(RELEASE_REPLACES_TARGET_SINCE_VERSION) >= 0) {
+            return String.format("-release:%s", effectiveTarget);
+        } else if (scalaVersion.compareTo(PLAIN_TARGET_FORMAT_SINCE_VERSION) >= 0) {
             return String.format("-target:%s", effectiveTarget);
+        } else {
+            return String.format("-target:jvm-1.%s", effectiveTarget);
         }
     }
 }

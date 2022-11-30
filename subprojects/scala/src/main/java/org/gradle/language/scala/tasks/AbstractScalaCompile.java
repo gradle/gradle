@@ -157,7 +157,6 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     }
 
     protected ScalaJavaJointCompileSpec createSpec() {
-        // TODO: do we need to introduce validations for inconsistent toolchain vs executable/javaHome?
         DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpecFactory(compileOptions, getToolchain()).create();
         spec.setSourceFiles(getSource().getFiles());
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
