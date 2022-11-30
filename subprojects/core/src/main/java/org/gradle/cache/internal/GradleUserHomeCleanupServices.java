@@ -17,6 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.cache.MonitoredCleanupActionDecorator;
@@ -36,7 +37,8 @@ public class GradleUserHomeCleanupServices {
         ProgressLoggerFactory progressLoggerFactory,
         MonitoredCleanupActionDecorator monitoredCleanupActionDecorator,
         CacheConfigurationsInternal cacheConfigurations,
-        ListenerManager listenerManager
+        ListenerManager listenerManager,
+        CacheFactory cacheFactory
     ) {
         UsedGradleVersions usedGradleVersions = new UsedGradleVersionsFromGradleUserHomeCaches(globalScopedCache);
         registration.add(UsedGradleVersions.class, usedGradleVersions);
@@ -47,10 +49,14 @@ public class GradleUserHomeCleanupServices {
             GradleUserHomeCleanupService.class,
             gradleUserHomeCleanupService
         );
+
         listenerManager.addListener(new BuildSessionLifecycleListener() {
             @Override
             public void beforeComplete() {
-                gradleUserHomeCleanupService.cleanup();
+                if (cacheConfigurations.getCleanupFrequency().get().shouldCleanupOnEndOfSession()) {
+                    gradleUserHomeCleanupService.cleanup();
+                    cacheFactory.visitCaches(PersistentCache::cleanup);
+                }
             }
         });
     }
