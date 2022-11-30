@@ -17,14 +17,10 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 
@@ -39,57 +35,11 @@ public class NestedBeanAnnotationHandler extends AbstractPropertyAnnotationHandl
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
-        Object nested;
-        try {
-            nested = unpackProvider(value.call());
-        } catch (Exception e) {
-            visitor.visitInputProperty(propertyName, new InvalidValue(e), false);
-            return;
-        }
-        if (nested != null) {
-            context.addNested(nested);
-        } else if (getAllowedModifiers().stream().noneMatch(propertyMetadata::isAnnotationPresent)) {
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+        Object nested = value.call();
+        if (nested == null
+            && getAllowedModifiers().stream().noneMatch(propertyMetadata::isAnnotationPresent)) {
             visitor.visitInputProperty(propertyName, PropertyValue.ABSENT, false);
-        }
-    }
-
-    @Nullable
-    private static Object unpackProvider(@Nullable Object value) {
-        // Only unpack one level of Providers, since Provider<Provider<>> is not supported - we don't need two levels of laziness.
-        if (value instanceof Provider) {
-            return ((Provider<?>) value).getOrNull();
-        }
-        return value;
-    }
-
-    private static class InvalidValue implements PropertyValue {
-        private final Exception exception;
-
-        public InvalidValue(Exception exception) {
-            this.exception = exception;
-        }
-
-        @Nullable
-        @Override
-        public Object call() {
-            throw UncheckedException.throwAsUncheckedException(exception);
-        }
-
-        @Override
-        public TaskDependencyContainer getTaskDependencies() {
-            // Ignore
-            return TaskDependencyContainer.EMPTY;
-        }
-
-        @Override
-        public void maybeFinalizeValue() {
-            // Ignore
-        }
-
-        @Override
-        public String toString() {
-            return "INVALID: " + exception.getMessage();
         }
     }
 }

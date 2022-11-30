@@ -22,12 +22,12 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCaches;
 import org.gradle.api.internal.artifacts.transform.ImmutableTransformationWorkspaceServices;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CleanupActionDecorator;
-import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
@@ -63,7 +63,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
         ListenerManager listenerManager,
         DocumentationRegistry documentationRegistry,
         CleanupActionDecorator cleanupActionDecorator,
-        CacheConfigurations cacheConfigurations
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(globalScopedCache, cacheRepository, parameters, documentationRegistry, cleanupActionDecorator, cacheConfigurations);
         listenerManager.addListener(new BuildAdapter() {
@@ -103,7 +103,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
         CleanupActionDecorator cleanupActionDecorator,
-        CacheConfigurations cacheConfigurations
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         return new ImmutableTransformationWorkspaceServices(
             cacheRepository

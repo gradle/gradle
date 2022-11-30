@@ -19,26 +19,33 @@ tasks.register<Copy>("copyReport2") {
 }
 // end::copy-single-file-example-without-file-method[]
 
-val myReportTask by tasks.registering {
-    val outputFile by extra { file("$buildDir/reports/my-report.pdf") }
+abstract class MyReportTask : DefaultTask() {
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
 
-    outputs.files(outputFile)
-    doLast {
-        outputFile.setLastModified(System.currentTimeMillis())
+    @TaskAction
+    fun createFile() {
+        outputFile.get().asFile.writeText("Report contents")
     }
 }
 
-val archiveReportsTask by tasks.registering {
-    val dirToArchive by extra { file("$buildDir/toArchive") }
-    inputs.dir(dirToArchive)
+val myReportTask by tasks.registering(MyReportTask::class) {
+    outputFile.set(file("$buildDir/reports/my-report.pdf"))
+}
+
+abstract class MyArchiveTask : DefaultTask() {
+    @get:InputDirectory
+    abstract val dirToArchive: DirectoryProperty
+}
+
+val archiveReportsTask by tasks.registering(MyArchiveTask::class) {
+    dirToArchive.set(file("$buildDir/toArchive"))
 }
 
 // tag::copy-single-file-example-with-task-properties[]
 tasks.register<Copy>("copyReport3") {
-    val outputFile: File by myReportTask.get().extra
-    val dirToArchive: File by archiveReportsTask.get().extra
-    from(outputFile)
-    into(dirToArchive)
+    from(myReportTask.get().outputFile)
+    into(archiveReportsTask.get().dirToArchive)
 }
 // end::copy-single-file-example-with-task-properties[]
 
@@ -154,6 +161,12 @@ tasks.register<Copy>("anotherCopyTask") {
 }
 // end::copy-task-2[]
 
+tasks.named<Copy>("anotherCopyTask") {
+    // The task uses many sources that produce overlapping outputs.
+    // This isn't a part of any snippet, but is necessary to make the build work.
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 fun getDestDir() = file("some-dir")
 
 // tag::copy-method[]
@@ -193,13 +206,13 @@ configurations { "runtime" }
 tasks.register<Copy>("rename") {
     from("src/main/webapp")
     into(layout.buildDirectory.dir("explodedWar"))
+    // Use a regular expression to map the file name
+    rename("(.+)-staging(.+)", "$1$2")
+    rename("(.+)-staging(.+)".toRegex().pattern, "$1$2")
     // Use a closure to convert all file names to upper case
     rename { fileName: String ->
         fileName.toUpperCase()
     }
-    // Use a regular expression to map the file name
-    rename("(.+)-staging-(.+)", "$1$2")
-    rename("(.+)-staging-(.+)".toRegex().pattern, "$1$2")
 }
 // end::rename-files[]
 
@@ -209,7 +222,6 @@ tasks.register<Copy>("filter") {
     into(layout.buildDirectory.dir("explodedWar"))
     // Substitute property tokens in files
     expand("copyright" to "2009", "version" to "2.3.1")
-    expand(project.properties)
     // Use some of the filters provided by Ant
     filter(FixCrLfFilter::class)
     filter(ReplaceTokens::class, "tokens" to mapOf("copyright" to "2009", "version" to "2.3.1"))

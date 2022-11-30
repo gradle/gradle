@@ -46,7 +46,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor, BeanPropertyContext context) {
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
         visitor.visitInputProperty(propertyName, value, propertyMetadata.isAnnotationPresent(Optional.class));
     }
 

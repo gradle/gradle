@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -130,14 +132,23 @@ public class JavaProcessStackTracesMonitor {
         }
 
         String jstack() {
-            ExecResult result = run(getJstackCommand(), pid);
+            try {
+                ExecResult result = run(getJstackCommand(), pid);
 
-            StringBuilder sb = new StringBuilder(String.format("Run %s %s return %s", getJstackCommand(), pid, result));
-            if (result.code != 0) {
-                result = run(getJstackCommand(), "-F", pid);
-                sb.append(String.format("Run %s -F %s return %s", getJstackCommand(), pid, result.toString()));
+                StringBuilder sb = new StringBuilder(String.format("Run %s %s return %s", getJstackCommand(), pid, result));
+                if (result.code != 0) {
+                    result = run(getJstackCommand(), "-F", pid);
+                    sb.append(String.format("Run %s -F %s return %s", getJstackCommand(), pid, result.toString()));
+                }
+                return sb.toString();
+            } catch (Throwable e) {
+                // e.g. java.lang.IllegalThreadStateException: process has not exited
+                //          at java.base/java.lang.ProcessImpl.exitValue(ProcessImpl.java:553)
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                e.printStackTrace(pw);
+                return sw.toString();
             }
-            return sb.toString();
         }
     }
 
@@ -185,9 +196,9 @@ public class JavaProcessStackTracesMonitor {
     private StdoutAndPatterns ps() {
         String[] command = isWindows() ? new String[]{"wmic", "process", "get", "processid,commandline"} : new String[]{"ps", "x"};
         ExecResult result = run(command);
-        output.printf("Run: " + Arrays.toString(command));
-        output.printf("Stdout: " + result.stdout);
-        output.printf("Stderr: " + result.stderr);
+        output.printf("Run: %s", Arrays.toString(command));
+        output.printf("Stdout: %s", result.stdout);
+        output.printf("Stderr: %s", result.stderr);
 
         result.assertZeroExit();
         return new StdoutAndPatterns(result.stdout);

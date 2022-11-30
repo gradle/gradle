@@ -17,20 +17,20 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.internal.fingerprint.Normalizer;
+import org.gradle.internal.fingerprint.FileNormalizer;
 
 public abstract class AbstractFilePropertySpec extends AbstractPropertySpec implements FilePropertySpec {
-    private final Normalizer normalizer;
+    private final FileNormalizer normalizer;
     private final FileCollectionInternal files;
 
-    public AbstractFilePropertySpec(String propertyName, Normalizer normalizer, FileCollectionInternal files) {
+    public AbstractFilePropertySpec(String propertyName, FileNormalizer normalizer, FileCollectionInternal files) {
         super(propertyName);
         this.normalizer = normalizer;
         this.files = files;
     }
 
     @Override
-    public Normalizer getNormalizer() {
+    public FileNormalizer getNormalizer() {
         return normalizer;
     }
 

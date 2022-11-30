@@ -15,7 +15,6 @@
  */
 package org.gradle.util
 
-import org.gradle.api.Action
 import org.gradle.util.internal.ConfigureUtil
 import org.gradle.util.internal.ConfigureUtil.IncompleteInputException
 import spock.lang.Specification
@@ -196,26 +195,5 @@ class ConfigureUtilTest extends Specification {
         def method(String value) {
             prop = value
         }
-    }
-
-    def "correct implementation for #type coerced to Action is tracked"() {
-        expect:
-        ConfigureUtil.unwrapBean(implementation as Action) == implementation
-
-        where:
-        type      | implementation
-        "Closure" | { it }
-        "Action"  |  new Action<String>() { @Override void execute(String s) {} }
-    }
-
-    def "correct implementation for closure wrapped in Action is tracked"() {
-        given:
-        def closure = { it }
-
-        expect:
-        ConfigureUtil.unwrapBean(ConfigureUtil.configureUsing(closure)) == closure
-
-        and:
-        ConfigureUtil.unwrapBean(org.gradle.util.internal.ClosureBackedAction.of(closure)) == closure
     }
 }

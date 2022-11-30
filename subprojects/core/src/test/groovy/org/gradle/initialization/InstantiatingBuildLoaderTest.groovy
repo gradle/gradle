@@ -56,7 +56,7 @@ class InstantiatingBuildLoaderTest extends Specification {
 
     def rootProjectClassLoaderScope = Mock(ClassLoaderScope)
     def baseProjectClassLoaderScope = Mock(ClassLoaderScope) {
-        1 * createChild("root-project[:]") >> rootProjectClassLoaderScope
+        1 * createChild("root-project[:]", null) >> rootProjectClassLoaderScope
     }
 
     @Rule
@@ -121,7 +121,7 @@ class InstantiatingBuildLoaderTest extends Specification {
         buildLoader.load(settingsInternal, gradle)
 
         then:
-        1 * rootProjectClassLoaderScope.createChild(_) >> childProjectClassLoaderScope
+        1 * rootProjectClassLoaderScope.createChild(_, _) >> childProjectClassLoaderScope
         1 * rootProjectState.mutableModel >> rootProject
         1 * rootProjectState.createMutableModel(rootProjectClassLoaderScope, baseProjectClassLoaderScope)
         1 * childProjectState.createMutableModel(childProjectClassLoaderScope, baseProjectClassLoaderScope)

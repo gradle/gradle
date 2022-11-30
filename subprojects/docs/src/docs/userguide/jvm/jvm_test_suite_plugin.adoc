@@ -95,6 +95,7 @@ Common values are available as constants in link:{javadocPath}/org/gradle/api/at
 
 Here are several examples to illustrate the configurability of test suites.
 
+[[sec:declare_an_additional_test_suite]]
 == Declare an additional test suite
 ====
 include::sample[dir="snippets/testing/test-suite-plugin/groovy",files="build.gradle[tags=configure-testing-extension]"]
@@ -231,6 +232,7 @@ include::sample[dir="snippets/testing/test-suite-multi-configure-each-extracted/
 <2> Apply the closure to a test suite, using the default (`test`) test suite
 <3> Alternate means of applying a configuration closure to a test suite outside of its declaration, using the `integrationTest` test suite
 
+[[sec:differences_with_top_level_dependencies]]
 == Differences between the test suite `dependencies` and the top-level `dependencies` blocks
 
 Gradle 7.6 changed the API of the test suite's `dependencies` block to be more strongly-typed.

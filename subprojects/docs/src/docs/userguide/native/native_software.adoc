@@ -22,6 +22,8 @@ The https://blog.gradle.org/state-and-future-of-the-gradle-software-model[softwa
 We recommend new projects looking to build C++ applications and libraries use the newer <<building_cpp_projects.adoc#building_cpp_projects,replacement plugins>>.
 ====
 
+WARNING: The native plugins described in this chapter are not compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
+
 The native software plugins add support for building native software components, such as executables or shared libraries, from code written in C++, C and other languages. While many excellent build tools exist for this space of software development, Gradle offers developers its trademark power and flexibility together with dependency management practices more traditionally found in the JVM development space.
 
 The native software plugins make use of the Gradle software model.
