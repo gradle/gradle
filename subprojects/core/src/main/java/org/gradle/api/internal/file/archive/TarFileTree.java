@@ -200,14 +200,15 @@ public class TarFileTree extends AbstractArchiveFileTree {
 
         @Override
         public InputStream open() {
-            if (read && getFile() != null) {
+            if (read) {
+                getFile();
                 return GFileUtils.openInputStream(getFile());
-            }
-            if (read || tar.getCurrentEntry() != entry) {
+            } else if (tar.getCurrentEntry() != entry) {
                 throw new UnsupportedOperationException(String.format("The contents of %s has already been read.", this));
+            } else {
+                read = true;
+                return tar;
             }
-            read = true;
-            return tar;
         }
 
         @Override
