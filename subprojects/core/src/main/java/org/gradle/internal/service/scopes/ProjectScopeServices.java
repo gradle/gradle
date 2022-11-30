@@ -69,6 +69,9 @@ import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.scopes.DefaultProjectScopedCache;
+import org.gradle.cache.scopes.ProjectScopedCache;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
@@ -345,5 +348,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileFactory),
             new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(filePropertyFactory)
         );
+    }
+
+    ProjectScopedCache createProjectScopedCache(CacheRepository cacheRepository) {
+        return new DefaultProjectScopedCache(project.getLayout().getBuildDirectory().dir("cache").get().getAsFile(), cacheRepository);
     }
 }

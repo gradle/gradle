@@ -51,7 +51,7 @@ import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.cache.scopes.BuildScopedCache;
+import org.gradle.cache.scopes.ProjectScopedCache;
 import org.gradle.cache.scopes.ScopedCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -308,7 +308,7 @@ public class DefaultFileOperations implements FileOperations {
         DocumentationRegistry documentationRegistry = services.get(DocumentationRegistry.class);
         ProviderFactory providers = services.get(ProviderFactory.class);
         TaskDependencyFactory taskDependencyFactory = services.get(TaskDependencyFactory.class);
-        BuildScopedCache decompressionCache = services.get(BuildScopedCache.class);
+        ScopedCache decompressionCache = services.get(ProjectScopedCache.class);
 
         DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
             fileResolver,
