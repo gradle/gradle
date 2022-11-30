@@ -66,10 +66,15 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         assertTransformChain(result.first(), sourceVariant, compatible, transform2)
 
         and:
-        1 * attributeMatcher.isMatching(incompatible, requested) >> false
-        1 * attributeMatcher.isMatching(compatible, requested) >> true
+        // sourceVariant can be transformed by a transform starting with fromSource attributes
         1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
+        // otherVariant cannot be transformed by a transform starting with fromSource attributes
         1 * attributeMatcher.isMatching(otherVariant.getAttributes(), fromSource) >> false
+        // incompatible attributes are not compatible with requested
+        1 * attributeMatcher.isMatching(incompatible, requested) >> false
+        // compatible attributes are compatible with requested
+        1 * attributeMatcher.isMatching(compatible, requested) >> true
+
         0 * attributeMatcher._
     }
 
@@ -104,12 +109,17 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         assertTransformChain(result[3], otherVariant, compatible, transform4)
 
         and:
-        1 * attributeMatcher.isMatching(compatible, requested) >> true
-        1 * attributeMatcher.isMatching(compatible2, requested) >> true
+        // source variant matches fromSource, but not fromOther
         1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
         1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromOther) >> false
+        // other variant matches fromOther, but not fromSource
         1 * attributeMatcher.isMatching(otherVariant.getAttributes(), fromSource) >> false
         1 * attributeMatcher.isMatching(otherVariant.getAttributes(), fromOther) >> true
+
+        // compatible and compatible2 are compatible with requested attributes
+        1 * attributeMatcher.isMatching(compatible, requested) >> true
+        1 * attributeMatcher.isMatching(compatible2, requested) >> true
+
         0 * attributeMatcher._
     }
 
@@ -138,9 +148,13 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         assertTransformChain(result.first(), sourceVariant, compatible, transform2)
 
         and:
+        // source variant matches fromSource, other variant does not
         1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
         1 * attributeMatcher.isMatching(otherVariant.getAttributes(), fromSource) >> false
+
+        // incompatible is not compatible with requested
         1 * attributeMatcher.isMatching(incompatible, requested) >> false
+        // compatible is compatible with requested
         1 * attributeMatcher.isMatching(compatible, requested) >> true
         0 * attributeMatcher._
 
@@ -196,16 +210,26 @@ class ConsumerProvidedVariantFinderTest extends Specification {
 
         then:
         result.size() == 2
+        // sourceVariant + transform2 + transform3 = compatible
         assertTransformChain(result[0], sourceVariant, compatible, transform2, transform3)
+        // otherVariant + transform2 + transform4 = compatible2
         assertTransformChain(result[1], otherVariant, compatible2, transform4, transform5)
 
         and:
+        // source variant matches fromSource, other variant matches fromOther
         1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
         1 * attributeMatcher.isMatching(otherVariant.getAttributes(), fromOther) >> true
+
+        // intermediate matches fromIntermediate and intermediate2 matches fromIntermediate2
+        // this lets us build the chain from one transform to the next
         1 * attributeMatcher.isMatching(intermediate, fromIntermediate) >> true
         1 * attributeMatcher.isMatching(intermediate2, fromIntermediate2) >> true
+
+        // compatible and compatible2 are compatible with requested attributes
         1 * attributeMatcher.isMatching(compatible, requested) >> true
         1 * attributeMatcher.isMatching(compatible2, requested) >> true
+
+        // all other matching attempts are not compatible
         _ * attributeMatcher.isMatching(_ ,_) >> false
         0 * attributeMatcher._
     }
@@ -213,14 +237,14 @@ class ConsumerProvidedVariantFinderTest extends Specification {
     def "prefers direct transformation over indirect"() {
         def requested = AttributeTestUtil.attributes([usage: "requested"])
 
-        def fromIndirect = AttributeTestUtil.attributes(usage: "fromIndirect")
-        def compatibleIndirect = AttributeTestUtil.attributes(usage: "compatibleIndirect")
-        def incompatible = AttributeTestUtil.attributes(usage: "incompatible")
-
         def fromSource = AttributeTestUtil.attributes([usage: "fromSource"])
-        def compatible = AttributeTestUtil.attributes([usage: "compatible"])
         def fromOther = AttributeTestUtil.attributes([usage: "fromOther"])
+
+        def compatible = AttributeTestUtil.attributes([usage: "compatible"])
         def compatible2 = AttributeTestUtil.attributes([usage: "compatible2"])
+        def compatibleIndirect = AttributeTestUtil.attributes(usage: "compatibleIndirect")
+        def fromIndirect = AttributeTestUtil.attributes(usage: "fromIndirect")
+        def incompatible = AttributeTestUtil.attributes(usage: "incompatible")
 
         def sourceVariant = variant([usage: "source"])
         def otherVariant = variant([usage: "other"])
@@ -246,13 +270,20 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         // (otherVariant:fromOther) + transform4 -> (compatible2:fromIndirect) + transform2 -> (compatibleIndirect:requested)
 
         and:
+        // source variant matches fromSource, other variant matches fromOther
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
+        1 * attributeMatcher.isMatching(otherVariant.getAttributes(), fromOther) >> true
+
+        // We should not attempt to compare compatible/compatible2 with fromIndirect because we should not attempt to make this chain
+        0 * attributeMatcher.isMatching(compatible, fromIndirect) >> true
+        0 * attributeMatcher.isMatching(compatible2, fromIndirect) >> true
+
+        // compatible, compatible2 and compatibleIndirect are all compatible with requested attributes
         1 * attributeMatcher.isMatching(compatibleIndirect, requested) >> true
         1 * attributeMatcher.isMatching(compatible, requested) >> true
         1 * attributeMatcher.isMatching(compatible2, requested) >> true
-        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
-        1 * attributeMatcher.isMatching(otherVariant.getAttributes(), fromOther) >> true
-        0 * attributeMatcher.isMatching(compatible, fromIndirect) >> true
-        0 * attributeMatcher.isMatching(compatible2, fromIndirect) >> true
+
+        // all other matching attempts are not compatible
         _ * attributeMatcher.isMatching(_, _) >> false
         0 * attributeMatcher._
     }
@@ -264,6 +295,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         def fromOther = AttributeTestUtil.attributes(usage: "fromOther")
 
         def intermediate = AttributeTestUtil.attributes([usage: "intermediate"])
+
         def compatible = AttributeTestUtil.attributes([usage: "compatible"])
 
         def sourceVariant = variant([usage: "source"])
@@ -288,14 +320,21 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         assertTransformChain(result.first(), sourceVariant, compatible, transform2, transform4)
 
         and:
-        1 * attributeMatcher.isMatching(fromOther, requested) >> false
-        1 * attributeMatcher.isMatching(intermediate, requested) >> false
-        1 * attributeMatcher.isMatching(compatible, requested) >> true
+        // source variant matches fromSource, but not fromOther
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromOther) >> false
+
+        // fromOther, intermediate and source variant are incompatible with each other
         1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), intermediate) >> false
         1 * attributeMatcher.isMatching(fromOther, fromIntermediate) >> false
         1 * attributeMatcher.isMatching(intermediate, fromIntermediate) >> true
-        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
-        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromOther) >> false
+
+        // fromOther and intermediate are not acceptable matches for requested attributes
+        1 * attributeMatcher.isMatching(fromOther, requested) >> false
+        1 * attributeMatcher.isMatching(intermediate, requested) >> false
+        // compatible is compatible with requested attributes
+        1 * attributeMatcher.isMatching(compatible, requested) >> true
+
         0 * attributeMatcher._
 
         where:
@@ -332,13 +371,19 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         assertTransformChain(result.first(), sourceVariant, compatible, transform2, transform3)
 
         and:
+        // source variant matches fromSource, but not fromIntermediate
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromIntermediate) >> false
+        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
+
+        // partialTransformed is compatible with intermediate
+        1 * attributeMatcher.isMatching(incompatible, partialTransformed) >> false
+        1 * attributeMatcher.isMatching(intermediate, partialTransformed) >> true
+
+        // compatible is compatible with requested attributes, but incompatible and intermediate are not
         1 * attributeMatcher.isMatching(incompatible, requested) >> false
         1 * attributeMatcher.isMatching(intermediate, requested) >> false
         1 * attributeMatcher.isMatching(compatible, requested) >> true
-        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromIntermediate) >> false
-        1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
-        1 * attributeMatcher.isMatching(incompatible, partialTransformed) >> false
-        1 * attributeMatcher.isMatching(intermediate, partialTransformed) >> true
+
         0 * attributeMatcher._
     }
 
@@ -365,6 +410,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         result.empty
 
         and:
+        // incompatible and incompatible2 are not compatible with requested attributes
         1 * attributeMatcher.isMatching(incompatible, requested) >> false
         1 * attributeMatcher.isMatching(incompatible2, requested) >> false
         0 * attributeMatcher._
@@ -393,6 +439,7 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         result.empty
 
         and:
+        // incompatible and incompatible2 are not compatible with requested attributes
         1 * attributeMatcher.isMatching(incompatible2, requested) >> false
         1 * attributeMatcher.isMatching(incompatible, requested) >> false
         0 * attributeMatcher._
@@ -431,9 +478,13 @@ class ConsumerProvidedVariantFinderTest extends Specification {
         result.empty
 
         and:
-        1 * attributeMatcher.isMatching(compatible, requested) >> true
+        // source variant matches fromSource
         1 * attributeMatcher.isMatching(sourceVariant.getAttributes(), fromSource) >> true
+        // compatible is compatible with requested attributes
+        1 * attributeMatcher.isMatching(compatible, requested) >> true
+        // attributes that are the result of the transform are not compatible with the request
         1 * attributeMatcher.isMatching(finalAttributes, requested) >> false
+
         0 * attributeMatcher._
     }
 
