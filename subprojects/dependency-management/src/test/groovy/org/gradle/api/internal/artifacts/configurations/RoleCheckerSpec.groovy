@@ -46,6 +46,30 @@ class RoleCheckerSpec extends Specification {
         true        | true          | true              | true                  | true                  | true
     }
 
+    def "can detect if usage is not consistent with role"() {
+        given:
+        def configuration = Mock(ConfigurationInternal)
+        configuration.isCanBeConsumed() >> true
+        configuration.isCanBeResolved() >> false
+        configuration.isCanBeDeclaredAgainst() >> false
+        configuration.isDeprecatedForConsumption() >> true
+        configuration.isDeprecatedForResolution() >> false
+        configuration.isDeprecatedForDeclarationAgainst() >> false
+
+        and:
+        def role = ConfigurationRole.forUsage(consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated)
+
+        expect:
+        !RoleChecker.isUsageConsistentWithRole(configuration, role)
+
+        where: // These are just a sample, not all possible combinations
+        consumable  | resolvable    | declarableAgainst | consumptionDeprecated | resolutionDeprecated  | declarationAgainstDeprecated
+        true        | true          | true              | false                 | false                 | false
+        true        | false         | false             | false                 | false                 | false
+        false       | true          | false             | false                 | false                 | false
+        true        | false         | true              | false                 | false                 | false
+    }
+
     def "can assert if usage is consistent with role"() {
         given:
         def configuration = Mock(ConfigurationInternal)
