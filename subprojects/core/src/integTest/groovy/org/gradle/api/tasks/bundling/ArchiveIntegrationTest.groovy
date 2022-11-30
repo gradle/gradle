@@ -939,7 +939,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         false            | ["file2.txt", "file3.txt"]
     }
 
-    @Issue("")
     def "zipTree tracks task dependencies"() {
         given:
         buildFile """
@@ -959,6 +958,114 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':jar', ':unpackJar'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22685")
+    def "can visit and edit zip archive differently from two different projects"() {
+        given: "an archive in the root of a multiproject build"
+        createZip('test.zip') {
+            subdir1 {
+                file ('file1.txt').text = 'original text 1'
+            }
+            subdir2 {
+                file('file2.txt').text = 'original text 2'
+                file ('file3.txt').text =  'original text 3'
+            }
+        }
+        settingsFile << """include 'project1', 'project2'"""
+
+        and: "where each project edits that same archive differently via a visitor"
+        file('project1/build.gradle') << """
+            ${defineUpdateTask('zip')}
+            ${defineVerifyTask('zip')}
+
+            tasks.register('update', UpdateTask) {
+                archive = rootProject.file('test.zip')
+                replacementText = 'modified by project1'
+            }
+
+            tasks.register('verify', VerifyTask) {
+                dependsOn tasks.named('update')
+                archive = rootProject.file('test.zip')
+                beginsWith = 'modified by project1'
+            }
+        """
+
+        file('project2/build.gradle') << """
+            ${defineUpdateTask('zip')}
+            ${defineVerifyTask('zip')}
+
+            tasks.register('update', UpdateTask) {
+                archive = rootProject.file('test.zip')
+                replacementText = 'edited by project2'
+            }
+
+            tasks.register('verify', VerifyTask) {
+                dependsOn tasks.named('update')
+                archive = rootProject.file('test.zip')
+                beginsWith = 'edited by project2'
+            }
+        """
+
+        when:
+        run 'verify'
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(':project1:update', ':project2:update', ':project1:verify', ':project2:verify')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22685")
+    def "can visit and edit tar archive differently from two different projects"() {
+        given: "an archive in the root of a multiproject build"
+        createTar('test.tar') {
+            subdir1 {
+                file ('file1.txt').text = 'original text 1'
+            }
+            subdir2 {
+                file('file2.txt').text = 'original text 2'
+                file ('file3.txt').text =  'original text 3'
+            }
+        }
+        settingsFile << """include 'project1', 'project2'"""
+
+        and: "where each project edits that same archive differently via a visitor"
+        file('project1/build.gradle') << """
+            ${defineUpdateTask('tar')}
+            ${defineVerifyTask('tar')}
+
+            tasks.register('update', UpdateTask) {
+                archive = rootProject.file('test.tar')
+                replacementText = 'modified by project1'
+            }
+
+            tasks.register('verify', VerifyTask) {
+                dependsOn tasks.named('update')
+                archive = rootProject.file('test.tar')
+                beginsWith = 'modified by project1'
+            }
+        """
+
+        file('project2/build.gradle') << """
+            ${defineUpdateTask('tar')}
+            ${defineVerifyTask('tar')}
+
+            tasks.register('update', UpdateTask) {
+                archive = rootProject.file('test.tar')
+                replacementText = 'edited by project2'
+            }
+
+            tasks.register('verify', VerifyTask) {
+                dependsOn tasks.named('update')
+                archive = rootProject.file('test.tar')
+                beginsWith = 'edited by project2'
+            }
+        """
+
+        when:
+        run 'verify'
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(':project1:update', ':project2:update', ':project1:verify', ':project2:verify')
     }
 
     private def createTar(String name, Closure cl) {
@@ -997,6 +1104,68 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir3'
                 destinationDirectory = buildDir
                 archiveFileName = 'test.${archiveType}'
+            }
+        """
+    }
+
+    private String defineUpdateTask(String archiveType) {
+        return """
+            abstract class UpdateTask extends DefaultTask {
+                @Inject
+                abstract org.gradle.api.internal.file.FileOperations getFileOperations()
+
+                @InputFile
+                abstract RegularFileProperty getArchive()
+
+                @Input
+                abstract Property<String> getReplacementText()
+
+                @TaskAction
+                void update() {
+                    FileTree tree = fileOperations.${archiveType}Tree(archive.asFile.get())
+                    tree.visit(new EditingFileVisitor())
+                }
+
+                private final class EditingFileVisitor implements FileVisitor {
+                    @Override
+                    void visitDir(FileVisitDetails dirDetails) {}
+
+                    @Override
+                    void visitFile(FileVisitDetails fileDetails) {
+                        fileDetails.file.text = fileDetails.file.text.replace('original', replacementText.get())
+                    }
+                }
+            }
+        """
+    }
+
+    private String defineVerifyTask(String archiveType) {
+        return """
+            abstract class VerifyTask extends DefaultTask {
+                @Inject
+                abstract org.gradle.api.internal.file.FileOperations getFileOperations()
+
+                @InputFile
+                abstract RegularFileProperty getArchive()
+
+                @Input
+                abstract Property<String> getBeginsWith()
+
+                @TaskAction
+                void verify() {
+                    FileTree tree = fileOperations.${archiveType}Tree(archive.asFile.get())
+                    tree.visit(new VerifyingFileVisitor())
+                }
+
+                private final class VerifyingFileVisitor implements FileVisitor {
+                    @Override
+                    void visitDir(FileVisitDetails dirDetails) {}
+
+                    @Override
+                    void visitFile(FileVisitDetails fileDetails) {
+                        assert fileDetails.file.text.startsWith(beginsWith.get())
+                    }
+                }
             }
         """
     }
