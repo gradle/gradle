@@ -49,6 +49,8 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         expect:
         succeeds('check')
+        file("build/reports/checkstyle/main.sarif").assertDoesNotExist()
+        file("build/reports/checkstyle/test.sarif").assertDoesNotExist()
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.Class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.Class2"))
         file("build/reports/checkstyle/test.xml").assertContents(containsClass("org.gradle.TestClass1"))
@@ -128,26 +130,12 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
         failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
         failure.assertHasErrorOutput("Name 'class1' must match pattern")
+        file("build/reports/checkstyle/main.sarif").assertDoesNotExist()
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.xml").assertContents(containsClass("org.gradle.class2"))
 
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class1"))
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
-    }
-
-    @IgnoreIf({ !isSarifSupported(version.toString()) })
-    def "analyze bad code"() {
-        defaultLanguage('en')
-        badCode()
-
-        expect:
-        fails("check")
-        failure.assertHasDescription("Execution failed for task ':checkstyleMain'.")
-        failure.assertThatCause(startsWith("Checkstyle rule violations were found. See the report at:"))
-        failure.assertHasErrorOutput("Name 'class1' must match pattern")
-
-        file("build/reports/checkstyle/main.sarif").assertContents(containsClass("org.gradle.class1"))
-        file("build/reports/checkstyle/main.sarif").assertContents(containsClass("org.gradle.class2"))
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12270")
@@ -279,20 +267,23 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
     }
 
     @IgnoreIf({ !isSarifSupported(version.toString()) })
-    def "can configure reporting"() {
+    def "can configure sarif reporting"() {
         given:
         goodCode()
 
         when:
         buildFile << """
             checkstyleMain.reports {
-                sarif.outputLocation = file("baz.html")
+                sarif {
+                    required = true
+                    sarif.outputLocation = file("baz.sarif")
+                }
             }
         """
 
         then:
         succeeds "checkstyleMain"
-        file("baz.xml").exists()
+        file("baz.sarif").exists()
     }
 
     def "can configure reporting"() {
@@ -376,6 +367,29 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         !file("build/tmp/checkstyleMain/main.xml").exists()
         !file("build/reports/checkstyle/main.html").exists()
         !file("build/tmp/checkstyleMain/main.html").exists()
+    }
+
+    @IgnoreIf({ isSarifSupported(version.toString()) })
+    def "fails when SARIF enabled on unsupported checkstyle versions"() {
+        given:
+        goodCode()
+        buildFile << '''
+            tasks.withType(Checkstyle) {
+                reports {
+                    xml.required = false
+                    html.required = false
+                    sarif.required = true
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        fails 'checkstyleMain'
+
+        then:
+        def versionNumber = VersionNumber.parse(version.toString())
+        executedAndNotSkipped(":checkstyleMain")
+        result.assertHasErrorOutput("SARIF report format is supported on Checkstyle versions greater than 10.3.3 and newer. Please upgrade from Checkstyle $versionNumber or disable the SARIF format.")
     }
 
     def "changes to files in configDirectory make the task out-of-date"() {
