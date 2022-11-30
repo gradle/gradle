@@ -28,7 +28,6 @@ import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultCacheFactory;
@@ -50,7 +49,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.os.OperatingSystem;
-import org.gradle.internal.session.BuildSessionLifecycleListener;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.time.Clock;
@@ -70,14 +68,7 @@ import static org.gradle.api.internal.provider.ManagedFactories.SetPropertyManag
 public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory, ListenerManager listenerManager) {
-        CacheFactory factory = new DefaultCacheFactory(fileLockManager, executorFactory, progressLoggerFactory);
-        listenerManager.addListener(new BuildSessionLifecycleListener() {
-            @Override
-            public void beforeComplete() {
-                factory.visitCaches(PersistentCache::cleanup);
-            }
-        });
-        return factory;
+        return new DefaultCacheFactory(fileLockManager, executorFactory, progressLoggerFactory);
     }
 
     LegacyTypesSupport createLegacyTypesSupport() {
