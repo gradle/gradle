@@ -16,39 +16,47 @@
 
 package org.gradle.api.internal.file.archive;
 
-import com.google.common.base.Preconditions;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.cache.PersistentCache;
 import org.gradle.internal.file.Chmod;
 import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * An implementation of {@link org.gradle.api.file.FileTreeElement FileTreeElement} meant
  * for use with archive files when subclassing {@link org.gradle.api.internal.file.AbstractFileTree AbstractFileTree}.
  * <p>
- * This implementation extracts the files from the archive to the supplied cache directory.
+ * This implementation extracts the files from the archive to the supplied expansion directory.
  */
-public abstract class AbstractArchiveFileTreeElement extends AbstractFileTreeElement {
-    private final PersistentCache expansionCache;
+public abstract class AbstractArchiveFileTreeElement extends AbstractFileTreeElement implements FileVisitDetails {
     private final File expandedDir;
     private File file;
+    private final AtomicBoolean stopFlag;
 
     /**
      * Creates a new instance.
      *
-     * @param expansionCache the cache to use for extracting the archive
-     * @param expandedDir the directory to extract the archive to (must be a subdirectory of the base cache directory)
      * @param chmod the chmod instance to use
+     * @param expandedDir the directory to extract the archived file to
+     * @param stopFlag the stop flag to use
      */
-    protected AbstractArchiveFileTreeElement(Chmod chmod, PersistentCache expansionCache, File expandedDir) {
+    protected AbstractArchiveFileTreeElement(Chmod chmod, File expandedDir, AtomicBoolean stopFlag) {
         super(chmod);
-
-        Preconditions.checkArgument(expandedDir.getParentFile().equals(expansionCache.getBaseDir()), "Expanded dir must be located in the given cache");
-        this.expansionCache = expansionCache;
         this.expandedDir = expandedDir;
+        this.stopFlag = stopFlag;
     }
+
+    /**
+     * Returns the archive entry for this element.
+     *
+     * @return the archive entry
+     * @implSpec this method should be overriden to return a more specific type
+     */
+    protected abstract ArchiveEntry getArchiveEntry();
 
     /**
      * Returns a safe name for the name of a file contained in the archive.
@@ -56,22 +64,40 @@ public abstract class AbstractArchiveFileTreeElement extends AbstractFileTreeEle
      */
     protected abstract String safeEntryName();
 
-    private File expandToCache(String entryName) {
-        return expansionCache.useCache(() -> {
-            File file = new File(expandedDir, entryName);
+    @Override
+    public File getFile() {
+        if (file == null) {
+            file = new File(expandedDir, safeEntryName());
             if (!file.exists()) {
                 GFileUtils.mkdirs(file.getParentFile());
                 copyTo(file);
             }
-            return file;
-        });
+        }
+        return file;
     }
 
     @Override
-    public File getFile() {
-        if (file == null) {
-            file = expandToCache(safeEntryName());
-        }
-        return file;
+    public RelativePath getRelativePath() {
+        return new RelativePath(!getArchiveEntry().isDirectory(), safeEntryName().split("/"));
+    }
+
+    @Override
+    public long getLastModified() {
+        return getArchiveEntry().getLastModifiedDate().getTime();
+    }
+
+    @Override
+    public boolean isDirectory() {
+        return getArchiveEntry().isDirectory();
+    }
+
+    @Override
+    public long getSize() {
+        return getArchiveEntry().getSize();
+    }
+
+    @Override
+    public void stopVisiting() {
+        stopFlag.set(true);
     }
 }
