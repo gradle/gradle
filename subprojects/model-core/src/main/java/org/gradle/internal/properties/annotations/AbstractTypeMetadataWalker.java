@@ -23,6 +23,7 @@ import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -145,7 +146,9 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
         @Override
         protected Optional<Object> getChild(Object parent, PropertyMetadata property) {
             try {
-                return Optional.ofNullable(property.getGetterMethod().invoke(parent));
+                Method method = property.getGetterMethod();
+                method.setAccessible(true);
+                return Optional.ofNullable(method.invoke(parent));
             } catch (Exception e) {
                 // TODO Handle this
                 throw new RuntimeException(e);
