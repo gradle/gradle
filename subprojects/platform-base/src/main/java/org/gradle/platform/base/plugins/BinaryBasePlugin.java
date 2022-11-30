@@ -47,7 +47,7 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
  * - Links the tasks for each {@link BinarySpec} across to the tasks container.
  */
 @Incubating
-public class BinaryBasePlugin implements Plugin<Project> {
+public abstract class BinaryBasePlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project target) {

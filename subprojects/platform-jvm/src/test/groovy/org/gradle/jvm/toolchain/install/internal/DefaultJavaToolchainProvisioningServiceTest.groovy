@@ -20,18 +20,19 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.authentication.Authentication
 import org.gradle.cache.FileLock
-import org.gradle.jvm.toolchain.JavaToolchainRequest
-import org.gradle.platform.BuildPlatform
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
+import org.gradle.jvm.toolchain.JavaToolchainDownload
+import org.gradle.jvm.toolchain.JavaToolchainRequest
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal
 import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService
-import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory
+import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
+import org.gradle.platform.BuildPlatform
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -39,7 +40,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
     private static final String ARCHIVE_NAME = 'ibm-11-x64-hotspot-linux.zip'
 
-    private static final URI DOWNLOAD_URI = URI.create('https://server/whatever')
+    private static final JavaToolchainDownload DOWNLOAD = JavaToolchainDownload.fromUri(URI.create('https://server/whatever'))
 
     @TempDir
     public File temporaryFolder
@@ -72,7 +73,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD_URI)
+        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD)
 
         def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, operationExecutor, buildPlatform)
 
@@ -91,8 +92,8 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         then:
         List<BuildOperationDescriptor> descriptors = operationExecutor.log.getDescriptors()
-        descriptors.find {it.name == "Examining toolchain URI " + DOWNLOAD_URI }
-        descriptors.find {it.name == "Downloading toolchain from URI " + DOWNLOAD_URI }
+        descriptors.find {it.name == "Examining toolchain URI " + DOWNLOAD.getUri() }
+        descriptors.find {it.name == "Downloading toolchain from URI " + DOWNLOAD.getUri() }
         descriptors.find {it.name == "Unpacking toolchain archive " + ARCHIVE_NAME }
     }
 
@@ -101,7 +102,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD_URI)
+        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD)
         new File(temporaryFolder, ARCHIVE_NAME).createNewFile()
         def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
 
@@ -133,7 +134,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("false")
 
         given:
-        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD_URI)
+        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD)
         def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
 
         when:
@@ -149,7 +150,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD_URI)
+        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD)
 
         def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, operationExecutor, buildPlatform)
 
@@ -157,7 +158,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         provisioningService.tryInstall(spec)
 
         then:
-        1 * downloader.download(DOWNLOAD_URI, new File(temporaryFolder, ARCHIVE_NAME), _)
+        1 * downloader.download(DOWNLOAD.getUri(), new File(temporaryFolder, ARCHIVE_NAME), _)
     }
 
     ProviderFactory createProviderFactory(String propertyValue) {

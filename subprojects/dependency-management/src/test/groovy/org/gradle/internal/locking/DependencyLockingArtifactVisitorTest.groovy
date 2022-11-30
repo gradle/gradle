@@ -28,7 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode
 import org.gradle.internal.component.local.model.RootConfigurationMetadata
-import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -93,7 +93,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
         DependencyGraphNode node = Mock()
         DependencyGraphComponent component = Mock()
         ModuleComponentIdentifier identifier = Mock()
-        ComponentResolveMetadata metadata = Mock()
+        ComponentGraphResolveMetadata metadata = Mock()
 
         when:
         visitor.visitNode(node)
@@ -266,7 +266,7 @@ class DependencyLockingArtifactVisitorTest extends Specification {
     private void addVisitedChangingNode(ModuleComponentIdentifier module) {
         DependencyGraphNode node = Mock()
         DependencyGraphComponent component = Mock()
-        ComponentResolveMetadata metadata = Mock()
+        ComponentGraphResolveMetadata metadata = Mock()
         node.owner >> component
         component.metadataOrNull >> metadata
         metadata.isChanging() >> true

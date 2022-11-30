@@ -4,7 +4,8 @@ import common.buildToolGradleParameters
 import common.customGradle
 import common.dependsOn
 import common.gradleWrapper
-import common.requiresNoEc2Agent
+import common.requiresNotEc2Agent
+import common.requiresNotSharedHost
 import common.skipConditionally
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.RelativeId
@@ -24,7 +25,8 @@ class Gradleception(model: CIBuildModel, stage: Stage, bundleGroovy4: Boolean = 
 
     requirements {
         // Gradleception is a heavy build which runs ~40m on EC2 agents but only ~20m on Hetzner agents
-        requiresNoEc2Agent()
+        requiresNotEc2Agent()
+        requiresNotSharedHost()
     }
 
     features {

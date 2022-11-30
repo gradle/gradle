@@ -28,6 +28,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
+import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
@@ -36,7 +37,6 @@ import org.gradle.api.internal.tasks.compile.GroovyCompilerFactory;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.internal.tasks.compile.MinimalGroovyCompileOptions;
-import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovyRecompilationSpecProvider;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
@@ -50,7 +50,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -59,31 +58,27 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.internal.InstallationLocation;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static com.google.common.base.Preconditions.checkState;
 import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION_AVOIDANCE;
 
 /**
  * Compiles Groovy source files, and optionally, Java source files.
  */
 @CacheableTask
-public class GroovyCompile extends AbstractCompile implements HasCompileOptions {
+public abstract class GroovyCompile extends AbstractCompile implements HasCompileOptions {
     private FileCollection groovyClasspath;
     private final ConfigurableFileCollection astTransformationClasspath;
     private final CompileOptions compileOptions;
@@ -98,7 +93,10 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         compileOptions.setIncremental(false);
         compileOptions.getIncrementalAfterFailure().convention(true);
         this.compileOptions = compileOptions;
-        this.javaLauncher = objectFactory.property(JavaLauncher.class);
+
+        JavaToolchainService javaToolchainService = getJavaToolchainService();
+        this.javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaToolchainService.launcherFor(it -> {}));
+
         this.astTransformationClasspath = objectFactory.fileCollection();
         if (!experimentalCompilationAvoidanceEnabled()) {
             this.astTransformationClasspath.from((Callable<FileCollection>) this::getClasspath);
@@ -134,8 +132,15 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         checkGroovyClasspathIsNonEmpty();
         warnIfCompileAvoidanceEnabled();
         GroovyJavaJointCompileSpec spec = createSpec();
-        WorkResult result = getCompiler(spec, inputChanges).execute(spec);
+        maybeDisableIncrementalCompilationAfterFailure(spec);
+        WorkResult result = createCompiler(spec, inputChanges).execute(spec);
         setDidWork(result.getDidWork());
+    }
+
+    private void maybeDisableIncrementalCompilationAfterFailure(GroovyJavaJointCompileSpec spec) {
+        if (CommandLineJavaCompileSpec.class.isAssignableFrom(spec.getClass())) {
+            spec.getCompileOptions().setSupportsIncrementalCompilationAfterFailure(false);
+        }
     }
 
     /**
@@ -157,7 +162,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         }
     }
 
-    private Compiler<GroovyJavaJointCompileSpec> getCompiler(GroovyJavaJointCompileSpec spec, InputChanges inputChanges) {
+    private Compiler<GroovyJavaJointCompileSpec> createCompiler(GroovyJavaJointCompileSpec spec, InputChanges inputChanges) {
         GroovyCompilerFactory groovyCompilerFactory = getGroovyCompilerFactory();
         Compiler<GroovyJavaJointCompileSpec> delegatingCompiler = groovyCompilerFactory.newCompiler(spec);
         CleaningJavaCompiler<GroovyJavaJointCompileSpec> cleaningGroovyCompiler = new CleaningJavaCompiler<>(delegatingCompiler, getOutputs(), getDeleter());
@@ -171,11 +176,6 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         } else {
             return cleaningGroovyCompiler;
         }
-    }
-
-    @Inject
-    protected GroovyCompilerFactory getGroovyCompilerFactory() {
-        throw new UnsupportedOperationException();
     }
 
     private RecompilationSpecProvider createRecompilationSpecProvider(InputChanges inputChanges) {
@@ -203,31 +203,6 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         return stableSources;
     }
 
-    /**
-     * Injects and returns an instance of {@link IncrementalCompilerFactory}.
-     *
-     * @since 5.6
-     */
-    @Inject
-    protected IncrementalCompilerFactory getIncrementalCompilerFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected Deleter getDeleter() {
-        throw new UnsupportedOperationException("Decorator takes care of injection");
-    }
-
-    @Inject
-    protected ProjectLayout getProjectLayout() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
-
     private FileCollection determineGroovyCompileClasspath() {
         if (experimentalCompilationAvoidanceEnabled()) {
             return astTransformationClasspath.plus(getClasspath());
@@ -246,13 +221,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
         }
     }
 
-    @Nullable
-    private JavaInstallationMetadata getToolchain() {
-        return javaLauncher.map(JavaLauncher::getMetadata).getOrNull();
-    }
-
     private GroovyJavaJointCompileSpec createSpec() {
-        validateConfiguration();
         DefaultGroovyJavaJointCompileSpec spec = new DefaultGroovyJavaJointCompileSpecFactory(compileOptions, getToolchain()).create();
         assert spec != null;
 
@@ -281,47 +250,30 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
             spec.getGroovyCompileOptions().setStubDir(dir);
         }
 
-        configureExecutable(spec.getCompileOptions().getForkOptions());
+        String executable = getJavaLauncher().get().getExecutablePath().getAsFile().getAbsolutePath();
+        spec.getCompileOptions().getForkOptions().setExecutable(executable);
 
         return spec;
     }
 
     private void configureCompatibilityOptions(DefaultGroovyJavaJointCompileSpec spec) {
-        JavaInstallationMetadata toolchain = getToolchain();
-        if (toolchain != null) {
-            boolean isSourceOrTargetConfigured = false;
-            if (super.getSourceCompatibility() != null) {
-                spec.setSourceCompatibility(getSourceCompatibility());
-                isSourceOrTargetConfigured = true;
-            }
-            if (super.getTargetCompatibility() != null) {
-                spec.setTargetCompatibility(getTargetCompatibility());
-                isSourceOrTargetConfigured = true;
-            }
-            if (!isSourceOrTargetConfigured) {
-                String languageVersion = toolchain.getLanguageVersion().toString();
-                spec.setSourceCompatibility(languageVersion);
-                spec.setTargetCompatibility(languageVersion);
-            }
-        } else {
-            spec.setSourceCompatibility(getSourceCompatibility());
-            spec.setTargetCompatibility(getTargetCompatibility());
+        String toolchainVersion = JavaVersion.toVersion(getToolchain().getLanguageVersion().asInt()).toString();
+        String sourceCompatibility = getSourceCompatibility();
+        // Compatibility can be null if no convention was configured, e.g. when JavaBasePlugin is not applied
+        if (sourceCompatibility == null) {
+            sourceCompatibility = toolchainVersion;
         }
+        String targetCompatibility = getTargetCompatibility();
+        if (targetCompatibility == null) {
+            targetCompatibility = sourceCompatibility;
+        }
+
+        spec.setSourceCompatibility(sourceCompatibility);
+        spec.setTargetCompatibility(targetCompatibility);
     }
 
-    private void configureExecutable(MinimalJavaCompilerDaemonForkOptions forkOptions) {
-        if (javaLauncher.isPresent()) {
-            forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-        } else {
-            forkOptions.setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath());
-        }
-    }
-
-    private void validateConfiguration() {
-        if (javaLauncher.isPresent()) {
-            checkState(getOptions().getForkOptions().getJavaHome() == null, "Must not use `javaHome` property on `ForkOptions` together with `javaLauncher` property");
-            checkState(getOptions().getForkOptions().getExecutable() == null, "Must not use `executable` property on `ForkOptions` together with `javaLauncher` property");
-        }
+    private JavaInstallationMetadata getToolchain() {
+        return javaLauncher.map(JavaLauncher::getMetadata).get();
     }
 
     private void checkGroovyClasspathIsNonEmpty() {
@@ -340,14 +292,7 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
      */
     @Input
     protected String getGroovyCompilerJvmVersion() {
-        if (javaLauncher.isPresent()) {
-            return javaLauncher.get().getMetadata().getLanguageVersion().toString();
-        }
-        final File customHome = getOptions().getForkOptions().getJavaHome();
-        if (customHome != null) {
-            return getServices().get(JvmMetadataDetector.class).getMetadata(new InstallationLocation(customHome, "JVM for Groovy compiler")).getLanguageVersion().getMajorVersion();
-        }
-        return JavaVersion.current().getMajorVersion();
+        return getToolchain().getLanguageVersion().toString();
     }
 
     /**
@@ -406,15 +351,30 @@ public class GroovyCompile extends AbstractCompile implements HasCompileOptions 
      * @since 6.8
      */
     @Nested
-    @Optional
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }
 
     @Inject
-    protected FeatureFlags getFeatureFlags() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract IncrementalCompilerFactory getIncrementalCompilerFactory();
+
+    @Inject
+    protected abstract Deleter getDeleter();
+
+    @Inject
+    protected abstract ProjectLayout getProjectLayout();
+
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    protected abstract GroovyCompilerFactory getGroovyCompilerFactory();
+
+    @Inject
+    protected abstract FeatureFlags getFeatureFlags();
+
+    @Inject
+    protected abstract JavaToolchainService getJavaToolchainService();
 
     private File getTemporaryDirWithoutCreating() {
         // Do not create the temporary folder, since that causes problems.

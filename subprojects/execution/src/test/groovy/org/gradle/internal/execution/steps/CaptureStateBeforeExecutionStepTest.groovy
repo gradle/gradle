@@ -18,13 +18,13 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.execution.history.PreviousExecutionState
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
@@ -45,14 +45,6 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def step = new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, delegate)
-
-    @Override
-    protected ValidationFinishedContext createContext() {
-        Stub(ValidationFinishedContext) {
-            getInputProperties() >> ImmutableSortedMap.of()
-            getInputFileProperties() >> ImmutableSortedMap.of()
-        }
-    }
 
     def setup() {
         _ * work.history >> Optional.of(executionHistoryStore)

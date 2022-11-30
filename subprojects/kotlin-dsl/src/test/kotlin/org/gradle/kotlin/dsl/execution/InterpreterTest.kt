@@ -27,6 +27,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.Describables
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.TestHashCodes
@@ -50,6 +51,8 @@ class InterpreterTest : TestWithTempFiles() {
         val scriptPath =
             "/src/settings.gradle.kts"
 
+        val scriptSourceDisplayName = "source display name"
+
         val text = """
 
             buildscript {
@@ -70,12 +73,12 @@ class InterpreterTest : TestWithTempFiles() {
         val scriptSourceResource = mock<TextResource> {
             on { getText() } doReturn text
         }
-        val scriptSourceDisplayName = "source display name"
 
         val scriptSource = mock<ScriptSource> {
             on { fileName } doReturn scriptPath
             on { resource } doReturn scriptSourceResource
             on { shortDisplayName } doReturn Describables.of(scriptSourceDisplayName)
+            on { displayName } doReturn scriptSourceDisplayName
         }
         val parentClassLoader = mock<ClassLoader>()
         val baseScope = mock<ClassLoaderScope> {
@@ -146,11 +149,11 @@ class InterpreterTest : TestWithTempFiles() {
             }
 
             on {
-                loadClassInChildScopeOf(any(), any(), any(), any(), same(ClassPath.EMPTY))
+                loadClassInChildScopeOf(any(), any(), any(), any(), any(), same(ClassPath.EMPTY))
             } doAnswer {
 
-                val location = it.getArgument<File>(2)
-                val className = it.getArgument<String>(3)
+                val location = it.getArgument<File>(3)
+                val className = it.getArgument<String>(4)
 
                 val newLocation = relocate(location)
 
@@ -194,6 +197,7 @@ class InterpreterTest : TestWithTempFiles() {
                 verify(host).loadClassInChildScopeOf(
                     baseScope,
                     "kotlin-dsl:$scriptPath:$stage1TemplateId",
+                    ClassLoaderScopeOrigin.Script(scriptPath, scriptSourceDisplayName),
                     stage1CacheDir,
                     "Program",
                     ClassPath.EMPTY
@@ -218,6 +222,7 @@ class InterpreterTest : TestWithTempFiles() {
                 verify(host).loadClassInChildScopeOf(
                     targetScope,
                     "kotlin-dsl:$scriptPath:$stage2TemplateId",
+                    ClassLoaderScopeOrigin.Script(scriptPath, scriptSourceDisplayName),
                     stage2CacheDir,
                     "Program",
                     ClassPath.EMPTY

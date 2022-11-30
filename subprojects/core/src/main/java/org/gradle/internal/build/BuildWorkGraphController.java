@@ -41,4 +41,9 @@ public interface BuildWorkGraphController {
      * Eventually, this constraint should be removed, so that it is possible to populate and run multiple work graphs concurrently.
      */
     BuildWorkGraph newWorkGraph();
+
+    /**
+     * Discards all work state.
+     */
+    void resetState();
 }

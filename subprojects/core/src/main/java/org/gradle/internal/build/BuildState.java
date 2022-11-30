@@ -108,4 +108,9 @@ public interface BuildState {
      * Runs an action against the tooling model creators of this build. May configure the build as required.
      */
     <T> T withToolingModels(Function<? super BuildToolingModelController, T> action);
+
+    /**
+     * Restarts the lifecycle for this build, discarding all present state.
+     */
+    void resetState();
 }

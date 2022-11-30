@@ -5,9 +5,9 @@
 > Task :buildSrc:classes
 > Task :buildSrc:jar
 > Task :buildSrc:assemble
-> Task :buildSrc:pluginUnderTestMetadata
 > Task :buildSrc:compileTestJava NO-SOURCE
 > Task :buildSrc:compileTestGroovy NO-SOURCE
+> Task :buildSrc:pluginUnderTestMetadata
 > Task :buildSrc:processTestResources NO-SOURCE
 > Task :buildSrc:testClasses UP-TO-DATE
 > Task :buildSrc:test NO-SOURCE

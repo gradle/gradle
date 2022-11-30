@@ -46,8 +46,9 @@ configurations.conf.incoming.beforeResolve { resolvableDependencies ->
 }
 
 task printFiles {
+    def conf = configurations.conf
     doLast {
-        def files = configurations.conf.collect { it.name }
+        def files = conf.collect { it.name }
         println files
         assert files == ['direct-dep-1.0.jar']
     }
@@ -55,8 +56,9 @@ task printFiles {
 
 task printFilesWithConfigurationInput {
     dependsOn configurations.conf
+    def conf = configurations.conf
     doLast {
-        def files = configurations.conf.collect { it.name }
+        def files = conf.collect { it.name }
         println files
         assert files == ['direct-dep-1.0.jar']
     }
@@ -113,9 +115,11 @@ task copyFiles(type:Copy) {
             }
 
             task resolveDependencies {
+                def compile = configurations.compileClasspath
+                def testCompile = configurations.testCompileClasspath
                 doLast {
-                    configurations.compileClasspath.files
-                    configurations.testCompileClasspath.files
+                    compile.files
+                    testCompile.files
                 }
             }
 """
@@ -161,10 +165,12 @@ dependencies {
 }
 
 task resolveDependencies {
+    def rootA = configurations.a.incoming.resolutionResult.rootComponent
+    def rootB = configurations.b.incoming.resolutionResult.rootComponent
     doLast {
-        configurations.a.incoming.resolutionResult
-        configurations.b.incoming.resolutionResult
-        configurations.a.incoming.resolutionResult
+        rootA.get()
+        rootB.get()
+        rootA.get()
     }
 }
 """
@@ -202,15 +208,17 @@ task resolveDependencies {
                 bar "org.test:module2:1.0"
             }
             task a {
-                inputs.files configurations.bar
+                def files = configurations.bar
+                inputs.files files
                 doLast {
-                    configurations.bar.each { println it }
+                    files.each { println it }
                 }
             }
             task b {
-                inputs.files configurations.bar
+                def files = configurations.bar
+                inputs.files files
                 doLast {
-                    configurations.bar.each { println it }
+                    files.each { println it }
                 }
             }
         """

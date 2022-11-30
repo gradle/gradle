@@ -735,7 +735,7 @@ none
 
 Follow the API links to learn how to deal with these deprecations (if no extra information is provided here):
 
- * Setters for `classes` and `classpath` on link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html[`ValidateTaskProperties`]
+ * Setters for `classes` and `classpath` on `org.gradle.plugin.devel.tasks.ValidateTaskProperties` (removed)
 
  * There should not be setters for lazy properties like link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[`ConfigurableFileCollection`].  Use `setFrom` instead. For example,
 ----

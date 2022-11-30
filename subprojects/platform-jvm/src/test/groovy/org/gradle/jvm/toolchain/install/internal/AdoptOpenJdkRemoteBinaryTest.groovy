@@ -19,6 +19,7 @@ package org.gradle.jvm.toolchain.install.internal
 import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.jvm.toolchain.JavaToolchainDownload
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest
 import org.gradle.platform.internal.DefaultBuildPlatform
 import org.gradle.internal.os.OperatingSystem
@@ -42,7 +43,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory())
 
         when:
-        def uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem)).get()
+        def uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem)).get().getUri()
 
         then:
         uri.toString() == expectedPath
@@ -71,7 +72,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory)
 
         when:
-        def uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem)).get()
+        def uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem)).get().getUri()
 
         then:
         uri.toString() == "http://foobar/v3/binary/latest/11/ga/mac/x64/jdk/hotspot/normal/eclipse"
@@ -90,10 +91,10 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
 
         when:
-        Optional<URI> uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem))
+        Optional<JavaToolchainDownload> download = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem))
 
         then:
-        !uri.isPresent()
+        !download.isPresent()
 
         where:
         javaVersion << ([5, 6, 7])
@@ -109,10 +110,10 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory())
 
         when:
-        Optional<URI> uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem))
+        Optional<JavaToolchainDownload> download = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem))
 
         then:
-        !uri.isPresent()
+        !download.isPresent()
 
         where:
         vendor << [JvmVendorSpec.AMAZON, JvmVendorSpec.IBM]
@@ -128,11 +129,11 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory())
 
         when:
-        Optional<URI> uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem))
+        Optional<JavaToolchainDownload> download = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem))
 
         then:
-        uri.isPresent()
-        uri.get() == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk")
+        download.isPresent()
+        download.get().getUri() == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk")
 
         where:
         vendor << [JvmVendorSpec.ADOPTOPENJDK, JvmVendorSpec.matching("adoptopenjdk"), DefaultJvmVendorSpec.any()]
@@ -148,11 +149,11 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         def binary = new AdoptOpenJdkRemoteBinary(providerFactory())
 
         when:
-        Optional<URI> uri = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem))
+        Optional<JavaToolchainDownload> download = binary.resolve(newToolchainRequest(spec, systemInfo, operatingSystem))
 
         then:
-        uri.isPresent()
-        uri.get() == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/11/ga/mac/x64/jdk/openj9/normal/adoptopenjdk")
+        download.isPresent()
+        download.get().getUri() == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/11/ga/mac/x64/jdk/openj9/normal/adoptopenjdk")
     }
 
     private static DefaultJavaToolchainRequest newToolchainRequest(DefaultToolchainSpec spec, SystemInfo sysInfo, OperatingSystem os) {

@@ -32,7 +32,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
     }
 
-    String iterableSymbol = '*'
+    String iterableSymbol = '.*'
 
     @Override
     String getNameSymbolFor(String name) {
@@ -493,8 +493,25 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         expect:
         assertValidationFailsWith([
-            warning(notCacheableWithoutReason { type('MyTask').noReasonOnTask().includeLink() }),
-            warning(notCacheableWithoutReason { type('MyTransformAction').noReasonOnArtifactTransform().includeLink() })
+            warning("""
+                Type 'MyTask' must be annotated either with @CacheableTask or with @DisableCachingByDefault.
+
+                Reason: The task author should make clear why a task is not cacheable.
+
+                Possible solutions:
+                  1. Add @DisableCachingByDefault(because = ...).
+                  2. Add @CacheableTask.
+                  3. Add @UntrackedTask(because = ...).
+            """.stripIndent(true).trim(), "validation_problems", "disable_caching_by_default"),
+            warning("""
+                Type 'MyTransformAction' must be annotated either with @CacheableTransform or with @DisableCachingByDefault.
+
+                Reason: The transform action author should make clear why a transform action is not cacheable.
+
+                Possible solutions:
+                  1. Add @DisableCachingByDefault(because = ...).
+                  2. Add @CacheableTransform.
+            """.stripIndent(true).trim(), "validation_problems", "disable_caching_by_default")
         ])
     }
 

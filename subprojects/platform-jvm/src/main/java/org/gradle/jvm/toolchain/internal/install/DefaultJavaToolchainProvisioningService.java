@@ -21,6 +21,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.FileLock;
+import org.gradle.jvm.toolchain.JavaToolchainDownload;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
@@ -103,16 +104,16 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                     .willBeRemovedInGradle8()
                     .withUserManual("toolchains", "sec:provisioning")
                     .nagUser();
-            Optional<URI> uri = openJdkBinary.resolve(toolchainRequest);
-            if (uri.isPresent()) {
-                return Optional.of(provisionInstallation(spec, uri.get(), Collections.emptyList()));
+            Optional<JavaToolchainDownload> download = openJdkBinary.resolve(toolchainRequest);
+            if (download.isPresent()) {
+                return Optional.of(provisionInstallation(spec, download.get().getUri(), Collections.emptyList()));
             }
         } else {
             for (RealizedJavaToolchainRepository request : repositories) {
-                  Optional<URI> uri = request.getResolver().resolve(toolchainRequest);
-                if (uri.isPresent()) {
-                    Collection<Authentication> authentications = request.getAuthentications(uri.get());
-                    return Optional.of(provisionInstallation(spec, uri.get(), authentications));
+                  Optional<JavaToolchainDownload> download = request.getResolver().resolve(toolchainRequest);
+                if (download.isPresent()) {
+                    Collection<Authentication> authentications = request.getAuthentications(download.get().getUri());
+                    return Optional.of(provisionInstallation(spec, download.get().getUri(), authentications));
                 }
             }
         }

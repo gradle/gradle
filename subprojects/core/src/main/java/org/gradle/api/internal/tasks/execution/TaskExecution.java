@@ -24,14 +24,14 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskAction;
-import org.gradle.api.internal.tasks.DefaultTaskValidationContext;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.properties.DefaultPropertyValidationContext;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputPropertySpec;
@@ -48,16 +48,17 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -106,7 +107,8 @@ public class TaskExecution implements UnitOfWork {
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ExecutionHistoryStore executionHistoryStore;
     private final FileCollectionFactory fileCollectionFactory;
-    private final FileOperations fileOperations;
+    private final TaskDependencyFactory taskDependencyFactory;
+    private final PathToFileResolver fileResolver;
     private final InputFingerprinter inputFingerprinter;
     private final ListenerManager listenerManager;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
@@ -123,11 +125,12 @@ public class TaskExecution implements UnitOfWork {
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
-        FileOperations fileOperations,
+        PathToFileResolver fileResolver,
         InputFingerprinter inputFingerprinter,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-        TaskCacheabilityResolver taskCacheabilityResolver
+        TaskCacheabilityResolver taskCacheabilityResolver,
+        TaskDependencyFactory taskDependencyFactory
     ) {
         this.task = task;
         this.context = context;
@@ -139,7 +142,8 @@ public class TaskExecution implements UnitOfWork {
         this.executionHistoryStore = executionHistoryStore;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.fileOperations = fileOperations;
+        this.taskDependencyFactory = taskDependencyFactory;
+        this.fileResolver = fileResolver;
         this.inputFingerprinter = inputFingerprinter;
         this.listenerManager = listenerManager;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
@@ -154,8 +158,8 @@ public class TaskExecution implements UnitOfWork {
     @Override
     public WorkOutput execute(ExecutionRequest executionRequest) {
         FileCollection previousFiles = executionRequest.getPreviouslyProducedOutputs()
-            .<FileCollection>map(previousOutputs -> new PreviousOutputFileCollection(task, fileCollectionFactory, previousOutputs))
-            .orElseGet(fileCollectionFactory::empty);
+            .<FileCollection>map(previousOutputs -> new PreviousOutputFileCollection(task, taskDependencyFactory, fileCollectionFactory, previousOutputs))
+            .orElseGet(FileCollectionFactory::empty);
         TaskOutputsInternal outputs = task.getOutputs();
         outputs.setPreviousOutputFiles(previousFiles);
         try {
@@ -334,17 +338,14 @@ public class TaskExecution implements UnitOfWork {
     public void visitOutputs(File workspace, OutputVisitor visitor) {
         TaskProperties taskProperties = context.getTaskProperties();
         for (OutputFilePropertySpec property : taskProperties.getOutputFileProperties()) {
-            File outputFile = property.getOutputFile();
-            if (outputFile != null) {
-                try {
-                    visitor.visitOutputProperty(
-                        property.getPropertyName(),
-                        property.getOutputType(),
-                        new OutputFileValueSupplier(outputFile, property.getPropertyFiles())
-                    );
-                } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
-                    throw decorateSnapshottingException("output", property.getPropertyName(), e.getCause());
-                }
+            try {
+                visitor.visitOutputProperty(
+                    property.getPropertyName(),
+                    property.getOutputType(),
+                    OutputFileValueSupplier.fromSupplier(property::getOutputFile, property.getPropertyFiles())
+                );
+            } catch (OutputSnapshotter.OutputFileSnapshottingException e) {
+                throw decorateSnapshottingException("output", property.getPropertyName(), e.getCause());
             }
         }
         for (File localStateRoot : taskProperties.getLocalStateFiles()) {
@@ -462,8 +463,8 @@ public class TaskExecution implements UnitOfWork {
         boolean cacheable = taskType.isAnnotationPresent(CacheableTask.class);
         TypeValidationContext typeValidationContext = validationContext.forType(taskType, cacheable);
         context.getTaskProperties().validateType(typeValidationContext);
-        context.getTaskProperties().validate(new DefaultTaskValidationContext(
-            fileOperations,
+        context.getTaskProperties().validate(new DefaultPropertyValidationContext(
+            fileResolver,
             reservedFileSystemLocationRegistry,
             typeValidationContext
         ));
@@ -485,7 +486,8 @@ public class TaskExecution implements UnitOfWork {
         private final FileCollectionFactory fileCollectionFactory;
         private final ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs;
 
-        public PreviousOutputFileCollection(TaskInternal task, FileCollectionFactory fileCollectionFactory, ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs) {
+        public PreviousOutputFileCollection(TaskInternal task, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, ImmutableSortedMap<String, FileSystemSnapshot> previousOutputs) {
+            super(taskDependencyFactory);
             this.task = task;
             this.fileCollectionFactory = fileCollectionFactory;
             this.previousOutputs = previousOutputs;
@@ -494,7 +496,7 @@ public class TaskExecution implements UnitOfWork {
         @Override
         public FileCollectionInternal createDelegate() {
             List<File> outputs = previousOutputs.values().stream()
-                .map(SnapshotUtil::index)
+                .map(SnapshotUtil::indexByAbsolutePath)
                 .map(Map::keySet)
                 .flatMap(Collection::stream)
                 .map(File::new)

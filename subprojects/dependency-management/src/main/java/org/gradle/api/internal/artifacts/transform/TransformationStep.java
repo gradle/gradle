@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

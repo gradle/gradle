@@ -27,7 +27,7 @@ import org.gradle.api.file.CopySpec;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/java_library_distribution_plugin.html">Java Library Distribution plugin reference</a>
  */
-public class JavaLibraryDistributionPlugin implements Plugin<Project> {
+public abstract class JavaLibraryDistributionPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaLibraryPlugin.class);

@@ -15,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    implementation platform('org.springframework.boot:spring-boot-dependencies:2.4.5')
+    implementation platform('org.springframework.boot:spring-boot-dependencies:2.7.5')
 
 	implementation 'org.springframework.boot:spring-boot-starter'
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {

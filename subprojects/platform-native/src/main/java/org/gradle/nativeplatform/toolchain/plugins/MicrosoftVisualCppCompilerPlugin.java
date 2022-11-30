@@ -42,7 +42,7 @@ import org.gradle.process.internal.ExecActionFactory;
  * A {@link Plugin} which makes the Microsoft Visual C++ compiler available to compile C/C++ code.
  */
 @Incubating
-public class MicrosoftVisualCppCompilerPlugin implements Plugin<Project> {
+public abstract class MicrosoftVisualCppCompilerPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {

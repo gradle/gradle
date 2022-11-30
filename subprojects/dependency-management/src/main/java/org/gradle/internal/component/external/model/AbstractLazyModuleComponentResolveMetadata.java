@@ -25,7 +25,6 @@ import com.google.common.collect.Maps;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
@@ -52,7 +51,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     private final ImmutableMap<String, Configuration> configurationDefinitions;
 
     // Configurations are built on-demand, but only once.
-    private final Map<String, ConfigurationMetadata> configurations = Maps.newHashMap();
+    private final Map<String, ModuleConfigurationMetadata> configurations = Maps.newHashMap();
 
     private Optional<List<? extends VariantGraphResolveMetadata>> graphVariants;
 
@@ -83,7 +82,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         }
     }
 
-    private synchronized void copyCachedConfigurations(Map<String, ConfigurationMetadata> target) {
+    private synchronized void copyCachedConfigurations(Map<String, ModuleConfigurationMetadata> target) {
         target.putAll(configurations);
     }
 
@@ -138,7 +137,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
                 }
             }
             if (baseName == null || base instanceof ModuleConfigurationMetadata) {
-                ConfigurationMetadata configurationMetadata = new LazyRuleAwareWithBaseConfigurationMetadata(additionalVariant.getName(), (ModuleConfigurationMetadata) base, getId(), getAttributes(), variantMetadataRules, constructVariantExcludes(base), false);
+                ModuleConfigurationMetadata configurationMetadata = new LazyRuleAwareWithBaseConfigurationMetadata(additionalVariant.getName(), (ModuleConfigurationMetadata) base, getId(), getAttributesFactory(), getAttributes(), variantMetadataRules, constructVariantExcludes(base), false);
                 builder.add(configurationMetadata);
             }
         }
@@ -159,17 +158,17 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     }
 
     @Override
-    public synchronized ConfigurationMetadata getConfiguration(final String name) {
-        ConfigurationMetadata populated = configurations.get(name);
+    public synchronized ModuleConfigurationMetadata getConfiguration(final String name) {
+        ModuleConfigurationMetadata populated = configurations.get(name);
         if (populated != null) {
             return populated;
         }
-        ConfigurationMetadata md = populateConfigurationFromDescriptor(name, configurationDefinitions);
+        ModuleConfigurationMetadata md = populateConfigurationFromDescriptor(name, configurationDefinitions);
         configurations.put(name, md);
         return md;
     }
 
-    protected ConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions) {
+    protected ModuleConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions) {
         Configuration descriptorConfiguration = configurationDefinitions.get(name);
         if (descriptorConfiguration == null) {
             return null;

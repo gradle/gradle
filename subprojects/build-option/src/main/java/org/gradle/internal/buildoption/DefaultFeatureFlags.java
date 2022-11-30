@@ -16,19 +16,24 @@
 
 package org.gradle.internal.buildoption;
 
+import org.gradle.internal.event.ListenerManager;
+
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class DefaultFeatureFlags implements FeatureFlags {
     private final Set<FeatureFlag> enabled = new CopyOnWriteArraySet<FeatureFlag>();
     private final InternalOptions options;
+    private final FeatureFlagListener broadcaster;
 
-    public DefaultFeatureFlags(InternalOptions options) {
+    public DefaultFeatureFlags(InternalOptions options, ListenerManager listenerManager) {
         this.options = options;
+        this.broadcaster = listenerManager.getBroadcaster(FeatureFlagListener.class);
     }
 
     @Override
     public boolean isEnabled(FeatureFlag flag) {
+        broadcaster.flagRead(flag);
         if (flag.getSystemPropertyName() != null) {
             // Can explicitly disable property using system property
             Option.Value<Boolean> option = options.getOption(new InternalFlag(flag.getSystemPropertyName()));
@@ -42,5 +47,10 @@ public class DefaultFeatureFlags implements FeatureFlags {
     @Override
     public void enable(FeatureFlag flag) {
         enabled.add(flag);
+    }
+
+    @Override
+    public boolean isEnabledWithApi(FeatureFlag flag) {
+        return enabled.contains(flag);
     }
 }

@@ -48,6 +48,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     private final JavaLanguageVersion javaVersion;
     private final JvmInstallationMetadata metadata;
     private final JavaToolchainInput input;
+    private final boolean isFallbackToolchain;
     private final BuildOperationProgressEventEmitter eventEmitter;
 
     public JavaToolchain(
@@ -56,8 +57,10 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
         ToolchainToolFactory toolFactory,
         FileFactory fileFactory,
         JavaToolchainInput input,
+        boolean isFallbackToolchain,
         BuildOperationProgressEventEmitter eventEmitter
     ) {
+        this.isFallbackToolchain = isFallbackToolchain;
         this.javaHome = fileFactory.dir(computeEnclosingJavaHome(metadata.getJavaHome()).toFile());
         this.javaVersion = getJavaLanguageVersion(metadata);
         this.compilerFactory = compilerFactory;
@@ -88,7 +91,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
         return toolFactory.create(JavadocTool.class, this);
     }
 
-    @Internal
+    @Override
     public JavaLanguageVersion getLanguageVersion() {
         return javaVersion;
     }
@@ -120,6 +123,7 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     }
 
     @Internal
+    @Override
     public boolean isCurrentJvm() {
         return javaHome.getAsFile().equals(Jvm.current().getJavaHome());
     }
@@ -138,6 +142,11 @@ public class JavaToolchain implements Describable, JavaInstallationMetadata {
     @Override
     public String getDisplayName() {
         return javaHome.toString();
+    }
+
+    @Internal
+    public boolean isFallbackToolchain() {
+        return isFallbackToolchain;
     }
 
     public RegularFile findExecutable(String toolName) {

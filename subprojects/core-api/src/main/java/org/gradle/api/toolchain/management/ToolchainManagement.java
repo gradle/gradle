@@ -20,13 +20,13 @@ import org.gradle.api.Incubating;
 import org.gradle.api.plugins.ExtensionAware;
 
 /**
- * Configures how toolchains are resolved. Is extended at runtime to support both
- * currently existing toolchains (Java) and future ones.
+ * Configures how toolchains are resolved.
+ * <p>
+ * <code>ToolchainManagement</code> is extended by plugins to support different ecosystems.
  * <p>
  * One option available at present is using the <code>jvm-toolchain-management</code> plugin, which
- * adds a <code>jvm</code> block to it. This block allows for specifying which
- * Java toolchain repositories to use and in what order, if java toolchain
- * auto-provisioning is needed.
+ * adds a <code>jvm</code> block to it, allowing for the configuration of toolchains used in the
+ * JVM ecosystem.
  *
  * @since 7.6
  */

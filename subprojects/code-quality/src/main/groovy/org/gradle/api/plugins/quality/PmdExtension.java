@@ -18,7 +18,9 @@ package org.gradle.api.plugins.quality;
 import org.gradle.api.Project;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
 
 import javax.annotation.Nullable;
@@ -30,15 +32,15 @@ import java.util.List;
  *
  * @see PmdPlugin
  */
-public class PmdExtension extends CodeQualityExtension {
+public abstract class PmdExtension extends CodeQualityExtension {
 
     private final Project project;
 
-    private List<String> ruleSets;
     private TargetJdk targetJdk;
     private TextResource ruleSetConfig;
     private ConfigurableFileCollection ruleSetFiles;
     private boolean consoleOutput;
+    private final ListProperty<String> ruleSets;
     private final Property<Integer> rulesMinimumPriority;
     private final Property<Integer> maxFailures;
     private final Property<Boolean> incrementalAnalysis;
@@ -46,21 +48,25 @@ public class PmdExtension extends CodeQualityExtension {
 
     public PmdExtension(Project project) {
         this.project = project;
-        this.rulesMinimumPriority = project.getObjects().property(Integer.class).convention(5);
-        this.incrementalAnalysis = project.getObjects().property(Boolean.class).convention(true);
-        this.maxFailures = project.getObjects().property(Integer.class).convention(0);
-        this.threads = project.getObjects().property(Integer.class).convention(1);
+        this.rulesMinimumPriority = project.getObjects().property(Integer.class);
+        this.incrementalAnalysis = project.getObjects().property(Boolean.class);
+        this.maxFailures = project.getObjects().property(Integer.class);
+        this.threads = project.getObjects().property(Integer.class);
+        this.ruleSets = project.getObjects().listProperty(String.class);
     }
 
     /**
      * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.39.0/pmd_rules_java.html">official list</a> of built-in rule sets.
+     *
+     * If not configured explicitly, the returned conventional value is "category/java/errorprone.xml", unless {@link #getRuleSetConfig()} returns.
+     * a non-null value or the return value of {@link #getRuleSetFiles()} is non-empty, in which case the conventional value is an empty list
      *
      * <pre>
      *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
      * </pre>
      */
     public List<String> getRuleSets() {
-        return ruleSets;
+        return ruleSets.get();
     }
 
     /**
@@ -71,7 +77,7 @@ public class PmdExtension extends CodeQualityExtension {
      * </pre>
      */
     public void setRuleSets(List<String> ruleSets) {
-        this.ruleSets = ruleSets;
+        this.ruleSets.set(ruleSets);
     }
 
     /**
@@ -174,7 +180,6 @@ public class PmdExtension extends CodeQualityExtension {
 
     /**
      * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.39.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
-     * If you want to only use custom rule sets, you must clear {@code ruleSets}.
      *
      * <pre>
      *     ruleSetFiles = files("config/pmd/myRuleSet.xml")
@@ -241,5 +246,9 @@ public class PmdExtension extends CodeQualityExtension {
      */
     public Property<Integer> getThreads() {
         return threads;
+    }
+
+    void ruleSetsConvention(Provider<List<String>> provider) {
+        ruleSets.convention(provider);
     }
 }

@@ -62,7 +62,7 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.attributes >> typeAttributes("jar")
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
-        attributeMatcher.matches(variants, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1]
+        attributeMatcher.matches(_ as Collection, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1]
 
         expect:
         def result = transforms.variantSelector(typeAttributes("classes"), true, false, dependenciesResolver).select(set, factory)
@@ -70,8 +70,8 @@ class DefaultArtifactTransformsTest extends Specification {
     }
 
     def "fails when multiple producer variants match"() {
-        def variant1 = Stub(ResolvedVariant)
-        def variant2 = Stub(ResolvedVariant)
+        def variant1 = resolvedVariant()
+        def variant2 = resolvedVariant()
         def set = resolvedVariantSet()
         def variants = [variant1, variant2] as Set
 
@@ -85,7 +85,7 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.attributes >> typeAttributes("jar")
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
-        attributeMatcher.matches(variants, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1, variant2]
+        attributeMatcher.matches(_ as Collection, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1, variant2]
         attributeMatcher.isMatching(_, _, _) >> true
 
         when:
@@ -97,16 +97,6 @@ class DefaultArtifactTransformsTest extends Specification {
         e.message == toPlatformLineSeparators("""The consumer was configured to find attribute 'artifactType' with value 'classes'. However we cannot choose between the following variants of <component>:
   - <variant1> declares attribute 'artifactType' with value 'classes'
   - <variant2> declares attribute 'artifactType' with value 'jar'""")
-    }
-
-    private ResolvedVariant resolvedVariant() {
-        Stub(ResolvedVariant)
-    }
-
-    private ResolvedVariantSet resolvedVariantSet() {
-        Stub(ResolvedVariantSet) {
-            getOverriddenAttributes() >> ImmutableAttributes.EMPTY
-        }
     }
 
     def "fails when multiple transforms match"() {
@@ -127,8 +117,8 @@ class DefaultArtifactTransformsTest extends Specification {
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matches(_, _, _) >> []
 
-        matchingCache.collectConsumerVariants(_, _) >> { ImmutableAttributes from, ImmutableAttributes to ->
-            match(to, Stub(TransformationStep), 1)
+        matchingCache.findTransformedVariants(_, _) >> { List<ResolvedVariant> from, ImmutableAttributes to ->
+            from.collect { transformedVariant(it, to) }
         }
 
         def selector = transforms.variantSelector(typeAttributes("dll"), true, false, dependenciesResolver)
@@ -167,7 +157,7 @@ Found the following transforms:
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matches(_, _, _) >> []
 
-        matchingCache.collectConsumerVariants(_, _) >> new MutableConsumerVariantMatchResult(0)
+        matchingCache.findTransformedVariants(_, _) >> []
 
         expect:
         def result = transforms.variantSelector(typeAttributes("dll"), true, false, dependenciesResolver).select(set, factory)
@@ -192,7 +182,7 @@ Found the following transforms:
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
         attributeMatcher.matches(_, _, _) >> []
 
-        matchingCache.collectConsumerVariants(_, _) >> new MutableConsumerVariantMatchResult(0)
+        matchingCache.findTransformedVariants(_, _) >> []
 
         when:
         def result = transforms.variantSelector(typeAttributes("dll"), false, false, dependenciesResolver).select(set, factory)
@@ -205,6 +195,16 @@ Found the following transforms:
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
   - <variant2>:
       - Incompatible because this component declares attribute 'artifactType' with value 'classes' and the consumer needed attribute 'artifactType' with value 'dll'""")
+    }
+
+    private ResolvedVariant resolvedVariant() {
+        Stub(ResolvedVariant)
+    }
+
+    private ResolvedVariantSet resolvedVariantSet() {
+        Stub(ResolvedVariantSet) {
+            getOverriddenAttributes() >> ImmutableAttributes.EMPTY
+        }
     }
 
     def visit(ResolvedArtifactSet set) {
@@ -221,9 +221,15 @@ Found the following transforms:
         attributeContainer.asImmutable()
     }
 
-    static MutableConsumerVariantMatchResult match(ImmutableAttributes output, TransformationStep trn, int depth) {
-        def result = new MutableConsumerVariantMatchResult(2)
-        result.matched(output, trn, null, depth)
-        result
+    TransformedVariant transformedVariant(ResolvedVariant root, AttributeContainerInternal attributes) {
+        ImmutableAttributes attrs = attributes.asImmutable()
+        TransformationStep step = Mock(TransformationStep) {
+            getDisplayName() >> ""
+        }
+        VariantDefinition definition = Mock(VariantDefinition) {
+            getTransformation() >> step
+            getTargetAttributes() >> attrs
+        }
+        return new TransformedVariant(root, definition)
     }
 }

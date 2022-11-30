@@ -26,7 +26,7 @@ import me.champeau.gradle.japicmp.report.Violation
 
 class MethodsRemovedInInternalSuperClassRule extends AbstractSuperClassChangesRule {
 
-    MethodsRemovedInInternalSuperClassRule(Map params) {
+    MethodsRemovedInInternalSuperClassRule(Map<String, Object> params) {
         super(params)
     }
 

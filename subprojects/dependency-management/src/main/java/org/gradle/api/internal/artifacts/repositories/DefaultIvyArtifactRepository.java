@@ -79,7 +79,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
+public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository {
     private Set<String> schemes = null;
     private AbstractRepositoryLayout layout;
     private final DefaultUrlArtifactRepository urlArtifactRepository;
@@ -151,7 +151,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return super.getDisplayName() + '(' + url + ')';
     }
 
-    @Override
     public IvyResolver createPublisher() {
         return createRealResolver();
     }

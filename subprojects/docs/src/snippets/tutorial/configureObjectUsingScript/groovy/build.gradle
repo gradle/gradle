@@ -1,9 +1,14 @@
+class UserInfo {
+    String name
+    String email
+}
+
 tasks.register('configure') {
+    def userInfo = new UserInfo()
+    // Apply the script
+    apply from: 'other.gradle', to: userInfo
     doLast {
-        def pos = new java.text.FieldPosition(10)
-        // Apply the script
-        apply from: 'other.gradle', to: pos
-        println pos.beginIndex
-        println pos.endIndex
+        println userInfo.name
+        println userInfo.email
     }
 }

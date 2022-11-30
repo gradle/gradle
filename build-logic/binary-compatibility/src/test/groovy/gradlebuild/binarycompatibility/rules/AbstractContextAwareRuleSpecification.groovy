@@ -20,8 +20,12 @@ import japicmp.model.JApiClass
 import javassist.ClassPool
 import me.champeau.gradle.japicmp.report.ViolationCheckContext
 import spock.lang.Specification
+import spock.lang.TempDir
 
 abstract class AbstractContextAwareRuleSpecification extends Specification {
+    @TempDir
+    File testDir
+
     ViolationCheckContext context = new ViolationCheckContext() {
         Map userData = [seenApiChanges: [] as Set]
 
@@ -51,7 +55,10 @@ abstract class AbstractContextAwareRuleSpecification extends Specification {
     }
 
     Map getInitializationParams() {
-        return [acceptedApiChanges: [:], publicApiPatterns: ['gradlebuild[.]binarycompatibility[.]rules.[^.]+']]
+        return [acceptedApiChanges: [:],
+            publicApiPatterns: ['gradlebuild[.]binarycompatibility[.]rules.[^.]+'],
+            apiChangesJsonFile: new File(testDir, 'test-api-changes.json').path,
+            projectRootDir: testDir.path]
     }
 
     String replaceAsInternal(String name) {

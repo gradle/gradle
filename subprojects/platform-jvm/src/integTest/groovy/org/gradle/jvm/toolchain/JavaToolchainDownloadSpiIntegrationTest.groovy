@@ -402,8 +402,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
 
             public abstract class CustomToolchainResolver implements JavaToolchainResolver {
                 @Override
-                public Optional<URI> resolve(JavaToolchainRequest request) {
-                    return Optional.of(URI.create("https://exoticJavaToolchain.com/java-" + request.getJavaToolchainSpec().getLanguageVersion().get()));
+                public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+                    URI uri = URI.create("https://exoticJavaToolchain.com/java-" + request.getJavaToolchainSpec().getLanguageVersion().get());
+                    return Optional.of(JavaToolchainDownload.fromUri(uri));
                 }
             }
             """
@@ -416,7 +417,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
 
             public abstract class ${className} implements JavaToolchainResolver {
                 @Override
-                public Optional<URI> resolve(JavaToolchainRequest request) {
+                public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
                     return Optional.empty();
                 }
             }
@@ -430,8 +431,9 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
 
             public abstract class BrokenToolchainResolver implements JavaToolchainResolver {
                 @Override
-                public Optional<URI> resolve(JavaToolchainRequest request) {
-                    return Optional.of(URI.create("https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse"));
+                public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+                    URI uri = URI.create("https://api.adoptium.net/v3/binary/latest/17/ga/${os()}/${architecture()}/jdk/hotspot/normal/eclipse");
+                    return Optional.of(JavaToolchainDownload.fromUri(uri));
                 }
             }
             """

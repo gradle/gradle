@@ -16,9 +16,12 @@
 
 package org.gradle.java.compile.incremental
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
 import static org.junit.Assume.assumeFalse
@@ -218,6 +221,35 @@ abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends Abs
         outputs.recompiledClasses("A", "B", "C")
         outputContains("Full recompilation is required")
     }
+
+    def "is not incremental compilation after failure when cli compiler is used"() {
+        given:
+        def compileTask = language == CompiledLanguage.GROOVY ? "GroovyCompile" : "JavaCompile"
+        buildFile << """
+        tasks.withType($compileTask) {
+            options.incremental = true
+            options.fork = true
+            options.forkOptions.executable = '${TextUtil.escapeString(AvailableJavaHomes.getJdk(JavaVersion.current()).javacExecutable)}'
+        }
+        """
+        source "class A {}", "class B extends A {}", "class C {}"
+
+        when: "First compilation is always full compilation"
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B", "C")
+
+        when: "Compilation after failure is full recompilation when optimization is disabled"
+        outputs.snapshot { source("class A { garbage }") }
+        runAndFail language.compileTaskName
+        outputs.snapshot { source("class A {}") }
+        run language.compileTaskName, "--info"
+
+        then:
+        outputs.recompiledClasses("A", "B", "C")
+        outputContains("Full recompilation is required")
+    }
 }
 
 class JavaIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrementalCompilationAfterFailureIntegrationTest {
@@ -241,7 +273,7 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
             }
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation 'org.codehaus.groovy:groovy:3.0.10'
+                testImplementation 'org.codehaus.groovy:groovy:3.0.13'
                 testImplementation 'org.spockframework:spock-core:2.1-groovy-3.0'
             }
             tasks.withType(GroovyCompile) {

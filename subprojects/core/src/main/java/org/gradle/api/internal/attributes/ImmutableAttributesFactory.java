@@ -25,9 +25,22 @@ public interface ImmutableAttributesFactory {
     AttributeContainerInternal mutable();
 
     /**
-     * Returns an empty mutable attribute container with the given parent.
+     * Returns an empty mutable attribute container with the given fallback.
      */
-    AttributeContainerInternal mutable(AttributeContainerInternal parent);
+    AttributeContainerInternal mutable(AttributeContainerInternal fallback);
+
+    /**
+     * Returns a new attribute container which attaches a primary container and a fallback container. Changes
+     * in either container are reflected in the returned container.
+     * <p>
+     * Despite the mutability of either {@code fallback} or {@code primary}, this method will always return
+     * a non-immutable container. All mutable operations are forwarded to the primary. Therefore, if the
+     * primary container is immutable, mutable operations are not supported on this container.
+     *
+     * @param fallback Provides base attributes.
+     * @param primary Overrides any attributes in the fallback container.
+     */
+    AttributeContainerInternal join(AttributeContainerInternal fallback, AttributeContainerInternal primary);
 
     /**
      * Returns an attribute container that contains the given value.
@@ -45,13 +58,13 @@ public interface ImmutableAttributesFactory {
     <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value);
 
     /**
-     * Merges the second container into the first container and returns the result. Values in the second container win.
+     * Merges the primary container into the fallback container and returns the result. Values in the primary container win.
      *
      * Attributes with same name but different type are considered the same attribute for the purpose of merging. As such
-     * an attribute in the second container will replace any attribute in the first container with the same name,
+     * an attribute in the primary container will replace any attribute in the fallback container with the same name,
      * irrespective of the type of the attributes.
      */
-    ImmutableAttributes concat(ImmutableAttributes attributes1, ImmutableAttributes attributes2);
+    ImmutableAttributes concat(ImmutableAttributes fallback, ImmutableAttributes primary);
 
     /**
      * Merges the second container into the first container and returns the result. If the second container has the same

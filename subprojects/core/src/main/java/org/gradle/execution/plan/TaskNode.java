@@ -31,10 +31,6 @@ public abstract class TaskNode extends Node {
 
     @Override
     protected void nodeSpecificHealthDiagnostics(StringBuilder builder) {
-        builder.append(", groupSuccessors=").append(formatNodes(getGroup().getSuccessorsFor(this)));
-        if (!getMustSuccessors().isEmpty()) {
-            builder.append(", mustSuccessors=").append(formatNodes(getMustSuccessors()));
-        }
         if (!finalizingSuccessors.isEmpty()) {
             builder.append(", finalizes=").append(formatNodes(finalizingSuccessors));
         }
@@ -81,7 +77,7 @@ public abstract class TaskNode extends Node {
     public Iterable<Node> getAllSuccessors() {
         return Iterables.concat(
             shouldSuccessors,
-            getGroup().getSuccessorsFor(this),
+            finalizingSuccessors,
             getMustSuccessors(),
             super.getAllSuccessors()
         );
@@ -90,7 +86,7 @@ public abstract class TaskNode extends Node {
     @Override
     public Iterable<Node> getHardSuccessors() {
         return Iterables.concat(
-            getGroup().getSuccessorsFor(this),
+            finalizingSuccessors,
             getMustSuccessors(),
             super.getHardSuccessors()
         );

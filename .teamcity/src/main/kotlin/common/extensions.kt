@@ -40,6 +40,8 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.failureConditions.failOnText
 import jetbrains.buildServer.configs.kotlin.v2019_2.ui.add
 import java.util.Locale
 
+const val pluginPortalUrlOverride = "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%"
+
 fun BuildSteps.customGradle(init: GradleBuildStep.() -> Unit, custom: GradleBuildStep.() -> Unit): GradleBuildStep =
     GradleBuildStep(init)
         .apply(custom)
@@ -74,10 +76,19 @@ fun Requirements.requiresArch(os: Os, arch: Arch) {
     }
 }
 
-fun Requirements.requiresNoEc2Agent() {
+fun Requirements.requiresNotEc2Agent() {
     doesNotContain("teamcity.agent.name", "ec2")
     // US region agents have name "EC2-XXX"
     doesNotContain("teamcity.agent.name", "EC2")
+}
+
+/**
+ * We have some "shared" host where a Linux build agent and a Windows build agent
+ * both run on the same bare metal. Some builds require exclusive access to the
+ * hardware resources (e.g. performance test).
+ */
+fun Requirements.requiresNotSharedHost() {
+    doesNotContain("agent.host.type", "shared")
 }
 
 /**
@@ -164,9 +175,15 @@ fun BuildSteps.checkCleanM2AndAndroidUserHome(os: Os = Os.LINUX, buildType: Buil
         name = "CHECK_CLEAN_M2_ANDROID_USER_HOME"
         executionMode = BuildStep.ExecutionMode.ALWAYS
         scriptContent = if (os == Os.WINDOWS) {
-            checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\repository") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.gradle-enterprise") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.android", false)
+            checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\repository") + checkCleanDirWindows("%teamcity.agent.jvm.user.home%\\.m2\\.gradle-enterprise") + checkCleanDirWindows(
+                "%teamcity.agent.jvm.user.home%\\.android",
+                false
+            )
         } else {
-            checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.android", false)
+            checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/repository") + checkCleanDirUnixLike("%teamcity.agent.jvm.user.home%/.m2/.gradle-enterprise") + checkCleanDirUnixLike(
+                "%teamcity.agent.jvm.user.home%/.android",
+                false
+            )
         }
         skipConditionally(buildType)
     }
@@ -181,14 +198,14 @@ fun BuildStep.skipConditionally(buildType: BuildType? = null) {
     }
 }
 
-fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true): List<String> =
+fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true, maxParallelForks: String = "%maxParallelForks%"): List<String> =
     listOf(
         // We pass the 'maxParallelForks' setting as 'workers.max' to limit the maximum number of executers even
         // if multiple test tasks run in parallel. We also pass it to the Gradle build as a maximum (maxParallelForks)
         // for each test task, such that we are independent of whatever default value is defined in the build itself.
-        "-Dorg.gradle.workers.max=%maxParallelForks%",
-        "-PmaxParallelForks=%maxParallelForks%",
-        "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
+        "-Dorg.gradle.workers.max=$maxParallelForks",
+        "-PmaxParallelForks=$maxParallelForks",
+        pluginPortalUrlOverride,
         "-s",
         "--no-configuration-cache",
         "%additional.gradle.parameters%",
@@ -240,6 +257,9 @@ fun functionalTestParameters(os: Os): List<String> {
         "-Porg.gradle.java.installations.auto-download=false"
     )
 }
+
+fun promotionBuildParameters(dependencyBuildId: RelativeId, extraParameters: String, gitUserName: String, gitUserEmail: String) =
+    """-PcommitId=%dep.$dependencyBuildId.build.vcs.number% $extraParameters "-PgitUserName=$gitUserName" "-PgitUserEmail=$gitUserEmail" $pluginPortalUrlOverride %additional.gradle.parameters%"""
 
 fun BuildType.killProcessStep(stepName: String, os: Os, arch: Arch = Arch.AMD64) {
     steps {

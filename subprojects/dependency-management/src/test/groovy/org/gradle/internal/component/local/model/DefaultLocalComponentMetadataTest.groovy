@@ -26,6 +26,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.DisplayName
 import org.gradle.internal.component.external.descriptor.DefaultExclude
@@ -35,6 +36,7 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import org.gradle.internal.component.model.VariantResolveMetadata
+import org.gradle.util.TestUtil
 import org.gradle.util.internal.WrapUtil
 import spock.lang.Specification
 
@@ -44,7 +46,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     def metadata = createMetadata()
 
     protected DefaultLocalComponentMetadata createMetadata() {
-        new DefaultLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal))
+        new DefaultLocalComponentMetadata(id, componentIdentifier, "status", Mock(AttributesSchemaInternal), RootScriptDomainObjectContext.INSTANCE, TestUtil.calculatedValueContainerFactory())
     }
 
     def "can lookup configuration after it has been added"() {
@@ -150,7 +152,9 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     void addArtifact(BuildableLocalConfigurationMetadata configuration, PublishArtifact publishArtifact) {
-        configuration.addArtifacts(new DefaultPublishArtifactSet("arts", WrapUtil.toDomainObjectSet(PublishArtifact, publishArtifact), TestFiles.fileCollectionFactory()))
+        configuration.addArtifacts(
+            new DefaultPublishArtifactSet("arts", WrapUtil.toDomainObjectSet(PublishArtifact, publishArtifact), TestFiles.fileCollectionFactory(), TestFiles.taskDependencyFactory())
+        )
     }
 
     def "can add artifact to several configurations"() {

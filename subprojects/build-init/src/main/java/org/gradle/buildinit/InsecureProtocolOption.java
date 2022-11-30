@@ -16,14 +16,11 @@
 
 package org.gradle.buildinit;
 
-import org.gradle.api.Incubating;
-
 /**
  * Options for handling insecure protocols when generating a project with repositories.
  *
  * @since 7.3
  */
-@Incubating
 public enum InsecureProtocolOption {
     /**
      * Fail if a URL with an insecure protocol is found.

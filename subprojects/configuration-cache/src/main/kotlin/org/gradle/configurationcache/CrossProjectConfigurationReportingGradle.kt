@@ -53,11 +53,19 @@ import java.util.function.Supplier
 
 
 class CrossProjectConfigurationReportingGradle private constructor(
-    private val delegate: GradleInternal,
+    gradle: GradleInternal,
     private val referrerProject: ProjectInternal,
     private val crossProjectModelAccess: CrossProjectModelAccess,
     private val projectConfigurator: CrossProjectConfigurator
 ) : GradleInternal {
+
+    private
+    val delegate: GradleInternal = when (gradle) {
+        // 'unwrapping' ensures that there are no chains of delegation
+        is CrossProjectConfigurationReportingGradle -> gradle.delegate
+        else -> gradle
+    }
+
     override fun getParent(): GradleInternal? =
         delegate.parent?.let { delegateParent -> from(delegateParent, referrerProject) }
 
@@ -127,6 +135,9 @@ class CrossProjectConfigurationReportingGradle private constructor(
         delegate.removeListener(maybeWrapListener(listener))
     }
 
+    override fun getTaskGraph(): TaskExecutionGraphInternal =
+        crossProjectModelAccess.taskGraphForProject(referrerProject, delegate.taskGraph)
+
     override fun equals(other: Any?): Boolean =
         javaClass == (other as? CrossProjectConfigurationReportingGradle)?.javaClass &&
             other.delegate == delegate &&
@@ -135,6 +146,11 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun hashCode(): Int = Objects.hash(delegate, referrerProject)
 
     override fun toString(): String = "CrossProjectConfigurationReportingGradle($delegate)"
+
+    override fun resetState() {
+        // Should not be called
+        throw UnsupportedOperationException()
+    }
 
     internal
     companion object {
@@ -201,9 +217,6 @@ class CrossProjectConfigurationReportingGradle private constructor(
     }
 
     // region delegated members
-    override fun getTaskGraph(): TaskExecutionGraphInternal =
-        delegate.taskGraph
-
     override fun getPlugins(): PluginContainer =
         delegate.plugins
 

@@ -55,7 +55,7 @@ import java.util.Collection;
  * Installs an executable with it's dependent libraries so it can be easily executed.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class InstallExecutable extends DefaultTask {
+public abstract class InstallExecutable extends DefaultTask {
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;
     private final DirectoryProperty installDirectory;

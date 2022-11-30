@@ -25,6 +25,7 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.ConfigurationCacheStateFile
+import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.extensions.hashCodeOf
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
@@ -37,11 +38,11 @@ import org.gradle.configurationcache.services.EnvironmentChangeTracker
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.execution.WorkInputListeners
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
-import org.gradle.internal.execution.fingerprint.impl.DefaultFileNormalizationSpec
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
+import org.gradle.internal.execution.impl.DefaultFileNormalizationSpec
+import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
@@ -76,6 +77,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val userCodeApplicationContext: UserCodeApplicationContext,
     private val taskExecutionTracker: TaskExecutionTracker,
     private val environmentChangeTracker: EnvironmentChangeTracker,
+    private val inputTrackingState: InputTrackingState,
 ) : Stoppable {
 
     interface Host {
@@ -84,7 +86,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     }
 
     private
-    val fileCollectionFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileNormalizationSpec.from(AbsolutePathInputNormalizer::class.java, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT))
+    val fileCollectionFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileNormalizationSpec.from(InputNormalizer.ABSOLUTE_PATH, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT))
 
     private
     abstract class WritingState {
@@ -124,7 +126,8 @@ class ConfigurationCacheFingerprintController internal constructor(
                 fileCollectionFactory,
                 directoryFileTreeFactory,
                 taskExecutionTracker,
-                environmentChangeTracker
+                environmentChangeTracker,
+                inputTrackingState
             )
             addListener(fingerprintWriter)
             return Writing(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)

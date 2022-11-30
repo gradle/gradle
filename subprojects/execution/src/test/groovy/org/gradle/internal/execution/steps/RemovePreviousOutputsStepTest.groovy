@@ -40,10 +40,6 @@ class RemovePreviousOutputsStepTest extends StepSpec<ChangingOutputsContext> imp
 
     def step = new RemovePreviousOutputsStep<>(deleter, outputChangeListener, delegate)
 
-    @Override
-    protected ChangingOutputsContext createContext() {
-        Stub(ChangingOutputsContext)
-    }
 
     def "deletes only the previous outputs"() {
         def outputs = new WorkOutputs()
@@ -184,8 +180,8 @@ class RemovePreviousOutputsStepTest extends StepSpec<ChangingOutputsContext> imp
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.of(new OverlappingOutputs("test", "/absolute/path"))
         _ * work.visitOutputs(_, _) >> { File workspace, OutputVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, new UnitOfWork.OutputFileValueSupplier(outputs.dir, TestFiles.fixed(outputs.dir)))
-            visitor.visitOutputProperty("file", TreeType.FILE, new UnitOfWork.OutputFileValueSupplier(outputs.file, TestFiles.fixed(outputs.file)))
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, UnitOfWork.OutputFileValueSupplier.fromStatic(outputs.dir, TestFiles.fixed(outputs.dir)))
+            visitor.visitOutputProperty("file", TreeType.FILE, UnitOfWork.OutputFileValueSupplier.fromStatic(outputs.file, TestFiles.fixed(outputs.file)))
         }
         _ * context.previousExecutionState >> Optional.of(previousExecutionState)
         1 * previousExecutionState.outputFilesProducedByWork >> ImmutableSortedMap.of("dir", outputs.dirSnapshot, "file", outputs.fileSnapshot)
@@ -199,8 +195,8 @@ class RemovePreviousOutputsStepTest extends StepSpec<ChangingOutputsContext> imp
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.empty()
         _ * work.visitOutputs(_, _) >> { File workspace, OutputVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, new UnitOfWork.OutputFileValueSupplier(outputs.dir, TestFiles.fixed(outputs.dir)))
-            visitor.visitOutputProperty("file", TreeType.FILE, new UnitOfWork.OutputFileValueSupplier(outputs.file, TestFiles.fixed(outputs.file)))
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, UnitOfWork.OutputFileValueSupplier.fromStatic(outputs.dir, TestFiles.fixed(outputs.dir)))
+            visitor.visitOutputProperty("file", TreeType.FILE, UnitOfWork.OutputFileValueSupplier.fromStatic(outputs.file, TestFiles.fixed(outputs.file)))
         }
     }
 

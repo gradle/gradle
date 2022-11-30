@@ -1787,6 +1787,24 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         invalidTask == second
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/22320")
+    def "task in an included build can depend on a finalizer dependency in an earlier ordinal group"() {
+        given:
+        def commonDep = task("commonDep", type: Async)
+        def finalizer1 = task("finalizer1", type: Async, dependsOn: [commonDep])
+        def finalizer2 = task("finalizer2", type: Async, dependsOn: [commonDep])
+        def entry1 = task("entry1", type: Async, finalizedBy: [finalizer1, finalizer2])
+        def entry2 = task("entry2", type: Async, dependsOn: [commonDep])
+
+        when:
+        addToGraph(entry1)
+        executionPlan.determineExecutionPlan() // this is called between entry groups for an included build (but not the root build) and this call triggers the issue
+        addToGraph(entry2)
+
+        then:
+        noExceptionThrown()
+    }
+
     def "runs priority node before other nodes even when scheduled later"() {
         def node = priorityNode()
         def task = task("task")

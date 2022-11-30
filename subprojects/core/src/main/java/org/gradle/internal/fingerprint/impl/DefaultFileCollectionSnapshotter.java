@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.execution.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.execution.FileCollectionSnapshotter;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;

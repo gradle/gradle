@@ -36,9 +36,10 @@ tasks.register("checkDependencies") {
 
 // tag::disabling-detached-configuration[]
 tasks.register("checkDetachedDependencies") {
+    val detachedConf: FileCollection = configurations.detachedConfiguration(dependencies.create("org.apache.commons:commons-lang3:3.3.1")).apply {
+        resolutionStrategy.disableDependencyVerification()
+    }
     doLast {
-        val detachedConf = configurations.detachedConfiguration(dependencies.create("org.apache.commons:commons-lang3:3.3.1"))
-        detachedConf.resolutionStrategy.disableDependencyVerification()
         println(detachedConf.files)
     }
 }

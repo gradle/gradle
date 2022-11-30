@@ -36,6 +36,7 @@ import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DistributionLocator;
+import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.WrapUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.wrapper.GradleWrapperMain;
@@ -68,7 +69,7 @@ import java.util.Properties;
  * your VCS. The scripts delegates to this JAR.
  */
 @DisableCachingByDefault(because = "Updating the wrapper is not worth caching")
-public class Wrapper extends DefaultTask {
+public abstract class Wrapper extends DefaultTask {
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = Install.DEFAULT_DISTRIBUTION_PATH;
 
     /**
@@ -122,10 +123,13 @@ public class Wrapper extends DefaultTask {
     void generate() {
         File jarFileDestination = getJarFile();
         File unixScript = getScriptFile();
+        File propertiesFile = getPropertiesFile();
         FileResolver resolver = getFileLookup().getFileResolver(unixScript.getParentFile());
         String jarFileRelativePath = resolver.resolveAsRelativePath(jarFileDestination);
+        Properties existingProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
 
-        writeProperties(getPropertiesFile());
+        checkProperties(existingProperties);
+        writeProperties(propertiesFile, existingProperties);
         writeWrapperTo(jarFileDestination);
 
         StartScriptGenerator generator = new StartScriptGenerator();
@@ -141,6 +145,18 @@ public class Wrapper extends DefaultTask {
         generator.generateWindowsScript(getBatchScript());
     }
 
+    private void checkProperties(Properties existingProperties) {
+        String checksumProperty = existingProperties != null
+            ? existingProperties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, null)
+            : null;
+
+        if (GradleVersion.current() != gradleVersion &&
+            distributionSha256Sum == null &&
+            checksumProperty != null) {
+            throw new GradleException("gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. Specify one in the wrapped task configuration or with the --gradle-distribution-sha256-sum task option");
+        }
+    }
+
     private void writeWrapperTo(File destination) {
         URL jarFileSource = Wrapper.class.getResource("/gradle-wrapper.jar");
         if (jarFileSource == null) {
@@ -153,9 +169,10 @@ public class Wrapper extends DefaultTask {
         }
     }
 
-    private void writeProperties(File propertiesFileDestination) {
+    private void writeProperties(File propertiesFileDestination, Properties existingProperties) {
         Properties wrapperProperties = new Properties();
         wrapperProperties.put(WrapperExecutor.DISTRIBUTION_URL_PROPERTY, getDistributionUrl());
+        String distributionSha256Sum = getDistributionSha256Sum(existingProperties);
         if (distributionSha256Sum != null) {
             wrapperProperties.put(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, distributionSha256Sum);
         }
@@ -170,6 +187,16 @@ public class Wrapper extends DefaultTask {
             PropertiesUtils.store(wrapperProperties, propertiesFileDestination);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    private String getDistributionSha256Sum(Properties existingProperties) {
+        if (distributionSha256Sum != null) {
+            return distributionSha256Sum;
+        } else if (GradleVersion.current() == gradleVersion && existingProperties != null) {
+            return existingProperties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, null);
+        } else {
+            return null;
         }
     }
 

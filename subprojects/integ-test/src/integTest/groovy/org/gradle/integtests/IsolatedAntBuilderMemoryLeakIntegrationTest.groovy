@@ -19,8 +19,9 @@ package org.gradle.integtests
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-
-import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
 class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpec {
 
@@ -43,7 +44,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    private void withCodenarc(String groovyVersion, TestFile root = testDirectory) {
+    private void withCodenarc(String groovyVersion, String codenarcVersion = '0.24.1', TestFile root = testDirectory) {
         root.file("config/codenarc/rulesets.groovy") << """
             ruleset {
                 ruleset('rulesets/naming.xml')
@@ -54,7 +55,7 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
                 apply plugin: 'codenarc'
 
                 dependencies {
-                    codenarc('org.codenarc:CodeNarc:0.24.1') {
+                    codenarc('org.codenarc:CodeNarc:$codenarcVersion') {
                         exclude group: 'org.codehaus.groovy'
                     }
                     codenarc $groovyVersion
@@ -82,8 +83,10 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         """
     }
 
-    void 'CodeNarc does not fail with PermGen space error'() {
+    @Issue('https://github.com/gradle/gradle/issues/22172')
+    void 'CodeNarc does not fail with PermGen space error with Groovy 3'() {
         given:
+        assumeGroovy3()
         withCodenarc(groovyVersion)
         withCheckstyle()
         goodCode(groovyVersion)
@@ -93,6 +96,21 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
 
         where:
         groovyVersion << groovyVersions() * 3
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/22172')
+    void 'CodeNarc does not fail with PermGen space error with Groovy 4'() {
+        given:
+        assumeGroovy4()
+        withCodenarc(groovyVersion, '3.1.0-groovy-4.0')
+        withCheckstyle()
+        goodCode(groovyVersion)
+
+        expect:
+        succeeds 'check'
+
+        where:
+        groovyVersion << ['localGroovy()'] * 12
     }
 
     private static List<String> groovyVersions() {
@@ -119,17 +137,18 @@ class IsolatedAntBuilderMemoryLeakIntegrationTest extends AbstractIntegrationSpe
         ]
     }
 
+    @Requires(TestPrecondition.JDK11_OR_LATER) // grgit 5 requires JDK 11, see https://github.com/ajoberstar/grgit/issues/355
     void "does not fail with a PermGen space error or a missing method exception"() {
         given:
         initGitDir()
         buildFile << """
             buildscript {
               repositories {
-                ${gradlePluginRepositoryDefinition()}
+                ${mavenCentralRepository()}
               }
 
               dependencies {
-                classpath "org.ajoberstar.grgit:grgit-gradle:4.1.1"
+                classpath "org.ajoberstar.grgit:grgit-core:5.0.0"
               }
             }
 
