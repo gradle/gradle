@@ -90,18 +90,12 @@ public interface ConfigurationRole {
         return forUsage(RoleDescriber.DEFAULT_CUSTOM_ROLE_NAME, consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated);
     }
 
-    static ConfigurationRole forUsage(String name, boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
-        return forUsage(name, consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated, null, false);
+    static ConfigurationRole forUsage(boolean consumable, boolean resolvable, boolean declarableAgainst) {
+        return forUsage(consumable, resolvable, declarableAgainst, false, false, false);
     }
 
-    /**
-     * Create a custom role for the current usage of a given configuration.
-     *
-     * @param configuration the configuration to examine
-     * @return a role with matching its usage characteristics
-     */
-    static ConfigurationRole forConfiguration(ConfigurationInternal configuration) {
-        return forUsage(configuration.getName(), configuration.isCanBeConsumed(), configuration.isCanBeResolved(), configuration.isCanBeDeclaredAgainst(), configuration.isDeprecatedForConsumption(), configuration.isDeprecatedForResolution(), configuration.isDeprecatedForDeclarationAgainst(), null, false);
+    static ConfigurationRole forUsage(String name, boolean consumable, boolean resolvable, boolean declarableAgainst, boolean consumptionDeprecated, boolean resolutionDeprecated, boolean declarationAgainstDeprecated) {
+        return forUsage(name, consumable, resolvable, declarableAgainst, consumptionDeprecated, resolutionDeprecated, declarationAgainstDeprecated, null, false);
     }
 
     /**
