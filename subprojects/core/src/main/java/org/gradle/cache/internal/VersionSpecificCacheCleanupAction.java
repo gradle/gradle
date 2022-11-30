@@ -90,7 +90,7 @@ public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction
             if (!gcFile.getParentFile().exists()) {
                 return false;
             } else {
-                lastCleanupTimestamp = -1;
+                lastCleanupTimestamp = CleanupFrequency.NEVER_CLEANED;
             }
         } else {
             lastCleanupTimestamp = gcFile.lastModified();
