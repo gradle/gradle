@@ -16,6 +16,7 @@
 package org.gradle.internal.execution.model.annotations;
 
 import org.gradle.api.tasks.InputFile;
+import org.gradle.internal.properties.InputFilePropertyType;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.INCREMENTAL;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
@@ -26,6 +27,7 @@ public class InputFilePropertyAnnotationHandler extends AbstractInputFilePropert
     public InputFilePropertyAnnotationHandler() {
         super(
             InputFile.class,
+            InputFilePropertyType.FILE,
             ModifierAnnotationCategory.annotationsOf(INCREMENTAL, NORMALIZATION, OPTIONAL, NORMALIZE_LINE_ENDINGS)
         );
     }

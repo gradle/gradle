@@ -16,9 +16,10 @@
 package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.internal.properties.OutputFilePropertyType;
 
 public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
     public OutputDirectoryPropertyAnnotationHandler() {
-        super(OutputDirectory.class);
+        super(OutputDirectory.class, OutputFilePropertyType.DIRECTORY);
     }
 }

@@ -36,6 +36,10 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
     }
 
     @Override
+    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+    }
+
+    @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         validationContext.visitPropertyProblem(problem ->
             problem.forProperty(propertyMetadata.getPropertyName())
