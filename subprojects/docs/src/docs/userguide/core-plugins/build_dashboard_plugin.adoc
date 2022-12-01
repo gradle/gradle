@@ -24,8 +24,8 @@ To use the Build Dashboard plugin, include the following in your build script:
 
 .Using the Build Dashboard plugin
 ====
-include::sample[dir="snippets/base/buildDashboard/groovy",files="build.gradle[tags=use-build-dashboard-plugin]"]
 include::sample[dir="snippets/base/buildDashboard/kotlin",files="build.gradle.kts[tags=use-build-dashboard-plugin]"]
+include::sample[dir="snippets/base/buildDashboard/groovy",files="build.gradle[tags=use-build-dashboard-plugin]"]
 ====
 
 Applying the plugin adds the `buildDashboard` task to your project. The task aggregates the reports for all tasks that implement the link:{groovyDslPath}/org.gradle.api.reporting.Reporting.html[Reporting] interface from _all projects_ in the build. It is typically only applied to the root project.

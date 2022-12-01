@@ -148,8 +148,8 @@ It also provides direct access to the Gradle API. Additional dependencies can be
 
 .Custom buildSrc build script
 ====
-include::sample[dir="snippets/java/multiproject/groovy",files="buildSrc/build.gradle[]"]
 include::sample[dir="snippets/java/multiproject/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/java/multiproject/groovy",files="buildSrc/build.gradle[]"]
 ====
 
 A typical project including `buildSrc` has the following layout.
