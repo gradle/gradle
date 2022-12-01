@@ -20,11 +20,15 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.tasks.Copy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.hamcrest.CoreMatchers
+import org.junit.Rule
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.equalTo
@@ -32,6 +36,9 @@ import static org.hamcrest.CoreMatchers.equalTo
 @TestReproducibleArchives
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     private final static DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
+
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def canCopyFromAZip() {
         given:
@@ -1074,6 +1081,156 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         useArchiveOps << [true, false]
     }
 
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Issue("https://github.com/gradle/gradle/issues/22685")
+    def "can visit and edit tar archive differently from two different tasks in the same project run in two simultaneous processes"() {
+        given: "a started server which can be used to cause the tasks to begin at approximately the same time"
+        server.start()
+
+        and: "a tar archive in the root with many files with the same content, so that the task won't finish too quickly"
+        createTar('test.tar') {
+            for (int i = 0; i < 1000; i++) {
+                "subdir1$i" {
+                    file('file1.txt').text = 'original'
+                }
+                "subdir2$i" {
+                    file('file2.txt').text = 'original'
+                    file('file3.txt').text = 'original'
+                }
+            }
+        }
+
+        and: "a build script which defines two tasks that edit the same tar archive differently, and a verification task that checked that all files contain the same content"
+        buildFile << """
+            ${defineUpdateTask('tar')}
+            ${defineSameContentsTask('tar')}
+
+            tasks.register('wait1') {
+                doLast {
+                    ${server.callFromBuild('wait1')}
+                }
+            }
+
+            tasks.register('wait2') {
+                doLast {
+                    ${server.callFromBuild('wait2')}
+                }
+            }
+
+            tasks.register('update1', UpdateTask) {
+                dependsOn tasks.named('wait1')
+                archive = rootProject.file('test.tar')
+                replacementText = 'modification 1'
+            }
+
+            tasks.register('update2', UpdateTask) {
+                dependsOn tasks.named('wait2')
+                archive = rootProject.file('test.tar')
+                replacementText = 'modification 2'
+            }
+
+            tasks.register('verify', SameContentsTask) {
+                archive = rootProject.file('test.tar')
+            }
+        """
+        server.expectConcurrent('wait1', 'wait2')
+
+        when: "the tasks are run in two processes"
+        def handle1 = executer.withTasks('update1').start()
+        def handle2 = executer.withTasks('update2').start()
+
+        and: "they both complete"
+        def result1 = handle1.waitForFinish()
+        def result2 = handle2.waitForFinish()
+
+        then: "both update tasks were executed"
+        result1.assertTasksExecuted(':wait1', ':update1')
+        result2.assertTasksExecuted(':wait2', ':update2')
+
+        and: "verification can complete successfully, ensuring that each task edited the archive atomically"
+        executer.withTasks('verify').run()
+
+        cleanup:
+        handle1?.abort()
+        handle2?.abort()
+        server.stop()
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Issue("https://github.com/gradle/gradle/issues/22685")
+    def "can visit and edit zip archive differently from two different tasks in the same project run in two simultaneous processes"() {
+        given: "a started server which can be used to cause the tasks to begin at approximately the same time"
+        server.start()
+
+        and: "a zip archive in the root with many files with the same content, so that the task won't finish too quickly"
+        createZip('test.zip') {
+            for (int i = 0; i < 1000; i++) {
+                "subdir1$i" {
+                    file('file1.txt').text = 'original'
+                }
+                "subdir2$i" {
+                    file('file2.txt').text = 'original'
+                    file('file3.txt').text = 'original'
+                }
+            }
+        }
+
+        and: "a build script which defines two tasks that edit the same zip archive differently, and a verification task that checked that all files contain the same content"
+        buildFile << """
+            ${defineUpdateTask('zip')}
+            ${defineSameContentsTask('zip')}
+
+            tasks.register('wait1') {
+                doLast {
+                    ${server.callFromBuild('wait1')}
+                }
+            }
+
+            tasks.register('wait2') {
+                doLast {
+                    ${server.callFromBuild('wait2')}
+                }
+            }
+
+            tasks.register('update1', UpdateTask) {
+                dependsOn tasks.named('wait1')
+                archive = rootProject.file('test.zip')
+                replacementText = 'modification 1'
+            }
+
+            tasks.register('update2', UpdateTask) {
+                dependsOn tasks.named('wait2')
+                archive = rootProject.file('test.zip')
+                replacementText = 'modification 2'
+            }
+
+            tasks.register('verify', SameContentsTask) {
+                archive = rootProject.file('test.zip')
+            }
+        """
+        server.expectConcurrent('wait1', 'wait2')
+
+        when: "the tasks are run in two processes"
+        def handle1 = executer.withTasks('update1').start()
+        def handle2 = executer.withTasks('update2').start()
+
+        and: "they both complete"
+        def result1 = handle1.waitForFinish()
+        def result2 = handle2.waitForFinish()
+
+        then: "both update tasks were executed"
+        result1.assertTasksExecuted(':wait1', ':update1')
+        result2.assertTasksExecuted(':wait2', ':update2')
+
+        and: "verification can complete successfully, ensuring that each task edited the archive atomically"
+        executer.withTasks('verify').run()
+
+        cleanup:
+        handle1?.abort()
+        handle2?.abort()
+        server.stop()
+    }
+
     private def createTar(String name, Closure cl) {
         TestFile tarRoot = file("${name}.root")
         tarRoot.deleteDir()
@@ -1114,7 +1271,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private String defineUpdateTask(String archiveType, boolean useArchiveOps) {
+    private String defineUpdateTask(String archiveType, boolean useArchiveOps = true) {
         return """
             abstract class UpdateTask extends DefaultTask {
                 @InputFile
@@ -1168,6 +1325,39 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                     @Override
                     void visitFile(FileVisitDetails fileDetails) {
                         assert fileDetails.file.text.startsWith(beginsWith.get())
+                    }
+                }
+            }
+        """
+    }
+
+    private String defineSameContentsTask(String archiveType, boolean useArchiveOps = true) {
+        return """
+            abstract class SameContentsTask extends DefaultTask {
+                @InputFile
+                abstract RegularFileProperty getArchive()
+
+                ${useArchiveOps ? "@Inject abstract ArchiveOperations getArchiveOperations()" : ""}
+
+                @TaskAction
+                void verify() {
+                    FileTree tree = ${useArchiveOps ? "archiveOperations" : "project.fileOperations"}.${archiveType}Tree(archive.asFile.get())
+                    tree.visit(new VerifyingFileVisitor())
+                }
+
+                private final class VerifyingFileVisitor implements FileVisitor {
+                    private String contents
+
+                    @Override
+                    void visitDir(FileVisitDetails dirDetails) {}
+
+                    @Override
+                    void visitFile(FileVisitDetails fileDetails) {
+                        if (contents == null) {
+                            contents = fileDetails.file.text
+                        } else {
+                            assert fileDetails.file.text == contents
+                        }
                     }
                 }
             }
