@@ -16,8 +16,6 @@
 
 package org.gradle.cache;
 
-import org.gradle.api.Incubating;
-
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -25,7 +23,6 @@ import java.util.concurrent.TimeUnit;
  *
  * @since 8.0
  */
-@Incubating
 public enum CleanupFrequency {
     /**
      * Trigger cleanup once every 24 hours.
@@ -39,7 +36,21 @@ public enum CleanupFrequency {
         }
     },
     /**
-     * Disable cleanup completely.
+     * Trigger cleanup after every build session
+     */
+    ALWAYS() {
+        @Override
+        public boolean requiresCleanup(long lastCleanupTimestamp) {
+            return true;
+        }
+
+        @Override
+        public boolean shouldCleanupOnEndOfSession() {
+            return true;
+        }
+    },
+    /**
+     * Disable cleanup completely
      */
     NEVER() {
         @Override
@@ -49,4 +60,7 @@ public enum CleanupFrequency {
     };
 
     public abstract boolean requiresCleanup(long lastCleanupTimestamp);
+    public boolean shouldCleanupOnEndOfSession() {
+        return false;
+    }
 }

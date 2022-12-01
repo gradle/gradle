@@ -1612,6 +1612,38 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         gcFile.lastModified() >= SECONDS.toMillis(beforeCleanup)
     }
 
+    def "always cleans up cache when configured"() {
+        given:
+        buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
+        ["lib1", "lib2"].each { name ->
+            buildFile << withExternalLibDependency(name)
+        }
+        withCreatedResourcesRetentionInDays(HALF_DEFAULT_MAX_AGE_IN_DAYS)
+        alwaysCleanupCaches()
+
+        when:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        succeeds ":app:resolve"
+
+        then:
+        def outputDir1 = outputDir("lib1-1.0.jar", "lib1-1.0.jar.txt").assertExists()
+        def outputDir2 = outputDir("lib2-1.0.jar", "lib2-1.0.jar.txt").assertExists()
+        journal.assertExists()
+
+        when:
+        run '--stop' // ensure daemon does not cache file access times in memory
+        writeLastTransformationAccessTimeToJournal(outputDir1.parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+
+        and:
+        // start as new process so journal is not restored from in-memory cache
+        executer.withTasks("help").start().waitForFinish()
+
+        then:
+        outputDir1.assertDoesNotExist()
+        outputDir2.assertExists()
+    }
+
     def "does not cleans up cache when retention is configured greater than the default"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
