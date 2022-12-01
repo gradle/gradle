@@ -1675,8 +1675,7 @@ configurations.all {
         """
 
         when:
-        resolve.config = "runtimeClasspath"
-        resolve.prepare()
+        resolve.prepare("runtimeClasspath")
         run(":checkDeps")
 
         then:
