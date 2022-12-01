@@ -40,8 +40,8 @@ property to print the name of the project:
 
 .Access a Project property
 ====
-include::sample[dir="snippets/tutorial/projectApi/groovy",files="build.gradle[tags=project-name]"]
 include::sample[dir="snippets/tutorial/projectApi/kotlin",files="build.gradle.kts[tags=project-name]"]
+include::sample[dir="snippets/tutorial/projectApi/groovy",files="build.gradle[tags=project-name]"]
 
 .Output of **`gradle -q check`**
 ----
@@ -129,8 +129,8 @@ Declare local variables with the `val` keyword. Local variables are only visible
 
 .Declare a local variable
 ====
-include::sample[dir="snippets/tutorial/localVariables/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/localVariables/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/localVariables/groovy",files="build.gradle[]"]
 ====
 
 [[sec:extra_properties]]
@@ -146,8 +146,8 @@ Add, read, and set extra properties via the owning object's `extra` property. Al
 
 .Use extra properties
 ====
-include::sample[dir="snippets/tutorial/extraProperties/groovy",files="build.gradle[tags=extraProperties]"]
 include::sample[dir="snippets/tutorial/extraProperties/kotlin",files="build.gradle.kts[tags=extraProperties]"]
+include::sample[dir="snippets/tutorial/extraProperties/groovy",files="build.gradle[tags=extraProperties]"]
 
 .Output of **`gradle -q printProperties`**
 ----
@@ -177,8 +177,8 @@ Configure arbitrary objects with `configure()`:
 
 .Configure arbitrary objects
 ====
-include::sample[dir="snippets/tutorial/configureObject/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/configureObject/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/configureObject/groovy",files="build.gradle[]"]
 
 .Output of **`gradle -q configure`**
 ----

@@ -42,8 +42,8 @@ By moving the code into a class, it can also be tested individually.
 
 .A build script using conditional logic to create a task
 ====
-include::sample[dir="snippets/bestPractices/conditionalLogic-dont/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/bestPractices/conditionalLogic-dont/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/conditionalLogic-dont/groovy", files="build.gradle[]"]
 ====
 
 Let's compare the build script with the same logic implemented as a binary plugin.
@@ -60,8 +60,8 @@ The build script has been shrunk from 8 lines of code to a one liner.
 
 .A build script applying a plugin that encapsulates imperative logic
 ====
-include::sample[dir="snippets/bestPractices/conditionalLogic-do/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/bestPractices/conditionalLogic-do/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/conditionalLogic-do/groovy", files="build.gradle[]"]
 ====
 
 [[sec:avoiding_gradle_internal_apis]]
@@ -136,8 +136,8 @@ For optimal readability and maintainability follow these rules:
 
 .Definition of tasks following best practices
 ====
-include::sample[dir="snippets/bestPractices/taskDefinition/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/bestPractices/taskDefinition/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/taskDefinition/groovy", files="build.gradle[]"]
 ====
 
 [[sec:improving_task_discoverability]]
@@ -154,8 +154,8 @@ The description should express its intent.
 
 .A task declaring the group and description
 ====
-include::sample[dir="snippets/bestPractices/taskGroupDescription/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/bestPractices/taskGroupDescription/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/bestPractices/taskGroupDescription/groovy", files="build.gradle[]"]
 ====
 
 The output of the tasks report reflects the assigned values.
@@ -184,16 +184,16 @@ In the build script you can see that the dependencies assigned to the configurat
 
 .Executing logic during configuration should be avoided
 ====
-include::sample[dir="snippets/bestPractices/logicDuringConfiguration-dont/groovy", files="build.gradle[tags=config-logic]"]
 include::sample[dir="snippets/bestPractices/logicDuringConfiguration-dont/kotlin", files="build.gradle.kts[tags=config-logic]"]
+include::sample[dir="snippets/bestPractices/logicDuringConfiguration-dont/groovy", files="build.gradle[tags=config-logic]"]
 ====
 
 The code for resolving the dependencies should be moved into the task action to avoid the performance impact of resolving the dependencies before they are actually needed.
 
 .Executing logic during execution phase is preferred
 ====
-include::sample[dir="snippets/bestPractices/logicDuringConfiguration-do/groovy", files="build.gradle[tags=config-logic]"]
 include::sample[dir="snippets/bestPractices/logicDuringConfiguration-do/kotlin", files="build.gradle.kts[tags=config-logic]"]
+include::sample[dir="snippets/bestPractices/logicDuringConfiguration-do/groovy", files="build.gradle[tags=config-logic]"]
 ====
 
 [[sec:avoiding_use_of_gradlebuild]]
