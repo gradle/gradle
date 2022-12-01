@@ -276,9 +276,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             return;
         }
         PublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
-        // Finalize the component to avoid GMM later modification
-        // See issue https://github.com/gradle/gradle/issues/20581
-        component.finalizeValue();
 
         PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor");
         Set<? extends UsageContext> usageContexts = component.getUsages();
