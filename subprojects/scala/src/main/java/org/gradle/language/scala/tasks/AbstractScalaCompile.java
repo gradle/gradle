@@ -30,7 +30,6 @@ import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
-import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.scala.MinimalScalaCompileOptions;
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
@@ -156,7 +155,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     }
 
     protected ScalaJavaJointCompileSpec createSpec() {
-        DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpecFactory(getToolchain()).create();
+        File javaExecutable = getJavaLauncher().get().getExecutablePath().getAsFile();
+        DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec(javaExecutable);
         spec.setSourceFiles(getSource().getFiles());
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
