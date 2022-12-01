@@ -68,15 +68,7 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
     }
 
     void disableCacheCleanupViaDsl() {
-        def initDir = new File(gradleUserHomeDir, "init.d")
-        initDir.mkdirs()
-        new File(initDir, "cache-settings.gradle") << """
-            beforeSettings { settings ->
-                settings.caches {
-                    cleanup = Cleanup.DISABLED
-                }
-            }
-        """.stripIndent()
+        setCleanupInterval("DISABLED")
     }
 
     void disableCacheCleanup(CleanupMethod method) {
@@ -90,6 +82,26 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
             default:
                 throw new IllegalArgumentException()
         }
+    }
+
+    void alwaysCleanupCaches() {
+        setCleanupInterval("ALWAYS")
+    }
+
+    private void setCleanupInterval(String cleanup) {
+        def initDir = new File(gradleUserHomeDir, "init.d")
+        initDir.mkdirs()
+        new File(initDir, "cache-settings.gradle") << """
+            beforeSettings { settings ->
+                settings.caches {
+                    cleanup = Cleanup.${cleanup}
+                }
+            }
+        """.stripIndent()
+    }
+
+    void withReleasedWrappersRetentionInDays(int days) {
+        withCacheRetentionInDays(days, "releasedWrappers")
     }
 
     void withCreatedResourcesRetentionInDays(int days) {

@@ -43,7 +43,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultCacheFactory implements CacheFactory, Closeable {
-    private final Map<File, DirCacheReference> dirCaches = new HashMap<File, DirCacheReference>();
+    private final Map<File, DirCacheReference> dirCaches = new HashMap<>();
     private final FileLockManager lockManager;
     private final ExecutorFactory executorFactory;
     private final ProgressLoggerFactory progressLoggerFactory;
@@ -69,6 +69,11 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         } finally {
             lock.unlock();
         }
+    }
+
+    @Override
+    public void visitCaches(CacheVisitor visitor) {
+        dirCaches.values().stream().map(dirCacheReference -> dirCacheReference.cache).forEach(visitor::visit);
     }
 
     @Override
@@ -222,6 +227,11 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         @Override
         public void useCache(Runnable action) {
             reference.cache.useCache(action);
+        }
+
+        @Override
+        public void cleanup() {
+            reference.cache.cleanup();
         }
     }
 }

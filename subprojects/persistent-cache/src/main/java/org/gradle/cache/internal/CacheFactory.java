@@ -31,4 +31,9 @@ public interface CacheFactory {
      * Opens a cache with the given options. The caller must close the cache when finished with it.
      */
     PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initializer, @Nullable CacheCleanup cacheCleanup) throws CacheOpenException;
+
+    /**
+     * Visit the caches created by this factory.
+     */
+    void visitCaches(CacheVisitor visitor);
 }
