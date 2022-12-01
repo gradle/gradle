@@ -65,11 +65,11 @@ import org.gradle.internal.buildoption.FeatureFlagListener
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.UnitOfWork.InputBehavior
 import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
 import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.WorkInputListener
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.util.Path

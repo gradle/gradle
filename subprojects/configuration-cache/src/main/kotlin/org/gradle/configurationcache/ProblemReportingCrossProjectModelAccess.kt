@@ -80,6 +80,7 @@ import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
 import org.gradle.internal.logging.StandardOutputCapture
@@ -106,7 +107,8 @@ class ProblemReportingCrossProjectModelAccess(
     private val delegate: CrossProjectModelAccess,
     private val problems: ProblemsListener,
     private val coupledProjectsListener: CoupledProjectsListener,
-    private val userCodeContext: UserCodeApplicationContext
+    private val userCodeContext: UserCodeApplicationContext,
+    private val dynamicCallProblemReporting: DynamicCallProblemReporting
 ) : CrossProjectModelAccess {
     override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
         return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer)
@@ -130,6 +132,17 @@ class ProblemReportingCrossProjectModelAccess(
 
     override fun taskDependencyUsageTracker(referrerProject: ProjectInternal): TaskDependencyUsageTracker {
         return ReportingTaskDependencyUsageTracker(referrerProject, coupledProjectsListener, problems, userCodeContext)
+    }
+
+    override fun taskGraphForProject(referrerProject: ProjectInternal, taskGraph: TaskExecutionGraphInternal): TaskExecutionGraphInternal {
+        return CrossProjectConfigurationReportingTaskExecutionGraph(taskGraph, referrerProject, problems, this, coupledProjectsListener, userCodeContext)
+    }
+
+    override fun parentProjectDynamicInheritedScope(referrerProject: ProjectInternal): DynamicObject? {
+        val parent = referrerProject.parent ?: return null
+        return CrossProjectModelAccessTrackingParentDynamicObject(
+            parent, parent.inheritedScope, referrerProject, problems, coupledProjectsListener, userCodeContext, dynamicCallProblemReporting
+        )
     }
 
     private
@@ -902,7 +915,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getInheritedScope(): DynamicObject {
-            shouldNotBeUsed()
+            return delegate.inheritedScope
         }
 
         override fun getGradle(): GradleInternal {

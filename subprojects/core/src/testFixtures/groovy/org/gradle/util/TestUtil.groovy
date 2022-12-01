@@ -15,6 +15,7 @@
  */
 package org.gradle.util
 
+import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -51,6 +52,7 @@ import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.service.DefaultServiceRegistry
+import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -128,9 +130,10 @@ class TestUtil {
         return new StateTransitionControllerFactory(new TestWorkerLeaseService())
     }
 
-    private static ServiceRegistry createServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+    private static ServiceRegistry createServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Action<ServiceRegistration> registrations = {}) {
         def services = new DefaultServiceRegistry()
         services.register {
+            registrations.execute(it)
             it.add(ProviderFactory, new TestProviderFactory())
             it.add(TestCrossBuildInMemoryCacheFactory)
             it.add(NamedObjectInstantiator)
@@ -191,9 +194,13 @@ class TestUtil {
 
     static ServiceRegistry services() {
         if (services == null) {
-            services = createServices(TestFiles.resolver().newResolver(new File(".").absoluteFile), TestFiles.fileCollectionFactory())
+            services = createTestServices()
         }
         return services
+    }
+
+    static ServiceRegistry createTestServices(Action<ServiceRegistration> registrations = {}) {
+        createServices(TestFiles.resolver().newResolver(new File(".").absoluteFile), TestFiles.fileCollectionFactory(), registrations)
     }
 
     static NamedObjectInstantiator objectInstantiator() {

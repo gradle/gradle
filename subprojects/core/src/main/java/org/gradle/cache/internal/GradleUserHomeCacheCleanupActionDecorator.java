@@ -19,6 +19,8 @@ package org.gradle.cache.internal;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.internal.cache.MonitoredCleanupAction;
+import org.gradle.internal.cache.MonitoredCleanupActionDecorator;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;

@@ -122,7 +122,6 @@ import org.gradle.initialization.BuildOperationSettingsProcessor;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultGradlePropertiesController;
 import org.gradle.initialization.DefaultGradlePropertiesLoader;
-import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
 import org.gradle.initialization.DefaultToolchainManagement;
@@ -134,7 +133,6 @@ import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.NotifyingBuildLoader;
-import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor;
 import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
@@ -184,6 +182,7 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -320,10 +319,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultTextFileResourceLoader(resolver);
     }
 
-    protected ProjectDescriptorRegistry createProjectDescriptorRegistry() {
-        return new DefaultProjectDescriptorRegistry();
-    }
-
     protected DefaultListenerManager createListenerManager(DefaultListenerManager listenerManager) {
         return listenerManager.createChild(Scopes.Build.class);
     }
@@ -402,6 +397,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected BuildLoader createBuildLoader(
         GradleProperties gradleProperties,
         BuildOperationExecutor buildOperationExecutor,
+        BuildOperationProgressEventEmitter emitter,
         ListenerManager listenerManager
     ) {
         return new NotifyingBuildLoader(
@@ -410,7 +406,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 new InstantiatingBuildLoader(),
                 listenerManager.getBroadcaster(FileResourceListener.class)
             ),
-            buildOperationExecutor
+            buildOperationExecutor,
+            emitter
         );
     }
 
@@ -521,12 +518,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected SettingsPreparer createSettingsPreparer(SettingsLoaderFactory settingsLoaderFactory, BuildOperationExecutor buildOperationExecutor, BuildDefinition buildDefinition) {
+    protected SettingsPreparer createSettingsPreparer(SettingsLoaderFactory settingsLoaderFactory, BuildOperationExecutor buildOperationExecutor, BuildOperationProgressEventEmitter emitter, BuildDefinition buildDefinition) {
         return new BuildOperationFiringSettingsPreparer(
             new DefaultSettingsPreparer(
                 settingsLoaderFactory
             ),
             buildOperationExecutor,
+            emitter,
             buildDefinition.getFromBuild());
     }
 

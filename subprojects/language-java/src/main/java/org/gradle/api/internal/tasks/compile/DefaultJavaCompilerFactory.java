@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.tasks.compile.daemon.ProcessIsolatedCompilerWorkerExecutor;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDetector;
 import org.gradle.internal.Factory;
 import org.gradle.jvm.toolchain.internal.JavaCompilerFactory;
@@ -74,7 +75,7 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
         }
 
         if (ForkingJavaCompileSpec.class.isAssignableFrom(type)) {
-            return (Compiler<T>) new DaemonJavaCompiler(workingDirProvider.getWorkingDirectory(), JdkJavaCompiler.class, new Object[]{getJavaHomeBasedJavaCompilerFactory()}, workerDaemonFactory, forkOptionsFactory, classPathRegistry, actionExecutionSpecFactory);
+            return (Compiler<T>) new DaemonJavaCompiler(workingDirProvider.getWorkingDirectory(), JdkJavaCompiler.class, new Object[]{getJavaHomeBasedJavaCompilerFactory()}, new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory), forkOptionsFactory, classPathRegistry);
         } else {
             return (Compiler<T>) new JdkJavaCompiler(getJavaHomeBasedJavaCompilerFactory());
         }

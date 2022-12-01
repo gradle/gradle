@@ -16,7 +16,6 @@
 
 package org.gradle.testing.testsuites.dependencies
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegrationSpec {
@@ -51,11 +50,15 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn test, integTest
+            def testCompile = configurations.testCompileClasspath
+            def testRuntime = configurations.testRuntimeClasspath
+            def integTestCompile = configurations.integTestCompileClasspath
+            def integTestRuntime = configurations.integTestRuntimeClasspath
             doLast {
-                assert configurations.testCompileClasspath.files*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 is an implementation dependency for the default test suite'
-                assert configurations.testRuntimeClasspath.files*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 is an implementation dependency for the default test suite'
-                assert !configurations.integTestCompileClasspath.files*.name.contains('commons-lang3-3.11.jar') : 'default test suite dependencies should not leak to integTest'
-                assert !configurations.integTestRuntimeClasspath.files*.name.contains('commons-lang3-3.11.jar') : 'default test suite dependencies should not leak to integTest'
+                assert testCompile*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 is an implementation dependency for the default test suite'
+                assert testRuntime*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 is an implementation dependency for the default test suite'
+                assert !integTestCompile*.name.contains('commons-lang3-3.11.jar') : 'default test suite dependencies should not leak to integTest'
+                assert !integTestRuntime*.name.contains('commons-lang3-3.11.jar') : 'default test suite dependencies should not leak to integTest'
             }
         }
         """
@@ -152,9 +155,11 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn test, integTest
+            def testRuntime = configurations.testRuntimeClasspath
+            def integTestRuntime = configurations.integTestRuntimeClasspath
             doLast {
-                assert configurations.testRuntimeClasspath.files*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 leaks from the production project dependencies'
-                assert !configurations.integTestRuntimeClasspath.files*.name.contains('commons-lang3-3.11.jar') : 'integTest does not implicitly depend on the production project'
+                assert testRuntime*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 leaks from the production project dependencies'
+                assert !integTestRuntime*.name.contains('commons-lang3-3.11.jar') : 'integTest does not implicitly depend on the production project'
             }
         }
         """
@@ -193,10 +198,13 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn test, integTest
+            def testCompile = configurations.testCompileClasspath
+            def testRuntime = configurations.testRuntimeClasspath
+            def integTestRuntime = configurations.integTestRuntimeClasspath
             doLast {
-                assert configurations.testCompileClasspath.files*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 leaks from the production project dependencies'
-                assert configurations.testRuntimeClasspath.files*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 leaks from the production project dependencies'
-                assert configurations.integTestRuntimeClasspath.files*.name.contains('commons-lang3-3.11.jar') : 'integTest explicitly depends on the production project'
+                assert testCompile*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 leaks from the production project dependencies'
+                assert testRuntime*.name == ['commons-lang3-3.11.jar'] : 'commons-lang3 leaks from the production project dependencies'
+                assert integTestRuntime*.name.contains('commons-lang3-3.11.jar') : 'integTest explicitly depends on the production project'
             }
         }
         """
@@ -230,8 +238,9 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             }
 
             tasks.register('checkConfiguration') {
+                def compile = configurations.${suiteName}CompileClasspath
                 doLast {
-                    assert configurations.${suiteName}CompileClasspath.files*.name.contains('commons-lang3-3.11.jar')
+                    assert compile*.name.contains('commons-lang3-3.11.jar')
                 }
             }
         """
@@ -273,8 +282,9 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             }
 
             tasks.register('checkConfiguration') {
+                def compile = configurations.${suiteName}CompileClasspath
                 doLast {
-                    assert !configurations.${suiteName}CompileClasspath.files*.name.contains('commons-lang3-3.11.jar')
+                    assert !compile*.name.contains('commons-lang3-3.11.jar')
                 }
             }
         """
@@ -376,17 +386,21 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn test, integTest
+            def testCompile = configurations.testCompileClasspath
+            def testRuntime = configurations.testRuntimeClasspath
+            def integTestCompile = configurations.integTestCompileClasspath
+            def integTestRuntime = configurations.integTestRuntimeClasspath
             doLast {
-                def testCompileClasspathFileNames = configurations.testCompileClasspath.files*.name
-                def testRuntimeClasspathFileNames = configurations.testRuntimeClasspath.files*.name
+                def testCompileClasspathFileNames = testCompile*.name
+                def testRuntimeClasspathFileNames = testRuntime*.name
 
                 assert testCompileClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'servlet-api-3.0-alpha-1.jar', 'guava-30.1.1-jre.jar')
                 assert !testCompileClasspathFileNames.contains('mysql-connector-java-8.0.26.jar'): 'runtimeOnly dependency'
                 assert testRuntimeClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'guava-30.1.1-jre.jar', 'mysql-connector-java-8.0.26.jar')
                 assert !testRuntimeClasspathFileNames.contains('servlet-api-3.0-alpha-1.jar'): 'compileOnly dependency'
 
-                def integTestCompileClasspathFileNames = configurations.integTestCompileClasspath.files*.name
-                def integTestRuntimeClasspathFileNames = configurations.integTestRuntimeClasspath.files*.name
+                def integTestCompileClasspathFileNames = integTestCompile*.name
+                def integTestRuntimeClasspathFileNames = integTestRuntime*.name
 
                 assert integTestCompileClasspathFileNames.containsAll('servlet-api-2.5.jar', 'guava-29.0-jre.jar')
                 assert !integTestCompileClasspathFileNames.contains('commons-lang3-3.11.jar') : 'implementation dependency of project, should not leak to integTest'
@@ -443,17 +457,21 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn test, integTest
+            def testCompile = configurations.testCompileClasspath
+            def testRuntime = configurations.testRuntimeClasspath
+            def integTestCompile = configurations.integTestCompileClasspath
+            def integTestRuntime = configurations.integTestRuntimeClasspath
             doLast {
-                def testCompileClasspathFileNames = configurations.testCompileClasspath.files*.name
-                def testRuntimeClasspathFileNames = configurations.testRuntimeClasspath.files*.name
+                def testCompileClasspathFileNames = testCompile*.name
+                def testRuntimeClasspathFileNames = testRuntime*.name
 
                 assert testCompileClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'servlet-api-3.0-alpha-1.jar', 'guava-30.1.1-jre.jar')
                 assert !testCompileClasspathFileNames.contains('mysql-connector-java-8.0.26.jar'): 'runtimeOnly dependency'
                 assert testRuntimeClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'guava-30.1.1-jre.jar', 'mysql-connector-java-8.0.26.jar')
                 assert !testRuntimeClasspathFileNames.contains('servlet-api-3.0-alpha-1.jar'): 'compileOnly dependency'
 
-                def integTestCompileClasspathFileNames = configurations.integTestCompileClasspath.files*.name
-                def integTestRuntimeClasspathFileNames = configurations.integTestRuntimeClasspath.files*.name
+                def integTestCompileClasspathFileNames = integTestCompile*.name
+                def integTestRuntimeClasspathFileNames = integTestRuntime*.name
 
                 assert integTestCompileClasspathFileNames.containsAll('servlet-api-2.5.jar', 'guava-29.0-jre.jar')
                 assert !integTestCompileClasspathFileNames.contains('commons-lang3-3.11.jar') : 'implementation dependency of project, should not leak to integTest'
@@ -509,17 +527,21 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn test, integTest
+            def testCompile = configurations.testCompileClasspath
+            def testRuntime = configurations.testRuntimeClasspath
+            def integTestCompile = configurations.integTestCompileClasspath
+            def integTestRuntime = configurations.integTestRuntimeClasspath
             doLast {
-                def testCompileClasspathFileNames = configurations.testCompileClasspath.files*.name
-                def testRuntimeClasspathFileNames = configurations.testRuntimeClasspath.files*.name
+                def testCompileClasspathFileNames = testCompile*.name
+                def testRuntimeClasspathFileNames = testRuntime*.name
 
                 assert testCompileClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'servlet-api-3.0-alpha-1.jar', 'guava-30.1.1-jre.jar')
                 assert !testCompileClasspathFileNames.contains('mysql-connector-java-8.0.26.jar'): 'runtimeOnly dependency'
                 assert testRuntimeClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'guava-30.1.1-jre.jar', 'mysql-connector-java-8.0.26.jar')
                 assert !testRuntimeClasspathFileNames.contains('servlet-api-3.0-alpha-1.jar'): 'compileOnly dependency'
 
-                def integTestCompileClasspathFileNames = configurations.integTestCompileClasspath.files*.name
-                def integTestRuntimeClasspathFileNames = configurations.integTestRuntimeClasspath.files*.name
+                def integTestCompileClasspathFileNames = integTestCompile*.name
+                def integTestRuntimeClasspathFileNames = integTestRuntime*.name
 
                 assert integTestCompileClasspathFileNames.containsAll('servlet-api-2.5.jar', 'guava-29.0-jre.jar')
                 assert !integTestCompileClasspathFileNames.contains('commons-lang3-3.11.jar') : 'implementation dependency of project, should not leak to integTest'
@@ -570,17 +592,21 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn test, integTest
+            def testCompile = configurations.testCompileClasspath
+            def testRuntime = configurations.testRuntimeClasspath
+            def integTestCompile = configurations.integTestCompileClasspath
+            def integTestRuntime = configurations.integTestRuntimeClasspath
             doLast {
-                def testCompileClasspathFileNames = configurations.testCompileClasspath.files*.name
-                def testRuntimeClasspathFileNames = configurations.testRuntimeClasspath.files*.name
+                def testCompileClasspathFileNames = testCompile*.name
+                def testRuntimeClasspathFileNames = testRuntime*.name
 
                 assert testCompileClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'servlet-api-3.0-alpha-1.jar', 'guava-30.1.1-jre.jar')
                 assert !testCompileClasspathFileNames.contains('mysql-connector-java-8.0.26.jar'): 'runtimeOnly dependency'
                 assert testRuntimeClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'guava-30.1.1-jre.jar', 'mysql-connector-java-8.0.26.jar')
                 assert !testRuntimeClasspathFileNames.contains('servlet-api-3.0-alpha-1.jar'): 'compileOnly dependency'
 
-                def integTestCompileClasspathFileNames = configurations.integTestCompileClasspath.files*.name
-                def integTestRuntimeClasspathFileNames = configurations.integTestRuntimeClasspath.files*.name
+                def integTestCompileClasspathFileNames = integTestCompile*.name
+                def integTestRuntimeClasspathFileNames = integTestRuntime*.name
 
                 assert integTestCompileClasspathFileNames.containsAll('servlet-api-2.5.jar', 'guava-29.0-jre.jar')
                 assert !integTestCompileClasspathFileNames.contains('commons-lang3-3.11.jar') : 'implementation dependency of project, should not leak to integTest'
@@ -631,17 +657,21 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn test, integTest
+            def testCompile = configurations.testCompileClasspath
+            def testRuntime = configurations.testRuntimeClasspath
+            def integTestCompile = configurations.integTestCompileClasspath
+            def integTestRuntime = configurations.integTestRuntimeClasspath
             doLast {
-                def testCompileClasspathFileNames = configurations.testCompileClasspath.files*.name
-                def testRuntimeClasspathFileNames = configurations.testRuntimeClasspath.files*.name
+                def testCompileClasspathFileNames = testCompile*.name
+                def testRuntimeClasspathFileNames = testRuntime*.name
 
                 assert testCompileClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'servlet-api-3.0-alpha-1.jar', 'guava-30.1.1-jre.jar')
                 assert !testCompileClasspathFileNames.contains('mysql-connector-java-8.0.26.jar'): 'runtimeOnly dependency'
                 assert testRuntimeClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'guava-30.1.1-jre.jar', 'mysql-connector-java-8.0.26.jar')
                 assert !testRuntimeClasspathFileNames.contains('servlet-api-3.0-alpha-1.jar'): 'compileOnly dependency'
 
-                def integTestCompileClasspathFileNames = configurations.integTestCompileClasspath.files*.name
-                def integTestRuntimeClasspathFileNames = configurations.integTestRuntimeClasspath.files*.name
+                def integTestCompileClasspathFileNames = integTestCompile*.name
+                def integTestRuntimeClasspathFileNames = integTestRuntime*.name
 
                 assert integTestCompileClasspathFileNames.containsAll('servlet-api-2.5.jar', 'guava-29.0-jre.jar')
                 assert !integTestCompileClasspathFileNames.contains('commons-lang3-3.11.jar') : 'implementation dependency of project, should not leak to integTest'
@@ -692,17 +722,21 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn test, integTest
+            def testCompile = configurations.testCompileClasspath
+            def testRuntime = configurations.testRuntimeClasspath
+            def integTestCompile = configurations.integTestCompileClasspath
+            def integTestRuntime = configurations.integTestRuntimeClasspath
             doLast {
-                def testCompileClasspathFileNames = configurations.testCompileClasspath.files*.name
-                def testRuntimeClasspathFileNames = configurations.testRuntimeClasspath.files*.name
+                def testCompileClasspathFileNames = testCompile*.name
+                def testRuntimeClasspathFileNames = testRuntime*.name
 
                 assert testCompileClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'servlet-api-3.0-alpha-1.jar', 'guava-30.1.1-jre.jar')
                 assert !testCompileClasspathFileNames.contains('mysql-connector-java-8.0.26.jar'): 'runtimeOnly dependency'
                 assert testRuntimeClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'guava-30.1.1-jre.jar', 'mysql-connector-java-8.0.26.jar')
                 assert !testRuntimeClasspathFileNames.contains('servlet-api-3.0-alpha-1.jar'): 'compileOnly dependency'
 
-                def integTestCompileClasspathFileNames = configurations.integTestCompileClasspath.files*.name
-                def integTestRuntimeClasspathFileNames = configurations.integTestRuntimeClasspath.files*.name
+                def integTestCompileClasspathFileNames = integTestCompile*.name
+                def integTestRuntimeClasspathFileNames = integTestRuntime*.name
 
                 assert integTestCompileClasspathFileNames.containsAll('servlet-api-2.5.jar', 'guava-29.0-jre.jar')
                 assert !integTestCompileClasspathFileNames.contains('commons-lang3-3.11.jar') : 'implementation dependency of project, should not leak to integTest'
@@ -740,8 +774,9 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn test
+            def testCompile = configurations.testCompileClasspath
             doLast {
-                def testCompileClasspathFileNames = configurations.testCompileClasspath.files*.name
+                def testCompileClasspathFileNames = testCompile*.name
                 assert testCompileClasspathFileNames.containsAll('commons-beanutils-1.9.4.jar')
                 assert !testCompileClasspathFileNames.contains('commons-collections-3.2.2.jar'): 'excluded dependency'
             }
@@ -790,8 +825,9 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn test
+            def testCompile = configurations.testCompileClasspath
             doLast {
-                def testCompileClasspathFileNames = configurations.testCompileClasspath.files*.name
+                def testCompileClasspathFileNames = testCompile*.name
                 assert testCompileClasspathFileNames.containsAll('commons-lang3-3.11.jar')
             }
         }
@@ -829,8 +865,9 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register('checkConfiguration') {
                 dependsOn $suiteName
+                def compile = configurations.${suiteName}CompileClasspath
                 doLast {
-                    def ${suiteName}CompileClasspathFileNames = configurations.${suiteName}CompileClasspath.files*.name
+                    def ${suiteName}CompileClasspathFileNames = compile*.name
                     assert ${suiteName}CompileClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'guava-30.1.1-jre.jar')
                 }
             }
@@ -867,8 +904,9 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register('checkConfiguration') {
                 dependsOn $suiteName
+                def compile = configurations.${suiteName}CompileClasspath
                 doLast {
-                    def ${suiteName}CompileClasspathFileNames = configurations.${suiteName}CompileClasspath.files*.name
+                    def ${suiteName}CompileClasspathFileNames = compile*.name
                     assert ${suiteName}CompileClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'guava-30.1.1-jre.jar')
                 }
             }
@@ -1040,9 +1078,11 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             }
 
             tasks.register('checkConfiguration') {
+                def testCompile = configurations.testCompileClasspath
+                def testRuntime = configurations.testRuntimeClasspath
                 doLast {
-                    def testCompileClasspathFileNames = configurations.testCompileClasspath.files*.name
-                    def testRuntimeClasspathFileNames = configurations.testRuntimeClasspath.files*.name
+                    def testCompileClasspathFileNames = testCompile*.name
+                    def testRuntimeClasspathFileNames = testRuntime*.name
 
                     assert testCompileClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'servlet-api-3.0-alpha-1.jar')
                     assert !testCompileClasspathFileNames.contains('mysql-connector-java-8.0.26.jar'): 'runtimeOnly dependency'
@@ -1081,8 +1121,9 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register('checkConfiguration') {
                 dependsOn $suiteName
+                def compile = configurations.${suiteName}CompileClasspath
                 doLast {
-                    def ${suiteName}CompileClasspathFileNames = configurations.${suiteName}CompileClasspath.files*.name
+                    def ${suiteName}CompileClasspathFileNames = compile*.name
 
                     assert ${suiteName}CompileClasspathFileNames.contains('commons-beanutils-1.9.4.jar')
                     assert !${suiteName}CompileClasspathFileNames.contains('commons-collections-3.2.2.jar'): 'excluded dependency'
@@ -1170,9 +1211,11 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register('checkConfiguration') {
                 dependsOn test
+                def testCompile = configurations.testCompileClasspath
+                def testRuntime = configurations.testRuntimeClasspath
                 doLast {
-                    def testCompileClasspathFileNames = configurations.testCompileClasspath.files*.name
-                    def testRuntimeClasspathFileNames = configurations.testRuntimeClasspath.files*.name
+                    def testCompileClasspathFileNames = testCompile*.name
+                    def testRuntimeClasspathFileNames = testRuntime*.name
 
                     assert testCompileClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'servlet-api-3.0-alpha-1.jar')
                     assert !testCompileClasspathFileNames.contains('mysql-connector-java-8.0.26.jar'): 'runtimeOnly dependency'
@@ -1214,8 +1257,8 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             tasks.register('checkConfiguration') {
                 dependsOn test
                 doLast {
-                    def testCompileClasspathFileNames = configurations.testCompileClasspath.files*.name
-                    def testRuntimeClasspathFileNames = configurations.testRuntimeClasspath.files*.name
+                    def testCompileClasspathFileNames = testCompile*.name
+                    def testRuntimeClasspathFileNames = testRuntime*.name
 
                     assert testCompileClasspathFileNames.containsAll('commons-lang3-3.11.jar', 'servlet-api-3.0-alpha-1.jar')
                     assert !testCompileClasspathFileNames.contains('mysql-connector-java-8.0.26.jar'): 'runtimeOnly dependency'
@@ -1257,8 +1300,9 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register('checkConfiguration') {
                 dependsOn $suiteName
+                def compile = configurations.${suiteName}CompileClasspath
                 doLast {
-                    def ${suiteName}CompileClasspathFileNames = configurations.${suiteName}CompileClasspath.files*.name
+                    def ${suiteName}CompileClasspathFileNames = compile*.name
 
                     assert ${suiteName}CompileClasspathFileNames.contains('commons-beanutils-1.9.4.jar')
                     assert !${suiteName}CompileClasspathFileNames.contains('commons-collections-3.2.2.jar'): 'excluded dependency'
@@ -1342,7 +1386,7 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             tasks.register('checkConfiguration') {
                 dependsOn $suiteName
                 doLast {
-                    def ${suiteName}CompileClasspathFileNames = configurations.${suiteName}CompileClasspath.files*.name
+                    def ${suiteName}CompileClasspathFileNames = compile*.name
 
                     assert ${suiteName}CompileClasspathFileNames.contains('commons-beanutils-1.9.4.jar')
                     assert !${suiteName}CompileClasspathFileNames.contains('commons-collections-3.2.2.jar'): 'excluded dependency'
@@ -1435,9 +1479,11 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn test, integTest
+            def integTestCompile = configurations.integTestCompileClasspath
+            def integTestRuntime = configurations.integTestRuntimeClasspath
             doLast {
-                def integTestCompileClasspathFileNames = configurations.integTestCompileClasspath.files*.name
-                def integTestRuntimeClasspathFileNames = configurations.integTestRuntimeClasspath.files*.name
+                def integTestCompileClasspathFileNames = integTestCompile*.name
+                def integTestRuntimeClasspathFileNames = integTestRuntime*.name
 
                 assert integTestCompileClasspathFileNames.containsAll('guava-30.1.1-jre.jar')
                 assert integTestRuntimeClasspathFileNames.containsAll('guava-30.1.1-jre.jar')
@@ -1488,8 +1534,9 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn $suiteName
+            def compile = configurations.${suiteName}CompileClasspath
             doLast {
-                def ${suiteName}CompileClasspathFileNames = configurations.${suiteName}CompileClasspath.files*.name
+                def ${suiteName}CompileClasspathFileNames = compile*.name
 
                 assert ${suiteName}CompileClasspathFileNames.contains('commons-beanutils-1.9.4.jar')
                 assert !${suiteName}CompileClasspathFileNames.contains('commons-collections-3.2.2.jar'): 'excluded dependency'
@@ -1586,9 +1633,11 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn $suiteName
+            def compile = configurations.${suiteName}CompileClasspath
+            def runtime = configurations.${suiteName}RuntimeClasspath
             doLast {
-                def ${suiteName}CompileClasspathFileNames = configurations.${suiteName}CompileClasspath.files*.name
-                def ${suiteName}RuntimeClasspathFileNames = configurations.${suiteName}RuntimeClasspath.files*.name
+                def ${suiteName}CompileClasspathFileNames = compile*.name
+                def ${suiteName}RuntimeClasspathFileNames = runtime*.name
 
                 assert ${suiteName}CompileClasspathFileNames.containsAll('groovy-json-3.0.5.jar', 'groovy-nio-3.0.5.jar', 'groovy-3.0.5.jar')
                 assert ${suiteName}RuntimeClasspathFileNames.containsAll('groovy-json-3.0.5.jar', 'groovy-nio-3.0.5.jar', 'groovy-3.0.5.jar')
@@ -1647,9 +1696,11 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn $suiteName
+            def compile = configurations.${suiteName}CompileClasspath
+            def runtime = configurations.${suiteName}RuntimeClasspath
             doLast {
-                def ${suiteName}CompileClasspathFileNames = configurations.${suiteName}CompileClasspath.files*.name
-                def ${suiteName}RuntimeClasspathFileNames = configurations.${suiteName}RuntimeClasspath.files*.name
+                def ${suiteName}CompileClasspathFileNames = compile*.name
+                def ${suiteName}RuntimeClasspathFileNames = runtime*.name
 
                 assert ${suiteName}CompileClasspathFileNames.containsAll('commons-lang3-3.12.0.jar', 'commons-collections4-4.4.jar')
                 assert ${suiteName}RuntimeClasspathFileNames.containsAll('commons-lang3-3.12.0.jar', 'commons-collections4-4.4.jar', 'commons-io-2.11.0.jar', 'commons-csv-1.9.0.jar')
@@ -1707,9 +1758,11 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn $suiteName
+            def compile = configurations.${suiteName}CompileClasspath
+            def runtime = configurations.${suiteName}RuntimeClasspath
             doLast {
-                def ${suiteName}CompileClasspathFileNames = configurations.${suiteName}CompileClasspath.files*.name
-                def ${suiteName}RuntimeClasspathFileNames = configurations.${suiteName}RuntimeClasspath.files*.name
+                def ${suiteName}CompileClasspathFileNames = compile*.name
+                def ${suiteName}RuntimeClasspathFileNames = runtime*.name
 
                 assert ${suiteName}CompileClasspathFileNames.containsAll('guava-30.1.1-jre.jar')
                 assert ${suiteName}RuntimeClasspathFileNames.containsAll('guava-30.1.1-jre.jar')
@@ -1869,8 +1922,8 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
             tasks.register('checkConfiguration') {
                 dependsOn $suiteName
                 doLast {
-                    def ${suiteName}CompileClasspathFileNames = configurations.${suiteName}CompileClasspath.files*.name
-                    def ${suiteName}RuntimeClasspathFileNames = configurations.${suiteName}RuntimeClasspath.files*.name
+                    def ${suiteName}CompileClasspathFileNames = compile*.name
+                    def ${suiteName}RuntimeClasspathFileNames = runtime*.name
 
                     assert ${suiteName}CompileClasspathFileNames.containsAll('commons-beanutils-1.9.0.jar', 'commons-collections-3.2.1.jar')
                     assert ${suiteName}RuntimeClasspathFileNames.containsAll('commons-beanutils-1.9.0.jar', 'commons-collections-3.2.1.jar')
@@ -1912,9 +1965,11 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn test
+            def testCompile = configurations.testCompileClasspath
+            def testRuntime = configurations.testRuntimeClasspath
             doLast {
-                def testCompileClasspathFileNames = configurations.testCompileClasspath.files*.name
-                def testRuntimeClasspathFileNames = configurations.testRuntimeClasspath.files*.name
+                def testCompileClasspathFileNames = testCompile*.name
+                def testRuntimeClasspathFileNames = testRuntime*.name
 
                 assert testCompileClasspathFileNames.containsAll('dummy-1.jar')
                 assert testRuntimeClasspathFileNames.containsAll('dummy-1.jar')
@@ -1957,8 +2012,9 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
             tasks.register('checkConfiguration') {
                 dependsOn $suiteName
+                def compile = configurations.${suiteName}CompileClasspath
                 doLast {
-                    def ${suiteName}CompileClasspathFileNames = configurations.${suiteName}CompileClasspath.files*.name
+                    def ${suiteName}CompileClasspathFileNames = compile*.name
                     assert ${suiteName}CompileClasspathFileNames.containsAll('dummy-1.jar', 'dummy-2.jar', 'dummy-3.jar')
                 }
             }
@@ -2002,8 +2058,9 @@ class TestSuitesGroovyDSLDependenciesIntegrationTest extends AbstractIntegration
 
         tasks.register('checkConfiguration') {
             dependsOn $suiteName
+            def compile = configurations.${suiteName}CompileClasspath
             doLast {
-                def ${suiteName}CompileClasspathFileNames = configurations.${suiteName}CompileClasspath.files*.name
+                def ${suiteName}CompileClasspathFileNames = compile*.name
                 assert ${suiteName}CompileClasspathFileNames.containsAll('dummy-1.jar', 'dummy-2.jar')
 
                 assert configurationActions.containsAll('configured files')

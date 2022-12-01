@@ -18,16 +18,12 @@ package org.gradle.api.internal.tasks.properties.annotations;
 
 import org.gradle.api.Task;
 import org.gradle.api.tasks.UntrackedTask;
+import org.gradle.internal.properties.annotations.AbstractTypeAnnotationHandler;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
-import java.lang.annotation.Annotation;
-
-import static org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandlerSupport.reportInvalidUseOfTypeAnnotation;
-
-public class UntrackedTaskTypeAnnotationHandler implements TypeAnnotationHandler {
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return UntrackedTask.class;
+public class UntrackedTaskTypeAnnotationHandler extends AbstractTypeAnnotationHandler {
+    public UntrackedTaskTypeAnnotationHandler() {
+        super(UntrackedTask.class);
     }
 
     @Override
@@ -36,5 +32,4 @@ public class UntrackedTaskTypeAnnotationHandler implements TypeAnnotationHandler
             reportInvalidUseOfTypeAnnotation(classWithAnnotationAttached, visitor, getAnnotationType(), Task.class);
         }
     }
-
 }

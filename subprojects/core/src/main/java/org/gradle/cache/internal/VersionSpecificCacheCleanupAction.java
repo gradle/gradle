@@ -22,7 +22,9 @@ import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.specs.Spec;
+import org.gradle.cache.CleanupFrequency;
 import org.gradle.cache.CleanupProgressMonitor;
+import org.gradle.internal.cache.MonitoredCleanupAction;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -42,24 +44,25 @@ public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction
 
     @VisibleForTesting static final String MARKER_FILE_PATH = FILE_HASHES_CACHE_KEY + "/" + FILE_HASHES_CACHE_KEY + ".lock";
     private static final Logger LOGGER = LoggerFactory.getLogger(VersionSpecificCacheCleanupAction.class);
-    private static final long CLEANUP_INTERVAL_IN_HOURS = 24;
 
     private final VersionSpecificCacheDirectoryScanner versionSpecificCacheDirectoryScanner;
     private final long maxUnusedDaysForReleases;
     private final long maxUnusedDaysForSnapshots;
     private final Deleter deleter;
+    private final CleanupFrequency cleanupFrequency;
 
-    public VersionSpecificCacheCleanupAction(File cacheBaseDir, long maxUnusedDaysForReleasesAndSnapshots, Deleter deleter) {
-        this(cacheBaseDir, maxUnusedDaysForReleasesAndSnapshots, maxUnusedDaysForReleasesAndSnapshots, deleter);
+    public VersionSpecificCacheCleanupAction(File cacheBaseDir, long maxUnusedDaysForReleasesAndSnapshots, Deleter deleter, CleanupFrequency cleanupFrequency) {
+        this(cacheBaseDir, maxUnusedDaysForReleasesAndSnapshots, maxUnusedDaysForReleasesAndSnapshots, deleter, cleanupFrequency);
     }
 
-    public VersionSpecificCacheCleanupAction(File cacheBaseDir, long maxUnusedDaysForReleases, long maxUnusedDaysForSnapshots, Deleter deleter) {
+    public VersionSpecificCacheCleanupAction(File cacheBaseDir, long maxUnusedDaysForReleases, long maxUnusedDaysForSnapshots, Deleter deleter, CleanupFrequency cleanupFrequency) {
         this.deleter = deleter;
         Preconditions.checkArgument(maxUnusedDaysForReleases >= maxUnusedDaysForSnapshots,
             "maxUnusedDaysForReleases (%s) must be greater than or equal to maxUnusedDaysForSnapshots (%s)", maxUnusedDaysForReleases, maxUnusedDaysForSnapshots);
         this.versionSpecificCacheDirectoryScanner = new VersionSpecificCacheDirectoryScanner(cacheBaseDir);
         this.maxUnusedDaysForReleases = maxUnusedDaysForReleases;
         this.maxUnusedDaysForSnapshots = maxUnusedDaysForSnapshots;
+        this.cleanupFrequency = cleanupFrequency;
     }
 
     @Override
@@ -80,13 +83,20 @@ public class VersionSpecificCacheCleanupAction implements MonitoredCleanupAction
     }
 
     private boolean requiresCleanup() {
+        long lastCleanupTimestamp;
+
         File gcFile = getGcFile();
         if (!gcFile.exists()) {
-            return gcFile.getParentFile().exists();
+            if (!gcFile.getParentFile().exists()) {
+                return false;
+            } else {
+                lastCleanupTimestamp = -1;
+            }
+        } else {
+            lastCleanupTimestamp = gcFile.lastModified();
         }
-        long duration = System.currentTimeMillis() - gcFile.lastModified();
-        long timeInHours = TimeUnit.MILLISECONDS.toHours(duration);
-        return timeInHours >= CLEANUP_INTERVAL_IN_HOURS;
+
+        return cleanupFrequency.requiresCleanup(lastCleanupTimestamp);
     }
 
     private void markCleanedUp() {

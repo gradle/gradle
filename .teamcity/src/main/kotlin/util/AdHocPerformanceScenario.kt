@@ -87,7 +87,6 @@ abstract class AdHocPerformanceScenario(os: Os, arch: Arch = Arch.AMD64) : Build
                     "%performance.baselines%",
                     """--warmups %warmups% --runs %runs% --checks %checks% --channel %channel% --profiler %profiler% %additional.gradle.parameters%""",
                     os,
-                    Arch.AMD64,
                     "%testJavaVersion%",
                     "%testJavaVendor%",
                 ) + buildToolGradleParameters(isContinue = false)

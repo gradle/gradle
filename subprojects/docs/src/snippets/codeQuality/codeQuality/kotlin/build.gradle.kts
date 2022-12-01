@@ -30,6 +30,13 @@ dependencies {
     testImplementation("junit:junit:4.13")
 }
 
+// tag::customize-checkstyle-memory[]
+tasks.withType<Checkstyle>().configureEach {
+    minHeapSize.set("200m")
+    maxHeapSize.set("1g")
+}
+// end::customize-checkstyle-memory[]
+
 // tag::customize-checkstyle-report[]
 tasks.withType<Checkstyle>().configureEach {
     reports {

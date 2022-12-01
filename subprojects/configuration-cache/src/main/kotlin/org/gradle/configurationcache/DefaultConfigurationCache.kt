@@ -74,6 +74,8 @@ class DefaultConfigurationCache internal constructor(
 
         val currentBuild: VintageGradleBuild
 
+        fun visitBuilds(visitor: (VintageGradleBuild) -> Unit)
+
         fun createBuild(settingsFile: File?, rootProjectName: String): ConfigurationCacheBuild
 
         fun <T> service(serviceType: Class<T>): T
@@ -121,7 +123,7 @@ class DefaultConfigurationCache internal constructor(
 
     override fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph): BuildTreeConfigurationCache.WorkGraphResult {
         return if (isLoaded) {
-            val finalizedGraph = loadWorkGraph(graph)
+            val finalizedGraph = loadWorkGraph(graph, false)
             BuildTreeConfigurationCache.WorkGraphResult(finalizedGraph, true, false)
         } else {
             runWorkThatContributesToCacheEntry {
@@ -133,7 +135,7 @@ class DefaultConfigurationCache internal constructor(
     }
 
     override fun loadRequestedTasks(graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
-        return loadWorkGraph(graph)
+        return loadWorkGraph(graph, true)
     }
 
     override fun maybePrepareModel(action: () -> Unit) {
@@ -350,9 +352,9 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun loadWorkGraph(graph: BuildTreeWorkGraph): BuildTreeWorkGraph.FinalizedGraph {
+    fun loadWorkGraph(graph: BuildTreeWorkGraph, loadAfterStore: Boolean): BuildTreeWorkGraph.FinalizedGraph {
         return loadFromCache(StateType.Work) { stateFile ->
-            cacheIO.readRootBuildStateFrom(stateFile, graph)
+            cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph)
         }
     }
 

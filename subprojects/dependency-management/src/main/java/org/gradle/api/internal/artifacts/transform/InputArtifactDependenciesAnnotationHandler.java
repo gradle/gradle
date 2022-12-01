@@ -16,30 +16,20 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.annotations.AbstractInputFilePropertyAnnotationHandler;
+import org.gradle.internal.execution.model.annotations.AbstractInputFilePropertyAnnotationHandler;
+import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
-import org.gradle.internal.reflect.AnnotationCategory;
+import org.gradle.internal.properties.InputFilePropertyType;
 
-import java.lang.annotation.Annotation;
-
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
 
 public class InputArtifactDependenciesAnnotationHandler extends AbstractInputFilePropertyAnnotationHandler implements InjectAnnotationHandler {
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return InputArtifactDependencies.class;
-    }
-
-    @Override
-    public ImmutableSet<? extends AnnotationCategory> getAllowedModifiers() {
-        return ImmutableSet.of(NORMALIZATION);
-    }
-
-    @Override
-    protected InputFilePropertyType getFilePropertyType() {
-        return InputFilePropertyType.FILES;
+    public InputArtifactDependenciesAnnotationHandler() {
+        super(
+            InputArtifactDependencies.class,
+            InputFilePropertyType.FILES,
+            ModifierAnnotationCategory.annotationsOf(NORMALIZATION)
+        );
     }
 }
