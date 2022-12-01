@@ -105,12 +105,12 @@ Let’s have a look at the following project layout to illustrate the expected W
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
+[source,kotlin]
 ----
 .
 ├── a-subproject
-│   └── build.gradle
-├── settings.gradle
+│   └── build.gradle.kts
+├── settings.gradle.kts
 ├── gradle
 │   └── wrapper
 │       ├── gradle-wrapper.jar
@@ -121,12 +121,12 @@ Let’s have a look at the following project layout to illustrate the expected W
 =====
 [.multi-language-sample]
 =====
-[source,kotlin]
+[source,groovy]
 ----
 .
 ├── a-subproject
-│   └── build.gradle.kts
-├── settings.gradle.kts
+│   └── build.gradle
+├── settings.gradle
 ├── gradle
 │   └── wrapper
 │       ├── gradle-wrapper.jar
