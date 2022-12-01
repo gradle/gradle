@@ -57,7 +57,6 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.service.CachingServiceLocator
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
@@ -169,10 +168,9 @@ class DefaultBuildModelControllerServices(
             cachingServiceLocator: CachingServiceLocator,
             scriptPluginFactory: ScriptPluginFactory,
             fingerprintController: ConfigurationCacheFingerprintController,
-            cancellationToken: BuildCancellationToken,
-            listenerManager: ListenerManager
+            cancellationToken: BuildCancellationToken
         ): ProjectEvaluator {
-            val evaluator = VintageModelProvider().createProjectEvaluator(buildOperationExecutor, cachingServiceLocator, scriptPluginFactory, cancellationToken, listenerManager)
+            val evaluator = VintageModelProvider().createProjectEvaluator(buildOperationExecutor, cachingServiceLocator, scriptPluginFactory, cancellationToken)
             return ConfigurationCacheAwareProjectEvaluator(evaluator, fingerprintController)
         }
 
@@ -195,12 +193,11 @@ class DefaultBuildModelControllerServices(
             buildOperationExecutor: BuildOperationExecutor,
             cachingServiceLocator: CachingServiceLocator,
             scriptPluginFactory: ScriptPluginFactory,
-            cancellationToken: BuildCancellationToken,
-            listenerManager: ListenerManager
+            cancellationToken: BuildCancellationToken
         ): ProjectEvaluator {
             val withActionsEvaluator = ConfigureActionsProjectEvaluator(
                 PluginsProjectConfigureActions.from(cachingServiceLocator),
-                BuildScriptProcessor(scriptPluginFactory, listenerManager.getBroadcaster(FileResourceListener::class.java)),
+                BuildScriptProcessor(scriptPluginFactory),
                 DelayedConfigurationActions()
             )
             return LifecycleProjectEvaluator(buildOperationExecutor, withActionsEvaluator, cancellationToken)

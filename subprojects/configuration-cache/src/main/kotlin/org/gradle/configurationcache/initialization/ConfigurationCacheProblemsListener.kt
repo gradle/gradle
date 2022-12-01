@@ -27,6 +27,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.credentials.CredentialListener
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
+import org.gradle.configuration.internal.ScriptSourceListener
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
@@ -38,6 +39,7 @@ import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.service.scopes.Scopes
@@ -45,7 +47,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 
 
 @ServiceScope(Scopes.BuildTree::class)
-interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener, CredentialListener
+interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener, CredentialListener, ScriptSourceListener
 
 
 class DefaultConfigurationCacheProblemsListener internal constructor(
@@ -77,7 +79,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         }
         problems.onProblem(
             PropertyProblem(
-                userCodeApplicationContext.location(consumer),
+                userCodeLocation(consumer),
                 StructuredMessage.build {
                     text("external process started ")
                     reference(command)
@@ -125,7 +127,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         }
         problems.onProblem(
             listenerRegistrationProblem(
-                userCodeApplicationContext.location(null),
+                userCodeLocation(),
                 invocationDescription,
                 InvalidUserCodeException(
                     "Listener registration '$invocationDescription' by $invocationSource is unsupported."
@@ -133,6 +135,10 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             )
         )
     }
+
+    private
+    fun userCodeLocation(consumer: String? = null) =
+        userCodeApplicationContext.location(consumer)
 
     override fun onUnsafeCredentials(locationSpecificReason: String, task: TaskInternal) {
         val message = StructuredMessage.build {
@@ -147,6 +153,21 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
                 documentationSection = RequirementsSafeCredentials
             )
         )
+    }
+
+    override fun onScriptSource(scriptSource: ScriptSource) {
+        if (scriptSource.resource.location.uri?.scheme != "file") {
+            problems.onProblem(
+                PropertyProblem(
+                    userCodeLocation(),
+                    StructuredMessage.build {
+                        text("Changes to ")
+                        reference(scriptSource.displayName)
+                        text(" won't be tracked by the configuration cache.")
+                    }
+                )
+            )
+        }
     }
 
     private

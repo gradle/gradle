@@ -25,14 +25,10 @@ import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.resource.TextFileResourceLoader;
-import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
-import java.io.File;
 
 
 public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
@@ -42,20 +38,17 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     private final GradleProperties gradleProperties;
     private final ScriptPluginFactory configurerFactory;
     private final TextFileResourceLoader textFileResourceLoader;
-    private final FileResourceListener fileResourceListener;
 
     public ScriptEvaluatingSettingsProcessor(
         ScriptPluginFactory configurerFactory,
         SettingsFactory settingsFactory,
         GradleProperties gradleProperties,
-        TextFileResourceLoader textFileResourceLoader,
-        FileResourceListener fileResourceListener
+        TextFileResourceLoader textFileResourceLoader
     ) {
         this.configurerFactory = configurerFactory;
         this.settingsFactory = settingsFactory;
         this.gradleProperties = gradleProperties;
         this.textFileResourceLoader = textFileResourceLoader;
-        this.fileResourceListener = fileResourceListener;
     }
 
     @Override
@@ -65,10 +58,9 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         ClassLoaderScope baseClassLoaderScope,
         StartParameter startParameter
     ) {
-        settingsFileObserved(settingsLocation.getSettingsFile());
-
         Timer settingsProcessingClock = Time.startTimer();
         TextResourceScriptSource settingsScript = new TextResourceScriptSource(textFileResourceLoader.loadFile("settings file", settingsLocation.getSettingsFile()));
+
         SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(), settingsScript, gradleProperties, startParameter, baseClassLoaderScope);
 
         gradle.getBuildListenerBroadcaster().beforeSettings(settings);
@@ -81,11 +73,5 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     private void applySettingsScript(TextResourceScriptSource settingsScript, final SettingsInternal settings) {
         ScriptPlugin configurer = configurerFactory.create(settingsScript, settings.getBuildscript(), settings.getClassLoaderScope(), settings.getBaseClassLoaderScope(), true);
         configurer.apply(settings);
-    }
-
-    private void settingsFileObserved(@Nullable File sourceFile) {
-        if (sourceFile != null) {
-            fileResourceListener.fileObserved(sourceFile);
-        }
     }
 }
