@@ -130,24 +130,18 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     @Override
     public void open() {
-        stateLock.lock();
-        try {
+        withOwnershipNow(() -> {
             if (open) {
                 throw new IllegalStateException("Cache is already open.");
             }
-            takeOwnershipNow();
             try {
                 crossProcessCacheAccess.open();
                 open = true;
-            } finally {
-                releaseOwnership();
+            } catch (Throwable throwable) {
+                crossProcessCacheAccess.close();
+                throw UncheckedException.throwAsUncheckedException(throwable);
             }
-        } catch (Throwable throwable) {
-            crossProcessCacheAccess.close();
-            throw UncheckedException.throwAsUncheckedException(throwable);
-        } finally {
-            stateLock.unlock();
-        }
+        });
     }
 
     @Override
@@ -157,7 +151,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 cacheAccessWorker.flush();
             }
 
-            withOwnership(this::doCleanup);
+            withOwnershipNow(this::doCleanup);
         }
     }
 
@@ -181,7 +175,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
             cacheUpdateExecutor = null;
         }
 
-        withOwnership(() -> {
+        withOwnershipNow(() -> {
             try {
                 crossProcessCacheAccess.close();
                 if (fileLockHeldByOwner != null) {
@@ -198,12 +192,13 @@ public class DefaultCacheAccess implements CacheCoordinator {
                     LOG.debug("Cache {} was closed {} times.", cacheDisplayName, cacheClosedCount);
                 }
             } finally {
+                owner = null;
                 fileLockHeldByOwner = null;
             }
         });
     }
 
-    void withOwnership(Runnable action) {
+    private void withOwnershipNow(Runnable action) {
         stateLock.lock();
         try {
             // Take ownership
@@ -211,7 +206,6 @@ public class DefaultCacheAccess implements CacheCoordinator {
             try {
                 action.run();
             } finally {
-                owner = null;
                 releaseOwnership();
             }
         } finally {
@@ -359,14 +353,12 @@ public class DefaultCacheAccess implements CacheCoordinator {
         assert this.fileLock == null;
         this.fileLock = fileLock;
         this.stateAtOpen = fileLock.getState();
-        takeOwnershipNow();
-        try {
+
+        withOwnershipNow(() -> {
             for (IndexedCacheEntry<?, ?> entry : caches.values()) {
                 entry.getCache().afterLockAcquire(stateAtOpen);
             }
-        } finally {
-            releaseOwnership();
-        }
+        });
     }
 
     /**
@@ -376,8 +368,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         assert this.fileLock == fileLock;
         try {
             cacheClosedCount++;
-            takeOwnershipNow();
-            try {
+            withOwnershipNow(() -> {
                 notifyFinish();
 
                 // Snapshot the state and notify the caches
@@ -385,9 +376,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 for (IndexedCacheEntry<?, ?> entry : caches.values()) {
                     entry.getCache().beforeLockRelease(state);
                 }
-            } finally {
-                releaseOwnership();
-            }
+            });
         } finally {
             this.fileLock = null;
             this.stateAtOpen = null;
