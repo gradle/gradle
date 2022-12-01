@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.catalog;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
@@ -66,7 +67,12 @@ public abstract class AbstractExternalDependencyFactory implements ExternalModul
         return providers.of(
             DependencyValueSource.class,
             spec -> spec.getParameters().getDependencyData().set(config.getDependencyData(alias))
-        ).map(AbstractExternalDependencyFactory::createMinimalDependency);
+        ).map(new Transformer<MinimalExternalModuleDependency, DependencyModel>() {
+            @Override
+            public MinimalExternalModuleDependency transform(DependencyModel dependencyModel) {
+                return createMinimalDependency(dependencyModel);
+            }
+        });
     }
 
     private static DefaultMinimalDependency createMinimalDependency(DependencyModel data) {
