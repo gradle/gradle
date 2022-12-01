@@ -78,62 +78,6 @@ BUILD SUCCESSFUL
 
 The `init` task generates the new project with the following structure:
 
-[source.multi-language-sample,groovy]
-----
-├── gradle // <1>
-│   └── wrapper
-│       ├── gradle-wrapper.jar
-│       └── gradle-wrapper.properties
-├── gradlew // <2>
-├── gradlew.bat // <2>
-├── settings.gradle // <3>
-├── buildSrc
-│   ├── build.gradle // <4>
-│   └── src
-│       └── main
-│           └── groovy // <5>
-│               ├── demo.${languageLC.raw}-application-conventions.gradle
-│               ├── demo.${languageLC.raw}-common-conventions.gradle
-│               └── demo.${languageLC.raw}-library-conventions.gradle
-├── app
-│   ├── build.gradle // <6>
-│   └── src
-│       ├── main // <7>
-│       │   └── java
-│       │       └── demo
-│       │           └── app
-│       │               ├── App.java
-│       │               └── MessageUtils.java
-│       └── test // <8>
-│           └── java
-│               └── demo
-│                   └── app
-│                       └── MessageUtilsTest.java
-├── list
-│   ├── build.gradle // <6>
-│   └── src
-│       ├── main // <7>
-│       │   └── java
-│       │       └── demo
-│       │           └── list
-│       │               └── LinkedList.java
-│       └── test // <8>
-│           └── java
-│               └── demo
-│                   └── list
-│                       └── LinkedListTest.java
-└── utilities
-    ├── build.gradle // <6>
-    └── src
-        └── main // <7>
-            └── java
-                └── demo
-                    └── utilities
-                        ├── JoinUtils.java
-                        ├── SplitUtils.java
-                        └── StringUtils.java
-----
-
 [source.multi-language-sample,kotlin]
 ----
 ├── gradle // <1>
@@ -188,6 +132,62 @@ The `init` task generates the new project with the following structure:
                         ├── JoinUtils.${languageExtension.raw}
                         ├── SplitUtils.${languageExtension.raw}
                         └── StringUtils.${languageExtension.raw}
+----
+
+[source.multi-language-sample,groovy]
+----
+├── gradle // <1>
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew // <2>
+├── gradlew.bat // <2>
+├── settings.gradle // <3>
+├── buildSrc
+│   ├── build.gradle // <4>
+│   └── src
+│       └── main
+│           └── groovy // <5>
+│               ├── demo.${languageLC.raw}-application-conventions.gradle
+│               ├── demo.${languageLC.raw}-common-conventions.gradle
+│               └── demo.${languageLC.raw}-library-conventions.gradle
+├── app
+│   ├── build.gradle // <6>
+│   └── src
+│       ├── main // <7>
+│       │   └── java
+│       │       └── demo
+│       │           └── app
+│       │               ├── App.java
+│       │               └── MessageUtils.java
+│       └── test // <8>
+│           └── java
+│               └── demo
+│                   └── app
+│                       └── MessageUtilsTest.java
+├── list
+│   ├── build.gradle // <6>
+│   └── src
+│       ├── main // <7>
+│       │   └── java
+│       │       └── demo
+│       │           └── list
+│       │               └── LinkedList.java
+│       └── test // <8>
+│           └── java
+│               └── demo
+│                   └── list
+│                       └── LinkedListTest.java
+└── utilities
+    ├── build.gradle // <6>
+    └── src
+        └── main // <7>
+            └── java
+                └── demo
+                    └── utilities
+                        ├── JoinUtils.java
+                        ├── SplitUtils.java
+                        └── StringUtils.java
 ----
 
 <1> Generated folder for wrapper files
