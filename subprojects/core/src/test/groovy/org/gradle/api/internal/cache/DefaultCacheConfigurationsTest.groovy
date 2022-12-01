@@ -17,14 +17,13 @@
 package org.gradle.api.internal.cache
 
 import org.gradle.api.cache.Cleanup
-import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import static org.gradle.internal.time.TimestampSuppliers.daysAgo
 
 class DefaultCacheConfigurationsTest extends Specification {
-    def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class, Stub(GradleUserHomeDirProvider))
+    def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class)
 
     def "cannot modify cache configurations once finalized"() {
         when:
