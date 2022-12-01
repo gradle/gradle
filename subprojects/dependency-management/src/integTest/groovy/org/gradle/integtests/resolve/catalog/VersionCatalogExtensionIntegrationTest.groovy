@@ -898,7 +898,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("com.acme:included:1.0", "project :included", "com.acme:included:zloubi") {
+                edge("com.acme:included:1.0", ":included", "com.acme:included:zloubi") {
                     compositeSubstitute()
                     configuration = "runtimeElements"
                     module('org.gradle.test:other:1.1')

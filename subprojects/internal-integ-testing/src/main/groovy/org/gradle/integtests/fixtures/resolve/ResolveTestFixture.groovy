@@ -23,6 +23,8 @@ import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionCause
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
@@ -137,7 +139,8 @@ $content
         closure.delegate = graph
         closure.call()
 
-        if (graph.root == null) {
+        def root = graph.root
+        if (root == null) {
             throw new IllegalArgumentException("No root node defined")
         }
 
@@ -145,7 +148,7 @@ $content
         def configDetails = configDetailsFile.text.readLines()
 
         def actualRoot = findLines(configDetails, 'root').first()
-        def expectedRoot = "[id:${graph.root.id}][mv:${graph.root.moduleVersionId}][reason:${graph.root.reason}]".toString()
+        def expectedRoot = "[${root.type}][id:${root.id}][mv:${root.moduleVersionId}][reason:${root.reason}]".toString()
         assert actualRoot.startsWith(expectedRoot)
 
         def actualComponents = findLines(configDetails, 'component')
@@ -157,7 +160,7 @@ $content
             if (variants) {
                 variantDetails = "[${variants.join('@@')}]"
             }
-            "[id:${baseNode.id}][mv:${baseNode.moduleVersionId}][reason:${baseNode.reason}]$variantDetails"
+            "[$baseNode.type][id:${baseNode.id}][mv:${baseNode.moduleVersionId}][reason:${baseNode.reason}]$variantDetails"
         }
         compareNodes("components in graph", parseNodes(actualComponents), parseNodes(expectedComponents))
 
@@ -165,7 +168,7 @@ $content
         def expectedEdges = graph.edges.collect { "${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
         compare("edges in graph", actualEdges, expectedEdges)
 
-        def expectedFiles = graph.root.files + graph.artifactNodes.collect { it.fileName }
+        def expectedFiles = root.files + graph.artifactNodes.collect { it.fileName }
 
         if (buildArtifacts) {
             def actualFiles = findLines(configDetails, 'file')
@@ -184,7 +187,7 @@ $content
             return
         }
 
-        def expectedFirstLevel = graph.root.deps.findAll { !it.constraint }.collect { d ->
+        def expectedFirstLevel = root.deps.findAll { !it.constraint }.collect { d ->
             def configs = d.selected.firstLevelConfigurations.collect {
                 "[${d.selected.moduleVersionId}:${it}]"
             }
@@ -222,7 +225,10 @@ $content
         compare("filtered lenient artifacts", actualArtifacts, expectedLegacyArtifacts)
 
         if (buildArtifacts) {
-            def actualFiles = findLines(configDetails, 'file-incoming')
+            def actualFiles = findLines(configDetails, 'file-files')
+            compare("this.files", actualFiles, expectedFiles)
+
+            actualFiles = findLines(configDetails, 'file-incoming')
             compare("incoming.files", actualFiles, expectedFiles)
 
             actualFiles = findLines(configDetails, 'file-filtered')
@@ -266,10 +272,16 @@ $content
     }
 
     ParsedNode parseNode(String line) {
-        int start = 4
+        int start = 1
         // we look for ][ instead of just ], because of that one test that checks that we can have random characters in id
         // see IvyDynamicRevisionRemoteResolveIntegrationTest. uses latest version from version range with punctuation characters
         int idx = line.indexOf('][')
+        if (idx < 0) {
+            throw new IllegalArgumentException("Missing type in '$line'")
+        }
+        String type = line.substring(start, idx)
+        start = idx + 5
+        idx = line.indexOf('][', start)
         if (idx < 0) {
             throw new IllegalArgumentException("Missing id in '$line'")
         }
@@ -303,10 +315,11 @@ $content
             start = idx + 15 // '@@'
             variants << new Variant(name: variant, attributes: attributes)
         }
-        new ParsedNode(id: id, module: module, reasons: reasons, variants: variants, strictReasonsCheck: strictReasonsCheck)
+        new ParsedNode(type: type, id: id, module: module, reasons: reasons, variants: variants, strictReasonsCheck: strictReasonsCheck)
     }
 
     static class ParsedNode {
+        String type
         String id
         String module
         List<String> reasons
@@ -315,11 +328,14 @@ $content
 
         boolean diff(ParsedNode actual, StringBuilder sb) {
             List<String> errors = []
+            if (type != actual.type) {
+                errors << "Expected type '$type' but was: $actual.type"
+            }
             if (id != actual.id) {
                 errors << "Expected ID '$id' but was: $actual.id"
             }
-            if (module != actual.module) {
-                errors << "Expected module '$module' but was: $actual.module"
+            if (this.module != actual.module) {
+                errors << "Expected module '${this.module}' but was: $actual.module"
             }
             if (!actual.reasons.containsAll(reasons)) {
                 reasons.each { reason ->
@@ -353,7 +369,7 @@ $content
         }
 
         String toString() {
-            "id: $id, module: $module, reasons: ${reasons}${variants}"
+            "id: $id, module: ${this.module}, reasons: ${reasons}${variants}"
         }
     }
 
@@ -429,14 +445,14 @@ $content
 
         Set<ExpectedArtifact> getArtifactNodes() {
             Set<NodeBuilder> result = new LinkedHashSet()
-            visitNodes(root, result)
+            visitNodes(this.root, result)
             return result.collect { it.artifacts }.flatten()
         }
 
         Set<String> getFiles() {
             Set<NodeBuilder> result = new LinkedHashSet()
-            result.add(root)
-            visitNodes(root, result)
+            result.add(this.root)
+            visitNodes(this.root, result)
             return result.collect { node -> node.files }.flatten()
         }
 
@@ -471,20 +487,6 @@ $content
 
         /**
          * Defines the root node of the graph. The closure delegates to a {@link NodeBuilder} instance that represents the root node.
-         */
-        def root(String value, @DelegatesTo(NodeBuilder) Closure cl) {
-            if (this.root != null) {
-                throw new IllegalStateException("Root node is already defined")
-            }
-            this.root = node(value, value)
-            cl.resolveStrategy = Closure.DELEGATE_ONLY
-            cl.delegate = this.root
-            cl.call()
-            return this.root
-        }
-
-        /**
-         * Defines the root node of the graph. The closure delegates to a {@link NodeBuilder} instance that represents the root node.
          *
          * @param projectPath The path of the project to which the graph belongs.
          * @param moduleVersion The module version for this project.
@@ -493,19 +495,37 @@ $content
             if (this.root != null) {
                 throw new IllegalStateException("Root node is already defined")
             }
-            this.root = node("project $projectPath", moduleVersion)
+            this.root = projectNode(projectPath, moduleVersion)
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = this.root
             cl.call()
             return this.root
         }
 
-        def node(Map attrs) {
-            def id = "${attrs.group}:${attrs.module}:${attrs.version}"
-            return node(id, id, attrs)
+        private NodeBuilder projectNode(String projectIdentityPath, String moduleVersion) {
+            return node("project:$projectIdentityPath", "project $projectIdentityPath", moduleVersion)
         }
 
-        def node(String id, String moduleVersionId) {
+        private NodeBuilder moduleNode(String moduleVersionId) {
+            def parts = moduleVersionId.split(':')
+            // the supplied moduleVersionId may contain additional attributes
+            assert parts.length >= 3
+            def group = parts[0]
+            def module = parts[1]
+            def version = parts[2]
+            def actualMVI = "${group}:${module}:${version}"
+            return node("module:${actualMVI},${group}:${module}", actualMVI, moduleVersionId)
+        }
+
+        NodeBuilder module(Map attrs) {
+            def group = attrs.group
+            def module = attrs.module
+            def version = attrs.version
+            def moduleVersionId = "$group:$module:$version"
+            return node("module:$moduleVersionId,$group:$module", moduleVersionId, moduleVersionId, attrs)
+        }
+
+        NodeBuilder node(String type, String id, String moduleVersionId) {
             def attrs
             if (moduleVersionId.matches(':\\w+:')) {
                 def parts = moduleVersionId.split(':')
@@ -526,13 +546,13 @@ $content
                     moduleVersionId = id
                 }
             }
-            return node(id, moduleVersionId, attrs)
+            return node(type, id, moduleVersionId, attrs)
         }
 
-        def node(String id, String moduleVersion, Map attrs) {
+        NodeBuilder node(String type, String id, String moduleVersion, Map attrs) {
             def node = nodes[moduleVersion]
             if (!node) {
-                node = new NodeBuilder(id, moduleVersion, attrs, this)
+                node = new NodeBuilder(type, id, moduleVersion, attrs, this)
                 nodes[moduleVersion] = node
             }
             if (attrs.configuration) {
@@ -555,7 +575,7 @@ $content
         }
 
         EdgeBuilder selects(Map selectedModule) {
-            selected = from.graph.node(selectedModule)
+            selected = from.graph.module(selectedModule)
             return this
         }
     }
@@ -568,6 +588,7 @@ $content
         String classifier
         String type
         String name
+        String fileName
         boolean noType
 
         String getType() {
@@ -575,11 +596,11 @@ $content
         }
 
         String getName() {
-            return name ?: module
+            return name ?: this.module
         }
 
         ModuleVersionIdentifier getModuleVersionId() {
-            return DefaultModuleVersionIdentifier.newId(group, module, version ?: 'unspecified')
+            return DefaultModuleVersionIdentifier.newId(this.group, this.module, this.version ?: 'unspecified')
         }
 
         String getArtifactName() {
@@ -593,15 +614,18 @@ $content
             } else if (componentId.startsWith("project :")) {
                 return "${baseName}.${getType()}"
             } else {
-                return "${getName()}${version ? '-' + version : ''}${classifier ? '-' + classifier : ''}.${getType()}"
+                return "${getName()}${this.version ? '-' + this.version : ''}${classifier ? '-' + classifier : ''}.${getType()}"
             }
         }
 
         String getFileName() {
+            if (fileName) {
+                return fileName
+            }
             if (noType) {
                 return getName()
             }
-            return "${getName()}${version ? '-' + version : ''}${classifier ? '-' + classifier : ''}.${getType()}"
+            return "${getName()}${this.version ? '-' + this.version : ''}${classifier ? '-' + classifier : ''}.${getType()}"
         }
     }
 
@@ -618,6 +642,7 @@ $content
     static class NodeBuilder {
         final List<EdgeBuilder> deps = []
         private final GraphBuilder graph
+        final String type
         final String id
         final String moduleVersionId
         final String group
@@ -633,28 +658,28 @@ $content
 
         boolean checkVariant
 
-        NodeBuilder(String id, String moduleVersionId, Map attrs, GraphBuilder graph) {
+        NodeBuilder(String type, String id, String moduleVersionId, Map attrs, GraphBuilder graph) {
             this.graph = graph
             this.group = attrs.group
             this.module = attrs.module
             this.version = attrs.version
             this.moduleVersionId = moduleVersionId
             this.id = id
+            this.type = type
             if (attrs.variantName) {
                 variant(attrs.variantName, attrs.variantAttributes)
             }
         }
 
         Set<ExpectedArtifact> getArtifacts() {
-            return artifacts.empty && implicitArtifact ? [new ExpectedArtifact(componentId: id, group: group, module: module, version: version)] : artifacts
+            return artifacts.empty && implicitArtifact ? [new ExpectedArtifact(componentId: id, group: this.group, module: this.module, version: this.version)] : artifacts
         }
 
         String getReason() {
             reasons.empty ? (this == graph.root ? 'root' : 'requested') : reasons.join('!!')
         }
 
-        private NodeBuilder addNode(String id, String moduleVersionId = id) {
-            def node = graph.node(id, moduleVersionId)
+        private NodeBuilder addNode(NodeBuilder node) {
             deps << new EdgeBuilder(this, node.id, node)
             return node
         }
@@ -663,17 +688,15 @@ $content
          * Defines a dependency on the given external module.
          */
         NodeBuilder module(String moduleVersionId) {
-            return addNode(moduleVersionId)
+            return addNode(graph.moduleNode(moduleVersionId))
         }
 
         /**
          * Defines a dependency on the given external module. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
         NodeBuilder module(String moduleVersionId, @DelegatesTo(NodeBuilder) Closure cl) {
-            def node = module(moduleVersionId)
-            cl.resolveStrategy = Closure.DELEGATE_ONLY
-            cl.delegate = node
-            cl.call()
+            def node = addNode(graph.moduleNode(moduleVersionId))
+            applyTo(node, cl)
             return node
         }
 
@@ -686,7 +709,7 @@ $content
             assert parts.length == 3
             def (group, name, version) = parts
             def attrs = [group: group, module: name, version: version]
-            def node = graph.node(id, moduleVersionId, attrs)
+            def node = graph.node("module:$moduleVersionId,$group:$name", id, moduleVersionId, attrs)
             deps << new EdgeBuilder(this, requestedVersion ? "${group}:${name}:${requestedVersion}" : moduleVersionId, node)
             return node
         }
@@ -694,11 +717,9 @@ $content
         /**
          * Defines a dependency on the given project. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
-        NodeBuilder project(String path, String value, @DelegatesTo(NodeBuilder) Closure cl = {}) {
-            def node = addNode("project $path", value)
-            cl.resolveStrategy = Closure.DELEGATE_ONLY
-            cl.delegate = node
-            cl.call()
+        NodeBuilder project(String projectIdentityPath, String moduleVersion, @DelegatesTo(NodeBuilder) Closure cl = {}) {
+            def node = addNode(graph.projectNode(projectIdentityPath, moduleVersion))
+            applyTo(node, cl)
             return node
         }
 
@@ -706,49 +727,50 @@ $content
          * Defines a link between nodes created through a dependency constraint.
          */
         NodeBuilder constraint(String requested, String selectedModuleVersionId = requested, @DelegatesTo(NodeBuilder) Closure cl = {}) {
-            def node = graph.node(selectedModuleVersionId, selectedModuleVersionId)
+            def node = graph.moduleNode(selectedModuleVersionId)
             def edge = new EdgeBuilder(this, requested, node)
             edge.constraint = true
             deps << edge
-            cl.resolveStrategy = Closure.DELEGATE_ONLY
-            cl.delegate = node
-            cl.call()
-            return node
-        }
-
-        NodeBuilder constraint(String requested, String id, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
-            def node = graph.node(id, selectedModuleVersionId)
-            def edge = new EdgeBuilder(this, requested, node)
-            edge.constraint = true
-            deps << edge
-            cl.resolveStrategy = Closure.DELEGATE_ONLY
-            cl.delegate = node
-            cl.call()
+            applyTo(node, cl)
             return node
         }
 
         /**
-         * Defines a dependency from the current node to the given node. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
+         * Adds a constraint that selects the given project.
+         */
+        NodeBuilder constraint(String requested, String selectedProjectIdentityPath, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
+            def node = graph.projectNode(selectedProjectIdentityPath, selectedModuleVersionId)
+            def edge = new EdgeBuilder(this, requested, node)
+            edge.constraint = true
+            deps << edge
+            applyTo(node, cl)
+            return node
+        }
+
+        /**
+         * Defines a dependency from the current node to the given module. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
         NodeBuilder edge(String requested, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
-            def node = graph.node(selectedModuleVersionId, selectedModuleVersionId)
+            def node = graph.moduleNode(selectedModuleVersionId)
             deps << new EdgeBuilder(this, requested, node)
-            cl.resolveStrategy = Closure.DELEGATE_ONLY
-            cl.delegate = node
-            cl.call()
+            applyTo(node, cl)
             return node
         }
 
         /**
-         * Defines a dependency from the current node to the given node. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
+         * Defines a dependency from the current node to the given project. The closure delegates to a {@link NodeBuilder} instance that represents the target node.
          */
-        NodeBuilder edge(String requested, String id, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
-            def node = graph.node(id, selectedModuleVersionId)
+        NodeBuilder edge(String requested, String selectedProjectIdentityPath, String selectedModuleVersionId, @DelegatesTo(NodeBuilder) Closure cl = {}) {
+            def node = graph.projectNode(selectedProjectIdentityPath, selectedModuleVersionId)
             deps << new EdgeBuilder(this, requested, node)
+            applyTo(node, cl)
+            return node
+        }
+
+        private static void applyTo(NodeBuilder node, Closure cl) {
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = node
             cl.call()
-            return node
         }
 
         /**
@@ -772,7 +794,7 @@ $content
          * Specifies an artifact for this node. A default is assumed when none specified
          */
         NodeBuilder artifact(Map attributes) {
-            def artifact = new ExpectedArtifact(componentId: id, group: group, module: module, version: version, name: attributes.name, classifier: attributes.classifier, type: attributes.type, noType: attributes.noType ?: false)
+            def artifact = new ExpectedArtifact(componentId: id, group: this.group, module: this.module, version: this.version, name: attributes.name, classifier: attributes.classifier, type: attributes.type, noType: attributes.noType ?: false, fileName: attributes.fileName)
             artifacts << artifact
             return this
         }
@@ -931,10 +953,24 @@ class AbstractGenerateGraphTask extends DefaultTask {
     }
 
     String formatComponent(ResolvedComponentResult result) {
+        String type
+        if (result.id instanceof ProjectComponentIdentifier) {
+            if (result.id.build.name == ':') {
+                type = "project:${result.id.projectPath}"
+            } else if (result.id.projectPath == ':') {
+                type = "project::${result.id.build.name}"
+            } else {
+                type = "project::${result.id.build.name}${result.id.projectPath}"
+            }
+        } else if (result.id instanceof ModuleComponentIdentifier) {
+            type = "module:${result.id.group}:${result.id.module}:${result.id.version},${result.id.moduleIdentifier.group}:${result.id.moduleIdentifier.name}"
+        } else {
+            type = "other"
+        }
         String variants = result.variants.collect { variant ->
             "variant:${formatVariant(variant)}"
         }.join('@@')
-        "[id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}][$variants]"
+        "[$type][id:${result.id}][mv:${result.moduleVersion}][reason:${formatReason(result.selectionReason)}][$variants]"
     }
 
     String formatVariant(ResolvedVariantResult variant) {
@@ -1041,13 +1077,15 @@ class GenerateGraphTask extends AbstractGenerateGraphTask {
             }
             visitNodes(configuration.resolvedConfiguration.firstLevelModuleDependencies, writer, new HashSet<>())
 
-
             def resolutionResult = configuration.incoming.resolutionResult
             writeResolutionResult(writer, resolutionResult.root, resolutionResult.allComponents, resolutionResult.allDependencies)
 
             if (buildArtifacts) {
-                configuration.files.each {
+                configuration.each {
                     writer.println("file:${it.name}")
+                }
+                configuration.files.each {
+                    writer.println("file-files:${it.name}")
                 }
                 configuration.incoming.files.each {
                     writer.println("file-incoming:${it.name}")
