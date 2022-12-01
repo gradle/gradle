@@ -60,13 +60,13 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
         Class<?> nodeType = resolveType(node);
         TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(nodeType);
         if (Provider.class.isAssignableFrom(nodeType)) {
-            handleProvider(qualifiedName, node, visitor, child -> walk(child, qualifiedName, propertyMetadata, visitor, nestedNodesWalkedOnPath));
+            handleNestedProvider(qualifiedName, node, visitor, child -> walk(child, qualifiedName, propertyMetadata, visitor, nestedNodesWalkedOnPath));
         } else if (Map.class.isAssignableFrom(nodeType) && !typeMetadata.hasAnnotatedProperties()) {
-            handleMap(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), propertyMetadata, visitor, nestedNodesWalkedOnPath));
+            handleNestedMap(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), propertyMetadata, visitor, nestedNodesWalkedOnPath));
         } else if (Iterable.class.isAssignableFrom(nodeType) && !typeMetadata.hasAnnotatedProperties()) {
-            handleIterable(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), propertyMetadata, visitor, nestedNodesWalkedOnPath));
+            handleNestedIterable(node, (name, child) -> walk(child, getQualifiedName(qualifiedName, name), propertyMetadata, visitor, nestedNodesWalkedOnPath));
         } else {
-            handleNested(node, typeMetadata, qualifiedName, propertyMetadata, visitor, nestedNodesWalkedOnPath);
+            handleNestedBean(node, typeMetadata, qualifiedName, propertyMetadata, visitor, nestedNodesWalkedOnPath);
         }
     }
 
@@ -82,7 +82,7 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
         });
     }
 
-    private void handleNested(T node, TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, NodeMetadataVisitor<T> visitor, Map<T, String> nestedNodesOnPath) {
+    private void handleNestedBean(T node, TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, NodeMetadataVisitor<T> visitor, Map<T, String> nestedNodesOnPath) {
         String firstOccurrenceQualifiedName = nestedNodesOnPath.putIfAbsent(node, qualifiedName);
         if (firstOccurrenceQualifiedName != null) {
             onNestedNodeCycle(firstOccurrenceQualifiedName, qualifiedName);
@@ -96,11 +96,11 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
 
     abstract protected void onNestedNodeCycle(@Nullable String firstOccurrenceQualifiedName, String secondOccurrenceQualifiedName);
 
-    abstract protected void handleProvider(String qualifiedName, T node, NodeMetadataVisitor<T> visitor, Consumer<T> handler);
+    abstract protected void handleNestedProvider(String qualifiedName, T node, NodeMetadataVisitor<T> visitor, Consumer<T> handler);
 
-    abstract protected void handleMap(T node, BiConsumer<String, T> handler);
+    abstract protected void handleNestedMap(T node, BiConsumer<String, T> handler);
 
-    abstract protected void handleIterable(T node, BiConsumer<String, T> handler);
+    abstract protected void handleNestedIterable(T node, BiConsumer<String, T> handler);
 
     abstract protected Class<?> resolveType(T type);
 
@@ -130,20 +130,20 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
         }
 
         @Override
-        protected void handleProvider(String qualifiedName, Object node, NodeMetadataVisitor<Object> visitor, Consumer<Object> handler) {
+        protected void handleNestedProvider(String qualifiedName, Object node, NodeMetadataVisitor<Object> visitor, Consumer<Object> handler) {
             Optional<Object> value = tryUnpackNested(qualifiedName, visitor, () -> Optional.ofNullable(((Provider<?>) node).getOrNull()));
             value.ifPresent(handler);
         }
 
         @SuppressWarnings("unchecked")
         @Override
-        protected void handleMap(Object node, BiConsumer<String, Object> handler) {
+        protected void handleNestedMap(Object node, BiConsumer<String, Object> handler) {
             ((Map<String, Object>) node).forEach(handler);
         }
 
         @SuppressWarnings("unchecked")
         @Override
-        protected void handleIterable(Object node, BiConsumer<String, Object> handler) {
+        protected void handleNestedIterable(Object node, BiConsumer<String, Object> handler) {
             int counter = 0;
             for (Object o : (Iterable<Object>) node) {
                 String prefix = o instanceof Named ? ((Named) o).getName() : "";
@@ -197,13 +197,13 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
 
         @SuppressWarnings("unchecked")
         @Override
-        protected void handleProvider(String qualifiedName, TypeToken<?> node, NodeMetadataVisitor<TypeToken<?>> visitor, Consumer<TypeToken<?>> handler) {
+        protected void handleNestedProvider(String qualifiedName, TypeToken<?> node, NodeMetadataVisitor<TypeToken<?>> visitor, Consumer<TypeToken<?>> handler) {
             handler.accept(extractNestedType((TypeToken<Provider<?>>) node, Provider.class, 0));
         }
 
         @SuppressWarnings("unchecked")
         @Override
-        protected void handleMap(TypeToken<?> node, BiConsumer<String, TypeToken<?>> handler) {
+        protected void handleNestedMap(TypeToken<?> node, BiConsumer<String, TypeToken<?>> handler) {
             handler.accept(
                 "<key>",
                 extractNestedType((TypeToken<Map<?, ?>>) node, Map.class, 1));
@@ -211,7 +211,7 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
 
         @SuppressWarnings("unchecked")
         @Override
-        protected void handleIterable(TypeToken<?> node, BiConsumer<String, TypeToken<?>> handler) {
+        protected void handleNestedIterable(TypeToken<?> node, BiConsumer<String, TypeToken<?>> handler) {
             TypeToken<?> nestedType = extractNestedType((TypeToken<? extends Iterable<?>>) node, Iterable.class, 0);
             handler.accept(determinePropertyName(nestedType), nestedType);
         }
