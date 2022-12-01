@@ -134,18 +134,24 @@ You can now use the `export-keys` flag to export all already trusted keys:
 
 For more information, see [Exporting keys](userguide/dependency_verification.html#sec:local-keyring).
 
-#### The Kotlin DSL now uses Kotlin language/api 1.7
+#### Updated the Kotlin DSL to Kotlin API Level 1.7
 
-While in Gradle 7.x the Kotlin DSL uses Kotlin language and API 1.4 level, starting with Gradle 8.0 it uses Kotlin language and API 1.7 level.
-This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0 into your `.gradle.kts` scripts and plugins authored with the `kotlin-dsl` plugin.
+Previously, the Kotlin DSL used Kotlin API level 1.4.
+Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.7.
+This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0.
 
-Please find below links to the included changes:
+For information about breaking and nonbreaking changes in this upgrade, see the following links to the Kotlin documentation
 
-* Kotlin 1.5 [language](https://kotlinlang.org/docs/whatsnew15.html#language-features) / [stdlib](https://kotlinlang.org/docs/whatsnew17.html#standard-library)
-* Kotlin 1.6 [language](https://kotlinlang.org/docs/whatsnew16.html#language) / [stdlib](https://kotlinlang.org/docs/whatsnew16.html#standard-library)
-* Kotlin 1.7 [language](https://kotlinlang.org/docs/whatsnew17.html#language) / [stdlib](https://kotlinlang.org/docs/whatsnew15.html#standard-library)
+- Kotlin 1.5 [language](https://kotlinlang.org/docs/whatsnew15.html#language-features) / [stdlib](https://kotlinlang.org/docs/whatsnew17.html#standard-library)
+- Kotlin 1.6 [language](https://kotlinlang.org/docs/whatsnew16.html#language) / [stdlib](https://kotlinlang.org/docs/whatsnew16.html#standard-library)
+- Kotlin 1.7 [language](https://kotlinlang.org/docs/whatsnew17.html#language) / [stdlib](https://kotlinlang.org/docs/whatsnew15.html#standard-library)
 
-This includes exhaustive `when` statements, improved type inference, stable inline classes, improved sealed types hierarchies etc...
+Highlights include:
+
+- exhaustive `when` statements
+- improved type inference
+- stable inline classes
+- improved sealed types hierarchies
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
