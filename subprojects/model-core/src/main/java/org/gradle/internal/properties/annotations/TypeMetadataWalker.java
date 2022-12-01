@@ -33,11 +33,12 @@ public interface TypeMetadataWalker<T> {
 
     void walk(T root, NodeMetadataVisitor<T> visitor);
 
+
     interface NodeMetadataVisitor<T> {
         void visitRoot(TypeMetadata typeMetadata, T value);
         void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, T value);
         void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<T> value);
-        default void visitErroneousNestedProvider(String qualifiedName, Exception e) {
+        default void visitUnpackNestedError(String qualifiedName, Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
