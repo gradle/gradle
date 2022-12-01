@@ -23,9 +23,10 @@ import org.junit.Rule
 
 import static org.hamcrest.CoreMatchers.startsWith
 
-@TargetCoverage({ScalaCoverage.DEFAULT})
+@TargetCoverage({ ScalaCoverage.DEFAULT })
 class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
-    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
+    @Rule
+    public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
     def "defaults scalaClasspath to inferred Scala compiler dependency"() {
         file("build.gradle") << """
