@@ -107,23 +107,23 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         visitor.roots == ["null::$myTask"] as List<String>
         visitor.nested == [
             "nested::$nestedType",
+            "nestedList.\$0::$nestedType",
             "nestedList.\$1::$nestedType",
-            "nestedList.\$2::$nestedType",
-            "nestedListOfLists.\$1.\$1::$nestedType",
+            "nestedListOfLists.\$0.\$0::$nestedType",
             "nestedMap.key1::$nestedType",
             "nestedMap.key2::$nestedType",
-            "nestedNamedList.\$1::$namedType",
+            "nestedNamedList.namedType\$0::$namedType",
             "nestedProperty::$nestedType"
         ] as List<String>
         visitor.leaves == [
             "inputProperty::Property[first-property]",
             "nested.inputProperty::Property[second-property]",
+            "nestedList.\$0.inputProperty::Property[second-property]",
             "nestedList.\$1.inputProperty::Property[second-property]",
-            "nestedList.\$2.inputProperty::Property[second-property]",
-            "nestedListOfLists.\$1.\$1.inputProperty::Property[second-property]",
+            "nestedListOfLists.\$0.\$0.inputProperty::Property[second-property]",
             "nestedMap.key1.inputProperty::Property[second-property]",
             "nestedMap.key2.inputProperty::Property[second-property]",
-            "nestedNamedList.\$1.inputProperty::Property[third-property]",
+            "nestedNamedList.namedType\$0.inputProperty::Property[third-property]",
             "nestedProperty.inputProperty::Property[second-property]"
         ]
     }
@@ -161,9 +161,9 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         propertyWithCycle   | propertyValue                                                                                   | expectedCycle
         'nested'            | CycleFirstNode.newInitializedCycle()                                                            | "'nested' and 'nested.secondNested.thirdNested.fourthNested'"
         'nestedProperty'    | TestUtil.propertyFactory().property(CycleFirstNode).value(CycleFirstNode.newInitializedCycle()) | "'nestedProperty' and 'nestedProperty.secondNested.thirdNested.fourthNested'"
-        'nestedList'        | [CycleFirstNode.newInitializedCycle()]                                                          | "'nestedList.\$1' and 'nestedList.\$1.secondNested.thirdNested.fourthNested'"
+        'nestedList'        | [CycleFirstNode.newInitializedCycle()]                                                          | "'nestedList.\$0' and 'nestedList.\$0.secondNested.thirdNested.fourthNested'"
         'nestedMap'         | ['key1': CycleFirstNode.newInitializedCycle()]                                                  | "'nestedMap.key1' and 'nestedMap.key1.secondNested.thirdNested.fourthNested'"
-        'nestedListOfLists' | [[CycleFirstNode.newInitializedCycle()]]                                                        | "'nestedListOfLists.\$1.\$1' and 'nestedListOfLists.\$1.\$1.secondNested.thirdNested.fourthNested'"
+        'nestedListOfLists' | [[CycleFirstNode.newInitializedCycle()]]                                                        | "'nestedListOfLists.\$0.\$0' and 'nestedListOfLists.\$0.\$0.secondNested.thirdNested.fourthNested'"
     }
 
     static String normalizeToString(String toString) {

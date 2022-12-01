@@ -147,9 +147,10 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
         @SuppressWarnings("unchecked")
         @Override
         protected void handleIterable(Object node, BiConsumer<String, Object> handler) {
-            int counter = 1;
+            int counter = 0;
             for (Object o : (Iterable<Object>) node) {
-                handler.accept("$" + counter++, o);
+                String prefix = o instanceof Named ? ((Named) o).getName() : "";
+                handler.accept(prefix + "$" + counter++, o);
             }
         }
 
