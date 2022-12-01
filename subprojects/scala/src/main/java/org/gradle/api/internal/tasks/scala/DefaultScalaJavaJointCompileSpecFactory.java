@@ -16,58 +16,25 @@
 
 package org.gradle.api.internal.tasks.scala;
 
-import org.gradle.api.internal.tasks.compile.AbstractJavaCompileSpecFactory;
-import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
-import org.gradle.api.internal.tasks.compile.ForkingJavaCompileSpec;
-import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.internal.Factory;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 
-import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Objects;
 
-public class DefaultScalaJavaJointCompileSpecFactory extends AbstractJavaCompileSpecFactory<DefaultScalaJavaJointCompileSpec> {
-    public DefaultScalaJavaJointCompileSpecFactory(CompileOptions compileOptions, @Nullable JavaInstallationMetadata javaInstallationMetadata) {
-        super(compileOptions, javaInstallationMetadata);
+public class DefaultScalaJavaJointCompileSpecFactory implements Factory<DefaultScalaJavaJointCompileSpec> {
+
+    private final JavaInstallationMetadata toolchain;
+
+    public DefaultScalaJavaJointCompileSpecFactory(JavaInstallationMetadata toolchain) {
+        Objects.requireNonNull(toolchain, "Toolchain is required for Scala compilation");
+        this.toolchain = toolchain;
     }
 
     @Override
-    protected DefaultScalaJavaJointCompileSpec getCommandLineSpec(File executable) {
-        return new DefaultCommandLineScalaJavaJointCompileSpec(executable);
-    }
-
-    @Override
-    protected DefaultScalaJavaJointCompileSpec getForkingSpec(File javaHome) {
-        return new DefaultForkingScalaJavaJointCompileSpec(javaHome);
-    }
-
-    @Override
-    protected DefaultScalaJavaJointCompileSpec getDefaultSpec() {
-        return new DefaultScalaJavaJointCompileSpec();
-    }
-
-    private static class DefaultCommandLineScalaJavaJointCompileSpec extends DefaultScalaJavaJointCompileSpec implements CommandLineJavaCompileSpec {
-        private final File executable;
-
-        private DefaultCommandLineScalaJavaJointCompileSpec(File executable) {
-            this.executable = executable;
-        }
-
-        @Override
-        public File getExecutable() {
-            return executable;
-        }
-    }
-
-    private static class DefaultForkingScalaJavaJointCompileSpec extends DefaultScalaJavaJointCompileSpec implements ForkingJavaCompileSpec {
-        private final File javaHome;
-
-        private DefaultForkingScalaJavaJointCompileSpec(File javaHome) {
-            this.javaHome = javaHome;
-        }
-
-        @Override
-        public File getJavaHome() {
-            return javaHome;
-        }
+    public DefaultScalaJavaJointCompileSpec create() {
+        File toolchainJavaHome = toolchain.getInstallationPath().getAsFile();
+        return new DefaultScalaJavaJointCompileSpec(Jvm.forHome(toolchainJavaHome).getJavaExecutable());
     }
 }
