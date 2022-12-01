@@ -22,14 +22,35 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 class TaskActionIntegrationTest extends AbstractIntegrationSpec {
     @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
-    def "nags when task action uses #expression and feature preview is enabled"() {
+    def "nags when task action uses Task.project and feature preview is enabled"() {
         settingsFile """
             enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
         """
         buildFile """
             task broken {
                 doLast {
-                    $expression
+                    project
+                }
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
+        succeeds("broken")
+
+        then:
+        noExceptionThrown()
+    }
+
+    @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
+    def "fails when task action uses Task.taskDependencies and feature preview is enabled"() {
+        settingsFile """
+            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+        """
+        buildFile """
+            task broken {
+                doLast {
+                    taskDependencies
                 }
             }
         """
@@ -38,11 +59,6 @@ class TaskActionIntegrationTest extends AbstractIntegrationSpec {
         fails("broken")
 
         then:
-        failureHasCause("Invocation of ${invocation} at execution time is unsupported with the STABLE_CONFIGURATION_CACHE feature preview.")
-
-        where:
-        expression         | invocation              | docSection
-        "project"          | "Task.project"          | "task_project"
-        "taskDependencies" | "Task.taskDependencies" | "task_dependencies"
+        failureHasCause("Invocation of Task.taskDependencies at execution time is unsupported with the STABLE_CONFIGURATION_CACHE feature preview.")
     }
 }
