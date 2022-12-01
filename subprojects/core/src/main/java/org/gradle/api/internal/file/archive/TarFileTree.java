@@ -124,7 +124,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
     private File getExpandedDir() {
         File tarFile = tarFileProvider.get();
         HashCode fileHash = hashFile(tarFile);
-        String expandedDirName = tarFile.getName() + "_" + fileHash;
+        String expandedDirName = "tar_" + fileHash;
         return new File(expansionCache.getBaseDir(), expandedDirName);
     }
 
