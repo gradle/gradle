@@ -43,7 +43,7 @@ import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction
 
 
 internal
-class DeprecatedFeaturesListenerManagerAction(
+class StableConfigurationCacheUnsupportedApiManagerAction(
     private val featureFlags: FeatureFlags
 ) : BuildScopeListenerManagerAction {
     override fun execute(manager: ListenerManager) {
@@ -57,7 +57,7 @@ class DeprecatedFeaturesListenerManagerAction(
         override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
             if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
                 DeprecationLogger.deprecateAction("Listener registration using $invocationDescription()")
-                    .willBecomeAnErrorInGradle8()
+                    .willBecomeAnErrorInGradle9()
                     .withUpgradeGuideSection(7, "task_execution_events")
                     .nagUser()
             }
@@ -66,7 +66,7 @@ class DeprecatedFeaturesListenerManagerAction(
         override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
             if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
                 DeprecationLogger.deprecateAction("Invocation of $invocationDescription at execution time")
-                    .willBecomeAnErrorInGradle8()
+                    .willBecomeAnErrorInGradle9()
                     .withUpgradeGuideSection(7, "task_project")
                     .nagUser()
             }
@@ -74,11 +74,12 @@ class DeprecatedFeaturesListenerManagerAction(
 
         override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal) {
             if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
-                DeprecationLogger.deprecateAction("Invocation of $invocationDescription at execution time")
-                    .willBecomeAnErrorInGradle8()
-                    .withUpgradeGuideSection(7, "task_dependencies")
-                    .nagUser()
+                throwUnsupported("Invocation of $invocationDescription at execution time")
             }
         }
+
+        private
+        fun throwUnsupported(reason: String): Nothing =
+            throw UnsupportedOperationException("$reason is unsupported with the STABLE_CONFIGURATION_CACHE feature preview.")
     }
 }
