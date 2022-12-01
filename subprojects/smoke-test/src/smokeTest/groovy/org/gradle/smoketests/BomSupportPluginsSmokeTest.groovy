@@ -37,7 +37,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         settingsFile << """
             rootProject.name = 'springbootproject'
         """
-        def buildScript = """
+        buildFile << """
             plugins {
                 id "java"
                 ${dependencyManagementPlugin}
@@ -57,7 +57,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
             }
         """
         def resolve = new ResolveTestFixture(new TestFile(buildFile), 'testCompileClasspath')
-        resolve.prepare(buildScript)
+        resolve.prepare()
 
         when:
         runner('checkDep').build()

@@ -248,7 +248,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         method << CleanupMethod.values()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
     def "downloads deleted files again when they are referenced"() {
         given:
         buildscriptWithDependency(snapshotModule)
@@ -269,7 +269,6 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         jarFile.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "marks artifacts as recently used when accessed"() {
         given:
         buildscriptWithDependency(snapshotModule)
@@ -288,7 +287,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         journal.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
     def "redownloads deleted HTTP script plugin resources"() {
         given:
         def uuid = UUID.randomUUID()
@@ -319,7 +318,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         resource.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
     def "redownloads deleted uri backed text resources"() {
         given:
         def uuid = UUID.randomUUID()
@@ -351,7 +350,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         resource.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
     def "redownloads deleted artifacts for artifact query"() {
         given:
         def module = mavenHttpRepo.module('org.example', 'example', '1.0')
@@ -446,8 +445,9 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
                 custom group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}'
             }
             task resolve {
+                def files = configurations.custom
                 doLast {
-                    configurations.custom.incoming.files.each { println it }
+                    files*.name
                 }
             }
         """
