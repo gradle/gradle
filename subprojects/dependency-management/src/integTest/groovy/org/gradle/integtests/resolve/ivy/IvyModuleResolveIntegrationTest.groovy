@@ -370,7 +370,8 @@ task retrieve(type: Sync) {
         then:
         resolve.expectGraph {
             root(":", "org.test:test:1.0") {
-                module("ivy.configuration:projectA:1.2:a") {
+                module("ivy.configuration:projectA:1.2") {
+                    configuration("a")
                     module("ivy.configuration:projectB:1.5") {
                         variant('a', ['org.gradle.status': 'integration']) // b, parent are redundant
                         variant('c', ['org.gradle.status': 'integration']) // b, parent are redundant
