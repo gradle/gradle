@@ -63,34 +63,6 @@ Each Gradle build has its own folder.
 The minimum to make these folders Gradle builds is to add an empty `settings.gradle(.kts)` file to each of them.
 Let's do this for all the components we have in our software:
 
-[source.multi-language-sample,groovy]
-----
-├── android-app
-│   └── settings.gradle
-├── server-application
-│   └── settings.gradle
-│
-├── admin-feature
-│   └── settings.gradle
-├── user-feature
-│   └── settings.gradle
-│
-├── state
-│   └── settings.gradle
-│
-├── domain-model
-│   └── settings.gradle
-│
-├── build-logic
-│   └── settings.gradle
-│
-├── platforms
-│   └── settings.gradle
-│
-└── aggregation
-    └── settings.gradle
-----
-
 [source.multi-language-sample,kotlin]
 ----
 ├── android-app
@@ -117,6 +89,34 @@ Let's do this for all the components we have in our software:
 │
 └── aggregation
     └── settings.gradle.kts
+----
+
+[source.multi-language-sample,groovy]
+----
+├── android-app
+│   └── settings.gradle
+├── server-application
+│   └── settings.gradle
+│
+├── admin-feature
+│   └── settings.gradle
+├── user-feature
+│   └── settings.gradle
+│
+├── state
+│   └── settings.gradle
+│
+├── domain-model
+│   └── settings.gradle
+│
+├── build-logic
+│   └── settings.gradle
+│
+├── platforms
+│   └── settings.gradle
+│
+└── aggregation
+    └── settings.gradle
 ----
 
 In the listing, each component lives in a separate folder.
@@ -154,6 +154,14 @@ You can find more information in the chapter about <<multi_project_builds.adoc#m
 
 Let's zoom into the _domain-model_ component:
 
+[source.multi-language-sample,kotlin]
+----
+└── domain-model              <-- component
+    ├── settings.gradle.kts   <-- define inner structure of component and where to locate other components
+    └── release               <-- project in component
+        └── build.gradle.kts  <-- defines type of the project and its dependencies
+----
+
 [source.multi-language-sample,groovy]
 ----
 └── domain-model              <-- component
@@ -162,13 +170,6 @@ Let's zoom into the _domain-model_ component:
         └── build.gradle      <-- defines type of the project and its dependencies
 ----
 
-[source.multi-language-sample,kotlin]
-----
-└── domain-model              <-- component
-    ├── settings.gradle.kts   <-- define inner structure of component and where to locate other components
-    └── release               <-- project in component
-        └── build.gradle.kts  <-- defines type of the project and its dependencies
-----
 
 Initially, `release/build.gradle(.kts)` is empty.
 The project is of no specific type and does not offer any useful content.

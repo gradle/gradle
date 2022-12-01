@@ -66,12 +66,12 @@ include::sample[dir="snippets/buildlifecycle/basic/groovy",files="settings.gradl
 The following command configures and executes the `test` and `testBoth` tasks specified above.
 Because Gradle only configures requested tasks and their dependencies, the `configured` task never configures.
 
-[source.multi-language-sample,groovy]
+[source.multi-language-sample,kotlin]
 ----
 > gradle test testBoth
 include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
 ----
-[source.multi-language-sample,kotlin]
+[source.multi-language-sample,groovy]
 ----
 > gradle test testBoth
 include::{snippetsPath}/buildlifecycle/basic/tests/buildlifecycle.out[]
@@ -207,15 +207,15 @@ include::sample[dir="snippets/buildlifecycle/taskExecutionEvents/kotlin",files="
 include::sample[dir="snippets/buildlifecycle/taskExecutionEvents/groovy",files="build.gradle[]"]
 ====
 
-[source.multi-language-sample,groovy]
-----
-> gradle -q broken
-include::{snippetsPath}/buildlifecycle/taskExecutionEvents/tests-groovy/taskExecutionEvents.groovy.out[]
-----
 [source.multi-language-sample,kotlin]
 ----
 > gradle -q broken
 include::{snippetsPath}/buildlifecycle/taskExecutionEvents/tests-kotlin/taskExecutionEvents.kotlin.out[]
+----
+[source.multi-language-sample,groovy]
+----
+> gradle -q broken
+include::{snippetsPath}/buildlifecycle/taskExecutionEvents/tests-groovy/taskExecutionEvents.groovy.out[]
 ----
 
 To receive these events via a listener instead of a closure, add a link:{javadocPath}/org/gradle/api/execution/TaskExecutionListener.html[TaskExecutionListener] to a project's link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraph.html[TaskExecutionGraph].
