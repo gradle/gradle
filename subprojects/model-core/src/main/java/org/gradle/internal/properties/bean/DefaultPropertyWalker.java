@@ -18,7 +18,6 @@ package org.gradle.internal.properties.bean;
 
 import com.google.common.base.Suppliers;
 import org.gradle.api.Buildable;
-import org.gradle.api.GradleException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
@@ -78,14 +77,14 @@ public class DefaultPropertyWalker implements PropertyWalker {
             }
 
             @Override
-            public void visitErroneousNestedProvider(String qualifiedName, Exception e) {
+            public void visitUnpackNestedError(String qualifiedName, Exception e) {
                 visitor.visitInputProperty(qualifiedName, new InvalidValue(e), false);
             }
 
             @Override
             public void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<Object> value) {
-                PropertyValue lazyValue = new LazyPropertyValue(value, propertyMetadata.getGetterMethod());
-                visitValue(qualifiedName, propertyMetadata, lazyValue, visitor);
+                PropertyValue cachedValue = new CachedPropertyValue(value, propertyMetadata.getGetterMethod());
+                visitValue(qualifiedName, propertyMetadata, cachedValue, visitor);
             }
         });
     }
@@ -98,7 +97,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
         handler.visitPropertyValue(qualifiedName, value, propertyMetadata, visitor);
     }
 
-    private static class LazyPropertyValue implements PropertyValue {
+    private static class CachedPropertyValue implements PropertyValue {
 
         private final Supplier<Object> supplier;
         private final Method method;
@@ -106,17 +105,11 @@ public class DefaultPropertyWalker implements PropertyWalker {
             @Override
             @Nullable
             public Object get() {
-                return DeprecationLogger.whileDisabled(() -> {
-                    try {
-                        return supplier.get();
-                    } catch (Exception e) {
-                        throw new GradleException(String.format("Could not call %s.%s()", method.getDeclaringClass().getSimpleName(), method.getName()), e);
-                    }
-                });
+                return DeprecationLogger.whileDisabled(supplier::get);
             }
         });
 
-        public LazyPropertyValue(Supplier<Object> supplier, Method method) {
+        public CachedPropertyValue(Supplier<Object> supplier, Method method) {
             this.supplier = supplier;
             this.method = method;
         }

@@ -17,11 +17,14 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.reflect.TypeToken;
+import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
@@ -71,7 +74,7 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
         typeMetadata.getPropertiesMetadata().forEach(propertyMetadata -> {
             String childQualifiedName = getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName());
             if (propertyMetadata.getPropertyType() == nestedAnnotation) {
-                Optional<T> childOptional = getChild(node, propertyMetadata);
+                Optional<T> childOptional = getNestedChild(node, childQualifiedName, propertyMetadata, visitor);
                 childOptional.ifPresent(child -> walk(child, childQualifiedName, propertyMetadata, visitor, nestedNodesOnPath));
             } else {
                 visitor.visitLeaf(childQualifiedName, propertyMetadata, () -> getChild(node, propertyMetadata).orElse(null));
@@ -101,6 +104,8 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
 
     abstract protected Class<?> resolveType(T type);
 
+    abstract protected Optional<T> getNestedChild(T parent, String childQualifiedName, PropertyMetadata propertyMetadata, NodeMetadataVisitor<T> visitor);
+
     abstract protected Optional<T> getChild(T parent, PropertyMetadata property);
 
     private static String getQualifiedName(@Nullable String parentPropertyName, String childPropertyName) {
@@ -126,17 +131,8 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
 
         @Override
         protected void handleProvider(String qualifiedName, Object node, NodeMetadataVisitor<Object> visitor, Consumer<Object> handler) {
-            Provider<?> nodeAsProvider = (Provider<?>) node;
-            if (nodeAsProvider.isPresent()) {
-                Object value;
-                try {
-                    value = nodeAsProvider.get();
-                } catch (Exception e) {
-                    visitor.visitErroneousNestedProvider(qualifiedName, e);
-                    return;
-                }
-                handler.accept(value);
-            }
+            Optional<Object> value = tryUnpackNested(qualifiedName, visitor, () -> Optional.ofNullable(((Provider<?>) node).getOrNull()));
+            value.ifPresent(handler);
         }
 
         @SuppressWarnings("unchecked")
@@ -156,14 +152,30 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
         }
 
         @Override
+        protected Optional<Object> getNestedChild(Object parent, String childQualifiedName, PropertyMetadata propertyMetadata, NodeMetadataVisitor<Object> visitor) {
+            return tryUnpackNested(childQualifiedName, visitor, () -> getChild(parent, propertyMetadata));
+        }
+
+        @Override
         protected Optional<Object> getChild(Object parent, PropertyMetadata property) {
+            Method method = property.getGetterMethod();
             try {
-                Method method = property.getGetterMethod();
+                // TODO: Move method.setAccessible(true) to PropertyMetadata
                 method.setAccessible(true);
                 return Optional.ofNullable(method.invoke(parent));
+            } catch (InvocationTargetException e) {
+                throw UncheckedException.throwAsUncheckedException(e.getCause());
             } catch (Exception e) {
-                // TODO Handle this
-                throw new RuntimeException(e);
+                throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), parent), e);
+            }
+        }
+
+        private Optional<Object> tryUnpackNested(String childQualifiedName, NodeMetadataVisitor<Object> visitor, Supplier<Optional<Object>> unpackFunction) {
+            try {
+                return unpackFunction.get();
+            } catch (Exception e) {
+                visitor.visitUnpackNestedError(childQualifiedName, e);
+                return Optional.empty();
             }
         }
     }
@@ -202,6 +214,11 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
         protected void handleIterable(TypeToken<?> node, BiConsumer<String, TypeToken<?>> handler) {
             TypeToken<?> nestedType = extractNestedType((TypeToken<? extends Iterable<?>>) node, Iterable.class, 0);
             handler.accept(determinePropertyName(nestedType), nestedType);
+        }
+
+        @Override
+        protected Optional<TypeToken<?>> getNestedChild(TypeToken<?> parent, String childQualifiedName, PropertyMetadata propertyMetadata, NodeMetadataVisitor<TypeToken<?>> visitor) {
+            return getChild(parent, propertyMetadata);
         }
 
         @Override
