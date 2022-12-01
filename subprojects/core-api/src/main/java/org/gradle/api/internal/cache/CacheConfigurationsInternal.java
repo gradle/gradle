@@ -21,10 +21,8 @@ import org.gradle.api.cache.Cleanup;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.CleanupFrequency;
-import org.gradle.cache.internal.CleanupActionDecorator;
-import org.gradle.internal.cache.MonitoredCleanupActionDecorator;
 
-public interface CacheConfigurationsInternal extends CacheConfigurations, CleanupActionDecorator, MonitoredCleanupActionDecorator {
+public interface CacheConfigurationsInternal extends CacheConfigurations {
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS = 30;
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS = 7;
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES = 30;

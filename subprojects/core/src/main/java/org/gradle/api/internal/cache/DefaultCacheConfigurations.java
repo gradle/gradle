@@ -23,12 +23,7 @@ import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupFrequency;
-import org.gradle.cache.CleanupProgressMonitor;
-import org.gradle.cache.internal.GradleUserHomeCacheCleanupActionDecorator;
-import org.gradle.internal.cache.MonitoredCleanupAction;
-import org.gradle.initialization.GradleUserHomeDirProvider;
 
 import javax.inject.Inject;
 import java.util.function.Supplier;
@@ -36,8 +31,6 @@ import java.util.function.Supplier;
 import static org.gradle.internal.time.TimestampSuppliers.daysAgo;
 
 abstract public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
-    private final GradleUserHomeCacheCleanupActionDecorator delegate;
-
     private CacheResourceConfigurationInternal releasedWrappersConfiguration;
     private CacheResourceConfigurationInternal snapshotWrappersConfiguration;
     private CacheResourceConfigurationInternal downloadedResourcesConfiguration;
@@ -45,13 +38,12 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private Property<Cleanup> cleanup;
 
     @Inject
-    public DefaultCacheConfigurations(ObjectFactory objectFactory, GradleUserHomeDirProvider gradleUserHomeDirProvider) {
+    public DefaultCacheConfigurations(ObjectFactory objectFactory) {
         this.releasedWrappersConfiguration = createResourceConfiguration(objectFactory, "releasedWrappers", DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS);
         this.snapshotWrappersConfiguration = createResourceConfiguration(objectFactory, "snapshotWrappers", DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
         this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, "downloadedResources", DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
         this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, "createdResources", DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
         this.cleanup = objectFactory.property(Cleanup.class).convention(Cleanup.DEFAULT);
-        this.delegate = new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeDirProvider);
     }
 
     private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, String name, int defaultDays) {
@@ -142,36 +134,6 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         downloadedResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         createdResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         getCleanup().finalizeValue();
-    }
-
-    @Override
-    public MonitoredCleanupAction decorate(MonitoredCleanupAction cleanupAction) {
-        MonitoredCleanupAction decoratedCleanupAction = delegate.decorate(cleanupAction);
-        return new MonitoredCleanupAction() {
-            @Override
-            public boolean execute(CleanupProgressMonitor progressMonitor) {
-                return isEnabled() && decoratedCleanupAction.execute(progressMonitor);
-            }
-
-            @Override
-            public String getDisplayName() {
-                return decoratedCleanupAction.getDisplayName();
-            }
-        };
-    }
-
-    @Override
-    public CleanupAction decorate(CleanupAction cleanupAction) {
-        CleanupAction decoratedCleanupAction = delegate.decorate(cleanupAction);
-        return (cleanableStore, progressMonitor) -> {
-            if (isEnabled()) {
-                decoratedCleanupAction.clean(cleanableStore, progressMonitor);
-            }
-        };
-    }
-
-    private boolean isEnabled() {
-        return getCleanupFrequency().get() != CleanupFrequency.NEVER;
     }
 
     private static <T> Provider<T> providerFromSupplier(Supplier<T> supplier) {
