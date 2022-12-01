@@ -29,7 +29,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 }
 
-tasks.test {
+tasks.named<Test>("test") {
     useJUnitPlatform()
 
     maxHeapSize = "1G"
