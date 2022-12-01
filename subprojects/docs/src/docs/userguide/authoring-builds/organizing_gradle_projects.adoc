@@ -36,10 +36,10 @@ The following source tree contains Java and Kotlin source files. Java source fil
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
+[source,kotlin]
 ----
 .
-├── build.gradle
+├── build.gradle.kts
 └── src
     └── main
         ├── java
@@ -50,10 +50,10 @@ The following source tree contains Java and Kotlin source files. Java source fil
 =====
 [.multi-language-sample]
 =====
-[source,kotlin]
+[source,groovy]
 ----
 .
-├── build.gradle.kts
+├── build.gradle
 └── src
     └── main
         ├── java
@@ -108,18 +108,6 @@ The following example shows a standard Gradle project layout:
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
-----
-.
-├── settings.gradle
-├── subproject-one
-│   └── build.gradle
-└── subproject-two
-    └── build.gradle
-----
-=====
-[.multi-language-sample]
-=====
 [source,kotlin]
 ----
 .
@@ -128,6 +116,18 @@ The following example shows a standard Gradle project layout:
 │   └── build.gradle.kts
 └── subproject-two
     └── build.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── settings.gradle
+├── subproject-one
+│   └── build.gradle
+└── subproject-two
+    └── build.gradle
 ----
 =====
 ====
@@ -159,32 +159,6 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
-----
-.
-├── buildSrc
-│   ├── build.gradle
-│   └── src
-│       ├── main
-│       │   └── java
-│       │       └── com
-│       │           └── enterprise
-│       │               ├── Deploy.java
-│       │               └── DeploymentPlugin.java
-│       └── test
-│           └── java
-│               └── com
-│                   └── enterprise
-│                       └── DeploymentPluginTest.java
-├── settings.gradle
-├── subprojecto-one
-│   └── build.gradle.kts
-└── subproject-two
-    └── build.gradle.kts
-----
-=====
-[.multi-language-sample]
-=====
 [source,kotlin]
 ----
 .
@@ -204,6 +178,32 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
 │                       └── DeploymentPluginTest.java
 ├── settings.gradle.kts
 ├── subproject-one
+│   └── build.gradle.kts
+└── subproject-two
+    └── build.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── buildSrc
+│   ├── build.gradle
+│   └── src
+│       ├── main
+│       │   └── java
+│       │       └── com
+│       │           └── enterprise
+│       │               ├── Deploy.java
+│       │               └── DeploymentPlugin.java
+│       └── test
+│           └── java
+│               └── com
+│                   └── enterprise
+│                       └── DeploymentPluginTest.java
+├── settings.gradle
+├── subprojecto-one
 │   └── build.gradle.kts
 └── subproject-two
     └── build.gradle.kts
@@ -231,19 +231,6 @@ Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
-----
-.
-├── gradle.properties
-└── settings.gradle
-├── subproject-a
-│   └── build.gradle
-└── subproject-b
-    └── build.gradle
-----
-=====
-[.multi-language-sample]
-=====
 [source,kotlin]
 ----
 .
@@ -253,6 +240,19 @@ Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you
 │   └── build.gradle.kts
 └── subproject-b
     └── build.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+.
+├── gradle.properties
+└── settings.gradle
+├── subproject-a
+│   └── build.gradle
+└── subproject-b
+    └── build.gradle
 ----
 =====
 ====

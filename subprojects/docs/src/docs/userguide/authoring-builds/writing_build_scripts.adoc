@@ -121,11 +121,11 @@ Build scripts can declare two kinds of variables: local variables and extra prop
 [[sec:local_variables]]
 === Local Variables
 
-[.multi-language-text.lang-groovy]
-Declare local variables with the `def` keyword. Local variables are only visible in the scope where they have been declared. They are a feature of the underlying Groovy language.
-
 [.multi-language-text.lang-kotlin]
 Declare local variables with the `val` keyword. Local variables are only visible in the scope where they have been declared. They are a feature of the underlying Kotlin language.
+
+[.multi-language-text.lang-groovy]
+Declare local variables with the `def` keyword. Local variables are only visible in the scope where they have been declared. They are a feature of the underlying Groovy language.
 
 .Declare a local variable
 ====
@@ -138,11 +138,11 @@ include::sample[dir="snippets/tutorial/localVariables/groovy",files="build.gradl
 
 All of Gradle's enhanced objects, including projects, tasks, and source sets, can hold user-defined properties.
 
-[.multi-language-text.lang-groovy]
-Add, read, and set extra properties via the owning object's `ext` property. Alternatively, you can use an `ext` block to add multiple properties at once.
-
 [.multi-language-text.lang-kotlin]
 Add, read, and set extra properties via the owning object's `extra` property. Alternatively, you can access extra properties via Kotlin delegated properties using `by extra`.
+
+[.multi-language-text.lang-groovy]
+Add, read, and set extra properties via the owning object's `ext` property. Alternatively, you can use an `ext` block to add multiple properties at once.
 
 .Use extra properties
 ====
@@ -156,11 +156,11 @@ include::{snippetsPath}/tutorial/extraProperties/tests/extraProperties.out[]
 ----
 ====
 
-[.multi-language-text.lang-groovy]
-This example adds two extra properties to the `project` object via an `ext` block. Additionally, this example adds a property named `purpose` to each source set by setting `ext.purpose` to `null`. Once added, you can read and set all of these properties just like predefined properties.
-
 [.multi-language-text.lang-kotlin]
 This example adds two extra properties to the `project` object via `by extra`. Additionally, this example adds a property named `purpose` to each source set by setting `extra["purpose"]` to `null`. Once added, you can read and set all of these properties via `extra`.
+
+[.multi-language-text.lang-groovy]
+This example adds two extra properties to the `project` object via an `ext` block. Additionally, this example adds a property named `purpose` to each source set by setting `ext.purpose` to `null`. Once added, you can read and set all of these properties just like predefined properties.
 
 Gradle requires special syntax for adding a property so it can fail fast. For example, this allows Gradle to recognize
 when a script attempts to set a property that does not exist. You can access extra properties anywhere where you can

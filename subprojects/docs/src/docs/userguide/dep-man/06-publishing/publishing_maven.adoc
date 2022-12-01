@@ -270,23 +270,6 @@ For instance, the following logic assumes that the subprojects will be evaluated
 ====
 [.multi-language-sample]
 =====
-.build.gradle
-[source,groovy]
-----
-subprojects {
-    publishing {
-        publications {
-            mavenJava(MavenPublication) {
-                from components.java
-                artifactId = jar.archiveBaseName
-            }
-        }
-    }
-}
-----
-=====
-[.multi-language-sample]
-=====
 .build.gradle.kts
 [source,kotlin]
 ----
@@ -302,12 +285,6 @@ subprojects {
 }
 ----
 =====
-====
-
-This kind of logic must now be wrapped in an `afterEvaluate {}` block.
-
-
-====
 [.multi-language-sample]
 =====
 .build.gradle
@@ -318,15 +295,19 @@ subprojects {
         publications {
             mavenJava(MavenPublication) {
                 from components.java
-                afterEvaluate {
-                    artifactId = jar.archiveBaseName
-                }
+                artifactId = jar.archiveBaseName
             }
         }
     }
 }
 ----
 =====
+====
+
+This kind of logic must now be wrapped in an `afterEvaluate {}` block.
+
+
+====
 [.multi-language-sample]
 =====
 .build.gradle.kts
@@ -339,6 +320,25 @@ subprojects {
                 from(components["java"])
                 afterEvaluate {
                     artifactId = tasks.jar.get().archiveBaseName.get()
+                }
+            }
+        }
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+subprojects {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                afterEvaluate {
+                    artifactId = jar.archiveBaseName
                 }
             }
         }

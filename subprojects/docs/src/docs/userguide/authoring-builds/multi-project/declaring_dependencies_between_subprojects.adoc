@@ -26,30 +26,6 @@ As mentioned in <<declaring_dependencies.adoc#sub:project_dependencies,Project d
 [.multi-language-sample]
 =====
 .Project layout
-[source, groovy]
-----
-.
-├── buildSrc
-│   ...
-├── api
-│   ├── src
-│   │   └──...
-│   └── build.gradle
-├── services
-│   └── person-service
-│       ├── src
-│       │   └──...
-│       └── build.gradle
-├── shared
-│   ├── src
-│   │   └──...
-│   └── build.gradle
-└── settings.gradle
-----
-=====
-[.multi-language-sample]
-=====
-.Project layout
 [source, kotlin]
 ----
 .
@@ -69,6 +45,30 @@ As mentioned in <<declaring_dependencies.adoc#sub:project_dependencies,Project d
 │   │   └──...
 │   └── build.gradle.kts
 └── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+.Project layout
+[source, groovy]
+----
+.
+├── buildSrc
+│   ...
+├── api
+│   ├── src
+│   │   └──...
+│   └── build.gradle
+├── services
+│   └── person-service
+│       ├── src
+│       │   └──...
+│       └── build.gradle
+├── shared
+│   ├── src
+│   │   └──...
+│   └── build.gradle
+└── settings.gradle
 ----
 =====
 ====

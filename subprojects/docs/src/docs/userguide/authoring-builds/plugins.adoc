@@ -123,20 +123,6 @@ The form is:
 ====
 [.multi-language-sample]
 =====
-.build.gradle
-[source,groovy]
-----
-plugins {
-    id «plugin id»                                            // <1>
-    id «plugin id» version «plugin version» [apply «false»]   // <2>
-}
-----
-<1> for core Gradle plugins or plugins already available to the build script
-<2> for binary Gradle plugins that need to be resolved
-=====
-
-[.multi-language-sample]
-=====
 .build.gradle.kts
 [source,kotlin]
 ----
@@ -150,15 +136,30 @@ plugins {
 <2> for core Gradle plugins or plugins already available to the build script
 <3> for binary Gradle plugins that need to be resolved
 =====
-====
 
-[.multi-language-text.lang-groovy]
-Where `«plugin id»` and `«plugin version»` must be constant, literal, strings and the `apply` statement with a `boolean` can be used to disable the default behavior of applying the plugin immediately (e.g. you want to apply it only in `subprojects`). No other statements are allowed; their presence will cause a compilation error.
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id «plugin id»                                            // <1>
+    id «plugin id» version «plugin version» [apply «false»]   // <2>
+}
+----
+<1> for core Gradle plugins or plugins already available to the build script
+<2> for binary Gradle plugins that need to be resolved
+=====
+====
 
 [.multi-language-text.lang-kotlin]
 Where `«plugin id»`, in case `#1` is a static Kotlin extension property, named after the core plugin ID ; and in cases `#2` and `#3` is a string.
 `«plugin version»` is also a string.
 The `apply` statement with a `boolean` can be used to disable the default behavior of applying the plugin immediately (e.g. you want to apply it only in `subprojects`).
+
+[.multi-language-text.lang-groovy]
+Where `«plugin id»` and `«plugin version»` must be constant, literal, strings and the `apply` statement with a `boolean` can be used to disable the default behavior of applying the plugin immediately (e.g. you want to apply it only in `subprojects`). No other statements are allowed; their presence will cause a compilation error.
+
 
 See <<#sec:plugin_version_management,plugin version management>> if you want to use a variable to define a plugin version.
 
@@ -317,11 +318,11 @@ include::sample[dir="snippets/tutorial/pluginIntro/groovy", files="build.gradle[
 
 The `JavaPlugin` symbol in the above sample refers to the link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin]. This class does not strictly need to be imported as the `org.gradle.api.plugins` package is automatically imported in all build scripts (see <<writing_build_scripts.adoc#script-default-imports,Default imports>>).
 
-[.multi-language-text.lang-groovy]
-Furthermore, it is not necessary to append `.class` to identify a class literal in Groovy as it is in Java.
-
 [.multi-language-text.lang-kotlin]
 Furthermore, one need to append the `::class` suffix to identify a class literal in Kotlin instead of `.class` in Java.
+
+[.multi-language-text.lang-groovy]
+Furthermore, it is not necessary to append `.class` to identify a class literal in Groovy as it is in Java.
 
 [[sec:applying_plugins_buildscript]]
 ==== Applying plugins with the buildscript block

@@ -33,18 +33,6 @@ This is a structure of a multi-project build that contains a single subproject c
 [.multi-language-sample]
 =====
 .Project layout
-[source, groovy]
-----
-.
-├── app
-│   ...
-│   └── build.gradle
-└── settings.gradle
-----
-=====
-[.multi-language-sample]
-=====
-.Project layout
 [source, kotlin]
 ----
 .
@@ -52,6 +40,18 @@ This is a structure of a multi-project build that contains a single subproject c
 │   ...
 │   └── build.gradle.kts
 └── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+.Project layout
+[source, groovy]
+----
+.
+├── app
+│   ...
+│   └── build.gradle
+└── settings.gradle
 ----
 =====
 ====
@@ -109,21 +109,6 @@ Gradle will then look for the build file for the new subproject in the `lib/` su
 [.multi-language-sample]
 =====
 .Project layout
-[source, groovy]
-----
-.
-├── app
-│   ...
-│   └── build.gradle
-├── lib
-│   ...
-│   └── build.gradle
-└── settings.gradle
-----
-=====
-[.multi-language-sample]
-=====
-.Project layout
 [source, kotlin]
 ----
 .
@@ -134,6 +119,21 @@ Gradle will then look for the build file for the new subproject in the `lib/` su
 │   ...
 │   └── build.gradle.kts
 └── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+.Project layout
+[source, groovy]
+----
+.
+├── app
+│   ...
+│   └── build.gradle
+├── lib
+│   ...
+│   └── build.gradle
+└── settings.gradle
 ----
 =====
 ====
