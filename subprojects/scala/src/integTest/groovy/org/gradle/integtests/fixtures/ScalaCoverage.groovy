@@ -20,8 +20,8 @@ import org.gradle.api.JavaVersion
 
 class ScalaCoverage {
 
-    static final String[] SCALA_2 = ["2.11.12", "2.12.15", "2.12.17", "2.13.0", "2.13.1", "2.13.9", "2.13.10"]
-    static final String[] SCALA_3 = ["3.1.3", "3.2.0", "3.2.1"]
+    static final String[] SCALA_2 = ["2.11.12", "2.12.17", "2.13.10"]
+    static final String[] SCALA_3 = ["3.1.3", "3.2.1"]
 
     static final String[] DEFAULT = SCALA_2 + SCALA_3
     static final String[] LATEST_IN_MAJOR = [SCALA_2.last(), SCALA_3.last()]
