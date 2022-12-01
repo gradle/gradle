@@ -17,15 +17,11 @@
 package org.gradle.api.internal.tasks.scala
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec
-import org.gradle.api.internal.tasks.compile.ForkingJavaCompileSpec
-import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.toolchain.JavaInstallationMetadata
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
@@ -43,34 +39,24 @@ class DefaultScalaJavaJointCompileSpecFactoryTest extends Specification {
         otherJavaHome.file(OperatingSystem.current().getExecutableName("bin/java")).touch()
         otherJavaHome.file(OperatingSystem.current().getExecutableName("bin/javac")).touch()
 
-        def version = currentVM == 'current' ? Jvm.current().javaVersion.majorVersion : currentVM
-        def javaHome = currentVM == 'current' ? Jvm.current().javaHome : otherJavaHome.absoluteFile
+        def version = jvm == 'current' ? Jvm.current().javaVersion.majorVersion : jvm
+        def javaHome = jvm == 'current' ? Jvm.current().javaHome : otherJavaHome.absoluteFile
 
         JavaInstallationMetadata metadata = Mock(JavaInstallationMetadata)
         metadata.languageVersion >> JavaLanguageVersion.of(version)
         metadata.installationPath >> TestFiles.fileFactory().dir(javaHome)
         metadata.isCurrentJvm() >> (Jvm.current().javaHome == javaHome)
 
-        CompileOptions options = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
-        options.fork = fork
-        DefaultScalaJavaJointCompileSpecFactory factory = new DefaultScalaJavaJointCompileSpecFactory(options, metadata)
+        DefaultScalaJavaJointCompileSpecFactory factory = new DefaultScalaJavaJointCompileSpecFactory(metadata)
 
         when:
         def spec = factory.create()
 
         then:
         spec instanceof DefaultScalaJavaJointCompileSpec
-        ForkingJavaCompileSpec.isAssignableFrom(spec.getClass()) == implementsForking
-        CommandLineJavaCompileSpec.isAssignableFrom(spec.getClass()) == implementsCommandLine
 
         where:
-        currentVM | fork  | implementsForking | implementsCommandLine
-        'current' | false | false             | false
-        'current' | true  | true              | false
-        '7'       | false | false             | true
-        '7'       | true  | false             | true
-        '14'      | false | true              | false
-        '14'      | true  | true              | false
+        jvm << ["current", "7", "18"]
     }
 
 }

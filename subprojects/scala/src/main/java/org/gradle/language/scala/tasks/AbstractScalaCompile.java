@@ -29,7 +29,6 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
-import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpecFactory;
 import org.gradle.api.internal.tasks.scala.MinimalScalaCompileOptions;
@@ -157,7 +156,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     }
 
     protected ScalaJavaJointCompileSpec createSpec() {
-        DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpecFactory(compileOptions, getToolchain()).create();
+        DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpecFactory(getToolchain()).create();
         spec.setSourceFiles(getSource().getFiles());
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
@@ -170,13 +169,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
             ? ImmutableList.of()
             : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setBuildStartTimestamp(getServices().get(BuildStartedTime.class).getStartTime());
-        configureExecutable(spec.getCompileOptions().getForkOptions());
         return spec;
-    }
-
-    private void configureExecutable(MinimalJavaCompilerDaemonForkOptions forkOptions) {
-        String executable = getJavaLauncher().get().getExecutablePath().getAsFile().getAbsolutePath();
-        forkOptions.setExecutable(executable);
     }
 
     private void configureCompatibilityOptions(DefaultScalaJavaJointCompileSpec spec) {
