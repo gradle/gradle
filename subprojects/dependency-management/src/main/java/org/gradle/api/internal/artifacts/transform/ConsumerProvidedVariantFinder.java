@@ -59,7 +59,7 @@ public class ConsumerProvidedVariantFinder {
 
     /**
      * Executes the transformation chain detection algorithm given a set of producer variants and the requested
-     * attributes. Only the transforms chains of the shortest transformation depth are returned, and all results are
+     * attributes. Only the transform chains of the shortest transformation depth are returned, and all results are
      * guaranteed to have the same depth.
      *
      * @param sources The set of producer variants.
@@ -219,7 +219,7 @@ public class ConsumerProvidedVariantFinder {
         private List<TransformedVariant> query(
             List<ResolvedVariant> sources, ImmutableAttributes requested
         ) {
-            ArrayList<ImmutableAttributes> variantAttributes = new ArrayList<>(sources.size());
+            List<ImmutableAttributes> variantAttributes = new ArrayList<>(sources.size());
             for (ResolvedVariant variant : sources) {
                 variantAttributes.add(variant.getAttributes().asImmutable());
             }
