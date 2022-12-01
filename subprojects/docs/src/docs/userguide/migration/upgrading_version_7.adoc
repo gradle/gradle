@@ -106,7 +106,7 @@ tasks.withType<KotlinCompile>().configureEach {
 
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.13.html[Groovy 3.0.13].
 
-Since the previous version was 3.0.11, the https://groovy-lang.org/changelogs/changelog-3.0.12.html[3.0.12 changes] are also included.
+Since the previous version was 3.0.10, the https://groovy-lang.org/changelogs/changelog-3.0.11.html[3.0.11] and https://groovy-lang.org/changelogs/changelog-3.0.12.html[3.0.12] changes are also included.
 
 ==== Upgrade to PMD 6.48.0
 
