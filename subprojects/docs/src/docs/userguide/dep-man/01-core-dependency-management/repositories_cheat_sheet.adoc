@@ -1,0 +1,430 @@
+[[repositories-cheat-sheet]]
+= Repositories Cheat Sheet
+
+[TIP]
+====
+Just getting started with repositories?
+Check out the <<declaring_repositories.adoc#declaring-repositories, Declaring Repositories>> to learn the basics of repositories.
+====
+
+[[sec:supported_transport_protocols]]
+== Supported Repository Transport Protocols
+
+Gradle supports the following transport protocols for Maven and Ivy repositories:
+
+.Repository transport protocols
+[%header%autowidth,compact]
+|===
+| Type | Credential types | Link
+
+| `file`
+| none
+|
+
+| `http`
+| username/password
+| <<#sec:authentication_schemes, Documentation>>
+
+| `https`
+| username/password
+| <<#sec:authentication_schemes, Documentation>>
+
+| `sftp`
+| username/password
+| <<#sec:authentication_schemes, Documentation>>
+
+| `s3`
+| access key/secret key/session token or Environment variables
+| <<#sec:s3-repositories,Documentation>>
+
+| `gcs`
+| https://developers.google.com/identity/protocols/application-default-credentials[default application credentials] sourced from well known files, Environment variables etc.
+| <<#sec:gcs-repositories,Documentation>>
+|===
+
+[IMPORTANT]
+====
+Never check plain text usernames or passwords into version control as part of your build file.
+For more information about properly storing credentials, see <<sec:handling_credentials, Credentials>>.
+====
+
+The transport protocol is part of the URL that defines a repository.
+The following build script demonstrates how to create HTTP-based Maven and Ivy repositories:
+
+====
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-repository-no-auth]"]
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-repository-no-auth]"]
+====
+
+The following example shows how to declare SFTP repositories:
+
+.Using the SFTP protocol for a repository
+====
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-repository-auth]"]
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-repository-auth]"]
+====
+
+For details on HTTP related authentication, see <<#sec:authentication_schemes, Authentication Schemes>>.
+
+When using an AWS S3 backed repository you need to authenticate using link:{groovyDslPath}/org.gradle.api.credentials.AwsCredentials.html[AwsCredentials], providing access-key and a private-key. The following example shows how to declare a S3 backed repository and providing AWS credentials:
+
+.Declaring an S3 backed Maven and Ivy repository
+====
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-s3-repository]"]
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-s3-repository]"]
+====
+
+You can also delegate all credentials to the AWS sdk with `AwsImAuthentication`:
+
+.Declaring an S3 backed Maven and Ivy repository using IAM
+====
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-s3-repository-with-iam]"]
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-s3-repository-with-iam]"]
+====
+
+For details on AWS S3 related authentication, see the section <<#sec:s3-repositories>>.
+
+When using a Google Cloud Storage backed repository default application credentials will be used with no further configuration required:
+
+.Declaring a Google Cloud Storage backed Maven and Ivy repository using default application credentials
+====
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-gcs-repository]"]
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-gcs-repository]"]
+====
+
+For details on Google GCS related authentication, see the section <<#sec:gcs-repositories>>.
+
+[[sec:supported_metadata_sources]]
+== Supported Metadata Sources
+
+Gradle supports the following metadata sources:
+
+.Supported metadata sources
+[%header%autowidth,compact]
+|===
+| Metadata source | Description | Order | Maven | Ivy / flat dir
+
+| `gradleMetadata()`
+| Look for Gradle `.module` files
+| 1st
+| yes
+| yes
+
+| `mavenPom()`
+| Look for Maven `.pom` files
+| 2nd
+| yes
+| yes
+
+| `ivyDescriptor()`
+| Look for `ivy.xml` files
+| 2nd
+| no
+| yes
+
+| `artifact()`
+| Look directly for artifact
+| 3rd
+| yes
+| yes
+|===
+
+When searching for a module in a repository, Gradle checks for <<declaring_dependencies.adoc#sec:supported-metadata-formats,supported metadata file formats>>.
+
+* In a Maven repository, Gradle looks for a `.pom` file.
+* In an Ivy repository, Gradle looks for an `ivy.xml` file.
+* In a directory repository, Gradle looks directly for `.jar` files (since directory repositories do not contain metadata).
+
+Gradle also looks for Gradle Module Metadata (GMM) files (`.module`) in Maven and Ivy repositories.
+
+When you define a custom repository, you might want to configure this behavior.
+For example, you can define a Maven repository that only uses `.jar` files, without `.pom` files.
+To do so, you can configure _metadata sources_ for any repository.
+
+.Maven repository that supports artifacts without metadata
+====
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-repo-with-metadata-sources]"]
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-repo-with-metadata-sources]"]
+====
+
+You can specify multiple metadata sources. Gradle searches metadata sources in the declared order.
+
+When parsing a metadata file, Gradle looks for a marker indicating that a matching Gradle Module Metadata files exists.
+If it is found, Gradle uses the Gradle Module Metadata instead of the Ivy or Maven file.
+You can disable this behavior by adding `ignoreGradleMetadataRedirection()` to the `metadataSources` block:
+
+====
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-repo-with-ignore-gradle-metadata-redirection]"]
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-repo-with-ignore-gradle-metadata-redirection]"]
+====
+
+[[sec:authentication_schemes]]
+== Supported HTTP(S) Authentication Schemes
+
+Gradle supports the following authentication schemes over HTTP(S):
+
+link:{javadocPath}/org/gradle/authentication/http/BasicAuthentication.html[BasicAuthentication]::
+Basic access authentication over HTTP(S). When using this scheme, Gradle sends credentials preemptively.
+
+link:{javadocPath}/org/gradle/authentication/http/DigestAuthentication.html[DigestAuthentication]::
+Digest access authentication over HTTP(S).
+
+link:{javadocPath}/org/gradle/authentication/http/HttpHeaderAuthentication.html[HttpHeaderAuthentication]::
+Authentication based on any custom HTTP(S) header, e.g. private tokens, OAuth tokens, etc.
+
+By default, Gradle attempts to use http://hc.apache.org/httpcomponents-client-ga/tutorial/html/authentication.html#d5e625[all schemes supported by the Apache HttpClient library].
+You can also explicitly specify which authentication schemes to use with a repository.
+When explicitly declared, Gradle uses only the declared schemes.
+
+The following example shows how to configure a repository to use only the link:{javadocPath}/org/gradle/authentication/http/DigestAuthentication.html[DigestAuthentication] scheme:
+
+====
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=digest-authentication]"]
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=digest-authentication]"]
+====
+
+[[sub:preemptive_authentication]]
+=== Use Preemptive Authentication to Always Send Credentials
+
+By default, Gradle only submits credentials when a server responds with an authentication challenge in the form of an HTTP 401 response.
+In some cases, the server responds with a different code (e.g. GitHub repositories return a 404).
+To prevent this behavior from failing authentication, you can send credentials to the server preemptively.
+To enable preemptive authentication, use the link:{javadocPath}/org/gradle/authentication/http/BasicAuthentication.html[BasicAuthentication] scheme:
+
+====
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=preemptive-authentication]"]
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=preemptive-authentication]"]
+====
+
+[[sub:http-header-auth]]
+=== Use HTTP(S) Header Authentication
+
+You can specify any HTTP(S) header for secured Maven repositories requiring token, OAuth2 or other HTTP header-based authentication.
+To use HTTP(S) header authentication, specify credentials with link:{javadocPath}/org/gradle/api/credentials/HttpHeaderCredentials.html[HttpHeaderCredentials] and use the link:{javadocPath}/org/gradle/authentication/http/HttpHeaderAuthentication.html[HttpHeaderAuthentication] scheme:
+
+====
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=header-authenticated-maven-repo]"]
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=header-authenticated-maven-repo]"]
+====
+
+[[sub:s3_configuration_properties]]
+[[sec:s3-repositories]]
+== Declare an AWS S3 Repository
+
+You can use the following system properties to configure interactions with s3 repositories:
+
+`org.gradle.s3.endpoint`::
+Used to override the AWS S3 endpoint when using a non AWS, S3 API compatible, storage service.
+
+`org.gradle.s3.maxErrorRetry`::
+Specifies the maximum number of times to retry a request in the event that the S3 server responds with a HTTP 5xx status code. When not specified a default value of 3 is used.
+
+[[sub:s3_url_formats]]
+=== S3 URL formats
+
+S3 URL's are 'virtual-hosted-style' and must be in the following format
+
+----
+s3://<bucketName>[.<regionSpecificEndpoint>]/<s3Key>
+----
+
+e.g. `s3://myBucket.s3.eu-central-1.amazonaws.com/maven/release`
+
+* `myBucket` is the AWS S3 bucket name.
+* `s3.eu-central-1.amazonaws.com` is the _optional_ http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region[region specific endpoint].
+* `/maven/release` is the AWS S3 key (unique identifier for an object within a bucket)
+
+
+[[sub:s3_proxy_settings]]
+=== S3 proxy settings
+
+A proxy for S3 can be configured using the following system properties:
+
+* `https.proxyHost`
+* `https.proxyPort`
+* `https.proxyUser`
+* `https.proxyPassword`
+* `http.nonProxyHosts` (NOTE: this is not a typo.)
+
+If the `org.gradle.s3.endpoint` property has been specified with a HTTP (not HTTPS) URI the following system proxy settings can be used:
+
+* `http.proxyHost`
+* `http.proxyPort`
+* `http.proxyUser`
+* `http.proxyPassword`
+* `http.nonProxyHosts`
+
+[[sub:s3_v4_signatures]]
+=== AWS S3 V4 Signatures (AWS4-HMAC-SHA256)
+
+Some of the AWS S3 regions (eu-central-1 - Frankfurt) require that all HTTP requests are signed in accordance with AWS's http://docs.aws.amazon.com/general/latest/gr/signature-version-4.html[signature version 4]. It is recommended to specify S3 URL's containing the region specific endpoint when using buckets that require V4 signatures. e.g.
+
+----
+s3://somebucket.s3.eu-central-1.amazonaws.com/maven/release
+----
+
+[NOTE]
+====
+When a region-specific endpoint is not specified for buckets requiring V4 Signatures, Gradle uses the default AWS region (us-east-1) and the
+following warning appears on the console:
+
+> Attempting to re-send the request to .... with AWS V4 authentication. To avoid this warning in the future, use region-specific endpoint to access buckets located in regions that require V4 signing.
+
+Always specify a region-specific endpoint.
+
+Failure to specify the region-specific endpoint for buckets requiring V4 signatures means:
+
+* 3 round-trips to AWS, as opposed to one, for every file upload and download.
+* Depending on location - increased network latencies and slower builds.
+* Increased likelihood of transmission failures.
+====
+
+[[sub:s3_cross_account]]
+==== AWS S3 Cross Account Access
+
+Some organizations may have multiple AWS accounts, e.g. one for each team.
+The AWS account of the bucket owner is often different from the artifact publisher and consumers.
+The bucket owner must grant consumers access, otherwise artifacts are only usable from the publisher's account.
+To grant consumers access, add the `bucket-owner-full-control` link:https://docs.aws.amazon.com/AmazonS3/latest/dev/acl-overview.html#canned-acl[Canned ACL] to the uploaded objects.
+Gradle will do this in every upload.
+Make sure the publisher has the required IAM permissions either directly or via an assumed IAM Role:
+
+- `PutObjectAcl`
+- `PutObjectVersionAcl` if bucket versioning is enabled
+
+For more informration, see link:https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-access-control.html[AWS S3 Access Permissions].
+
+[[sub:gcs_configuration_properties]]
+[[sec:gcs-repositories]]
+== Declare a Google Cloud Storage Repository
+
+Use the following system properties to configure link:https://cloud.google.com/storage/[Google Cloud Storage] (GCS) repositories:
+
+`org.gradle.gcs.endpoint`::
+Used to override the GCS endpoint when using a non-Google Cloud Platform (GCP), GCS API compatible, storage service.
+
+`org.gradle.gcs.servicePath`::
+Used to override the GCS root service path which the Google Cloud Storage client builds requests from, defaults to `/`.
+
+[[sub:gcs_url_formats]]
+=== GCS URL formats
+
+GCS URL's are 'virtual-hosted-style' and must adhere to the following format `gcs://&lt;bucketName&gt;/&lt;objectKey&gt;`
+
+Consider the following GCS URL:
+
+----
+`gcs://myBucket/maven/release`
+----
+
+* `myBucket` is the GCS bucket name.
+* `/maven/release` is the GCS key (unique identifier for an object within a bucket)
+
+[[sec:handling_credentials]]
+== Credentials
+
+Never store credentials in plain text in your build script.
+Instead, store the credentials in a local `gradle.properties` file and use the link:https://plugins.gradle.org/plugin/nu.studer.credentials[credentials plugin] to encrypt and consume credentials.
+
+Gradle provides link:{javadocPath}/org/gradle/api/artifacts/repositories/AuthenticationSupported.html#credentials-java.lang.Class-[an API in artifact repositories]
+that allows you to declare only the type of required credentials. Gradle looks up credentials from your <<build_environment.adoc#sec:gradle_configuration_properties,Gradle Properties>> when a build requires them.
+
+Gradle supports lookup of the following credential types:
+
+[%header%autowidth,compact]
+[[credentials_lookup_properties]]
+|===
+| Type | Argument | Base property name | Required?
+
+
+.2+| `link:{javadocPath}/org/gradle/api/credentials/PasswordCredentials.html[PasswordCredentials]`
+| `username`
+| `Username`
+| required
+
+| `password`
+| `Password`
+| required
+
+.3+| `link:{javadocPath}/org/gradle/api/credentials/AwsCredentials.html[AwsCredentials]`
+| `accessKey`
+| `AccessKey`
+| required
+
+| `secretKey`
+| `SecretKey`
+| required
+
+| `sessionToken`
+| `SessionToken`
+| optional
+
+.2+| `link:{javadocPath}/org/gradle/api/credentials/HttpHeaderCredentials.html[HttpHeaderCredentials]`
+| `name`
+| `AuthHeaderName`
+| required
+
+| `value`
+| `AuthHeaderValue`
+| required
+
+|===
+
+In the following example, Gradle looks up the username and password from properties named `mySecureRepositoryUsername` and `mySecureRepositoryPassword`.
+Gradle assumes the property names based on the repository name:
+
+.Externalized repository credentials
+====
+include::sample[dir="samples/credentials-handling/publishing-credentials/groovy",files="build.gradle[tags=repositories]"]
+include::sample[dir="samples/credentials-handling/publishing-credentials/kotlin",files="build.gradle.kts[tags=repositories]"]
+====
+
+You can provide credentials to Gradple properties in the following ways:
+
+- `gradle.properties` file
+- command line arguments
+- environment variables
+
+Gradle only looks up credentials when they're required for a task in the requested build.
+If you run a build that requires credentials and those credentials aren't present, Gradle checks for credentials and fails early.
+If you run a build that *doesn't* require credentials, Gradle doesn't check for the credentials at all.
+
+For a complete project that demonstrates credential management best practices in Gradle, see the ../samples/sample_publishing_credentials.html[Publishing Credentials Sample].
+
+[[sub:maven_local]]
+== Declare a Local Maven Repository
+
+Gradle can consume dependencies from a link:https://maven.apache.org/guides/introduction/introduction-to-repositories.html[local Maven repository].
+Some teams use local Maven repositories to share artifacts between local projects.
+For instance, you might publish a library to the local repository and consume the library artifact from an application project.
+Don't use your local Maven repository as a cache: Gradle already stores resolved dependencies in <<dependency_resolution.adoc#sec:dependency_cache,its own cache>>.
+
+To add a local Maven repository to your build, add the following to your build script:
+
+====
+include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-local]"]
+include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-local]"]
+====
+
+Gradle uses the same logic as Maven to identify the location of your local Maven cache:
+
+* If your `settings.xml` defines a local repository, Gradle uses that location.
+* The `settings.xml` in `__USER_HOME__/.m2` takes precedence over the `settings.xml` in `__M2_HOME__/conf`.
+* If no `settings.xml` is available, Gradle uses the default location `__USER_HOME__/.m2/repository`.
+
+[[sec:case-for-maven-local]]
+=== Local Maven Repository Drawbacks
+
+Usually, you should not add a local Maven repository as a repository.
+Local Maven repositories impose the following drawbacks on your build:
+
+* The local Maven repository can contain partial dependencies, since Maven uses it as a cache. For example, if Maven never downloaded the source or javadoc files for a given module, Gradle will not find them either since it <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,searches for files in a single repository>> once a module has been found. _This can prevent Gradle from building successfully._
+* Artifact origins cannot be tracked (a correctness and security problem).
+* Artifacts can be overwritten, _so Gradle does not perform any caching_.
+
+However, sometimes you must use a local Maven repository:
+
+* Maven interoperability. For example, project A is built with Maven, project B is built with Gradle, and you need to share the artifacts during development.
+* Interoperability with Gradle itself. For example, you want to check that changes to project A work with project B. Usually you should use a <<composite_builds.adoc#composite_builds, composite build>> for this use case, but in some situations that isn't possible.
+
+If you do use a local Maven repository combine it with <<#sec:repository-content-filtering,a repository filter>> to ensure it only provides specific dependencies.

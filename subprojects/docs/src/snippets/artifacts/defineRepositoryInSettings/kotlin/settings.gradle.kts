@@ -19,9 +19,3 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 }
 // end::enforce_settings[]
-
-// tag::prefer_projects[]
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
-}
-// end::prefer_projects[]

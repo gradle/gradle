@@ -173,7 +173,7 @@ Gradle provides different notations for module dependencies. There is a string n
 ====
 If you declare a module dependency, Gradle looks for a module metadata file (`.module`, `.pom` or `ivy.xml`) in the repositories.
 If such a module metadata file exists, it is parsed and the artifacts of this module (e.g. `hibernate-3.0.5.jar`) as well as its dependencies (e.g. `cglib`) are downloaded.
-If no such module metadata file exists, as of Gradle 6.0, you need to configure <<declaring_repositories.adoc#sec:supported_metadata_sources,metadata sources definitions>> to look for an artifact file called `hibernate-3.0.5.jar` directly.
+If no such module metadata file exists, as of Gradle 6.0, you need to configure <<repositories_cheat_sheet.adoc#sec:supported_metadata_sources,metadata sources definitions>> to look for an artifact file called `hibernate-3.0.5.jar` directly.
 ====
 
 [NOTE]
@@ -429,7 +429,7 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-artifac
 External module dependencies require module metadata (so that, typically, Gradle can figure out the transitive dependencies of a module).
 To do so, Gradle supports different metadata formats.
 
-You can also tweak which format will be looked up in the <<declaring_repositories.adoc#sec:supported_metadata_sources,repository definition>>.
+You can also tweak which format will be looked up in the <<repositories_cheat_sheet.adoc#sec:supported_metadata_sources,repository definition>>.
 
 [[sub:supported-md-gradle]]
 === Gradle Module Metadata files
