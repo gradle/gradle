@@ -352,8 +352,8 @@ fun compilerConfigurationFor(messageCollector: MessageCollector): CompilerConfig
 
 private
 val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
-    languageVersion = LanguageVersion.KOTLIN_1_4,
-    apiVersion = ApiVersion.KOTLIN_1_4,
+    languageVersion = LanguageVersion.KOTLIN_1_7,
+    apiVersion = ApiVersion.KOTLIN_1_7,
     analysisFlags = mapOf(
         AnalysisFlags.skipMetadataVersionCheck to true,
         JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
