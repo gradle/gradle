@@ -17,7 +17,6 @@
 package org.gradle.internal.properties.annotations
 
 import com.google.common.reflect.TypeToken
-import org.gradle.api.GradleException
 import org.gradle.api.Named
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -28,6 +27,7 @@ import org.gradle.internal.reflect.annotations.TestNested
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import java.util.function.Function
 import java.util.function.Supplier
 
 class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnotationHandlingSupport {
@@ -144,7 +144,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         ]
     }
 
-    def "instance walker should throw exception with nested cycles for '#propertyWithCycle' property"() {
+    def "instance walker should throw exception when nested cycles for '#propertyWithCycle' property"() {
         given:
         def instance = new MyCycleTask()
         instance[propertyWithCycle] = propertyValue
@@ -154,7 +154,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
 
         then:
-        def exception = thrown(GradleException)
+        def exception = thrown(IllegalStateException)
         exception.message == "Cycles between nested beans are not allowed. Cycle detected between: $expectedCycle."
 
         where:
@@ -164,6 +164,28 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         'nestedList'        | [CycleFirstNode.newInitializedCycle()]                                                          | "'nestedList.\$0' and 'nestedList.\$0.secondNested.thirdNested.fourthNested'"
         'nestedMap'         | ['key1': CycleFirstNode.newInitializedCycle()]                                                  | "'nestedMap.key1' and 'nestedMap.key1.secondNested.thirdNested.fourthNested'"
         'nestedListOfLists' | [[CycleFirstNode.newInitializedCycle()]]                                                        | "'nestedListOfLists.\$0.\$0' and 'nestedListOfLists.\$0.\$0.secondNested.thirdNested.fourthNested'"
+    }
+
+    def "instance walker should throw exception when nested cycles for root and '#propertyWithCycle' property"() {
+        given:
+        def instance = new MyCycleTask()
+        instance[propertyWithCycle] = (propertyValueFunction as Function<MyCycleTask, Object>).apply(instance)
+        def visitor = new TestNodeMetadataVisitor()
+
+        when:
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
+
+        then:
+        def exception = thrown(IllegalStateException)
+        exception.message == "Cycles between nested beans are not allowed. Cycle detected between: $expectedCycle."
+
+        where:
+        propertyWithCycle   | propertyValueFunction                                                                                                           | expectedCycle
+        'nested'            | { MyCycleTask root -> CycleFirstNode.newInitializedRootCycle(root) }                                                            | "'<root>' and 'nested.secondNested.thirdNested.rootNested'"
+        'nestedProperty'    | { MyCycleTask root -> TestUtil.propertyFactory().property(CycleFirstNode).value(CycleFirstNode.newInitializedRootCycle(root)) } | "'<root>' and 'nestedProperty.secondNested.thirdNested.rootNested'"
+        'nestedList'        | { MyCycleTask root -> [CycleFirstNode.newInitializedRootCycle(root)] }                                                          | "'<root>' and 'nestedList.\$0.secondNested.thirdNested.rootNested'"
+        'nestedMap'         | { MyCycleTask root -> ['key1': CycleFirstNode.newInitializedRootCycle(root)] }                                                  | "'<root>' and 'nestedMap.key1.secondNested.thirdNested.rootNested'"
+        'nestedListOfLists' | { MyCycleTask root -> [[CycleFirstNode.newInitializedRootCycle(root)]] }                                                        | "'<root>' and 'nestedListOfLists.\$0.\$0.secondNested.thirdNested.rootNested'"
     }
 
     static String normalizeToString(String toString) {
@@ -287,6 +309,17 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
             cycleThirdNode.input = cycleFirstNode
             return cycleFirstNode
         }
+
+        static CycleFirstNode newInitializedRootCycle(MyCycleTask root) {
+            def cycleFirstNode = new CycleFirstNode()
+            def cycleSecondNode = new CycleSecondNode()
+            def cycleThirdNode = new CycleThirdNode()
+            cycleFirstNode.secondNested = cycleSecondNode
+            cycleSecondNode.thirdNested = cycleThirdNode
+            cycleThirdNode.rootNested = root
+            cycleThirdNode.input = cycleFirstNode
+            return cycleFirstNode
+        }
     }
 
     static class CycleSecondNode implements WithNormalizedToString {
@@ -297,6 +330,8 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
     static class CycleThirdNode implements WithNormalizedToString {
         @TestNested
         CycleFirstNode fourthNested
+        @TestNested
+        MyCycleTask rootNested
         @Long
         CycleFirstNode input
     }

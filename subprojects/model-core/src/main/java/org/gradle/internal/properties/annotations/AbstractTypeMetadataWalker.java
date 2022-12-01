@@ -17,7 +17,6 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.reflect.TypeToken;
-import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
 
@@ -49,7 +48,9 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
         Class<?> nodeType = resolveType(root);
         TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(nodeType);
         visitor.visitRoot(typeMetadata, root);
-        walkChildren(root, typeMetadata, null, visitor, nestedNodeToQualifiedNameMapFactory.get());
+        Map<T, String> nestedNodesOnPath = nestedNodeToQualifiedNameMapFactory.get();
+        nestedNodesOnPath.put(root, "<root>");
+        walkChildren(root, typeMetadata, null, visitor, nestedNodesOnPath);
     }
 
     private void walk(T node, String qualifiedName, PropertyMetadata propertyMetadata, NodeMetadataVisitor<T> visitor, Map<T, String> nestedNodesWalkedOnPath) {
@@ -120,7 +121,7 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
 
         @Override
         protected void onNestedNodeCycle(@Nullable String firstOccurrenceQualifiedName, String secondOccurrenceQualifiedName) {
-            throw new GradleException(String.format("Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.", firstOccurrenceQualifiedName, secondOccurrenceQualifiedName));
+            throw new IllegalStateException(String.format("Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.", firstOccurrenceQualifiedName, secondOccurrenceQualifiedName));
         }
 
         @Override
