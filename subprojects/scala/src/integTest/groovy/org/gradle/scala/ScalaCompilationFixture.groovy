@@ -73,8 +73,16 @@ class ScalaCompilationFixture {
         extraClass = new ScalaClass(
             'City',
             'class City',
-            'class City(val name: String)'
+            '''
+                /**
+                 * A city where a person can live.
+                 */
+                class City(val name: String)'''.stripIndent()
         )
+    }
+
+    def isScala3() {
+        return VersionNumber.parse(scalaVersion).getMajor() >= 3
     }
 
     def buildScript() {
