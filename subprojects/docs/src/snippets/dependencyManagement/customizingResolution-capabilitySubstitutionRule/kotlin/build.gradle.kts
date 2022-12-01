@@ -22,7 +22,7 @@ configurations.testCompileClasspath {
 tasks.register("resolve") {
     inputs.files(configurations.testCompileClasspath)
 
-    val files = configurations.testCompileClasspath.files
+    val files = configurations.testCompileClasspath.get().files
     doLast {
         println(files.map { it.name })
     }
