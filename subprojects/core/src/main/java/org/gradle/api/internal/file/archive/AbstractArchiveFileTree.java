@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.ScopedCache;
@@ -37,6 +38,7 @@ public abstract class AbstractArchiveFileTree implements FileSystemMirroringFile
 
     protected AbstractArchiveFileTree(ScopedCache cacheBuilder) {
         this.expansionCache = cacheBuilder.cache(EXPANSION_CACHE_KEY)
+                .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
                 .withDisplayName(EXPANSION_CACHE_NAME)
                 .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
                 .open();
