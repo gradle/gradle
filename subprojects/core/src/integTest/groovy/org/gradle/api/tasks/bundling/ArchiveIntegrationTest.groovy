@@ -1111,9 +1111,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     private String defineUpdateTask(String archiveType) {
         return """
             abstract class UpdateTask extends DefaultTask {
-                @Inject
-                abstract org.gradle.api.internal.file.FileOperations getFileOperations()
-
                 @InputFile
                 abstract RegularFileProperty getArchive()
 
@@ -1122,7 +1119,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void update() {
-                    FileTree tree = fileOperations.${archiveType}Tree(archive.asFile.get())
+                    FileTree tree = project.fileOperations.${archiveType}Tree(archive.asFile.get())
                     tree.visit(new EditingFileVisitor())
                 }
 
@@ -1142,9 +1139,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     private String defineVerifyTask(String archiveType) {
         return """
             abstract class VerifyTask extends DefaultTask {
-                @Inject
-                abstract org.gradle.api.internal.file.FileOperations getFileOperations()
-
                 @InputFile
                 abstract RegularFileProperty getArchive()
 
@@ -1153,7 +1147,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void verify() {
-                    FileTree tree = fileOperations.${archiveType}Tree(archive.asFile.get())
+                    FileTree tree = project.fileOperations.${archiveType}Tree(archive.asFile.get())
                     tree.visit(new VerifyingFileVisitor())
                 }
 

@@ -350,7 +350,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    ProjectScopedCache createProjectScopedCache(CacheRepository cacheRepository) {
+    protected ProjectScopedCache createProjectScopedCache(CacheRepository cacheRepository) {
         return new DefaultProjectScopedCache(project.getLayout().getBuildDirectory().dir("cache").get().getAsFile(), cacheRepository);
     }
 }
