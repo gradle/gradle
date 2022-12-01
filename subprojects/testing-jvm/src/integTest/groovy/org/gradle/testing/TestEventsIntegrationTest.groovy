@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 class TestEventsIntegrationTest extends AbstractIntegrationSpec {
     @UnsupportedWithConfigurationCache(because = "tests listener behaviour")
-    def "fails when #type is registered via gradle.addListener() and feature preview is enabled"() {
+    def "nags when #type is registered via gradle.addListener() and feature preview is enabled"() {
         settingsFile """
             enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
         """
@@ -43,10 +43,11 @@ class TestEventsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails("broken")
+        executer.expectDocumentedDeprecationWarning("Listener registration using Gradle.addListener() has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
+        run("broken")
 
         then:
-        failureHasCause("Listener registration using Gradle.addListener() is unsupported with the STABLE_CONFIGURATION_CACHE feature preview.")
+        noExceptionThrown()
 
         where:
         type               | listener
