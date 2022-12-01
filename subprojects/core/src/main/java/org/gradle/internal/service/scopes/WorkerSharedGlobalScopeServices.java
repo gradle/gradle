@@ -67,7 +67,7 @@ import static org.gradle.api.internal.provider.ManagedFactories.SetPropertyManag
 
 public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
-    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory, ListenerManager listenerManager) {
+    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
         return new DefaultCacheFactory(fileLockManager, executorFactory, progressLoggerFactory);
     }
 
