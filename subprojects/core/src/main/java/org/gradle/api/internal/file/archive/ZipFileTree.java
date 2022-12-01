@@ -125,7 +125,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
     private File getExpandedDir() {
         File zipFile = fileProvider.get();
-        String expandedDirName = zipFile.getName() + "_" + fileHasher.hash(zipFile);
+        String expandedDirName = "zip_" + fileHasher.hash(zipFile);
         return new File(expansionCache.getBaseDir(), expandedDirName);
     }
 
