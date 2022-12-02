@@ -3,7 +3,7 @@
 
 Gradle allows you to define **repositories**: sources for dependency downloads.
 During a build, Gradle searches repositories to resolve dependencies.
-You can specify repositories as locations in a file system, or as URLs.
+You can specify repositories as locations in a file system or URLs.
 Gradle can resolve dependencies from one or many repositories.
 
 [TIP]
