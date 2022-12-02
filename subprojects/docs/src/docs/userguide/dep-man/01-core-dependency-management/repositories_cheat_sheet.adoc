@@ -203,7 +203,7 @@ When searching for a module in a repository, Gradle checks for <<declaring_depen
 
 Gradle also looks for Gradle Module Metadata (GMM) files (`.module`) in Maven and Ivy repositories.
 
-When you define a custom repository, you might want to configure this behavior.
+When you define a custom repository, you should configure this behavior.
 
 For example, you can define a Maven repository that only uses `.jar` files, without `.pom` files.
 Use _metadata sources_ to configure metadata formats in a repository:
