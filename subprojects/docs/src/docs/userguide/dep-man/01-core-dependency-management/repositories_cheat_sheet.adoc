@@ -359,7 +359,7 @@ Make sure the publisher has the required IAM permissions either directly or via 
 * `PutObjectAcl`
 * `PutObjectVersionAcl` if bucket versioning is enabled
 
-For more informration, see link:https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-access-control.html[AWS S3 Access Permissions].
+For more information, see the link:https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-access-control.html[AWS S3 Access Permissions].
 
 [[sec:gcs-repositories]]
 == Declare a Google Cloud Storage Repository
