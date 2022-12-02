@@ -17,27 +17,27 @@
 package org.gradle.api.internal.cache;
 
 import org.gradle.api.provider.Provider;
-import org.gradle.cache.CacheCleanup;
+import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupFrequency;
 
 import java.util.function.Supplier;
 
-public class DefaultCacheCleanup implements CacheCleanup {
+public class DefaultCacheCleanupStrategy implements CacheCleanupStrategy {
     private final CleanupAction cleanupAction;
     private final Supplier<CleanupFrequency> cleanupFrequency;
 
-    private DefaultCacheCleanup(CleanupAction cleanupAction, Supplier<CleanupFrequency> cleanupFrequency) {
+    private DefaultCacheCleanupStrategy(CleanupAction cleanupAction, Supplier<CleanupFrequency> cleanupFrequency) {
         this.cleanupAction = cleanupAction;
         this.cleanupFrequency = cleanupFrequency;
     }
 
-    public static DefaultCacheCleanup from(CleanupAction cleanupAction, Provider<CleanupFrequency> cleanupFrequency) {
-        return new DefaultCacheCleanup(cleanupAction, cleanupFrequency::get);
+    public static DefaultCacheCleanupStrategy from(CleanupAction cleanupAction, Provider<CleanupFrequency> cleanupFrequency) {
+        return new DefaultCacheCleanupStrategy(cleanupAction, cleanupFrequency::get);
     }
 
-    public static DefaultCacheCleanup from(CleanupAction cleanupAction) {
-        return new DefaultCacheCleanup(cleanupAction, () -> CleanupFrequency.DAILY);
+    public static DefaultCacheCleanupStrategy from(CleanupAction cleanupAction) {
+        return new DefaultCacheCleanupStrategy(cleanupAction, () -> CleanupFrequency.DAILY);
     }
 
     @Override

@@ -15,9 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.internal.time.TimestampSuppliers;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.api.internal.cache.DefaultCacheCleanup;
+import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -59,12 +60,12 @@ public class WritableArtifactCacheLockingManager implements ArtifactCacheLocking
                 .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
                 .withDisplayName("artifact cache")
                 .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Don't need to lock anything until we use the caches
-                .withCleanup(createCacheCleanup(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cleanupActionDecorator, cacheConfigurations))
+                .withCleanupStrategy(createCacheCleanupStrategy(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cleanupActionDecorator, cacheConfigurations))
                 .open();
     }
 
-    private DefaultCacheCleanup createCacheCleanup(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions, CleanupActionDecorator cleanupActionDecorator, CacheConfigurationsInternal cacheConfigurations) {
-        return DefaultCacheCleanup.from(
+    private CacheCleanupStrategy createCacheCleanupStrategy(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions, CleanupActionDecorator cleanupActionDecorator, CacheConfigurationsInternal cacheConfigurations) {
+        return DefaultCacheCleanupStrategy.from(
             cleanupActionDecorator.decorate(createCleanupAction(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations)),
             cacheConfigurations.getCleanupFrequency()
         );
