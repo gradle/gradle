@@ -73,7 +73,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             tasks.register("checkDeps") {
                 inputs.files(configurations.compileClasspath)
                 doLast {
-                    val fileNames = configurations.compileClasspath.files.map(File::getName)
+                    val fileNames = configurations.compileClasspath.get().files.map(File::getName)
                     assert(fileNames == listOf("lib-1.1.jar"))
                 }
             }
@@ -125,7 +125,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             tasks.register("checkDeps") {
                 inputs.files(configurations.compileClasspath)
                 doLast {
-                    val fileNames = configurations.compileClasspath.files.map(File::getName)
+                    val fileNames = configurations.compileClasspath.get().files.map(File::getName)
                     assert(fileNames == listOf("test-1.0.jar"))
                 }
             }
