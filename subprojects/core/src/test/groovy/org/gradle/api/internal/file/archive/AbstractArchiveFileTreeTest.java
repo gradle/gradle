@@ -51,7 +51,6 @@ public abstract class AbstractArchiveFileTreeTest {
     @Rule public final TestNameTestDirectoryProvider tempDirProvider = new TestNameTestDirectoryProvider(getClass());
     @Rule public final Resources resources = new Resources();
     protected final TestFile tmpDir = tempDirProvider.getTestDirectory().file("tmp");
-    protected final TestFile userHome = tempDirProvider.getTestDirectory().file("user-home");
     protected final TestFile rootDir = tempDirProvider.getTestDirectory().file("root");
 
     protected abstract TestFile getArchiveFile();
@@ -65,6 +64,7 @@ public abstract class AbstractArchiveFileTreeTest {
         int numFiles = 2;
         int numThreads = 3;
 
+        // This visitor counts the lines in each file it visits, and makes available a list of all the line counts
         class CountingVisitor implements FileVisitor {
             private final List<Long> actualCounts = new ArrayList<>();
 
@@ -103,14 +103,23 @@ public abstract class AbstractArchiveFileTreeTest {
             visitors.add(new CountingVisitor());
         }
 
-        List<Callable<List<Long>>> callables = visitors.stream().map(v -> (Callable<List<Long>>) () -> {
-            getTree().visit(v);
-            return v.getActualCounts();
+        // Create callables that will send the visitors to visit the archive
+        List<Callable<List<Long>>> callables = visitors.stream().map(v -> {
+                return new Callable<List<Long>>() {
+                    @Override
+                    public List<Long> call() {
+                        getTree().visit(v);
+                        return v.getActualCounts();
+                    }
+                };
         }).collect(Collectors.toList());
 
+        // Concurrently visit the archive
         ExecutorService executorService = Executors.newFixedThreadPool(numThreads);
         List<Future<List<Long>>> results = executorService.invokeAll(callables);
 
+        // And check that each visitor counted the complete number of lines in each file in the archive
+        // (i.e. that the archive was not visited by the second visitor before the first visitor had finished fully decompressing it)
         results.forEach(f -> {
             try {
                 f.get().forEach(result -> assertEquals("Files should only be read after full expansion when all lines are present", numLines, result));
