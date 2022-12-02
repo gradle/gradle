@@ -40,7 +40,7 @@ public abstract class AbstractArchiveFileTree implements FileSystemMirroringFile
         this.expansionCache = cacheBuilder.cache(EXPANSION_CACHE_KEY)
                 .withDisplayName(EXPANSION_CACHE_NAME)
                 .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-                .withLockOptions(mode(FileLockManager.LockMode.Shared))
+                .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
                 .open();
     }
 
