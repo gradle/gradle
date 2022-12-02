@@ -279,7 +279,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 You can use the following system properties to configure interactions with s3 repositories:
 
 `org.gradle.s3.endpoint`::
-Used to override the AWS S3 endpoint when using a non AWS, S3 API compatible, storage service.
+Used to override the AWS S3 endpoint when using an S3-compatible storage service that is _not_ AWS.
 
 `org.gradle.s3.maxErrorRetry`::
 Specifies the maximum number of times to retry a request in the event that the S3 server responds with a HTTP 5xx status code. When not specified a default value of 3 is used.
