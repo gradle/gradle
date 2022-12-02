@@ -703,7 +703,7 @@ The S3 repository transport protocol allows Gradle to publish artifacts to AWS S
 }
 ----
 
-See <<declaring_repositories.adoc#sub:s3_cross_account,AWS S3 Cross Account Access>> for more information.
+See <<repositories_cheat_sheet.adoc#sub:s3_cross_account,AWS S3 Cross Account Access>> for more information.
 
 [[rel4.9:lazy_task_creation]]
 === [4.9] Consider trying the lazy API for task creation and configuration

@@ -129,7 +129,7 @@ Some common scenarios that require further reading include:
  * Declaring dependencies with <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
  * Declaring a sibling <<declaring_dependencies.adoc#sub:project_dependencies,project as a dependency>>
  * <<dependency_constraints.adoc#dependency-constraints,Controlling transitive dependencies and their versions>>
- * Testing your fixes to 3rd-party dependency via <<composite_builds.adoc#composite_builds,composite builds>> (a better alternative to publishing to and consuming from <<declaring_repositories.adoc#sub:maven_local,Maven Local>>)
+ * Testing your fixes to 3rd-party dependency via <<composite_builds.adoc#composite_builds,composite builds>> (a better alternative to publishing to and consuming from <<repositories_cheat_sheet.adoc#sub:maven_local,Maven Local>>)
 
 You’ll discover that Gradle has a rich API for working with dependencies — one that takes time to master, but is straightforward to use for common scenarios.
 
