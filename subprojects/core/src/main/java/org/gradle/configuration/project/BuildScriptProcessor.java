@@ -28,9 +28,7 @@ public class BuildScriptProcessor implements ProjectConfigureAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildScriptProcessor.class);
     private final ScriptPluginFactory configurerFactory;
 
-    public BuildScriptProcessor(
-        ScriptPluginFactory configurerFactory
-    ) {
+    public BuildScriptProcessor(ScriptPluginFactory configurerFactory) {
         this.configurerFactory = configurerFactory;
     }
 

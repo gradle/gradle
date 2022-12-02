@@ -60,7 +60,6 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     ) {
         Timer settingsProcessingClock = Time.startTimer();
         TextResourceScriptSource settingsScript = new TextResourceScriptSource(textFileResourceLoader.loadFile("settings file", settingsLocation.getSettingsFile()));
-
         SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(), settingsScript, gradleProperties, startParameter, baseClassLoaderScope);
 
         gradle.getBuildListenerBroadcaster().beforeSettings(settings);
