@@ -34,10 +34,10 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
 
     def "type walker should correctly visit empty type"() {
         given:
-        def visitor = new TestNodeMetadataVisitor()
+        def visitor = new TestStaticMetadataVisitor()
 
         when:
-        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyEmptyTask), visitor)
+        TypeMetadataWalker.typeWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyEmptyTask), visitor)
 
         then:
         visitor.all == ["null::MyEmptyTask"]
@@ -46,7 +46,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
     def "instance walker should correctly visit instance with null values"() {
         given:
         def myTask = new MyTask()
-        def visitor = new TestNodeMetadataVisitor()
+        def visitor = new TestInstanceMetadataVisitor()
 
         when:
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(myTask, visitor)
@@ -57,7 +57,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
 
     def "type walker should visit all nested nodes and properties"() {
         when:
-        def visitor = new TestNodeMetadataVisitor()
+        def visitor = new TestStaticMetadataVisitor()
         TypeMetadataWalker.typeWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyTask), visitor)
 
         then:
@@ -98,7 +98,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         myTask.nestedListOfLists = [[nestedType]]
         myTask.nestedNamedList = [namedType]
         myTask.nestedProperty = TestUtil.propertyFactory().property(NestedType).value(nestedType)
-        def visitor = new TestNodeMetadataVisitor()
+        def visitor = new TestInstanceMetadataVisitor()
 
         when:
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(myTask, visitor)
@@ -130,7 +130,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
 
     def "type walker should handle types with nested cycles"() {
         when:
-        def visitor = new TestNodeMetadataVisitor()
+        def visitor = new TestStaticMetadataVisitor()
         TypeMetadataWalker.typeWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyCycleTask), visitor)
 
         then:
@@ -148,7 +148,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         given:
         def instance = new MyCycleTask()
         instance[propertyWithCycle] = propertyValue
-        def visitor = new TestNodeMetadataVisitor()
+        def visitor = new TestInstanceMetadataVisitor()
 
         when:
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
@@ -170,7 +170,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         given:
         def instance = new MyCycleTask()
         instance[propertyWithCycle] = (propertyValueFunction as Function<MyCycleTask, Object>).apply(instance)
-        def visitor = new TestNodeMetadataVisitor()
+        def visitor = new TestInstanceMetadataVisitor()
 
         when:
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
@@ -192,7 +192,20 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         return toString.replace("$AbstractTypeMetadataWalkerTest.class.name\$", "")
     }
 
-    static class TestNodeMetadataVisitor<T> implements TypeMetadataWalker.NodeMetadataVisitor<T> {
+    static class TestStaticMetadataVisitor extends TestNodeMetadataVisitor<TypeToken<?>> implements TypeMetadataWalker.StaticMetadataVisitor {
+    }
+
+    static class TestInstanceMetadataVisitor extends TestNodeMetadataVisitor<Object> implements TypeMetadataWalker.InstanceMetadataVisitor {
+        @Override
+        void visitMissingNested(String qualifiedName, PropertyMetadata propertyMetadata) {
+        }
+
+        @Override
+        void visitUnpackNestedError(String qualifiedName, Exception e) {
+        }
+    }
+
+    static abstract class TestNodeMetadataVisitor<T> implements TypeMetadataWalker.NodeMetadataVisitor<T> {
         private List<CollectedNode> all = []
         private List<CollectedNode> roots = []
         private List<CollectedNode> nested = []
