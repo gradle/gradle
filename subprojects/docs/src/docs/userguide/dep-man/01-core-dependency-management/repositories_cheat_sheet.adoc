@@ -135,7 +135,8 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 
 For details on HTTP related authentication, see <<#sec:authentication_schemes, Authentication Schemes>>.
 
-When using an AWS S3 backed repository you need to authenticate using link:{groovyDslPath}/org.gradle.api.credentials.AwsCredentials.html[AwsCredentials], providing access-key and a private-key. The following example shows how to declare a S3 backed repository and providing AWS credentials:
+When using an AWS S3-backed repository, you need to authenticate using link:{groovyDslPath}/org.gradle.api.credentials.AwsCredentials.html[AwsCredentials], via an access-key and a private-key.
+The following example shows how to declare a S3 backed repository and provide AWS credentials:
 
 ====
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-s3-repository]"]
