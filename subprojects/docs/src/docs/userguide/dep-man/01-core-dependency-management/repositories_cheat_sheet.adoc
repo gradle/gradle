@@ -265,7 +265,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 [[sub:http-header-auth]]
 === Use HTTP(S) Header Authentication
 
-You can specify any HTTP(S) header for secured Maven repositories requiring token, OAuth2 or other HTTP header-based authentication.
+You can specify any HTTP(S) header for secured Maven repositories requiring token, OAuth2, or other HTTP header-based authentication.
 To use HTTP(S) header authentication, specify credentials with link:{javadocPath}/org/gradle/api/credentials/HttpHeaderCredentials.html[HttpHeaderCredentials] and use the link:{javadocPath}/org/gradle/authentication/http/HttpHeaderAuthentication.html[HttpHeaderAuthentication] scheme:
 
 ====
