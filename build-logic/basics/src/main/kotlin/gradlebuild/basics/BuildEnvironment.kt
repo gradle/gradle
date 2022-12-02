@@ -94,7 +94,7 @@ fun toPreTestedCommitBaseBranch(actualBranch: String): String = when {
 object BuildEnvironment {
 
     /**
-     * A selection of environment variables injected into the enviroment by the `codeql-env.sh` script.
+     * A selection of environment variables injected into the environment by the `codeql-env.sh` script.
      */
     private
     val CODEQL_ENVIRONMENT_VARIABLES = arrayOf(
