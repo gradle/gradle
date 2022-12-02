@@ -29,7 +29,7 @@ Gradle supports the following connection methods to access repositories:
 [[sec:declaring_multiple_repositories]]
 == Declare Multiple Repositories
 
-You an declare more than one repository within a single build.
+You can declare more than one repository within a single build.
 This can come in handy when certain dependencies are only available in one repository.
 
 Gradle uses the following rules to decide which repository to use to download each dependency:
