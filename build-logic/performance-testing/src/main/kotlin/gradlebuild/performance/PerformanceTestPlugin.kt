@@ -37,6 +37,7 @@ import gradlebuild.basics.propertiesForPerformanceDb
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runAndroidStudioInHeadlessMode
+import gradlebuild.capitalize
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.performance.Config.androidStudioVersion
 import gradlebuild.performance.Config.defaultAndroidStudioJvmArgs
@@ -48,6 +49,7 @@ import gradlebuild.performance.tasks.BuildCommitDistribution
 import gradlebuild.performance.tasks.DetermineBaselines
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.performance.tasks.PerformanceTestReport
+import gradlebuild.toLowerCase
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
