@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.component;
-
-import org.gradle.api.component.SoftwareComponent;
-
-import java.util.Set;
+package org.gradle.cache;
 
 /**
- * This will be replaced by {@link org.gradle.api.component.ComponentWithVariants} and other public APIs.
+ * A cache entity that can be cleaned on demand.
  */
-public interface SoftwareComponentInternal extends SoftwareComponent {
-    Set<? extends UsageContext> getUsages();
+public interface HasCleanupAction {
+    /**
+     * Cleans up the cache, if any cleanup action has been provided.
+     */
+    void cleanup();
 }

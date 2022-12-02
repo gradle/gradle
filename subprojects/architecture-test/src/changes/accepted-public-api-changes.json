@@ -1537,6 +1537,14 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.setDescription(org.gradle.api.NamedDomainObjectProvider,java.lang.String)",
+            "acceptation": "Old method is now hidden deprecated",
+            "changes": [
+                "Parameter 1 from null accepting to non-null accepting breaking change"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.DependenciesExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.DependenciesExtensionsKt.invoke(org.gradle.api.artifacts.dsl.DependencyAdder,org.gradle.api.artifacts.Dependency,org.gradle.api.Action)",
             "acceptation": "binary compatibilty check is confused",

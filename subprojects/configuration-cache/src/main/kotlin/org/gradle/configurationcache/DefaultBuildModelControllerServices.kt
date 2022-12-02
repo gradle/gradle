@@ -74,7 +74,7 @@ class DefaultBuildModelControllerServices(
             registration.add(BuildDefinition::class.java, buildDefinition)
             registration.add(BuildState::class.java, owner)
             registration.addProvider(ServicesProvider(buildDefinition, parentBuild, services))
-            registration.add(DeprecatedFeaturesListenerManagerAction::class.java)
+            registration.add(StableConfigurationCacheUnsupportedApiManagerAction::class.java)
             if (buildModelParameters.isConfigurationCache) {
                 registration.add(ConfigurationCacheBuildEnablement::class.java)
                 registration.add(ConfigurationCacheProblemsListenerManagerAction::class.java)

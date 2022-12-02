@@ -203,6 +203,11 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         cacheAccess.useCache(action);
     }
 
+    @Override
+    public void cleanup() {
+        cacheAccess.cleanup();
+    }
+
     private class Cleanup implements CacheCleanupAction {
         @Override
         public boolean requiresCleanup() {

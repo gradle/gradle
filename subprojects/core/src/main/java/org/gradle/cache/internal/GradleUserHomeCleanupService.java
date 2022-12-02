@@ -36,6 +36,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
     private final ProgressLoggerFactory progressLoggerFactory;
     private final MonitoredCleanupActionDecorator cleanupActionDecorator;
     private final CacheConfigurationsInternal cacheConfigurations;
+    private boolean alreadyCleaned;
 
     public GradleUserHomeCleanupService(
         Deleter deleter,
@@ -55,8 +56,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
         this.cacheConfigurations = cacheConfigurations;
     }
 
-    @Override
-    public void stop() {
+    public void cleanup() {
         File cacheBaseDir = globalScopedCache.getRootDir();
         boolean wasCleanedUp = execute(
             cleanupActionDecorator.decorate(
@@ -67,9 +67,22 @@ public class GradleUserHomeCleanupService implements Stoppable {
                     deleter,
                     cacheConfigurations.getCleanupFrequency().get()
                 )
-            ));
+            )
+        );
         if (wasCleanedUp) {
-            execute(cleanupActionDecorator.decorate(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions)));
+            execute(
+                cleanupActionDecorator.decorate(
+                    new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions)
+                )
+            );
+        }
+        alreadyCleaned = true;
+    }
+
+    @Override
+    public void stop() {
+        if (!alreadyCleaned) {
+            cleanup();
         }
     }
 

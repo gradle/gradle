@@ -27,6 +27,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.CacheVisitor;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
@@ -60,6 +61,11 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         return new InMemoryCache(cacheDir, displayName, CleanupAction.NO_OP);
     }
 
+    @Override
+    public void visitCaches(CacheVisitor visitor) {
+        throw new UnsupportedOperationException();
+    }
+
     private class InMemoryCache implements PersistentCache {
         private final File cacheDir;
         private final String displayName;
@@ -74,12 +80,17 @@ public class TestInMemoryCacheFactory implements CacheFactory {
 
         @Override
         public void close() {
+            cleanup();
+            closed = true;
+        }
+
+        @Override
+        public void cleanup() {
             if (cleanup!=null) {
                 synchronized (this) {
                     cleanup.clean(this, CleanupProgressMonitor.NO_OP);
                 }
             }
-            closed = true;
         }
 
         public boolean isClosed() {
