@@ -423,12 +423,6 @@ dependencies {
     debug 'test:a:1.2'
     release 'test:a:1.2'
 }
-task xcheckDebug {
-    doLast { assert configurations.debug.files*.name == ['a-1.2-debug.jar', 'b-2.0.jar', 'c-preview-debug.jar'] }
-}
-task xcheckRelease {
-    doLast { assert configurations.release.files*.name == [] }
-}
 """
         resolve.prepare {
             config("debug")
