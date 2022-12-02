@@ -168,7 +168,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 === Specify a Named Layout for an Ivy Repository
 
 You can specify that your repository conforms to the Ivy or Maven default layout with a named layout.
-To add an Ivy repository with a named layout to your build, add the following to your build script:
+To add an Ivy repository with a named layout to a build, add the following to your build script:
 
 ====
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=ivy-repo-with-maven-layout]"]
