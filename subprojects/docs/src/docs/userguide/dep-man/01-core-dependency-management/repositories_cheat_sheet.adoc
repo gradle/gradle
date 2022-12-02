@@ -150,7 +150,7 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-s3-repository-with-iam]"]
 ====
 
-For details on AWS S3 related authentication, see the section <<#sec:s3-repositories>>.
+For details about authenticating with AWS S3, see <<#sec:s3-repositories,Declare an AWS S3 Repository>>.
 
 Google Cloud Storage repositories use default application credentials with no further configuration required:
 
