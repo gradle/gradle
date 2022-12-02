@@ -52,6 +52,7 @@ import org.gradle.cache.internal.DefaultDecompressionCache;
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
 import org.gradle.cache.internal.scopes.DefaultProjectScopedCache;
 import org.gradle.cache.scopes.ProjectScopedCache;
+import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.FileHasher;
@@ -157,12 +158,12 @@ public class WorkerSharedProjectScopeServices {
         return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 
-    protected ProjectScopedCache createProjectScopedCache(CacheRepository cacheRepository) {
-        return new DefaultProjectScopedCache(new File(projectDir, ".gradle"), cacheRepository);
+    protected ProjectScopedCache createProjectScopedCache(CacheRepository cacheRepository, GradleUserHomeDirProvider gradleUserHomeDirProvider) {
+        return new DefaultProjectScopedCache(gradleUserHomeDirProvider.getGradleUserHomeDirectory(), cacheRepository);
     }
 
-    protected CacheRepository createCacheRepository(CacheFactory cacheFactory) {
-        return new DefaultCacheRepository(new DefaultCacheScopeMapping(new File(projectDir, ".gradle"), GradleVersion.current()), cacheFactory);
+    protected CacheRepository createCacheRepository(CacheFactory cacheFactory, GradleUserHomeDirProvider gradleUserHomeDirProvider) {
+        return new DefaultCacheRepository(new DefaultCacheScopeMapping(gradleUserHomeDirProvider.getGradleUserHomeDirectory(), GradleVersion.current()), cacheFactory);
     }
 
     protected DecompressionCache createDecompressionCache(ProjectScopedCache cacheFactory) {
