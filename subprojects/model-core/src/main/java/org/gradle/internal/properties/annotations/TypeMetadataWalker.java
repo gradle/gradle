@@ -17,29 +17,33 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.reflect.TypeToken;
-import org.gradle.internal.UncheckedException;
 
 import java.lang.annotation.Annotation;
 import java.util.function.Supplier;
 
-public interface TypeMetadataWalker<T> {
-    static TypeMetadataWalker<Object> instanceWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
+public interface TypeMetadataWalker<T, V extends TypeMetadataWalker.NodeMetadataVisitor<T>> {
+    static InstanceMetadataWalker instanceWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
         return new AbstractTypeMetadataWalker.InstanceTypeMetadataWalker(typeMetadataStore, nestedAnnotation);
     }
 
-    static TypeMetadataWalker<TypeToken<?>> typeWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
+    static StaticMetadataWalker typeWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
         return new AbstractTypeMetadataWalker.StaticTypeMetadataWalker(typeMetadataStore, nestedAnnotation);
     }
 
-    void walk(T root, NodeMetadataVisitor<T> visitor);
+    void walk(T root, V visitor);
 
+    interface StaticMetadataWalker extends TypeMetadataWalker<TypeToken<?>, StaticMetadataVisitor> {}
+    interface InstanceMetadataWalker extends TypeMetadataWalker<Object, InstanceMetadataVisitor> {}
 
     interface NodeMetadataVisitor<T> {
         void visitRoot(TypeMetadata typeMetadata, T value);
         void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, T value);
         void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<T> value);
-        default void visitUnpackNestedError(String qualifiedName, Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+    }
+
+    interface StaticMetadataVisitor extends NodeMetadataVisitor<TypeToken<?>> {}
+    interface InstanceMetadataVisitor extends NodeMetadataVisitor<Object> {
+        void visitMissingNested(String qualifiedName, PropertyMetadata propertyMetadata);
+        void visitUnpackNestedError(String qualifiedName, Exception e);
     }
 }

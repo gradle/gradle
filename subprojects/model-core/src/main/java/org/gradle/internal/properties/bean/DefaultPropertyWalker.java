@@ -34,6 +34,7 @@ import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.properties.annotations.TypeMetadataWalker;
+import org.gradle.internal.properties.annotations.TypeMetadataWalker.InstanceMetadataWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.snapshot.impl.ImplementationValue;
 
@@ -49,7 +50,7 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 @NonNullApi
 public class DefaultPropertyWalker implements PropertyWalker {
-    private final TypeMetadataWalker<Object> walker;
+    private final InstanceMetadataWalker walker;
     private final ImplementationResolver implementationResolver;
     private final Map<Class<? extends Annotation>, PropertyAnnotationHandler> handlers;
 
@@ -61,7 +62,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
     @Override
     public void visitProperties(Object bean, TypeValidationContext validationContext, PropertyVisitor visitor) {
-        walker.walk(bean, new TypeMetadataWalker.NodeMetadataVisitor<Object>() {
+        walker.walk(bean, new TypeMetadataWalker.InstanceMetadataVisitor() {
             @Override
             public void visitRoot(TypeMetadata typeMetadata, Object value) {
                 typeMetadata.visitValidationFailures(null, validationContext);
@@ -74,6 +75,10 @@ public class DefaultPropertyWalker implements PropertyWalker {
                 visitor.visitInputProperty(qualifiedName, new ImplementationPropertyValue(implementation), false);
                 PropertyValue staticValue = new StaticValue(value);
                 visitValue(qualifiedName, propertyMetadata, staticValue, visitor);
+            }
+
+            @Override
+            public void visitMissingNested(String qualifiedName, PropertyMetadata propertyMetadata) {
             }
 
             @Override
