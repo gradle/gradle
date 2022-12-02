@@ -15,7 +15,7 @@ For an overview of dependency management terms, see <<dependency_management_term
 == Dependency Management in Gradle
 
 Gradle has built-in support for dependency management.
-We’ll explore the main concepts with the help of the theoretical example project illustrated below:
+We’ll explore the main concepts with the help of the theoretical project illustrated below:
 
 [.inset]
 image::dependency-management-resolution.png[]
