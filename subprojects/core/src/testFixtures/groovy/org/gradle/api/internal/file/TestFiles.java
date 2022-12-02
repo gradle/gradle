@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
@@ -29,14 +28,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheOpenException;
-import org.gradle.cache.CleanupAction;
-import org.gradle.cache.LockOptions;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.CacheFactory;
-import org.gradle.cache.scopes.ScopedCache;
-import org.gradle.internal.Actions;
+import org.gradle.cache.internal.TestCaches;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.file.Deleter;
@@ -61,17 +53,12 @@ import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
-import org.gradle.testfixtures.internal.TestInMemoryCacheFactory;
 import org.gradle.util.TestUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
 
-import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 import static org.gradle.util.TestUtil.objectFactory;
@@ -187,7 +174,7 @@ public class TestFiles {
             documentationRegistry(),
             taskDependencyFactory(),
             providerFactory(),
-            scopedCache(temporaryFileProvider.newTemporaryDirectory("cache-dir")));
+            TestCaches.decompressionCache(temporaryFileProvider.newTemporaryDirectory("cache-dir")));
     }
 
     public static ApiTextResourceAdapter.Factory textResourceAdapterFactory(@Nullable TemporaryFileProvider temporaryFileProvider) {
@@ -293,96 +280,4 @@ public class TestFiles {
         return new DefaultTemporaryFileProvider(() -> baseDir);
     }
 
-    public static ScopedCache scopedCache(File cacheDir) {
-        return new TestInMemoryScopedCache(cacheDir);
-    }
-
-    private static final class TestInMemoryScopedCache implements ScopedCache {
-        private final File cacheDir;
-
-        private TestInMemoryScopedCache(File cacheDir) {
-            this.cacheDir = cacheDir;
-        }
-
-        @Override
-        public CacheBuilder cache(String key) {
-            return new TestInMemoryCacheBuilder(baseDirForCache(key));
-        }
-
-        @Override
-        public CacheBuilder crossVersionCache(String key) {
-            return new TestInMemoryCacheBuilder(baseDirForCrossVersionCache(key));
-        }
-
-        @Override
-        public File getRootDir() {
-            return cacheDir;
-        }
-
-        @Override
-        public File baseDirForCache(String key) {
-            return new File(cacheDir, "base");
-        }
-
-        @Override
-        public File baseDirForCrossVersionCache(String key) {
-            return new File(cacheDir, "cross-version-base");
-        }
-    }
-
-    private static final class TestInMemoryCacheBuilder implements CacheBuilder {
-        private final CacheFactory cacheFactory = new TestInMemoryCacheFactory();
-        private final File cacheDir;
-        private Map<String, ?> properties = Collections.emptyMap();
-        private LockTarget lockTarget = LockTarget.DefaultTarget;
-        private String displayName = "Test In Memory Cache";
-        private LockOptions lockOptions = mode(Exclusive);
-        private Action<? super PersistentCache> initializer = Actions.doNothing();
-        private CleanupAction cleanup = CleanupAction.NO_OP;
-
-        private TestInMemoryCacheBuilder(File cacheDir) {
-            this.cacheDir = cacheDir;
-        }
-
-        @Override
-        public CacheBuilder withProperties(Map<String, ?> properties) {
-            this.properties = properties;
-            return this;
-        }
-
-        @Override
-        public CacheBuilder withCrossVersionCache(LockTarget lockTarget) {
-            this.lockTarget = lockTarget;
-            return this;
-        }
-
-        @Override
-        public CacheBuilder withDisplayName(String displayName) {
-            this.displayName = displayName;
-            return this;
-        }
-
-        @Override
-        public CacheBuilder withLockOptions(LockOptions lockOptions) {
-            this.lockOptions = lockOptions;
-            return this;
-        }
-
-        @Override
-        public CacheBuilder withInitializer(Action<? super PersistentCache> initializer) {
-            this.initializer = initializer;
-            return this;
-        }
-
-        @Override
-        public CacheBuilder withCleanup(CleanupAction cleanup) {
-            this.cleanup = cleanup;
-            return this;
-        }
-
-        @Override
-        public PersistentCache open() throws CacheOpenException {
-            return cacheFactory.open(cacheDir, displayName, properties, lockTarget, lockOptions, initializer, cleanup);
-        }
-    }
 }

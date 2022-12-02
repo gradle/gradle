@@ -46,11 +46,12 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.cache.internal.DefaultCacheRepository;
+import org.gradle.cache.internal.DefaultDecompressionCache;
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
 import org.gradle.cache.internal.scopes.DefaultProjectScopedCache;
 import org.gradle.cache.scopes.ProjectScopedCache;
-import org.gradle.cache.scopes.ScopedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.FileHasher;
@@ -103,7 +104,7 @@ public class WorkerSharedProjectScopeServices {
             DocumentationRegistry documentationRegistry,
             ProviderFactory providers,
             TaskDependencyFactory taskDependencyFactory,
-            ScopedCache decompressionCacheFactory
+            DecompressionCache decompressionCache
     ) {
         return new DefaultFileOperations(
                 fileResolver,
@@ -121,7 +122,7 @@ public class WorkerSharedProjectScopeServices {
                 documentationRegistry,
                 taskDependencyFactory,
                 providers,
-                decompressionCacheFactory);
+                decompressionCache);
     }
 
     protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
@@ -162,5 +163,9 @@ public class WorkerSharedProjectScopeServices {
 
     protected CacheRepository createCacheRepository(CacheFactory cacheFactory) {
         return new DefaultCacheRepository(new DefaultCacheScopeMapping(new File(projectDir, ".gradle"), GradleVersion.current()), cacheFactory);
+    }
+
+    protected DecompressionCache createDecompressionCache(ProjectScopedCache cacheFactory) {
+        return new DefaultDecompressionCache(cacheFactory);
     }
 }

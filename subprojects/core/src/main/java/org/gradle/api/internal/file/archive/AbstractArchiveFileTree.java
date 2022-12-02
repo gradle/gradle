@@ -21,33 +21,20 @@ import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.scopes.ScopedCache;
+import org.gradle.cache.internal.DecompressionCache;
 
 import java.io.File;
-
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 /**
  * Abstract base class for a {@link org.gradle.api.file.FileTree FileTree} that is backed by an archive file.
  *
- * Will decompress the archive file to a managed cache directory, so that access to the archive's contents
- * are only permitted one at a time.  The cache directory is a Gradle cross version cache.
+ * Will decompress the archive file to the given cache.
  */
 /* package */ abstract class AbstractArchiveFileTree implements FileSystemMirroringFileTree, TaskDependencyContainer {
-    private static final String EXPANSION_CACHE_KEY = "compressed-file-expansion";
-    private static final String EXPANSION_CACHE_NAME = "Compressed Files Expansion Cache";
+    protected final DecompressionCache decompressionCache;
 
-    protected final PersistentCache expansionCache;
-
-    protected AbstractArchiveFileTree(ScopedCache decompressionCacheFactory) {
-        this.expansionCache = decompressionCacheFactory.cache(EXPANSION_CACHE_KEY)
-                .withDisplayName(EXPANSION_CACHE_NAME)
-                .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-                .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
-                .open();
+    protected AbstractArchiveFileTree(DecompressionCache decompressionCache) {
+        this.decompressionCache = decompressionCache;
     }
 
     abstract protected Provider<File> getBackingFileProvider();

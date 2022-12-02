@@ -24,7 +24,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.cache.scopes.ScopedCache;
+import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -52,9 +52,9 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         Chmod chmod,
         DirectoryFileTreeFactory directoryFileTreeFactory,
         FileHasher fileHasher,
-        ScopedCache cacheBuilder
+        DecompressionCache decompressionCache
     ) {
-        super(cacheBuilder);
+        super(decompressionCache);
         this.fileProvider = zipFile;
         this.chmod = chmod;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
@@ -78,7 +78,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
 
     @Override
     public void visit(FileVisitor visitor) {
-        expansionCache.useCache(() -> {
+        decompressionCache.useCache(() -> {
             File zipFile = fileProvider.get();
             if (!zipFile.exists()) {
                 throw new InvalidUserDataException(format("Cannot expand %s as it does not exist.", getDisplayName()));
@@ -126,7 +126,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
     private File getExpandedDir() {
         File zipFile = fileProvider.get();
         String expandedDirName = "zip_" + fileHasher.hash(zipFile);
-        return new File(expansionCache.getBaseDir(), expandedDirName);
+        return new File(decompressionCache.getBaseDir(), expandedDirName);
     }
 
     private static final class DetailsImpl extends AbstractArchiveFileTreeElement {
