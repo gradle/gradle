@@ -17,9 +17,15 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
+    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
+
     def setup() {
+        settingsFile << """
+            rootProject.name = 'test'
+        """
         buildFile << """
             def usage = Attribute.of('usage', String)
             allprojects {
@@ -31,6 +37,8 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                 configurations { compile { attributes.attribute(usage, 'for-compile') } }
             }
         """
+        resolve.expectDefaultConfiguration("compile")
+        resolve.prepare()
     }
 
     def "artifact file may have no extension"() {
@@ -41,39 +49,28 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                     compile file("foo")
                     compile file("foo.txt")
                 }
-                task checkArtifacts {
-                    doLast {
-                        assert configurations.compile.artifacts.files.collect { it.name } == ["foo", "foo.txt"]
-                        assert configurations.compile.artifacts.collect { it.file.name } == ["foo", "foo.txt"]
-                        assert configurations.compile.artifacts.collect { "\$it.name:\$it.extension:\$it.type" } == ["foo::", "foo:txt:txt"]
-                        assert configurations.compile.artifacts.collect { it.classifier } == [null, null]
-                    }
-                }
+                assert configurations.compile.artifacts.files.collect { it.name } == ["foo", "foo.txt"]
+                assert configurations.compile.artifacts.collect { it.file.name } == ["foo", "foo.txt"]
+                assert configurations.compile.artifacts.collect { "\$it.name:\$it.extension:\$it.type" } == ["foo::", "foo:txt:txt"]
+                assert configurations.compile.artifacts.collect { it.classifier } == [null, null]
             }
             project(':b') {
                 dependencies {
                     compile project(':a')
                 }
-                task checkArtifacts {
-                    doLast {
-                        assert configurations.compile.files.collect { it.name } == ["foo", "foo.txt"]
-                        assert configurations.compile.files { true }.collect { it.name } == ["foo", "foo.txt"]
-                        assert configurations.compile.fileCollection { true }.collect { it.name } == ["foo", "foo.txt"]
-                        assert configurations.compile.incoming.artifacts.collect { it.file.name } == ["foo", "foo.txt"]
-                        assert configurations.compile.resolvedConfiguration.files.collect { it.name } == ["foo", "foo.txt"]
-                        assert configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name } == ["foo", "foo.txt"]
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name } == ["foo", "foo.txt"]
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { "\$it.name:\$it.extension:\$it.type" } == ["foo::", "foo:txt:txt"]
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.collect { it.classifier } == [null, null]
-                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.files.collect { it.name } == ["foo", "foo.txt"]
-                        assert configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name } == ["foo", "foo.txt"]
-                    }
-                }
             }
         """
 
         expect:
-        succeeds "checkArtifacts"
+        succeeds "b:checkDeps"
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                    artifact(name: 'foo', type: '')
+                    artifact(name: 'foo', type: 'txt')
+                }
+            }
+        }
     }
 
     def "can define artifact using file and configure other properties using a map or closure or action"() {
@@ -95,14 +92,10 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                         classifier = "report"
                     })
                 }
-                task checkArtifacts {
-                    doLast {
-                        assert configurations.compile.artifacts.files.collect { it.name } == ["a", "b", "c"]
-                        assert configurations.compile.artifacts.collect { it.file.name } == ["a", "b", "c"]
-                        assert configurations.compile.artifacts.collect { "\$it.name:\$it.extension:\$it.type" } == ["thing-a:txt:report", "thing-b:txt:report", "thing-c::report"]
-                        assert configurations.compile.artifacts.collect { it.classifier } == ["report", "report", "report"]
-                    }
-                }
+                assert configurations.compile.artifacts.files.collect { it.name } == ["a", "b", "c"]
+                assert configurations.compile.artifacts.collect { it.file.name } == ["a", "b", "c"]
+                assert configurations.compile.artifacts.collect { "\$it.name:\$it.extension:\$it.type" } == ["thing-a:txt:report", "thing-b:txt:report", "thing-c::report"]
+                assert configurations.compile.artifacts.collect { it.classifier } == ["report", "report", "report"]
             }
             project(':b') {
                 dependencies {
@@ -120,7 +113,16 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds("checkArtifacts")
+        succeeds "b:checkDeps"
+        resolve.expectGraph {
+            root(":b", "test:b:") {
+                project(":a", "test:a:") {
+                    artifact(name: 'thing-a', classifier: 'report', extension: 'txt', type: 'report', fileName: 'a')
+                    artifact(name: 'thing-b', classifier: 'report', extension: 'txt', type: 'report', fileName: 'b')
+                    artifact(name: 'thing-c', classifier: 'report', extension: '', type: 'report', fileName: 'c')
+                }
+            }
+        }
     }
 
     def "can define outgoing artifacts for configuration"() {
@@ -209,7 +211,7 @@ task checkArtifacts {
                 }
                 task jar {}
             }
-            
+
             project(':b') {
                 dependencies {
                     compile project(':a')
@@ -218,7 +220,7 @@ task checkArtifacts {
                 task checkArtifacts {
                     inputs.files configurations.compile
                     doLast {
-                        configurations.compile.resolvedConfiguration.resolvedArtifacts.forEach { println it } 
+                        configurations.compile.resolvedConfiguration.resolvedArtifacts.forEach { println it }
                     }
                 }
             }
@@ -247,7 +249,7 @@ task checkArtifacts {
                 }
                 task jar {}
             }
-            
+
             project(':b') {
                 dependencies {
                     compile project(':a')
@@ -256,7 +258,7 @@ task checkArtifacts {
                 task checkArtifacts {
                     inputs.files configurations.compile
                     doLast {
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.each { println it } 
+                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.each { println it }
                     }
                 }
             }
@@ -289,7 +291,7 @@ task checkArtifacts {
                 }
                 task classes {}
             }
-            
+
             project(':b') {
                 dependencies {
                     compile project(':a')
@@ -298,7 +300,7 @@ task checkArtifacts {
                 task checkArtifacts {
                     inputs.files configurations.compile
                     doLast {
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.each { println it } 
+                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.each { println it }
                     }
                 }
             }

@@ -479,8 +479,7 @@ project(':tool') {
 }
 
 """
-        resolve.config = "runtimeClasspath"
-        resolve.prepare()
+        resolve.prepare("runtimeClasspath")
 
         when:
         run("tool:checkDeps")
@@ -534,8 +533,7 @@ configurations.all {
     }
 }
 """
-        resolve.config = "runtimeClasspath"
-        resolve.prepare()
+        resolve.prepare("runtimeClasspath")
 
         when:
         run("checkDeps")
