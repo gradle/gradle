@@ -271,7 +271,7 @@ include::sample[dir="snippets/java/toolchain-management/kotlin/",files="settings
 ====
 <1> In the `toolchainManagement` block, the `jvm` block contains configuration for Java toolchains.
 <2> The `javaRepositories` block defines named Java toolchain repository configurations. Use the `resolverClass` property to link these configurations to plugins.
-<3> You can configure toolchain repositories with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options>> used for dependency management.
+<3> You can configure toolchain repositories with the same set of <<repositories_cheat_sheet.adoc#sec:authentication_schemes,authentication and authorization options>> used for dependency management.
 <4> Toolchain declaration order matters. Gradle downloads from the first repository that provides a match, starting with the first repository in the list.
 
 [WARNING]

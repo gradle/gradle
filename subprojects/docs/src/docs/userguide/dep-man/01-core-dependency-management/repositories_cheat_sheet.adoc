@@ -7,6 +7,78 @@ Just getting started with repositories?
 Check out the <<declaring_repositories.adoc#declaring-repositories, Declaring Repositories>> to learn the basics of repositories.
 ====
 
+[[sec:handling_credentials]]
+== Credentials
+
+Never store credentials in plain text in your build script.
+Instead, store the credentials in a local `gradle.properties` file and use the link:https://plugins.gradle.org/plugin/nu.studer.credentials[credentials plugin] to encrypt and consume credentials.
+
+You can use link:{javadocPath}/org/gradle/api/artifacts/repositories/AuthenticationSupported.html#credentials-java.lang.Class-[AuthenticationSupported.credentials]
+to limit the credentials used to access a repository to only the relevant credential types.
+Gradle looks up credentials from your <<build_environment.adoc#sec:gradle_configuration_properties,Gradle Properties>> when a build requires them.
+
+Gradle supports lookup of the following credential types:
+
+[%header%autowidth,compact]
+[[credentials_lookup_properties]]
+|===
+| Type | Argument | Base property name | Required?
+
+
+.2+| `link:{javadocPath}/org/gradle/api/credentials/PasswordCredentials.html[PasswordCredentials]`
+| `username`
+| `Username`
+| required
+
+| `password`
+| `Password`
+| required
+
+.3+| `link:{javadocPath}/org/gradle/api/credentials/AwsCredentials.html[AwsCredentials]`
+| `accessKey`
+| `AccessKey`
+| required
+
+| `secretKey`
+| `SecretKey`
+| required
+
+| `sessionToken`
+| `SessionToken`
+| optional
+
+.2+| `link:{javadocPath}/org/gradle/api/credentials/HttpHeaderCredentials.html[HttpHeaderCredentials]`
+| `name`
+| `AuthHeaderName`
+| required
+
+| `value`
+| `AuthHeaderValue`
+| required
+
+|===
+
+In the following example, Gradle looks up the username and password from properties named `mySecureRepositoryUsername` and `mySecureRepositoryPassword`.
+Gradle assumes the property names based on the repository name:
+
+.Externalized repository credentials
+====
+include::sample[dir="samples/credentials-handling/publishing-credentials/groovy",files="build.gradle[tags=repositories]"]
+include::sample[dir="samples/credentials-handling/publishing-credentials/kotlin",files="build.gradle.kts[tags=repositories]"]
+====
+
+You can provide credentials to Gradle properties in the following ways:
+
+- `gradle.properties` file
+- command line arguments
+- environment variables
+
+Gradle only looks up credentials when they're required for a task in the requested build.
+If you run a build that requires credentials and those credentials aren't present, Gradle checks for credentials and fails early.
+If you run a build that *doesn't* require credentials, Gradle doesn't check for the credentials at all.
+
+For a complete project that demonstrates credential management best practices in Gradle, see the ../samples/sample_publishing_credentials.html[Publishing Credentials Sample].
+
 [[sec:supported_transport_protocols]]
 == Supported Repository Transport Protocols
 
@@ -207,7 +279,6 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=header-authenticated-maven-repo]"]
 ====
 
-[[sub:s3_configuration_properties]]
 [[sec:s3-repositories]]
 == Declare an AWS S3 Repository
 
@@ -294,7 +365,6 @@ Make sure the publisher has the required IAM permissions either directly or via 
 
 For more informration, see link:https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-access-control.html[AWS S3 Access Permissions].
 
-[[sub:gcs_configuration_properties]]
 [[sec:gcs-repositories]]
 == Declare a Google Cloud Storage Repository
 
@@ -319,77 +389,6 @@ Consider the following GCS URL:
 
 * `myBucket` is the GCS bucket name.
 * `/maven/release` is the GCS key (unique identifier for an object within a bucket)
-
-[[sec:handling_credentials]]
-== Credentials
-
-Never store credentials in plain text in your build script.
-Instead, store the credentials in a local `gradle.properties` file and use the link:https://plugins.gradle.org/plugin/nu.studer.credentials[credentials plugin] to encrypt and consume credentials.
-
-Gradle provides link:{javadocPath}/org/gradle/api/artifacts/repositories/AuthenticationSupported.html#credentials-java.lang.Class-[an API in artifact repositories]
-that allows you to declare only the type of required credentials. Gradle looks up credentials from your <<build_environment.adoc#sec:gradle_configuration_properties,Gradle Properties>> when a build requires them.
-
-Gradle supports lookup of the following credential types:
-
-[%header%autowidth,compact]
-[[credentials_lookup_properties]]
-|===
-| Type | Argument | Base property name | Required?
-
-
-.2+| `link:{javadocPath}/org/gradle/api/credentials/PasswordCredentials.html[PasswordCredentials]`
-| `username`
-| `Username`
-| required
-
-| `password`
-| `Password`
-| required
-
-.3+| `link:{javadocPath}/org/gradle/api/credentials/AwsCredentials.html[AwsCredentials]`
-| `accessKey`
-| `AccessKey`
-| required
-
-| `secretKey`
-| `SecretKey`
-| required
-
-| `sessionToken`
-| `SessionToken`
-| optional
-
-.2+| `link:{javadocPath}/org/gradle/api/credentials/HttpHeaderCredentials.html[HttpHeaderCredentials]`
-| `name`
-| `AuthHeaderName`
-| required
-
-| `value`
-| `AuthHeaderValue`
-| required
-
-|===
-
-In the following example, Gradle looks up the username and password from properties named `mySecureRepositoryUsername` and `mySecureRepositoryPassword`.
-Gradle assumes the property names based on the repository name:
-
-.Externalized repository credentials
-====
-include::sample[dir="samples/credentials-handling/publishing-credentials/groovy",files="build.gradle[tags=repositories]"]
-include::sample[dir="samples/credentials-handling/publishing-credentials/kotlin",files="build.gradle.kts[tags=repositories]"]
-====
-
-You can provide credentials to Gradple properties in the following ways:
-
-- `gradle.properties` file
-- command line arguments
-- environment variables
-
-Gradle only looks up credentials when they're required for a task in the requested build.
-If you run a build that requires credentials and those credentials aren't present, Gradle checks for credentials and fails early.
-If you run a build that *doesn't* require credentials, Gradle doesn't check for the credentials at all.
-
-For a complete project that demonstrates credential management best practices in Gradle, see the ../samples/sample_publishing_credentials.html[Publishing Credentials Sample].
 
 [[sub:maven_local]]
 == Declare a Local Maven Repository
@@ -427,4 +426,4 @@ However, sometimes you must use a local Maven repository:
 * Maven interoperability. For example, project A is built with Maven, project B is built with Gradle, and you need to share the artifacts during development.
 * Interoperability with Gradle itself. For example, you want to check that changes to project A work with project B. Usually you should use a <<composite_builds.adoc#composite_builds, composite build>> for this use case, but in some situations that isn't possible.
 
-If you do use a local Maven repository combine it with <<#sec:repository-content-filtering,a repository filter>> to ensure it only provides specific dependencies.
+If you do use a local Maven repository combine it with <<declaring-repositories.adoc#sec:repository-content-filtering,a repository filter>> to ensure it only provides specific dependencies.

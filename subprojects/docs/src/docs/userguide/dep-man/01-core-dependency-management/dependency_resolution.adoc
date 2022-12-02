@@ -187,7 +187,7 @@ Given a required dependency, with a version, Gradle attempts to resolve the depe
 
 [NOTE]
 ====
-The penultimate point above is what can make the integration with <<declaring_repositories.adoc#sec:case-for-maven-local,Maven Local>> problematic.
+The penultimate point above is what can make the integration with <<repositories_cheat_sheet.adoc#sec:case-for-maven-local,Maven Local>> problematic.
 As it is a cache for Maven, it will sometimes miss some artifacts of a given module.
 If Gradle is sourcing such a module from Maven Local, it will consider the missing artifacts to be missing altogether.
 ====

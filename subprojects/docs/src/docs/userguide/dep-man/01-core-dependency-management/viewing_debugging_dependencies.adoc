@@ -1,5 +1,4 @@
 [[viewing-debugging-dependencies]]
-[[sec:debugging-build-scans]]
 = View and Debug Dependencies
 
 Gradle provides tooling to navigate dependency graphs and mitigate link:https://en.wikipedia.org/wiki/Dependency_hell[dependency hell].

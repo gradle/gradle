@@ -1,5 +1,4 @@
 [[declaring-repositories]]
-[[sec:declaring_custom_repository]]
 = Declare Repositories
 
 Gradle allows you to define **repositories**: sources for dependency downloads.
@@ -56,7 +55,7 @@ For more information about dependency resolution with multiple repositories, see
 Gradle provides built-in shorthand notations for certain widely-used repositories.
 Popular repositories include <<#sub:maven_central,Maven Central>> and <<#sub:maven_google,Google's Maven repository for Android>>.
 For a full list of built-in shorthand notations, see link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler].
-To declare a repository that doesn't have a built-in shorthand notation, <<#sec:declaring_custom_repository,declare a custom repository>>.
+To declare a repository that doesn't have a built-in shorthand notation, declare the repository by URL.
 
 [[sub:maven_central]]
 === Declare the Maven Central Repository
@@ -80,7 +79,6 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-google]"]
 ====
 
-[[sub:local-repos]]
 [[sub:flat_dir_resolver]]
 == Declare a Flat Directory Repository
 
@@ -156,7 +154,6 @@ include::sample[dir="snippets/dependencyManagement/declaringRepositories-filteri
 ====
 
 [[sec:ivy_repositories]]
-[[sub:defining_an_ivy_repository_with_a_standard_layout]]
 == Declare an Ivy Repository
 
 You can declare Ivy repositories by URL.
@@ -235,7 +232,6 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 For additional authentication options, see <<repositories_cheat_sheet.adoc#sec:supported_transport_protocols,supported transport protocols>>.
 
 [[sec:repository-content-filtering]]
-[[sec:declaring-repository-filter]]
 == Filter Repository Contents
 
 Gradle exposes an API to control which dependencies your project can fetch from a repository.
@@ -332,7 +328,6 @@ include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files
 include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files="settings.gradle.kts[tags=enforce_settings]"]
 ====
 
-[[sec:plugin-vs-build-repos]]
 [[sub:plugin-repos]]
 == Declare a Plugin Repository
 

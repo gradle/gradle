@@ -1430,11 +1430,11 @@ Altering the link:publishing_gradle_module_metadata.html[GMM] (e.g. changing a c
 
 Eager population of the publication can happen if the following methods are called:
 
-====== Maven
+===== Maven
 
 * link:{javadocPath}/org/gradle/api/publish/maven/MavenPublication.html#getArtifacts--[MavenPublication.getArtifacts()]
 
-====== Ivy
+===== Ivy
 
 * link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getArtifacts--[IvyPublication.getArtifacts()]
 * link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getConfigurations--[IvyPublication.getConfigurations()]

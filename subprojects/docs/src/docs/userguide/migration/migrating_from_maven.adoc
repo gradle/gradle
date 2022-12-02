@@ -292,7 +292,7 @@ include::sample[dir="snippets/mavenMigration/basic/kotlin",files="build.gradle.k
 
 You can also use the `repositories {}` block to configure custom repositories, as described in the <<declaring_repositories.adoc#sec:maven_repo,Repository Types>> chapter.
 
-Lastly, Gradle allows you to resolve dependencies against the <<declaring_repositories.adoc#sub:maven_local,local Maven cache/repository>>.
+Lastly, Gradle allows you to resolve dependencies against the <<repositories_cheat_sheet.adoc#sub:maven_local,local Maven cache/repository>>.
 This helps Gradle builds interoperate with Maven builds, but it shouldn't be a technique that you use if you don't need that interoperability.
 If you want to share published artifacts via the filesystem, consider configuring a <<declaring_repositories.adoc#sec:maven_repo,custom Maven repository>> with a `file://` URL.
 

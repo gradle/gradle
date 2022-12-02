@@ -183,7 +183,7 @@ It's easier to migrate to managed dependencies served from Maven- or Ivy-compati
 
 [NOTE]
 ====
-If you store your dependencies in the standard Maven repository layout — `<repoDir>/<group>/<module>/<version>` — then you can define a <<declaring_repositories.adoc#sec:declaring_custom_repository,custom Maven repository>> with a "file://" URL.
+If you store your dependencies in the standard Maven repository layout (`<repoDir>/<group>/<module>/<version>`), you can define a <<declaring_repositories.adoc#sec:maven_repo,custom Maven repository>> with a "file://" URL.
 ====
 
 To demonstrate the two techniques, consider a project that has the following library JARs in its `libs` directory:
