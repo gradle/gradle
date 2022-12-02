@@ -98,7 +98,7 @@ tasks.withType<CodeNarc>().configureEach {
 }
 
 val SourceSet.allGroovy: SourceDirectorySet
-    get() = withConvention(GroovySourceSet::class) { allGroovy }
+    get() = the<GroovySourceDirectorySet>()
 
 abstract class CodeNarcRule @Inject constructor(
     private val groovyVersion: String
