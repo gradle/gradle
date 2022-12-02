@@ -108,7 +108,7 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     val prefix = testType.prefix
     val defaultExecuter = "embedded"
 
-    // For all of the other executers, add an executer specific task
+    // For all the other executers, add an executer specific task
     testType.executers.forEach { executer ->
         val taskName = "$executer${prefix.capitalize()}Test"
         val testTask = createTestTask(taskName, executer, sourceSet, testType) {}
