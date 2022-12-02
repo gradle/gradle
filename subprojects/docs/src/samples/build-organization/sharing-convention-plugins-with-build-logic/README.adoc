@@ -7,35 +7,6 @@ Let's use the following project structure:
 [.multi-language-sample]
 =====
 .Project structure
-[source, groovy]
-----
-├── application
-│   ├── src
-│   │   └── main
-│   └── build.gradle
-├── build-conventions
-│   ├── src
-│   │   ...
-│   ├── build.gradle
-│   └── settings.gradle
-├── buildSrc
-│   ├── src
-│   │   ...
-│   └── build.gradle
-├── list
-│   ├── src
-│   │   ...
-│   └── build.gradle
-├── utilities
-│   ├── src
-│   │   ...
-│   └── build.gradle
-└── settings.gradle
-----
-=====
-[.multi-language-sample]
-=====
-.Project structure
 [source, kotlin]
 ----
 ├── application
@@ -60,6 +31,35 @@ Let's use the following project structure:
 │   │   ...
 │   └── build.gradle.kts
 └── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+.Project structure
+[source, groovy]
+----
+├── application
+│   ├── src
+│   │   └── main
+│   └── build.gradle
+├── build-conventions
+│   ├── src
+│   │   ...
+│   ├── build.gradle
+│   └── settings.gradle
+├── buildSrc
+│   ├── src
+│   │   ...
+│   └── build.gradle
+├── list
+│   ├── src
+│   │   ...
+│   └── build.gradle
+├── utilities
+│   ├── src
+│   │   ...
+│   └── build.gradle
+└── settings.gradle
 ----
 =====
 ====

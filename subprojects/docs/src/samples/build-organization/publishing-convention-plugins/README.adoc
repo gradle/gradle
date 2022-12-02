@@ -19,23 +19,6 @@ The use case can be modelled by layering three separate plugins:
 [.multi-language-sample]
 =====
 .Build logic layout
-[source, groovy]
-----
-├── convention-plugins
-│   ├── build.gradle
-│   ├── settings.gradle
-│   ├── src
-│   │   ├── main
-│   │   │   └── groovy
-│   │   │       ├── com.myorg.java-conventions.gradle
-│   │   │       ├── com.myorg.library-conventions.gradle
-│   │   │       └── com.myorg.service-conventions.gradle
-...
-----
-=====
-[.multi-language-sample]
-=====
-.Build logic layout
 [source, kotlin]
 ----
 ├── convention-plugins
@@ -47,6 +30,23 @@ The use case can be modelled by layering three separate plugins:
 │   │   │       ├── com.myorg.java-conventions.gradle.kts
 │   │   │       ├── com.myorg.library-conventions.gradle.kts
 │   │   │       └── com.myorg.service-conventions.gradle.kts
+...
+----
+=====
+[.multi-language-sample]
+=====
+.Build logic layout
+[source, groovy]
+----
+├── convention-plugins
+│   ├── build.gradle
+│   ├── settings.gradle
+│   ├── src
+│   │   ├── main
+│   │   │   └── groovy
+│   │   │       ├── com.myorg.java-conventions.gradle
+│   │   │       ├── com.myorg.library-conventions.gradle
+│   │   │       └── com.myorg.service-conventions.gradle
 ...
 ----
 =====
@@ -107,29 +107,6 @@ In order to consume them in another project, configure the plugins repository in
 ====
 [.multi-language-sample]
 =====
-.settings.gradle
-[source, groovy]
-----
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven {
-            // replace the path with the actual path to the repository
-            url = uri('<path-to>/convention-plugins/build/repo')
-        }
-    }
-}
-----
-.build.gradle
-[source, groovy]
-----
-plugins {
-    id 'com.myorg.service-conventions' version '1.0'
-}
-----
-=====
-[.multi-language-sample]
-=====
 .settings.gradle.kts
 [source, kotlin]
 ----
@@ -148,6 +125,29 @@ pluginManagement {
 ----
 plugins {
     id("com.myorg.service-conventions") version "1.0"
+}
+----
+=====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source, groovy]
+----
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven {
+            // replace the path with the actual path to the repository
+            url = uri('<path-to>/convention-plugins/build/repo')
+        }
+    }
+}
+----
+.build.gradle
+[source, groovy]
+----
+plugins {
+    id 'com.myorg.service-conventions' version '1.0'
 }
 ----
 =====

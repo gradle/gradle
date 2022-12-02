@@ -11,22 +11,6 @@ This is the project structure:
 [.multi-language-sample]
 =====
 .Project structure
-[source, groovy]
-----
-├── internal-module
-│   └── build.gradle
-├── library-a
-│   ├── build.gradle
-│   └── README.md
-├── library-b
-│   ├── build.gradle
-│   └── README.md
-└── settings.gradle
-----
-=====
-[.multi-language-sample]
-=====
-.Project structure
 [source, kotlin]
 ----
 ├── internal-module
@@ -38,6 +22,22 @@ This is the project structure:
 │   ├── build.gradle.kts
 │   └── README.md
 └── settings.gradle.kts
+----
+=====
+[.multi-language-sample]
+=====
+.Project structure
+[source, groovy]
+----
+├── internal-module
+│   └── build.gradle
+├── library-a
+│   ├── build.gradle
+│   └── README.md
+├── library-b
+│   ├── build.gradle
+│   └── README.md
+└── settings.gradle
 ----
 =====
 ====
@@ -60,22 +60,6 @@ We can model this use case by layering two separate plugins that each define the
 [.multi-language-sample]
 =====
 .Build logic layout
-[source, groovy]
-----
-├── buildSrc
-│   ├── build.gradle
-│   ├── settings.gradle
-│   ├── src
-│   │   ├── main
-│   │   │   └── groovy
-│   │   │       ├── myproject.java-conventions.gradle
-│   │   │       └── myproject.library-conventions.gradle
-...
-----
-=====
-[.multi-language-sample]
-=====
-.Build logic layout
 [source, kotlin]
 ----
 ├── buildSrc
@@ -86,6 +70,22 @@ We can model this use case by layering two separate plugins that each define the
 │   │   │   └── kotlin
 │   │   │       ├── myproject.java-conventions.gradle.kts
 │   │   │       └── myproject.library-conventions.gradle.kts
+...
+----
+=====
+[.multi-language-sample]
+=====
+.Build logic layout
+[source, groovy]
+----
+├── buildSrc
+│   ├── build.gradle
+│   ├── settings.gradle
+│   ├── src
+│   │   ├── main
+│   │   │   └── groovy
+│   │   │       ├── myproject.java-conventions.gradle
+│   │   │       └── myproject.library-conventions.gradle
 ...
 ----
 =====
@@ -124,13 +124,14 @@ In this sample, convention plugins are implemented as link:{userManualPath}/cust
 this is the simplest way to start out as you can use one of Gradle's DSLs directly to implement the build logic, just as if the plugin was
 a regular build script.
 
-[.multi-language-text.lang-groovy]
-In order for precompiled script plugins to be discovered, the `buildSrc` project needs to apply the `groovy-gradle-plugin` plugin
-in its `build.gradle` file:
-
 [.multi-language-text.lang-kotlin]
 In order for precompiled script plugins to be discovered, the `buildSrc` project needs to apply the `kotlin-dsl` plugin
 in its `build.gradle.kts` file:
+
+
+[.multi-language-text.lang-groovy]
+In order for precompiled script plugins to be discovered, the `buildSrc` project needs to apply the `groovy-gradle-plugin` plugin
+in its `build.gradle` file:
 
 .Enabling precompiled script plugins
 ====
