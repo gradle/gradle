@@ -134,6 +134,21 @@ You can now use the `export-keys` flag to export all already trusted keys:
 
 For more information, see [Exporting keys](userguide/dependency_verification.html#sec:local-keyring).
 
+#### Updated the Kotlin DSL to Kotlin API Level 1.7
+
+Previously, the Kotlin DSL used Kotlin API level 1.4.
+Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.7.
+This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0.
+
+Highlights include:
+
+- exhaustive `when` statements
+- improved type inference
+- stable inline classes
+- improved sealed types hierarchies
+
+For information about breaking and nonbreaking changes in this upgrade, see the [upgrading guide](userguide/upgrading_version_7.html#kotlin_language_1_7).
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
