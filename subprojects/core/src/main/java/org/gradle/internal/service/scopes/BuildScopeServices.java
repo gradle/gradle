@@ -94,6 +94,7 @@ import org.gradle.configuration.ImportsReader;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
+import org.gradle.configuration.internal.ScriptSourceListener;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.project.DefaultCompileOperationFactory;
 import org.gradle.configuration.project.PluginsProjectConfigureActions;
@@ -448,10 +449,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             classpathTransformer);
     }
 
-    protected ScriptPluginFactory createScriptPluginFactory(InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {
+    protected ScriptPluginFactory createScriptPluginFactory(InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext, ListenerManager listenerManager) {
         DefaultScriptPluginFactory defaultScriptPluginFactory = defaultScriptPluginFactory();
         ScriptPluginFactorySelector.ProviderInstantiator instantiator = ScriptPluginFactorySelector.defaultProviderInstantiatorFor(instantiatorFactory.inject(this));
-        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, instantiator, buildOperationExecutor, userCodeApplicationContext);
+        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, instantiator, buildOperationExecutor, userCodeApplicationContext, listenerManager.getBroadcaster(ScriptSourceListener.class));
         defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
         return scriptPluginFactorySelector;
     }
@@ -498,8 +499,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         ServiceRegistryFactory serviceRegistryFactory,
         GradleProperties gradleProperties,
         BuildOperationExecutor buildOperationExecutor,
-        TextFileResourceLoader textFileResourceLoader,
-        ListenerManager listenerManager
+        TextFileResourceLoader textFileResourceLoader
     ) {
         return new BuildOperationSettingsProcessor(
             new RootBuildCacheControllerSettingsProcessor(
@@ -512,8 +512,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                             scriptHandlerFactory
                         ),
                         gradleProperties,
-                        textFileResourceLoader,
-                        listenerManager.getBroadcaster(FileResourceListener.class)
+                        textFileResourceLoader
                     )
                 )
             ),
