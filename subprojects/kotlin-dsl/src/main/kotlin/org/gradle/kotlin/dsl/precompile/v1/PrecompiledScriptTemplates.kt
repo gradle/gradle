@@ -45,6 +45,7 @@ import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.defaultImports
 import kotlin.script.experimental.api.hostConfiguration
 import kotlin.script.experimental.api.implicitReceivers
+import kotlin.script.experimental.api.isStandalone
 import kotlin.script.experimental.api.refineConfiguration
 import kotlin.script.experimental.api.with
 import kotlin.script.experimental.host.ScriptingHostConfiguration
@@ -201,6 +202,7 @@ open class PrecompiledProjectScript(
 
 internal
 object PrecompiledInitScriptCompilationConfiguration : ScriptCompilationConfiguration({
+    isStandalone(false)
     baseClass(PrecompiledInitScript::class)
     implicitReceivers(Gradle::class)
     defaultImportsForPrecompiledScript()
@@ -209,6 +211,7 @@ object PrecompiledInitScriptCompilationConfiguration : ScriptCompilationConfigur
 
 internal
 object PrecompiledSettingsScriptCompilationConfiguration : ScriptCompilationConfiguration({
+    isStandalone(false)
     baseClass(PrecompiledSettingsScript::class)
     implicitReceivers(Settings::class)
     defaultImportsForPrecompiledScript()
@@ -217,6 +220,7 @@ object PrecompiledSettingsScriptCompilationConfiguration : ScriptCompilationConf
 
 internal
 object PrecompiledProjectScriptCompilationConfiguration : ScriptCompilationConfiguration({
+    isStandalone(false)
     baseClass(PrecompiledProjectScript::class)
     implicitReceivers(Project::class)
     defaultImportsForPrecompiledScript()
