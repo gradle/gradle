@@ -60,7 +60,7 @@ To declare a repository that doesn't have a built-in shorthand notation, declare
 [[sub:maven_central]]
 === Declare the Maven Central Repository
 
-The Maven Central repository hosts open source libraries for Java projects.
+The Maven Central repository hosts open-source libraries for Java projects.
 To add the link:https://repo.maven.apache.org/maven2/[Maven Central repository] to your build, add the following to your build script:
 
 ====
