@@ -15,6 +15,8 @@
  */
 
 import gradlebuild.basics.classanalysis.Attributes
+import gradlebuild.capitalize
+import gradlebuild.decapitalize
 import gradlebuild.shade.ArtifactTypes.buildReceiptType
 import gradlebuild.shade.ArtifactTypes.classTreesType
 import gradlebuild.shade.ArtifactTypes.entryPointsType

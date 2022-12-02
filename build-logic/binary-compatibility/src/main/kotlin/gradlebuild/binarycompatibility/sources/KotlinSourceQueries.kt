@@ -18,6 +18,7 @@ package gradlebuild.binarycompatibility.sources
 
 import gradlebuild.binarycompatibility.isSynthetic
 import gradlebuild.binarycompatibility.metadata.KotlinMetadataQueries
+import gradlebuild.decapitalize
 import japicmp.model.JApiClass
 import japicmp.model.JApiCompatibility
 import japicmp.model.JApiConstructor
@@ -40,6 +41,7 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
+import java.util.Locale
 
 
 internal
