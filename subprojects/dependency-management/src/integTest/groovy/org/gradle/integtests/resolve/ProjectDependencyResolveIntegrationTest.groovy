@@ -185,11 +185,13 @@ project(':b') {
     }
 }
 """
+        resolve.prepare {
+            config("configB1")
+            config("configB2")
+        }
 
         when:
-        resolve.config = "configB1"
-        resolve.prepare()
-        run ":b:checkDeps"
+        run ":b:checkConfigB1"
 
         then:
         executedAndNotSkipped ":a:A1jar"
@@ -203,9 +205,7 @@ project(':b') {
         }
 
         when:
-        resolve.config = "configB2"
-        resolve.prepare()
-        run ":b:checkDeps"
+        run ":b:checkConfigB2"
 
         then:
         executedAndNotSkipped ":a:A2jar"
@@ -247,15 +247,14 @@ project(':b') {
             }
             dependencies { compile project(path: ':a', configuration: 'compile') }
 '''
-        resolve.config = "testCompile"
-        resolve.expectDefaultConfiguration("compile")
-        resolve.prepare()
+        resolve.prepare("testCompile")
 
         when:
         run ":checkDeps"
 
         then:
         executedAndNotSkipped ":a:aJar", ":b:bJar"
+        resolve.expectDefaultConfiguration("compile")
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":a", "test:a:") {
@@ -337,8 +336,7 @@ project(":b") {
     dependencies { compile(project(':a')) { artifact { name = 'y'; type = 'jar' } } }
 }
 """
-        resolve.config = "compile"
-        resolve.prepare()
+        resolve.prepare("compile")
 
         when:
         run 'b:checkDeps'
@@ -414,8 +412,7 @@ project(':b') {
     }
 }
 """
-        resolve.config = "runtimeClasspath"
-        resolve.prepare()
+        resolve.prepare("runtimeClasspath")
 
         when:
         run ":b:checkDeps"
@@ -473,8 +470,7 @@ project('c') {
 }
 """
         when:
-        resolve.config = "first"
-        resolve.prepare()
+        resolve.prepare("first")
         run ":a:checkDeps"
 
         then:
@@ -658,8 +654,7 @@ project(':b') {
     }
 }
 """
-        resolve.config = "configB"
-        resolve.prepare()
+        resolve.prepare("configB")
 
         when:
         succeeds ":b:checkDeps"

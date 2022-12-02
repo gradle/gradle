@@ -133,7 +133,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
                             'org.gradle.compile-view': 'java-api',
                             'org.gradle.libraryelements': 'jar'
                     ])
-                    artifact(classifier: "jdk${selected}")
+                    artifact(name: "producer-jdk${selected}")
                 }
             }
         }
@@ -218,7 +218,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
                             'org.gradle.libraryelements': 'jar',
                             'org.gradle.compile-view': 'java-api'
                     ])
-                    artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
+                    artifact name: 'main', extension: '', type: 'java-classes-directory'
                 }
             }
         }
