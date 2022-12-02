@@ -46,6 +46,7 @@ import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.configuration.internal.ScriptSourceListener
 import org.gradle.configurationcache.CoupledProjectsListener
 import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.UndeclaredBuildInputListener
@@ -96,6 +97,7 @@ class ConfigurationCacheFingerprintWriter(
     ProjectDependencyObservedListener,
     CoupledProjectsListener,
     FileResourceListener,
+    ScriptSourceListener,
     FeatureFlagListener,
     ConfigurationCacheEnvironment.Listener {
 
@@ -694,6 +696,12 @@ class ConfigurationCacheFingerprintWriter(
     ) : Sink(host) {
         override fun write(value: ConfigurationCacheFingerprint) {
             writer.write(ProjectSpecificFingerprint.ProjectFingerprint(project, value))
+        }
+    }
+
+    override fun onScriptSource(scriptSource: ScriptSource) {
+        scriptSource.resource.location.file?.let {
+            fileObserved(it)
         }
     }
 }

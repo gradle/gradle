@@ -18,50 +18,38 @@ package org.gradle.configuration.project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
-import org.gradle.internal.resource.local.FileResourceListener;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-import java.io.File;
-
 public class BuildScriptProcessor implements ProjectConfigureAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildScriptProcessor.class);
     private final ScriptPluginFactory configurerFactory;
-    private final FileResourceListener fileResourceListener;
 
     public BuildScriptProcessor(
-        ScriptPluginFactory configurerFactory,
-        FileResourceListener fileResourceListener
+        ScriptPluginFactory configurerFactory
     ) {
         this.configurerFactory = configurerFactory;
-        this.fileResourceListener = fileResourceListener;
     }
 
     @Override
     public void execute(final ProjectInternal project) {
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Evaluating {} using {}.", project, project.getBuildScriptSource().getDisplayName());
-        }
+        ScriptSource scriptSource = project.getBuildScriptSource();
 
-        buildScriptFileObserved(project.getBuildscript().getSourceFile());
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Evaluating {} using {}.", project, scriptSource.getDisplayName());
+        }
 
         final Timer clock = Time.startTimer();
         try {
-            final ScriptPlugin configurer = configurerFactory.create(project.getBuildScriptSource(), project.getBuildscript(), project.getClassLoaderScope(), project.getBaseClassLoaderScope(), true);
+            final ScriptPlugin configurer = configurerFactory.create(scriptSource, project.getBuildscript(), project.getClassLoaderScope(), project.getBaseClassLoaderScope(), true);
             project.getOwner().applyToMutableState(configurer::apply);
         } finally {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Timing: Running the build script took {}", clock.getElapsed());
             }
-        }
-    }
-
-    private void buildScriptFileObserved(@Nullable File sourceFile) {
-        if (sourceFile != null) {
-            fileResourceListener.fileObserved(sourceFile);
         }
     }
 }
