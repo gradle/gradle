@@ -188,6 +188,90 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         'nestedListOfLists' | { MyCycleTask root -> [[CycleFirstNode.newInitializedRootCycle(root)]] }                                                        | "'<root>' and 'nestedListOfLists.\$0.\$0.secondNested.thirdNested.rootNested'"
     }
 
+    def "instance walker should visit nested properties unpack errors for #propertyType"() {
+        given:
+        Supplier<Object> propertyValue = propertyValueSupplier as Supplier<Object>
+        def instance = new Object() {
+            @TestNested
+            Object getNested() {
+                return propertyValue.get()
+            }
+        }
+        Map<String, Throwable> errors = [:]
+        def visitor = new TestInstanceMetadataVisitor() {
+            @Override
+            void visitUnpackNestedError(String qualifiedName, Exception e) {
+                errors[qualifiedName] = e
+            }
+        }
+
+        when:
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
+
+        then:
+        errors['nested'] instanceof RuntimeException
+        errors['nested'].message == "Boom for $propertyType"
+
+        where:
+        propertyType          | propertyValueSupplier
+        "plain Java property" | { throw new RuntimeException("Boom for plain Java property") }
+        "Provider property"   | { TestUtil.providerFactory().provider { throw new RuntimeException("Boom for Provider property") } }
+    }
+
+    def "instance walker should not allow null for nested #descriptionSuffix"() {
+        given:
+        def propertyValue = value
+        def instance = new Object() {
+            @TestNested
+            Object getNested() {
+                return propertyValue
+            }
+        }
+        def visitor = new TestInstanceMetadataVisitor()
+
+        when:
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
+
+        then:
+        def exception = thrown(exceptionType)
+        exception.message == exceptionMessage
+
+        where:
+        descriptionSuffix | value                              | exceptionType         | exceptionMessage
+        "map values"      | ["key1": "Hello", "key2": null]    | IllegalStateException | "Null is not allowed as nested property 'nested.key2'"
+        "map keys"        | ["key1": "Hello", (null): "Hello"] | NullPointerException  | "Null keys in nested map 'nested' are not allowed."
+        "iterable values" | ["hello", null]                    | IllegalStateException | "Null is not allowed as nested property 'nested.\$1'"
+    }
+
+    def "instance walker should allow visiting missing nested values for #propertyType"() {
+        given:
+        def propertyValue = value
+        def instance = new Object() {
+            @TestNested
+            Object getNested() {
+                return propertyValue
+            }
+        }
+        def missing = []
+        def visitor = new TestInstanceMetadataVisitor() {
+            @Override
+            void visitMissingNested(String qualifiedName, PropertyMetadata propertyMetadata) {
+                missing.add(qualifiedName)
+            }
+        }
+
+        when:
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
+
+        then:
+        missing == ["nested"]
+
+        where:
+        propertyType          | value
+        "plain Java property" | null
+        "Provider property"   | TestUtil.providerFactory().provider { null }
+    }
+
     static String normalizeToString(String toString) {
         return toString.replace("$AbstractTypeMetadataWalkerTest.class.name\$", "")
     }
