@@ -458,11 +458,11 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     @ValidationTestFor(
         ValidationProblemId.VALUE_NOT_SET
     )
-    def "null on nested bean is validated"() {
+    def "null on nested bean is validated #descriptionSuffix"() {
         buildFile << """
             class TaskWithAbsentNestedInput extends DefaultTask {
                 @Nested
-                Object nested
+                $property
 
                 @Input
                 String input = "Hello"
@@ -485,14 +485,19 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         fails "myTask"
         failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'TaskWithAbsentNestedInput').")
         failureDescriptionContains(missingValueMessage { type('TaskWithAbsentNestedInput').property('nested') })
+
+        where:
+        property                                                        | descriptionSuffix
+        "Object nested"                                                 | "for plain Java property"
+        "Provider<Object> nested = project.providers.provider { null }" | "for Provider property"
     }
 
-    def "null on optional nested bean is allowed"() {
+    def "null on optional nested bean is allowed #descriptionSuffix"() {
         buildFile << """
             class TaskWithAbsentNestedInput extends DefaultTask {
                 @Nested
                 @Optional
-                Object nested
+                $property
 
                 @Input
                 String input = "Hello"
@@ -513,6 +518,11 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
         expect:
         succeeds "myTask"
+
+        where:
+        property                                                        | descriptionSuffix
+        "Object nested"                                                 | "for plain Java property"
+        "Provider<Object> nested = project.providers.provider { null }" | "for Provider property"
     }
 
     def "changes to nested bean implementation are detected"() {
