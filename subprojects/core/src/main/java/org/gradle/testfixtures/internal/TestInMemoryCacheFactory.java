@@ -149,7 +149,10 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         @Override
         public void useCache(Runnable action) {
             assertNotClosed();
-            action.run();
+            // The contract of useCache() means we have to provide some basic synchronization.
+            synchronized (this) {
+                action.run();
+            }
         }
 
         @Override
