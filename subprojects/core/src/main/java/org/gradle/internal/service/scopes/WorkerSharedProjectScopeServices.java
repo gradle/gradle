@@ -44,6 +44,12 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.DefaultCacheRepository;
+import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
+import org.gradle.cache.internal.scopes.DefaultProjectScopedCache;
+import org.gradle.cache.scopes.ProjectScopedCache;
 import org.gradle.cache.scopes.ScopedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
@@ -57,6 +63,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.internal.DefaultExecOperations;
 import org.gradle.process.internal.ExecFactory;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 
@@ -147,5 +154,13 @@ public class WorkerSharedProjectScopeServices {
     DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
                                              FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory) {
         return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
+    }
+
+    protected ProjectScopedCache createProjectScopedCache(CacheRepository cacheRepository) {
+        return new DefaultProjectScopedCache(new File(projectDir, ".gradle"), cacheRepository);
+    }
+
+    protected CacheRepository createCacheRepository(CacheFactory cacheFactory) {
+        return new DefaultCacheRepository(new DefaultCacheScopeMapping(new File(projectDir, ".gradle"), GradleVersion.current()), cacheFactory);
     }
 }
