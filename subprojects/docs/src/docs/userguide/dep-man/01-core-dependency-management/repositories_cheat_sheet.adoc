@@ -61,7 +61,6 @@ Gradle supports lookup of the following credential types:
 In the following example, Gradle looks up the username and password from properties named `mySecureRepositoryUsername` and `mySecureRepositoryPassword`.
 Gradle assumes the property names based on the repository name:
 
-.Externalized repository credentials
 ====
 include::sample[dir="samples/credentials-handling/publishing-credentials/groovy",files="build.gradle[tags=repositories]"]
 include::sample[dir="samples/credentials-handling/publishing-credentials/kotlin",files="build.gradle.kts[tags=repositories]"]
@@ -84,7 +83,6 @@ For a complete project that demonstrates credential management best practices in
 
 Gradle supports the following transport protocols for Maven and Ivy repositories:
 
-.Repository transport protocols
 [%header%autowidth,compact]
 |===
 | Type | Credential types | Link
@@ -130,7 +128,6 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 
 The following example shows how to declare SFTP repositories:
 
-.Using the SFTP protocol for a repository
 ====
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-repository-auth]"]
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-repository-auth]"]
@@ -140,7 +137,6 @@ For details on HTTP related authentication, see <<#sec:authentication_schemes, A
 
 When using an AWS S3 backed repository you need to authenticate using link:{groovyDslPath}/org.gradle.api.credentials.AwsCredentials.html[AwsCredentials], providing access-key and a private-key. The following example shows how to declare a S3 backed repository and providing AWS credentials:
 
-.Declaring an S3 backed Maven and Ivy repository
 ====
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-s3-repository]"]
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-s3-repository]"]
@@ -148,7 +144,6 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 
 You can also delegate all credentials to the AWS sdk with `AwsImAuthentication`:
 
-.Declaring an S3 backed Maven and Ivy repository using IAM
 ====
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-s3-repository-with-iam]"]
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-s3-repository-with-iam]"]
@@ -156,9 +151,8 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 
 For details on AWS S3 related authentication, see the section <<#sec:s3-repositories>>.
 
-When using a Google Cloud Storage backed repository default application credentials will be used with no further configuration required:
+Google Cloud Storage repositories use default application credentials with no further configuration required:
 
-.Declaring a Google Cloud Storage backed Maven and Ivy repository using default application credentials
 ====
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-gcs-repository]"]
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-gcs-repository]"]
@@ -171,7 +165,6 @@ For details on Google GCS related authentication, see the section <<#sec:gcs-rep
 
 Gradle supports the following metadata sources:
 
-.Supported metadata sources
 [%header%autowidth,compact]
 |===
 | Metadata source | Description | Order | Maven | Ivy / flat dir
@@ -210,10 +203,10 @@ When searching for a module in a repository, Gradle checks for <<declaring_depen
 Gradle also looks for Gradle Module Metadata (GMM) files (`.module`) in Maven and Ivy repositories.
 
 When you define a custom repository, you might want to configure this behavior.
-For example, you can define a Maven repository that only uses `.jar` files, without `.pom` files.
-To do so, you can configure _metadata sources_ for any repository.
 
-.Maven repository that supports artifacts without metadata
+For example, you can define a Maven repository that only uses `.jar` files, without `.pom` files.
+Use _metadata sources_ to configure metadata formats in a repository:
+
 ====
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-repo-with-metadata-sources]"]
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-repo-with-metadata-sources]"]
@@ -328,27 +321,30 @@ If the `org.gradle.s3.endpoint` property has been specified with a HTTP (not HTT
 [[sub:s3_v4_signatures]]
 === AWS S3 V4 Signatures (AWS4-HMAC-SHA256)
 
-Some of the AWS S3 regions (eu-central-1 - Frankfurt) require that all HTTP requests are signed in accordance with AWS's http://docs.aws.amazon.com/general/latest/gr/signature-version-4.html[signature version 4]. It is recommended to specify S3 URL's containing the region specific endpoint when using buckets that require V4 signatures. e.g.
+Some of the AWS S3 regions (eu-central-1 - Frankfurt) require signing all HTTP requests in accordance with AWS's http://docs.aws.amazon.com/general/latest/gr/signature-version-4.html[signature version 4].
+
+Always specify S3 URL's containing the region specific endpoint when using buckets that require V4 signatures:
 
 ----
 s3://somebucket.s3.eu-central-1.amazonaws.com/maven/release
 ----
 
-[NOTE]
-====
-When a region-specific endpoint is not specified for buckets requiring V4 Signatures, Gradle uses the default AWS region (us-east-1) and the
+When a region-specific endpoint is _not_ specified for buckets requiring V4 Signatures, Gradle uses the default AWS region (us-east-1) and the
 following warning appears on the console:
 
-> Attempting to re-send the request to .... with AWS V4 authentication. To avoid this warning in the future, use region-specific endpoint to access buckets located in regions that require V4 signing.
-
-Always specify a region-specific endpoint.
+----
+Attempting to re-send the request to .... with AWS V4 authentication.
+To avoid this warning in the future, use region-specific endpoint to
+access buckets located in regions that require V4 signing.
+----
 
 Failure to specify the region-specific endpoint for buckets requiring V4 signatures means:
 
-* 3 round-trips to AWS, as opposed to one, for every file upload and download.
-* Depending on location - increased network latencies and slower builds.
+* 3 round-trips to AWS for every file upload and download.
+* Increased network latencies and slower builds.
 * Increased likelihood of transmission failures.
-====
+
+Always specify a region-specific endpoint.
 
 [[sub:s3_cross_account]]
 ==== AWS S3 Cross Account Access
@@ -360,8 +356,8 @@ To grant consumers access, add the `bucket-owner-full-control` link:https://docs
 Gradle will do this in every upload.
 Make sure the publisher has the required IAM permissions either directly or via an assumed IAM Role:
 
-- `PutObjectAcl`
-- `PutObjectVersionAcl` if bucket versioning is enabled
+* `PutObjectAcl`
+* `PutObjectVersionAcl` if bucket versioning is enabled
 
 For more informration, see link:https://docs.aws.amazon.com/AmazonS3/latest/dev/s3-access-control.html[AWS S3 Access Permissions].
 
@@ -421,9 +417,9 @@ Local Maven repositories impose the following drawbacks on your build:
 * Artifact origins cannot be tracked (a correctness and security problem).
 * Artifacts can be overwritten, _so Gradle does not perform any caching_.
 
-However, sometimes you must use a local Maven repository:
+In some cases, you might have to use a local Maven repository:
 
 * Maven interoperability. For example, project A is built with Maven, project B is built with Gradle, and you need to share the artifacts during development.
 * Interoperability with Gradle itself. For example, you want to check that changes to project A work with project B. Usually you should use a <<composite_builds.adoc#composite_builds, composite build>> for this use case, but in some situations that isn't possible.
 
-If you do use a local Maven repository combine it with <<declaring-repositories.adoc#sec:repository-content-filtering,a repository filter>> to ensure it only provides specific dependencies.
+If you do use a local Maven repository, combine it with <<declaring-repositories.adoc#sec:repository-content-filtering,a repository filter>> to ensure it only provides specific dependencies.

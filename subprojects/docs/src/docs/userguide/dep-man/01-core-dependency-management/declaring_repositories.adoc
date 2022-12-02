@@ -211,7 +211,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 Some Ivy repositories use Maven style for organisation layouts, where forward slashes replace dots as separators.
 For example, Maven style represents the organisation `my.company` as `my/company`.
 
-To use Maven style organization layouts, assign `m2compatible` a value of "true" in your pattern layout configuration.
+To use Maven style organization layouts in a repository, assign `m2compatible` a value of "true" in the `patternLayout` block:
 
 ====
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=ivy-repo-with-m2compatible-layout]"]
@@ -221,9 +221,8 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 [[sub:accessing_secured_ivy_repositories]]
 === Access an Authenticated Ivy Repository
 
-You can specify credentials for Ivy repositories secured by basic authentication.
+You can specify credentials for Ivy repositories secured by basic authentication:
 
-.Ivy repository with authentication
 ====
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=authenticated-ivy-repo]"]
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=authenticated-ivy-repo]"]
