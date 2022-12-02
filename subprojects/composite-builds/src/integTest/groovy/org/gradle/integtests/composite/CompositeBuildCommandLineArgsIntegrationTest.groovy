@@ -100,41 +100,6 @@ includeBuild '${buildB.toURI()}'
         assertTaskExecuted(":buildB", ":jar")
     }
 
-    def "does not pass build-file argument when configuring included build"() {
-        given:
-        dependency 'org.test:buildB:1.0'
-
-        buildA.settingsFile << """
-rootProject.buildFileName='build-copy.gradle'
-"""
-
-        buildA.file("build-copy.gradle").copyFrom(buildA.buildFile)
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
-        execute(buildA, ":checkDeps", ["--build-file", "build-copy.gradle"])
-
-        then:
-        assertTaskExecuted(":buildB", ":jar")
-    }
-
-    def "does not pass settings-file argument when configuring included build"() {
-        given:
-        dependency 'org.test:buildB:1.0'
-
-        buildA.file("settings-copy.gradle") << """
-rootProject.name = 'buildA'
-includeBuild '../buildB'
-"""
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
-        execute(buildA, ":checkDeps", ["--settings-file", "settings-copy.gradle"])
-
-        then:
-        assertTaskExecuted(":buildB", ":jar")
-    }
-
     def "does not exclude tasks when building artifact for included build"() {
         given:
         dependency 'org.test:buildB:1.0'

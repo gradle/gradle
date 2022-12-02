@@ -25,22 +25,6 @@ abstract class AbstractConsoleGradleBuildGroupedTaskFunctionalTest extends Abstr
     private static final String BYE_WORLD_MESSAGE = 'Bye world'
     private static final String AGGREGATE_TASK_NAME = 'all'
 
-    def "can group task output from external build invoked executed by GradleBuild in same directory"() {
-        given:
-        def externalBuildScriptPath = 'other.gradle'
-        buildFile << mainBuildScript("buildFile = '$externalBuildScriptPath'")
-        file(externalBuildScriptPath) << externalBuildScript()
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
-        succeeds(AGGREGATE_TASK_NAME)
-
-        then:
-        result.groupedOutput.task(':helloWorld').output == HELLO_WORLD_MESSAGE
-        result.groupedOutput.task(":${testDirectory.name}:important").output == IMPORTANT_MESSAGE
-        result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
-    }
-
     def "can group task output from external build invoked executed by GradleBuild in different directory"() {
         given:
         def externalBuildPath = 'external'

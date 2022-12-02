@@ -26,20 +26,6 @@ import java.io.File;
 import static org.hamcrest.CoreMatchers.startsWith;
 
 public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
-    @Test
-    public void handlesSimilarlyNamedBuildFilesInSameDirectory() {
-        TestFile buildFile1 = testFile("similarly-named build.gradle").write("task build");
-        TestFile buildFile2 = testFile("similarly_named_build_gradle").write("task 'other-build'");
-
-        executer.expectDeprecationWarnings(1);
-        usingBuildFile(buildFile1).withTasks("build").run();
-
-        executer.expectDeprecationWarnings(1);
-        usingBuildFile(buildFile2).withTasks("other-build").run();
-
-        executer.expectDeprecationWarnings(1);
-        usingBuildFile(buildFile1).withTasks("build").run();
-    }
 
     @Test
     public void handlesWhitespaceOnlySettingsAndBuildFiles() {
@@ -179,22 +165,6 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void buildFailsWhenSpecifiedSettingsFileDoesNotContainMatchingProject() {
-        TestFile settingsFile = testFile("settings.gradle");
-        settingsFile.write("rootProject.name = 'foo'");
-
-        TestFile projectDir = testFile("project dir");
-        TestFile buildFile = projectDir.file("build.gradle").createFile();
-
-        ExecutionFailure result = usingProjectDir(projectDir).withTasks("tasks").runWithFailure();
-        result.assertHasDescription(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", projectDir, settingsFile));
-
-        executer.expectDeprecationWarnings(2);
-        result = usingBuildFile(buildFile).usingSettingsFile(settingsFile).withTasks("tasks").runWithFailure();
-        result.assertHasDescription(String.format("Build file '%s' is not part of the build defined by settings file '%s'.", buildFile, settingsFile));
-    }
-
-    @Test
     public void settingsFileTakesPrecedenceOverBuildFileInSameDirectory() {
         testFile("settings.gradle").write("rootProject.buildFileName = 'root.gradle'");
         testFile("root.gradle").write("task('do-stuff')");
@@ -260,27 +230,6 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         subDirectory.file("build.gradle").write("throw new RuntimeException()");
 
         usingProjectDir(getTestDirectory()).inDirectory(subDirectory).withTasks("help").run();
-    }
-
-    @Test
-    public void specifyingCustomSettingsFileIsDeprecated() {
-        testFile("settings.gradle").write("include 'another'");
-
-        TestFile subDirectory = file("sub");
-        TestFile subSettingsFile = subDirectory.file("renamed_settings.gradle").write("");
-        subDirectory.file("build.gradle").write("");
-
-        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
-        inDirectory(subDirectory).usingSettingsFile(subSettingsFile).withTasks("help").run();
-    }
-
-    @Test
-    public void specifyingCustomBuildFileIsDeprecated() {
-        testFile("settings.gradle").write("include 'another'");
-        TestFile renamedBuildGradle = file("renamed_build.gradle").createFile();
-
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
-        executer.usingBuildScript(renamedBuildGradle).withTasks("help").run();
     }
 
     @Test
