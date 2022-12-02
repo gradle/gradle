@@ -140,11 +140,7 @@ Previously, the Kotlin DSL used Kotlin API level 1.4.
 Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.7.
 This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0.
 
-For information about breaking and nonbreaking changes in this upgrade, see the following links to the Kotlin documentation:
-
-- Kotlin 1.5 [language](https://kotlinlang.org/docs/whatsnew15.html#language-features) / [stdlib](https://kotlinlang.org/docs/whatsnew17.html#standard-library)
-- Kotlin 1.6 [language](https://kotlinlang.org/docs/whatsnew16.html#language) / [stdlib](https://kotlinlang.org/docs/whatsnew16.html#standard-library)
-- Kotlin 1.7 [language](https://kotlinlang.org/docs/whatsnew17.html#language) / [stdlib](https://kotlinlang.org/docs/whatsnew15.html#standard-library)
+For information about breaking and nonbreaking changes in this upgrade, see the [upgrading guide](userguide/upgrading_version_7.html#kotlin_language_1_7).
 
 Highlights include:
 
