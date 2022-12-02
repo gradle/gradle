@@ -159,7 +159,7 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-ivy-gcs-repository]"]
 ====
 
-For details on Google GCS related authentication, see the section <<#sec:gcs-repositories>>.
+For details about authenticating with GCS, see <<#sec:gcs-repositories,Declare a GCS Repository>>.
 
 [[sec:supported_metadata_sources]]
 == Supported Metadata Sources
