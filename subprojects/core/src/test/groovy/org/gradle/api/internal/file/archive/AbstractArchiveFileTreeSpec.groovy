@@ -32,7 +32,7 @@ import spock.lang.Specification
  */
 class AbstractArchiveFileTreeSpec extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "visits structure when backing file is known"() {
         def owner = Stub(FileTreeInternal)
@@ -53,8 +53,8 @@ class AbstractArchiveFileTreeSpec extends Specification {
         File backingFile
         final String displayName = "<display>"
 
-        TestArchiveFileTree(ScopedCache cache, File backingFile) {
-            super(cache)
+        TestArchiveFileTree(ScopedCache decompressionCacheFactory, File backingFile) {
+            super(decompressionCacheFactory)
             this.backingFile = backingFile
         }
 

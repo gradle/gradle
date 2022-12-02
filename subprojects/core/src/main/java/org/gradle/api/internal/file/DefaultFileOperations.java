@@ -89,7 +89,7 @@ public class DefaultFileOperations implements FileOperations {
     private final FileCollectionFactory fileCollectionFactory;
     private final TaskDependencyFactory taskDependencyFactory;
     private final ProviderFactory providers;
-    private final ScopedCache cacheBuilder;
+    private final ScopedCache decompressionCacheFactory;
 
     public DefaultFileOperations(
         FileResolver fileResolver,
@@ -107,7 +107,7 @@ public class DefaultFileOperations implements FileOperations {
         DocumentationRegistry documentationRegistry,
         TaskDependencyFactory taskDependencyFactory,
         ProviderFactory providers,
-        ScopedCache cacheBuilder
+        ScopedCache decompressionCacheFactory
     ) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
@@ -133,7 +133,7 @@ public class DefaultFileOperations implements FileOperations {
         );
         this.fileSystem = fileSystem;
         this.deleter = deleter;
-        this.cacheBuilder = cacheBuilder;
+        this.decompressionCacheFactory = decompressionCacheFactory;
     }
 
     @Override
@@ -183,7 +183,7 @@ public class DefaultFileOperations implements FileOperations {
     @Override
     public FileTreeInternal zipTree(Object zipPath) {
         Provider<File> fileProvider = asFileProvider(zipPath);
-        return new FileTreeAdapter(new ZipFileTree(fileProvider, fileSystem, directoryFileTreeFactory, fileHasher, cacheBuilder), taskDependencyFactory, patternSetFactory);
+        return new FileTreeAdapter(new ZipFileTree(fileProvider, fileSystem, directoryFileTreeFactory, fileHasher, decompressionCacheFactory), taskDependencyFactory, patternSetFactory);
     }
 
     @Override
@@ -198,7 +198,7 @@ public class DefaultFileOperations implements FileOperations {
             }
         });
 
-        TarFileTree tarTree = new TarFileTree(fileProvider, resource.map(MaybeCompressedFileResource::new), fileSystem, directoryFileTreeFactory, fileHasher, cacheBuilder);
+        TarFileTree tarTree = new TarFileTree(fileProvider, resource.map(MaybeCompressedFileResource::new), fileSystem, directoryFileTreeFactory, fileHasher, decompressionCacheFactory);
         return new FileTreeAdapter(tarTree, taskDependencyFactory, patternSetFactory);
     }
 
@@ -308,7 +308,7 @@ public class DefaultFileOperations implements FileOperations {
         DocumentationRegistry documentationRegistry = services.get(DocumentationRegistry.class);
         ProviderFactory providers = services.get(ProviderFactory.class);
         TaskDependencyFactory taskDependencyFactory = services.get(TaskDependencyFactory.class);
-        ScopedCache decompressionCache = services.get(BuildTreeScopedCache.class);
+        ScopedCache decompressionCacheFactory = services.get(BuildTreeScopedCache.class);
 
         DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
             fileResolver,
@@ -334,6 +334,6 @@ public class DefaultFileOperations implements FileOperations {
             documentationRegistry,
             taskDependencyFactory,
             providers,
-            decompressionCache);
+            decompressionCacheFactory);
     }
 }
