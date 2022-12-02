@@ -103,7 +103,7 @@ public class WorkerSharedProjectScopeServices {
             DocumentationRegistry documentationRegistry,
             ProviderFactory providers,
             TaskDependencyFactory taskDependencyFactory,
-            ScopedCache cacheBuilder
+            ScopedCache decompressionCacheFactory
     ) {
         return new DefaultFileOperations(
                 fileResolver,
@@ -121,7 +121,7 @@ public class WorkerSharedProjectScopeServices {
                 documentationRegistry,
                 taskDependencyFactory,
                 providers,
-                cacheBuilder);
+                decompressionCacheFactory);
     }
 
     protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {

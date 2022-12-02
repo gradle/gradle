@@ -294,24 +294,24 @@ public class TestFiles {
     }
 
     public static ScopedCache scopedCache(File cacheDir) {
-        return new TestScopedCache(cacheDir);
+        return new TestInMemoryScopedCache(cacheDir);
     }
 
-    private static final class TestScopedCache implements ScopedCache {
+    private static final class TestInMemoryScopedCache implements ScopedCache {
         private final File cacheDir;
 
-        private TestScopedCache(File cacheDir) {
+        private TestInMemoryScopedCache(File cacheDir) {
             this.cacheDir = cacheDir;
         }
 
         @Override
         public CacheBuilder cache(String key) {
-            return new TestCacheBuilder(baseDirForCache(key));
+            return new TestInMemoryCacheBuilder(baseDirForCache(key));
         }
 
         @Override
         public CacheBuilder crossVersionCache(String key) {
-            return new TestCacheBuilder(baseDirForCrossVersionCache(key));
+            return new TestInMemoryCacheBuilder(baseDirForCrossVersionCache(key));
         }
 
         @Override
@@ -330,17 +330,17 @@ public class TestFiles {
         }
     }
 
-    private static final class TestCacheBuilder implements CacheBuilder {
+    private static final class TestInMemoryCacheBuilder implements CacheBuilder {
         private final CacheFactory cacheFactory = new TestInMemoryCacheFactory();
         private final File cacheDir;
         private Map<String, ?> properties = Collections.emptyMap();
         private LockTarget lockTarget = LockTarget.DefaultTarget;
-        private String displayName = "Test Cache";
+        private String displayName = "Test In Memory Cache";
         private LockOptions lockOptions = mode(Exclusive);
         private Action<? super PersistentCache> initializer = Actions.doNothing();
         private CleanupAction cleanup = CleanupAction.NO_OP;
 
-        private TestCacheBuilder(File cacheDir) {
+        private TestInMemoryCacheBuilder(File cacheDir) {
             this.cacheDir = cacheDir;
         }
 
