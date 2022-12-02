@@ -259,7 +259,7 @@ Adding an include or exclude clause has the following side effects:
 * If you declare both includes and excludes, Gradle includes *only dependencies that match the includes that also do not match the excludes*.
 
 You can filter by _group_, _module_ or _version_, either with strict string matching or regular expressions.
-You can filter versions by version range, using <<single_versions.adoc#single-version-declarations,the Gradle version format>>.
+You can filter versions by version range using <<single_versions.adoc#single-version-declarations,the Gradle version format>>.
 You can also filter by configuration name or attributes.
 See link:{javadocPath}/org/gradle/api/artifacts/repositories/RepositoryContentDescriptor.html[RepositoryContentDescriptor] for details.
 
