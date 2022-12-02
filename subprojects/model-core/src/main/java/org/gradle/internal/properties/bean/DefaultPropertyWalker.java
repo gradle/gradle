@@ -101,19 +101,12 @@ public class DefaultPropertyWalker implements PropertyWalker {
 
     private static class CachedPropertyValue implements PropertyValue {
 
-        private final Supplier<Object> supplier;
         private final Method method;
-        private final Supplier<Object> cachedInvoker = Suppliers.memoize(new com.google.common.base.Supplier<Object>() {
-            @Override
-            @Nullable
-            public Object get() {
-                return DeprecationLogger.whileDisabled(supplier::get);
-            }
-        });
+        private final Supplier<Object> cachedInvoker;
 
         public CachedPropertyValue(Supplier<Object> supplier, Method method) {
-            this.supplier = supplier;
             this.method = method;
+            this.cachedInvoker = Suppliers.memoize(() -> DeprecationLogger.whileDisabled(supplier::get));
         }
 
         @Override
