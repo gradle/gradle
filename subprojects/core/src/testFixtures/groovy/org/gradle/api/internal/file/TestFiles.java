@@ -35,6 +35,7 @@ import org.gradle.cache.CleanupAction;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.scopes.DefaultGlobalScopedCache;
 import org.gradle.cache.scopes.ScopedCache;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
@@ -70,7 +71,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
+import static org.gradle.cache.FileLockManager.LockMode.Shared;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
@@ -326,7 +327,7 @@ public class TestFiles {
 
         @Override
         public File baseDirForCrossVersionCache(String key) {
-            return new File(cacheDir, "crossVersion");
+            return new File(cacheDir, "cross-version-base");
         }
     }
 
@@ -336,7 +337,7 @@ public class TestFiles {
         private Map<String, ?> properties = Collections.emptyMap();
         private LockTarget lockTarget = LockTarget.DefaultTarget;
         private String displayName = "Test Cache";
-        private LockOptions lockOptions = mode(Exclusive);
+        private LockOptions lockOptions = mode(Shared);
         private Action<? super PersistentCache> initializer = Actions.doNothing();
         private CleanupAction cleanup = CleanupAction.NO_OP;
 
