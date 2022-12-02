@@ -1,6 +1,15 @@
 
 The Gradle team is excited to announce Gradle @version@.
 
+This is the first patch release for Gradle 7.6.
+
+It fixes the following issues:
+* TODO
+
+We recommend users upgrade to @version@ instead of 7.6.
+
+---
+
 This release includes [building and running code with Java 19](#java19),
 a flag to [rerun tasks individually](#individual-rerun),
 a new [strongly-typed dependencies block](#strongly-typed-dependencies) for JVM test suites,
