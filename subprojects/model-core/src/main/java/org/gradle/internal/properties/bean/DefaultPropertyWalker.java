@@ -24,11 +24,11 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.properties.StaticValue;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
@@ -73,12 +73,13 @@ public class DefaultPropertyWalker implements PropertyWalker {
                 typeMetadata.visitValidationFailures(qualifiedName, validationContext);
                 ImplementationValue implementation = implementationResolver.resolveImplementation(value);
                 visitor.visitInputProperty(qualifiedName, new ImplementationPropertyValue(implementation), false);
-                PropertyValue staticValue = new StaticValue(value);
-                visitValue(qualifiedName, propertyMetadata, staticValue, visitor);
             }
 
             @Override
             public void visitMissingNested(String qualifiedName, PropertyMetadata propertyMetadata) {
+                if (!propertyMetadata.isAnnotationPresent(Optional.class)) {
+                    visitor.visitInputProperty(qualifiedName, PropertyValue.ABSENT, false);
+                }
             }
 
             @Override
@@ -89,17 +90,13 @@ public class DefaultPropertyWalker implements PropertyWalker {
             @Override
             public void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<Object> value) {
                 PropertyValue cachedValue = new CachedPropertyValue(value, propertyMetadata.getGetterMethod());
-                visitValue(qualifiedName, propertyMetadata, cachedValue, visitor);
+                PropertyAnnotationHandler handler = handlers.get(propertyMetadata.getPropertyType());
+                if (handler == null) {
+                    throw new IllegalStateException("Property handler should not be null for: " + propertyMetadata.getPropertyType());
+                }
+                handler.visitPropertyValue(qualifiedName, cachedValue, propertyMetadata, visitor);
             }
         });
-    }
-
-    private void visitValue(String qualifiedName, PropertyMetadata propertyMetadata, PropertyValue value, PropertyVisitor visitor) {
-        PropertyAnnotationHandler handler = handlers.get(propertyMetadata.getPropertyType());
-        if (handler == null) {
-            throw new IllegalStateException("Property handler should not be null for: " + propertyMetadata.getPropertyType());
-        }
-        handler.visitPropertyValue(qualifiedName, value, propertyMetadata, visitor);
     }
 
     private static class CachedPropertyValue implements PropertyValue {
