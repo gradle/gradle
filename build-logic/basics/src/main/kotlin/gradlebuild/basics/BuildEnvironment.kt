@@ -59,7 +59,7 @@ fun Project.releasedVersionsFile() = repoRoot().file("released-versions.json")
 
 
 /**
- * We use command line Git instead of JGit, because JGit's [Repository.resolve] does not work with worktrees.
+ * We use command line Git instead of JGit, because JGit's `Repository.resolve` does not work with worktrees.
  */
 fun Project.currentGitBranchViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtension()?.gitBranch ?: objects.property(String::class.java)
 
