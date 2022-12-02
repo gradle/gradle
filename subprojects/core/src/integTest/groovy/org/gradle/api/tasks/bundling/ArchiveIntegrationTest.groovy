@@ -986,14 +986,16 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             ${defineUpdateTask('zip', useArchiveOps)}
             ${defineVerifyTask('zip', useArchiveOps)}
 
+            def theArchive = rootProject.file('test.zip')
+
             tasks.register('update', UpdateTask) {
-                archive = rootProject.file('test.zip')
+                archive = theArchive
                 replacementText = 'modified by project1'
             }
 
             tasks.register('verify', VerifyTask) {
                 dependsOn tasks.named('update')
-                archive = rootProject.file('test.zip')
+                archive = theArchive
                 beginsWith = 'modified by project1'
             }
         """
@@ -1002,14 +1004,16 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             ${defineUpdateTask('zip', useArchiveOps)}
             ${defineVerifyTask('zip', useArchiveOps)}
 
+            def theArchive = rootProject.file('test.zip')
+
             tasks.register('update', UpdateTask) {
-                archive = rootProject.file('test.zip')
+                archive = theArchive
                 replacementText = 'edited by project2'
             }
 
             tasks.register('verify', VerifyTask) {
                 dependsOn tasks.named('update')
-                archive = rootProject.file('test.zip')
+                archive = theArchive
                 beginsWith = 'edited by project2'
             }
         """
@@ -1043,14 +1047,16 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             ${defineUpdateTask('tar', useArchiveOps)}
             ${defineVerifyTask('tar', useArchiveOps)}
 
+            def theArchive = rootProject.file('test.tar')
+
             tasks.register('update', UpdateTask) {
-                archive = rootProject.file('test.tar')
+                archive = theArchive
                 replacementText = 'modified by project1'
             }
 
             tasks.register('verify', VerifyTask) {
                 dependsOn tasks.named('update')
-                archive = rootProject.file('test.tar')
+                archive = theArchive
                 beginsWith = 'modified by project1'
             }
         """
@@ -1059,14 +1065,16 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             ${defineUpdateTask('tar', useArchiveOps)}
             ${defineVerifyTask('tar', useArchiveOps)}
 
+            def theArchive = rootProject.file('test.tar')
+
             tasks.register('update', UpdateTask) {
-                archive = rootProject.file('test.tar')
+                archive = theArchive
                 replacementText = 'edited by project2'
             }
 
             tasks.register('verify', VerifyTask) {
                 dependsOn tasks.named('update')
-                archive = rootProject.file('test.tar')
+                archive = theArchive
                 beginsWith = 'edited by project2'
             }
         """
@@ -1117,15 +1125,17 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
+            def theArchive = rootProject.file('test.tar')
+
             tasks.register('update1', UpdateTask) {
                 dependsOn tasks.named('wait1')
-                archive = rootProject.file('test.tar')
+                archive = theArchive
                 replacementText = 'modification 1'
             }
 
             tasks.register('update2', UpdateTask) {
                 dependsOn tasks.named('wait2')
-                archive = rootProject.file('test.tar')
+                archive = theArchive
                 replacementText = 'modification 2'
             }
 
@@ -1192,15 +1202,17 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
+            def theArchive = rootProject.file('test.zip')
+
             tasks.register('update1', UpdateTask) {
                 dependsOn tasks.named('wait1')
-                archive = rootProject.file('test.zip')
+                archive = theArchive
                 replacementText = 'modification 1'
             }
 
             tasks.register('update2', UpdateTask) {
                 dependsOn tasks.named('wait2')
-                archive = rootProject.file('test.zip')
+                archive = theArchive
                 replacementText = 'modification 2'
             }
 
@@ -1280,11 +1292,11 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 @Input
                 abstract Property<String> getReplacementText()
 
-                ${useArchiveOps ? "@Inject abstract ArchiveOperations getArchiveOperations()" : ""}
+                ${useArchiveOps ? "@Inject abstract ArchiveOperations getArchiveOperations()" : "private org.gradle.api.internal.file.FileOperations fileOperations = project.fileOperations"}
 
                 @TaskAction
                 void update() {
-                    FileTree tree = ${useArchiveOps ? "archiveOperations" : "project.fileOperations"}.${archiveType}Tree(archive.asFile.get())
+                    FileTree tree = ${useArchiveOps ? "archiveOperations" : "fileOperations"}.${archiveType}Tree(archive.asFile.get())
                     tree.visit(new EditingFileVisitor())
                 }
 
@@ -1310,11 +1322,11 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 @Input
                 abstract Property<String> getBeginsWith()
 
-                ${useArchiveOps ? "@Inject abstract ArchiveOperations getArchiveOperations()" : ""}
+                ${useArchiveOps ? "@Inject abstract ArchiveOperations getArchiveOperations()" : "private org.gradle.api.internal.file.FileOperations fileOperations = project.fileOperations"}
 
                 @TaskAction
                 void verify() {
-                    FileTree tree = ${useArchiveOps ? "archiveOperations" : "project.fileOperations"}.${archiveType}Tree(archive.asFile.get())
+                    FileTree tree = ${useArchiveOps ? "archiveOperations" : "fileOperations"}.${archiveType}Tree(archive.asFile.get())
                     tree.visit(new VerifyingFileVisitor())
                 }
 
@@ -1337,11 +1349,11 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 @InputFile
                 abstract RegularFileProperty getArchive()
 
-                ${useArchiveOps ? "@Inject abstract ArchiveOperations getArchiveOperations()" : ""}
+                ${useArchiveOps ? "@Inject abstract ArchiveOperations getArchiveOperations()" : "private org.gradle.api.internal.file.FileOperations fileOperations = project.fileOperations"}
 
                 @TaskAction
                 void verify() {
-                    FileTree tree = ${useArchiveOps ? "archiveOperations" : "project.fileOperations"}.${archiveType}Tree(archive.asFile.get())
+                    FileTree tree = ${useArchiveOps ? "archiveOperations" : "fileOperations"}.${archiveType}Tree(archive.asFile.get())
                     tree.visit(new VerifyingFileVisitor())
                 }
 
