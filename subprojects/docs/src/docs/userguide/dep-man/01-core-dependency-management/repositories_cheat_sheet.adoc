@@ -368,7 +368,7 @@ For more information, see the link:https://docs.aws.amazon.com/AmazonS3/latest/d
 Use the following system properties to configure link:https://cloud.google.com/storage/[Google Cloud Storage] (GCS) repositories:
 
 `org.gradle.gcs.endpoint`::
-Used to override the GCS endpoint when using a non-Google Cloud Platform (GCP), GCS API compatible, storage service.
+Used to override the GCS endpoint when using a GCS-compatible storage service that is _not_ GCP.
 
 `org.gradle.gcs.servicePath`::
 Used to override the GCS root service path which the Google Cloud Storage client builds requests from, defaults to `/`.
