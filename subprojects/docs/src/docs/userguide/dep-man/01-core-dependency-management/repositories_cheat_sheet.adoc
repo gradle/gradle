@@ -371,7 +371,7 @@ Use the following system properties to configure link:https://cloud.google.com/s
 Used to override the GCS endpoint when using a GCS-compatible storage service that is _not_ GCP.
 
 `org.gradle.gcs.servicePath`::
-Used to override the GCS root service path which the Google Cloud Storage client builds requests from, defaults to `/`.
+Used to override the GCS root service path used to build Google Cloud Storage client requests. Defaults to `/`.
 
 [[sub:gcs_url_formats]]
 === GCS URL formats
