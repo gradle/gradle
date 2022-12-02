@@ -26,7 +26,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
-import org.gradle.cache.scopes.ScopedCache;
+import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -53,8 +53,8 @@ public class TarFileTree extends AbstractArchiveFileTree {
             Chmod chmod,
             DirectoryFileTreeFactory directoryFileTreeFactory,
             FileHasher fileHasher,
-            ScopedCache cacheBuilder) {
-        super(cacheBuilder);
+            DecompressionCache decompressionCache) {
+        super(decompressionCache);
         this.tarFileProvider = tarFileProvider;
         this.resource = resource;
         this.chmod = chmod;
@@ -74,7 +74,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
 
     @Override
     public void visit(FileVisitor visitor) {
-        expansionCache.useCache(() -> {
+        decompressionCache.useCache(() -> {
             InputStream inputStream;
             try {
                 inputStream = new BufferedInputStream(resource.get().read());
@@ -125,7 +125,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
         File tarFile = tarFileProvider.get();
         HashCode fileHash = hashFile(tarFile);
         String expandedDirName = "tar_" + fileHash;
-        return new File(expansionCache.getBaseDir(), expandedDirName);
+        return new File(decompressionCache.getBaseDir(), expandedDirName);
     }
 
     private HashCode hashFile(File tarFile) {

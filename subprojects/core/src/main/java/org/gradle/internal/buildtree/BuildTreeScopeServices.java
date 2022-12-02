@@ -21,6 +21,9 @@ import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.cache.internal.DecompressionCache;
+import org.gradle.cache.internal.DefaultDecompressionCache;
+import org.gradle.cache.scopes.BuildTreeScopedCache;
 import org.gradle.execution.DefaultTaskSelector;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.TaskNameResolver;
@@ -94,5 +97,9 @@ public class BuildTreeScopeServices {
             exceptionAnalyser = new StackTraceSanitizingExceptionAnalyser(exceptionAnalyser);
         }
         return exceptionAnalyser;
+    }
+
+    protected DecompressionCache createDecompressionCache(BuildTreeScopedCache cacheFactory) {
+        return new DefaultDecompressionCache(cacheFactory);
     }
 }

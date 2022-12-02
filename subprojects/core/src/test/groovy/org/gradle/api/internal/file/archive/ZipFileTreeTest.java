@@ -18,7 +18,7 @@ package org.gradle.api.internal.file.archive;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.EmptyFileVisitor;
-import org.gradle.api.internal.file.TestFiles;
+import org.gradle.cache.internal.TestCaches;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
@@ -41,7 +41,7 @@ public class ZipFileTreeTest extends AbstractArchiveFileTreeTest {
             fileSystem(),
             directoryFileTreeFactory(),
             fileHasher(),
-            TestFiles.scopedCache(tempDirProvider.getTestDirectory().createDir("cache-dir")));
+            TestCaches.decompressionCache(tempDirProvider.getTestDirectory().createDir("cache-dir")));
 
     @Override
     protected void archiveFileToRoot(TestFile file) {
