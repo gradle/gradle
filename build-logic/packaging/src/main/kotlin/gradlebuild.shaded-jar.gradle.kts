@@ -187,6 +187,6 @@ fun Configuration.artifactViewForType(artifactTypeName: String) = incoming.artif
     attributes.attribute(Attributes.artifactType, artifactTypeName)
 }.files
 
-fun String.kebabToPascal() = split("-").map { it.capitalize() }.joinToString("")
+fun String.kebabToPascal() = split("-").joinToString("") { it.capitalize() }
 
 fun String.kebabToCamel() = kebabToPascal().decapitalize()
