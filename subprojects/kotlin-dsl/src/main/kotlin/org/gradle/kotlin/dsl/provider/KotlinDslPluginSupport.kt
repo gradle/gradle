@@ -24,6 +24,7 @@ object KotlinDslPluginSupport {
             "-java-parameters",
             "-Xjvm-default=all",
             "-Xjsr305=strict",
+            "-Xsam-conversions=class",
             "-XXLanguage:+DisableCompatibilityModeForNewInference",
         )
 }
