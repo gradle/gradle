@@ -215,7 +215,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 
 You can specify multiple metadata sources. Gradle searches metadata sources in the declared order.
 
-When parsing a metadata file, Gradle looks for a marker indicating that a matching Gradle Module Metadata files exists.
+When parsing a metadata file, Gradle looks for a marker indicating that a matching Gradle Module Metadata file exists.
 If it is found, Gradle uses the Gradle Module Metadata instead of the Ivy or Maven file.
 You can disable this behavior by adding `ignoreGradleMetadataRedirection()` to the `metadataSources` block:
 
