@@ -223,6 +223,7 @@ fun Project.enableScriptCompilationOf(
                 sourceCodeOutputDir.set(it)
                 metadataOutputDir.set(accessorsMetadata)
                 compiledPluginsBlocksDir.set(compiledPluginsBlocks)
+                @Suppress("DEPRECATION")
                 strict.set(
                     providers
                         .systemProperty(strictModeSystemPropertyName)
