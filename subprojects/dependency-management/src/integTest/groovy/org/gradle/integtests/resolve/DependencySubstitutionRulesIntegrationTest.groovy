@@ -1523,18 +1523,9 @@ configurations.all {
                 }
             }
 
-
             dependencies {
                 conf 'org:lib:1.0:classy'
                 conf 'org:other:1.0'
-            }
-
-            checkDeps {
-               def files = configurations.conf
-               doLast {
-                  // additional check on top of what the test fixture allows
-                  assert files*.name as Set == ['lib-1.1.jar', 'other-1.0.jar'] as Set
-               }
             }
         """
 
@@ -1610,14 +1601,6 @@ configurations.all {
                 conf 'org:lib:1.0'
                 conf 'org:other:1.0'
             }
-
-            checkDeps {
-               def files = configurations.conf
-               doLast {
-                  // additional check on top of what the test fixture allows
-                  assert files*.name as Set == ['lib-1.1-classy.jar', 'other-1.0.jar'] as Set
-               }
-            }
         """
 
         when:
@@ -1635,7 +1618,6 @@ configurations.all {
                 }
             }
         }
-
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13658")
