@@ -21,8 +21,8 @@ import org.gradle.kotlin.dsl.support.compileToDirectory
 import org.gradle.kotlin.dsl.support.zipTo
 
 import com.google.common.annotations.VisibleForTesting
-import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.kotlin.dsl.support.bytecode.GradleJvmVersion
 
 import java.io.File
 
@@ -117,7 +117,7 @@ fun compileKotlinApiExtensionsTo(
 
     val success = compileToDirectory(
         outputDirectory,
-        JavaVersion.VERSION_1_8, // The minimal Java version required to run Gradle
+        GradleJvmVersion.minimalJavaVersion,
         "gradle-api-extensions",
         sourceFiles,
         logger,
