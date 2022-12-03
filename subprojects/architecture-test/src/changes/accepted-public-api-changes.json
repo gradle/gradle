@@ -1577,6 +1577,76 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.GroovyBuilderScope",
+            "member": "Method org.gradle.kotlin.dsl.GroovyBuilderScope.access$invoke$jd(org.gradle.kotlin.dsl.GroovyBuilderScope,java.lang.String)",
+            "acceptation": "Temporary generation of compatibility methods in Kotlin DSL bytecode - until a wrapper update",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GroovyBuilderScope",
+            "member": "Method org.gradle.kotlin.dsl.GroovyBuilderScope.access$invoke$jd(org.gradle.kotlin.dsl.GroovyBuilderScope,java.lang.String,java.lang.Object[],kotlin.jvm.functions.Function1)",
+            "acceptation": "Temporary generation of compatibility methods in Kotlin DSL bytecode - until a wrapper update",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GroovyBuilderScope",
+            "member": "Method org.gradle.kotlin.dsl.GroovyBuilderScope.access$invoke$jd(org.gradle.kotlin.dsl.GroovyBuilderScope,java.lang.String,kotlin.Pair[])",
+            "acceptation": "Temporary generation of compatibility methods in Kotlin DSL bytecode - until a wrapper update",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GroovyBuilderScope",
+            "member": "Method org.gradle.kotlin.dsl.GroovyBuilderScope.access$invoke$jd(org.gradle.kotlin.dsl.GroovyBuilderScope,java.lang.String,kotlin.Pair[],kotlin.jvm.functions.Function1)",
+            "acceptation": "Temporary generation of compatibility methods in Kotlin DSL bytecode - until a wrapper update",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GroovyBuilderScope",
+            "member": "Method org.gradle.kotlin.dsl.GroovyBuilderScope.access$invoke$jd(org.gradle.kotlin.dsl.GroovyBuilderScope,java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "Temporary generation of compatibility methods in Kotlin DSL bytecode - until a wrapper update",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GroovyBuilderScope",
+            "member": "Method org.gradle.kotlin.dsl.GroovyBuilderScope.invoke(java.lang.String)",
+            "acceptation": "Temporary generation of compatibility methods in Kotlin DSL bytecode - until a wrapper update",
+            "changes": [
+                "Abstract method is now default method"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GroovyBuilderScope",
+            "member": "Method org.gradle.kotlin.dsl.GroovyBuilderScope.invoke(java.lang.String,java.lang.Object[],kotlin.jvm.functions.Function1)",
+            "acceptation": "Temporary generation of compatibility methods in Kotlin DSL bytecode - until a wrapper update",
+            "changes": [
+                "Abstract method is now default method"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GroovyBuilderScope",
+            "member": "Method org.gradle.kotlin.dsl.GroovyBuilderScope.invoke(java.lang.String,kotlin.Pair[])",
+            "acceptation": "Temporary generation of compatibility methods in Kotlin DSL bytecode - until a wrapper update",
+            "changes": [
+                "Abstract method is now default method"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GroovyBuilderScope",
+            "member": "Method org.gradle.kotlin.dsl.GroovyBuilderScope.invoke(java.lang.String,kotlin.Pair[],kotlin.jvm.functions.Function1)",
+            "acceptation": "Temporary generation of compatibility methods in Kotlin DSL bytecode - until a wrapper update",
+            "changes": [
+                "Abstract method is now default method"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GroovyBuilderScope",
+            "member": "Method org.gradle.kotlin.dsl.GroovyBuilderScope.invoke(java.lang.String,kotlin.jvm.functions.Function1)",
+            "acceptation": "Temporary generation of compatibility methods in Kotlin DSL bytecode - until a wrapper update",
+            "changes": [
+                "Abstract method is now default method"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.NamedDomainObjectContainerExtensionsKt.invoke(org.gradle.api.NamedDomainObjectContainer,kotlin.jvm.functions.Function1)",
             "acceptation": "Removed deprecated method in Gradle 8.0",
