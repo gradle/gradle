@@ -180,6 +180,8 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         withInstallations(jdk11).run(":compileGroovy")
 
         then:
+        executedAndNotSkipped(":compileGroovy")
+
         outputContains("project.sourceCompatibility = 11")
         outputContains("project.targetCompatibility = 11")
         outputContains("task.sourceCompatibility = $sourceOut")
