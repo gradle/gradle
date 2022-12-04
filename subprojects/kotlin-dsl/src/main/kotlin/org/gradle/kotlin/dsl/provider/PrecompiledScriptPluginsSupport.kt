@@ -43,8 +43,6 @@ interface PrecompiledScriptPluginsSupport {
         val project: Project
 
         val jvmTarget: Provider<JavaVersion>
-            // Default value for `kotlin-dsl` plugin versions prior to the introduction of this property
-            get() = project.provider { JavaVersion.VERSION_1_8 }
 
         val kotlinSourceDirectorySet: SourceDirectorySet
     }
