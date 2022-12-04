@@ -23,7 +23,7 @@ import spock.lang.Issue
 
 class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache(because = "unsupported type Dependency")
+    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "understands dependency notations"() {
         when:
         buildFile <<  """
