@@ -126,9 +126,3 @@ testFilesCleanup.reportOnly.set(true)
 strictCompile {
     ignoreDeprecations()
 }
-
-tasks.compileKotlin {
-    kotlinOptions {
-        freeCompilerArgs += "-Xjvm-default=all-compatibility"
-    }
-}
