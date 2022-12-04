@@ -1311,7 +1311,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can access project extension of nested type compiled to Java 11`() {
 
-        assumeJava11()
+        assumeJava11OrHigher()
 
         withFolders {
             "buildSrc" {

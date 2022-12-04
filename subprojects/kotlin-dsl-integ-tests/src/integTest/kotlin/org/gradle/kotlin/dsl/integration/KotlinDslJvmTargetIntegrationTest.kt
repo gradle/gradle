@@ -27,7 +27,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `scripts are compiled using the build jvm target`() {
 
-        assumeJava11()
+        assumeJava11OrHigher()
 
         withClassJar("utils.jar", JavaClassUtil::class.java)
 
@@ -52,7 +52,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can use a different jvmTarget to compile precompiled scripts`() {
 
-        assumeJava11()
+        assumeJava11OrHigher()
 
         withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
 
