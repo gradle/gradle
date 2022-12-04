@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.integration
 
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaClassUtil
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
@@ -28,7 +27,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `scripts are compiled using the build jvm target`() {
 
-        val jdk11 = AvailableJavaHomes.getJdk11()!!
+        assumeJava11()
 
         withClassJar("utils.jar", JavaClassUtil::class.java)
 
@@ -44,17 +43,16 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
             println("Java Class Major Version = ${'$'}{JavaClassUtil.getClassMajorVersion(this::class.java)}")
         """)
 
-        val result = gradleExecuterFor(arrayOf("help"))
-            .withJavaHome(jdk11.javaHome)
-            .run()
+        build("help").apply {
+            assertThat(output, containsString("Java Class Major Version = 55"))
+        }
 
-        assertThat(result.output, containsString("Java Class Major Version = 55"))
     }
 
     @Test
     fun `can use a different jvmTarget to compile precompiled scripts`() {
 
-        val jdk11 = AvailableJavaHomes.getJdk11()!!
+        assumeJava11()
 
         withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
 
@@ -80,10 +78,8 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        val result = gradleExecuterFor(arrayOf("help"))
-            .withJavaHome(jdk11.javaHome)
-            .run()
-
-        assertThat(result.output, containsString("Java Class Major Version = 55"))
+        build("help").apply {
+            assertThat(output, containsString("Java Class Major Version = 55"))
+        }
     }
 }
