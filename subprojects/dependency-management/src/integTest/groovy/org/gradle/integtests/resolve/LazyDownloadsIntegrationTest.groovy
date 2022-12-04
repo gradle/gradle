@@ -34,7 +34,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
                     create('default').extendsFrom compile
                 }
             }
-            
+
             dependencies {
                 compile project(':child')
             }
@@ -42,7 +42,7 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
                 dependencies {
                     compile 'test:test:1.0'
                     compile 'test:test2:1.0'
-                }                
+                }
             }
 """
     }
@@ -51,8 +51,9 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         given:
         buildFile << """
             task graph {
+                def root = configurations.compile.incoming.resolutionResult.rootComponent
                 doLast {
-                    println configurations.compile.incoming.resolutionResult.allComponents
+                    root.get()
                 }
             }
 """
@@ -87,8 +88,9 @@ class LazyDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest 
         given:
         buildFile << """
             task artifacts {
+                def files = configurations.compile
                 doLast {
-                    configurations.compile.${expression}.each { it }
+                    files*.name
                 }
             }
 """
