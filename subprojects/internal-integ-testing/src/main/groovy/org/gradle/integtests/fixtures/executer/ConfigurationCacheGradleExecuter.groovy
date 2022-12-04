@@ -42,6 +42,11 @@ class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
 
     @Override
     protected List<String> getAllArgs() {
-        return super.getAllArgs() + CONFIGURATION_CACHE_ARGS
+        def args = super.getAllArgs()
+        if (args.contains("--no-configuration-cache")) { // Don't enable if explicitly disabled
+            return args
+        } else {
+            return args + CONFIGURATION_CACHE_ARGS
+        }
     }
 }
