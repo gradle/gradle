@@ -18,9 +18,9 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
+import org.gradle.cache.ObjectCache;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCacheParameters;
-import org.gradle.cache.PersistentStateCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.internal.service.scopes.Scopes;
@@ -54,11 +54,11 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
     }
 
     @Override
-    public PersistentStateCache<CompilationState> create(String taskPath) {
+    public ObjectCache<CompilationState> create(String taskPath) {
         return new PersistentCompilationStateCache(taskPath, compilationStateIndexedCache);
     }
 
-    private static class PersistentCompilationStateCache implements PersistentStateCache<CompilationState> {
+    private static class PersistentCompilationStateCache implements ObjectCache<CompilationState> {
         private final String taskPath;
         private final IndexedCache<String, CompilationState> compilationStateIndexedCache;
 

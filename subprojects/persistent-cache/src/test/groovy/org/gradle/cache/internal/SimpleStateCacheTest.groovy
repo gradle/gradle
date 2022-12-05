@@ -16,7 +16,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.FileAccess
-import org.gradle.cache.PersistentStateCache
+import org.gradle.cache.ObjectCache
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.serialize.DefaultSerializer
 import org.gradle.internal.serialize.Serializer
@@ -86,7 +86,7 @@ class SimpleStateCacheTest extends Specification {
         cache.update({ value ->
             assert value == "foo"
             return "foo bar"
-        } as PersistentStateCache.UpdateAction)
+        } as ObjectCache.UpdateAction)
 
         then:
         1 * fileAccess.updateFile(!null) >> { it[0].run() }
@@ -104,7 +104,7 @@ class SimpleStateCacheTest extends Specification {
         cache.update({ value ->
             assert value == null
             return "bar"
-        } as PersistentStateCache.UpdateAction)
+        } as ObjectCache.UpdateAction)
 
         then:
         1 * fileAccess.updateFile(!null) >> { it[0].run() }

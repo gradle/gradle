@@ -18,7 +18,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.cache.FileAccess;
-import org.gradle.cache.PersistentStateCache;
+import org.gradle.cache.ObjectCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
@@ -31,7 +31,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
-public class SimpleStateCache<T> implements PersistentStateCache<T> {
+public class SimpleStateCache<T> implements ObjectCache<T> {
     private final FileAccess fileAccess;
     private final Serializer<T> serializer;
     private final Chmod chmod;

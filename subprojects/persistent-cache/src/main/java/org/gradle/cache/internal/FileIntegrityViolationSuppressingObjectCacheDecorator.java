@@ -17,14 +17,14 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.FileIntegrityViolationException;
-import org.gradle.cache.PersistentStateCache;
+import org.gradle.cache.ObjectCache;
 import org.gradle.internal.Factory;
 
-public class FileIntegrityViolationSuppressingPersistentStateCacheDecorator<T> implements PersistentStateCache<T> {
+public class FileIntegrityViolationSuppressingObjectCacheDecorator<T> implements ObjectCache<T> {
 
-    private final PersistentStateCache<T> delegate;
+    private final ObjectCache<T> delegate;
 
-    public FileIntegrityViolationSuppressingPersistentStateCacheDecorator(PersistentStateCache<T> delegate) {
+    public FileIntegrityViolationSuppressingObjectCacheDecorator(ObjectCache<T> delegate) {
         this.delegate = delegate;
     }
 

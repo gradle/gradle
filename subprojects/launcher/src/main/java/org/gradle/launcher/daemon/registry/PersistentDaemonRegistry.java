@@ -20,8 +20,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentStateCache;
-import org.gradle.cache.internal.FileIntegrityViolationSuppressingPersistentStateCacheDecorator;
+import org.gradle.cache.ObjectCache;
+import org.gradle.cache.internal.FileIntegrityViolationSuppressingObjectCacheDecorator;
 import org.gradle.cache.internal.OnDemandFileAccess;
 import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.internal.file.Chmod;
@@ -44,7 +44,7 @@ import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idl
  * Access to daemon registry files. Useful also for testing.
  */
 public class PersistentDaemonRegistry implements DaemonRegistry {
-    private final PersistentStateCache<DaemonRegistryContent> cache;
+    private final ObjectCache<DaemonRegistryContent> cache;
     private final Lock lock = new ReentrantLock();
     private final File registryFile;
 
@@ -52,7 +52,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
 
     public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager, Chmod chmod) {
         this.registryFile = registryFile;
-        cache = new FileIntegrityViolationSuppressingPersistentStateCacheDecorator<DaemonRegistryContent>(
+        cache = new FileIntegrityViolationSuppressingObjectCacheDecorator<DaemonRegistryContent>(
             new SimpleStateCache<DaemonRegistryContent>(
                 registryFile,
                 new OnDemandFileAccess(
@@ -130,7 +130,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         lock.lock();
         LOGGER.debug("Removing daemon address: {}", address);
         try {
-            cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
+            cache.update(new ObjectCache.UpdateAction<DaemonRegistryContent>() {
                 @Override
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
                     if (oldValue == null) {
@@ -150,7 +150,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         lock.lock();
         LOGGER.debug("Marking busy by address: {}", address);
         try {
-            cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
+            cache.update(new ObjectCache.UpdateAction<DaemonRegistryContent>() {
                 @Override
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
                     DaemonInfo daemonInfo = oldValue != null ? oldValue.getInfo(address) : null;
@@ -170,7 +170,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         lock.lock();
         LOGGER.debug("Storing daemon stop event with timestamp {}", stopEvent.getTimestamp().getTime());
         try {
-            cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
+            cache.update(new ObjectCache.UpdateAction<DaemonRegistryContent>() {
                 @Override
                 public DaemonRegistryContent update(DaemonRegistryContent content) {
                     if (content == null) { // registry doesn't exist yet
@@ -205,7 +205,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         lock.lock();
         LOGGER.info("Removing {} daemon stop events from registry", events.size());
         try {
-            cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
+            cache.update(new ObjectCache.UpdateAction<DaemonRegistryContent>() {
                 @Override
                 public DaemonRegistryContent update(DaemonRegistryContent content) {
                     if (content != null) { // no daemon process has started yet
@@ -229,7 +229,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         lock.lock();
         LOGGER.debug("Storing daemon address: {}, context: {}", address, daemonContext);
         try {
-            cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
+            cache.update(new ObjectCache.UpdateAction<DaemonRegistryContent>() {
                 @Override
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
                     if (oldValue == null) {
