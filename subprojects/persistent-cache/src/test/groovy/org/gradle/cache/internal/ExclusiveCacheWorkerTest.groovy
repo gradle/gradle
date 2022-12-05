@@ -22,13 +22,13 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class ExclusiveCacheWorkerTest extends ConcurrentSpec {
     ExclusiveCache cacheAccess
-    CacheAccessWorker cacheAccessWorker
+    ExclusiveCacheAccessingWorker cacheAccessWorker
 
     def setup() {
         cacheAccess = Stub(ExclusiveCache) {
             useCache(_) >> { Runnable action -> action.run() }
         }
-        cacheAccessWorker = new CacheAccessWorker("<cache>", cacheAccess)
+        cacheAccessWorker = new ExclusiveCacheAccessingWorker("<cache>", cacheAccess)
     }
 
     def "read runs after queued writes are processed"() {

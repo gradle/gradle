@@ -75,7 +75,7 @@ public class DefaultExclusiveCache implements ExclusiveCacheCoordinator {
     private final CacheAccessOperationsStack operations;
 
     private ManagedExecutor cacheUpdateExecutor;
-    private CacheAccessWorker cacheAccessWorker;
+    private ExclusiveCacheAccessingWorker exclusiveCacheAccessingWorker;
     private final Lock stateLock = new ReentrantLock(); // protects the following state
     private final Condition condition = stateLock.newCondition();
 
@@ -120,12 +120,12 @@ public class DefaultExclusiveCache implements ExclusiveCacheCoordinator {
     }
 
     private synchronized AsyncCacheAccess getCacheAccessWorker() {
-        if (cacheAccessWorker == null) {
-            cacheAccessWorker = new CacheAccessWorker(cacheDisplayName, this);
+        if (exclusiveCacheAccessingWorker == null) {
+            exclusiveCacheAccessingWorker = new ExclusiveCacheAccessingWorker(cacheDisplayName, this);
             cacheUpdateExecutor = executorFactory.create("Cache worker for " + cacheDisplayName);
-            cacheUpdateExecutor.execute(cacheAccessWorker);
+            cacheUpdateExecutor.execute(exclusiveCacheAccessingWorker);
         }
-        return cacheAccessWorker;
+        return exclusiveCacheAccessingWorker;
     }
 
     @Override
@@ -147,8 +147,8 @@ public class DefaultExclusiveCache implements ExclusiveCacheCoordinator {
     @Override
     public void cleanup() {
         if (cleanupAction != null && cleanupAction.requiresCleanup()) {
-            if (cacheAccessWorker != null) {
-                cacheAccessWorker.flush();
+            if (exclusiveCacheAccessingWorker != null) {
+                exclusiveCacheAccessingWorker.flush();
             }
 
             withOwnershipNow(this::doCleanup);
@@ -166,9 +166,9 @@ public class DefaultExclusiveCache implements ExclusiveCacheCoordinator {
 
     @Override
     public synchronized void close() {
-        if (cacheAccessWorker != null) {
-            cacheAccessWorker.stop();
-            cacheAccessWorker = null;
+        if (exclusiveCacheAccessingWorker != null) {
+            exclusiveCacheAccessingWorker.stop();
+            exclusiveCacheAccessingWorker = null;
         }
         if (cacheUpdateExecutor != null) {
             cacheUpdateExecutor.stop();
