@@ -58,15 +58,15 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.NodeMe
         walkChildren(root, typeMetadata, null, visitor, nestedNodesOnPath);
     }
 
-    private void walkNested(T node, String qualifiedName, PropertyMetadata propertyMetadata, V visitor, Map<T, String> nestedNodesWalkedOnPath) {
+    private void walkNested(T node, String qualifiedName, PropertyMetadata propertyMetadata, V visitor, Map<T, String> nestedNodesWalkedOnPath, boolean isElementOfCollection) {
         Class<?> nodeType = resolveType(node);
         TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(nodeType);
         if (Provider.class.isAssignableFrom(nodeType)) {
-            handleNestedProvider(node, qualifiedName, propertyMetadata, visitor, child -> walkNested(child, qualifiedName, propertyMetadata, visitor, nestedNodesWalkedOnPath));
+            handleNestedProvider(node, qualifiedName, propertyMetadata, visitor, isElementOfCollection, child -> walkNested(child, qualifiedName, propertyMetadata, visitor, nestedNodesWalkedOnPath, isElementOfCollection));
         } else if (Map.class.isAssignableFrom(nodeType) && !typeMetadata.hasAnnotatedProperties()) {
-            handleNestedMap(node, qualifiedName, (name, child) -> walkNested(child, getQualifiedName(qualifiedName, name), propertyMetadata, visitor, nestedNodesWalkedOnPath));
+            handleNestedMap(node, qualifiedName, (name, child) -> walkNested(child, getQualifiedName(qualifiedName, name), propertyMetadata, visitor, nestedNodesWalkedOnPath, true));
         } else if (Iterable.class.isAssignableFrom(nodeType) && !typeMetadata.hasAnnotatedProperties()) {
-            handleNestedIterable(node, qualifiedName, (name, child) -> walkNested(child, getQualifiedName(qualifiedName, name), propertyMetadata, visitor, nestedNodesWalkedOnPath));
+            handleNestedIterable(node, qualifiedName, (name, child) -> walkNested(child, getQualifiedName(qualifiedName, name), propertyMetadata, visitor, nestedNodesWalkedOnPath, true));
         } else {
             handleNestedBean(node, typeMetadata, qualifiedName, propertyMetadata, visitor, nestedNodesWalkedOnPath);
         }
@@ -89,7 +89,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.NodeMe
             String childQualifiedName = getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName());
             if (propertyMetadata.getPropertyType() == nestedAnnotation) {
                 Optional<T> childOptional = getNestedChild(node, childQualifiedName, propertyMetadata, visitor);
-                childOptional.ifPresent(child -> walkNested(child, childQualifiedName, propertyMetadata, visitor, nestedNodesOnPath));
+                childOptional.ifPresent(child -> walkNested(child, childQualifiedName, propertyMetadata, visitor, nestedNodesOnPath, false));
             } else {
                 visitor.visitLeaf(childQualifiedName, propertyMetadata, () -> getChild(node, propertyMetadata).orElse(null));
             }
@@ -98,7 +98,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.NodeMe
 
     abstract protected void onNestedNodeCycle(@Nullable String firstOccurrenceQualifiedName, String secondOccurrenceQualifiedName);
 
-    abstract protected void handleNestedProvider(T node, String qualifiedName, PropertyMetadata propertyMetadata, V visitor, Consumer<T> handler);
+    abstract protected void handleNestedProvider(T node, String qualifiedName, PropertyMetadata propertyMetadata, V visitor, boolean isElementOfCollection, Consumer<T> handler);
 
     abstract protected void handleNestedMap(T node, String qualifiedName, BiConsumer<String, T> handler);
 
@@ -132,9 +132,22 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.NodeMe
         }
 
         @Override
-        protected void handleNestedProvider(Object node, String qualifiedName, PropertyMetadata propertyMetadata, InstanceMetadataVisitor visitor, Consumer<Object> handler) {
-            Optional<Object> value = tryUnpackNested(qualifiedName, propertyMetadata, visitor, () -> Optional.ofNullable(((Provider<?>) node).getOrNull()));
+        protected void handleNestedProvider(Object node, String qualifiedName, PropertyMetadata propertyMetadata, InstanceMetadataVisitor visitor, boolean isElementOfCollection, Consumer<Object> handler) {
+            Optional<Object> value = tryUnpackNested(
+                qualifiedName,
+                visitor,
+                () -> visitMissingNestedProvider(visitor, qualifiedName, propertyMetadata, isElementOfCollection),
+                () -> Optional.ofNullable(((Provider<?>) node).getOrNull())
+            );
             value.ifPresent(handler);
+        }
+
+        private void visitMissingNestedProvider(InstanceMetadataVisitor visitor, String qualifiedName, PropertyMetadata propertyMetadata, boolean isElementOfCollect) {
+            if (isElementOfCollect) {
+                throw new IllegalStateException(getNullNestedCollectionValueExceptionMessage(null, qualifiedName));
+            } else {
+                visitMissingNested(visitor, qualifiedName, propertyMetadata);
+            }
         }
 
         @SuppressWarnings("unchecked")
@@ -159,15 +172,28 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.NodeMe
             }
         }
 
-        private void checkNotNullNestedCollectionValue(String parentQualifiedName, String name, @Nullable Object value) {
+        private void checkNotNullNestedCollectionValue(@Nullable String parentQualifiedName, String name, @Nullable Object value) {
             if (value == null) {
-                throw new IllegalStateException(String.format("Null is not allowed as nested property '%s'", getQualifiedName(parentQualifiedName, name)));
+                throw new IllegalStateException(getNullNestedCollectionValueExceptionMessage(parentQualifiedName, name));
             }
+        }
+
+        private String getNullNestedCollectionValueExceptionMessage(@Nullable String parentQualifiedName, String name) {
+            return String.format("Null or absent is not allowed for the nested property '%s', since it's an element of a collection", getQualifiedName(parentQualifiedName, name));
         }
 
         @Override
         protected Optional<Object> getNestedChild(Object parent, String childQualifiedName, PropertyMetadata propertyMetadata, InstanceMetadataVisitor visitor) {
-            return tryUnpackNested(childQualifiedName, propertyMetadata, visitor, () -> getChild(parent, propertyMetadata));
+            return tryUnpackNested(
+                childQualifiedName,
+                visitor,
+                () -> visitMissingNested(visitor, childQualifiedName, propertyMetadata),
+                () -> getChild(parent, propertyMetadata)
+            );
+        }
+
+        private void visitMissingNested(InstanceMetadataVisitor visitor, String qualifiedName, PropertyMetadata propertyMetadata) {
+            visitor.visitMissingNested(qualifiedName, propertyMetadata);
         }
 
         @Override
@@ -184,7 +210,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.NodeMe
             }
         }
 
-        private Optional<Object> tryUnpackNested(String childQualifiedName, PropertyMetadata propertyMetadata, InstanceMetadataVisitor visitor, Supplier<Optional<Object>> unpacker) {
+        private Optional<Object> tryUnpackNested(String childQualifiedName, InstanceMetadataVisitor visitor, Runnable onMissingValue, Supplier<Optional<Object>> unpacker) {
             Optional<Object> value;
             try {
                 value = unpacker.get();
@@ -194,7 +220,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.NodeMe
             }
 
             if (!value.isPresent()) {
-                visitor.visitMissingNested(childQualifiedName, propertyMetadata);
+                onMissingValue.run();
             }
             return value;
         }
@@ -217,7 +243,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.NodeMe
 
         @SuppressWarnings("unchecked")
         @Override
-        protected void handleNestedProvider(TypeToken<?> node, String qualifiedName, PropertyMetadata propertyMetadata, StaticMetadataVisitor visitor, Consumer<TypeToken<?>> handler) {
+        protected void handleNestedProvider(TypeToken<?> node, String qualifiedName, PropertyMetadata propertyMetadata, StaticMetadataVisitor visitor, boolean isElementOfCollection, Consumer<TypeToken<?>> handler) {
             handler.accept(extractNestedType((TypeToken<Provider<?>>) node, Provider.class, 0));
         }
 

@@ -424,12 +424,12 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         }
     }
 
-    def "execution fails when a nested property throws an exception"() {
+    def "execution fails when a nested property throws an exception where property is a #description"() {
         buildFile << """
             class TaskWithFailingNestedInput extends DefaultTask {
                 @Nested
                 Object getNested() {
-                    throw new RuntimeException("BOOM")
+                    $propertyValue
                 }
 
                 @Input
@@ -453,6 +453,13 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         fails "myTask"
         failure.assertHasDescription("Execution failed for task ':myTask'.")
         failure.assertHasCause("BOOM")
+
+        where:
+        description                | propertyValue
+        "Java type"                | "throw new RuntimeException(\"BOOM\")"
+        "Provider"                 | "return project.providers.provider { throw new RuntimeException(\"BOOM\") }"
+        "Provider in a collection" | "return [project.providers.provider { throw new RuntimeException(\"BOOM\") }]"
+
     }
 
     @ValidationTestFor(
@@ -576,7 +583,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         executedAndNotSkipped task
     }
 
-    def "elements of nested iterable cannot be null"() {
+    def "elements of nested iterable cannot be #description"() {
         buildFile << """
             class TaskWithNestedIterable extends DefaultTask {
                 @Nested
@@ -590,13 +597,18 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             }
 
             task myTask(type: TaskWithNestedIterable) {
-                beans = [new NestedBean(input: 'input'), null]
+                beans = [new NestedBean(input: 'input'), $elementValue]
             }
         """
 
         expect:
         fails 'myTask'
-        failure.assertHasCause('Null is not allowed as nested property \'beans.$1\'')
+        failure.assertHasCause('Null or absent is not allowed for the nested property \'beans.$1\', since it\'s an element of a collection')
+
+        where:
+        description | elementValue
+        "null"      | "null"
+        "absent"    | "project.providers.provider { null }"
     }
 
     def "nested iterable beans can be iterables themselves"() {
