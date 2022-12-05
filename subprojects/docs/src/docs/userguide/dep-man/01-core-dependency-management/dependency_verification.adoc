@@ -1038,14 +1038,14 @@ To do this, you need to call the `ResolutionStrategy#disableDependencyVerificati
 
 .Disabling dependency verification
 ====
-include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/groovy",files="build.gradle[tags=disabling-one-configuration]"]
 include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/kotlin",files="build.gradle.kts[tags=disabling-one-configuration]"]
+include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/groovy",files="build.gradle[tags=disabling-one-configuration]"]
 ====
 
 It's also possible to disable verification on detached configurations like in the following example:
 
 .Disabling dependency verification
 ====
-include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/groovy",files="build.gradle[tags=disabling-detached-configuration]"]
 include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/kotlin",files="build.gradle.kts[tags=disabling-detached-configuration]"]
+include::sample[dir="snippets/dependencyManagement/dependencyVerification-disablingVerification/groovy",files="build.gradle[tags=disabling-detached-configuration]"]
 ====
