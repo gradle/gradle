@@ -49,4 +49,9 @@ class JavaClassUtilTest extends Specification {
         def ex = thrown(UnsupportedOperationException)
         ex.message == "Unable to provide class file major version for '${JavaVersion.VERSION_HIGHER}'"
     }
+
+    def "can extract java class file major version"() {
+        expect:
+        JavaClassUtil.getClassMajorVersion(JavaClassUtil.class) == 52
+    }
 }
