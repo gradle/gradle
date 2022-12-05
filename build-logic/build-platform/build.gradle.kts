@@ -28,7 +28,7 @@ dependencies {
         api("me.champeau.gradle:japicmp-gradle-plugin:0.4.1")
         api("me.champeau.jmh:jmh-gradle-plugin:0.6.8")
         api("org.asciidoctor:asciidoctor-gradle-jvm:3.3.2")
-        api("org.gradle:test-retry-gradle-plugin:1.4.0")
+        api("org.gradle:test-retry-gradle-plugin:1.5.0")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
         api("org.jlleitschuh.gradle:ktlint-gradle:10.3.0")

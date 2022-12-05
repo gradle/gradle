@@ -683,7 +683,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
 
-            configurations.compileClasspath.files.forEach {
+            configurations.compileClasspath.get().files.forEach {
                 println(org.gradle.util.internal.TextUtil.normaliseFileSeparators(it.path))
             }
             """
@@ -1166,7 +1166,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                 val integTest by registering {
                     java.srcDir(file("src/integTest/java"))
                     resources.srcDir(file("src/integTest/resources"))
-                    compileClasspath += sourceSets.main.get().output + configurations.testRuntimeClasspath
+                    compileClasspath += sourceSets.main.get().output + configurations.testRuntimeClasspath.get()
                     runtimeClasspath += output + compileClasspath
                 }
             }

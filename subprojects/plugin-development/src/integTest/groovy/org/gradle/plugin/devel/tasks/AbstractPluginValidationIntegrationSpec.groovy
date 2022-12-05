@@ -671,12 +671,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
     abstract void assertValidationSucceeds()
 
-    @Deprecated
-    final void assertValidationFailsWith(Map<String, Severity> messages) {
-        assertValidationFailsWith(messages.collect { message, severity ->
-            new DocumentedProblem(message, severity)
-        })
-    }
 
     abstract void assertValidationFailsWith(List<DocumentedProblem> messages)
 

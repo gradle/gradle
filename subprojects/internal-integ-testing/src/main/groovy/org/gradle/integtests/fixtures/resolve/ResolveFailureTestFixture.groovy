@@ -32,7 +32,7 @@ class ResolveFailureTestFixture {
         this.config = config
     }
 
-    void prepare() {
+    void prepare(String config = this.config) {
         buildFile << """
             allprojects {
                 tasks.register("checkDeps") {

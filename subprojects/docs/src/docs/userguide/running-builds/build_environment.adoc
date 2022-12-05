@@ -107,6 +107,13 @@ _The default is `-Xmx512m "-XX:MaxMetaspaceSize=256m"`._
 When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. See <<logging.adoc#sec:choosing_a_log_level,Choosing a log level>>.
 _The `lifecycle` level is the default._
 
+`org.gradle.logging.stacktrace=(internal,all,full)`::
+Specifies whether stacktraces should be displayed as part of the build result upon an exception. See also the <<command_line_interface.adoc#sec:command_line_debugging, --stacktrace command-line option>>.
+When set to `internal`, a stacktrace is present in the output only in case of internal exceptions.
+When set to `all` or `full`, a stacktrace is present in the output for all exceptions and build failures.
+Using `full` doesn't truncate the stacktrace, which leads to a much more verbose output.
+_Default is `internal`._
+
 `org.gradle.parallel=(true,false)`::
 When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute projects in parallel. To learn more about parallel task execution, see <<performance.adoc#parallel_execution,the section on Gradle build performance>>.
 _Default is `false`._
@@ -128,22 +135,15 @@ _Enabled by default on operating systems where Gradle supports this feature._
 When set to `all`, `summary` or `none`, Gradle will use different warning type display. See <<command_line_interface.adoc#sec:command_line_logging,Command-line logging options>> for details.
 _Default is `summary`._
 
-`org.gradle.workers.max=(max # of worker processes)`::
-When configured, Gradle will use a maximum of the given number of workers. See also <<command_line_interface.adoc#sec:command_line_performance, performance command-line options>>.
-_Default is number of CPU processors._
-
-`org.gradle.logging.stacktrace=(internal,all,full)`::
-Specifies whether stacktraces should be displayed as part of the build result upon an exception. See also the <<command_line_interface.adoc#sec:command_line_debugging, --stacktrace command-line option>>.
-When set to `internal`, a stacktrace is present in the output only in case of internal exceptions.
-When set to `all` or `full`, a stacktrace is present in the output for all exceptions and build failures.
-Using `full` doesn't truncate the stacktrace, which leads to a much more verbose output.
-_Default is `internal`._
-
 `org.gradle.welcome=(never,once)`::
 Controls whether Gradle should print a welcome message.
 If set to _never_ then the welcome message will be suppressed.
 If set to _once_ then the message is printed once for each new version of Gradle.
 _Default is `once`._
+
+`org.gradle.workers.max=(max # of worker processes)`::
+When configured, Gradle will use a maximum of the given number of workers. See also <<command_line_interface.adoc#sec:command_line_performance, performance command-line options>>.
+_Default is number of CPU processors._
 
 The following examples demonstrate how to use Gradle properties.
 
