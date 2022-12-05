@@ -114,7 +114,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public <K, V> IndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
+        public <K, V> IndexedCache<K, V> createIndexedCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
             assertNotClosed();
             return createCache(name, valueSerializer);
         }
@@ -125,7 +125,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public <K, V> IndexedCache<K, V> createCache(IndexedCacheParameters<K, V> parameters) {
+        public <K, V> IndexedCache<K, V> createIndexedCache(IndexedCacheParameters<K, V> parameters) {
             assertNotClosed();
             return createCache(parameters.getCacheName(), parameters.getValueSerializer());
         }

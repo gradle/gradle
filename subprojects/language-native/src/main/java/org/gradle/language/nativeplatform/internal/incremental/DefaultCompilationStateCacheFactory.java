@@ -45,7 +45,7 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
         IndexedCacheParameters<String, CompilationState> parameters = IndexedCacheParameters.of("nativeCompile", String.class, new CompilationStateSerializer())
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));
 
-        compilationStateIndexedCache = cache.createCache(parameters);
+        compilationStateIndexedCache = cache.createIndexedCache(parameters);
     }
 
     @Override

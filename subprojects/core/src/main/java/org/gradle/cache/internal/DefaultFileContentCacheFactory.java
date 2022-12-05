@@ -66,7 +66,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
     public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, final Calculator<? extends V> calculator, Serializer<V> serializer) {
         IndexedCacheParameters<HashCode, V> parameters = IndexedCacheParameters.of(name, hashCodeSerializer, serializer)
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(normalizedCacheSize, true));
-        IndexedCache<HashCode, V> store = cache.createCache(parameters);
+        IndexedCache<HashCode, V> store = cache.createIndexedCache(parameters);
 
         DefaultFileContentCache<V> cache = Cast.uncheckedCast(caches.get(name));
         if (cache == null) {

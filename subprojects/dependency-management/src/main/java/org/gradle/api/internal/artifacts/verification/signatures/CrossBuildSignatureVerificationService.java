@@ -71,7 +71,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
         InterningStringSerializer stringSerializer = new InterningStringSerializer(new StringInterner());
-        cache = store.createCache(
+        cache = store.createIndexedCache(
             IndexedCacheParameters.of(
                 "signature-verification",
                 new CacheKeySerializer(stringSerializer, new SetSerializer<>(stringSerializer)),

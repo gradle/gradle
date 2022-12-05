@@ -96,7 +96,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
             withLockOptions(_) >> { cacheBuilder }
             open() >> {
                 Mock(PersistentCache) {
-                    createCache(_) >> {
+                    createIndexedCache(_) >> {
                         store
                     }
                 }

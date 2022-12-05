@@ -85,7 +85,7 @@ public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLocking
         String cacheFileInMetaDataStore = CacheLayout.META_DATA.getKey() + "/" + cacheName;
         IndexedCacheParameters<K, V> parameters = IndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer);
         if (cache.cacheExists(parameters)) {
-            return new TransparentCacheLockingIndexedCache<>(new FailSafeIndexedCache<>(cache.createCache(parameters)));
+            return new TransparentCacheLockingIndexedCache<>(new FailSafeIndexedCache<>(cache.createIndexedCache(parameters)));
         }
         return new EmptyIndexedCache<>();
     }

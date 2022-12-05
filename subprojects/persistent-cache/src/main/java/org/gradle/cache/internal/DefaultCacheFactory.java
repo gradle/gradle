@@ -195,13 +195,13 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
-        public <K, V> IndexedCache<K, V> createCache(IndexedCacheParameters<K, V> parameters) {
-            return reference.cache.createCache(parameters);
+        public <K, V> IndexedCache<K, V> createIndexedCache(IndexedCacheParameters<K, V> parameters) {
+            return reference.cache.createIndexedCache(parameters);
         }
 
         @Override
-        public <K, V> IndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
-            return reference.cache.createCache(name, keyType, valueSerializer);
+        public <K, V> IndexedCache<K, V> createIndexedCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
+            return reference.cache.createIndexedCache(name, keyType, valueSerializer);
         }
 
         @Override

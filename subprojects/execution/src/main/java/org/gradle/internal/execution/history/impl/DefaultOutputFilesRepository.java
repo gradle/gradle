@@ -39,7 +39,7 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
 
     public DefaultOutputFilesRepository(PersistentCache cacheAccess, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.cacheAccess = cacheAccess;
-        this.outputFiles = cacheAccess.createCache(cacheParameters(inMemoryCacheDecoratorFactory));
+        this.outputFiles = cacheAccess.createIndexedCache(cacheParameters(inMemoryCacheDecoratorFactory));
     }
 
     @Override

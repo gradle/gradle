@@ -53,7 +53,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
         );
 
         CacheDecorator inMemoryCacheDecorator = inMemoryCacheDecoratorFactory.decorator(10000, false);
-        this.store = cache.get().createCache(
+        this.store = cache.get().createIndexedCache(
             IndexedCacheParameters.of("executionHistory", String.class, serializer)
             .withCacheDecorator(inMemoryCacheDecorator)
         );

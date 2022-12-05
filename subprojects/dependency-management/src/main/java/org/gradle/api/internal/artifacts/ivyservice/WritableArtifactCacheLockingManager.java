@@ -115,7 +115,7 @@ public class WritableArtifactCacheLockingManager implements ArtifactCacheLocking
     @Override
     public <K, V> IndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         String cacheFileInMetaDataStore = CacheLayout.META_DATA.getKey() + "/" + cacheName;
-        final IndexedCache<K, V> persistentCache = cache.createCache(IndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer));
+        final IndexedCache<K, V> persistentCache = cache.createIndexedCache(IndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer));
         return new CacheLockingIndexedCache<>(persistentCache);
     }
 

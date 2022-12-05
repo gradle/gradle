@@ -94,7 +94,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         ).withCacheDecorator(
             decoratorFactory.decorator(2000, true)
         );
-        publicKeyRings = cache.createCache(keyringParams);
+        publicKeyRings = cache.createIndexedCache(keyringParams);
 
         IndexedCacheParameters<Long, CacheEntry<List<Fingerprint>>> mappingParameters = IndexedCacheParameters.of(
             "keymappings",
@@ -103,7 +103,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         ).withCacheDecorator(
             decoratorFactory.decorator(2000, true)
         );
-        longIdToFingerprint = cache.createCache(mappingParameters);
+        longIdToFingerprint = cache.createIndexedCache(mappingParameters);
     }
 
     @Override

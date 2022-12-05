@@ -38,7 +38,7 @@ class DefaultOutputFilesRepositoryTest extends Specification {
 
     def outputFiles = new TestInMemoryIndexedCache<String, Boolean>(BaseSerializerFactory.BOOLEAN_SERIALIZER)
     def cacheAccess = Stub(PersistentCache) {
-        createCache(_) >> outputFiles
+        createIndexedCache(_) >> outputFiles
     }
     def cacheDecorator = Mock(CacheDecorator)
     def inMemoryCacheDecoratorFactory = Stub(DefaultInMemoryCacheDecoratorFactory) {

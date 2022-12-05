@@ -50,14 +50,14 @@ public class UserHomeScopedCompileCaches implements GeneralCompileCaches, Closea
             new HashCodeSerializer(),
             new ClassSetAnalysisData.Serializer(() -> new HierarchicalNameSerializer(interner))
         ).withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
-        this.classpathEntrySnapshotCache = new MinimalPersistentCache<>(cache.createCache(jarCacheParameters));
+        this.classpathEntrySnapshotCache = new MinimalPersistentCache<>(cache.createIndexedCache(jarCacheParameters));
 
         IndexedCacheParameters<HashCode, ClassAnalysis> classCacheParameters = IndexedCacheParameters.of(
             "classAnalysis",
             new HashCodeSerializer(),
             new ClassAnalysis.Serializer(interner)
         ).withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(400000, true));
-        this.classAnalysisCache = new MinimalPersistentCache<>(cache.createCache(classCacheParameters));
+        this.classAnalysisCache = new MinimalPersistentCache<>(cache.createIndexedCache(classCacheParameters));
     }
 
     @Override

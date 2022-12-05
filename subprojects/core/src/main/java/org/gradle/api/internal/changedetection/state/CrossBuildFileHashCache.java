@@ -41,7 +41,7 @@ public class CrossBuildFileHashCache implements Closeable {
     }
 
     public <K, V> IndexedCache<K, V> createCache(IndexedCacheParameters<K, V> parameters, int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
-        return cache.createCache(parameters
+        return cache.createIndexedCache(parameters
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(maxEntriesToKeepInMemory, cacheInMemoryForShortLivedProcesses))
         );
     }

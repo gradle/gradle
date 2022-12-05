@@ -169,12 +169,12 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     @Override
-    public <K, V> IndexedCache<K, V> createCache(IndexedCacheParameters<K, V> parameters) {
+    public <K, V> IndexedCache<K, V> createIndexedCache(IndexedCacheParameters<K, V> parameters) {
         return cacheAccess.newCache(parameters);
     }
 
     @Override
-    public <K, V> IndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
+    public <K, V> IndexedCache<K, V> createIndexedCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
         return cacheAccess.newCache(IndexedCacheParameters.of(name, keyType, valueSerializer));
     }
 
