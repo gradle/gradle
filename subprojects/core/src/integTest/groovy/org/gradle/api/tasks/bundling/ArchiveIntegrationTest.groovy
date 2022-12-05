@@ -968,7 +968,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
-    def "can visit and edit zip archive differently from two different projects using #foSource"() {
+    def "can visit and edit zip archive differently from two different projects in a multiproject build using file operations: #foSource"() {
         given: "an archive in the root of a multiproject build"
         createZip('test.zip') {
             subdir1 {
@@ -1029,7 +1029,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
-    def "can visit and edit tar archive differently from two different projects using #foSource"() {
+    def "can visit and edit tar archive differently from two different projects in a multiproject build using file operations: #foSource"() {
         given: "an archive in the root of a multiproject build"
         createTar('test.tar') {
             subdir1 {
@@ -1091,12 +1091,12 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ GradleContextualExecuter.embedded })
     @Issue("https://github.com/gradle/gradle/issues/22685")
-    def "can visit and edit tar archive differently from two different tasks in the same project run in two simultaneous processes"() {
-        given: "a started server which can be used to cause the tasks to begin at approximately the same time"
+    def "can visit and edit zip archive differently from settings script when gradle is run in two simultaneous processes"() {
+        given: "a started server which can be used to cause the edits to begin at approximately the same time"
         server.start()
 
-        and: "a tar archive in the root with many files with the same content, so that the task won't finish too quickly"
-        createTar('test.tar') {
+        and: "a zip archive in the root with many files with the same content, so that the editing won't finish too quickly"
+        createZip('test.zip') {
             for (int i = 0; i < 1000; i++) {
                 "subdir1$i" {
                     file('file1.txt').text = 'original'
@@ -1108,57 +1108,65 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             }
         }
 
-        and: "a build script which defines two tasks that edit the same tar archive differently, and a verification task that checked that all files contain the same content"
-        buildFile << """
-            ${defineUpdateTask('tar', FileOperationsSourceType.INJECT_FILE_OPS)}
-            ${defineSameContentsTask('tar', FileOperationsSourceType.INJECT_FILE_OPS)}
+        and: "a settings script which edits the zip archive and then verifies that all files contain the same content"
+        settingsFile << """
+            ${server.callFromBuild('wait')}
 
-            tasks.register('wait1') {
-                doLast {
-                    ${server.callFromBuild('wait1')}
+            void update() {
+                FileTree tree = zipTree(new File(settings.rootDir, 'test.zip'))
+                tree.visit(new EditingFileVisitor())
+            }
+
+            final class EditingFileVisitor implements FileVisitor {
+                private final int num = new Random().nextInt(100000)
+
+                @Override
+                void visitDir(FileVisitDetails dirDetails) {}
+
+                @Override
+                void visitFile(FileVisitDetails fileDetails) {
+                    fileDetails.file.text = fileDetails.file.text.replace('original', Integer.toString(num))
                 }
             }
 
-            tasks.register('wait2') {
-                doLast {
-                    ${server.callFromBuild('wait2')}
+            void verify() {
+                FileTree tree = zipTree(new File(settings.rootDir, 'test.zip'))
+                tree.visit(new VerifyingFileVisitor())
+            }
+
+            final class VerifyingFileVisitor implements FileVisitor {
+                private String contents
+
+                @Override
+                void visitDir(FileVisitDetails dirDetails) {}
+
+                @Override
+                void visitFile(FileVisitDetails fileDetails) {
+                    if (contents == null) {
+                        contents = fileDetails.file.text
+                    } else {
+                        assert fileDetails.file.text == contents
+                    }
                 }
             }
 
-            def theArchive = rootProject.file('test.tar')
-
-            tasks.register('update1', UpdateTask) {
-                dependsOn tasks.named('wait1')
-                archive = theArchive
-                replacementText = 'modification 1'
-            }
-
-            tasks.register('update2', UpdateTask) {
-                dependsOn tasks.named('wait2')
-                archive = theArchive
-                replacementText = 'modification 2'
-            }
-
-            tasks.register('verify', SameContentsTask) {
-                archive = rootProject.file('test.tar')
-            }
+            update()
+            verify()
         """
-        server.expectConcurrent('wait1', 'wait2')
 
-        when: "the tasks are run in two processes"
-        def handle1 = executer.withTasks('update1').start()
-        def handle2 = executer.withTasks('update2').start()
+        server.expectConcurrent('wait', 'wait')
+
+        when: "two processes are started, which will edit the settings file at the same time"
+        def handle1 = executer.withTasks('tasks').start()
+        def handle2 = executer.withTasks('tasks').start()
 
         and: "they both complete"
         def result1 = handle1.waitForFinish()
         def result2 = handle2.waitForFinish()
 
-        then: "both update tasks were executed"
-        result1.assertTasksExecuted(':wait1', ':update1')
-        result2.assertTasksExecuted(':wait2', ':update2')
-
-        and: "verification can complete successfully, ensuring that each task edited the archive atomically"
-        executer.withTasks('verify').run()
+        then: "both builds ran, with the settings script editing the archive atomically"
+        result1.assertTasksExecuted(':tasks')
+        result2.assertTasksExecuted(':tasks')
 
         cleanup:
         handle1?.abort()
@@ -1168,12 +1176,12 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({ GradleContextualExecuter.embedded })
     @Issue("https://github.com/gradle/gradle/issues/22685")
-    def "can visit and edit zip archive differently from two different tasks in the same project run in two simultaneous processes"() {
-        given: "a started server which can be used to cause the tasks to begin at approximately the same time"
+    def "can visit and edit tar archive differently from settings script when gradle is run in two simultaneous processes"() {
+        given: "a started server which can be used to cause the edits to begin at approximately the same time"
         server.start()
 
-        and: "a zip archive in the root with many files with the same content, so that the task won't finish too quickly"
-        createZip('test.zip') {
+        and: "a tar archive in the root with many files with the same content, so that the editing won't finish too quickly"
+        createTar('test.tar') {
             for (int i = 0; i < 1000; i++) {
                 "subdir1$i" {
                     file('file1.txt').text = 'original'
@@ -1185,57 +1193,65 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             }
         }
 
-        and: "a build script which defines two tasks that edit the same zip archive differently, and a verification task that checked that all files contain the same content"
-        buildFile << """
-            ${defineUpdateTask('zip', FileOperationsSourceType.INJECT_FILE_OPS)}
-            ${defineSameContentsTask('zip', FileOperationsSourceType.INJECT_FILE_OPS)}
+        and: "a settings script which edits the tar archive and then verifies that all files contain the same content"
+        settingsFile << """
+            ${server.callFromBuild('wait')}
 
-            tasks.register('wait1') {
-                doLast {
-                    ${server.callFromBuild('wait1')}
+            void update() {
+                FileTree tree = tarTree(new File(settings.rootDir, 'test.tar'))
+                tree.visit(new EditingFileVisitor())
+            }
+
+            final class EditingFileVisitor implements FileVisitor {
+                private final int num = new Random().nextInt(100000)
+
+                @Override
+                void visitDir(FileVisitDetails dirDetails) {}
+
+                @Override
+                void visitFile(FileVisitDetails fileDetails) {
+                    fileDetails.file.text = fileDetails.file.text.replace('original', Integer.toString(num))
                 }
             }
 
-            tasks.register('wait2') {
-                doLast {
-                    ${server.callFromBuild('wait2')}
+            void verify() {
+                FileTree tree = tarTree(new File(settings.rootDir, 'test.tar'))
+                tree.visit(new VerifyingFileVisitor())
+            }
+
+            final class VerifyingFileVisitor implements FileVisitor {
+                private String contents
+
+                @Override
+                void visitDir(FileVisitDetails dirDetails) {}
+
+                @Override
+                void visitFile(FileVisitDetails fileDetails) {
+                    if (contents == null) {
+                        contents = fileDetails.file.text
+                    } else {
+                        assert fileDetails.file.text == contents
+                    }
                 }
             }
 
-            def theArchive = rootProject.file('test.zip')
-
-            tasks.register('update1', UpdateTask) {
-                dependsOn tasks.named('wait1')
-                archive = theArchive
-                replacementText = 'modification 1'
-            }
-
-            tasks.register('update2', UpdateTask) {
-                dependsOn tasks.named('wait2')
-                archive = theArchive
-                replacementText = 'modification 2'
-            }
-
-            tasks.register('verify', SameContentsTask) {
-                archive = rootProject.file('test.zip')
-            }
+            update()
+            verify()
         """
-        server.expectConcurrent('wait1', 'wait2')
 
-        when: "the tasks are run in two processes"
-        def handle1 = executer.withTasks('update1').start()
-        def handle2 = executer.withTasks('update2').start()
+        server.expectConcurrent('wait', 'wait')
+
+        when: "two processes are started, which will edit the settings file at the same time"
+        def handle1 = executer.withTasks('tasks').start()
+        def handle2 = executer.withTasks('tasks').start()
 
         and: "they both complete"
         def result1 = handle1.waitForFinish()
         def result2 = handle2.waitForFinish()
 
-        then: "both update tasks were executed"
-        result1.assertTasksExecuted(':wait1', ':update1')
-        result2.assertTasksExecuted(':wait2', ':update2')
-
-        and: "verification can complete successfully, ensuring that each task edited the archive atomically"
-        executer.withTasks('verify').run()
+        then: "both builds ran, with the settings script editing the archive atomically"
+        result1.assertTasksExecuted(':tasks')
+        result2.assertTasksExecuted(':tasks')
 
         cleanup:
         handle1?.abort()
