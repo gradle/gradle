@@ -29,10 +29,10 @@ import javax.inject.Inject;
 
 
 /**
- * Dependency modifier APIs available that can find platform and enforced platforms in other modules for {@code dependencies} blocks.
+ * Dependency modifier APIs that can find platform and enforced platforms in other modules for {@code dependencies} blocks.
  *
- * This API is <strong>incubating</strong> and is likely to change until it's made stable.
- * These methods are not intended to be implemented by end users or plugin authors.
+ * @apiNote This interface is intended to be used to mix-in methods that modify dependencies into the DSL.
+ * @implSpec The default implementation of all methods should not be overridden.
  *
  * @since 8.0
  */
@@ -43,8 +43,9 @@ public interface PlatformDependencyModifiers {
      *
      * @return the dependency modifier
      *
+     * @implSpec Do not implement this method. Gradle generates the implementation automatically.
+     *
      * @see PlatformDependencyModifiers.PlatformDependencyModifier#modify(ModuleDependency)
-     * Do not implement this method.
      */
     @Nested
     PlatformDependencyModifier getPlatform();
@@ -57,6 +58,12 @@ public interface PlatformDependencyModifiers {
      */
     @Incubating
     abstract class PlatformDependencyModifier implements DependencyModifier {
+        /**
+         * Injected service to create named objects.
+         *
+         * @return injected service
+         * @implSpec Do not implement this method. Gradle generates the implementation automatically.
+         */
         @Inject
         protected abstract ObjectFactory getObjectFactory();
 
@@ -78,8 +85,9 @@ public interface PlatformDependencyModifiers {
      *
      * @return the dependency modifier
      *
+     * @implSpec Do not implement this method. Gradle generates the implementation automatically.
+     *
      * @see PlatformDependencyModifiers.EnforcedPlatformDependencyModifier#modify(ModuleDependency)
-     * Do not implement this method.
      */
     @Nested
     EnforcedPlatformDependencyModifier getEnforcedPlatform();
@@ -92,6 +100,12 @@ public interface PlatformDependencyModifiers {
      */
     @Incubating
     abstract class EnforcedPlatformDependencyModifier implements DependencyModifier {
+        /**
+         * Injected service to create named objects.
+         *
+         * @return injected service
+         * @implSpec Do not implement this method. Gradle generates the implementation automatically.
+         */
         @Inject
         protected abstract ObjectFactory getObjectFactory();
 

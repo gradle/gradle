@@ -74,6 +74,12 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+#### Warning modes `all` and `fail` are more verbose
+
+Warning modes that are supposed to print all warnings were printing only one for each specific warning message.
+If there were two warnings with the same message, but originating from different steps of the build process (i.e. different stack traces), only one of them was printed. 
+Now one gets printed for each combination of message and stack trace.
+
 #### PMD and CodeNarc tasks execute in parallel by default
 The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process and therefore their tasks may now run in parallel within one project.
 
@@ -131,6 +137,21 @@ For more information, see [Exporting keys](userguide/dependency_verification.htm
 #### Kotlin DSL improvements
 
 Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assist, refactoring, documentation, and more.
+
+#### Updated the Kotlin DSL to Kotlin API Level 1.7
+
+Previously, the Kotlin DSL used Kotlin API level 1.4.
+Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.7.
+This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0.
+
+Highlights include:
+
+- exhaustive `when` statements
+- improved type inference
+- stable inline classes
+- improved sealed types hierarchies
+
+For information about breaking and nonbreaking changes in this upgrade, see the [upgrading guide](userguide/upgrading_version_7.html#kotlin_language_1_7).
 
 ##### Script compilation performance improvement
 

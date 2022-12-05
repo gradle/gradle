@@ -21,19 +21,19 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 
 class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
-
+    def failedResolve = new ResolveFailureTestFixture(buildFile, "compile")
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     @SuppressWarnings("GroovyUnusedDeclaration")
     def operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
-    @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "resolved configurations are exposed via build operation"() {
         setup:
         buildFile << """
@@ -49,12 +49,8 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 implementation project(":child")
                 implementation 'org.foo:rock:1.0' //contains unresolved transitive dependency
             }
-
-            task resolve(type: Copy) {
-                from configurations.compileClasspath
-                into "build/resolved"
-            }
         """
+        failedResolve.prepare("compileClasspath")
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown')
@@ -67,9 +63,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         m4.allowAll()
 
         when:
-        fails "resolve"
+        fails "checkDeps"
 
         then:
+        failedResolve.assertFailurePresent(failure)
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         op.details.configurationName == "compileClasspath"
         op.details.projectPath == ":"
@@ -82,7 +79,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.result.resolvedDependenciesCount == 4
     }
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "resolved detached configurations are exposed"() {
         setup:
         buildFile << """
@@ -90,11 +86,11 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             maven { url '${mavenHttpRepo.uri}' }
         }
 
-        task resolve {
-            doLast {
-                project.configurations.detachedConfiguration(dependencies.create('org.foo:dep:1.0')).files
-            }
+        task resolve(type: Copy) {
+            from project.configurations.detachedConfiguration(dependencies.create('org.foo:dep:1.0'))
+            into "build/resolved"
         }
+
         """
         def m1 = mavenHttpRepo.module('org.foo', 'dep').publish()
 
@@ -378,22 +374,19 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                compile 'org:a:1.0'
                compile 'org:b:1.0'
             }
-
-            task resolve {
-              doLast {
-                  println(configurations.compile.files.name)
-              }
-            }
 """
+        failedResolve.prepare()
+
         a.pom.expectGet()
         b.pom.expectGet()
         leaf1.pom.expectGet()
         leaf2.pom.expectGet()
 
         then:
-        fails "resolve"
+        fails "checkDeps"
 
         and:
+        failedResolve.assertFailurePresent(failure)
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         op.details.configurationName == "compile"
         op.failure == "org.gradle.api.artifacts.ResolveException: Could not resolve all dependencies for configuration ':compile'."
@@ -422,25 +415,22 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             dependencies {
                compile 'org:a:1.0'
             }
-
-            task resolve {
-              doLast {
-                  println(configurations.compile.files.name)
-              }
-            }
 """
+        failedResolve.prepare()
+
         then:
         mod.allowAll()
-        fails "resolve"
+        fails "checkDeps"
 
         and:
+        failedResolve.assertFailurePresent(failure)
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         op.details.configurationName == "compile"
         op.failure == null
         op.result.resolvedDependenciesCount == 1
     }
 
-    @ToBeFixedForConfigurationCache(because = "access to configuration container in task action")
+    @ToBeFixedForConfigurationCache(because = "Runtime classpath for CompileJava task is resolved even though the task will not run")
     def "resolved components contain their source repository name, even when taken from the cache"() {
         setup:
         def secondMavenHttpRepo = new MavenHttpRepository(server, '/repo-2', new MavenFileRepository(file('maven-repo-2')))
@@ -479,7 +469,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 implementation project(':child')
             }
 
-            task resolve { doLast { configurations.runtimeClasspath.resolve() } }
+            task resolve(type: Copy) {
+                from configurations.runtimeClasspath
+                into "build/resolved"
+            }
 
             project(':child') {
                 apply plugin: "java"
@@ -544,8 +537,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 implementation project(':child')
             }
 
-            task resolve { doLast { configurations.runtimeClasspath.resolve() } }
-
             project(':child') {
                 apply plugin: "java"
                 dependencies {
@@ -553,6 +544,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 }
             }
         """
+        failedResolve.prepare("runtimeClasspath")
         settingsFile << "include 'child'"
 
         when:
@@ -560,9 +552,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         mavenHttpRepo.module('org.foo', 'broken-transitive').pom.expectGetBroken()
 
         and:
-        fails 'resolve'
+        fails ':checkDeps'
 
         then:
+        failedResolve.assertFailurePresent(failure)
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         def resolvedComponents = op.result.components
         resolvedComponents.size() == 4
@@ -572,7 +565,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolvedComponents.'org.foo:transitive1:1.0'.repoName == 'maven1'
     }
 
-    @ToBeFixedForConfigurationCache(because = "access to configuration container in task action")
+    @ToBeFixedForConfigurationCache(because = "Dependency resolution does not run for a from-cache build")
     def "resolved components contain their source repository id, even when they are structurally identical"() {
         setup:
         buildFile << """
@@ -595,7 +588,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 implementation 'org.foo:good:1.0'
             }
 
-            task resolve { doLast { configurations.compileClasspath.resolve() } }
+            task resolve(type: Copy) {
+                from configurations.compileClasspath
+                into "build/resolved"
+            }
         """
         def module = mavenHttpRepo.module('org.foo', 'good').publish()
         server.authenticationScheme = AuthScheme.BASIC

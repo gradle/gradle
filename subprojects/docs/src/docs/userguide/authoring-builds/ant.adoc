@@ -25,6 +25,8 @@ Finally, since build scripts are Groovy scripts, you can always execute an Ant b
 
 You can use Gradle's Ant integration as a path for migrating your build from Ant to Gradle. For example, you could start by importing your existing Ant build. Then you could move your dependency declarations from the Ant script to your build file. Finally, you could move your tasks across to your build file, or replace them with some of Gradle's plugins. This process can be done in parts over time, and you can have a working Gradle build during the entire process.
 
+WARNING: Ant integration is not fully compatible with the <<configuration_cache.adoc#config_cache,configuration cache>>.
+Using link:{javadocPath}/org/gradle/api/Task.html#getAnt--[Task.ant] to run Ant task in the task action may work, but importing the Ant build is not supported.
 
 [[sec:using_ant_tasks]]
 == Using Ant tasks and types in your build

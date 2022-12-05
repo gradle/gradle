@@ -17,6 +17,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.cache.CleanupFrequency
 import org.gradle.cache.CleanupProgressMonitor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -41,7 +42,7 @@ class VersionSpecificCacheCleanupActionTest extends Specification implements Gra
     def progressMonitor = Mock(CleanupProgressMonitor)
     def deleter = TestFiles.deleter()
 
-    @Subject def cleanupAction = new VersionSpecificCacheCleanupAction(cachesDir, 30, 7, deleter)
+    @Subject def cleanupAction = new VersionSpecificCacheCleanupAction(cachesDir, 30, 7, deleter, CleanupFrequency.DAILY)
 
     def "cleans up unused version-specific cache directories"() {
         given:

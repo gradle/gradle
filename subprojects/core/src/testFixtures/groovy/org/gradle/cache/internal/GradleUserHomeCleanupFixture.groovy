@@ -60,11 +60,48 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
         gradleUserHomeDir.file(WRAPPER_DISTRIBUTION_FILE_PATH)
     }
 
-    void disableCacheCleanup() {
+    void disableCacheCleanupViaProperty() {
         gradleUserHomeDir.mkdirs()
         new File(gradleUserHomeDir, 'gradle.properties') << """
             ${GradleUserHomeCacheCleanupActionDecorator.CACHE_CLEANUP_PROPERTY}=false
         """.stripIndent()
+    }
+
+    void disableCacheCleanupViaDsl() {
+        setCleanupInterval("DISABLED")
+    }
+
+    void disableCacheCleanup(CleanupMethod method) {
+        switch (method) {
+            case CleanupMethod.PROPERTY:
+                disableCacheCleanupViaProperty()
+                break
+            case CleanupMethod.DSL:
+                disableCacheCleanupViaDsl()
+                break
+            default:
+                throw new IllegalArgumentException()
+        }
+    }
+
+    void alwaysCleanupCaches() {
+        setCleanupInterval("ALWAYS")
+    }
+
+    private void setCleanupInterval(String cleanup) {
+        def initDir = new File(gradleUserHomeDir, "init.d")
+        initDir.mkdirs()
+        new File(initDir, "cache-settings.gradle") << """
+            beforeSettings { settings ->
+                settings.caches {
+                    cleanup = Cleanup.${cleanup}
+                }
+            }
+        """.stripIndent()
+    }
+
+    void withReleasedWrappersRetentionInDays(int days) {
+        withCacheRetentionInDays(days, "releasedWrappers")
     }
 
     void withCreatedResourcesRetentionInDays(int days) {
@@ -89,4 +126,12 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
 
     abstract TestFile getGradleUserHomeDir()
 
+    enum CleanupMethod {
+        PROPERTY, DSL
+
+        @Override
+        String toString() {
+            return super.toString().toLowerCase()
+        }
+    }
 }

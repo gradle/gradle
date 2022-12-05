@@ -37,7 +37,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         settingsFile << """
             rootProject.name = 'springbootproject'
         """
-        def buildScript = """
+        buildFile << """
             plugins {
                 id "java"
                 ${dependencyManagementPlugin}
@@ -57,7 +57,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
             }
         """
         def resolve = new ResolveTestFixture(new TestFile(buildFile), 'testCompileClasspath')
-        resolve.prepare(buildScript)
+        resolve.prepare()
 
         when:
         runner('checkDep').build()
@@ -136,7 +136,7 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
         where:
         bomSupportProvider                    | directBomDependency | reason1            | reason2            | reason3            | bomDeclaration                                        | dependencyManagementPlugin
         "gradle"                              | true                | "requested"        | "requested"        | "requested"        | "dependencies { implementation platform($bom) }"      | ""
-        "nebula recommender plugin"           | false               | "requested"        | "requested"        | "requested"        | "dependencyRecommendations { mavenBom module: $bom }" | "id 'nebula.dependency-recommender' version '${AbstractSmokeTest.TestedVersions.nebulaDependencyRecommender}'"
+        "nebula recommender plugin"           | false               | "requested"        | "requested"        | "requested"        | "dependencyRecommendations { mavenBom module: $bom }" | "id 'com.netflix.nebula.dependency-recommender' version '${AbstractSmokeTest.TestedVersions.nebulaDependencyRecommender}'"
         "spring dependency management plugin" | false               | "selected by rule" | "selected by rule" | "selected by rule" | "dependencyManagement { imports { mavenBom $bom } }"  | "id 'io.spring.dependency-management' version '${AbstractSmokeTest.TestedVersions.springDependencyManagement}'"
     }
 }

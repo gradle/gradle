@@ -71,6 +71,7 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
         }
     }
 
+    @Override
     public IvyArtifactName getArtifactName() {
         return artifact;
     }

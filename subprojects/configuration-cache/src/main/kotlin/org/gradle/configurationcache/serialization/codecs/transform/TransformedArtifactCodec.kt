@@ -50,7 +50,7 @@ class TransformedArtifactCodec(
         write(unpackTransformationSteps(value.transformationSteps))
     }
 
-    override suspend fun ReadContext.decode(): TransformingAsyncArtifactListener.TransformedArtifact? {
+    override suspend fun ReadContext.decode(): TransformingAsyncArtifactListener.TransformedArtifact {
         val variantName = readNonNull<DisplayName>()
         val target = readNonNull<ImmutableAttributes>()
         val capabilities: List<Capability> = readList().uncheckedCast()

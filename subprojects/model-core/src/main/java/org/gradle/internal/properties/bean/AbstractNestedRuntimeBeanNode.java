@@ -43,7 +43,7 @@ import java.util.Queue;
 public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Object> {
     private final TypeMetadata typeMetadata;
 
-    protected AbstractNestedRuntimeBeanNode(@Nullable RuntimeBeanNode<?> parentNode, @Nullable String propertyName, Object bean, TypeMetadata typeMetadata) {
+    protected AbstractNestedRuntimeBeanNode(@Nullable RuntimeBeanNode<Object> parentNode, @Nullable String propertyName, Object bean, TypeMetadata typeMetadata) {
         super(parentNode, propertyName, bean);
         this.typeMetadata = typeMetadata;
     }
