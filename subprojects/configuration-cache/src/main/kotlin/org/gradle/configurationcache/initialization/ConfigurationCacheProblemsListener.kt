@@ -156,7 +156,8 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     }
 
     override fun onScriptSource(scriptSource: ScriptSource) {
-        if (scriptSource.resource.location.uri?.scheme != "file") {
+        val uri = scriptSource.resource.location.uri
+        if (uri != null && uri.scheme != "file") {
             problems.onProblem(
                 PropertyProblem(
                     userCodeLocation(),
