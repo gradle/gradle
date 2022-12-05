@@ -146,7 +146,9 @@ public class DependencyVerifier {
             if (result.hasError()) {
                 builder.failWith(result.asError(publicKeyService));
                 return;
-            } else if (!result.hasOnlyIgnoredKeys()) {
+            } else if (result.hasOnlyIgnoredKeys()) {
+                builder.failWith(new OnlyIgnoredKeys(file));
+            } else {
                 return;
             }
         }

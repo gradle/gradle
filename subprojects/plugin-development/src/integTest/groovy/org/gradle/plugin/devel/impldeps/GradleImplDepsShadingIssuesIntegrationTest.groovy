@@ -54,7 +54,7 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
 
     private static String pluginTest() {
         """
-            class MyPluginTest extends groovy.util.GroovyTestCase {
+            class MyPluginTest extends groovy.test.GroovyTestCase {
 
                 void testCanUseProjectBuilder() {
                     def project = ${ProjectBuilder.name}.builder().build()

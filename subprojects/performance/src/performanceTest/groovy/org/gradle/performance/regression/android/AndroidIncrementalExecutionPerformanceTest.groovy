@@ -17,7 +17,6 @@
 package org.gradle.performance.regression.android
 
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
@@ -36,18 +35,18 @@ import static org.gradle.performance.results.OperatingSystem.WINDOWS
 @LeaksFileHandles("The TAPI keeps handles to the distribution it starts open in the test JVM")
 class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExecutionPerformanceTest implements AndroidPerformanceTestFixture {
     IncrementalAndroidTestProject testProject
-    private static final String KOTLIN_TARGET_VERSION = new KotlinGradlePluginVersions().latests.last()
 
     def setup() {
-        runner.targetVersions = ['7.5-20220406232819+0000']
         testProject = AndroidTestProject.findProjectFor(runner.testProject) as IncrementalAndroidTestProject
         AndroidTestProject.useLatestAgpVersion(runner)
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.args.addAll(["--no-build-cache", "--no-scan"])
         runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheProblemsOption.PROPERTY_NAME}=warn")
-        runner.args.add("-DkotlinVersion=${KOTLIN_TARGET_VERSION}")
-        runner.minimumBaseVersion = "6.5"
+        AndroidTestProject.useLatestKotlinVersion(runner)
+        // AGP 7.3 requires Gradle 7.4
+        runner.minimumBaseVersion = "7.4"
         applyEnterprisePlugin()
+        configureProjectJavaHomeToJdk11()
     }
 
     def "abi change#configurationCaching"() {

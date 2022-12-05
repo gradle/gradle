@@ -27,6 +27,7 @@ import org.gradle.api.ProjectState
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
+import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -53,6 +54,7 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.WorkResult
+import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
 import org.gradle.normalization.InputNormalizationHandler
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
@@ -259,6 +261,9 @@ abstract class ProjectDelegate : Project {
     override fun getDependencies(): DependencyHandler =
         delegate.dependencies
 
+    override fun getDependencyFactory(): DependencyFactory =
+        delegate.dependencyFactory
+
     override fun getResources(): ResourceHandler =
         delegate.resources
 
@@ -352,6 +357,7 @@ abstract class ProjectDelegate : Project {
     override fun javaexec(action: Action<in JavaExecSpec>): ExecResult =
         delegate.javaexec(action)
 
+    @AllowUsingApiForExternalUse
     override fun getChildProjects(): MutableMap<String, Project> =
         delegate.childProjects
 

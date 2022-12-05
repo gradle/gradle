@@ -16,7 +16,7 @@ import model.JsonBasedGradleSubprojectProvider
 import model.QUICK_CROSS_VERSION_BUCKETS
 import model.SmallSubprojectBucket
 import model.Stage
-import model.StageNames
+import model.StageName
 import model.TestCoverage
 import model.TestType
 import model.ignoredSubprojects
@@ -54,7 +54,7 @@ class CIConfigIntegrationTests {
 
     @Test
     fun macOSBuildsSubset() {
-        val readyForRelease = rootProject.subProjects.find { it.name.contains(StageNames.READY_FOR_RELEASE.stageName) }!!
+        val readyForRelease = rootProject.subProjects.find { it.name.contains(StageName.READY_FOR_RELEASE.stageName) }!!
         val macOS = readyForRelease.subProjects.find { it.name.contains("Macos") }!!
 
         macOS.buildTypes.forEach { buildType ->
@@ -80,7 +80,7 @@ class CIConfigIntegrationTests {
             }
 
             assertEquals(
-                stage.specificBuilds.size + stage.functionalTests.size + stage.performanceTests.size + (if (prevStage != null) 1 else 0),
+                stage.specificBuilds.size + stage.functionalTests.size + stage.performanceTests.size + stage.docsTests.size + (if (prevStage != null) 1 else 0),
                 it.dependencies.items.size, stage.stageName.stageName
             )
         }

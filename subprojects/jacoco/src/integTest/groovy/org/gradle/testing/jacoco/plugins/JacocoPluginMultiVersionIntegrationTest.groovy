@@ -138,7 +138,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
 
     def "can merge coverage data"() {
         given:
-        file("src/otherMain/java/Thing.java") << """
+        file("src/main/java/Thing.java") << """
 public class Thing {
     Thing() { printMessage("hi"); }
     Thing(String msg) { printMessage(msg); }
@@ -153,43 +153,29 @@ public class ThingTest {
     @org.junit.Test public void someTest() { new Thing(); }
 }
 """
-
         buildFile << """
-            sourceSets {
-                otherMain
-                otherTest
+    testing.suites {
+        otherTest(JvmTestSuite) {
+            useJUnit()
+            dependencies {
+                implementation project()
             }
-            sourceSets.otherTest.compileClasspath = configurations.testCompileClasspath + sourceSets.otherMain.output
-            sourceSets.otherTest.runtimeClasspath = sourceSets.otherTest.compileClasspath + sourceSets.otherTest.output
+        }
+    }
 
-            task otherTests(type: Test) {
-                binaryResultsDirectory = file("bin")
-                testClassesDirs = sourceSets.otherTest.output.classesDirs
-                classpath = sourceSets.otherTest.runtimeClasspath
-            }
-
-            task jacocoMerge(type: JacocoMerge) {
-                executionData test, otherTests
-            }
-
-            task mergedReport(type: JacocoReport) {
-                executionData jacocoMerge.destinationFile
-                dependsOn jacocoMerge
-                sourceDirectories.from(sourceSets.main.java.sourceDirectories)
-                sourceDirectories.from(sourceSets.otherMain.java.sourceDirectories)
-                classDirectories.from(sourceSets.main.output)
-                classDirectories.from(sourceSets.otherMain.output)
-            }
-        """
+    task mergedReport(type: JacocoReport) {
+        dependsOn test, otherTest
+        executionData.from(test.jacoco.destinationFile, otherTest.jacoco.destinationFile)
+        sourceDirectories.from(sourceSets.main.java.sourceDirectories)
+        classDirectories.from(sourceSets.main.output)
+    }
+"""
         when:
-        executer.expectDocumentedDeprecationWarning("The task type org.gradle.testing.jacoco.tasks.JacocoMerge (used by the :jacocoMerge task) has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the org.gradle.testing.jacoco.tasks.JacocoReport type instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#jacoco_merge")
-        succeeds 'mergedReport'
+        succeeds  'mergedReport'
 
         then:
-        executedAndNotSkipped(":jacocoMerge")
         executedAndNotSkipped(":test")
-        executedAndNotSkipped(":otherTests")
-        file("build/jacoco/jacocoMerge.exec").exists()
+        executedAndNotSkipped(":otherTest")
         htmlReport("build/reports/jacoco/mergedReport/html").totalCoverage() == 71
     }
 

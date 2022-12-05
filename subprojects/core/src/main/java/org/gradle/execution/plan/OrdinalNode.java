@@ -51,7 +51,6 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
     }
 
     @Override
-    // TODO is there a better term to use here than "task group"
     public String toString() {
         return type.name().toLowerCase() + " locations for " + getGroup();
     }
@@ -68,14 +67,11 @@ public class OrdinalNode extends Node implements SelfExecutingNode {
         return ordinal;
     }
 
-    public void addDependenciesFrom(TaskNode taskNode) {
+    public void addDependenciesFrom(LocalTaskNode taskNode) {
         // Only add hard successors that will actually be executed
         Node prepareNode = taskNode.getPrepareNode();
-        if (taskNode.isRequired() && prepareNode != null) {
-            if (!prepareNode.isRequired()) {
-                prepareNode.require();
-                prepareNode.updateAllDependenciesComplete();
-            }
+        if (taskNode.isRequired()) {
+            prepareNode.require();
             addDependencySuccessor(prepareNode);
         }
     }

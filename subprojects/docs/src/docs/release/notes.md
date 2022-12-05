@@ -2,22 +2,37 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release features [1](), [2](), ... [n](), and more.
 
-<!-- 
+<!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
- THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+ THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+ The list is rendered as is, so use commas after each contributor's name, and a period at the end.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
-[altrisi](https://github.com/altrisi),
-[aSemy](https://github.com/aSemy),
-[Ashwin Pankaj](https://github.com/ashwinpankaj),
-[Frosty-J](https://github.com/Frosty-J),
-[Gabriel Feo](https://github.com/gabrielfeo),
-[Sam Snyder](https://github.com/sambsnyd),
-[teawithbrownsugar](https://github.com/teawithbrownsugar),
-[John](https://github.com/goughy000),
-[sll552](https://github.com/sll552)
+
+[Andrei Nevedomskii](https://github.com/monosoul),
+[Björn Kautler](https://github.com/Vampire),
+[Clara Guerrero](https://github.com/cguerreros),
+[David Marin](https://github.com/dmarin),
+[Denis Buzmakov](https://github.com/bacecek),
+[Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy),
+[Dzmitry Neviadomski](https://github.com/nevack),
+[Eliezer Graber](https://github.com/eygraber),
+[Fedor Ihnatkevich](https://github.com/Jeffset),
+[Gabriel Rodriguez](https://github.com/gabrielrodriguez2746),
+[Guruprasad Bagade](https://github.com/prasad-333),
+[Herbert von Broeuschmeul](https://github.com/HvB),
+[Matthew Haughton](https://github.com/3flex),
+[Michael Torres](https://github.com/torresmi),
+[Pankaj Kumar](https://github.com/p1729),
+[Ricardo Jiang](https://github.com/RicardoJiang),
+[Siddardha Bezawada](https://github.com/SidB3),
+[Stephen Topley](https://github.com/stopley),
+[Victor Maldonado](https://github.com/vmmaldonadoz),
+[Vinay Potluri](https://github.com/vinaypotluri),
+[Jeff Gaston](https://github.com/mathjeff),
+[David Morris](https://github.com/codefish1).
 
 ## Upgrade instructions
 
@@ -25,13 +40,15 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
+See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
-<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
+## New features and usability improvements
 
-<!-- 
+<!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
+
+<!--
 
 ================== TEMPLATE ==============================
 
@@ -48,7 +65,7 @@ Example:
 > HIGHLIGHT the usecase or existing problem the feature solves
 > EXPLAIN how the new release addresses that problem or use case
 > PROVIDE a screenshot or snippet illustrating the new feature, if applicable
-> LINK to the full documentation for more details 
+> LINK to the full documentation for more details
 
 ================== END TEMPLATE ==========================
 
@@ -57,101 +74,80 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-### Improvements for IDE integrators
+#### Warning modes `all` and `fail` are more verbose
 
-#### Tooling API progress events expose difference between test assertion failures and test framework failures
+Warning modes that are supposed to print all warnings were printing only one for each specific warning message.
+If there were two warnings with the same message, but originating from different steps of the build process (i.e. different stack traces), only one of them was printed. 
+Now one gets printed for each combination of message and stack trace.
 
-Gradle 7.6 introduces new failure types for the `Failure` interface returned by [FailureResult.getFailures()](javadoc/org/gradle/tooling/events/FailureResult.html#getFailures--): TestAssertionFailure and TestFrameworkFailure. 
-IDEs can now easily distinguish between different failures using standard progress event listeners. 
-Moreover, `TestAssertionFailure` exposes the expected and actual values if the used test framework supply such information.
+#### PMD and CodeNarc tasks execute in parallel by default
+The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process and therefore their tasks may now run in parallel within one project.
 
-#### Task execution with TestLauncher
+In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
 
-The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients to execute any tasks along with the selected tasks.
+#### CodeNarc Plugin automatically detects appropriate version for current Groovy runtime
 
-```
-ProjectConnection connection = ...
-connection.newTestLauncher()
-          .withTaskAndTestClasses("integTest", ["org.MyTest"])
-          .forTasks("startDB")
-          .run()
-```
+The [CodeNarc](https://codenarc.org/) project now publishes separate versions for use with Groovy 4.
+Gradle still currently ships with Groovy 3.
+To ensure future compatibility, the [CodeNarcPlugin](userguide/codenarc_plugin.html) now automatically detects the appropriate version of CodeNarc for the current Groovy runtime.
+You can still explicitly specify a CodeNarc version with the `toolVersion` property on the [CodeNarcExtension](dsl/org.gradle.api.plugins.quality.CodeNarcExtension.html#org.gradle.api.plugins.quality.CodeNarcExtension).
 
-Note, that the task execution only works if the target Gradle version is >=7.6.
+#### Introduced `projectInternalView()` dependency for test suites with access to project internals
+The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now
+supports depending on the internal view of the current project at compile-time.
+Previously it was only possible to depend on the current project's API. This allows
+test suites to access project internals that are not declared on
+the `api` or `compileOnlyApi` configurations. This functionality can be useful when
+testing internal classes that use dependencies which are not exposed as part of a
+project's API, like those declared on the `implementation` and `compileOnly` configurations.
 
-#### Fine-grained test selection with TestLauncher
+For example, the following snippet uses the new `projectInternalView()` API to define a
+test suite with access to project internals:
 
-The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients to select test classes, methods, packages and patterns with a new API.
-
-```
-TestLauncher testLauncher = projectConnection.newTestLauncher();
-testLauncher.withTestsFor(spec -> {
-    spec.forTaskPath(":test")
-        .includePackage("org.pkg")
-        .includeClass("com.TestClass")
-        .includeMethod("com.TestClass")
-        .includePattern("io.*")
-}).run();
-```
-
-Note, that the new test selection interface only works if the target Gradle version is >=7.6.
-
-### Improved Maven Conversion
-
-The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration when converting a Maven project. This sharply reduces the number of compilation errors resulting from the automatic conversion utility. See the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion) for more information.
-
-<a name="configuration-cache-improvements"></a>
-### Configuration cache improvements
-
-The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds.
-
-#### New compatible tasks
-
-The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are now compatible with the configuration cache.
-
-### Configurable wrapper download network timeout
-
-It is now possible to configure the network timeout for downloading the wrapper files.
-The default value is 10000ms and can be changed in several ways:
-
-From the command line:
-```shell
-gradle wrapper --network-timeout=30000
-```
-
-In your build scripts or convention plugins:
 ```kotlin
-tasks.wrapper {
-    networkTimeout.set(30000)
+testing {
+    suites {
+        val unitLikeTestSuite by registering(JvmTestSuite::class) {
+            useJUnitJupiter()
+            dependencies {
+                implementation(projectInternalView())
+            }
+        }
+    }
 }
 ```
 
-Or in `gradle/wrapper/gradle-wrapper.properties`:
-```properties
-networkTimeout=30000
+#### Dependency verification metadata improvements
+
+The following nodes with dependency verification metadata file `verification-metadata.xml` now support a `reason` attribute:
+
+- the `trust` xml node under `trusted-artifacts`
+- the `md5`, `sha1`, `sha256` and `sha512` nodes under `component`
+
+#### Dependency verification CLI improvements
+
+You can now use the `export-keys` flag to export all already trusted keys:
+
+```asciidoc
+./gradlew --export-keys
 ```
 
-See the [user manual](userguide/gradle_wrapper.html#sec:adding_wrapper) for more information.
+For more information, see [Exporting keys](userguide/dependency_verification.html#sec:local-keyring).
 
-### Improvements for plugin authors
+#### Updated the Kotlin DSL to Kotlin API Level 1.7
 
-### Integer task options
+Previously, the Kotlin DSL used Kotlin API level 1.4.
+Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.7.
+This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0.
 
-It is now possible to pass integer task options declared as `Property<Integer>` from the command line.
+Highlights include:
 
-For example, the following task option:
-```java
-@Option(option = "integer-option", description = "Your description")
-public abstract Property<Integer> getIntegerOption();
-```
+- exhaustive `when` statements
+- improved type inference
+- stable inline classes
+- improved sealed types hierarchies
 
-
-can be passed from the command line as follows:
-```shell
-gradle myCustomTask --integer-option=123
-```
-
-See the [user manual](userguide/custom_tasks.html#sec:supported_task_option_data_types) for more information.
+For information about breaking and nonbreaking changes in this upgrade, see the [upgrading guide](userguide/upgrading_version_7.html#kotlin_language_1_7).
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -165,9 +161,40 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
-<!--
-### Example promoted
--->
+### Promoted features in the Tooling API
+
+- The `GradleConnector.disconnect()` method is now considered stable.
+
+### Promoted features in the antlr plugin
+
+- The `AntlrSourceDirectorySet` interface is now considered stable.
+
+### Promoted features in the ear plugin
+
+- The `Ear.getAppDirectory()` method is now considered stable.
+
+### Promoted features in the eclipse plugin
+
+- The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
+
+### Promoted features in the groovy plugin
+
+The following type and method are now considered stable:
+- `GroovySourceDirectorySet`
+- `GroovyCompileOptions.getDisabledGlobalASTTransformations()`
+
+### Promoted features in the scala plugin
+
+- The `ScalaSourceDirectorySet` interface is now considered stable.
+
+### Promoted features in the war plugin
+
+- The `War.getWebAppDirectory()` method is now considered stable.
+
+### Promoted features in the `Settings` API
+
+- The methods `Settings.dependencyResolutionManagement(Action)`  and `Settings.getDependencyResolutionManagement()` are now considered stable.
+  - All the methods in `DependencyResolutionManagement` are now stable, except the ones for central repository declaration.
 
 ## Fixed issues
 
@@ -181,7 +208,7 @@ We love getting contributions from the Gradle community. For information on cont
 
 ## Reporting problems
 
-If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
+If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines.
 If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
 
 We hope you will build happiness with Gradle, and we look forward to your feedback via [Twitter](https://twitter.com/gradle) or on [GitHub](https://github.com/gradle).

@@ -29,13 +29,20 @@ public abstract class AbstractConfigurationReportSpec {
     @Nullable private final String searchTarget;
     private final boolean showLegacy;
 
-    public AbstractConfigurationReportSpec(@Nullable String searchTarget, boolean showLegacy) {
+    private final boolean showAttributePrecedence;
+
+    public AbstractConfigurationReportSpec(@Nullable String searchTarget, boolean showLegacy, boolean showAttributePrecedence) {
         this.searchTarget = searchTarget;
         this.showLegacy = showLegacy;
+        this.showAttributePrecedence = showAttributePrecedence;
     }
 
     public boolean isShowLegacy() {
         return showLegacy;
+    }
+
+    public boolean isShowAttributePrecedence() {
+        return showAttributePrecedence;
     }
 
     public abstract String getReportedTypeAlias();

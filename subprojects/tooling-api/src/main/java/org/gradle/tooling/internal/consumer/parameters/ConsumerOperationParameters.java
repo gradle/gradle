@@ -47,8 +47,7 @@ import java.util.function.Function;
 /**
  * This is used via reflection from {@code ProviderOperationParameters}.
  */
-@SuppressWarnings("deprecation")
-public class ConsumerOperationParameters implements org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1, org.gradle.tooling.internal.protocol.BuildParametersVersion1, BuildParameters {
+public class ConsumerOperationParameters implements BuildParameters {
 
     public static Builder builder() {
         return new Builder();
@@ -71,6 +70,7 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
         private List<String> tasks;
         private List<InternalLaunchable> launchables;
         private ClassPath injectedPluginClasspath = ClassPath.EMPTY;
+        private Map<String, String> systemProperties;
 
         private Builder() {
         }
@@ -182,6 +182,11 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
             return this;
         }
 
+        public Builder setSystemProperties(Map<String, String> systemProperties) {
+            this.systemProperties = systemProperties;
+            return this;
+        }
+
         public void addProgressListener(org.gradle.tooling.ProgressListener listener) {
             legacyProgressListeners.add(listener);
         }
@@ -208,7 +213,7 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
             }
 
             return new ConsumerOperationParameters(entryPoint, parameters, stdout, stderr, colorOutput, stdin, javaHome, jvmArguments, envVariables, arguments, tasks, launchables, injectedPluginClasspath,
-                legacyProgressListeners, progressListeners, cancellationToken);
+                legacyProgressListeners, progressListeners, cancellationToken, systemProperties);
         }
 
         public void copyFrom(ConsumerOperationParameters operationParameters) {
@@ -226,6 +231,7 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
             colorOutput = operationParameters.colorOutput;
             javaHome = operationParameters.javaHome;
             injectedPluginClasspath = operationParameters.injectedPluginClasspath;
+            systemProperties = operationParameters.systemProperties;
         }
     }
 
@@ -252,9 +258,12 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
     private final List<org.gradle.tooling.ProgressListener> legacyProgressListeners;
     private final Map<OperationType, List<ProgressListener>> progressListeners;
 
+    private final Map<String, String> systemProperties;
+
     private ConsumerOperationParameters(String entryPointName, ConnectionParameters parameters, OutputStream stdout, OutputStream stderr, Boolean colorOutput, InputStream stdin,
                                         File javaHome, List<String> jvmArguments,  Map<String, String> envVariables, List<String> arguments, List<String> tasks, List<InternalLaunchable> launchables, ClassPath injectedPluginClasspath,
-                                        List<org.gradle.tooling.ProgressListener> legacyProgressListeners, Map<OperationType, List<ProgressListener>> progressListeners, CancellationToken cancellationToken) {
+                                        List<org.gradle.tooling.ProgressListener> legacyProgressListeners, Map<OperationType, List<ProgressListener>> progressListeners, CancellationToken cancellationToken,
+                                        Map<String, String> systemProperties) {
         this.entryPointName = entryPointName;
         this.parameters = parameters;
         this.stdout = stdout;
@@ -271,6 +280,7 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
         this.cancellationToken = cancellationToken;
         this.legacyProgressListeners = legacyProgressListeners;
         this.progressListeners = progressListeners;
+        this.systemProperties = systemProperties;
 
         // create the listener adapters right when the ConsumerOperationParameters are instantiated but no earlier,
         // this ensures that when multiple requests are issued that are built from the same builder, such requests do not share any state kept in the listener adapters
@@ -295,12 +305,10 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
     /**
      * @since 1.0-milestone-3
      */
-    @Override
     public long getStartTime() {
         return startTime;
     }
 
-    @Override
     public boolean getVerboseLogging() {
         return parameters.getVerboseLogging();
     }
@@ -308,7 +316,6 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
     /**
      * @since 1.0-milestone-3
      */
-    @Override
     public File getGradleUserHomeDir() {
         return parameters.getGradleUserHomeDir();
     }
@@ -316,7 +323,6 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
     /**
      * @since 1.0-milestone-3
      */
-    @Override
     public File getProjectDir() {
         return parameters.getProjectDir();
     }
@@ -324,7 +330,6 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
     /**
      * @since 1.0-milestone-3
      */
-    @Override
     public Boolean isSearchUpwards() {
         return parameters.isSearchUpwards();
     }
@@ -332,7 +337,6 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
     /**
      * @since 1.0-milestone-3
      */
-    @Override
     public Boolean isEmbedded() {
         return parameters.isEmbedded();
     }
@@ -340,7 +344,6 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
     /**
      * @since 1.0-milestone-3
      */
-    @Override
     public TimeUnit getDaemonMaxIdleTimeUnits() {
         return parameters.getDaemonMaxIdleTimeUnits();
     }
@@ -348,7 +351,6 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
     /**
      * @since 1.0-milestone-3
      */
-    @Override
     public Integer getDaemonMaxIdleTimeValue() {
         return parameters.getDaemonMaxIdleTimeValue();
     }
@@ -363,7 +365,6 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
     /**
      * @since 1.0-milestone-3
      */
-    @Override
     public OutputStream getStandardOutput() {
         return stdout;
     }
@@ -371,7 +372,6 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
     /**
      * @since 1.0-milestone-3
      */
-    @Override
     public OutputStream getStandardError() {
         return stderr;
     }
@@ -383,7 +383,6 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
         return colorOutput;
     }
 
-    @Override
     public InputStream getStandardInput() {
         return stdin;
     }
@@ -404,7 +403,6 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
         return arguments;
     }
 
-    @Override
     public List<String> getTasks() {
         return tasks;
     }
@@ -426,7 +424,6 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
     /**
      * @since 1.0-milestone-3
      */
-    @Override
     public ProgressListenerVersion1 getProgressListener() {
         return progressListener;
     }
@@ -440,6 +437,13 @@ public class ConsumerOperationParameters implements org.gradle.tooling.internal.
 
     public BuildCancellationToken getCancellationToken() {
         return ((CancellationTokenInternal) cancellationToken).getToken();
+    }
+
+    /**
+     * @since 7.6
+     */
+    public  Map<String, ?> getSystemProperties() {
+        return systemProperties;
     }
 
 }

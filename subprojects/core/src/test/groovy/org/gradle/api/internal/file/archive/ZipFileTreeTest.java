@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.archive;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
@@ -71,7 +72,7 @@ public class ZipFileTreeTest {
     @Test
     public void failsWhenZipFileDoesNotExist() {
         try {
-            tree.visit(null);
+            tree.visit(new EmptyFileVisitor());
             fail();
         } catch (InvalidUserDataException e) {
             assertThat(e.getMessage(), equalTo("Cannot expand ZIP '" + zipFile + "' as it does not exist."));
@@ -83,7 +84,7 @@ public class ZipFileTreeTest {
         zipFile.createDir();
 
         try {
-            tree.visit(null);
+            tree.visit(new EmptyFileVisitor());
             fail();
         } catch (InvalidUserDataException e) {
             assertThat(e.getMessage(), equalTo("Cannot expand ZIP '" + zipFile + "' as it is not a file."));
@@ -95,10 +96,10 @@ public class ZipFileTreeTest {
         zipFile.write("not a zip file");
 
         try {
-            tree.visit(null);
+            tree.visit(new EmptyFileVisitor());
             fail();
         } catch (GradleException e) {
-            assertThat(e.getMessage(), equalTo("Could not expand ZIP '" + zipFile + "'."));
+            assertThat(e.getMessage(), equalTo("Cannot expand ZIP '" + zipFile + "'."));
         }
     }
 
@@ -106,7 +107,7 @@ public class ZipFileTreeTest {
     public void expectedFilePermissionsAreFound() {
         resources.findResource("permissions.zip").copyTo(zipFile);
 
-        final Map<String, Integer> expected = new HashMap<String, Integer>();
+        final Map<String, Integer> expected = new HashMap<>();
         expected.put("file", 0644);
         expected.put("folder", 0755);
 
@@ -117,7 +118,7 @@ public class ZipFileTreeTest {
     public void expectedDefaultForNoModeZips() {
         resources.findResource("nomodeinfos.zip").copyTo(zipFile);
 
-        final Map<String, Integer> expected = new HashMap<String, Integer>();
+        final Map<String, Integer> expected = new HashMap<>();
         expected.put("file.txt", 0644);
         expected.put("folder", 0755);
 
@@ -125,15 +126,15 @@ public class ZipFileTreeTest {
     }
 
     @Test
-    public void doesNotOverwriteFilesOnSecondVisit() throws InterruptedException {
+    public void doesNotOverwriteFilesOnSecondVisit() {
         rootDir.file("file1.txt").write("content");
         rootDir.zipTo(zipFile);
 
-        assertVisits(tree, toList("file1.txt"), new ArrayList<String>());
+        assertVisits(tree, toList("file1.txt"), new ArrayList<>());
         TestFile content = expandDir.listFiles()[0].listFiles()[0];
         content.makeOlder();
         TestFile.Snapshot snapshot = content.snapshot();
-        assertVisits(tree, toList("file1.txt"), new ArrayList<String>());
+        assertVisits(tree, toList("file1.txt"), new ArrayList<>());
         content.assertHasNotChangedSince(snapshot);
     }
 }

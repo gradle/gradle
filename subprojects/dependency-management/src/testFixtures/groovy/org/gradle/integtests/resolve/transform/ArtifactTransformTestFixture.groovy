@@ -16,15 +16,16 @@
 
 package org.gradle.integtests.resolve.transform
 
-import org.gradle.api.tasks.TasksWithInputsAndOutputs
+
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.resolve.VariantAwareDependencyResolutionTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
 
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
-trait ArtifactTransformTestFixture extends TasksWithInputsAndOutputs {
+trait ArtifactTransformTestFixture extends VariantAwareDependencyResolutionTestFixture {
     abstract TestFile getBuildFile()
 
     abstract ExecutionResult getResult()
@@ -52,19 +53,14 @@ trait ArtifactTransformTestFixture extends TasksWithInputsAndOutputs {
     }
 
     void setupBuildWithColorAttributes(TestFile buildFile = getBuildFile(), Builder builder) {
+        setupBuildWithColorVariants(buildFile)
+
         buildFile << """
 import ${javax.inject.Inject.name}
 // TODO: Default imports should work for of inner classes
 import ${org.gradle.api.artifacts.transform.TransformParameters.name}
 
-def color = Attribute.of('color', String)
 allprojects {
-    configurations {
-        implementation {
-            canBeResolved = true
-            attributes.attribute(color, 'blue')
-        }
-    }
     task producer(type: ${builder.producerTaskClassName}) {
         ${builder.producerConfig}
     }
@@ -89,20 +85,6 @@ allprojects {
 
 import ${JarOutputStream.name}
 import ${ZipEntry.name}
-
-class ShowFileCollection extends DefaultTask {
-    @InputFiles
-    final ConfigurableFileCollection files = project.objects.fileCollection()
-
-    ShowFileCollection() {
-        outputs.upToDateWhen { false }
-    }
-
-    @TaskAction
-    def go() {
-        println "result = \${files.files.name}"
-    }
-}
 
 class JarProducer extends DefaultTask {
     @OutputFile

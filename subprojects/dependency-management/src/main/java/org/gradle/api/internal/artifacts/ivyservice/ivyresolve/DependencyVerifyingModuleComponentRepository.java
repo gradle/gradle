@@ -43,11 +43,11 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
+import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
-import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult;
+import org.gradle.internal.resolve.result.DefaultBuildableArtifactFileResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult;
 
 import javax.annotation.Nullable;
@@ -203,7 +203,7 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
+        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
             delegate.resolveArtifact(artifact, moduleSources, result);
             if (result.hasResult() && result.isSuccessful()) {
                 ComponentArtifactIdentifier id = artifact.getId();
@@ -269,7 +269,7 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
                 // This is a bit hackish but the mapping from file names to ivy artifact names is completely broken
                 String fileName = artifactIdentifier.getFileName().replace("-" + artifactIdentifier.getComponentIdentifier().getVersion(), "");
                 fileName = Files.getNameWithoutExtension(fileName); // removes the .asc
-                DefaultIvyArtifactName base = DefaultIvyArtifactName.forFileName(fileName, null);
+                IvyArtifactName base = DefaultIvyArtifactName.forFileName(fileName, null);
                 return new DefaultIvyArtifactName(
                     base.getName(),
                     "asc",
@@ -293,6 +293,6 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
         }
     }
 
-    private static class SignatureFileDefaultBuildableArtifactResolveResult extends DefaultBuildableArtifactResolveResult {
+    private static class SignatureFileDefaultBuildableArtifactResolveResult extends DefaultBuildableArtifactFileResolveResult {
     }
 }

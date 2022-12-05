@@ -16,12 +16,13 @@
 package org.gradle.process.internal.worker
 
 import org.gradle.internal.id.IdGenerator
+import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.remote.MessagingServer
+import org.gradle.process.internal.JavaExecHandleBuilder
 import org.gradle.process.internal.JavaExecHandleFactory
 import org.gradle.process.internal.health.memory.MemoryManager
 import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerImplementationFactory
-import org.gradle.process.internal.JavaExecHandleBuilder
 import spock.lang.Specification
 
 import static org.junit.Assert.assertTrue
@@ -39,12 +40,14 @@ class DefaultWorkerProcessBuilderSpec extends Specification {
     def applicationClassesInSystemClassLoaderWorkerImplementationFactory = Mock(ApplicationClassesInSystemClassLoaderWorkerImplementationFactory)
     def outputEventListener = Mock(OutputEventListener)
     def memoryManager = Mock(MemoryManager)
+    def versionDetector = Mock(JvmVersionDetector)
     DefaultWorkerProcessBuilder builder = new DefaultWorkerProcessBuilder(javaExecHandleFactory,
         messagingServer,
         idGenerator,
         applicationClassesInSystemClassLoaderWorkerImplementationFactory,
         outputEventListener,
-        memoryManager)
+        memoryManager,
+        versionDetector)
 
 
     def "validate entries in classpath"() {

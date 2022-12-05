@@ -27,7 +27,7 @@ public class ZipSlip {
      * Checks the entry name for zip-slip vulnerable sequences.
      *
      * <b>IMPLEMENTATION NOTE</b>
-     * We do it this way instead of the way recommended in https://snyk.io/research/zip-slip-vulnerability
+     * We do it this way instead of the way recommended in <a href="https://snyk.io/research/zip-slip-vulnerability"></a>
      * for performance reasons, calling {@link File#getCanonicalPath()} is too expensive.
      *
      * @throws IllegalArgumentException if the entry contains vulnerable sequences
@@ -43,8 +43,19 @@ public class ZipSlip {
         return name.isEmpty()
             || name.startsWith("/")
             || name.startsWith("\\")
-            || name.contains("..")
+            || containsDirectoryNavigation(name)
             || (name.contains(":") && isWindows());
+    }
+
+    private static boolean containsDirectoryNavigation(String name) {
+        if (!name.contains("..")) {
+            return false;
+        }
+        // We have a .. but if not before a file separator or at the end, it is OK
+        return name.endsWith("\\..")
+            || name.contains("..\\")
+            || name.endsWith("/..")
+            || name.contains("../");
     }
 
     private static boolean isWindows() {

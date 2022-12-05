@@ -36,6 +36,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.annotations.AbstractOutputPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.model.ObjectFactory;
@@ -76,6 +77,7 @@ import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
+import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
 import org.gradle.internal.service.CachingServiceLocator;
@@ -143,12 +145,12 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultBuildOperationListenerManager();
     }
 
-    BuildOperationProgressEventEmitter createBuildOperationProgressEventEmitter(
+    protected BuildOperationProgressEventEmitter createBuildOperationProgressEventEmitter(
         Clock clock,
         CurrentBuildOperationRef currentBuildOperationRef,
         BuildOperationListenerManager listenerManager
     ) {
-        return new BuildOperationProgressEventEmitter(
+        return new DefaultBuildOperationProgressEventEmitter(
             clock,
             currentBuildOperationRef,
             listenerManager.getBroadcaster()
@@ -236,7 +238,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     ObjectFactory createObjectFactory(
         InstantiatorFactory instantiatorFactory, ServiceRegistry services, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
-        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory,
+        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
         DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator
     ) {
         return new DefaultObjectFactory(
@@ -246,6 +248,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
             patternSetFactory,
             propertyFactory,
             filePropertyFactory,
+            taskDependencyFactory,
             fileCollectionFactory,
             domainObjectCollectionFactory);
     }

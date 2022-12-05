@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.platforms
 import org.gradle.api.JavaVersion
 import org.gradle.api.attributes.Category
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -156,31 +157,35 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         fails ":checkDeps"
 
         then:
-        failure.assertHasCause('''No matching variant of project :platform was found. The consumer was configured to find an API of a library compatible with Java 8, preferably in the form of class files, preferably optimized for standard JVMs, and its dependencies declared externally but:
-  - Variant 'apiElements' capability org.test:platform:1.9 declares an API of a component:
+        failure.assertHasCause('''No matching variant of project :platform was found. The consumer was configured to find the API view of a library for use during compile-time, compatible with Java 8, preferably in the form of class files, preferably optimized for standard JVMs, and its dependencies declared externally but:
+  - Variant 'apiElements' capability org.test:platform:1.9 declares a component for use during compile-time:
       - Incompatible because this component declares a platform and the consumer needed a library
       - Other compatible attributes:
+          - Doesn't say anything about its compile view (required the API view)
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
           - Doesn't say anything about its target Java version (required compatibility with Java 8)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-  - Variant 'enforcedApiElements' capability org.test:platform-derived-enforced-platform:1.9 declares an API of a component:
+  - Variant 'enforcedApiElements' capability org.test:platform-derived-enforced-platform:1.9 declares a component for use during compile-time:
       - Incompatible because this component declares an enforced platform and the consumer needed a library
       - Other compatible attributes:
+          - Doesn't say anything about its compile view (required the API view)
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
           - Doesn't say anything about its target Java version (required compatibility with Java 8)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-  - Variant 'enforcedRuntimeElements' capability org.test:platform-derived-enforced-platform:1.9 declares a runtime of a component:
+  - Variant 'enforcedRuntimeElements' capability org.test:platform-derived-enforced-platform:1.9 declares a component for use during runtime:
       - Incompatible because this component declares an enforced platform and the consumer needed a library
       - Other compatible attributes:
+          - Doesn't say anything about its compile view (required the API view)
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
           - Doesn't say anything about its target Java version (required compatibility with Java 8)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-  - Variant 'runtimeElements' capability org.test:platform:1.9 declares a runtime of a component:
+  - Variant 'runtimeElements' capability org.test:platform:1.9 declares a component for use during runtime:
       - Incompatible because this component declares a platform and the consumer needed a library
       - Other compatible attributes:
+          - Doesn't say anything about its compile view (required the API view)
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
           - Doesn't say anything about its target Java version (required compatibility with Java 8)
@@ -223,7 +228,6 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 }
                 edge('org:foo:1.2', 'org:foo:1.1') {
                     byConstraint()
-                    forced()
                 }
             }
         }
@@ -234,9 +238,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
     // this is the case
     def "can enforce a published platform"() {
         def platform = mavenHttpRepo.module("org", "platform", "1.0")
-                .asGradlePlatform()
-                .dependsOn("org", "foo", "1.0")
-                .publish()
+            .asGradlePlatform()
+            .dependsOn("org", "foo", "1.0")
+            .publish()
         def foo10 = mavenHttpRepo.module("org", "foo", "1.0").withModuleMetadata().publish()
         def foo11 = mavenHttpRepo.module("org", "foo", "1.1").withModuleMetadata().publish()
 
@@ -262,19 +266,18 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         then:
         resolve.expectGraph {
             root(":", "org.test:test:1.9") {
-                module("org:platform:1.0") {
+                edge("org:platform:{strictly 1.0}", "org:platform:1.0") {
                     configuration = "enforcedApi"
                     variant("enforcedApi", [
-                            'org.gradle.usage': 'java-api',
-                            'org.gradle.category': 'enforced-platform',
-                            'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.category': 'enforced-platform',
+                        'org.gradle.status': 'release',
                     ])
                     module("org:foo:1.0")
                     noArtifacts()
                 }
                 edge('org:foo:1.1', 'org:foo:1.0') {
                     configuration = 'api'
-                    forced()
                 }
             }
         }
@@ -283,9 +286,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
     @Issue("gradle/gradle#8312")
     def "can resolve a platform with a constraint to determine the platform version"() {
         def platform = mavenHttpRepo.module("org", "platform", "1.0")
-                .hasType("pom")
-                .allowAll()
-                .publish()
+            .hasType("pom")
+            .allowAll()
+            .publish()
 
         when:
         buildFile << """
@@ -305,18 +308,18 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
             root(":", "org.test:test:1.9") {
                 edge("org:platform", "org:platform:1.0") {
                     variant("platform-compile", [
-                            'org.gradle.usage': 'java-api',
-                            'org.gradle.category': 'platform',
-                            'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.category': 'platform',
+                        'org.gradle.status': 'release',
                     ])
                     byConstraint()
                     noArtifacts()
                 }
                 constraint("org:platform:1.0", "org:platform:1.0") {
                     variant("platform-compile", [
-                            'org.gradle.usage': 'java-api',
-                            'org.gradle.category': 'platform',
-                            'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.category': 'platform',
+                        'org.gradle.status': 'release',
                     ])
                 }
             }
@@ -324,6 +327,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
     }
 
+    @ToBeFixedForConfigurationCache(because = "serializes the incorrect artifact in ArtifactCollection used by resolve fixture")
     @Issue("gradle/gradle#8312")
     def "can resolve a platform with a constraint to determine the platform version via a transitive constraint"() {
         def platform = mavenHttpRepo.module("org", "platform", "1.0")
@@ -367,11 +371,12 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                     noArtifacts()
                 }
                 project(":sub", "org.test:sub:1.9") {
-                    variant("apiElements", ['org.gradle.category':'library',
-                                            'org.gradle.dependency.bundling':'external',
+                    variant("apiElements", ['org.gradle.category': 'library',
+                                            'org.gradle.dependency.bundling': 'external',
                                             'org.gradle.jvm.version': JavaVersion.current().majorVersion,
-                                            'org.gradle.usage':'java-api',
-                                            'org.gradle.libraryelements': 'jar'])
+                                            'org.gradle.usage': 'java-api',
+                                            'org.gradle.libraryelements': 'jar',
+                                            'org.gradle.compile-view': 'java-api'])
                     constraint("org:platform:1.0", "org:platform:1.0") {
                         variant("platform-compile", [
                             'org.gradle.usage': 'java-api',
@@ -379,18 +384,17 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                             'org.gradle.status': 'release',
                         ])
                     }
-                    artifact(name: 'main', noType: true)
+                    artifact name: 'main', version: '', extension: '', type: 'java-classes-directory'
                 }
             }
         }
-
     }
 
     @Issue("gradle/gradle#8548")
     def "enforced platforms should not have any dependency"() {
         def top = mavenHttpRepo.module("org", "top", "1.0")
-                .dependsOn("org", "leaf", "1.0")
-                .publish()
+            .dependsOn("org", "leaf", "1.0")
+            .publish()
         def leaf = mavenHttpRepo.module("org", "leaf", "1.0").publish()
 
         when:
@@ -407,11 +411,11 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         then:
         resolve.expectGraph {
             root(":", "org.test:test:1.9") {
-                module("org:top:1.0") {
+                edge("org:top:{strictly 1.0}", "org:top:1.0") {
                     variant("enforced-platform-compile", [
-                            'org.gradle.category': 'enforced-platform',
-                            'org.gradle.status': 'release',
-                            'org.gradle.usage': 'java-api'])
+                        'org.gradle.category': 'enforced-platform',
+                        'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-api'])
                     noArtifacts()
                 }
             }
@@ -472,7 +476,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         def enforcedVariant = "enforced${usage.capitalize()}"
         resolve.expectGraph {
             root(":", "org.test:test:1.9") {
-                module("org:platform:1.0") {
+                edge("org:platform:{strictly 1.0}", "org:platform:1.0") {
                     variant(regularVariant, [
                         'org.gradle.category': 'platform',
                         'org.gradle.status': 'release',
@@ -506,10 +510,10 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                     attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
                 }
             }.withVariant("api") {
-                dependsOn("org.test", "platform", "1.9") {
-                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
-                }
-            }.publish()
+            dependsOn("org.test", "platform", "1.9") {
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }
+        }.publish()
 
         when:
         buildFile << """
@@ -861,6 +865,82 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
         expect:
         succeeds 'checkDeps'
+        //Shape of the graph is not checked as bug was failing resolution altogether
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/20684")
+    def "multiple platform deselection - reselection does not leave pending constraints in graph - different issue"() {
+        given:
+        def depJackDb20 = mavenHttpRepo.module('jack', 'db', '2.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('jack', 'bom', '2.0') {
+                    endorseStrictVersions = true
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+            }.publish()
+        def depJackDb201 = mavenHttpRepo.module('jack', 'db', '2.0.1').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('jack', 'bom', '2.0.1') {
+                    endorseStrictVersions = true
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+            }.publish()
+        def depJackDb202 = mavenHttpRepo.module('jack', 'db', '2.0.2').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('jack', 'bom', '2.0') {
+                    endorseStrictVersions = true
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+            }.publish()
+        def depJackDx20 = mavenHttpRepo.module('jack', 'dx', '2.0').withModuleMetadata()
+            .withVariant('runtime') {
+                dependsOn('jack', 'db', '2.0')
+                dependsOn('jack', 'bom', '2.0') {
+                    endorseStrictVersions = true
+                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+                }
+            }.publish()
+        def jackBom20 = mavenHttpRepo.module('jack', 'bom', '2.0').asGradlePlatform().dependencyConstraint(depJackDb20).dependencyConstraint(depJackDx20).publish()
+        def jackBom201 = mavenHttpRepo.module('jack', 'bom', '2.0.1').asGradlePlatform().dependencyConstraint(depJackDb201).dependencyConstraint(depJackDx20).publish()
+
+        def springBom = mavenHttpRepo.module('spring', 'bom', '2.0').asGradlePlatform().dependencyConstraint(depJackDx20).dependencyConstraint(depJackDb201).publish()
+
+        def depSwagCore = mavenHttpRepo.module('org.test', 'swag-core', '1.0').dependsOn(depJackDb202).publish()
+        def depSwagInt = mavenHttpRepo.module('org.test', 'swag-int', '1.0').dependsOn(depSwagCore).publish()
+        def depSwag = mavenHttpRepo.module('org.test', 'swag', '1.0').dependsOn(depSwagInt).publish()
+
+        depJackDb20.allowAll()
+        depJackDb201.allowAll()
+        depJackDb202.allowAll()
+        depJackDx20.allowAll()
+        jackBom20.allowAll()
+        jackBom201.allowAll()
+        springBom.allowAll()
+        depSwagCore.allowAll()
+        depSwagInt.allowAll()
+        depSwag.allowAll()
+
+        buildFile << """
+            configurations {
+                conf.dependencies.clear()
+            }
+
+            dependencies {
+                conf(platform('spring:bom:2.0'))
+                conf 'org.test:swag:1.0'
+                conf 'jack:dx'
+            }
+
+            tasks.register('resolve') {
+                doLast {
+                    // Need a specific path for restoring serialized version, other paths work
+                    println configurations.conf.resolvedConfiguration.lenientConfiguration.allModuleDependencies
+                }
+            }
+"""
+
+        expect:
+        succeeds 'resolve'
         //Shape of the graph is not checked as bug was failing resolution altogether
     }
 

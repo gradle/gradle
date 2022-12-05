@@ -29,13 +29,13 @@ import org.junit.Test
 class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    fun `can run with first major of current kotlin-dsl plugin version`() {
+    fun `can run with first version of kotlin-dsl plugin supporting Gradle 8_0`() {
 
         assumeNonEmbeddedGradleExecuter()
-        assumeJavaLessThan17() // Previous Kotlin versions did not work on Java 17
         executer.noDeprecationChecks()
 
-        val testedVersion = "2.0.0"
+        // Previous versions depend on Kotlin that is not supported with Gradle >= 8.0
+        val testedVersion = "3.2.0"
 
         withDefaultSettingsIn("buildSrc")
         withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin(testedVersion)).appendText(

@@ -142,13 +142,4 @@ abstract class AbstractArchiveTaskTest extends AbstractCopyTaskContractTest {
         expect:
         archiveTask.archiveFile.set(new File(archiveTask.destinationDirectory.get().asFile, archiveTask.archiveFileName.get()))
     }
-
-    def "does not accept unset destinationDir"() {
-        when:
-        archiveTask.destinationDir = null
-
-        then:
-        def e = thrown(IllegalArgumentException)
-        e.message == "path may not be null or empty string. path='null'"
-    }
 }

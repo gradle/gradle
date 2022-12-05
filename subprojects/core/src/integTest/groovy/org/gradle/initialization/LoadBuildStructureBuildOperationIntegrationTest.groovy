@@ -24,7 +24,7 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
 
     final buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    def "multiproject settings with customizations are are exposed correctly"() {
+    def "multiproject settings with customizations are exposed correctly"() {
         settingsFile << """
         include "b"
         include "a"
@@ -42,14 +42,20 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds('help')
 
         then:
+        def operation = buildOperations.only(LoadProjectsBuildOperationType)
+        def opResult = operation.result
         opResult.buildPath == ":"
         opResult.rootProject.path == ":"
 
         verifyProject(opResult.rootProject, 'root', ':', [':a', ':b'], testDirectory, 'root.gradle')
-        verifyProject(project(':a'), 'a', ':a', [':a:c'])
-        verifyProject(project(':b'), 'b')
-        verifyProject(project(':a:c'), 'c', ':a:c', [':a:c:d'], testDirectory.file('a/c'))
-        verifyProject(project(':a:c:d'), 'd', ':a:c:d', [], testDirectory.file('d'), 'd.gradle')
+        verifyProject(project(':a', operation), 'a', ':a', [':a:c'])
+        verifyProject(project(':b', operation), 'b')
+        verifyProject(project(':a:c', operation), 'c', ':a:c', [':a:c:d'], testDirectory.file('a/c'))
+        verifyProject(project(':a:c:d', operation), 'd', ':a:c:d', [], testDirectory.file('d'), 'd.gradle')
+
+        def events = buildOperations.progress(ProjectsIdentifiedProgressDetails)
+        events.size() == 1
+        events[0].details.buildPath == ":"
     }
 
     def "settings set via cmdline flag are exposed correctly"() {
@@ -69,16 +75,20 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         succeeds('help')
 
         then:
-        operation().result.buildPath == ":"
-        operation().result.rootProject.name == "root"
-        operation().result.rootProject.path == ":"
-        operation().result.rootProject.projectDir == customSettingsDir.absolutePath
-        operation().result.rootProject.buildFile == customSettingsDir.file("root.gradle").absolutePath
-
+        def operation = buildOperations.only(LoadProjectsBuildOperationType)
+        def opResult = operation.result
         opResult.buildPath == ":"
+        opResult.rootProject.name == "root"
         opResult.rootProject.path == ":"
+        opResult.rootProject.projectDir == customSettingsDir.absolutePath
+        opResult.rootProject.buildFile == customSettingsDir.file("root.gradle").absolutePath
+
         verifyProject(opResult.rootProject, 'root', ':', [':a'], customSettingsDir, 'root.gradle')
-        verifyProject(project(':a'), 'a', ':a', [], customSettingsDir.file('a'))
+        verifyProject(project(':a', operation), 'a', ':a', [], customSettingsDir.file('a'))
+
+        def events = buildOperations.progress(ProjectsIdentifiedProgressDetails)
+        events.size() == 1
+        events[0].details.buildPath == ":"
     }
 
     def "composite participants expose their project structure"() {
@@ -106,16 +116,16 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
 
 
         then:
-        def buildOperations = operations()
+        def buildOperations = buildOperations.all(LoadProjectsBuildOperationType)
         buildOperations.size() == 2
 
-        def rootBuildOperation = operations()[0]
+        def rootBuildOperation = buildOperations[0]
         rootBuildOperation.result.buildPath == ":"
         rootBuildOperation.result.rootProject.path == ":"
         verifyProject(rootBuildOperation.result.rootProject, 'root', ':', [':a'], testDirectory, 'root.gradle')
         verifyProject(project(":a", rootBuildOperation), 'a')
 
-        def nestedBuildOperation = operations()[1]
+        def nestedBuildOperation = buildOperations[1]
         nestedBuildOperation.result.buildPath == ":nested"
         nestedBuildOperation.result.rootProject.path == ":"
         verifyProject(nestedBuildOperation.result.rootProject, 'nested', ':nested', [':b'], testDirectory.file('nested'))
@@ -130,27 +140,14 @@ class LoadBuildStructureBuildOperationIntegrationTest extends AbstractIntegratio
         assert project.children*.path == children
     }
 
-    def project(String path, BuildOperationRecord operation = operation(), Map parent = null) {
+    def project(String path, BuildOperationRecord operation, Map parent = null) {
         if (parent == null) {
             if (path.lastIndexOf(':') == 0) {
                 return operation.result.rootProject.children.find { it.path == path }
             } else {
-                return project(path, operation, project(path.substring(0, path.lastIndexOf(':'))))
+                return project(path, operation, project(path.substring(0, path.lastIndexOf(':')), operation))
             }
         }
         return parent.children.find { it.path == path }
-    }
-
-    private BuildOperationRecord operation(){
-        def operationRecords = operations()
-        assert operationRecords.size() == 1
-        operationRecords.iterator().next()
-    }
-
-    private getOpResult() {
-        operation().result
-    }
-    private List<BuildOperationRecord> operations() {
-        buildOperations.all(LoadProjectsBuildOperationType)
     }
 }

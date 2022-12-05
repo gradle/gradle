@@ -16,6 +16,7 @@
 
 package org.gradle.testing
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
@@ -98,8 +99,9 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     def canRunTestsWithCustomSecurityManager() {
-        executer.withToolchainDetectionEnabled()
-            .withToolchainDownloadEnabled()
+        executer
+                .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
+                .withToolchainDetectionEnabled()
 
         when:
         run 'test'

@@ -26,6 +26,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.model.internal.asm.MethodVisitorScope;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -553,7 +554,8 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         private boolean isGradleLambdaDescriptor(String descriptor) {
             return descriptor.endsWith(ACTION_LAMBDA_SUFFIX)
                 || descriptor.endsWith(SPEC_LAMBDA_SUFFIX)
-                || descriptor.endsWith(TRANSFORMER_LAMBDA_SUFFIX);
+                || descriptor.endsWith(TRANSFORMER_LAMBDA_SUFFIX)
+                || descriptor.endsWith(COMMAND_LINE_ARGUMENT_PROVIDER_LAMBDA_SUFFIX);
         }
 
         private String binaryClassNameOf(String className) {
@@ -570,6 +572,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         private static final String ACTION_LAMBDA_SUFFIX = ")" + getType(Action.class).getDescriptor();
         private static final String SPEC_LAMBDA_SUFFIX = ")" + getType(Spec.class).getDescriptor();
         private static final String TRANSFORMER_LAMBDA_SUFFIX = ")" + getType(Transformer.class).getDescriptor();
+        private static final String COMMAND_LINE_ARGUMENT_PROVIDER_LAMBDA_SUFFIX = ")" + getType(CommandLineArgumentProvider.class).getDescriptor();
     }
 
     private static class LambdaFactoryDetails {

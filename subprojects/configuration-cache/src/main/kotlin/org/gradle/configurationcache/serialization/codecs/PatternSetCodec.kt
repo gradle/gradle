@@ -34,40 +34,51 @@ import org.gradle.internal.Factory
 class PatternSetCodec(private val patternSetFactory: Factory<PatternSet>) : Codec<PatternSet> {
 
     override suspend fun WriteContext.encode(value: PatternSet) {
-        writeBoolean(value.isCaseSensitive)
-        writeStrings(value.includes)
-        writeStrings(value.excludes)
-        writeCollection(value.includeSpecs)
-        writeCollection(value.excludeSpecs)
+        writePatternSet(value)
     }
 
     override suspend fun ReadContext.decode() =
         patternSetFactory.create()!!.apply {
-            isCaseSensitive = readBoolean()
-            setIncludes(readStrings())
-            setExcludes(readStrings())
-            readCollection {
-                include(readNonNull<Spec<FileTreeElement>>())
-            }
-            readCollection {
-                exclude(readNonNull<Spec<FileTreeElement>>())
-            }
+            readPatternSet(this)
         }
 }
 
 
-object IntersectPatternSetCodec : Codec<IntersectionPatternSet> {
+object IntersectionPatternSetCodec : Codec<IntersectionPatternSet> {
+
     override suspend fun WriteContext.encode(value: IntersectionPatternSet) {
         write(value.other)
-        writeStrings(value.includes)
-        writeStrings(value.excludes)
+        writePatternSet(value)
     }
 
-    override suspend fun ReadContext.decode(): IntersectionPatternSet? {
+    override suspend fun ReadContext.decode(): IntersectionPatternSet {
         val other = read() as PatternSet
         return IntersectionPatternSet(other).apply {
-            setIncludes(readStrings())
-            setExcludes(readStrings())
+            readPatternSet(this)
         }
+    }
+}
+
+
+private
+suspend fun WriteContext.writePatternSet(value: PatternSet) {
+    writeBoolean(value.isCaseSensitive)
+    writeStrings(value.includes)
+    writeStrings(value.excludes)
+    writeCollection(value.includeSpecs)
+    writeCollection(value.excludeSpecs)
+}
+
+
+private
+suspend fun ReadContext.readPatternSet(value: PatternSet) {
+    value.isCaseSensitive = readBoolean()
+    value.setIncludes(readStrings())
+    value.setExcludes(readStrings())
+    readCollection {
+        value.include(readNonNull<Spec<FileTreeElement>>())
+    }
+    readCollection {
+        value.exclude(readNonNull<Spec<FileTreeElement>>())
     }
 }

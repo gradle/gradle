@@ -29,7 +29,7 @@ class JavaLibraryOutgoingElementsBuilderIntegrationTest extends AbstractIntegrat
                 id 'java-library'
                 id 'maven-publish'
             }
-            def jvm = extensions.create(org.gradle.api.plugins.jvm.internal.JvmPluginExtension, "jvm", org.gradle.api.plugins.jvm.internal.DefaultJvmPluginExtension)
+            def jvm = project.services.get(org.gradle.api.plugins.jvm.internal.JvmModelingServices)
 
             group = 'com.acme'
             version = '1.4'
@@ -124,13 +124,18 @@ Artifacts
                     withClassDirectoryVariant()
                 }
             }
+
+            // Need to ensure the new variant has distinct attributes, without this it would duplicate apiElements
+            configurations.integTestElements.attributes {
+                attribute(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, objects.named(TestSuiteType.class, TestSuiteType.INTEGRATION_TEST))
+            }
         """
 
         when:
         run 'outgoingVariants'
 
         then:
-        outputContains """Variant integTestElements
+        outputContains """Variant integTestElements (i)
 --------------------------------------------------
 
 Capabilities
@@ -140,10 +145,11 @@ Attributes
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = jar
+    - org.gradle.testsuite.type      = integration-test
     - org.gradle.usage               = java-api
 """
         if (classesDir) {
-            outputContains """Variant integTestElements
+            outputContains """Variant integTestElements (i)
 --------------------------------------------------
 
 Capabilities
@@ -153,12 +159,13 @@ Attributes
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
     - org.gradle.libraryelements     = jar
+    - org.gradle.testsuite.type      = integration-test
     - org.gradle.usage               = java-api
 
 Secondary Variants (*)
 
     --------------------------------------------------
-    Secondary Variant classes
+    Secondary Variant classes (i)
     --------------------------------------------------
     Directories containing compiled class files for integTest.
 
@@ -167,6 +174,7 @@ Secondary Variants (*)
         - org.gradle.dependency.bundling = external
         - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
         - org.gradle.libraryelements     = classes
+        - org.gradle.testsuite.type      = integration-test
         - org.gradle.usage               = java-api
     Artifacts
         - build${File.separator}classes${File.separator}java${File.separator}integTest (artifactType = java-classes-directory)"""

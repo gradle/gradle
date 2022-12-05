@@ -20,7 +20,6 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public interface VirtualFileSystem {
@@ -50,7 +49,7 @@ public interface VirtualFileSystem {
      * If the snapshotted location is invalidated while snapshotting,
      * then the snapshot is not stored in the VFS to avoid inconsistent state.
      */
-    FileSystemLocationSnapshot store(String baseLocation, StoringAction storingAction);
+    <T> T store(String baseLocation, StoringAction<T> storingAction);
 
     /**
      * Snapshotting action which produces possibly more than one snapshot.
@@ -58,8 +57,12 @@ public interface VirtualFileSystem {
      * For example when snapshotting a filtered directory, the snapshots for complete subdirectories
      * would be reported here when they are found.
      */
-    interface StoringAction {
-        FileSystemLocationSnapshot snapshot(Consumer<FileSystemLocationSnapshot> snapshot);
+    interface StoringAction<T> {
+        T snapshot(VfsStorer snapshot);
+    }
+
+    interface VfsStorer {
+        FileSystemLocationSnapshot store(FileSystemLocationSnapshot snapshot);
     }
 
     /**

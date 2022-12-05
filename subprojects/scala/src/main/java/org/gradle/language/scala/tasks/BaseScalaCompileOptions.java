@@ -26,7 +26,6 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.compile.AbstractOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
-import org.gradle.workers.internal.KeepAliveMode;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -35,7 +34,7 @@ import java.util.List;
 /**
  * Options for Scala platform compilation.
  */
-public class BaseScalaCompileOptions extends AbstractOptions {
+public abstract class BaseScalaCompileOptions extends AbstractOptions {
 
     private static final long serialVersionUID = 0;
 
@@ -61,11 +60,11 @@ public class BaseScalaCompileOptions extends AbstractOptions {
 
     private List<String> loggingPhases;
 
-    private ScalaForkOptions forkOptions = new ScalaForkOptions();
+    private ScalaForkOptions forkOptions = getObjectFactory().newInstance(ScalaForkOptions.class);
 
     private IncrementalCompileOptions incrementalOptions;
 
-    private final Property<String> keepAliveOption = getObjectFactory().property(String.class).convention(KeepAliveMode.SESSION.name());
+    private final Property<KeepAliveMode> keepAliveMode = getObjectFactory().property(KeepAliveMode.class);
 
     @Inject
     protected ObjectFactory getObjectFactory() {
@@ -240,15 +239,12 @@ public class BaseScalaCompileOptions extends AbstractOptions {
 
     /**
      * Keeps Scala compiler daemon alive across builds for faster build times
-     * Legal values:
-     * - SESSION (compiler is kept alive for a session - default)
-     * - DAEMON (compiler is kept alive across builds )
      *
      * @since 7.6
      */
     @Incubating
     @Input
-    public Property<String> getKeepAliveOption() {
-        return this.keepAliveOption;
+    public Property<KeepAliveMode> getKeepAliveMode() {
+        return this.keepAliveMode;
     }
 }

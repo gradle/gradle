@@ -16,8 +16,6 @@
 
 package org.gradle.work;
 
-import org.gradle.api.Incubating;
-
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -52,7 +50,6 @@ import java.lang.annotation.Target;
  *
  * @since 7.2
  */
-@Incubating
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})

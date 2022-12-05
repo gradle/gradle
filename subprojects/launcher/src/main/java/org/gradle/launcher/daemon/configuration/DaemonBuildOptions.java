@@ -47,6 +47,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         options.add(new JvmArgsOption());
         options.add(new JavaHomeOption());
         options.add(new DebugOption());
+        options.add(new DebugHostOption());
         options.add(new DebugPortOption());
         options.add(new DebugServerOption());
         options.add(new DebugSuspendOption());
@@ -160,6 +161,19 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
             settings.setDebug(value);
+        }
+    }
+
+    public static class DebugHostOption extends StringBuildOption<DaemonParameters> {
+        public static final String GRADLE_PROPERTY = "org.gradle.debug.host";
+
+        public DebugHostOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
+            settings.setDebugHost(value);
         }
     }
 

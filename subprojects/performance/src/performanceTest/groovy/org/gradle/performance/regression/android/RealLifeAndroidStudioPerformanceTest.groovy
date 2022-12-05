@@ -28,7 +28,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 @RunFor(
     @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"])
 )
-class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerformanceTest implements AndroidPerformanceTestFixture {
 
     /**
      * To run this test locally you should have Android Studio installed in /Applications/Android Studio.*.app folder
@@ -40,11 +40,13 @@ class RealLifeAndroidStudioPerformanceTest extends AbstractCrossVersionPerforman
         def testProject = AndroidTestProject.projectFor(runner.testProject)
         testProject.configure(runner)
         AndroidTestProject.useStableAgpVersion(runner)
-        runner.warmUpRuns = 40
-        runner.runs = 40
-        runner.minimumBaseVersion = "6.5"
-        runner.targetVersions = ["7.6-20220513002340+0000"]
+        AndroidTestProject.useStableKotlinVersion(runner)
+        runner.warmUpRuns = 20
+        runner.runs = 20
+        // AGP 7.3 requires Gradle 7.4
+        runner.minimumBaseVersion = "7.4"
         runner.setupAndroidStudioSync()
+        configureProjectJavaHomeToJdk11()
 
         when:
         def result = runner.run()

@@ -20,14 +20,12 @@ import org.gradle.testkit.runner.TaskOutcome
 
 class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
 
-    @spock.lang.Ignore
     def "can run Gradle sanityCheck with configuration cache enabled"() {
-
         given:
         // This is an approximation, running the whole build lifecycle 'sanityCheck' is too expensive
         // See build-logic/lifecycle/src/main/kotlin/gradlebuild.lifecycle.gradle.kts
         def tasks = [
-            ':configuration-cache:sanityCheck',
+            ":configuration-cache:sanityCheck",
             ":docs:checkstyleApi",
             ":internal-build-reports:allIncubationReportsZip",
             ":architecture-test:checkBinaryCompatibility",
@@ -61,13 +59,14 @@ class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBu
         assertConfigurationCacheStateLoaded()
         result.task(":configuration-cache:runKtlintCheckOverMainSourceSet").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:validatePlugins").outcome == TaskOutcome.FROM_CACHE
-        result.task(":configuration-cache:codenarcIntegTest").outcome == TaskOutcome.FROM_CACHE
+        result.task(":configuration-cache:codenarcIntegTest").outcome == TaskOutcome.UP_TO_DATE
         result.task(":configuration-cache:checkstyleIntegTestGroovy").outcome == TaskOutcome.FROM_CACHE
-        result.task(":configuration-cache:classycleIntegTest").outcome == TaskOutcome.FROM_CACHE
+        result.task(":configuration-cache:archTest").outcome == TaskOutcome.FROM_CACHE
         result.task(":configuration-cache:codeQuality").outcome == TaskOutcome.UP_TO_DATE
         result.task(":docs:checkstyleApi").outcome == TaskOutcome.FROM_CACHE
         result.task(":internal-build-reports:allIncubationReportsZip").outcome == TaskOutcome.SUCCESS
-        result.task(":architecture-test:checkBinaryCompatibility").outcome == TaskOutcome.FROM_CACHE
+        // For now, this task is not CC compatible:
+        result.task(":architecture-test:checkBinaryCompatibility").outcome == TaskOutcome.SUCCESS
         result.task(":docs:javadocAll").outcome == TaskOutcome.FROM_CACHE
         result.task(":architecture-test:test").outcome == TaskOutcome.FROM_CACHE
         result.task(":tooling-api:toolingApiShadedJar").outcome == TaskOutcome.SUCCESS

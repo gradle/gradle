@@ -24,24 +24,28 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.credentials.CredentialListener
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsExternalProcess
+import org.gradle.configurationcache.problems.DocumentationSection.RequirementsSafeCredentials
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsUseProjectDuringExecution
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
+import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 
 
 @ServiceScope(Scopes.BuildTree::class)
-interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener
+interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener, CredentialListener
 
 
 class DefaultConfigurationCacheProblemsListener internal constructor(
@@ -49,7 +53,8 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private val userCodeApplicationContext: UserCodeApplicationContext,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val taskExecutionTracker: TaskExecutionTracker,
-    private val featurePreviews: FeaturePreviews,
+    private val featureFlags: FeatureFlags,
+    private val inputTrackingState: InputTrackingState,
 ) : ConfigurationCacheProblemsListener {
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
@@ -67,7 +72,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     }
 
     override fun onExternalProcessStarted(command: String, consumer: String?) {
-        if (!featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE) || !atConfigurationTime() || taskExecutionTracker.currentTask.isPresent) {
+        if (!isStableConfigurationCacheEnabled() || !atConfigurationTime() || isExecutingTask() || isInputTrackingDisabled()) {
             return
         }
         problems.onProblem(
@@ -129,6 +134,21 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         )
     }
 
+    override fun onUnsafeCredentials(locationSpecificReason: String, task: TaskInternal) {
+        val message = StructuredMessage.build {
+            text("Credential values found in configuration for: ")
+            text(locationSpecificReason)
+        }
+        problems.onProblem(
+            PropertyProblem(
+                propertyTraceForTask(task),
+                message,
+                InvalidUserCodeException(message.toString()),
+                documentationSection = RequirementsSafeCredentials
+            )
+        )
+    }
+
     private
     fun listenerRegistrationProblem(
         trace: PropertyTrace,
@@ -154,4 +174,13 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private
     fun atConfigurationTime() =
         configurationTimeBarrier.isAtConfigurationTime
+
+    private
+    fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
+
+    private
+    fun isStableConfigurationCacheEnabled() = featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
+
+    private
+    fun isExecutingTask() = taskExecutionTracker.currentTask.isPresent
 }

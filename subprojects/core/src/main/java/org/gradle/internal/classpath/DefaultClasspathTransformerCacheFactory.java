@@ -17,7 +17,10 @@
 package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
+import org.gradle.api.internal.cache.DefaultCacheCleanup;
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheVersionMapping;
@@ -32,7 +35,6 @@ import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
 
 import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
-import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultClasspathTransformerCacheFactory implements ClasspathTransformerCacheFactory {
@@ -49,9 +51,13 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final UsedGradleVersions usedGradleVersions;
+    private final CleanupActionDecorator cleanupActionDecorator;
+    private final CacheConfigurationsInternal cacheConfigurations;
 
-    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions) {
+    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CleanupActionDecorator cleanupActionDecorator, CacheConfigurationsInternal cacheConfigurations) {
         this.usedGradleVersions = usedGradleVersions;
+        this.cleanupActionDecorator = cleanupActionDecorator;
+        this.cacheConfigurations = cacheConfigurations;
     }
 
     @Override
@@ -61,17 +67,27 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
             .withDisplayName(CACHE_NAME)
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
-            .withCleanup(
-                CompositeCleanupAction.builder()
-                    .add(UnusedVersionsCacheCleanup.create(CACHE_NAME, CACHE_VERSION_MAPPING, usedGradleVersions))
-                    .add(
-                        new LeastRecentlyUsedCacheCleanup(
-                            new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP),
-                            fileAccessTimeJournal,
-                            DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
-                        )
-                    ).build()
-            ).open();
+            .withCleanup(createCacheCleanup(fileAccessTimeJournal))
+            .open();
+    }
+
+    private DefaultCacheCleanup createCacheCleanup(FileAccessTimeJournal fileAccessTimeJournal) {
+        return DefaultCacheCleanup.from(
+            cleanupActionDecorator.decorate(createCleanupAction(fileAccessTimeJournal)),
+            cacheConfigurations.getCleanupFrequency()
+        );
+    }
+
+    private CompositeCleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal) {
+        return CompositeCleanupAction.builder()
+            .add(UnusedVersionsCacheCleanup.create(CACHE_NAME, CACHE_VERSION_MAPPING, usedGradleVersions))
+            .add(
+                new LeastRecentlyUsedCacheCleanup(
+                    new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP),
+                    fileAccessTimeJournal,
+                    () -> cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesAfterDays().get()
+                )
+            ).build();
     }
 
     @Override

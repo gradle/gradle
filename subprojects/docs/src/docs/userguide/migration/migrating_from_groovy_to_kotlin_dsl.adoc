@@ -143,7 +143,7 @@ Kotlin DSL script files use the `.gradle.kts` file name extension.
 
 To use the Kotlin DSL, simply name your files `build.gradle.kts` instead of `build.gradle`.
 
-The <<build_lifecycle.adoc#sec:settings_file,settings file>>, `settings.gradle`, can also be renamed `settings.gradle.kts`.
+The <<organizing_gradle_projects.adoc#sec:settings_file,settings file>>, `settings.gradle`, can also be renamed `settings.gradle.kts`.
 
 In a multi-project build, you can have some modules using the Groovy DSL (with `build.gradle`) and others using the Kotlin DSL (with `build.gradle.kts`).
 
@@ -163,8 +163,8 @@ Just like with the Groovy DSL, there are two ways to apply Gradle plugins:
 Here's an example using the declarative `plugins {}` block:
 
 ====
-include::sample[dir="snippets/kotlinDsl/applying-plugins-declarative/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/kotlinDsl/applying-plugins-declarative/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/kotlinDsl/applying-plugins-declarative/groovy",files="build.gradle[tags=script]"]
+include::sample[dir="snippets/kotlinDsl/applying-plugins-declarative/kotlin",files="build.gradle.kts[tags=script]"]
 ====
 
 The Kotlin DSL provides property extensions for all <<plugin_reference#plugin_reference,Gradle core plugins>>,
@@ -177,8 +177,8 @@ type-safe and will be autocompleted by your IDE.
 You can also use the imperative `apply` syntax, but then non-core plugins must be included on the classpath of the build script:
 
 ====
-include::sample[dir="snippets/kotlinDsl/applying-plugins-imperative/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/kotlinDsl/applying-plugins-imperative/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/kotlinDsl/applying-plugins-imperative/groovy",files="build.gradle[tags=script]"]
+include::sample[dir="snippets/kotlinDsl/applying-plugins-imperative/kotlin",files="build.gradle.kts[tags=script]"]
 ====
 
 [NOTE]

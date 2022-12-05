@@ -23,10 +23,10 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.FeaturePreviews.Feature;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -35,11 +35,14 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.toolchain.management.ToolchainManagement;
+import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
+import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.resource.TextUriResourceLoader;
@@ -357,12 +360,12 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     public void enableFeaturePreview(String name) {
         Feature feature = Feature.withName(name);
         if (feature.isActive()) {
-            services.get(FeaturePreviews.class).enableFeature(feature);
+            services.get(FeatureFlags.class).enable(feature);
         } else {
             DeprecationLogger
                 .deprecate("enableFeaturePreview('" + feature.name() + "')")
                 .withAdvice("The feature flag is no longer relevant, please remove it from your settings file.")
-                .willBeRemovedInGradle8()
+                .willBeRemovedInGradle9()
                 .withUserManual("feature_lifecycle", "feature_preview")
                 .nagUser();
         }
@@ -381,5 +384,27 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     public DependencyResolutionManagementInternal getDependencyResolutionManagement() {
         return dependencyResolutionManagement;
+    }
+
+    @Override
+    @Inject
+    public ToolchainManagement getToolchainManagement() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @Inject
+    public CacheConfigurationsInternal getCaches() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void toolchainManagement(Action<? super ToolchainManagement> toolchainManagementConfiguration) {
+        toolchainManagementConfiguration.execute(getToolchainManagement());
+    }
+
+    @Override
+    public void caches(Action<? super CacheConfigurations> cachesConfiguration) {
+        cachesConfiguration.execute(getCaches());
     }
 }

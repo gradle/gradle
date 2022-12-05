@@ -64,7 +64,13 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     def services = new DefaultServiceRegistry()
     def modelServices = Mock(BuildModelControllerServices)
     def buildTree = Mock(BuildTreeState)
-    def factory = new BuildStateFactory(buildTree, listenerManager, Stub(GradleUserHomeScopeServiceRegistry), Stub(CrossBuildSessionState), Stub(BuildCancellationToken))
+    def factory = new BuildStateFactory(
+        buildTree,
+        listenerManager,
+        Stub(GradleUserHomeScopeServiceRegistry),
+        Stub(CrossBuildSessionState),
+        Stub(BuildCancellationToken)
+    )
     def registry = new DefaultIncludedBuildRegistry(
         includedBuildFactory,
         Stub(IncludedBuildDependencySubstitutionsBuilder),

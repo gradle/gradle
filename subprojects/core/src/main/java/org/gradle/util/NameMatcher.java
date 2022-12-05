@@ -20,17 +20,30 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 /**
  * This class is only here to maintain binary compatibility with existing plugins.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public class NameMatcher {
+
+    private static void logDeprecation() {
+        DeprecationLogger.deprecateType(NameMatcher.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
+
     private final SortedSet<String> matches = new TreeSet<>();
     private final Set<String> candidates = new TreeSet<>();
     private String pattern;
+
+    public NameMatcher() {
+        // TODO log deprecation once nebula.dependency-lock plugin is fixed
+    }
 
     /**
      * Locates the best match for a camel case pattern in a key set of a map and returns the corresponding value.
@@ -39,6 +52,7 @@ public class NameMatcher {
      * @see #find(String, Collection)
      */
     public <T> T find(String pattern, Map<String, ? extends T> items) {
+        logDeprecation();
         String name = find(pattern, items.keySet());
         if (name != null) {
             return items.get(name);
@@ -59,6 +73,7 @@ public class NameMatcher {
      * @return The match if exactly 1 match found, null if no matches or multiple matches.
      */
     public String find(String pattern, Collection<String> items) {
+        // TODO log deprecation once nebula.dependency-lock plugin is fixed
         this.pattern = pattern;
         matches.clear();
         candidates.clear();
@@ -178,6 +193,7 @@ public class NameMatcher {
      * @return The matches. Returns an empty set when there are no matches.
      */
     public Set<String> getMatches() {
+        logDeprecation();
         return matches;
     }
 
@@ -187,6 +203,7 @@ public class NameMatcher {
      * @return The matches. Returns an empty set when there are no potential matches.
      */
     public Set<String> getCandidates() {
+        logDeprecation();
         return candidates;
     }
 

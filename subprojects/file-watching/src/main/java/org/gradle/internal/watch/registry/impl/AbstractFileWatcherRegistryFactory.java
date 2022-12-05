@@ -18,7 +18,7 @@ package org.gradle.internal.watch.registry.impl;
 
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.file.FileWatcher;
-import net.rubygrapefruit.platform.internal.jni.AbstractFileEventFunctions;
+import net.rubygrapefruit.platform.internal.jni.AbstractNativeFileEventFunctions;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
@@ -29,7 +29,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.function.Predicate;
 
-public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractFileEventFunctions<W>, W extends FileWatcher> implements FileWatcherRegistryFactory {
+public abstract class AbstractFileWatcherRegistryFactory<T extends AbstractNativeFileEventFunctions<W>, W extends FileWatcher> implements FileWatcherRegistryFactory {
     private static final int FILE_EVENT_QUEUE_SIZE = 4096;
 
     protected final T fileEventFunctions;

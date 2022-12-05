@@ -52,7 +52,29 @@ public abstract class AbstractBroadcastDispatch<T> implements Dispatch<MethodInv
         }
     }
 
-    protected void dispatch(MethodInvocation invocation, Iterator<? extends Dispatch<MethodInvocation>> handlers) {
+    /**
+     * Dispatch an invocation to the given dispatchers.
+     * <p>
+     * This method will try to dispatch the invocation in an efficient way based on the number of dispatchers.
+     * </p>
+     */
+    protected void dispatch(MethodInvocation invocation, List<? extends Dispatch<MethodInvocation>> dispatchers) {
+        switch (dispatchers.size()) {
+            case 0:
+                break;
+            case 1:
+                dispatch(invocation, dispatchers.get(0));
+                break;
+            default:
+                dispatch(invocation, dispatchers.iterator());
+                break;
+        }
+    }
+
+    /**
+     * Dispatch an invocation to multiple handlers.
+     */
+    private void dispatch(MethodInvocation invocation, Iterator<? extends Dispatch<MethodInvocation>> handlers) {
         // Defer creation of failures list, assume dispatch will succeed
         List<Throwable> failures = null;
         while (handlers.hasNext()) {

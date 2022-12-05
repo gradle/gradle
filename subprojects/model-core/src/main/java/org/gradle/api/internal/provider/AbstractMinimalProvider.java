@@ -35,7 +35,8 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
-        return new TransformBackedProvider<>(transformer, this);
+        // Could do a better job of inferring the type
+        return new TransformBackedProvider<>(null, this, transformer);
     }
 
     @Override
@@ -68,6 +69,15 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     protected abstract ValueSupplier.Value<? extends T> calculateOwnValue(ValueConsumer consumer);
 
+    protected Value<? extends T> calculateOwnPresentValue() {
+        Value<? extends T> value = calculateOwnValue(ValueConsumer.IgnoreUnsafeRead);
+        if (value.isMissing()) {
+            throw new MissingValueException(cannotQueryValueOf(value));
+        }
+
+        return value;
+    }
+
     @Override
     public boolean isPresent() {
         return calculatePresence(ValueConsumer.IgnoreUnsafeRead);
@@ -80,11 +90,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public T get() {
-        Value<? extends T> value = calculateOwnValue(ValueConsumer.IgnoreUnsafeRead);
-        if (value.isMissing()) {
-            throw new MissingValueException(cannotQueryValueOf(value));
-        }
-        return value.get();
+        return calculateOwnPresentValue().get();
     }
 
     @Override
@@ -94,7 +100,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public T getOrElse(T defaultValue) {
-        return calculateOwnValue(ValueConsumer.IgnoreUnsafeRead).orElse(defaultValue);
+        return calculateOwnValue(ValueConsumer.IgnoreUnsafeRead).orElse(Cast.uncheckedNonnullCast(defaultValue));
     }
 
     @Override

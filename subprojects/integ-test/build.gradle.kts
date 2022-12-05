@@ -34,6 +34,7 @@ dependencies {
     crossVersionTestImplementation(project(":platform-jvm"))
     crossVersionTestImplementation(project(":language-java"))
     crossVersionTestImplementation(project(":language-groovy"))
+    crossVersionTestImplementation(project(":logging"))
     crossVersionTestImplementation(project(":scala"))
     crossVersionTestImplementation(project(":ear"))
     crossVersionTestImplementation(project(":testing-jvm"))

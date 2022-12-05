@@ -43,6 +43,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
@@ -100,15 +101,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     @Incubating
     protected AbstractScalaCompile() {
         ObjectFactory objectFactory = getObjectFactory();
-        this.scalaCompileOptions = getProject().getObjects().newInstance(ScalaCompileOptions.class);
-        this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));
-    }
-
-    @Deprecated // Kept to preserve binary compatibility; will be removed in Gradle 8.
-    @SuppressWarnings("unused")
-    protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
-        ObjectFactory objectFactory = getObjectFactory();
-        this.scalaCompileOptions = scalaCompileOptions;
+        this.scalaCompileOptions = objectFactory.newInstance(ScalaCompileOptions.class);
         this.scalaCompileOptions.setIncrementalOptions(objectFactory.newInstance(IncrementalCompileOptions.class));
     }
 
@@ -147,8 +140,8 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
      * @return the java launcher property
      * @since 7.2
      */
-    @Incubating
-    @Internal
+    @Nested
+    @Optional
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }

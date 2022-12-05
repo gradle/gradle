@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.AbstractFileTree;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -37,8 +38,8 @@ import java.util.function.Consumer;
 public final class FileTreeAdapter extends AbstractFileTree {
     private final MinimalFileTree tree;
 
-    public FileTreeAdapter(MinimalFileTree tree, Factory<PatternSet> patternSetFactory) {
-        super(patternSetFactory);
+    public FileTreeAdapter(MinimalFileTree tree, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+        super(taskDependencyFactory, patternSetFactory);
         this.tree = tree;
     }
 
@@ -84,9 +85,9 @@ public final class FileTreeAdapter extends AbstractFileTree {
     public FileTreeInternal matching(PatternFilterable patterns) {
         if (tree instanceof PatternFilterableFileTree) {
             PatternFilterableFileTree filterableTree = (PatternFilterableFileTree) tree;
-            return new FileTreeAdapter(filterableTree.filter(patterns), patternSetFactory);
+            return new FileTreeAdapter(filterableTree.filter(patterns), taskDependencyFactory, patternSetFactory);
         } else if (tree instanceof FileSystemMirroringFileTree) {
-            return new FileTreeAdapter(new FilteredMinimalFileTree((PatternSet) patterns, (FileSystemMirroringFileTree) tree), patternSetFactory);
+            return new FileTreeAdapter(new FilteredMinimalFileTree((PatternSet) patterns, (FileSystemMirroringFileTree) tree), taskDependencyFactory, patternSetFactory);
         }
         throw new UnsupportedOperationException(String.format("Do not know how to filter %s.", tree));
     }
@@ -105,10 +106,6 @@ public final class FileTreeAdapter extends AbstractFileTree {
     @Override
     protected void visitContents(FileCollectionStructureVisitor visitor) {
         tree.visitStructure(new MinimalFileTree.MinimalFileTreeStructureVisitor() {
-            @Override
-            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                visitor.visitGenericFileTree(fileTree, sourceTree);
-            }
 
             @Override
             public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {

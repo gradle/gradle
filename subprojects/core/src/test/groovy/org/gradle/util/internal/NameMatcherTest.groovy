@@ -224,7 +224,7 @@ class NameMatcherTest extends Specification {
         matcher.find("name", ["other"])
 
         expect:
-        matcher.formatErrorMessage("thing", "container") == "Thing 'name' not found in container."
+        matcher.formatErrorMessage("thing", "container") == "thing 'name' not found in container."
     }
 
     def "builds error message for multiple matches"() {
@@ -232,7 +232,7 @@ class NameMatcherTest extends Specification {
         matcher.find("n", ["number", "name", "other"])
 
         expect:
-        matcher.formatErrorMessage("thing", "container") == "Thing 'n' is ambiguous in container. Candidates are: 'name', 'number'."
+        matcher.formatErrorMessage("thing", "container") == "thing 'n' is ambiguous in container. Candidates are: 'name', 'number'."
     }
 
     def "builds error message for potential matches"() {
@@ -240,7 +240,7 @@ class NameMatcherTest extends Specification {
         matcher.find("name", ["other", "lame", "tame"])
 
         expect:
-        matcher.formatErrorMessage("thing", "container") == "Thing 'name' not found in container. Some candidates are: 'lame', 'tame'."
+        matcher.formatErrorMessage("thing", "container") == "thing 'name' not found in container. Some candidates are: 'lame', 'tame'."
     }
 
     def matches(String name, String match, String... extraItems) {

@@ -18,6 +18,7 @@ import common.JvmVendor
 import common.JvmVersion
 import common.Os
 import common.VersionedSettingsBranch
+import common.pluginPortalUrlOverride
 import configurations.BaseGradleBuildType
 import configurations.PerformanceTest
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
@@ -30,7 +31,7 @@ import model.PerformanceTestCoverage
 import model.PerformanceTestType
 import model.SpecificBuild
 import model.Stage
-import model.StageNames
+import model.StageName
 import model.TestCoverage
 import model.TestType
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -57,7 +58,7 @@ class PerformanceTestBuildTypeTest {
         val performanceTest = PerformanceTest(
             buildModel,
             Stage(
-                StageNames.PULL_REQUEST_FEEDBACK,
+                StageName.PULL_REQUEST_FEEDBACK,
                 specificBuilds = listOf(
                     SpecificBuild.BuildDistributions,
                     SpecificBuild.Gradleception,
@@ -100,7 +101,7 @@ class PerformanceTestBuildTypeTest {
             "-DenableTestDistribution=%enableTestDistribution%",
             "-Dorg.gradle.workers.max=%maxParallelForks%",
             "-PmaxParallelForks=%maxParallelForks%",
-            "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
+            pluginPortalUrlOverride,
             "-s",
             "--no-configuration-cache",
             "%additional.gradle.parameters%",

@@ -43,12 +43,12 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
 import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
@@ -68,7 +68,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
 
         ImmutableList<ImmutableRealisedVariantImpl> variants = LazyToRealisedModuleComponentResolveMetadataHelper.realiseVariants(metadata, variantMetadataRules, metadata.getVariants());
 
-        Map<String, ConfigurationMetadata> configurations = realiseConfigurations(metadata, variantMetadataRules);
+        Map<String, ModuleConfigurationMetadata> configurations = realiseConfigurations(metadata, variantMetadataRules);
 
         if (variants.isEmpty()) {
             addVariantsFromRules(metadata, configurations, variantMetadataRules);
@@ -77,15 +77,15 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         return new RealisedIvyModuleResolveMetadata(metadata, variants, configurations);
     }
 
-    private static Map<String, ConfigurationMetadata> realiseConfigurations(DefaultIvyModuleResolveMetadata metadata, VariantMetadataRules variantMetadataRules) {
-        Map<String, ConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(metadata.getConfigurationNames().size());
+    private static Map<String, ModuleConfigurationMetadata> realiseConfigurations(DefaultIvyModuleResolveMetadata metadata, VariantMetadataRules variantMetadataRules) {
+        Map<String, ModuleConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(metadata.getConfigurationNames().size());
         for (String configurationName : metadata.getConfigurationNames()) {
             configurations.put(configurationName, applyRules(metadata, variantMetadataRules, configurationName));
         }
         return configurations;
     }
 
-    private static void addVariantsFromRules(DefaultIvyModuleResolveMetadata componentMetadata, Map<String, ConfigurationMetadata> declaredConfigurations, VariantMetadataRules variantMetadataRules) {
+    private static void addVariantsFromRules(DefaultIvyModuleResolveMetadata componentMetadata, Map<String, ModuleConfigurationMetadata> declaredConfigurations, VariantMetadataRules variantMetadataRules) {
         List<AdditionalVariant> additionalVariants = variantMetadataRules.getAdditionalVariants();
         if (additionalVariants.isEmpty()) {
             return;
@@ -100,7 +100,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
             ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
             ImmutableList<ExcludeMetadata> excludes;
 
-            ModuleConfigurationMetadata baseConf = (ModuleConfigurationMetadata) declaredConfigurations.get(baseName);
+            ModuleConfigurationMetadata baseConf = declaredConfigurations.get(baseName);
             if (baseConf == null) {
                 attributes = componentMetadata.getAttributes();
                 capabilities = ImmutableCapabilities.EMPTY;
@@ -138,20 +138,22 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         return applyRules(metadata.getId(), configurationName, variantMetadataRules, metadata.getAttributes(), ImmutableCapabilities.EMPTY, artifacts, excludes, configuration.isTransitive(), configuration.isVisible(), hierarchy, configurationHelper, null, false, metadata.isExternalVariant());
     }
 
-    private static RealisedConfigurationMetadata applyRules(ModuleComponentIdentifier id,
-                                                            String configurationName,
-                                                            VariantMetadataRules variantMetadataRules,
-                                                            ImmutableAttributes attributes,
-                                                            ImmutableCapabilities capabilities,
-                                                            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                                            ImmutableList<ExcludeMetadata> excludes,
-                                                            boolean transitive,
-                                                            boolean visible,
-                                                            ImmutableSet<String> hierarchy,
-                                                            IvyConfigurationHelper configurationHelper,
-                                                            @Nullable List<ModuleDependencyMetadata> dependenciesOverride,
-                                                            boolean addedByRule,
-                                                            boolean isExternalVariant) {
+    private static RealisedConfigurationMetadata applyRules(
+        ModuleComponentIdentifier id,
+        String configurationName,
+        VariantMetadataRules variantMetadataRules,
+        ImmutableAttributes attributes,
+        ImmutableCapabilities capabilities,
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+        ImmutableList<ExcludeMetadata> excludes,
+        boolean transitive,
+        boolean visible,
+        ImmutableSet<String> hierarchy,
+        IvyConfigurationHelper configurationHelper,
+        @Nullable List<ModuleDependencyMetadata> dependenciesOverride,
+        boolean addedByRule,
+        boolean isExternalVariant
+    ) {
         NameOnlyVariantResolveMetadata variant = new NameOnlyVariantResolveMetadata(configurationName);
         ImmutableAttributes variantAttributes = variantMetadataRules.applyVariantAttributeRules(variant, attributes);
         CapabilitiesMetadata capabilitiesMetadata = variantMetadataRules.applyCapabilitiesRules(variant, capabilities);
@@ -168,9 +170,9 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     private final DefaultIvyModuleResolveMetadata metadata;
     private final String branch;
 
-    private Optional<ImmutableList<? extends ConfigurationMetadata>> derivedVariants;
+    private Optional<List<? extends VariantGraphResolveMetadata>> derivedVariants;
 
-    private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, List<IvyDependencyDescriptor> dependencies, Map<String, ConfigurationMetadata> transformedConfigurations) {
+    private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, List<IvyDependencyDescriptor> dependencies, Map<String, ModuleConfigurationMetadata> transformedConfigurations) {
         super(metadata, metadata.getVariants(), transformedConfigurations);
         this.configurationDefinitions = metadata.getConfigurationDefinitions();
         this.branch = metadata.getBranch();
@@ -192,9 +194,11 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         this.metadata = metadata.metadata;
     }
 
-    RealisedIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata,
-                                     ImmutableList<? extends ComponentVariant> variants,
-                                     Map<String, ConfigurationMetadata> configurations) {
+    RealisedIvyModuleResolveMetadata(
+        DefaultIvyModuleResolveMetadata metadata,
+        ImmutableList<? extends ComponentVariant> variants,
+        Map<String, ModuleConfigurationMetadata> configurations
+    ) {
         super(metadata, variants, configurations);
         this.configurationDefinitions = metadata.getConfigurationDefinitions();
         this.branch = metadata.getBranch();
@@ -205,20 +209,22 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         this.metadata = metadata;
     }
 
-    private static RealisedConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId,
-                                                                     String name,
-                                                                     boolean transitive,
-                                                                     boolean visible,
-                                                                     ImmutableSet<String> hierarchy,
-                                                                     ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                                                     ImmutableList<ExcludeMetadata> excludes,
-                                                                     ImmutableAttributes componentLevelAttributes,
-                                                                     ImmutableCapabilities capabilities,
-                                                                     VariantMetadataRules variantMetadataRules,
-                                                                     IvyConfigurationHelper configurationHelper,
-                                                                     List<ModuleDependencyMetadata> dependenciesFromRule,
-                                                                     boolean addedByRule,
-                                                                     boolean externalVariant) {
+    private static RealisedConfigurationMetadata createConfiguration(
+        ModuleComponentIdentifier componentId,
+        String name,
+        boolean transitive,
+        boolean visible,
+        ImmutableSet<String> hierarchy,
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+        ImmutableList<ExcludeMetadata> excludes,
+        ImmutableAttributes componentLevelAttributes,
+        ImmutableCapabilities capabilities,
+        VariantMetadataRules variantMetadataRules,
+        IvyConfigurationHelper configurationHelper,
+        List<ModuleDependencyMetadata> dependenciesFromRule,
+        boolean addedByRule,
+        boolean externalVariant
+    ) {
         RealisedConfigurationMetadata configuration = new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, excludes, componentLevelAttributes, capabilities, addedByRule, externalVariant);
         List<ModuleDependencyMetadata> dependencyMetadata;
         if (configurationHelper != null) {
@@ -231,7 +237,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     }
 
     @Override
-    protected Optional<ImmutableList<? extends ConfigurationMetadata>> maybeDeriveVariants() {
+    protected Optional<List<? extends VariantGraphResolveMetadata>> maybeDeriveVariants() {
         if (derivedVariants == null && getConfigurationNames().size() != configurationDefinitions.size()) {
             // if there are more configurations than definitions, configurations have been added by rules and thus they are variants
             derivedVariants = Optional.of(allConfigurationsThatAreVariants());
@@ -241,8 +247,8 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         return derivedVariants;
     }
 
-    private ImmutableList<? extends ConfigurationMetadata> allConfigurationsThatAreVariants() {
-        ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
+    private ImmutableList<? extends ModuleConfigurationMetadata> allConfigurationsThatAreVariants() {
+        ImmutableList.Builder<ModuleConfigurationMetadata> builder = new ImmutableList.Builder<>();
         for (String potentialVariantName : getConfigurationNames()) {
             if (!configurationDefinitions.containsKey(potentialVariantName)) {
                 builder.add(getConfiguration(potentialVariantName));
@@ -319,7 +325,7 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     private IvyModuleResolveMetadata withDependencies(Map<IvyDependencyDescriptor, IvyDependencyDescriptor> transformed) {
         ImmutableList<IvyDependencyDescriptor> transformedDescriptors = ImmutableList.copyOf(transformed.values());
         Set<String> configurationNames = getConfigurationNames();
-        Map<String, ConfigurationMetadata> transformedConfigurations = Maps.newHashMapWithExpectedSize(configurationNames.size());
+        Map<String, ModuleConfigurationMetadata> transformedConfigurations = Maps.newHashMapWithExpectedSize(configurationNames.size());
         for (String name : configurationNames) {
             RealisedConfigurationMetadata configuration = (RealisedConfigurationMetadata) getConfiguration(name);
             List<? extends DependencyMetadata> dependencies = configuration.getDependencies();

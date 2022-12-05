@@ -83,11 +83,11 @@ class JavaToolchainComparatorTest extends Specification {
 
     def "prefers jdk over jre"() {
         def jdk = Mock(JavaToolchain) {
-            getToolVersion() >> VersionNumber.parse("8.0.1")
+            getToolchainVersion() >> VersionNumber.parse("8.0.1")
             isJdk() >> true
         }
         def jre = Mock(JavaToolchain) {
-            getToolVersion() >> VersionNumber.parse("8.0.1")
+            getToolchainVersion() >> VersionNumber.parse("8.0.1")
             isJdk() >> false
         }
         given:
@@ -134,13 +134,13 @@ class JavaToolchainComparatorTest extends Specification {
     }
 
     static void assertOrder(List<JavaToolchain> list, String[] expectedOrder) {
-        assert list*.toolVersion.toString() == expectedOrder.toString()
+        assert list*.toolchainVersion.toString() == expectedOrder.toString()
     }
 
     JavaToolchain mockToolchain(String implementationVersion, boolean isJdk = false, KnownJvmVendor jvmVendor = ADOPTOPENJDK, String installPath = null, boolean isCurrentJvm = false) {
         def javaHome = new File(installPath != null ? installPath : "/" + isJdk ? "jdk" : "jre" + "s/" + implementationVersion).absoluteFile
         Mock(JavaToolchain) {
-            it.getToolVersion() >> VersionNumber.parse(implementationVersion)
+            it.getToolchainVersion() >> VersionNumber.parse(implementationVersion)
             it.isJdk() >> isJdk
             it.isCurrentJvm() >> isCurrentJvm
             it.getInstallationPath() >> TestFiles.fileFactory().dir(javaHome)

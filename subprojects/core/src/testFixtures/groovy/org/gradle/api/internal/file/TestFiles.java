@@ -33,9 +33,7 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.impl.DefaultDeleter;
-import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
-import org.gradle.internal.fingerprint.impl.DefaultGenericFileTreeSnapshotter;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -58,7 +56,7 @@ import org.gradle.util.TestUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.List;
+import java.util.Collection;
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
@@ -72,14 +70,14 @@ public class TestFiles {
         DefaultExecActionFactory.of(resolver(), fileCollectionFactory(), new DefaultExecutorFactory(), NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class));
 
     public static FileCollectionInternal empty() {
-        return fileCollectionFactory().empty();
+        return FileCollectionFactory.empty();
     }
 
     public static FileCollectionInternal fixed(File... files) {
         return fileCollectionFactory().fixed(files);
     }
 
-    public static FileCollectionInternal fixed(List<File> files) {
+    public static FileCollectionInternal fixed(Collection<File> files) {
         return fileCollectionFactory().fixed(files);
     }
 
@@ -153,6 +151,7 @@ public class TestFiles {
 
         DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
             fileResolver,
+            taskDependencyFactory(),
             fileSystem,
             temporaryFileProvider,
             textResourceAdapterFactory(temporaryFileProvider)
@@ -172,6 +171,7 @@ public class TestFiles {
             getPatternSetFactory(),
             deleter(),
             documentationRegistry(),
+            taskDependencyFactory(),
             providerFactory());
     }
 
@@ -192,12 +192,8 @@ public class TestFiles {
         return new DefaultFileHasher(streamHasher());
     }
 
-    public static GenericFileTreeSnapshotter genericFileTreeSnapshotter() {
-        return new DefaultGenericFileTreeSnapshotter(fileHasher(), new StringInterner());
-    }
-
     public static DefaultFileCollectionSnapshotter fileCollectionSnapshotter() {
-        return new DefaultFileCollectionSnapshotter(fileSystemAccess(), genericFileTreeSnapshotter(), fileSystem());
+        return new DefaultFileCollectionSnapshotter(fileSystemAccess(), fileSystem());
     }
 
     public static VirtualFileSystem virtualFileSystem() {
@@ -264,6 +260,10 @@ public class TestFiles {
     @SuppressWarnings("deprecation")
     public static Factory<PatternSet> getPatternSetFactory() {
         return PatternSets.getNonCachingPatternSetFactory();
+    }
+
+    public static TaskDependencyFactory taskDependencyFactory() {
+        return DefaultTaskDependencyFactory.withNoAssociatedProject();
     }
 
     public static DocumentationRegistry documentationRegistry() {

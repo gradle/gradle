@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.attributes.AttributeContainer;
@@ -110,8 +111,8 @@ public class ResolveIvyFactory {
         CachePolicy cachePolicy = resolutionStrategy.getCachePolicy();
         startParameterResolutionOverride.applyToCachePolicy(cachePolicy);
 
-        UserResolverChain moduleResolver = new UserResolverChain(versionComparator, resolutionStrategy.getComponentSelection(), versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, cachePolicy, calculatedValueContainerFactory);
-        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, cachePolicy, calculatedValueContainerFactory);
+        UserResolverChain moduleResolver = new UserResolverChain(versionComparator, resolutionStrategy.getComponentSelection(), versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
+        ParentModuleLookupResolver parentModuleResolver = new ParentModuleLookupResolver(versionComparator, moduleIdentifierFactory, versionParser, consumerAttributes, attributesSchema, attributesFactory, metadataProcessor, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
 
         for (ResolutionAwareRepository repository : repositories) {
             ConfiguredModuleComponentRepository baseRepository = repository.createResolver();
@@ -163,8 +164,18 @@ public class ResolveIvyFactory {
     private static class ParentModuleLookupResolver implements ComponentResolvers, DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
         private final UserResolverChain delegate;
 
-        public ParentModuleLookupResolver(VersionComparator versionComparator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, VersionParser versionParser, AttributeContainer consumerAttributes, AttributesSchema attributesSchema, ImmutableAttributesFactory attributesFactory, ComponentMetadataProcessorFactory componentMetadataProcessorFactory, ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor, CachePolicy cachePolicy, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            this.delegate = new UserResolverChain(versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), versionParser, consumerAttributes, attributesSchema, attributesFactory, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, cachePolicy, calculatedValueContainerFactory);
+        public ParentModuleLookupResolver(VersionComparator versionComparator,
+                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+                                          VersionParser versionParser,
+                                          AttributeContainer consumerAttributes,
+                                          AttributesSchema attributesSchema,
+                                          ImmutableAttributesFactory attributesFactory,
+                                          ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
+                                          ComponentMetadataSupplierRuleExecutor componentMetadataSupplierRuleExecutor,
+                                          CalculatedValueContainerFactory calculatedValueContainerFactory,
+                                          CachePolicy cachePolicy
+        ) {
+            this.delegate = new UserResolverChain(versionComparator, new DefaultComponentSelectionRules(moduleIdentifierFactory), versionParser, consumerAttributes, attributesSchema, attributesFactory, componentMetadataProcessorFactory, componentMetadataSupplierRuleExecutor, calculatedValueContainerFactory, cachePolicy);
         }
 
         public void add(ModuleComponentRepository moduleComponentRepository) {
@@ -212,8 +223,8 @@ public class ResolveIvyFactory {
         }
 
         @Override
-        public void resolveArtifact(final ComponentArtifactMetadata artifact, final ModuleSources moduleSources, final BuildableArtifactResolveResult result) {
-            delegate.getArtifactResolver().resolveArtifact(artifact, moduleSources, result);
+        public void resolveArtifact(ModuleVersionIdentifier ownerId, final ComponentArtifactMetadata artifact, final ModuleSources moduleSources, final BuildableArtifactResolveResult result) {
+            delegate.getArtifactResolver().resolveArtifact(ownerId, artifact, moduleSources, result);
         }
     }
 

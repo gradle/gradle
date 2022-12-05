@@ -38,19 +38,16 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.Cast;
+import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
+import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -61,6 +58,7 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
+import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.util.internal.IncubationLogger;
@@ -80,6 +78,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.execution.ExecutionEngine.Execution;
+
 public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static String SUPPORTED_PROJECT_NAMES = "[a-zA-Z]([A-Za-z0-9\\-_])*";
     private final static Pattern SUPPORTED_PATTERN = Pattern.compile(SUPPORTED_PROJECT_NAMES);
@@ -92,7 +92,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final ClassPath classPath;
     private final DependenciesAccessorsWorkspaceProvider workspace;
     private final DefaultProjectDependencyFactory projectDependencyFactory;
-    private final FeaturePreviews featurePreviews;
+    private final FeatureFlags featureFlags;
     private final ExecutionEngine engine;
     private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
@@ -107,14 +107,14 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     public DefaultDependenciesAccessors(ClassPathRegistry registry,
                                         DependenciesAccessorsWorkspaceProvider workspace,
                                         DefaultProjectDependencyFactory projectDependencyFactory,
-                                        FeaturePreviews featurePreview,
+                                        FeatureFlags featureFlags,
                                         ExecutionEngine engine,
                                         FileCollectionFactory fileCollectionFactory,
                                         InputFingerprinter inputFingerprinter) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
         this.projectDependencyFactory = projectDependencyFactory;
-        this.featurePreviews = featurePreview;
+        this.featureFlags = featureFlags;
         this.engine = engine;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
@@ -136,7 +136,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                     }
                 }
             }
-            if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
+            if (featureFlags.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
                 IncubationLogger.incubatingFeatureUsed("Type-safe project accessors");
                 writeProjectAccessors(((SettingsInternal) settings).getProjectRegistry());
             }
@@ -170,7 +170,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
     private void executeWork(UnitOfWork work) {
         ExecutionEngine.Result result = engine.createRequest(work).execute();
-        ExecutionResult er = result.getExecutionResult().get();
+        Execution er = result.getExecution().get();
         GeneratedAccessors accessors = (GeneratedAccessors) er.getOutput();
         ClassPath generatedClasses = DefaultClassPath.of(accessors.classesDir);
         sources = sources.plus(DefaultClassPath.of(accessors.sourcesDir));
@@ -239,14 +239,14 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                         }
                         if (factory != null) {
                             container.create(model.getName(), factory, model);
-                            catalogs.put(model.getName(), new VersionCatalogView(model, providerFactory));
+                            catalogs.put(model.getName(), new VersionCatalogView(model, providerFactory, project.getObjects()));
                         }
                     }
                 }
                 container.create(VersionCatalogsExtension.class, "versionCatalogs", DefaultVersionCatalogsExtension.class, catalogs.build());
             }
         } finally {
-            if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
+            if (featureFlags.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
                 ServiceRegistry services = project.getServices();
                 DependencyResolutionManagementInternal drm = services.get(DependencyResolutionManagementInternal.class);
                 ProjectFinder projectFinder = services.get(ProjectFinder.class);
@@ -318,13 +318,13 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
                 @Override
                 public Object getOutput() {
-                    return loadRestoredOutput(workspace);
+                    return loadAlreadyProducedOutput(workspace);
                 }
             };
         }
 
         @Override
-        public Object loadRestoredOutput(File workspace) {
+        public Object loadAlreadyProducedOutput(File workspace) {
             File srcDir = new File(workspace, OUT_SOURCES);
             File dstDir = new File(workspace, OUT_CLASSES);
             return new GeneratedAccessors(srcDir, dstDir);
@@ -338,7 +338,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         private void visitOutputDir(OutputVisitor visitor, File workspace, String propertyName) {
             File dir = new File(workspace, propertyName);
-            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, dir, fileCollectionFactory.fixed(dir));
+            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, OutputFileValueSupplier.fromStatic(dir, fileCollectionFactory.fixed(dir)));
         }
     }
 
@@ -368,10 +368,10 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
             visitor.visitInputProperty(IN_PLUGINS, model::getPluginAliases);
             visitor.visitInputProperty(IN_MODEL_NAME, model::getName);
-            visitor.visitInputFileProperty(IN_CLASSPATH, InputPropertyType.NON_INCREMENTAL,
-                new FileValueSupplier(
+            visitor.visitInputFileProperty(IN_CLASSPATH, InputBehavior.NON_INCREMENTAL,
+                new InputFileValueSupplier(
                     classPath,
-                    ClasspathNormalizer.class,
+                    InputNormalizer.RUNTIME_CLASSPATH,
                     DirectorySensitivity.IGNORE_DIRECTORIES,
                     LineEndingSensitivity.DEFAULT,
                     () -> fileCollectionFactory.fixed(classPath.getAsFiles())));

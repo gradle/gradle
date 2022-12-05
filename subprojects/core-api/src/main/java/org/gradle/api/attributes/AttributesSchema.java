@@ -19,7 +19,7 @@ package org.gradle.api.attributes;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -81,7 +81,7 @@ public interface AttributesSchema {
      * @param attributes the attributes in order
      *
      * @since 7.5
-     * @see #setAttributeDisambiguationPrecedence(Collection)
+     * @see #setAttributeDisambiguationPrecedence(List)
      */
     @Incubating
     void attributeDisambiguationPrecedence(Attribute<?>... attributes);
@@ -91,18 +91,18 @@ public interface AttributesSchema {
      * <p>
      * By default, there is no explicit precedence between attributes and all attributes must be considered when disambiguating.
      *
-     * @param attributes the attributes in order
+     * @param attributes the attributes in order, highest priority first
      * @since 7.5
      */
     @Incubating
-    void setAttributeDisambiguationPrecedence(Collection<Attribute<?>> attributes);
+    void setAttributeDisambiguationPrecedence(List<Attribute<?>> attributes);
 
     /**
      * Returns the order that attributes should be considered when resolving ambiguity.
      *
-     * @return attributes in precedence order
+     * @return an <strong>immutable</strong> list of the attributes in precedence order, with the highest priority first
      * @since 7.5
      */
     @Incubating
-    Collection<Attribute<?>> getAttributeDisambiguationPrecedence();
+    List<Attribute<?>> getAttributeDisambiguationPrecedence();
 }

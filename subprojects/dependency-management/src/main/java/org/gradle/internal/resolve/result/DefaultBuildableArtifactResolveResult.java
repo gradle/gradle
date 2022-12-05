@@ -17,12 +17,11 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
 
-import java.io.File;
-
-public class DefaultBuildableArtifactResolveResult extends DefaultBuildableTypedResolveResult<File, ArtifactResolveException> implements BuildableArtifactResolveResult {
+public class DefaultBuildableArtifactResolveResult extends DefaultBuildableTypedResolveResult<ResolvableArtifact, ArtifactResolveException> implements BuildableArtifactResolveResult {
     @Override
     public void notFound(ComponentArtifactIdentifier artifact) {
         failed(new ArtifactNotFoundException(artifact, getAttempted()));

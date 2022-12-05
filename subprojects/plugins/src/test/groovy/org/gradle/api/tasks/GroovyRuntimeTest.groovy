@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.testing.fixture.GroovyCoverage
 
 class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
 
@@ -78,7 +79,7 @@ class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
         classpath.files.contains(project.file("groovy-test-${groovyVersion}.jar"))
 
         where:
-        groovyVersion << ([GroovySystem.version, "3.0.10", "4.0.0"] as Set)
+        groovyVersion << GroovyCoverage.SINCE_3_0
     }
 
     def "inferred Groovy #groovyVersion#classifier class path uses repository dependency if 'groovy' Jar is found on class path (to get transitive dependencies right)"() {

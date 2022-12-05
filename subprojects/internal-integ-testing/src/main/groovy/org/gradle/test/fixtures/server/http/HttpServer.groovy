@@ -659,7 +659,7 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
 
             void handle(HttpServletRequest request, HttpServletResponse response) {
                 if (request.remoteUser != username) {
-                    response.sendError(500, "unexpected username '${request.remoteUser}'")
+                    response.sendError(401, "unexpected username '${request.remoteUser}'")
                     return
                 }
                 action.handle(request, response)

@@ -55,7 +55,7 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/scala/**")
     excludePatterns.add("org/gradle/api/tasks/*")
     excludePatterns.add("org/gradle/api/tasks/scala/internal/*")

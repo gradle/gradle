@@ -22,11 +22,24 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public interface AttributeSelectionSchema {
     boolean hasAttribute(Attribute<?> attribute);
 
+    /**
+     * Given a set of {@code candidate} attribute values for a given {@code attribute}, produce
+     * a set of matching values from within the candidate set based on the provided {@code requested} value.
+     *
+     * @param attribute The attribute being disambiguated.
+     * @param requested The requested attribute. If null, {@code attribute} is an extra attribute.
+     * @param candidates All candidate values. If a remaining candidates does not include a value
+     *      for {@code attribute}, null is not included in this set.
+     *
+     * @return A subset of {@code candidates} which contain matched attribute values. Or, null if no matches were found.
+     */
+    @Nullable
     Set<Object> disambiguate(Attribute<?> attribute, @Nullable Object requested, Set<Object> candidates);
 
     boolean matchValue(Attribute<?> attribute, Object requested, Object candidate);
@@ -34,13 +47,16 @@ public interface AttributeSelectionSchema {
     @Nullable
     Attribute<?> getAttribute(String name);
 
+    /**
+     * Collects attributes that were present on the candidates, but which the consumer did not ask for.
+     */
     Attribute<?>[] collectExtraAttributes(ImmutableAttributes[] candidates, ImmutableAttributes requested);
 
     class PrecedenceResult {
-        private final Collection<Integer> sortedIndices;
+        private final List<Integer> sortedIndices;
         private final Collection<Integer> unsortedIndices;
 
-        public PrecedenceResult(Collection<Integer> sortedIndices, Collection<Integer> unsortedIndices) {
+        public PrecedenceResult(List<Integer> sortedIndices, Collection<Integer> unsortedIndices) {
             this.sortedIndices = sortedIndices;
             this.unsortedIndices = unsortedIndices;
         }
@@ -49,7 +65,7 @@ public interface AttributeSelectionSchema {
             this(Collections.emptyList(), unsortedIndices);
         }
 
-        public Collection<Integer> getSortedOrder() {
+        public List<Integer> getSortedOrder() {
             return sortedIndices;
         }
 
@@ -57,5 +73,14 @@ public interface AttributeSelectionSchema {
             return unsortedIndices;
         }
     }
-    PrecedenceResult orderByPrecedence(ImmutableAttributes requested);
+
+    /**
+     * Given a set of attributes, order those attributes based on the precedence defined by
+     * this schema.
+     *
+     * @param requested The attributes to order. <strong>Must have a consistent iteration ordering and cannot contain duplicates</strong>.
+     *
+     * @return The ordered attributes.
+     */
+    PrecedenceResult orderByPrecedence(Collection<Attribute<?>> requested);
 }

@@ -3,7 +3,6 @@
  */
 ${packageDecl.statement}
 import java.io.File
-import java.nio.file.Files
 import kotlin.test.assertTrue
 import kotlin.test.Test
 import org.gradle.testkit.runner.GradleRunner
@@ -13,30 +12,29 @@ import org.junit.jupiter.api.io.TempDir
  * A simple functional test for the '${pluginId.value}' plugin.
  */
 class ${className.javaIdentifier} {
-    @TempDir
-    @JvmField
-    val tempFolder: File? = null
 
-    private fun getProjectDir() = tempFolder!!
-    private fun getBuildFile() = getProjectDir().resolve("build.gradle")
-    private fun getSettingsFile() = getProjectDir().resolve("settings.gradle")
+    @field:TempDir
+    lateinit var projectDir: File
+
+    private val buildFile by lazy { projectDir.resolve("build.gradle") }
+    private val settingsFile by lazy { projectDir.resolve("settings.gradle") }
 
     @Test fun `can run task`() {
-        // Setup the test build
-        getSettingsFile().writeText("")
-        getBuildFile().writeText("""
-plugins {
-    id('${pluginId.value}')
-}
-""")
+        // Set up the test build
+        settingsFile.writeText("")
+        buildFile.writeText("""
+            plugins {
+                id('${pluginId.value}')
+            }
+        """.trimIndent())
 
         // Run the build
         val runner = GradleRunner.create()
         runner.forwardOutput()
         runner.withPluginClasspath()
         runner.withArguments("greeting")
-        runner.withProjectDir(getProjectDir())
-        val result = runner.build();
+        runner.withProjectDir(projectDir)
+        val result = runner.build()
 
         // Verify the result
         assertTrue(result.output.contains("Hello from plugin '${pluginId.value}'"))

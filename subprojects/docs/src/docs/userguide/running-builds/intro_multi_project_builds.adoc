@@ -69,11 +69,11 @@ The next section shows how this can be achieved directly from the project's root
 [[sec:executing_tasks_by_fully_qualified_name]]
 == Executing tasks by fully qualified name
 
-You can use task's fully qualified name to execute a specific task in a specific subproject.
+You can use a task's fully qualified name to execute a specific task in a specific subproject.
 For example: `gradle :services:webservice:build` will run the `build` task of the _webservice_ subproject.
 The fully qualified name of a task is simply its project path plus the task name.
 
-A project path has the following pattern: It starts with an optional colon, which denotes the root project.
+A project path has the following pattern: it starts with an optional colon, which denotes the root project.
 The root project is the only project in a path that is not specified by its name.
 The rest of a project path is a colon-separated sequence of project names, where the next project is a subproject of the previous project.
 You can see the project paths when running `gradle projects` as shown in <<sec:identifying_project_structure,identifying project structure>> section.

@@ -20,7 +20,6 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
-import org.gradle.internal.vfs.impl.VfsRootReference
 import org.gradle.internal.watch.registry.WatchMode
 import org.gradle.internal.watch.vfs.VfsLogging
 import org.gradle.internal.watch.vfs.WatchLogging
@@ -31,21 +30,20 @@ class WatchingNotSupportedVirtualFileSystemTest extends Specification {
     def nonEmptySnapshotHierarchy = Stub(SnapshotHierarchy) {
         empty() >> emptySnapshotHierarchy
     }
-    def rootReference = new VfsRootReference(nonEmptySnapshotHierarchy)
-    def watchingNotSupportedHandler = new WatchingNotSupportedVirtualFileSystem(rootReference)
+    def watchingNotSupportedVfs = new WatchingNotSupportedVirtualFileSystem(nonEmptySnapshotHierarchy)
     def buildOperationRunner = new TestBuildOperationExecutor()
 
     def "invalidates the virtual file system before and after the build (watch mode: #watchMode.description)"() {
         when:
-        watchingNotSupportedHandler.afterBuildStarted(watchMode, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner)
+        watchingNotSupportedVfs.afterBuildStarted(watchMode, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner)
         then:
-        rootReference.getRoot() == emptySnapshotHierarchy
+        watchingNotSupportedVfs.root == emptySnapshotHierarchy
 
         when:
-        rootReference.updateUnderLock { root -> nonEmptySnapshotHierarchy }
-        watchingNotSupportedHandler.beforeBuildFinished(watchMode, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
+        watchingNotSupportedVfs.updateRootUnderLock { root -> nonEmptySnapshotHierarchy }
+        watchingNotSupportedVfs.beforeBuildFinished(watchMode, VfsLogging.NORMAL, WatchLogging.NORMAL, buildOperationRunner, Integer.MAX_VALUE)
         then:
-        rootReference.getRoot() == emptySnapshotHierarchy
+        watchingNotSupportedVfs.root == emptySnapshotHierarchy
 
         where:
         watchMode << WatchMode.values().toList()

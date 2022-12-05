@@ -57,8 +57,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         options.add(new ContinuousOption());
         options.add(new ContinuousBuildQuietPeriodOption());
         options.add(new NoProjectDependenciesRebuildOption());
-        options.add(new BuildFileOption());
-        options.add(new SettingsFileOption());
         options.add(new InitScriptOption());
         options.add(new ExcludeTaskOption());
         options.add(new IncludeBuildOption());
@@ -150,7 +148,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
     public static class RefreshDependenciesOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
         public RefreshDependenciesOption() {
-            super(null, CommandLineOptionConfiguration.create("refresh-dependencies", "Refresh the state of dependencies."));
+            super(null, CommandLineOptionConfiguration.create("refresh-dependencies", "U", "Refresh the state of dependencies."));
         }
 
         @Override
@@ -206,32 +204,6 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setBuildProjectDependencies(false);
-        }
-    }
-
-    @Deprecated
-    public static class BuildFileOption extends StringBuildOption<StartParameterInternal> {
-        public BuildFileOption() {
-            super(null, CommandLineOptionConfiguration.create("build-file", "b", "Specify the build file. [deprecated]"));
-        }
-
-        @Override
-        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
-            Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
-            settings.setBuildFile(resolver.transform(value));
-        }
-    }
-
-    @Deprecated
-    public static class SettingsFileOption extends StringBuildOption<StartParameterInternal> {
-        public SettingsFileOption() {
-            super(null, CommandLineOptionConfiguration.create("settings-file", "c", "Specify the settings file. [deprecated]"));
-        }
-
-        @Override
-        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
-            Transformer<File, String> resolver = new BasicFileResolver(settings.getCurrentDir());
-            settings.setSettingsFile(resolver.transform(value));
         }
     }
 

@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.util.GradleVersion
@@ -118,7 +117,6 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "failing builds are not handled properly")
     def "project local repositories override whatever is in settings"() {
         repository {
             'org:module:1.0'()
@@ -286,7 +284,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("com.acme:included:1.0", "project :included", "com.acme:included:0.x") {
+                edge("com.acme:included:1.0", ":included", "com.acme:included:0.x") {
                     configuration = 'default'
                     compositeSubstitute()
                     noArtifacts()
@@ -353,11 +351,11 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("com.acme:included:1.0", "project :included", "com.acme:included:0.x") {
+                edge("com.acme:included:1.0", ":included", "com.acme:included:0.x") {
                     configuration = 'default'
                     compositeSubstitute()
                     noArtifacts()
-                    edge("com.acme:nested:1.0", "project :nested", "com.acme:nested:0.x") {
+                    edge("com.acme:nested:1.0", ":nested", "com.acme:nested:0.x") {
                         configuration = 'default'
                         compositeSubstitute()
                         noArtifacts()
@@ -433,11 +431,11 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("com.acme:included:1.0", "project :included", "com.acme:included:0.x") {
+                edge("com.acme:included:1.0", ":included", "com.acme:included:0.x") {
                     configuration = 'default'
                     compositeSubstitute()
                     noArtifacts()
-                    edge("com.acme:nested:1.0", "project :nested", "com.acme:nested:0.x") {
+                    edge("com.acme:nested:1.0", ":nested", "com.acme:nested:0.x") {
                         configuration = 'default'
                         compositeSubstitute()
                         noArtifacts()
@@ -741,7 +739,6 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15336")
-    @ToBeFixedForConfigurationCache(because = "Decorated exception is not recognized by the configuration cache")
     def "reasonable error message if a dependency cannot be resolved because local repositories differ"() {
         buildFile << """
             repositories {

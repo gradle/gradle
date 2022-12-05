@@ -27,7 +27,7 @@ It explains:
  * How Gradle finds tests to run (<<#sec:test_detection,Test detection>>)
  * How to make use of the major frameworks' mechanisms for grouping tests together (<<#test_grouping,Test grouping>>)
 
-But first, we look at the basics of JVM testing in Gradle.
+But first, let's look at the basics of JVM testing in Gradle.
 
 [NOTE]
 ====
@@ -53,7 +53,7 @@ The JVM language plugins use the source set to configure the task with the appro
 
 It's also worth bearing in mind that the `test` source set automatically creates <<java_plugin.adoc#java_source_set_configurations,corresponding dependency configurations>> — of which the most useful are `testImplementation` and `testRuntimeOnly` — that the plugins tie into the `test` task's classpath.
 
-All you need to do in most cases is configure the appropriate compilation and runtime dependencies and add any necessary configuration to the `test` task. The following example shows a simple setup that uses JUnit 4.x and changes the maximum heap size for the tests' JVM to 1 gigabyte:
+All you need to do in most cases is configure the appropriate compilation and runtime dependencies and add any necessary configuration to the `test` task. The following example shows a simple setup that uses JUnit Platform and changes the maximum heap size for the tests' JVM to 1 gigabyte:
 
 .A basic configuration for the 'test' task
 ====
@@ -207,7 +207,10 @@ The `Test` task generates the following results by default:
 
 In most cases, you'll work with the standard HTML report, which automatically includes the results from _all_ your `Test` tasks, even the ones you explicitly add to the build yourself. For example, if you add a `Test` task for integration tests, the report will include the results of both the unit tests and the integration tests if both tasks are run.
 
+[NOTE]
+====
 To aggregate test results across multiple subprojects, see the <<test_report_aggregation_plugin#test_report_aggregation_plugin,Test Report Aggregation Plugin>>.
+====
 
 Unlike with many of the testing configuration options, there are several project-level <<java_plugin.adoc#sec:java_convention_properties,convention properties that affect the test reports>>. For example, you can change the destination of the test results and reports like so:
 
@@ -345,6 +348,11 @@ With http://junit.org/junit5/docs/current/user-guide[JUnit Platform], only `incl
 
 JUnit, JUnit Platform and TestNG allow sophisticated groupings of test methods.
 
+[NOTE]
+====
+This section applies to grouping individual test classes or methods within a collection of tests that serve the same testing purpose (unit tests, integration tests, acceptance tests, etc.).  For dividing test classes based upon their purpose, see the incubating <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>> plugin.
+====
+
 JUnit 4.8 introduced the concept of categories for grouping JUnit 4 tests classes and methods.footnote:[The JUnit wiki contains a detailed description on how to work with JUnit categories: https://github.com/junit-team/junit/wiki/Categories[].] link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:useJUnit(org.gradle.api.Action)[Test.useJUnit(org.gradle.api.Action)] allows you to specify the JUnit categories you want to include and exclude. For example, the following configuration includes tests in `CategoryA` and excludes those in `CategoryB` for the `test` task:
 
 .JUnit Categories
@@ -389,11 +397,6 @@ include::sample[dir="snippets/testing/junitplatform-jupiter/kotlin",files="build
 ====
 
 See link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform--[Test.useJUnitPlatform()] for more details.
-
-[NOTE]
-====
-There are some known limitations of using JUnit 5 with Gradle, for example that tests in static nested classes won't be discovered. These will be fixed in future version of Gradle. If you find more, please tell us at https://github.com/gradle/gradle/issues/new
-====
 
 [[compiling_and_executing_junit_jupiter_tests]]
 === Compiling and executing JUnit Jupiter tests
@@ -498,6 +501,11 @@ This will set up a new source set called `intTest` that automatically creates:
  * `intTestImplementation`, `intTestCompileOnly`, `intTestRuntimeOnly` configurations (and <<java_plugin.adoc#java_source_set_configurations, a few others>> that are less commonly needed)
  * A `compileIntTestJava` task that will compile all the source files under _src/intTest/java_
 
+[NOTE]
+====
+If you are working with the IntelliJ IDE, you may wish to flag the directories in these additional source sets as containing test source rather than production source as explained in the <<idea_plugin.adoc#sec:idea_identify_additional_source_sets,Idea Plugin>> documentation.
+====
+
 The example also does the following, not all of which you may need for your specific integration tests:
 
  * Adds the production classes from the `main` source set to the compilation and runtime classpaths of the integration tests — `sourceSets.main.output` is a <<working_with_files.adoc#sec:file_collections,file collection>> of all the directories containing compiled production classes and resources
@@ -524,6 +532,8 @@ include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=in
 Again, we're accessing a source set to get the relevant information, i.e. where the compiled test classes are — the `testClassesDirs` property — and what needs to be on the classpath when running them — `classpath`.
 
 Users commonly want to run integration tests after the unit tests, because they are often slower to run and you want the build to fail early on the unit tests rather than later on the integration tests. That's why the above example adds a `shouldRunAfter()` declaration. This is preferred over `mustRunAfter()` so that Gradle has more flexibility in executing the build in parallel.
+
+For information on how to determine code coverage for tests in additional source sets, see the <<jacoco_plugin#jacoco_plugin,JaCoCo Plugin>> and the <<jacoco_report_aggregation_plugin#jacoco_report_aggregation_plugin, JaCoCo Report Aggregation Plugin>> chapters.
 
 [[sec:java_testing_modular]]
 == Testing Java Modules
@@ -603,7 +613,7 @@ If you want to skip the tests when running a build, you have a few options. You 
 
 This excludes the `test` task and any other task that it _exclusively_ depends on, i.e. no other task depends on the same task. Those tasks will not be marked "SKIPPED" by Gradle, but will simply not appear in the list of tasks executed.
 
-Skipping a test via the build script can be done a few ways. One common approach is to make test execution conditional via the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(org.gradle.api.specs.Spec)[Task.onlyIf(org.gradle.api.specs.Spec)] method. The following sample skips the `test` task if the project has a property called `mySkipTests`:
+Skipping a test via the build script can be done a few ways. One common approach is to make test execution conditional via the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(java.lang.String,org.gradle.api.specs.Spec)[Task.onlyIf(String, org.gradle.api.specs.Spec)] method. The following sample skips the `test` task if the project has a property called `mySkipTests`:
 
 .Skipping the unit tests based on a project property
 ====
@@ -618,7 +628,11 @@ In this case, Gradle will mark the skipped tests as "SKIPPED" rather than exclud
 
 In well-defined builds, you can rely on Gradle to only run tests if the tests themselves or the production code change. However, you may encounter situations where the tests rely on a third-party service or something else that might change but can't be modeled in the build.
 
-You can force tests to run in this situation by cleaning the output of the relevant `Test` task — say `test` — and running the tests again, like so:
+You can always use the `--rerun` <<command_line_interface.adoc#sec:builtin_task_options,built-in task option>> to force a task to rerun.
+
+    gradle test --rerun
+
+Alternatively, if <<build_cache.adoc#sec:build_cache_enable,build caching>> is not enabled, you can also force tests to run by cleaning the output of the relevant `Test` task — say `test` — and running the tests again, like so:
 
     gradle cleanTest test
 
@@ -636,6 +650,7 @@ You can also enable debugging in the DSL, where you can also configure other pro
     test {
         debugOptions {
             enabled = true
+            host = 'localhost'
             port = 4455
             server = true
             suspend = true
@@ -643,6 +658,8 @@ You can also enable debugging in the DSL, where you can also configure other pro
     }
 
 With this configuration the test JVM will behave just like when passing the `--debug-jvm` argument but it will listen on port 4455.
+
+To debug the test process remotely via network,  the `host` needs to be set to the machine's IP address or `"*"` (listen on all interfaces).
 
 [[sec:java_test_fixtures]]
 == Using test fixtures

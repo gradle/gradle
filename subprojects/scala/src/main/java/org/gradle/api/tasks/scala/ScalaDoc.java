@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.scala;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
@@ -52,13 +51,13 @@ import java.util.List;
  * Generates HTML API documentation for Scala source files.
  */
 @CacheableTask
-public class ScalaDoc extends SourceTask {
+public abstract class ScalaDoc extends SourceTask {
 
     private File destinationDir;
 
     private FileCollection classpath;
     private FileCollection scalaClasspath;
-    private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
+    private ScalaDocOptions scalaDocOptions;
     private String title;
     private final Property<String> maxMemory;
     private final Property<JavaLauncher> javaLauncher;
@@ -69,6 +68,7 @@ public class ScalaDoc extends SourceTask {
         this.maxMemory = objectFactory.property(String.class);
         this.javaLauncher = objectFactory.property(JavaLauncher.class);
         this.compilationOutputs = objectFactory.fileCollection();
+        this.scalaDocOptions = objectFactory.newInstance(ScalaDocOptions.class);
     }
 
     @Inject
@@ -121,7 +121,6 @@ public class ScalaDoc extends SourceTask {
      * @return the compilation outputs produced from the sources
      * @since 7.3
      */
-    @Incubating
     @InputFiles
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -135,7 +134,6 @@ public class ScalaDoc extends SourceTask {
      * @return the compilation outputs produced from the sources
      * @since 7.3
      */
-    @Incubating
     @Internal
     public ConfigurableFileCollection getCompilationOutputs() {
         return compilationOutputs;
@@ -208,8 +206,8 @@ public class ScalaDoc extends SourceTask {
      * Optional JavaLauncher for toolchain support
      * @since 7.2
      */
-    @Incubating
-    @Internal
+    @Nested
+    @Optional
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }

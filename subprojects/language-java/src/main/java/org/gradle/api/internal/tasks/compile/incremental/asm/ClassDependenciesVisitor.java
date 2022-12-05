@@ -170,6 +170,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         Set<String> types = isAccessible(access) ? accessibleTypes : privateTypes;
+        maybeAddClassTypesFromSignature(signature, types);
         Type methodType = Type.getMethodType(desc);
         maybeAddDependentType(types, methodType.getReturnType());
         for (Type argType : methodType.getArgumentTypes()) {

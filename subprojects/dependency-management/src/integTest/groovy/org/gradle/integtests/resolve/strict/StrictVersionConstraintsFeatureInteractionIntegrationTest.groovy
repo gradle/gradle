@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.strict
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class StrictVersionConstraintsFeatureInteractionIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -198,8 +197,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
         }
     }
 
-    @ToBeFixedForConfigurationCache
-    def "cannot force a version over an ancestor provided version"() {
+    def "will use a project strict version over an ancestor provided strict version"() {
         given:
         repository {
             'org:bar:1.0'()
@@ -212,7 +210,9 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                 configurations.create('conf')
                 artifacts { add('conf', file('foo.jar')) }
                 dependencies {
-                    conf('org:bar:2.0') { force = true }
+                    conf('org:bar') {
+                        version { strictly '2.0' }
+                    }
                 }
             }
             dependencies {
@@ -227,17 +227,14 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
 
         when:
         repositoryInteractions {
-            'org:bar:2.0' {
+            'org:bar:1.0' {
                 expectGetMetadata()
+                expectGetArtifact()
             }
         }
-        executer.expectDeprecationWarning()
-        fails ':checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:bar' that satisfies the version constraints:
-   Dependency path ':test:unspecified' --> 'test:foo:unspecified' (conf) --> 'org:bar:2.0'
-   Constraint path ':test:unspecified' --> 'org:bar:{strictly 1.0}'"""
+        succeeds ':checkDeps'
     }
 
     def "can force a version over an ancestor provided version via resolution strategy"() {
@@ -279,10 +276,10 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:bar:{strictly 1.0}', 'org:bar:2.0').byConstraint()
+                constraint('org:bar:{strictly 1.0}', 'org:bar:2.0').byConstraint().forced()
                 project(':foo', 'test:foo:') {
                     configuration = 'conf'
-                    module('org:bar:2.0').byRequest().forced()
+                    module('org:bar:2.0').byRequest()
                 }
             }
         }

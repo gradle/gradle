@@ -16,13 +16,14 @@
 
 package org.gradle.smoketests
 
+
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.testkit.runner.TaskOutcome
 
 import static org.gradle.internal.reflect.validation.Severity.ERROR
-
 /**
  * For these tests to run you need to set ANDROID_SDK_ROOT to your Android SDK directory
  *
@@ -84,8 +85,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'first build'
         def result = runner.deprecations(AndroidDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
-            expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+            expectReportDestinationPropertyDeprecation(agpVersion)
         }.build()
 
         then:
@@ -101,8 +101,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         when: 'up-to-date build'
         result = runner.deprecations(AndroidDeprecations) {
-            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
-            expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+            if (!GradleContextualExecuter.isConfigCache()) {
+                expectReportDestinationPropertyDeprecation(agpVersion)
+            }
         }.build()
 
         then:
@@ -118,8 +119,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         abiChange.run()
         result = runner.deprecations(AndroidDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
-            expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+            if (!GradleContextualExecuter.isConfigCache()) {
+                expectReportDestinationPropertyDeprecation(agpVersion)
+            }
         }.build()
 
         then: 'dependent sources are recompiled'
@@ -135,8 +137,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         useAgpVersion(agpVersion, this.runner('clean')).build()
         result = runner.deprecations(AndroidDeprecations) {
             expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
-            expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion)
-            expectAndroidIncrementalTaskInputsDeprecation(agpVersion)
+            if (!GradleContextualExecuter.isConfigCache()) {
+                expectReportDestinationPropertyDeprecation(agpVersion)
+            }
         }.build()
 
         then:
@@ -158,10 +161,6 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         AndroidDeprecations(SmokeTestGradleRunner runner) {
             super(runner)
         }
-
-        void expectAllAndroidFileTreeForEmptySourcesDeprecationWarnings(String agpVersion) {
-            expectAndroidFileTreeForEmptySourcesDeprecationWarnings(agpVersion, "sourceFiles", "sourceDirs", "inputFiles", "resources", "projectNativeLibs")
-        }
     }
 
     /**
@@ -179,8 +178,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         writeActivity(library, libPackage, libraryActivity)
         file("${library}/src/main/AndroidManifest.xml") << """<?xml version="1.0" encoding="utf-8"?>
-            <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-                package="${libPackage}">
+            <manifest xmlns:android="http://schemas.android.com/apk/res/android">
             </manifest>""".stripIndent()
 
         writeActivity(app, appPackage, appActivity)
@@ -191,8 +189,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             }
         """
         file("${app}/src/main/AndroidManifest.xml") << """<?xml version="1.0" encoding="utf-8"?>
-            <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-                package="${appPackage}">
+            <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
                 <application android:label="@string/app_name" >
                     <activity
@@ -238,7 +235,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
             android.defaultConfig.applicationId "org.gradle.android.myapplication"
         """
-        appBuildFile << androidPluginConfiguration()
+        appBuildFile << androidPluginConfiguration(appPackage)
         appBuildFile << activityDependency()
         appBuildFile << """
             dependencies {
@@ -252,7 +249,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         libraryBuildFile << """
             apply plugin: 'com.android.library'
         """
-        libraryBuildFile << androidPluginConfiguration()
+        libraryBuildFile << androidPluginConfiguration(libPackage)
         libraryBuildFile << activityDependency()
 
         return {
@@ -326,12 +323,13 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
             </LinearLayout>'''.stripIndent()
     }
 
-    def androidPluginConfiguration() {
+    def androidPluginConfiguration(String appPackage) {
         """
             android {
                 compileSdkVersion 22
                 buildToolsVersion "${TestedVersions.androidTools}"
 
+                namespace "${appPackage}"
                 defaultConfig {
                     minSdkVersion 22
                     targetSdkVersion 26
@@ -368,6 +366,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         if (testedPluginId != 'com.android.reporting') {
             buildFile << """
                 android {
+                    namespace = "org.gradle.android.example.app"
                     compileSdkVersion 24
                     buildToolsVersion '${TestedVersions.androidTools}'
                 }

@@ -65,7 +65,7 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":persistent-cache"))
     implementation(project(":plugin-use"))
-    implementation(project(":plugins"))
+    implementation(project(":platform-jvm"))
     implementation(project(":process-services"))
     implementation(project(":publish"))
     implementation(project(":resources"))
@@ -122,6 +122,6 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/configurationcache/**")
 }

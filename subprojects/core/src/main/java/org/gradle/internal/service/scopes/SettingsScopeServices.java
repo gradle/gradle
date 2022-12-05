@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -30,11 +29,11 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 
 public class SettingsScopeServices extends DefaultServiceRegistry {
@@ -43,13 +42,11 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
     public SettingsScopeServices(final ServiceRegistry parent, final SettingsInternal settings) {
         super(parent);
         this.settings = settings;
-        register(new Action<ServiceRegistration>() {
-            @Override
-            public void execute(ServiceRegistration registration) {
-                for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                    pluginServiceRegistry.registerSettingsServices(registration);
-                }
+        register(registration -> {
+            for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
+                pluginServiceRegistry.registerSettingsServices(registration);
             }
+            registration.add(DefaultProjectDescriptorRegistry.class);
         });
     }
 

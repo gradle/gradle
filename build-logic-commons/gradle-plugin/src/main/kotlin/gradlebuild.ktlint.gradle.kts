@@ -18,6 +18,3 @@ plugins {
     id("org.gradle.kotlin-dsl.ktlint-convention")
 }
 
-ktlint {
-    version.set("0.41.0")
-}

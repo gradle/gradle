@@ -31,7 +31,6 @@ import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
-import org.gradle.api.internal.file.DefaultSourceDirectorySetFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -50,6 +49,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
+import org.gradle.api.internal.project.CrossProjectModelAccess;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -65,6 +65,7 @@ import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
@@ -138,12 +139,6 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     protected DeferredProjectConfiguration createDeferredProjectConfiguration() {
         return new DeferredProjectConfiguration(project);
     }
-
-    @SuppressWarnings("deprecation")
-    protected org.gradle.api.internal.file.SourceDirectorySetFactory createSourceDirectorySetFactory(ObjectFactory objectFactory) {
-        return new DefaultSourceDirectorySetFactory(objectFactory);
-    }
-
     protected LoggingManagerInternal createLoggingManager() {
         return loggingManagerInternalFactory.create();
     }
@@ -152,9 +147,10 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectConfigurationActionContainer();
     }
 
-    protected DefaultResourceHandler.Factory createResourceHandlerFactory(FileResolver fileResolver, FileSystem fileSystem, TemporaryFileProvider temporaryFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory) {
+    protected DefaultResourceHandler.Factory createResourceHandlerFactory(FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, FileSystem fileSystem, TemporaryFileProvider temporaryFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory) {
         return DefaultResourceHandler.Factory.from(
             fileResolver,
+            taskDependencyFactory,
             fileSystem,
             temporaryFileProvider,
             textResourceAdapterFactory
@@ -329,7 +325,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected TaskDependencyFactory createTaskDependencyFactory() {
-        return DefaultTaskDependencyFactory.forProject(project.getTasks());
+        @Nullable TaskDependencyUsageTracker tracker = project.getServices().get(CrossProjectModelAccess.class).taskDependencyUsageTracker(project);
+        return DefaultTaskDependencyFactory.forProject(project.getTasks(), tracker);
     }
 
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier() {

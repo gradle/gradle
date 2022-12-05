@@ -26,10 +26,6 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 
 
 class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
-    def setup() {
-        runner.targetVersions = ["7.6-20220513002340+0000"]
-    }
-
     @RunFor(
         @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["archivePerformanceProject"])
     )

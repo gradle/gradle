@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.IConventionAware
-import org.gradle.configurationcache.problems.DisableConfigurationCacheFieldTypeCheck
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.Workarounds
@@ -126,12 +125,7 @@ fun MutableIsolateContext.reportUnsupportedFieldType(
 
 internal
 fun unsupportedFieldTypeFor(field: Field): KClass<*>? =
-    field.takeUnless {
-        field.isAnnotationPresent(DisableConfigurationCacheFieldTypeCheck::class.java)
-    }?.let {
-        unsupportedFieldDeclaredTypes
-            .firstOrNull { it.java.isAssignableFrom(field.type) }
-    }
+    unsupportedFieldDeclaredTypes.firstOrNull { it.java.isAssignableFrom(field.type) }
 
 
 private

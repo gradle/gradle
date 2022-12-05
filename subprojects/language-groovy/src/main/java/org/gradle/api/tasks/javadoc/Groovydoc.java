@@ -38,7 +38,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
 
 import javax.annotation.Nullable;
@@ -62,7 +61,7 @@ import java.util.Set;
  * that is used, is the one from the Groovy dependency defined in the build script.
  */
 @CacheableTask
-public class Groovydoc extends SourceTask {
+public abstract class Groovydoc extends SourceTask {
     private FileCollection groovyClasspath;
 
     private FileCollection classpath;
@@ -349,38 +348,6 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * Returns whether to include classes with private access and above.
-     *
-     * @deprecated Equivalent to calling {@link #getAccess()}{@code .get()} and checking for equivalence with {@link GroovydocAccess#PRIVATE}
-     */
-    @Internal
-    @Deprecated
-    public boolean isIncludePrivate() {
-        DeprecationLogger.deprecateProperty(Groovydoc.class, "includePrivate")
-            .replaceWith("access")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "groovydoc_option_improvements")
-            .nagUser();
-        return getAccess().get() == GroovydocAccess.PRIVATE;
-    }
-
-    /**
-     * Sets whether to include classes and members with private access and above.
-     *
-     * @deprecated Equivalent to calling {@link #getAccess()}{@code .set(...)} with {@link GroovydocAccess#PRIVATE}
-     *             if {@code includePrivate} is {@code true}, {@link GroovydocAccess#PUBLIC} otherwise
-     */
-    @Deprecated
-    public void setIncludePrivate(boolean includePrivate) {
-        DeprecationLogger.deprecateProperty(Groovydoc.class, "includePrivate")
-            .replaceWith("access")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "groovydoc_option_improvements")
-            .nagUser();
-        getAccess().set(includePrivate ? GroovydocAccess.PRIVATE : GroovydocAccess.PUBLIC);
-    }
-
-    /**
      * The most restrictive access level to include in the Groovydoc.
      *
      * <p>
@@ -408,11 +375,6 @@ public class Groovydoc extends SourceTask {
     /**
      * Whether to process scripts.
      *
-     * <p>
-     * This option has no effect under at least Groovy 3.0.0 to 3.0.10, and Groovy 4.0.0 to 4.0.1, because it is not
-     * currently checked by the new Parrot-based Groovydoc.
-     * </p>
-     *
      * @since 7.5
      */
     @Input
@@ -422,11 +384,6 @@ public class Groovydoc extends SourceTask {
 
     /**
      * Whether to include main method for scripts.
-     *
-     * <p>
-     * This option has no effect under at least Groovy 3.0.0 to 3.0.10, and Groovy 4.0.0 to 4.0.1, because it is not
-     * currently checked by the new Parrot-based Groovydoc.
-     * </p>
      *
      * @since 7.5
      */

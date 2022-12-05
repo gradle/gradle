@@ -18,9 +18,10 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
+
+import java.util.concurrent.CopyOnWriteArrayList
 
 class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec {
     def resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
@@ -363,7 +364,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                edge("org.utils:api:1.5", ":api", "depsub:api:") {
                     configuration = "conf"
                     selectedByRule()
                 }
@@ -387,9 +388,10 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
             project(":api") {
                 task build {
+                    def outFile = file("artifact.txt")
+                    outputs.file(outFile)
                     doLast {
-                        mkdir(projectDir)
-                        file("artifact.txt") << "Lajos"
+                        outFile << "Lajos"
                     }
                 }
 
@@ -410,8 +412,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 }
 
                 task check(dependsOn: configurations.conf) {
+                    def files = configurations.conf
                     doLast {
-                        def files = configurations.conf.files
                         assert files*.name.sort() == ["api.jar", "artifact.txt"]
                         assert files[1].text == "Lajos"
                     }
@@ -497,7 +499,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         resolve.expectGraph {
             root(":test", "depsub:test:") {
                 module("org.utils:impl:1.5") {
-                    edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                    edge("org.utils:api:1.5", ":api", "depsub:api:") {
                         configuration = "conf"
                         selectedByRule()
                     }
@@ -547,7 +549,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                edge("org.utils:api:1.5", ":api", "depsub:api:") {
                     variant "default"
                     selectedByRule()
                 }
@@ -581,8 +583,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                module("org.utils:bela:1.5:default") {
-                    edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                module("org.utils:bela:1.5") {
+                    variant "default"
+                    edge("org.utils:api:1.5", ":api", "depsub:api:") {
                         variant "default"
                         selectedByRule()
                     }
@@ -621,7 +624,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                edge("org.utils:api:1.5", ":api", "depsub:api:") {
                     variant("default")
                     selectedByRule()
                 }
@@ -656,7 +659,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                edge("org.utils:api:1.5", ":api", "depsub:api:") {
                     variant("default")
                     selectedByRule()
                 }
@@ -717,7 +720,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                edge("org.utils:api:1.5", ":api", "depsub:api:") {
                     configuration = 'conf'
                     selectedByRule()
                 }
@@ -749,7 +752,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":test", "depsub:test:") {
-                edge("org.utils:impl:1.5", "project :impl", "depsub:impl:") {
+                edge("org.utils:impl:1.5", ":impl", "depsub:impl:") {
                     variant "default"
                     selectedByRule()
                 }
@@ -861,7 +864,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 edge("org.utils:dep1:1.5", "org.utils:dep1:2.0").byConflictResolution("between versions 1.6 and 2.0")
                 edge("org.utils:dep1:2.0", "org.utils:dep1:2.0")
 
-                edge("org.utils:dep2:1.5", "project :dep2", "org.utils:dep2:3.0") {
+                edge("org.utils:dep2:1.5", ":dep2", "org.utils:dep2:3.0") {
                     variant "default"
                     selectedByRule().byConflictResolution("between versions 3.0 and 2.0")
                 }
@@ -899,7 +902,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     edge("org.utils:a:1.3", "org.utils:a:1.4").selectedByRule().byConflictResolution("between versions 1.4 and 1.3")
                 }
                 edge("org.utils:a:1.2", "org.utils:a:1.4")
-
             }
         }
     }
@@ -994,7 +996,6 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "broken file collection")
     void "rule selects unavailable version"() {
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
@@ -1010,8 +1011,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 
             task check {
+                def root = configurations.conf.incoming.resolutionResult.rootComponent
                 doLast {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    def deps = root.get().dependencies as List
                     assert deps.size() == 1
                     assert deps[0].attempted.group == 'org.utils'
                     assert deps[0].attempted.module == 'api'
@@ -1059,7 +1061,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 conf 'org.utils:impl:1.3', 'org.stuff:foo:2.0', 'org.stuff:bar:2.0'
             }
 
-            List requested = [].asSynchronized()
+            List requested = new ${CopyOnWriteArrayList.name}()
 
             configurations.conf.resolutionStrategy {
                 dependencySubstitution {
@@ -1070,8 +1072,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 
             task check {
+                def files = configurations.conf
                 doLast {
-                    configurations.conf.resolve()
+                    files.forEach { }
                     requested = requested.sort()
                     assert requested == [ 'api:1.3', 'api:1.5', 'bar:2.0', 'foo:2.0', 'impl:1.3']
                 }
@@ -1520,17 +1523,9 @@ configurations.all {
                 }
             }
 
-
             dependencies {
                 conf 'org:lib:1.0:classy'
                 conf 'org:other:1.0'
-            }
-
-            checkDeps {
-               doLast {
-                  // additional check on top of what the test fixture allows
-                  assert configurations.conf.files.name as Set == ['lib-1.1.jar', 'other-1.0.jar'] as Set
-               }
             }
         """
 
@@ -1606,13 +1601,6 @@ configurations.all {
                 conf 'org:lib:1.0'
                 conf 'org:other:1.0'
             }
-
-            checkDeps {
-               doLast {
-                  // additional check on top of what the test fixture allows
-                  assert configurations.conf.files.name as Set == ['lib-1.1-classy.jar', 'other-1.0.jar'] as Set
-               }
-            }
         """
 
         when:
@@ -1630,11 +1618,10 @@ configurations.all {
                 }
             }
         }
-
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13658")
-    def "constraint shouldn't be converted to hard dependency when a dependency subsitution applies on an external module"() {
+    def "constraint shouldn't be converted to hard dependency when a dependency substitution applies on an external module"() {
         def fooModule = mavenRepo.module("org", "foo", "1.0")
         mavenRepo.module("org", "platform", "1.0")
             .asGradlePlatform()
@@ -1651,7 +1638,6 @@ configurations.all {
             }
         """
 
-        when:
         buildFile << """
             apply plugin: 'java-library'
 
@@ -1668,15 +1654,19 @@ configurations.all {
                     substitute module('org:foo:1.0') using project(':lib')
                 }
             }
-
-            task assertNotConvertedToHardDependency {
-                doLast {
-                    assert configurations.runtimeClasspath.files.empty
-                }
-            }
         """
 
+        when:
+        resolve.prepare("runtimeClasspath")
+        run(":checkDeps")
+
         then:
-        succeeds 'assertNotConvertedToHardDependency'
+        resolve.expectGraph {
+            root(":", ":depsub:") {
+                module("org:platform:1.0") {
+                    noArtifacts()
+                }
+            }
+        }
     }
 }

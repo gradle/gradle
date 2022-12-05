@@ -38,14 +38,17 @@ class VintageBuildTreeLifecycleControllerFactory(
     private val projectLeaseRegistry: ProjectLeaseRegistry,
     private val stateTransitionControllerFactory: StateTransitionControllerFactory
 ) : BuildTreeLifecycleControllerFactory {
+    // Used when CC is not enabled
     override fun createRootBuildController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
         return createController(targetBuild, workExecutor, finishExecutor)
     }
 
+    // Used when CC is not enabled
     override fun createController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
         val workPreparer = createWorkPreparer(targetBuild)
         val modelCreator = createModelCreator(targetBuild)
-        return DefaultBuildTreeLifecycleController(targetBuild, taskGraph, workPreparer, workExecutor, modelCreator, finishExecutor, stateTransitionControllerFactory)
+        val workController = VintageBuildTreeWorkController(workPreparer, workExecutor, taskGraph)
+        return DefaultBuildTreeLifecycleController(targetBuild, workController, modelCreator, finishExecutor, stateTransitionControllerFactory)
     }
 
     fun createModelCreator(targetBuild: BuildLifecycleController) =

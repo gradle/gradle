@@ -36,7 +36,6 @@ class TestFilesCleanupRootPlugin : Plugin<Project> {
             val testFilesCleanupService = project.gradle.sharedServices.registerIfAbsent("testFilesCleanupBuildService", TestFilesCleanupService::class.java) {
                 parameters.rootBuildDir.set(project.buildDir)
                 parameters.projectStates.putAll(globalExtension.projectStates)
-                parameters.cleanupRunnerStep.set(globalExtension.cleanupRunnerStep)
                 parameters.testPathToBinaryResultsDirs.set(allTasks.filterIsInstance<Test>().associate { it.path to it.binaryResultsDirectory.get().asFile })
 
                 val taskPathToReports = this@whenReady.allTasks
@@ -68,4 +67,3 @@ class TestFilesCleanupRootPlugin : Plugin<Project> {
         else -> emptyList()
     }
 }
-

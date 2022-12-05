@@ -89,6 +89,10 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
                 private LoggingOutput loggingOutput
 
                 OutputProgressService() {
+                    // Ensure parameters.outputFile is set before adding ourselves as a listener
+                    if (!parameters.outputFile.present) {
+                        throw new IllegalStateException("parameters.outputFile is not set")
+                    }
                     loggingOutput = objects.newInstance(InternalServices).loggingOutput
                     loggingOutput.addOutputEventListener(this)
                 }

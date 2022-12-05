@@ -16,9 +16,12 @@
 
 package org.gradle.execution.plan;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
+
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Preserves identity of {@see OrdinalGroup} instances so there's a 1-to-1 mapping of ordinals to groups allowing groups
@@ -27,9 +30,33 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scopes.Build.class)
 public class OrdinalGroupFactory {
 
-    private final Int2ObjectOpenHashMap<OrdinalGroup> groups = new Int2ObjectOpenHashMap<>();
+    private final List<OrdinalGroup> groups = new ArrayList<>();
 
     public final OrdinalGroup group(int ordinal) {
-        return groups.computeIfAbsent(ordinal, OrdinalGroup::new);
+        growTo(ordinal);
+        return groups.get(ordinal);
+    }
+
+    public List<OrdinalGroup> getAllGroups() {
+        return groups;
+    }
+
+    public void reset() {
+        groups.clear();
+    }
+
+    private void growTo(int ordinal) {
+        for (int i = groups.size(); i <= ordinal; ++i) {
+            groups.add(new OrdinalGroup(i, previous(i)));
+        }
+    }
+
+    @Nullable
+    private OrdinalGroup previous(int i) {
+        if (i == 0) {
+            return null;
+        } else {
+            return groups.get(i - 1);
+        }
     }
 }

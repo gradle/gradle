@@ -157,9 +157,6 @@
                 <td>org.gradle.api.file.SourceDirectorySet</td>
             </tr>
             <tr>
-                <td>org.gradle.api.tasks.incremental.IncrementalTaskInputs</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.artifacts.Configuration</td>
             </tr>
             <tr>
@@ -173,6 +170,9 @@
             </tr>
             <tr>
                 <td>org.gradle.api.artifacts.ComponentSelectionRules</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.dsl.DependencyAdder</td>
             </tr>
             <tr>
                 <td>org.gradle.api.plugins.ExtensionAware</td>
@@ -485,9 +485,6 @@
                 <td>org.gradle.testing.jacoco.tasks.JacocoReport</td>
             </tr>
             <tr>
-                <td>org.gradle.testing.jacoco.tasks.JacocoMerge</td>
-            </tr>
-            <tr>
                 <td>org.gradle.testing.jacoco.tasks.JacocoCoverageVerification</td>
             </tr>
             <tr>
@@ -504,6 +501,9 @@
             </tr>
             <tr>
                 <td>org.gradle.api.plugins.quality.Pmd</td>
+            </tr>
+            <tr>
+                <td>org.gradle.language.jvm.tasks.ProcessResources</td>
             </tr>
             <tr>
                 <td>org.gradle.api.publish.ivy.tasks.PublishToIvyRepository</td>
@@ -537,9 +537,6 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.testing.TestReport</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.tasks.Upload</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.bundling.War</td>
@@ -578,6 +575,21 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.testing.Test</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.dsl.Dependencies</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.dsl.GradleDependencies</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.plugins.jvm.PlatformDependencyModifiers</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.plugins.jvm.JvmComponentDependencies</td>
             </tr>
         </table>
     </section>

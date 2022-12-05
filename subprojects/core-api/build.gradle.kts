@@ -31,7 +31,7 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 

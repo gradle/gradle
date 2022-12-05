@@ -7,9 +7,16 @@ pluginManagement {
             url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
             content {
                 val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
+                // GE plugin marker artifact
+                includeVersionByRegex("com.gradle.enterprise", "com.gradle.enterprise.gradle.plugin", rcAndMilestonesPattern)
+                // GE plugin jar
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
-                includeVersionByRegex("com.gradle.enterprise", "test-distribution-gradle-plugin", rcAndMilestonesPattern)
-                includeVersionByRegex("com.gradle.enterprise.test-distribution", "com.gradle.enterprise.test-distribution.gradle.plugin", rcAndMilestonesPattern)
+            }
+        }
+        jcenter {
+            content {
+                includeModule("org.openmbee.junit", "junit-xml-parser")
+                includeModule("org.codehaus.groovy.modules", "http-builder-ng-core")
             }
         }
         gradlePluginPortal()
@@ -17,10 +24,8 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.10.1")
+    id("com.gradle.enterprise").version("3.11.4") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
-    id("gradlebuild.base.allprojects")
-    id("com.gradle.enterprise.test-distribution").version("2.3.4-milestone-1") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("gradlebuild.internal.cc-experiment")
 }
 
@@ -105,6 +110,7 @@ include("build-cache-http")
 include("testing-base")
 include("testing-native")
 include("testing-jvm")
+include("testing-jvm-infrastructure")
 include("testing-junit-platform")
 include("test-kit")
 include("installation-beacon")
@@ -124,7 +130,6 @@ include("file-watching")
 include("build-cache-packaging")
 include("execution")
 include("build-profile")
-include("kotlin-compiler-embeddable")
 include("kotlin-dsl")
 include("kotlin-dsl-provider-plugins")
 include("kotlin-dsl-tooling-models")
@@ -150,6 +155,7 @@ include("architecture-test")
 include("internal-testing")
 include("internal-integ-testing")
 include("internal-performance-testing")
+include("internal-architecture-testing")
 include("internal-build-reports")
 include("integ-test")
 include("kotlin-dsl-integ-tests")

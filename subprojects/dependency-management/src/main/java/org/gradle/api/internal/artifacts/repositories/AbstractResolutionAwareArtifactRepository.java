@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.model.ObjectFactory;
 
@@ -23,8 +24,8 @@ public abstract class AbstractResolutionAwareArtifactRepository extends Abstract
 
     private RepositoryDescriptor descriptor;
 
-    protected AbstractResolutionAwareArtifactRepository(ObjectFactory objectFactory) {
-        super(objectFactory);
+    protected AbstractResolutionAwareArtifactRepository(ObjectFactory objectFactory, VersionParser versionParser) {
+        super(objectFactory, versionParser);
     }
 
     @Override

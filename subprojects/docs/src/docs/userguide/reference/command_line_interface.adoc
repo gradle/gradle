@@ -21,6 +21,7 @@ The command-line interface is one of the primary methods of interacting with Gra
 Use of the <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper>> is highly encouraged. You should substitute `./gradlew` or `gradlew.bat` for `gradle` in all following examples when using the Wrapper.
 
 Executing Gradle on the command-line conforms to the following structure. Options are allowed before and after task names.
+
 ----
 gradle [taskName...] [--option-name...]
 ----
@@ -28,17 +29,20 @@ gradle [taskName...] [--option-name...]
 If multiple tasks are specified, they should be separated with a space.
 
 Options that accept values can be specified with or without `=` between the option and argument; however, use of `=` is recommended.
+
 ----
 --console=plain
 ----
 
 Options that enable behavior have long-form options with inverses specified with `--no-`. The following are opposites.
+
 ----
 --build-cache
 --no-build-cache
 ----
 
 Many long-form options, have short option equivalents. The following are equivalent:
+
 ----
 --help
 -h
@@ -63,6 +67,30 @@ $ gradle :myTask
 ----
 
 This will run the single "myTask" and also all of its <<tutorial_using_tasks.adoc#sec:task_dependencies,task dependencies>>.
+
+[[sec:disambiguate_task_options_from_built_in_options]]
+=== Specify options for a task
+
+To pass an option to a task, prefix the option name with `--` after the task name:
+
+----
+$ gradle exampleTask --exampleOption=exampleValue
+----
+
+==== Disambiguate task options from built-in options
+
+Gradle does not prevent tasks from registering options that conflict with Gradle's built-in options, like `--profile` or `--help`.
+You can disambiguate conflicting task options from Gradle's built-in options with a `--` delimiter before the task name in your command:
+
+----
+$ gradle [--built-in-option-name...] -- [taskName...] [--task-option-name...]
+----
+
+Consider a task named "mytask" that accepts an option named "profile":
+
+- If you run `gradle mytask --profile`, Gradle accepts `--profile` as the built-in Gradle option.
+
+- If you run `gradle -- mytask --profile=exampleValue`, Gradle passes `--profile` as a task option.
 
 [[executing_tasks_in_multi_project_builds]]
 === Executing tasks in multi-project builds
@@ -141,18 +169,28 @@ $ gradle test --rerun-tasks
 
 This will force `test` and _all_ task dependencies of `test` to execute. It's a little like running `gradle clean test`, but without the build's generated output being deleted.
 
-[[sec:continue_build_on_failure]]
-=== Continuing the build when a failure occurs
+Alternatively, you can tell Gradle to rerun a specific task using the `--rerun` built-in <<#sec:task_options, task option>>.
 
-By default, Gradle will abort execution and fail the build as soon as any task fails. This allows the build to complete sooner, but hides other failures that would have occurred. In order to discover as many failures as possible in a single build execution, you can use the `--continue` option.
+[[sec:continue_build_on_failure]]
+=== Continue the build after a task failure
+
+By default, Gradle aborts execution and fails the build when any task fails.
+This allows the build to complete sooner and prevents cascading failures from obfuscating the root cause of an error.
+You can use the `--continue` option to force Gradle to execute every task when a failure occurs:
 
 ----
 $ gradle test --continue
 ----
 
-When executed with `--continue`, Gradle will execute _every_ task to be executed where all of the dependencies for that task completed without failure, instead of stopping as soon as the first failure is encountered. Each of the encountered failures will be reported at the end of the build.
+When executed with `--continue`, Gradle executes _every_ task in the build if all of the dependencies for that task completed without failure.
+For example, tests do not run if there is a compilation error in the code under test because the test task depends on the compilation task.
+Gradle outputs each of the encountered failures at the end of the build.
 
-If a task fails, any subsequent tasks that were depending on it will not be executed. For example, tests will not run if there is a compilation failure in the code under test; because the test task will depend on the compilation task (either directly or indirectly).
+[NOTE]
+====
+Many test suites fail the entire "test" task if any tests fail.
+Code coverage and reporting tools frequently run after the test task, so this "fail fast" behavior may halt execution before those tools run.
+====
 
 [[sec:name_abbreviation]]
 === Name abbreviation
@@ -272,7 +310,7 @@ $ gradle -q help --task libs
 include::{snippetsPath}/tutorial/projectReports/tests/taskHelp.out[]
 ----
 
-This information includes the full task path, the task type, possible command line options and the description of the given task.
+This information includes the full task path, the task type, possible <<sec:task_options,task-specific command line options>> and the description of the given task.
 
 === Reporting dependencies
 
@@ -364,6 +402,11 @@ Create a https://gradle.com/build-scans[build scan] with fine-grained informatio
 `-Dorg.gradle.debug=true`::
 Debug Gradle client (non-Daemon) process. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
 
+`-Dorg.gradle.debug.host=(host address)`::
+Specifies the host address to listen on or connect to when debug is enabled.
+In the server mode on Java 9 and above, passing `*` for the host will make the server listen on all network interfaces.
+By default, no host address is passed to JDWP, so on Java 9 and above, the loopback address is used, while earlier versions listen on all interfaces.
+
 `-Dorg.gradle.debug.port=(port number)`::
 Specifies the port number to listen on when debug is enabled. _Default is `5005`._
 
@@ -416,7 +459,7 @@ Generate a build scan with detailed performance diagnostics.
 image::gradle-core-test-build-scan-performance.png[Build Scan performance report]
 
 `--watch-fs`, `--no-watch-fs`::
-Toggles <<gradle_daemon.adoc#sec:daemon_watch_fs,watching the file system>>.
+Toggles <<file_system_watching.adoc#sec:daemon_watch_fs,watching the file system>>.
 When enabled Gradle re-uses information it collects about the file system between builds.
 _Enabled by default on operating systems where Gradle supports this feature._
 
@@ -526,8 +569,11 @@ Run the build as a composite, including the specified build. See <<composite_bui
 `--offline`::
 Specifies that the build should operate without accessing network resources. Learn more about <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,options to override dependency caching>>.
 
-`--refresh-dependencies`::
+`-U`, `--refresh-dependencies`::
 Refresh the state of dependencies. Learn more about how to use this in the <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,dependency management docs>>.
+
+`--continue`::
+Continue task execution after a task failure. See <<command_line_interface.adoc#sec:continue_build_on_failure, Continuing the build when a failure occurs>>.
 
 `-m`, `--dry-run`::
 Run Gradle with all task actions disabled. Use this to show which task would have executed.
@@ -598,6 +644,26 @@ Set JVM arguments.
 `-Dorg.gradle.java.home`::
 Set JDK home dir.
 
+[[sec:task_options]]
+== Task options
+
+Tasks may define task-specific options. Differently than most of the global options described in the sections above (which are interpreted by Gradle itself, can appear anywhere in the command line, and can be listed using the `--help` option),
+task options:
+
+1. are consumed and interpreted by the tasks themselves;
+2. *must* be specified immediately after the task in the command-line;
+3. may be listed using `gradle help --task someTask` (see <<#sec:show_task_details, Show task usage details>>).
+
+To learn how to declare command-line options for your own tasks, see <<custom_tasks.adoc#sec:declaring_and_using_command_line_options,Declaring and Using Command Line Options>>.
+
+[[sec:builtin_task_options]]
+=== Built-in task options
+
+Built-in task options are options available as task options for all tasks. At this time, the following built-in task options exist:
+
+`--rerun`::
+Causes the task to be re-run even if up-to-date. Similar to `<<#sec:rerun_tasks,--rerun-tasks>>`, but for a specific task.
+
 [[sec:command_line_bootstrapping_projects]]
 == Bootstrapping new projects
 
@@ -642,7 +708,7 @@ In order to incorporate build logic changes, the continuous build must be restar
 Continuous build uses file system watching to detect changes to the inputs.
 If file system watching does not work on your system, then continuous build won't work either.
 In particular, continuous build does not work when using `--no-daemon`.
-See <<gradle_daemon.adoc#sec:daemon_watch_fs,Watching the file system>> for more information.
+See <<file_system_watching.adoc#sec:daemon_watch_fs,Watching the file system>> for more information.
 
 When Gradle detects a change to the inputs, it will not trigger the build immediately.
 Instead, it will wait until no additional changes are detected for a certain period of time - the quiet period.

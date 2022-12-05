@@ -20,17 +20,14 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-class NestedInputIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker, ExecutionOptimizationDeprecationFixture {
+class NestedInputIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
 
     def setup() {
         expectReindentedValidationMessage()
@@ -775,28 +772,19 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     @ValidationTestFor(
         ValidationProblemId.UNKNOWN_IMPLEMENTATION
     )
-    @ToBeFixedForConfigurationCache(because = "uses custom GroovyClassLoader")
     def "task with nested bean loaded with custom classloader disables execution optimizations"() {
         file("input.txt").text = "data"
         buildFile << taskWithNestedBeanFromCustomClassLoader()
 
         when:
-        expectImplementationUnknownDeprecation {
-            nestedProperty('bean')
-            unknownClassloader('NestedBean')
-        }
-        run "customTask"
+        fails "customTask"
         then:
         executedAndNotSkipped ":customTask"
-
-        when:
-        expectImplementationUnknownDeprecation {
+        failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'TaskWithNestedProperty').")
+        failureDescriptionContains(implementationUnknown {
             nestedProperty('bean')
             unknownClassloader('NestedBean')
-        }
-        run "customTask"
-        then:
-        executedAndNotSkipped ":customTask"
+        })
     }
 
     def "changes to nested domain object container are tracked"() {
@@ -935,7 +923,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         output.contains "Implementation of input property 'bean.action' has changed for task ':myTask'"
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/11703")
+    @Issue("https://github.com/gradle/gradle/issues/11703")
     def "nested bean from closure can be used with the build cache"() {
         def project1 = file("project1").createDir()
         def project2 = file("project2").createDir()
@@ -973,18 +961,8 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         withBuildCache().run 'myTask'
 
         then:
-        // TODO: Should be skipped(":myTask")
-        executedAndNotSkipped(':myTask')
+        skipped(':myTask')
         project2.file('build/tmp/myTask/output.txt').text == "hello"
-
-        // TODO: This can be removed when the above already worked
-        when:
-        executer.inDirectory(project2)
-        run 'clean'
-        executer.inDirectory(project2)
-        withBuildCache().run 'myTask'
-        then:
-        skipped(":myTask")
     }
 
     private TestFile nestedBeanWithAction(TestFile projectDir = temporaryFolder.testDirectory) {

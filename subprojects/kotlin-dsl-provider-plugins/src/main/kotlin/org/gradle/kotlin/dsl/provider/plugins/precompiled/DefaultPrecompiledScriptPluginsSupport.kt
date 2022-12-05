@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.Transformer
 import org.gradle.api.file.Directory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
@@ -33,6 +34,7 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.classpath.Instrumented.fileCollectionObserved
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.kotlin.dsl.*
@@ -50,13 +52,13 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompi
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateScriptPluginAdapters
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSchema
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.resolverEnvironmentStringFor
+import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.strictModeSystemPropertyName
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import java.io.File
-import java.util.function.Consumer
 import javax.inject.Inject
 
 
@@ -128,7 +130,7 @@ import javax.inject.Inject
 class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
 
     companion object {
-        val PRECOMPILED_SCRIPT_MANUAL = Documentation.userManual("custom_plugins", "sec:precompiled_plugins")!!
+        val PRECOMPILED_SCRIPT_MANUAL = Documentation.userManual("custom_plugins", "sec:precompiled_plugins")
     }
 
     override fun enableOn(target: PrecompiledScriptPluginsSupport.Target): Boolean = target.project.run {
@@ -151,30 +153,6 @@ class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
             )
         }
         return true
-    }
-
-    @Deprecated("Use enableOn(Target)")
-    override fun enableOn(
-        project: Project,
-        kotlinSourceDirectorySet: SourceDirectorySet,
-        kotlinCompileTask: TaskProvider<out Task>,
-        kotlinCompilerArgsConsumer: Consumer<List<String>>
-    ) {
-        enableOn(object : PrecompiledScriptPluginsSupport.Target {
-            override val project
-                get() = project
-
-            override val kotlinSourceDirectorySet
-                get() = kotlinSourceDirectorySet
-
-            @Deprecated("No longer used.", ReplaceWith(""))
-            override val kotlinCompileTask
-                get() = error("No longer used.")
-
-            @Deprecated("No longer used.", ReplaceWith(""))
-            override fun applyKotlinCompilerArgs(args: List<String>) =
-                error("No longer used.")
-        })
     }
 
     override fun collectScriptPluginFilesOf(project: Project): List<File> =
@@ -242,9 +220,9 @@ fun Project.enableScriptCompilationOf(
                 compiledPluginsBlocksDir.set(compiledPluginsBlocks)
                 strict.set(
                     providers
-                        .systemProperty("org.gradle.kotlin.dsl.precompiled.accessors.strict")
-                        .map(java.lang.Boolean::parseBoolean)
-                        .orElse(false)
+                        .systemProperty(strictModeSystemPropertyName)
+                        .map(strictModeSystemPropertyNameMapper)
+                        .orElse(true)
                 )
                 plugins = scriptPlugins
             }
@@ -288,6 +266,17 @@ fun Project.enableScriptCompilationOf(
             )
         }
     }
+}
+
+
+private
+val strictModeSystemPropertyNameMapper: Transformer<Boolean, String> = Transformer { prop ->
+    DeprecationLogger.deprecateSystemProperty(strictModeSystemPropertyName)
+        .willBeRemovedInGradle9()
+        .withUpgradeGuideSection(7, "strict-kotlin-dsl-precompiled-scripts-accessors-by-default")
+        .nagUser()
+    if (prop.isBlank()) true
+    else java.lang.Boolean.parseBoolean(prop)
 }
 
 

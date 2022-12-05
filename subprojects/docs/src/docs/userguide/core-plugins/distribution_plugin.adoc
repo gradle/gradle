@@ -95,7 +95,7 @@ include::sample[dir="snippets/base/distribution/kotlin",files="build.gradle.kts[
 
 In the example above, the content of the `src/readme` directory will be included in the distribution (along with the files in the `src/main/dist` directory which are added by default).
 
-The `baseName` property has also been changed. This will cause the distribution archives to be created with a different name.
+The `distributionBaseName` and `distributionClassifier` properties have also been changed. This will cause the distribution archives to be created with a different name.
 
 [[sec:publishing_distributions]]
 == Publishing
@@ -112,6 +112,8 @@ To publish a distribution to an Ivy repository with the <<publishing_ivy.adoc#pu
 include::sample[dir="snippets/ivy-publish/distribution/groovy",files="build.gradle[tags=publishing]"]
 include::sample[dir="snippets/ivy-publish/distribution/kotlin",files="build.gradle.kts[tags=publishing]"]
 ====
+
+WARNING: The Ivy Publish Plugin is not yet compatible with the <<configuration_cache.adoc#config_cache:plugins:core,configuration cache>>.
 
 Similarly, to publish a distribution to a Maven repository using the <<publishing_maven.adoc#publishing_maven, Maven Publish Plugin>>, add one or both of its archive tasks to a link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication] as follows:
 

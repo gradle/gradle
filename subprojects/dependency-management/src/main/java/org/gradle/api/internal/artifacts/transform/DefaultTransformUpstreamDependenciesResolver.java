@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
@@ -29,15 +31,23 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.api.specs.Spec;
+import org.gradle.execution.plan.PostExecutionNodeAwareActionNode;
+import org.gradle.execution.plan.TaskNode;
+import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Try;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -78,11 +88,13 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
     private Set<ComponentIdentifier> buildDependencies;
     private Set<ComponentIdentifier> dependencies;
 
-    public DefaultTransformUpstreamDependenciesResolver(ComponentIdentifier componentIdentifier,
-                                                        ResolutionResultProvider<ResolutionResult> resolutionResultProvider,
-                                                        DomainObjectContext owner,
-                                                        FilteredResultFactory filteredResultFactory,
-                                                        CalculatedValueContainerFactory calculatedValueContainerFactory) {
+    public DefaultTransformUpstreamDependenciesResolver(
+        ComponentIdentifier componentIdentifier,
+        ResolutionResultProvider<ResolutionResult> resolutionResultProvider,
+        DomainObjectContext owner,
+        FilteredResultFactory filteredResultFactory,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    ) {
         this.componentIdentifier = componentIdentifier;
         this.resolutionResultProvider = resolutionResultProvider;
         this.owner = owner;
@@ -159,6 +171,11 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         }
     }
 
+    /**
+     * Represents a work node that prepares the upstream dependencies of a particular transform applied to a particular artifact.
+     * This is a separate node so that this work can access project state to do the resolution and to discover additional dependencies for the transform
+     * during resolution of upstream dependencies. It also allows the work of resolution to be attributed separately to the work of the transform.
+     */
     public static abstract class FinalizeTransformDependencies implements ValueCalculator<ArtifactTransformDependencies> {
         public abstract FileCollection selectedArtifacts();
 
@@ -171,6 +188,10 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         }
     }
 
+    /**
+     * A work node used in builds where the upstream dependencies must be resolved. This implementation is not used when the work graph is loaded from the configuration cache,
+     * as the dependencies have already been resolved in that case.
+     */
     public class FinalizeTransformDependenciesFromSelectedArtifacts extends FinalizeTransformDependencies {
         private final ImmutableAttributes fromAttributes;
 
@@ -179,7 +200,7 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
         }
 
         @Override
-        public FileCollection selectedArtifacts() {
+        public FileCollectionInternal selectedArtifacts() {
             return selectedArtifactsFor(fromAttributes);
         }
 
@@ -193,24 +214,88 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
             return owner.getProject();
         }
 
+        @Nullable
+        @Override
+        public WorkNodeAction getPreExecutionAction() {
+            // Before resolving, need to determine the full set of upstream dependencies that need to be built.
+            // The full set is usually known when the work graph is built. However, in certain cases where a project dependency conflicts with an external dependency, this is not known
+            // until the full graph resolution, which can happen at execution time.
+            return new CalculateFinalDependencies();
+        }
+
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             computeDependenciesFor(fromAttributes, context);
+        }
+
+        public class CalculateFinalDependencies implements PostExecutionNodeAwareActionNode {
+            final List<TaskNode> tasks = new ArrayList<>();
+
+            @Override
+            public boolean usesMutableProjectState() {
+                return FinalizeTransformDependenciesFromSelectedArtifacts.this.usesMutableProjectState();
+            }
+
+            @Nullable
+            @Override
+            public Project getOwningProject() {
+                return FinalizeTransformDependenciesFromSelectedArtifacts.this.getOwningProject();
+            }
+
+            @Override
+            public void run(NodeExecutionContext context) {
+                TaskNodeFactory taskNodeFactory = context.getService(TaskNodeFactory.class);
+                selectedArtifacts().visitDependencies(new CollectingTaskDependencyResolveContext(tasks, taskNodeFactory));
+            }
+
+            @Override
+            public List<TaskNode> getPostExecutionNodes() {
+                return tasks;
+            }
+
+        }
+    }
+
+    private static class CollectingTaskDependencyResolveContext implements TaskDependencyResolveContext {
+        private final TaskNodeFactory taskNodeFactory;
+        private final Collection<TaskNode> tasks;
+
+        public CollectingTaskDependencyResolveContext(Collection<TaskNode> tasks, TaskNodeFactory taskNodeFactory) {
+            this.tasks = tasks;
+            this.taskNodeFactory = taskNodeFactory;
+        }
+
+        @Override
+        public void add(Object dependency) {
+            if (dependency instanceof Task) {
+                tasks.add(taskNodeFactory.getNode((Task) dependency));
+            }
+        }
+
+        @Override
+        public void visitFailure(Throwable failure) {
+        }
+
+        @Nullable
+        @Override
+        public Task getTask() {
+            return null;
         }
     }
 
     private class TransformUpstreamDependenciesImpl implements TransformUpstreamDependencies {
         private final CalculatedValueContainer<ArtifactTransformDependencies, FinalizeTransformDependencies> transformDependencies;
-        private final TransformationStep transformationStep;
+        private final ImmutableAttributes fromAttributes;
 
         public TransformUpstreamDependenciesImpl(TransformationStep transformationStep, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            this.transformationStep = transformationStep;
-            transformDependencies = calculatedValueContainerFactory.create(Describables.of("dependencies for", transformationStep), new FinalizeTransformDependenciesFromSelectedArtifacts(transformationStep.getFromAttributes()));
+            this.fromAttributes = transformationStep.getFromAttributes();
+            transformDependencies = calculatedValueContainerFactory.create(Describables.of("dependencies for", componentIdentifier, fromAttributes),
+                new FinalizeTransformDependenciesFromSelectedArtifacts(transformationStep.getFromAttributes()));
         }
 
         @Override
         public FileCollection selectedArtifacts() {
-            return selectedArtifactsFor(transformationStep.getFromAttributes());
+            return selectedArtifactsFor(fromAttributes);
         }
 
         @Override

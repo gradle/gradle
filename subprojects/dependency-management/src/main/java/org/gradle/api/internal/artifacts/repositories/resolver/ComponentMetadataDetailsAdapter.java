@@ -29,10 +29,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -96,12 +93,12 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
 
     @Override
     public void withVariant(String name, Action<? super VariantMetadata> action) {
-        action.execute(instantiator.newInstance(VariantMetadataAdapter.class, new VariantNameSpec(name), metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser));
+        action.execute(instantiator.newInstance(VariantMetadataAdapter.class, name, metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser));
     }
 
     @Override
     public void allVariants(Action<? super VariantMetadata> action) {
-        action.execute(instantiator.newInstance(VariantMetadataAdapter.class, Specs.satisfyAll(), metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser));
+        action.execute(instantiator.newInstance(VariantMetadataAdapter.class, null, metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser));
     }
 
     @Override
@@ -162,19 +159,6 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     @Override
     public String toString() {
         return metadata.getModuleVersionId().toString();
-    }
-
-    private static class VariantNameSpec implements Spec<VariantResolveMetadata> {
-        private final String name;
-
-        private VariantNameSpec(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(VariantResolveMetadata element) {
-            return name.equals(element.getName());
-        }
     }
 
 }

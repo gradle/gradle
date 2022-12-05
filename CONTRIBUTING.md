@@ -19,6 +19,8 @@ For any non-trivial change, we need to be able to answer these questions:
 
 We may ask you to answer these questions directly in the GitHub issue or (for large changes) in a shared Google Doc.
 
+If you are looking for good first issues, take a look at the list of [_🌱 onboarding_ issues](https://github.com/gradle/gradle/issues?q=is%3Aopen+is%3Aissue+label%3A%22%F0%9F%8C%B1+onboarding%22+no%3Aassignee) that should be actionable and ready for a contribution.
+
 ### Security vulnerabilities
 
 Do not report security vulnerabilities to the public issue tracker. Follow our [Security Vulnerability Disclosure Policy](https://github.com/gradle/gradle/security/policy).
@@ -58,6 +60,8 @@ To import Gradle into IntelliJ:
 NOTE: Due to the project size, the very first import can take a while and IntelliJ might become unresponsive for several seconds during this period.
 
 IntelliJ automatically hides stacktrace elements from the `org.gradle` package, which makes running/debugging tests more difficult. You can disable this behavior by changing IntelliJ Preferences under Editor -> General -> Console. In the "Fold lines that contain" section, remove the `org.gradle` entry.
+
+If you did not have a Java 11 SDK installed before importing the project into IntelliJ and after adding a Java 11 SDK your IntelliJ still uses the wrong SDK version, you might need to invalidate IntelliJ's caches before reloading the project.
 
 ## Making your change
 
@@ -102,7 +106,7 @@ It's also a good idea to run `./gradlew sanityCheck` before submitting your chan
 
 After you submit your pull request, a Gradle developer will review it. It is normal for this to take several iterations, so don't get discouraged by change requests. They ensure the high quality that we all enjoy.
 
-If you need to check on [CI](http://builds.gradle.org/) status as an external contributor, you can login as "guest".
+If you need to check on [CI](http://builds.gradle.org/) status as an external contributor, you can click "Log in as guest".
 
 ## Useful tips
 
@@ -132,7 +136,7 @@ Then force push your branch:
 
 ### Java Toolchain
 
-The Gradle build uses [Java Toolchain](https://docs.gradle.org/current/userguide/toolchains.html) support to compile and execute tests across multiple versions of Java.
+The Gradle build uses [Java Toolchain](userguide/toolchains.html) support to compile and execute tests across multiple versions of Java.
 
 Available JDKs on your machine are automatically detected and wired for the various compile and test tasks.
 
@@ -148,7 +152,7 @@ To disable the configuration cache, run the build with `--no-configuration-cache
 
 Tasks known to have problems are listed in the build logic. You can find this list at:
 
-    build-logic-settings/cc-experiment-plugin/src/main/kotlin/gradlebuild.internal.cc-experiment.settings.gradle.kts
+    build-logic-settings/build-logic-settings-plugin/src/main/kotlin/gradlebuild.internal.cc-experiment.settings.gradle.kts
 
 If you discover a task that doesn't work with the configuration but it not in this list, please add it.
 

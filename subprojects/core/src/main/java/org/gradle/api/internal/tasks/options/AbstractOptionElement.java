@@ -34,7 +34,7 @@ abstract class AbstractOptionElement implements OptionElement {
         this(readDescription(option, optionName, declaringClass), optionName, optionType);
     }
 
-    private AbstractOptionElement(String description, String optionName, Class<?> optionType) {
+    protected AbstractOptionElement(String description, String optionName, Class<?> optionType) {
         this.description = description;
         this.optionName = optionName;
         this.optionType = optionType;

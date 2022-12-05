@@ -17,8 +17,10 @@ package org.gradle.integtests.resolve
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
+    ResolveTestFixture resolve = new ResolveTestFixture(buildFile)
 
     def "can attach a directory as output of a configuration"() {
         given:
@@ -38,19 +40,20 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
             compile project(path: ':', configuration: '_classpath')
         }
 
+        def files = configurations.compile
+
         task check {
             doLast {
-                println configurations.compile.files as List
-                assert configurations.compile.files.name == ['someDir']
+                println files as List
+                assert files*.name == ['someDir']
             }
         }
 
         task run(dependsOn: configurations.compile) {
             doLast {
-                assert configurations.compile.files*.listFiles().flatten().text == ['some text']
+                assert files*.listFiles().flatten().text == ['some text']
             }
         }
-
         '''
 
         when:
@@ -136,16 +139,18 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
             compile project(path: ':b', configuration: 'compile')
         }
 
+        def files = configurations.compile
+
         task check {
             doLast {
-                println configurations.compile.files as List
-                assert configurations.compile.files.name == ['someDir']
+                println files as List
+                assert files*.name == ['someDir']
             }
         }
 
         task run(dependsOn: configurations.compile) {
             doLast {
-                assert configurations.compile.files*.listFiles().flatten().text == ['some text']
+                assert files*.listFiles().flatten().text == ['some text']
             }
         }
         '''
@@ -157,10 +162,10 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
         }
 
         task generateFiles {
-            ext.outputDir = file("$buildDir/someDir")
+            def outputDir = file("$buildDir/someDir")
+            outputs.dir(outputDir)
             doLast {
-                ext.outputDir.mkdirs()
-                file("${ext.outputDir}/a.txt") << 'some text'
+                new File(outputDir, "a.txt") << 'some text'
             }
         }
 
@@ -301,15 +306,19 @@ class DirectoryOutputArtifactIntegrationTest extends AbstractIntegrationSpec {
                 assert configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.name == [':nullsafe:1.0']
             }
         }
-
         '''
+        resolve.prepare("compile")
 
         when:
-        run 'run'
+        run 'checkDeps'
 
         then:
-        noExceptionThrown()
-        executed ':run'
+        resolve.expectGraph {
+            root(":", ":nullsafe:1.0") {
+                configuration("_classpath")
+                artifact(name: "someDir", type: "", version: "")
+                project(":", ":nullsafe:1.0")
+            }
+        }
     }
-
 }

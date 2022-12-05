@@ -20,7 +20,6 @@ repositories {
         url = uri("https://repo.gradle.org/gradle/public")
         content {
             includeGroup("net.rubygrapefruit")
-            includeModule("classycle", "classycle")
             includeModule("flot", "flot")
             includeModule("org.gradle", "gradle-tooling-api")
             includeModule("org.gradle.buildtool.internal", "configuration-cache-report")
