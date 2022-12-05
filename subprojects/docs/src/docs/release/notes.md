@@ -136,7 +136,7 @@ For more information, see [Exporting keys](userguide/dependency_verification.htm
 
 ### Kotlin DSL improvements
 
-Gradle’s Kotlin DSL provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assist, refactoring, documentation, and more.
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assist, refactoring, documentation, and more.
 
 #### Updated the Kotlin DSL to Kotlin API Level 1.7
 
@@ -159,6 +159,8 @@ Previously, the compilation of `.gradle.kts` scripts always used Java 8 as the K
 Starting with Gradle 8.0, it now uses the version of the JVM running the build.
 
 If your team is using e.g. Java 11 to run Gradle, this allows you to use Java 11 librairies and language features in your build scripts.
+
+Note that this doesn't apply to [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) which use the configured `kotlinDslPluginOptions.jvmTarget`.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
