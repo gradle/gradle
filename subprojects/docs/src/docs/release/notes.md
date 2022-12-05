@@ -134,7 +134,7 @@ You can now use the `export-keys` flag to export all already trusted keys:
 
 For more information, see [Exporting keys](userguide/dependency_verification.html#sec:local-keyring).
 
-#### Kotlin DSL improvements
+### Kotlin DSL improvements
 
 Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assist, refactoring, documentation, and more.
 
@@ -152,6 +152,15 @@ Highlights include:
 - improved sealed types hierarchies
 
 For information about breaking and nonbreaking changes in this upgrade, see the [upgrading guide](userguide/upgrading_version_7.html#kotlin_language_1_7).
+
+##### Script compilation now uses the Gradle JVM as Kotlin JVM Target
+
+Previously, the compilation of `.gradle.kts` scripts always used Java 8 as the Kotlin JVM target.
+Starting with Gradle 8.0, it now uses the version of the JVM running the build.
+
+If your team is using e.g. Java 11 to run Gradle, this allows you to use Java 11 librairies and language features in your build scripts.
+
+Note that this doesn't apply to [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) which use the configured `kotlinDslPluginOptions.jvmTarget`.
 
 ##### Script compilation performance improvement
 
@@ -192,6 +201,7 @@ plugins {
 3. Version catalog plugin reference, unsupported
 
 In the cases above, Gradle falls back to the Kotlin compiler, providing the same performance as previous Gradle releases.
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
