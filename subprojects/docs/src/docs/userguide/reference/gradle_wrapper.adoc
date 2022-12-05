@@ -105,12 +105,12 @@ Let’s have a look at the following project layout to illustrate the expected W
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
+[source,kotlin]
 ----
 .
 ├── a-subproject
-│   └── build.gradle
-├── settings.gradle
+│   └── build.gradle.kts
+├── settings.gradle.kts
 ├── gradle
 │   └── wrapper
 │       ├── gradle-wrapper.jar
@@ -121,12 +121,12 @@ Let’s have a look at the following project layout to illustrate the expected W
 =====
 [.multi-language-sample]
 =====
-[source,kotlin]
+[source,groovy]
 ----
 .
 ├── a-subproject
-│   └── build.gradle.kts
-├── settings.gradle.kts
+│   └── build.gradle
+├── settings.gradle
 ├── gradle
 │   └── wrapper
 │       ├── gradle-wrapper.jar
@@ -195,8 +195,8 @@ Let’s assume you grew tired of defining the `-all` distribution type on the co
 
 .Customizing the Wrapper task
 ====
-include::sample[dir="snippets/wrapper/customized-task/groovy",files="build.gradle[tags=customized-wrapper-task]"]
 include::sample[dir="snippets/wrapper/customized-task/kotlin",files="build.gradle.kts[tags=customized-wrapper-task]"]
+include::sample[dir="snippets/wrapper/customized-task/groovy",files="build.gradle[tags=customized-wrapper-task]"]
 ====
 
 With the configuration in place running `./gradlew wrapper --gradle-version {gradleVersion}` is enough to produce a `distributionUrl` value in the Wrapper properties file that will request the `-all` distribution.

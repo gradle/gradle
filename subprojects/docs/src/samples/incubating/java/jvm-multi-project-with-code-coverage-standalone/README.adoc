@@ -10,8 +10,8 @@ The Test Report Aggregation plugin does not currently work with the ``com.androi
 ====
 
 ====
-include::sample[dir="groovy",files="code-coverage-report/build.gradle[tag=**]"]
 include::sample[dir="kotlin",files="code-coverage-report/build.gradle.kts[tag=**]"]
+include::sample[dir="groovy",files="code-coverage-report/build.gradle[tag=**]"]
 ====
 
 The standalone project applies `jacoco-report-aggregation`, but requires additional configuration if the `jvm-test-suite` plugin is not also present.
