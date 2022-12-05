@@ -253,6 +253,7 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
                 }
             }
             task brokenErr {
+                mustRunAfter brokenOut
                 doLast {
                     logging.addStandardErrorListener(error)
                     System.err.println "error 1"
@@ -260,6 +261,7 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
                 }
             }
             task ok {
+                mustRunAfter brokenOut, brokenErr // Must not run in parallel with the broken tasks, otherwise the logging in this task will also cause this task to fail
                 doLast {
                     System.out.println "output 2"
                     System.err.println "error 2"

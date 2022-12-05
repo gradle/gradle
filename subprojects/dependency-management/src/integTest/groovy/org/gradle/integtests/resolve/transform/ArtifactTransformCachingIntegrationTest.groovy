@@ -1715,10 +1715,10 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 }
 
                 task waitForTransformBarrier {
+                    def files = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'blocking') }
+                    }.artifacts.artifactFiles
                     doLast {
-                        def files = configurations.compile.incoming.artifactView {
-                            attributes { it.attribute(artifactType, 'blocking') }
-                        }.artifacts.artifactFiles
                         println "files: " + files.collect { it.name }
                     }
                 }
