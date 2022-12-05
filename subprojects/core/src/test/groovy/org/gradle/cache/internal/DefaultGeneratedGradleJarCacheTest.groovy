@@ -46,7 +46,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         provider.close()
 
         then:
-        1 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
+        1 * cacheRepository.cacheBuilder(CACHE_KEY) >> cacheBuilder
         1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
         1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
@@ -64,7 +64,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         def resolvedFile = provider.get(identifier) { it.createNewFile() }
 
         then:
-        1 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
+        1 * cacheRepository.cacheBuilder(CACHE_KEY) >> cacheBuilder
         1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
         1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
@@ -87,7 +87,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         def resolvedFile = provider.get("api") { it.createNewFile() }
 
         then:
-        1 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
+        1 * cacheRepository.cacheBuilder(CACHE_KEY) >> cacheBuilder
         1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
         1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
@@ -100,7 +100,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         resolvedFile = provider.get("api") { Assert.fail("Should not be called if file already exists") }
 
         then:
-        0 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
+        0 * cacheRepository.cacheBuilder(CACHE_KEY) >> cacheBuilder
         0 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
         0 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.OnDemand)) >> cacheBuilder
         0 * cacheBuilder.open() >> { cache }

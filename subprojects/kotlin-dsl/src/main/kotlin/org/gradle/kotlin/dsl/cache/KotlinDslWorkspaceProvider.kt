@@ -41,7 +41,7 @@ class KotlinDslWorkspaceProvider(
     private
     val kotlinDslWorkspace = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
         cacheRepository
-            .cache("kotlin-dsl")
+            .cacheBuilder("kotlin-dsl")
             .withDisplayName("kotlin-dsl"),
         fileAccessTimeJournal,
         inMemoryCacheDecoratorFactory,

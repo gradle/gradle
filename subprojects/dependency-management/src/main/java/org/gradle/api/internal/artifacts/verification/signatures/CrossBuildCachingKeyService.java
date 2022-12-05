@@ -78,7 +78,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
             BuildCommencedTimeProvider timeProvider,
             boolean refreshKeys) {
         cache = cacheRepository
-            .crossVersionCache("keyrings")
+            .crossVersionCacheBuilder("keyrings")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
             .open();

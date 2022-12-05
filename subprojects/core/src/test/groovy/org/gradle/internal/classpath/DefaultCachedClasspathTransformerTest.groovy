@@ -58,7 +58,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         withCleanup(_) >> { cacheBuilder }
     }
     def cacheRepository = Stub(GlobalScopedCacheBuilderFactory) {
-        crossVersionCache(_) >> cacheBuilder
+        crossVersionCacheBuilder(_) >> cacheBuilder
     }
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
     def usedGradleVersions = Stub(UsedGradleVersions)

@@ -34,7 +34,7 @@ public class CrossBuildFileHashCache implements Closeable {
 
     public CrossBuildFileHashCache(ScopedCacheBuilderFactory scopedCacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Kind cacheKind) {
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
-        cache = scopedCacheBuilderFactory.cache(cacheKind.cacheId)
+        cache = scopedCacheBuilderFactory.cacheBuilder(cacheKind.cacheId)
             .withDisplayName(cacheKind.description)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();

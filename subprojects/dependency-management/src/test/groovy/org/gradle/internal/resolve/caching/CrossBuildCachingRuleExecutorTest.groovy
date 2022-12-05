@@ -102,7 +102,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
                 }
             }
         }
-        cacheRepository.cache(_) >> cacheBuilder
+        cacheRepository.cacheBuilder(_) >> cacheBuilder
         cacheDecoratorFactory.decorator(_, _) >> Mock(CacheDecorator)
         executor = new CrossBuildCachingRuleExecutor<Id, Details, Result>(
             "test",

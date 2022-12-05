@@ -47,7 +47,7 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
 
     public DefaultFileAccessTimeJournal(GlobalScopedCacheBuilderFactory cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
         cache = cacheRepository
-            .crossVersionCache(CACHE_KEY)
+            .crossVersionCacheBuilder(CACHE_KEY)
             .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
             .withDisplayName("journal cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // lock on demand

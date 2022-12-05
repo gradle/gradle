@@ -84,7 +84,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
         }
         cacheRepository = Mock()
         cacheDecoratorFactory = Mock()
-        cacheRepository.cache(_) >> cacheBuilder
+        cacheRepository.cacheBuilder(_) >> cacheBuilder
         cacheDecoratorFactory.decorator(_, _) >> Mock(CacheDecorator)
         valueSnapshotter = Mock()
         serializer = Mock()

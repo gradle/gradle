@@ -202,7 +202,7 @@ class ConfigurationCacheRepository(
 
     private
     val cache = cacheRepository
-        .crossVersionCache("configuration-cache")
+        .crossVersionCacheBuilder("configuration-cache")
         .withDisplayName("Configuration Cache")
         .withOnDemandLockMode() // Don't need to lock anything until we use the caches
         .withLruCacheCleanup(cleanupActionDecorator)

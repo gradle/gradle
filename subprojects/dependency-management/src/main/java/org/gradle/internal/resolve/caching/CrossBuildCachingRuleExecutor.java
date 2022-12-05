@@ -79,7 +79,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         this.keyToSnapshottable = keyToSnapshottable;
         this.timeProvider = timeProvider;
         this.cache = cacheRepository
-            .cache(name)
+            .cacheBuilder(name)
             .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
             .open();
         IndexedCacheParameters<HashCode, CachedEntry<RESULT>> cacheParams = createCacheConfiguration(name, resultSerializer, cacheDecoratorFactory);

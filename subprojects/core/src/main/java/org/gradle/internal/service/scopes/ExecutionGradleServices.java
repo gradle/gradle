@@ -102,7 +102,7 @@ public class ExecutionGradleServices {
 
     OutputFilesRepository createOutputFilesRepository(BuildScopedCacheBuilderFactory cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         PersistentCache cacheAccess = cacheRepository
-            .crossVersionCache("buildOutputCleanup")
+            .crossVersionCacheBuilder("buildOutputCleanup")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName("Build Output Cleanup Cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))

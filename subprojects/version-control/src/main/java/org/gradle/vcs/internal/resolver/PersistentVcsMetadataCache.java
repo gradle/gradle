@@ -41,7 +41,7 @@ public class PersistentVcsMetadataCache implements Stoppable {
 
     public PersistentVcsMetadataCache(BuildTreeScopedCacheBuilderFactory scopedCache) {
         cache = scopedCache
-            .cache("vcsMetadata")
+            .cacheBuilder("vcsMetadata")
             .withDisplayName("VCS metadata")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Don't need to lock anything until we use the caches
             .open();

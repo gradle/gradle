@@ -51,7 +51,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
         this.fileSystemAccess = fileSystemAccess;
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
         cache = cacheRepository
-            .cache("fileContent")
+            .cacheBuilder("fileContent")
             .withDisplayName("file content cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();

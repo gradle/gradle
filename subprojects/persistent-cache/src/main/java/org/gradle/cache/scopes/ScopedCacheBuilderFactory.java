@@ -22,18 +22,18 @@ import java.io.File;
 
 public interface ScopedCacheBuilderFactory {
     /**
-     * Creates a Gradle-version specific cache in this scope. See {@link org.gradle.cache.CacheRepository#cache(String)}.
+     * Creates a builder for Gradle-version specific caches in this scope. See {@link org.gradle.cache.CacheRepository#cache(String)}.
      *
      * @param key A unique name for the cache.
      */
-    CacheBuilder cache(String key);
+    CacheBuilder cacheBuilder(String key);
 
     /**
-     * Creates a cross Gradle version cache in this scope. See {@link org.gradle.cache.CacheRepository#cache(String)}.
+     * Creates a builder for cross Gradle version caches in this scope. See {@link org.gradle.cache.CacheRepository#cache(String)}.
      *
      * @param key A unique name for the cache.
      */
-    CacheBuilder crossVersionCache(String key);
+    CacheBuilder crossVersionCacheBuilder(String key);
 
     /**
      * Returns the root directory of this cache. You should avoid using this method and instead use one of the other methods.

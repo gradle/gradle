@@ -167,7 +167,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
             synchronized (lock) {
                 if (workerClassPath == null) {
                     PersistentCache workerClassPathCache = cacheRepository
-                        .cache("workerMain")
+                        .cacheBuilder("workerMain")
                         .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive))
                         .withInitializer(new CacheInitializer())
                         .open();

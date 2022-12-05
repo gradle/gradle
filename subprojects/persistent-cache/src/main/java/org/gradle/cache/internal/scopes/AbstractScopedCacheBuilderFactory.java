@@ -46,12 +46,12 @@ public abstract class AbstractScopedCacheBuilderFactory implements ScopedCacheBu
     }
 
     @Override
-    public CacheBuilder cache(String key) {
+    public CacheBuilder cacheBuilder(String key) {
         return cacheRepository.cache(baseDirForCache(key));
     }
 
     @Override
-    public CacheBuilder crossVersionCache(String key) {
+    public CacheBuilder crossVersionCacheBuilder(String key) {
         return cacheRepository.cache(baseDirForCrossVersionCache(key));
     }
 

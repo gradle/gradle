@@ -46,7 +46,7 @@ class WorkerProcessClassPathProviderTest extends Specification {
         def classpath = provider.findClassPath('WORKER_MAIN')
 
         then:
-        1 * cacheRepository.cache('workerMain') >> cacheBuilder
+        1 * cacheRepository.cacheBuilder('workerMain') >> cacheBuilder
         1 * cacheBuilder.withInitializer(!null) >> { args -> initializer = args[0]; return cacheBuilder }
         1 * cacheBuilder.withLockOptions(_) >> cacheBuilder
         1 * cacheBuilder.open() >> { initializer.execute(cache); return cache }
@@ -67,7 +67,7 @@ class WorkerProcessClassPathProviderTest extends Specification {
         def classpath = provider.findClassPath('WORKER_MAIN')
 
         then:
-        1 * cacheRepository.cache('workerMain') >> cacheBuilder
+        1 * cacheRepository.cacheBuilder('workerMain') >> cacheBuilder
         1 * cacheBuilder.withLockOptions(_) >> cacheBuilder
         1 * cacheBuilder.withInitializer(!null) >> cacheBuilder
         1 * cacheBuilder.open() >> cache

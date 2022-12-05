@@ -41,7 +41,7 @@ public class UserHomeScopedCompileCaches implements GeneralCompileCaches, Closea
 
     public UserHomeScopedCompileCaches(GlobalScopedCacheBuilderFactory cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
         cache = cacheRepository
-            .cache("javaCompile")
+            .cacheBuilder("javaCompile")
             .withDisplayName("Java compile cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();

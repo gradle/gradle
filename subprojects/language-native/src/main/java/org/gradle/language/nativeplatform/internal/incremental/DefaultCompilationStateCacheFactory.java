@@ -38,7 +38,7 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
 
     public DefaultCompilationStateCacheFactory(BuildScopedCacheBuilderFactory cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         cache = cacheRepository
-                .cache("nativeCompile")
+                .cacheBuilder("nativeCompile")
                 .withDisplayName("native compile cache")
                 .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
                 .open();

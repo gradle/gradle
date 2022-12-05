@@ -34,7 +34,7 @@ public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, 
     private final String gradleVersion;
 
     public DefaultGeneratedGradleJarCache(GlobalScopedCacheBuilderFactory cacheRepository, String gradleVersion) {
-        this.cache = cacheRepository.cache(CACHE_KEY)
+        this.cache = cacheRepository.cacheBuilder(CACHE_KEY)
             .withDisplayName(CACHE_DISPLAY_NAME)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
             .open();

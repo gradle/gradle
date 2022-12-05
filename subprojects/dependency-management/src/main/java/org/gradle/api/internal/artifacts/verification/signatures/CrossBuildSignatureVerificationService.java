@@ -66,7 +66,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         this.refreshKeys = refreshKeys;
         this.useKeyServers = useKeyServers;
         this.keyringFileHash = keyringFileHash;
-        store = scopedCache.cache("signature-verification")
+        store = scopedCache.cacheBuilder("signature-verification")
             .withDisplayName("Signature verification cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();

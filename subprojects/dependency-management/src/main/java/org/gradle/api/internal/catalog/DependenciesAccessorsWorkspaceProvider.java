@@ -41,7 +41,7 @@ public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider
     ) {
         this.delegate = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
             scopedCache
-                .cache("dependencies-accessors")
+                .cacheBuilder("dependencies-accessors")
                 .withDisplayName("dependencies-accessors"),
             fileAccessTimeJournal,
             inMemoryCacheDecoratorFactory,

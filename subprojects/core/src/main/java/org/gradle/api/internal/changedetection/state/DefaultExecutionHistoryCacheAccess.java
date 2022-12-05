@@ -29,7 +29,7 @@ public class DefaultExecutionHistoryCacheAccess implements ExecutionHistoryCache
 
     public DefaultExecutionHistoryCacheAccess(ScopedCacheBuilderFactory cacheRepository) {
         this.cache = cacheRepository
-            .cache("executionHistory")
+            .cacheBuilder("executionHistory")
             .withDisplayName("execution history cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();

@@ -108,7 +108,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         // Both caches can be closed directly after use because:
         // For 1, if the script changes or its compile classpath changes, a different directory will be used
         // For 2, if the script changes, a different cache is used. If the classpath changes, the cache is invalidated, but classes are remapped to 1. anyway so never directly used
-        final PersistentCache cache = cacheRepository.cache("scripts/" + key)
+        final PersistentCache cache = cacheRepository.cacheBuilder("scripts/" + key)
             .withDisplayName(dslId + " generic class cache for " + source.getDisplayName())
             .withInitializer(new ProgressReportingInitializer(
                 progressLoggerFactory,

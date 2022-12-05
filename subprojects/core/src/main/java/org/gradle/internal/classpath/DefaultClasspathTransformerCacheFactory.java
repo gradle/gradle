@@ -63,7 +63,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     @Override
     public PersistentCache createCache(GlobalScopedCacheBuilderFactory cacheRepository, FileAccessTimeJournal fileAccessTimeJournal) {
         return cacheRepository
-            .crossVersionCache(CACHE_KEY)
+            .crossVersionCacheBuilder(CACHE_KEY)
             .withDisplayName(CACHE_NAME)
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
