@@ -25,7 +25,7 @@ import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.cache.scopes.GlobalScopedCacheFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
 import org.gradle.caching.local.DirectoryBuildCache;
@@ -50,7 +50,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final CacheRepository cacheRepository;
-    private final GlobalScopedCacheFactory globalScopedCache;
+    private final GlobalScopedCacheBuilderFactory globalScopedCache;
     private final PathToFileResolver resolver;
     private final DirectoryBuildCacheFileStoreFactory fileStoreFactory;
     private final CleanupActionDecorator cleanupActionDecorator;
@@ -58,7 +58,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private final TemporaryFileProvider temporaryFileProvider;
 
     @Inject
-    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, GlobalScopedCacheFactory globalScopedCache, PathToFileResolver resolver, DirectoryBuildCacheFileStoreFactory fileStoreFactory,
+    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, GlobalScopedCacheBuilderFactory globalScopedCache, PathToFileResolver resolver, DirectoryBuildCacheFileStoreFactory fileStoreFactory,
                                              CleanupActionDecorator cleanupActionDecorator, FileAccessTimeJournal fileAccessTimeJournal, TemporaryFileProvider temporaryFileProvider) {
         this.cacheRepository = cacheRepository;
         this.globalScopedCache = globalScopedCache;

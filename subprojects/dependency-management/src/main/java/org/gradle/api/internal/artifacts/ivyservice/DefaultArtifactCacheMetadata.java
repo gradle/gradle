@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import com.google.common.collect.ImmutableList;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.internal.CacheVersion;
-import org.gradle.cache.scopes.GlobalScopedCacheFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 
 import java.io.File;
 import java.util.List;
@@ -30,13 +30,13 @@ public class DefaultArtifactCacheMetadata implements ArtifactCacheMetadata, Glob
     private final File transformsDir;
     private final File baseDir;
 
-    public DefaultArtifactCacheMetadata(GlobalScopedCacheFactory globalScopedCache) {
+    public DefaultArtifactCacheMetadata(GlobalScopedCacheBuilderFactory globalScopedCache) {
         this.baseDir = globalScopedCache.getRootDir();
         this.cacheDir = globalScopedCache.baseDirForCrossVersionCache(CacheLayout.ROOT.getKey());
         this.transformsDir = globalScopedCache.baseDirForCrossVersionCache(CacheLayout.TRANSFORMS.getKey());
     }
 
-    public DefaultArtifactCacheMetadata(GlobalScopedCacheFactory globalScopedCache, File baseDir) {
+    public DefaultArtifactCacheMetadata(GlobalScopedCacheBuilderFactory globalScopedCache, File baseDir) {
         this(globalScopedCache.newScopedCache(baseDir));
     }
 

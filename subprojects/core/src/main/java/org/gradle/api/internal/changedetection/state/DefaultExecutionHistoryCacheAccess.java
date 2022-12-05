@@ -17,7 +17,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.scopes.ScopedCacheFactory;
+import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
 
 import java.io.Closeable;
@@ -27,7 +27,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class DefaultExecutionHistoryCacheAccess implements ExecutionHistoryCacheAccess, Closeable {
     private final PersistentCache cache;
 
-    public DefaultExecutionHistoryCacheAccess(ScopedCacheFactory cacheRepository) {
+    public DefaultExecutionHistoryCacheAccess(ScopedCacheBuilderFactory cacheRepository) {
         this.cache = cacheRepository
             .cache("executionHistory")
             .withDisplayName("execution history cache")

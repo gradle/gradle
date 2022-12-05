@@ -31,7 +31,7 @@ import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
-import org.gradle.cache.scopes.GlobalScopedCacheFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Try;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
@@ -57,7 +57,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
     }
 
     ArtifactCachesProvider createArtifactCaches(
-        GlobalScopedCacheFactory globalScopedCache,
+        GlobalScopedCacheBuilderFactory globalScopedCache,
         CacheRepository cacheRepository,
         DefaultArtifactCaches.WritableArtifactCacheLockingParameters parameters,
         ListenerManager listenerManager,
@@ -78,7 +78,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
         return artifactCachesProvider;
     }
 
-    ExecutionHistoryCacheAccess createExecutionHistoryCacheAccess(GlobalScopedCacheFactory cacheRepository) {
+    ExecutionHistoryCacheAccess createExecutionHistoryCacheAccess(GlobalScopedCacheBuilderFactory cacheRepository) {
         return new DefaultExecutionHistoryCacheAccess(cacheRepository);
     }
 

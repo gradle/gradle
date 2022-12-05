@@ -20,7 +20,7 @@ import org.apache.commons.io.FileUtils
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.scopes.GlobalScopedCacheFactory
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.junit.Rule
@@ -35,7 +35,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    def cacheRepository = Mock(GlobalScopedCacheFactory)
+    def cacheRepository = Mock(GlobalScopedCacheBuilderFactory)
     def gradleVersion = GradleVersion.current().version
     def cacheBuilder = Mock(CacheBuilder)
     def cache = Mock(PersistentCache)

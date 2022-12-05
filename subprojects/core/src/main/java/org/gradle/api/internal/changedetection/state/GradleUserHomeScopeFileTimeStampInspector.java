@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.cache.scopes.GlobalScopedCacheFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -40,7 +40,7 @@ public class GradleUserHomeScopeFileTimeStampInspector extends FileTimeStampInsp
     private final Set<String> filesWithCurrentTimestamp = new HashSet<>();
     private boolean isCurrentTimestampHighPrecision;
 
-    public GradleUserHomeScopeFileTimeStampInspector(GlobalScopedCacheFactory globalScopedCache) {
+    public GradleUserHomeScopeFileTimeStampInspector(GlobalScopedCacheBuilderFactory globalScopedCache) {
         super(globalScopedCache.baseDirForCache("file-changes"));
     }
 

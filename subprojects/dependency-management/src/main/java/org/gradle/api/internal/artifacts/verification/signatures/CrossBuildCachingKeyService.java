@@ -29,7 +29,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
-import org.gradle.cache.scopes.GlobalScopedCacheFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -71,7 +71,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
     private final ProducerGuard<Long> longIdGuard = ProducerGuard.adaptive();
 
     public CrossBuildCachingKeyService(
-            GlobalScopedCacheFactory cacheRepository,
+            GlobalScopedCacheBuilderFactory cacheRepository,
             InMemoryCacheDecoratorFactory decoratorFactory,
             BuildOperationExecutor buildOperationExecutor,
             PublicKeyService delegate,

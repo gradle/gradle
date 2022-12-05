@@ -29,7 +29,7 @@ import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.internal.UnusedVersionsCacheCleanup;
 import org.gradle.cache.internal.UsedGradleVersions;
-import org.gradle.cache.scopes.GlobalScopedCacheFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
@@ -61,7 +61,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     }
 
     @Override
-    public PersistentCache createCache(GlobalScopedCacheFactory cacheRepository, FileAccessTimeJournal fileAccessTimeJournal) {
+    public PersistentCache createCache(GlobalScopedCacheBuilderFactory cacheRepository, FileAccessTimeJournal fileAccessTimeJournal) {
         return cacheRepository
             .crossVersionCache(CACHE_KEY)
             .withDisplayName(CACHE_NAME)

@@ -17,9 +17,9 @@
 package org.gradle.internal.scopeids;
 
 import org.gradle.cache.PersistentStateCache;
-import org.gradle.cache.scopes.BuildTreeScopedCacheFactory;
-import org.gradle.cache.scopes.GlobalScopedCacheFactory;
-import org.gradle.cache.scopes.ScopedCacheFactory;
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.scopeids.id.UserScopeId;
@@ -37,10 +37,10 @@ class DefaultPersistentScopeIdLoader implements PersistentScopeIdLoader {
 
     private final Factory<UniqueId> generator;
     private final PersistentScopeIdStoreFactory storeFactory;
-    private final GlobalScopedCacheFactory globalScopedCache;
-    private final BuildTreeScopedCacheFactory buildTreeScopedCache;
+    private final GlobalScopedCacheBuilderFactory globalScopedCache;
+    private final BuildTreeScopedCacheBuilderFactory buildTreeScopedCache;
 
-    DefaultPersistentScopeIdLoader(GlobalScopedCacheFactory globalScopedCache, BuildTreeScopedCacheFactory buildTreeScopedCache, PersistentScopeIdStoreFactory storeFactory, Factory<UniqueId> generator) {
+    DefaultPersistentScopeIdLoader(GlobalScopedCacheBuilderFactory globalScopedCache, BuildTreeScopedCacheBuilderFactory buildTreeScopedCache, PersistentScopeIdStoreFactory storeFactory, Factory<UniqueId> generator) {
         this.globalScopedCache = globalScopedCache;
         this.buildTreeScopedCache = buildTreeScopedCache;
         this.generator = generator;
@@ -61,13 +61,13 @@ class DefaultPersistentScopeIdLoader implements PersistentScopeIdLoader {
 
     // This method is effectively part of a cross Gradle version contract.
     // User scope is expected to be persisted in the global cache since 4.0.
-    private GlobalScopedCacheFactory userScopeCacheScopeMarker() {
+    private GlobalScopedCacheBuilderFactory userScopeCacheScopeMarker() {
         return globalScopedCache;
     }
 
     // This method is effectively part of a cross Gradle version contract.
     // Workspace scope is expected to be persisted in the project cache dir since 4.0.
-    private BuildTreeScopedCacheFactory workspaceScopeCacheScopeMarker() {
+    private BuildTreeScopedCacheBuilderFactory workspaceScopeCacheScopeMarker() {
         return buildTreeScopedCache;
     }
 
@@ -87,17 +87,17 @@ class DefaultPersistentScopeIdLoader implements PersistentScopeIdLoader {
     }
 
     private PersistentStateCache<UniqueId> store(ScopeParams params) {
-        File file = params.scopedCacheFactory.baseDirForCrossVersionCache(params.fileName);
+        File file = params.scopedCacheBuilderFactory.baseDirForCrossVersionCache(params.fileName);
         return storeFactory.create(file, params.description);
     }
 
     private static class ScopeParams {
-        private final ScopedCacheFactory scopedCacheFactory;
+        private final ScopedCacheBuilderFactory scopedCacheBuilderFactory;
         private final String fileName;
         private final String description;
 
-        private ScopeParams(ScopedCacheFactory scopedCacheFactory, String fileName, String description) {
-            this.scopedCacheFactory = scopedCacheFactory;
+        private ScopeParams(ScopedCacheBuilderFactory scopedCacheBuilderFactory, String fileName, String description) {
+            this.scopedCacheBuilderFactory = scopedCacheBuilderFactory;
             this.fileName = fileName;
             this.description = description;
         }

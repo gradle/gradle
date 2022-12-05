@@ -17,16 +17,16 @@
 package org.gradle.internal.scopeids
 
 import org.gradle.cache.PersistentStateCache
-import org.gradle.cache.scopes.BuildTreeScopedCacheFactory
-import org.gradle.cache.scopes.GlobalScopedCacheFactory
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.Factory
 import org.gradle.internal.id.UniqueId
 import spock.lang.Specification
 
 class PersistentScopeIdLoaderTest extends Specification {
     def projectCacheDirDir = Mock(File)
-    def globalScopedCache = Mock(GlobalScopedCacheFactory)
-    def buildTreeScopedCache = Mock(BuildTreeScopedCacheFactory)
+    def globalScopedCache = Mock(GlobalScopedCacheBuilderFactory)
+    def buildTreeScopedCache = Mock(BuildTreeScopedCacheBuilderFactory)
     def storeFile = Mock(File)
     def storeFactory = Mock(PersistentScopeIdStoreFactory)
     def idFactory = Mock(Factory) as Factory<UniqueId>

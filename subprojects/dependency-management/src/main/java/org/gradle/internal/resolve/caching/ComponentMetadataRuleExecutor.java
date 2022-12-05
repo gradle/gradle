@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
 import org.gradle.cache.internal.InMemoryCacheController;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.scopes.GlobalScopedCacheFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -49,7 +49,7 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
     private final Serializer<ModuleComponentResolveMetadata> componentMetadataContextSerializer;
 
     public ComponentMetadataRuleExecutor(
-            GlobalScopedCacheFactory globalScopedCache,
+            GlobalScopedCacheBuilderFactory globalScopedCache,
             InMemoryCacheDecoratorFactory cacheDecoratorFactory,
             ValueSnapshotter snapshotter,
             BuildCommencedTimeProvider timeProvider,

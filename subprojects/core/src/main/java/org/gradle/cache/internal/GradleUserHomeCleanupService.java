@@ -17,7 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.cache.scopes.GlobalScopedCacheFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.cache.MonitoredCleanupAction;
 import org.gradle.internal.cache.MonitoredCleanupActionDecorator;
@@ -31,7 +31,7 @@ import java.io.File;
 public class GradleUserHomeCleanupService implements Stoppable {
     private final Deleter deleter;
     private final GradleUserHomeDirProvider userHomeDirProvider;
-    private final GlobalScopedCacheFactory globalScopedCache;
+    private final GlobalScopedCacheBuilderFactory globalScopedCache;
     private final UsedGradleVersions usedGradleVersions;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final MonitoredCleanupActionDecorator cleanupActionDecorator;
@@ -41,7 +41,7 @@ public class GradleUserHomeCleanupService implements Stoppable {
     public GradleUserHomeCleanupService(
         Deleter deleter,
         GradleUserHomeDirProvider userHomeDirProvider,
-        GlobalScopedCacheFactory globalScopedCache,
+        GlobalScopedCacheBuilderFactory globalScopedCache,
         UsedGradleVersions usedGradleVersions,
         ProgressLoggerFactory progressLoggerFactory,
         MonitoredCleanupActionDecorator cleanupActionDecorator,

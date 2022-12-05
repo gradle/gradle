@@ -21,7 +21,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.scopes.ScopedCacheFactory;
+import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 
 import java.io.Closeable;
 
@@ -32,9 +32,9 @@ public class CrossBuildFileHashCache implements Closeable {
     private final PersistentCache cache;
     private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
 
-    public CrossBuildFileHashCache(ScopedCacheFactory scopedCacheFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Kind cacheKind) {
+    public CrossBuildFileHashCache(ScopedCacheBuilderFactory scopedCacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Kind cacheKind) {
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
-        cache = scopedCacheFactory.cache(cacheKind.cacheId)
+        cache = scopedCacheBuilderFactory.cache(cacheKind.cacheId)
             .withDisplayName(cacheKind.description)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();

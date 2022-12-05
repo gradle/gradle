@@ -80,9 +80,9 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.BuildScopeCacheDir;
-import org.gradle.cache.internal.scopes.DefaultBuildScopedCacheFactory;
-import org.gradle.cache.scopes.BuildScopedCacheFactory;
-import org.gradle.cache.scopes.GlobalScopedCacheFactory;
+import org.gradle.cache.internal.scopes.DefaultBuildScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.caching.internal.BuildCacheServices;
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer;
 import org.gradle.configuration.BuildTreePreparingProjectsPreparer;
@@ -264,14 +264,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new ExecutionNodeAccessHierarchies(fileSystem.isCaseSensitive() ? CaseSensitivity.CASE_SENSITIVE : CaseSensitivity.CASE_INSENSITIVE, stat);
     }
 
-    protected BuildScopedCacheFactory createBuildScopedCache(
+    protected BuildScopedCacheBuilderFactory createBuildScopedCache(
         GradleUserHomeDirProvider userHomeDirProvider,
         BuildLayout buildLayout,
         StartParameter startParameter,
         CacheRepository cacheRepository
     ) {
         BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLayout, startParameter);
-        return new DefaultBuildScopedCacheFactory(cacheDir.getDir(), cacheRepository);
+        return new DefaultBuildScopedCacheBuilderFactory(cacheDir.getDir(), cacheRepository);
     }
 
     protected BuildLayout createBuildLayout(BuildLayoutFactory buildLayoutFactory, BuildDefinition buildDefinition) {
@@ -431,7 +431,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
         BuildOperationExecutor buildOperationExecutor,
-        GlobalScopedCacheFactory cacheRepository,
+        GlobalScopedCacheBuilderFactory cacheRepository,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         DefaultScriptCompilationHandler scriptCompilationHandler,
         CachedClasspathTransformer classpathTransformer,

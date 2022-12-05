@@ -31,7 +31,7 @@ import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.internal.CleanupActionDecorator;
-import org.gradle.cache.scopes.BuildTreeScopedCacheFactory;
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.service.ServiceRegistration;
@@ -112,15 +112,15 @@ public class VersionControlServices extends AbstractPluginServiceRegistry {
                 .toComposite();
         }
 
-        VersionControlRepositoryConnectionFactory createVersionControlSystemFactory(CleanupActionDecorator cleanupActionDecorator, BuildTreeScopedCacheFactory scopedCache) {
+        VersionControlRepositoryConnectionFactory createVersionControlSystemFactory(CleanupActionDecorator cleanupActionDecorator, BuildTreeScopedCacheBuilderFactory scopedCache) {
             return new DefaultVersionControlRepositoryFactory(scopedCache, cleanupActionDecorator);
         }
 
-        VcsDirectoryLayout createVcsWorkingDirectoryRoot(BuildTreeScopedCacheFactory scopedCache) {
+        VcsDirectoryLayout createVcsWorkingDirectoryRoot(BuildTreeScopedCacheBuilderFactory scopedCache) {
             return new VcsDirectoryLayout(scopedCache);
         }
 
-        PersistentVcsMetadataCache createMetadataCache(BuildTreeScopedCacheFactory scopedCache) {
+        PersistentVcsMetadataCache createMetadataCache(BuildTreeScopedCacheBuilderFactory scopedCache) {
             return new PersistentVcsMetadataCache(scopedCache);
         }
     }

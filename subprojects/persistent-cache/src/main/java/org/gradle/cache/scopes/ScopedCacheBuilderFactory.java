@@ -20,7 +20,7 @@ import org.gradle.cache.CacheBuilder;
 
 import java.io.File;
 
-public interface ScopedCacheFactory {
+public interface ScopedCacheBuilderFactory {
     /**
      * Creates a Gradle-version specific cache in this scope. See {@link org.gradle.cache.CacheRepository#cache(String)}.
      *

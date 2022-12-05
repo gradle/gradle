@@ -124,8 +124,8 @@ import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
-import org.gradle.cache.scopes.BuildScopedCacheFactory;
-import org.gradle.cache.scopes.GlobalScopedCacheFactory;
+import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
@@ -616,7 +616,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     ComponentMetadataRuleExecutor createComponentMetadataRuleExecutor(ValueSnapshotter valueSnapshotter,
-                                                                      GlobalScopedCacheFactory globalScopedCache,
+                                                                      GlobalScopedCacheBuilderFactory globalScopedCache,
                                                                       InMemoryCacheDecoratorFactory cacheDecoratorFactory,
                                                                       BuildCommencedTimeProvider timeProvider,
                                                                       ModuleComponentResolveMetadataSerializer serializer) {
@@ -624,7 +624,7 @@ class DependencyManagementBuildScopeServices {
     }
 
     ComponentMetadataSupplierRuleExecutor createComponentMetadataSupplierRuleExecutor(ValueSnapshotter snapshotter,
-                                                                                      GlobalScopedCacheFactory globalScopedCache,
+                                                                                      GlobalScopedCacheBuilderFactory globalScopedCache,
                                                                                       InMemoryCacheDecoratorFactory cacheDecoratorFactory,
                                                                                       final BuildCommencedTimeProvider timeProvider,
                                                                                       SuppliedComponentMetadataSerializer suppliedComponentMetadataSerializer,
@@ -641,12 +641,12 @@ class DependencyManagementBuildScopeServices {
     }
 
     SignatureVerificationServiceFactory createSignatureVerificationServiceFactory(
-            GlobalScopedCacheFactory globalScopedCache,
+            GlobalScopedCacheBuilderFactory globalScopedCache,
             InMemoryCacheDecoratorFactory decoratorFactory,
             RepositoryTransportFactory transportFactory,
             BuildOperationExecutor buildOperationExecutor,
             BuildCommencedTimeProvider timeProvider,
-            BuildScopedCacheFactory buildScopedCache,
+            BuildScopedCacheBuilderFactory buildScopedCache,
             FileHasher fileHasher,
             StartParameter startParameter) {
         return new DefaultSignatureVerificationServiceFactory(transportFactory, globalScopedCache, decoratorFactory, buildOperationExecutor, fileHasher, buildScopedCache, timeProvider, startParameter.isRefreshKeys());

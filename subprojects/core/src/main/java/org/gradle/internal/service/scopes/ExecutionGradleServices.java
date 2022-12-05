@@ -22,7 +22,7 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.scopes.BuildScopedCacheFactory;
+import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -82,7 +82,7 @@ import java.util.function.Supplier;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class ExecutionGradleServices {
-    ExecutionHistoryCacheAccess createCacheAccess(BuildScopedCacheFactory cacheRepository) {
+    ExecutionHistoryCacheAccess createCacheAccess(BuildScopedCacheBuilderFactory cacheRepository) {
         return new DefaultExecutionHistoryCacheAccess(cacheRepository);
     }
 
@@ -100,7 +100,7 @@ public class ExecutionGradleServices {
         );
     }
 
-    OutputFilesRepository createOutputFilesRepository(BuildScopedCacheFactory cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    OutputFilesRepository createOutputFilesRepository(BuildScopedCacheBuilderFactory cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         PersistentCache cacheAccess = cacheRepository
             .crossVersionCache("buildOutputCleanup")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
