@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.jvm.JavaClassUtil
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
@@ -26,8 +27,6 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     fun `scripts are compiled using the build jvm target`() {
-
-        assumeJava11OrHigher()
 
         withClassJar("utils.jar", JavaClassUtil::class.java)
 
@@ -44,9 +43,8 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
         """)
 
         build("help").apply {
-            assertThat(output, containsString("Java Class Major Version = 55"))
+            assertThat(output, containsString("Java Class Major Version = ${JavaClassUtil.getClassMajorVersion(JavaVersion.current())}"))
         }
-
     }
 
     @Test
