@@ -1048,3 +1048,42 @@ Alternatively, for Kotlin implementations, the Kotlin compiler can be configured
 include::sample[dir="snippets/configurationCache/samConversion/groovy",files="build.gradle[tags=configure]"]
 include::sample[dir="snippets/configurationCache/samConversion/kotlin",files="build.gradle.kts[tags=configure]"]
 ====
+
+[[config_cache:not_yet_implemented:accessing_top_level_at_execution]]
+=== Accessing top-level methods and variables of a build script at execution time
+
+A common approach to reuse logic and data in a build script is to extract repeating bits into top-level methods and variables.
+However, calling such methods at execution time is not currently supported if the configuration cache is enabled.
+
+For builds scripts written in Groovy, the task fails because the method cannot be found.
+The following snippet uses a top-level method in the `listFiles` task:
+====
+include::sample[dir="snippets/configurationCache/topLevel/groovy",files="build.gradle[tags=not-supported]"]
+====
+
+The first time you run this task, it succeeds. Re-running the task with the configuration cache enabled produces the following error:
+----
+include::{snippetsPath}/configurationCache/topLevel/tests-groovy/notSupported.out[]
+----
+
+To prevent the task from failing when loaded from the configuration cache, convert the referenced top-level method to a static method within a class:
+====
+include::sample[dir="snippets/configurationCache/topLevel/groovy",files="build.gradle[tags=workaround]"]
+====
+
+Build scripts written in Kotlin cannot store tasks that reference top-level methods or variables at execution time in the configuration cache at all.
+This limitation exists because the captured script object references cannot be serialized.
+The first run of the Kotlin version of the `listFiles` task fails with the configuration cache problem.
+
+====
+include::sample[dir="snippets/configurationCache/topLevel/kotlin",files="build.gradle.kts[tags=not-supported]"]
+====
+
+To make the Kotlin version of this task compatible with the configuration cache, make the following changes:
+====
+include::sample[dir="snippets/configurationCache/topLevel/kotlin",files="build.gradle.kts[tags=workaround]"]
+====
+<1> Define the method inside an object.
+<2> Define the variable in a smaller scope.
+
+See link:{gradle-issues}22879[gradle/gradle#22879].

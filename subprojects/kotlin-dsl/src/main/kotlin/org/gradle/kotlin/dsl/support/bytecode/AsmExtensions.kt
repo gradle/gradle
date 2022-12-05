@@ -54,7 +54,7 @@ fun beginClass(
     interfaces: List<InternalName>? = null
 ): ClassWriter = ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES).apply {
     visit(
-        Opcodes.V1_8,
+        GradleJvmVersion.minimalAsmClassVersion,
         modifiers,
         name.value,
         null,
