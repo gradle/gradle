@@ -14,11 +14,12 @@ For an overview of dependency management terms, see <<dependency_management_term
 [[sec:dependency-mgmt-in-gradle]]
 == Dependency Management in Gradle
 
-Gradle has built-in support for dependency management.
-We’ll explore the main concepts with the help of the theoretical project illustrated below:
-
 [.inset]
 image::dependency-management-resolution.png[]
+
+Gradle has built-in support for dependency management.
+
+We’ll explore the main concepts with the help of the theoretical but common project to define terms:
 
 * This project builds Java source code.
 * Some of the Java source files import classes from link:https://github.com/google/guava[Google Guava], a open-source library.
