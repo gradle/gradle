@@ -66,7 +66,7 @@ class BuildSessionServiceReuseContinuousIntegrationTest extends AbstractContinuo
         where:
         service                          | _
         "WorkerProcessFactory"           | _
-        "CacheRepository"                | _
+        "CacheBuilderFactory"            | _
         "WorkerProcessClassPathProvider" | _
     }
 }
