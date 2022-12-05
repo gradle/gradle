@@ -52,9 +52,9 @@ abstract class BasicZincScalaCompilerIntegrationTest extends MultiVersionIntegra
         file("build/classes/scala/main").assertIsEmptyDir()
 
         if (versionNumber.major >= 3) {
-            result.assertHasErrorOutput("src/main/scala/compile/test/Person.scala:5:28: Found:    (42 : Int)\nRequired: String")
+            result.assertHasErrorOutput("src/main/scala/compile/test/Person.scala:4:28: Found:    (42 : Int)\nRequired: String")
         } else {
-            result.assertHasErrorOutput("src/main/scala/compile/test/Person.scala:5:28: type mismatch;\n found   : Int(42)\n required: String")
+            result.assertHasErrorOutput("src/main/scala/compile/test/Person.scala:4:28: type mismatch;\n found   : Int(42)\n required: String")
         }
     }
 
@@ -141,9 +141,9 @@ abstract class BasicZincScalaCompilerIntegrationTest extends MultiVersionIntegra
         file("build/classes/scala/main").assertIsEmptyDir()
 
         if (versionNumber.major >= 3) {
-            result.assertHasErrorOutput("src/main/scala/compile/test/Person.scala:5:28: Found:    (42 : Int)\nRequired: String")
+            result.assertHasErrorOutput("src/main/scala/compile/test/Person.scala:4:28: Found:    (42 : Int)\nRequired: String")
         } else {
-            result.assertHasErrorOutput("src/main/scala/compile/test/Person.scala:5:28: type mismatch;\n found   : Int(42)\n required: String")
+            result.assertHasErrorOutput("src/main/scala/compile/test/Person.scala:4:28: type mismatch;\n found   : Int(42)\n required: String")
         }
     }
 
@@ -270,13 +270,11 @@ abstract class BasicZincScalaCompilerIntegrationTest extends MultiVersionIntegra
     }
 
     def badCode() {
-        file("src/main/scala/compile/test/Person.scala") << """
-            package compile.test
+        file("src/main/scala/compile/test/Person.scala") << """package compile.test
 
-            class Person(val name: String, val age: Int) {
-                def hello() : String = 42
-            }
-        """.stripIndent()
+class Person(val name: String, val age: Int) {
+    def hello() : String = 42
+}"""
     }
 
     def goodCodeUsingJavaInterface() {
