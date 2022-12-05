@@ -1061,12 +1061,12 @@ The following snippet uses a top-level method in the `listFiles` task:
 include::sample[dir="snippets/configurationCache/topLevel/groovy",files="build.gradle[tags=not-supported]"]
 ====
 
-The first time you run this task, it succeeds. Re-running the task with the configuration cache enabled produces the following error:
+Running the task with the configuration cache enabled produces the following error:
 ----
 include::{snippetsPath}/configurationCache/topLevel/tests-groovy/notSupported.out[]
 ----
 
-To prevent the task from failing when loaded from the configuration cache, convert the referenced top-level method to a static method within a class:
+To prevent the task from failing, convert the referenced top-level method to a static method within a class:
 ====
 include::sample[dir="snippets/configurationCache/topLevel/groovy",files="build.gradle[tags=workaround]"]
 ====
