@@ -135,8 +135,8 @@ project(':consumer') {
         assertResolveOutput("""
             files: [main, api-1.0.jar, compile-only-api-1.0.jar]
             main (project :java) {artifactType=java-classes-directory, org.gradle.category=library, org.gradle.compile-view=java-api, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes, org.gradle.usage=java-api}
-            api-1.0.jar (test:api:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-internal, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
-            compile-only-api-1.0.jar (test:compile-only-api:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-internal, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
+            api-1.0.jar (test:api:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
+            compile-only-api-1.0.jar (test:compile-only-api:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
         """)
 
         where:
@@ -164,11 +164,11 @@ project(':consumer') {
             files: [java.jar, file-dep.jar, api-1.0.jar, compile-only-1.0.jar, compile-only-api-1.0.jar, other-java.jar, implementation-1.0.jar]
             java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-internal, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
             file-dep.jar {artifactType=jar, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}
-            api-1.0.jar (test:api:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-internal, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
-            compile-only-1.0.jar (test:compile-only:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-internal, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
-            compile-only-api-1.0.jar (test:compile-only-api:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-internal, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
+            api-1.0.jar (test:api:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
+            compile-only-1.0.jar (test:compile-only:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
+            compile-only-api-1.0.jar (test:compile-only-api:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
             other-java.jar (project :other-java) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-internal, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
-            implementation-1.0.jar (test:implementation:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.compile-view=java-internal, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
+            implementation-1.0.jar (test:implementation:1.0) {artifactType=jar, org.gradle.category=library, org.gradle.libraryelements=jar, org.gradle.status=release, org.gradle.usage=java-api}
         """)
 
         where:
