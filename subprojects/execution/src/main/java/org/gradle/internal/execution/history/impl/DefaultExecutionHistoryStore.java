@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Interner;
 import org.gradle.cache.CacheDecorator;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.IndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.execution.history.AfterExecutionState;
@@ -38,7 +38,7 @@ import static com.google.common.collect.Maps.transformValues;
 
 public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
-    private final PersistentIndexedCache<String, PreviousExecutionState> store;
+    private final IndexedCache<String, PreviousExecutionState> store;
 
     public DefaultExecutionHistoryStore(
         Supplier<PersistentCache> cache,

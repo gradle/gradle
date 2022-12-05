@@ -17,8 +17,8 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.IndexedCache;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -33,7 +33,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 @ServiceScope(Scopes.Gradle.class)
 public class DefaultCompilationStateCacheFactory implements CompilationStateCacheFactory, Closeable {
 
-    private final PersistentIndexedCache<String, CompilationState> compilationStateIndexedCache;
+    private final IndexedCache<String, CompilationState> compilationStateIndexedCache;
     private final PersistentCache cache;
 
     public DefaultCompilationStateCacheFactory(BuildScopedCacheBuilderFactory cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
@@ -60,9 +60,9 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
 
     private static class PersistentCompilationStateCache implements PersistentStateCache<CompilationState> {
         private final String taskPath;
-        private final PersistentIndexedCache<String, CompilationState> compilationStateIndexedCache;
+        private final IndexedCache<String, CompilationState> compilationStateIndexedCache;
 
-        PersistentCompilationStateCache(String taskPath, PersistentIndexedCache<String, CompilationState> compilationStateIndexedCache) {
+        PersistentCompilationStateCache(String taskPath, IndexedCache<String, CompilationState> compilationStateIndexedCache) {
             this.taskPath = taskPath;
             this.compilationStateIndexedCache = compilationStateIndexedCache;
         }

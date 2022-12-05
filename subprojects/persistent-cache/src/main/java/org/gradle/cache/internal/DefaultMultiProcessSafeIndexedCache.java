@@ -18,18 +18,18 @@ package org.gradle.cache.internal;
 import org.gradle.cache.FileAccess;
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
-import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
+import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.internal.Factory;
 
 import java.util.function.Function;
 
-public class DefaultMultiProcessSafePersistentIndexedCache<K, V> implements MultiProcessSafePersistentIndexedCache<K, V> {
+public class DefaultMultiProcessSafeIndexedCache<K, V> implements MultiProcessSafeIndexedCache<K, V> {
     private final FileAccess fileAccess;
     private final Factory<BTreePersistentIndexedCache<K, V>> factory;
     private BTreePersistentIndexedCache<K, V> cache;
 
-    public DefaultMultiProcessSafePersistentIndexedCache(Factory<BTreePersistentIndexedCache<K, V>> factory, FileAccess fileAccess) {
+    public DefaultMultiProcessSafeIndexedCache(Factory<BTreePersistentIndexedCache<K, V>> factory, FileAccess fileAccess) {
         this.factory = factory;
         this.fileAccess = fileAccess;
     }

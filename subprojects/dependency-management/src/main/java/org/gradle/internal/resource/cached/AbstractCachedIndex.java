@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.cached;
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.IndexedCache;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.serialize.Serializer;
 
@@ -30,7 +30,7 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
     private final ArtifactCacheLockingManager artifactCacheLockingManager;
     private final FileAccessTracker fileAccessTracker;
 
-    private PersistentIndexedCache<K, V> persistentCache;
+    private IndexedCache<K, V> persistentCache;
 
     public AbstractCachedIndex(String persistentCacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, ArtifactCacheLockingManager artifactCacheLockingManager, FileAccessTracker fileAccessTracker) {
 
@@ -41,14 +41,14 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
         this.fileAccessTracker = fileAccessTracker;
     }
 
-    private PersistentIndexedCache<K, V> getPersistentCache() {
+    private IndexedCache<K, V> getPersistentCache() {
         if (persistentCache == null) {
             persistentCache = initPersistentCache();
         }
         return persistentCache;
     }
 
-    private PersistentIndexedCache<K, V> initPersistentCache() {
+    private IndexedCache<K, V> initPersistentCache() {
         return artifactCacheLockingManager.createCache(persistentCacheName, keySerializer, valueSerializer);
     }
 

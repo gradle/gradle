@@ -20,9 +20,9 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanup;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.IndexedCache;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
@@ -195,12 +195,12 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
-        public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
+        public <K, V> IndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
             return reference.cache.createCache(parameters);
         }
 
         @Override
-        public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
+        public <K, V> IndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
             return reference.cache.createCache(name, keyType, valueSerializer);
         }
 

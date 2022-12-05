@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.IndexedCache;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContextHasher;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
@@ -31,9 +31,9 @@ import java.io.IOException;
 
 public class DefaultResourceSnapshotterCacheService implements ResourceSnapshotterCacheService {
     private static final HashCode NO_HASH = Hashing.signature(CachingResourceHasher.class.getName() + " : no hash");
-    private final PersistentIndexedCache<HashCode, HashCode> persistentCache;
+    private final IndexedCache<HashCode, HashCode> persistentCache;
 
-    public DefaultResourceSnapshotterCacheService(PersistentIndexedCache<HashCode, HashCode> persistentCache) {
+    public DefaultResourceSnapshotterCacheService(IndexedCache<HashCode, HashCode> persistentCache) {
         this.persistentCache = persistentCache;
     }
 

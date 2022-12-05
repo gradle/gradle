@@ -17,14 +17,14 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.Cache;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.IndexedCache;
 
 import java.util.function.Function;
 
 public class MinimalPersistentCache<K, V> implements Cache<K, V> {
-    private final PersistentIndexedCache<K, V> cache;
+    private final IndexedCache<K, V> cache;
 
-    public MinimalPersistentCache(PersistentIndexedCache<K, V> cache) {
+    public MinimalPersistentCache(IndexedCache<K, V> cache) {
         this.cache = cache;
     }
 

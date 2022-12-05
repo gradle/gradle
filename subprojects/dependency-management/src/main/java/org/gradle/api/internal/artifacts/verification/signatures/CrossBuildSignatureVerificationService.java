@@ -20,7 +20,7 @@ import org.bouncycastle.openpgp.PGPPublicKey;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.IndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
@@ -48,7 +48,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
     private final BuildCommencedTimeProvider timeProvider;
     private final boolean refreshKeys;
     private final PersistentCache store;
-    private final PersistentIndexedCache<CacheKey, CacheEntry> cache;
+    private final IndexedCache<CacheKey, CacheEntry> cache;
     private final boolean useKeyServers;
     private final HashCode keyringFileHash;
 

@@ -19,7 +19,7 @@ package org.gradle.vcs.internal.resolver;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.IndexedCache;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
@@ -37,7 +37,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class PersistentVcsMetadataCache implements Stoppable {
     private static final VersionRefSerializer VALUE_SERIALIZER = new VersionRefSerializer();
     private final PersistentCache cache;
-    private final PersistentIndexedCache<String, VersionRef> workingDirCache;
+    private final IndexedCache<String, VersionRef> workingDirCache;
 
     public PersistentVcsMetadataCache(BuildTreeScopedCacheBuilderFactory scopedCache) {
         cache = scopedCache

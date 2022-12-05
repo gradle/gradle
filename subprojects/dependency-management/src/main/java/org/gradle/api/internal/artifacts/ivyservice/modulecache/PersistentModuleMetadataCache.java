@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Attribu
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.IndexedCache;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.hash.ChecksumService;
@@ -37,7 +37,7 @@ import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
 
-    private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
+    private IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
     private final ModuleMetadataStore moduleMetadataStore;
     private final ArtifactCacheLockingManager artifactCacheLockingManager;
 
@@ -56,20 +56,20 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
         this.artifactCacheLockingManager = artifactCacheLockingManager;
     }
 
-    private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> getCache() {
+    private IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> getCache() {
         if (cache == null) {
             cache = initCache();
         }
         return cache;
     }
 
-    private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> initCache() {
+    private IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> initCache() {
         return artifactCacheLockingManager.createCache("module-metadata", new RevisionKeySerializer(), new ModuleMetadataCacheEntrySerializer());
     }
 
     @Override
     protected CachedMetadata get(ModuleComponentAtRepositoryKey key) {
-        final PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache = getCache();
+        final IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache = getCache();
         return artifactCacheLockingManager.useCache(() -> {
             ModuleMetadataCacheEntry entry = cache.getIfPresent(key);
             if (entry == null) {

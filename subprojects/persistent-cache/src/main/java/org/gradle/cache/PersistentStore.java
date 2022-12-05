@@ -19,7 +19,7 @@ package org.gradle.cache;
 import org.gradle.internal.serialize.Serializer;
 
 /**
- * Represents some data store, made up of zero or more {@link PersistentIndexedCache} instances.
+ * Represents some data store, made up of zero or more {@link IndexedCache} instances.
  *
  * <p>A store may be shared between processes or may be private to this process. When private to this process, the store is transient and the contents are lost when the process exits.</p>
  *
@@ -35,7 +35,7 @@ public interface PersistentStore {
      *
      * <p>The indexed cache may be shared between processes. When shared, the indexed cache may be safely used by multiple processes concurrently. Updates are visible to threads in other processes some point after they are made.</p>
      */
-    <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer);
+    <K, V> IndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer);
 
     /**
      * Flushes any pending changes. This makes the changes persistent and makes them visible to other processes, as relevant for this store. Blocks until complete.

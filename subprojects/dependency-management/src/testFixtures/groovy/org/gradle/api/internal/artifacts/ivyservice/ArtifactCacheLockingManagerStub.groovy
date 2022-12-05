@@ -16,21 +16,22 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.cache.PersistentIndexedCache
+
+import org.gradle.cache.IndexedCache
 import org.gradle.internal.Factory
 import org.gradle.internal.serialize.Serializer
-import org.gradle.testfixtures.internal.TestInMemoryPersistentIndexedCache
+import org.gradle.testfixtures.internal.TestInMemoryIndexedCache
 
 class ArtifactCacheLockingManagerStub implements ArtifactCacheLockingManager {
-    private final Map<String, PersistentIndexedCache<?, ?>> caches = [:]
+    private final Map<String, IndexedCache<?, ?>> caches = [:]
 
-    PersistentIndexedCache<?, ?> getCache(String cacheName) {
+    IndexedCache<?, ?> getCache(String cacheName) {
         caches[cacheName]
     }
 
     @Override
-    <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        def result = new TestInMemoryPersistentIndexedCache<>(valueSerializer)
+    <K, V> IndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        def result = new TestInMemoryIndexedCache<>(valueSerializer)
         caches.put(cacheName, result)
         return result
     }

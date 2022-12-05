@@ -25,7 +25,7 @@ import org.gradle.cache.CleanupAction;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.IndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
@@ -113,16 +113,16 @@ public class WritableArtifactCacheLockingManager implements ArtifactCacheLocking
     }
 
     @Override
-    public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+    public <K, V> IndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         String cacheFileInMetaDataStore = CacheLayout.META_DATA.getKey() + "/" + cacheName;
-        final PersistentIndexedCache<K, V> persistentCache = cache.createCache(PersistentIndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer));
-        return new CacheLockingPersistentCache<>(persistentCache);
+        final IndexedCache<K, V> persistentCache = cache.createCache(PersistentIndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer));
+        return new CacheLockingIndexedCache<>(persistentCache);
     }
 
-    private class CacheLockingPersistentCache<K, V> implements PersistentIndexedCache<K, V> {
-        private final PersistentIndexedCache<K, V> persistentCache;
+    private class CacheLockingIndexedCache<K, V> implements IndexedCache<K, V> {
+        private final IndexedCache<K, V> persistentCache;
 
-        public CacheLockingPersistentCache(PersistentIndexedCache<K, V> persistentCache) {
+        public CacheLockingIndexedCache(IndexedCache<K, V> persistentCache) {
             this.persistentCache = persistentCache;
         }
 

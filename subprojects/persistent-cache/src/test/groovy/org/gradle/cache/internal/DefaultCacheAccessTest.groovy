@@ -23,7 +23,7 @@ import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.FileLockReleasedSignal
 import org.gradle.cache.LockOptions
-import org.gradle.cache.MultiProcessSafePersistentIndexedCache
+import org.gradle.cache.MultiProcessSafeIndexedCache
 import org.gradle.cache.PersistentIndexedCacheParameters
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache
 import org.gradle.internal.Factory
@@ -508,7 +508,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         def cache = access.newCache(PersistentIndexedCacheParameters.of('cache', String.class, Integer.class))
 
         then:
-        cache instanceof MultiProcessSafePersistentIndexedCache
+        cache instanceof MultiProcessSafeIndexedCache
         0 * _._
     }
 
@@ -643,7 +643,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         given:
         CrossProcessCacheAccess cpAccess
-        decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
+        decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafeIndexedCache persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
             cpAccess = crossProcessCacheAccess
             persistentCache
         }
@@ -754,7 +754,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         def access = newAccess(OnDemand)
         def decorator = Mock(CacheDecorator)
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>") >> lock
-        decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
+        decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafeIndexedCache persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
             persistentCache
         }
 
@@ -773,7 +773,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         def access = newAccess(OnDemand)
         def decorator = Mock(CacheDecorator)
         lockManager.lock(lockFile, mode(Exclusive), "<display-name>", "", _) >> lock
-        decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
+        decorator.decorate(_, _, _, _, _) >> { String cacheId, String cacheName, MultiProcessSafeIndexedCache persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess ->
             persistentCache
         }
 

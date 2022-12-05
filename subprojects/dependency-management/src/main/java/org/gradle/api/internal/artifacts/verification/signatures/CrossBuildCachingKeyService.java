@@ -24,7 +24,7 @@ import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.IndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
@@ -64,9 +64,9 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
     private final PublicKeyService delegate;
     private final BuildCommencedTimeProvider timeProvider;
     private final boolean refreshKeys;
-    private final PersistentIndexedCache<Fingerprint, CacheEntry<PGPPublicKeyRing>> publicKeyRings;
+    private final IndexedCache<Fingerprint, CacheEntry<PGPPublicKeyRing>> publicKeyRings;
     // Some long key Id may have collisions. This is extremely unlikely but if it happens, we know how to workaround
-    private final PersistentIndexedCache<Long, CacheEntry<List<Fingerprint>>> longIdToFingerprint;
+    private final IndexedCache<Long, CacheEntry<List<Fingerprint>>> longIdToFingerprint;
     private final ProducerGuard<Fingerprint> fingerPrintguard = ProducerGuard.adaptive();
     private final ProducerGuard<Long> longIdGuard = ProducerGuard.adaptive();
 

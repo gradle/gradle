@@ -28,7 +28,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.InsufficientLockModeException;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.LockTimeoutException;
-import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
+import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
@@ -302,7 +302,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     }
 
     @Override
-    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> newCache(final PersistentIndexedCacheParameters<K, V> parameters) {
+    public <K, V> MultiProcessSafeIndexedCache<K, V> newCache(final PersistentIndexedCacheParameters<K, V> parameters) {
         stateLock.lock();
         IndexedCacheEntry<K, V> entry = Cast.uncheckedCast(caches.get(parameters.getCacheName()));
         try {
@@ -311,7 +311,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 LOG.debug("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
                 Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = () -> doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
 
-                MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
+                MultiProcessSafeIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafeIndexedCache<K, V>(indexedCacheFactory, fileAccess);
                 CacheDecorator decorator = parameters.getCacheDecorator();
                 if (decorator != null) {
                     indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker());
@@ -481,15 +481,15 @@ public class DefaultCacheAccess implements CacheCoordinator {
     }
 
     private static class IndexedCacheEntry<K, V> {
-        private final MultiProcessSafePersistentIndexedCache<K, V> cache;
+        private final MultiProcessSafeIndexedCache<K, V> cache;
         private final PersistentIndexedCacheParameters<K, V> parameters;
 
-        IndexedCacheEntry(PersistentIndexedCacheParameters<K, V> parameters, MultiProcessSafePersistentIndexedCache<K, V> cache) {
+        IndexedCacheEntry(PersistentIndexedCacheParameters<K, V> parameters, MultiProcessSafeIndexedCache<K, V> cache) {
             this.parameters = parameters;
             this.cache = cache;
         }
 
-        public MultiProcessSafePersistentIndexedCache<K, V> getCache() {
+        public MultiProcessSafeIndexedCache<K, V> getCache() {
             return cache;
         }
 

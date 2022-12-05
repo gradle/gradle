@@ -25,7 +25,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.IndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
@@ -62,7 +62,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     private final ValueSnapshotter snapshotter;
     private final Transformer<?, KEY> keyToSnapshottable;
     private final PersistentCache cache;
-    private final PersistentIndexedCache<HashCode, CachedEntry<RESULT>> store;
+    private final IndexedCache<HashCode, CachedEntry<RESULT>> store;
     private final BuildCommencedTimeProvider timeProvider;
     private final EntryValidator<RESULT> validator;
 
