@@ -21,7 +21,7 @@ import com.google.common.collect.Interner;
 import org.gradle.cache.CacheDecorator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
@@ -54,7 +54,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
         CacheDecorator inMemoryCacheDecorator = inMemoryCacheDecoratorFactory.decorator(10000, false);
         this.store = cache.get().createCache(
-            PersistentIndexedCacheParameters.of("executionHistory", String.class, serializer)
+            IndexedCacheParameters.of("executionHistory", String.class, serializer)
             .withCacheDecorator(inMemoryCacheDecorator)
         );
     }

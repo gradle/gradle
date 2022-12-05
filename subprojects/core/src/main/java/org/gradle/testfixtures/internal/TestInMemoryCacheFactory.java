@@ -23,9 +23,9 @@ import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.cache.IndexedCache;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CacheVisitor;
 import org.gradle.internal.Cast;
@@ -120,12 +120,12 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters) {
+        public <K, V> boolean cacheExists(IndexedCacheParameters<K, V> parameters) {
             return true;
         }
 
         @Override
-        public <K, V> IndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
+        public <K, V> IndexedCache<K, V> createCache(IndexedCacheParameters<K, V> parameters) {
             assertNotClosed();
             return createCache(parameters.getCacheName(), parameters.getValueSerializer());
         }

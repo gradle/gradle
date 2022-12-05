@@ -23,9 +23,9 @@ import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
@@ -87,7 +87,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         this.timeProvider = timeProvider;
         this.refreshKeys = refreshKeys;
         FingerprintSerializer fingerprintSerializer = new FingerprintSerializer();
-        PersistentIndexedCacheParameters<Fingerprint, CacheEntry<PGPPublicKeyRing>> keyringParams = PersistentIndexedCacheParameters.of(
+        IndexedCacheParameters<Fingerprint, CacheEntry<PGPPublicKeyRing>> keyringParams = IndexedCacheParameters.of(
             "publickeyrings",
             fingerprintSerializer,
             new PublicKeyRingCacheEntrySerializer()
@@ -96,7 +96,7 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         );
         publicKeyRings = cache.createCache(keyringParams);
 
-        PersistentIndexedCacheParameters<Long, CacheEntry<List<Fingerprint>>> mappingParameters = PersistentIndexedCacheParameters.of(
+        IndexedCacheParameters<Long, CacheEntry<List<Fingerprint>>> mappingParameters = IndexedCacheParameters.of(
             "keymappings",
             BaseSerializerFactory.LONG_SERIALIZER,
             new FingerprintListCacheEntrySerializer(new ListSerializer<>(fingerprintSerializer))

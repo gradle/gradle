@@ -22,7 +22,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
 
@@ -83,7 +83,7 @@ public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLocking
     @Override
     public <K, V> IndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         String cacheFileInMetaDataStore = CacheLayout.META_DATA.getKey() + "/" + cacheName;
-        PersistentIndexedCacheParameters<K, V> parameters = PersistentIndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer);
+        IndexedCacheParameters<K, V> parameters = IndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer);
         if (cache.cacheExists(parameters)) {
             return new TransparentCacheLockingIndexedCache<>(new FailSafeIndexedCache<>(cache.createCache(parameters)));
         }

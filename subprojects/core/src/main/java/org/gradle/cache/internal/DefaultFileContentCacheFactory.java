@@ -19,7 +19,7 @@ package org.gradle.cache.internal;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerManager;
@@ -64,7 +64,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
 
     @Override
     public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, final Calculator<? extends V> calculator, Serializer<V> serializer) {
-        PersistentIndexedCacheParameters<HashCode, V> parameters = PersistentIndexedCacheParameters.of(name, hashCodeSerializer, serializer)
+        IndexedCacheParameters<HashCode, V> parameters = IndexedCacheParameters.of(name, hashCodeSerializer, serializer)
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(normalizedCacheSize, true));
         IndexedCache<HashCode, V> store = cache.createCache(parameters);
 

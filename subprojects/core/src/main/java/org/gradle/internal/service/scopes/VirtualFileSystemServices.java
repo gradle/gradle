@@ -41,7 +41,7 @@ import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.IndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
@@ -300,7 +300,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
         ResourceSnapshotterCacheService createResourceSnapshotterCacheService(CrossBuildFileHashCache store) {
             IndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache(
-                PersistentIndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()),
+                IndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()),
                 400000,
                 true);
             return new DefaultResourceSnapshotterCacheService(resourceHashesCache);
@@ -406,7 +406,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             CrossBuildFileHashCache store,
             ResourceSnapshotterCacheService globalCache
         ) {
-            IndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache(PersistentIndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()), 800000, true);
+            IndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache(IndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()), 800000, true);
             DefaultResourceSnapshotterCacheService localCache = new DefaultResourceSnapshotterCacheService(resourceHashesCache);
             return new SplitResourceSnapshotterCacheService(globalCache, localCache, globalCacheLocations);
         }

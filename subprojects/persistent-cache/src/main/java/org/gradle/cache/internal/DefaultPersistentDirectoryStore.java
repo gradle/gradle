@@ -22,7 +22,7 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.LockOptions;
-import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -169,17 +169,17 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     @Override
-    public <K, V> IndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
+    public <K, V> IndexedCache<K, V> createCache(IndexedCacheParameters<K, V> parameters) {
         return cacheAccess.newCache(parameters);
     }
 
     @Override
     public <K, V> IndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
-        return cacheAccess.newCache(PersistentIndexedCacheParameters.of(name, keyType, valueSerializer));
+        return cacheAccess.newCache(IndexedCacheParameters.of(name, keyType, valueSerializer));
     }
 
     @Override
-    public <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters) {
+    public <K, V> boolean cacheExists(IndexedCacheParameters<K, V> parameters) {
         return cacheAccess.cacheExists(parameters);
     }
 

@@ -21,7 +21,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.internal.hash.FileHasher;
@@ -72,7 +72,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
             .open();
         InterningStringSerializer stringSerializer = new InterningStringSerializer(new StringInterner());
         cache = store.createCache(
-            PersistentIndexedCacheParameters.of(
+            IndexedCacheParameters.of(
                 "signature-verification",
                 new CacheKeySerializer(stringSerializer, new SetSerializer<>(stringSerializer)),
                 new CacheEntrySerializer(stringSerializer)

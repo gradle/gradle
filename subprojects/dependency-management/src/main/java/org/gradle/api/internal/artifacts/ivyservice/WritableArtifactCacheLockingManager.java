@@ -22,11 +22,11 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.cache.CleanupAction;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
@@ -115,7 +115,7 @@ public class WritableArtifactCacheLockingManager implements ArtifactCacheLocking
     @Override
     public <K, V> IndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         String cacheFileInMetaDataStore = CacheLayout.META_DATA.getKey() + "/" + cacheName;
-        final IndexedCache<K, V> persistentCache = cache.createCache(PersistentIndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer));
+        final IndexedCache<K, V> persistentCache = cache.createCache(IndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer));
         return new CacheLockingIndexedCache<>(persistentCache);
     }
 

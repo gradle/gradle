@@ -20,7 +20,7 @@ import org.gradle.internal.serialize.Serializer;
 
 import javax.annotation.Nullable;
 
-public class PersistentIndexedCacheParameters<K, V> {
+public class IndexedCacheParameters<K, V> {
     private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory();
 
     private final String cacheName;
@@ -28,19 +28,19 @@ public class PersistentIndexedCacheParameters<K, V> {
     private final Serializer<V> valueSerializer;
     private final CacheDecorator cacheDecorator;
 
-    public static <K, V> PersistentIndexedCacheParameters<K, V> of(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        return new PersistentIndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer, null);
+    public static <K, V> IndexedCacheParameters<K, V> of(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        return new IndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer, null);
     }
 
-    public static <K, V> PersistentIndexedCacheParameters<K, V> of(String cacheName, Class<K> keyType, Serializer<V> valueSerializer) {
-        return new PersistentIndexedCacheParameters<K, V>(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), valueSerializer, null);
+    public static <K, V> IndexedCacheParameters<K, V> of(String cacheName, Class<K> keyType, Serializer<V> valueSerializer) {
+        return new IndexedCacheParameters<K, V>(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), valueSerializer, null);
     }
 
-    public static <K, V> PersistentIndexedCacheParameters<K, V> of(String cacheName, Class<K> keyType, Class<V> valueType) {
-        return new PersistentIndexedCacheParameters<K, V>(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), SERIALIZER_FACTORY.getSerializerFor(valueType), null);
+    public static <K, V> IndexedCacheParameters<K, V> of(String cacheName, Class<K> keyType, Class<V> valueType) {
+        return new IndexedCacheParameters<K, V>(cacheName, SERIALIZER_FACTORY.getSerializerFor(keyType), SERIALIZER_FACTORY.getSerializerFor(valueType), null);
     }
 
-    private PersistentIndexedCacheParameters(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, @Nullable CacheDecorator cacheDecorator) {
+    private IndexedCacheParameters(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, @Nullable CacheDecorator cacheDecorator) {
         this.cacheName = cacheName;
         this.keySerializer = keySerializer;
         this.valueSerializer = valueSerializer;
@@ -64,7 +64,7 @@ public class PersistentIndexedCacheParameters<K, V> {
         return cacheDecorator;
     }
 
-    public PersistentIndexedCacheParameters<K, V> withCacheDecorator(CacheDecorator cacheDecorator) {
-        return new PersistentIndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer, cacheDecorator);
+    public IndexedCacheParameters<K, V> withCacheDecorator(CacheDecorator cacheDecorator) {
+        return new IndexedCacheParameters<K, V>(cacheName, keySerializer, valueSerializer, cacheDecorator);
     }
 }

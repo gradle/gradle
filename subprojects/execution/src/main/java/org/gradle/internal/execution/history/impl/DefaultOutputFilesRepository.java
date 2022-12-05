@@ -16,9 +16,9 @@
 
 package org.gradle.internal.execution.history.impl;
 
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.snapshot.DirectorySnapshot;
@@ -98,8 +98,8 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
         }
     }
 
-    private static PersistentIndexedCacheParameters<String, Boolean> cacheParameters(InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return PersistentIndexedCacheParameters.of("outputFiles", String.class, Boolean.class)
+    private static IndexedCacheParameters<String, Boolean> cacheParameters(InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        return IndexedCacheParameters.of("outputFiles", String.class, Boolean.class)
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(100000, true));
     }
 

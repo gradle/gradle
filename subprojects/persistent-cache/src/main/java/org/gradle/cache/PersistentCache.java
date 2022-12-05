@@ -47,7 +47,7 @@ public interface PersistentCache extends CacheAccess, Closeable, CleanableStore,
      * In this instance, an exclusive lock will be held on the cache.
      *
      */
-    <K, V> IndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters);
+    <K, V> IndexedCache<K, V> createCache(IndexedCacheParameters<K, V> parameters);
 
     /**
      * Creates an indexed cache implementation that is contained within this store. This method may be used at any time.
@@ -58,7 +58,7 @@ public interface PersistentCache extends CacheAccess, Closeable, CleanableStore,
      */
     <K, V> IndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer);
 
-    <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters);
+    <K, V> boolean cacheExists(IndexedCacheParameters<K, V> parameters);
 
     /**
      * Closes this cache, blocking until all operations are complete.
