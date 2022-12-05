@@ -48,7 +48,7 @@ public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLocking
     public ReadOnlyArtifactCacheLockingManager(CacheRepository cacheRepository,
                                                ArtifactCacheMetadata cacheMetaData) {
         cache = cacheRepository
-            .cache(cacheMetaData.getCacheDir())
+            .cacheBuilder(cacheMetaData.getCacheDir())
             .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
             .withDisplayName("read only artifact cache")
             .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything, it's read-only

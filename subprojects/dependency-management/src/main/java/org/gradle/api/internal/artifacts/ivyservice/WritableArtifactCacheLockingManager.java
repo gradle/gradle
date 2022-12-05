@@ -54,7 +54,7 @@ public class WritableArtifactCacheLockingManager implements ArtifactCacheLocking
                                                CacheConfigurationsInternal cacheConfigurations
                                                ) {
         cache = cacheRepository
-                .cache(cacheMetaData.getCacheDir())
+                .cacheBuilder(cacheMetaData.getCacheDir())
                 .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
                 .withDisplayName("artifact cache")
                 .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Don't need to lock anything until we use the caches

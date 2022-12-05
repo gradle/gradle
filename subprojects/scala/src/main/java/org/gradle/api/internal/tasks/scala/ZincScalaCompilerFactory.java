@@ -107,7 +107,7 @@ public class ZincScalaCompilerFactory {
         String javaVersion = Jvm.current().getJavaVersion().getMajorVersion();
         String zincCacheKey = String.format("zinc-%s_%s_%s", zincVersion, scalaVersion, javaVersion);
         String zincCacheName = String.format("%s compiler cache", zincCacheKey);
-        final PersistentCache zincCache = cacheRepository.cache(zincCacheKey)
+        final PersistentCache zincCache = cacheRepository.cacheBuilder(zincCacheKey)
             .withDisplayName(zincCacheName)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
             .open();

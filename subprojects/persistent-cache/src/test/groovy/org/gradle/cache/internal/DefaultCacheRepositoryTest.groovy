@@ -40,7 +40,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
     void createsGlobalDirectoryBackedCache() {
         when:
-        def result = repository.cache("a/b/c").open()
+        def result = repository.cacheBuilder("a/b/c").open()
 
         then:
         result == cache
@@ -51,7 +51,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
     void createsGlobalCacheWithProperties() {
         when:
-        repository.cache("a/b/c").withProperties(properties).open()
+        repository.cacheBuilder("a/b/c").withProperties(properties).open()
 
         then:
         1 * scopeMapping.getBaseDirectory(null, "a/b/c", VersionStrategy.CachePerVersion) >> sharedCacheDir
@@ -60,7 +60,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
     void createsCacheWithBaseDirectory() {
         when:
-        repository.cache(sharedCacheDir).open()
+        repository.cacheBuilder(sharedCacheDir).open()
 
         then:
         1 * cacheFactory.open(sharedCacheDir, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null) >> cache
@@ -68,7 +68,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
     void createsCrossVersionCache() {
         when:
-        repository.cache("a/b/c").withCrossVersionCache(CacheBuilder.LockTarget.CachePropertiesFile).open()
+        repository.cacheBuilder("a/b/c").withCrossVersionCache(CacheBuilder.LockTarget.CachePropertiesFile).open()
 
         then:
         1 * scopeMapping.getBaseDirectory(null, "a/b/c", VersionStrategy.SharedCache) >> sharedCacheDir
@@ -79,7 +79,7 @@ class DefaultCacheRepositoryTest extends Specification {
         Action<?> action = Mock()
 
         when:
-        repository.cache("a").withInitializer(action).open()
+        repository.cacheBuilder("a").withInitializer(action).open()
 
         then:
         1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir
@@ -88,7 +88,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
     void canSpecifyLockModeForDirectoryCache() {
         when:
-        repository.cache("a").withLockOptions(mode(OnDemand)).open()
+        repository.cacheBuilder("a").withLockOptions(mode(OnDemand)).open()
 
         then:
         1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir
@@ -97,7 +97,7 @@ class DefaultCacheRepositoryTest extends Specification {
 
     void canSpecifyDisplayNameForDirectoryCache() {
         when:
-        repository.cache("a").withDisplayName("<cache>").open()
+        repository.cacheBuilder("a").withDisplayName("<cache>").open()
 
         then:
         1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir

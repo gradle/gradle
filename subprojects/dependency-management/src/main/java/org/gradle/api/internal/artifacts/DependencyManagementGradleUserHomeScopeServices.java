@@ -107,7 +107,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
     ) {
         return new ImmutableTransformationWorkspaceServices(
             cacheRepository
-                .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
+                .cacheBuilder(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
                 .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
                 .withDisplayName("Artifact transforms cache"),
             fileAccessTimeJournal,

@@ -22,14 +22,14 @@ import java.io.File;
 
 public interface ScopedCacheBuilderFactory {
     /**
-     * Creates a builder for Gradle-version specific caches in this scope. See {@link org.gradle.cache.CacheRepository#cache(String)}.
+     * Creates a builder for Gradle-version specific caches in this scope. See {@link org.gradle.cache.CacheRepository#cacheBuilder(String)}.
      *
      * @param key A unique name for the cache.
      */
     CacheBuilder cacheBuilder(String key);
 
     /**
-     * Creates a builder for cross Gradle version caches in this scope. See {@link org.gradle.cache.CacheRepository#cache(String)}.
+     * Creates a builder for cross Gradle version caches in this scope. See {@link org.gradle.cache.CacheRepository#cacheBuilder(String)}.
      *
      * @param key A unique name for the cache.
      */

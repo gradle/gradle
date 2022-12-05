@@ -87,7 +87,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
 
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
         PersistentCache persistentCache = cacheRepository
-            .cache(target)
+            .cacheBuilder(target)
             .withCleanup(createCacheCleanup(removeUnusedEntriesAfterDays))
             .withDisplayName("Build cache")
             .withLockOptions(mode(OnDemand))

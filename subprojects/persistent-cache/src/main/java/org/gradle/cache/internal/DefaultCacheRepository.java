@@ -39,12 +39,12 @@ public class DefaultCacheRepository implements CacheRepository {
     }
 
     @Override
-    public CacheBuilder cache(String key) {
+    public CacheBuilder cacheBuilder(String key) {
         return new PersistentCacheBuilder(key);
     }
 
     @Override
-    public CacheBuilder cache(File baseDir) {
+    public CacheBuilder cacheBuilder(File baseDir) {
         return new PersistentCacheBuilder(baseDir);
     }
 

@@ -60,7 +60,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * config.getRemoveUnusedEntriesAfterDays() >> 10
         1 * globalScopedCache.baseDirForCrossVersionCache("build-cache-1") >> cacheDir
         1 * fileStoreFactory.createFileStore(cacheDir) >> Mock(PathKeyFileStore)
-        1 * cacheRepository.cache(cacheDir) >> cacheBuilder
+        1 * cacheRepository.cacheBuilder(cacheDir) >> cacheBuilder
         1 * cleanupActionDecorator.decorate(_) >> Mock(CleanupAction)
         0 * _
     }
@@ -76,7 +76,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
         1 * config.getRemoveUnusedEntriesAfterDays() >> 10
         1 * resolver.resolve(cacheDir) >> cacheDir
         1 * fileStoreFactory.createFileStore(cacheDir) >> Mock(PathKeyFileStore)
-        1 * cacheRepository.cache(cacheDir) >> cacheBuilder
+        1 * cacheRepository.cacheBuilder(cacheDir) >> cacheBuilder
         1 * cleanupActionDecorator.decorate(_) >> Mock(CleanupAction)
         0 * _
     }

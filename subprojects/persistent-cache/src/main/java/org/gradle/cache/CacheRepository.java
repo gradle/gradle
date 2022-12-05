@@ -43,7 +43,7 @@ public interface CacheRepository {
      * @param key The cache key. This is a unique identifier within the cache scope.
      * @return The builder.
      */
-    CacheBuilder cache(String key);
+    CacheBuilder cacheBuilder(String key);
 
     /**
      * Returns a builder for the cache with the given base directory. You should prefer one of the other methods over using this method.
@@ -51,5 +51,5 @@ public interface CacheRepository {
      * <p>By default a cache is opened with a shared lock, so that it can be accessed by multiple processes. It is the caller's responsibility
      * to coordinate access to the cache. The initial lock level can be changed using the provided builder </p>
      */
-    CacheBuilder cache(File baseDir);
+    CacheBuilder cacheBuilder(File baseDir);
 }
