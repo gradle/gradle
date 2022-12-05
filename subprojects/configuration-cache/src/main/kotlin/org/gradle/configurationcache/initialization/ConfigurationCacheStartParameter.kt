@@ -23,6 +23,7 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCachePr
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
+import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
@@ -32,9 +33,10 @@ import java.io.File
 class ConfigurationCacheStartParameter(
     private val buildLayout: BuildLayout,
     private val startParameter: StartParameterInternal,
-    options: InternalOptions
+    options: InternalOptions,
+    modelParameters: BuildModelParameters
 ) {
-    val loadAfterStore: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)).get()
+    val loadAfterStore: Boolean = !modelParameters.isRequiresBuildModel && options.getOption(InternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)).get()
 
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
