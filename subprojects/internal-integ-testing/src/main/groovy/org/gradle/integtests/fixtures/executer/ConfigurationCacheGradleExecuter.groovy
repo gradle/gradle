@@ -28,7 +28,8 @@ class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
     static final List<String> CONFIGURATION_CACHE_ARGS = [
         "--${ConfigurationCacheOption.LONG_OPTION}",
         "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true",
-        "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0"
+        "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0",
+        "-Dorg.gradle.configuration-cache.internal.load-after-store=false"
     ].collect { it.toString() }
 
     ConfigurationCacheGradleExecuter(
