@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.jvm
 
 import groovy.transform.CompileStatic
+import org.gradle.api.JavaVersion
 
 @CompileStatic
 class JavaClassUtil {
@@ -43,6 +44,13 @@ class JavaClassUtil {
 
     private static String classpathPathFor(Class<?> javaClass) {
         return javaClass.name.replace('.', '/') + '.class'
+    }
+
+    static int getClassMajorVersion(JavaVersion javaVersion) {
+        if (javaVersion == JavaVersion.VERSION_HIGHER) {
+            throw new UnsupportedOperationException("Unable to provide class file major version for '$javaVersion'")
+        }
+        return javaVersion.majorVersion.toInteger() + 44
     }
 
     private JavaClassUtil() {}
