@@ -26,13 +26,13 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
-import org.gradle.api.internal.tasks.properties.OutputFilePropertyType;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.properties.OutputFilePropertyType;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.io.StringWriter;
@@ -110,8 +110,8 @@ class DetermineExecutionPlanAction {
         Deque<Node> queue = new ArrayDeque<>(finalizers);
         while (!queue.isEmpty()) {
             Node node = queue.peek();
-            if (visited.contains(node)) {
-                // Already visited node, skip
+            if (node.isCannotRunInAnyPlan() || visited.contains(node)) {
+                // Already visited node or node cannot execute (eg has already executed), skip
                 queue.remove();
             } else if (visiting.add(node)) {
                 // Haven't seen this node
@@ -372,7 +372,7 @@ class DetermineExecutionPlanAction {
         return ((ProjectInternal) task.getProject()).getServices().get(PropertyWalker.class);
     }
 
-    private static class TaskClassifier extends PropertyVisitor.Adapter {
+    private static class TaskClassifier implements PropertyVisitor {
         private boolean isProducer;
         private boolean isDestroyer;
 

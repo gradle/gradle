@@ -38,7 +38,6 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.ClasspathNormalizer;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.Cast;
@@ -48,6 +47,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -58,6 +58,7 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
+import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.util.internal.IncubationLogger;
@@ -337,7 +338,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         private void visitOutputDir(OutputVisitor visitor, File workspace, String propertyName) {
             File dir = new File(workspace, propertyName);
-            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, new OutputFileValueSupplier(dir, fileCollectionFactory.fixed(dir)));
+            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, OutputFileValueSupplier.fromStatic(dir, fileCollectionFactory.fixed(dir)));
         }
     }
 
@@ -370,7 +371,7 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
             visitor.visitInputFileProperty(IN_CLASSPATH, InputBehavior.NON_INCREMENTAL,
                 new InputFileValueSupplier(
                     classPath,
-                    ClasspathNormalizer.class,
+                    InputNormalizer.RUNTIME_CLASSPATH,
                     DirectorySensitivity.IGNORE_DIRECTORIES,
                     LineEndingSensitivity.DEFAULT,
                     () -> fileCollectionFactory.fixed(classPath.getAsFiles())));

@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitorUtil
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.TaskDependencyContainerInternal
 import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
@@ -36,7 +37,7 @@ import static org.hamcrest.core.IsInstanceOf.instanceOf
 import static org.hamcrest.MatcherAssert.assertThat
 
 class AbstractFileCollectionTest extends FileCollectionSpec {
-    public final TaskDependencyInternal dependency = Mock(TaskDependencyInternal.class)
+    public final TaskDependencyContainerInternal dependency = Mock(TaskDependencyContainerInternal.class)
 
     @Override
     AbstractFileCollection containing(File... files) {

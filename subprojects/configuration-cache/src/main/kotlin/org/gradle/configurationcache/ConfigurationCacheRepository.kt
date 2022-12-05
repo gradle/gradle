@@ -21,6 +21,8 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.api.internal.cache.DefaultCacheCleanup
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.cache.internal.SingleDepthFilesFinder
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
@@ -196,7 +198,7 @@ class ConfigurationCacheRepository(
     val cleanupDepth = 1
 
     private
-    val cleanupMaxAgeDays = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+    val cleanupMaxAgeDays = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES
 
     private
     val cache = cacheRepository
@@ -213,11 +215,13 @@ class ConfigurationCacheRepository(
     private
     fun CacheBuilder.withLruCacheCleanup(cleanupActionDecorator: CleanupActionDecorator): CacheBuilder =
         withCleanup(
-            cleanupActionDecorator.decorate(
-                LeastRecentlyUsedCacheCleanup(
-                    SingleDepthFilesFinder(cleanupDepth),
-                    fileAccessTimeJournal,
-                    cleanupMaxAgeDays
+            DefaultCacheCleanup.from(
+                cleanupActionDecorator.decorate(
+                    LeastRecentlyUsedCacheCleanup(
+                        SingleDepthFilesFinder(cleanupDepth),
+                        fileAccessTimeJournal,
+                        { cleanupMaxAgeDays }
+                    )
                 )
             )
         )

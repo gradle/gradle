@@ -114,7 +114,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  * {@link #setShowSinglePathToDependency(boolean)}, and {@link #getShowingAllVariants()}.
  */
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
-public class DependencyInsightReportTask extends DefaultTask {
+public abstract class DependencyInsightReportTask extends DefaultTask {
 
     private Spec<DependencyResult> dependencySpec;
     private boolean showSinglePathToDependency;
@@ -252,7 +252,7 @@ public class DependencyInsightReportTask extends DefaultTask {
      * Show all variants of each displayed dependency.
      *
      * <p>
-     * Due to internal limitations, this option only works when the {@linkplain #getConfiguration() configuration} is
+     * Due to internal limitations, this option only works when the {@link #getConfiguration() configuration} is
      * unresolved before the execution of this task.
      * </p>
      *

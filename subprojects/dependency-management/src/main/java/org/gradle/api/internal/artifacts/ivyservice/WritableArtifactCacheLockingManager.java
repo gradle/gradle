@@ -15,9 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
+import org.gradle.api.internal.cache.DefaultCacheCleanup;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
+import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
@@ -38,7 +41,6 @@ import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.function.Function;
 
-import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class WritableArtifactCacheLockingManager implements ArtifactCacheLockingManager, Closeable {
@@ -48,30 +50,41 @@ public class WritableArtifactCacheLockingManager implements ArtifactCacheLocking
                                                ArtifactCacheMetadata cacheMetaData,
                                                FileAccessTimeJournal fileAccessTimeJournal,
                                                UsedGradleVersions usedGradleVersions,
-                                               CleanupActionDecorator cleanupActionDecorator
+                                               CleanupActionDecorator cleanupActionDecorator,
+                                               CacheConfigurationsInternal cacheConfigurations
                                                ) {
         cache = cacheRepository
                 .cache(cacheMetaData.getCacheDir())
                 .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
                 .withDisplayName("artifact cache")
                 .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Don't need to lock anything until we use the caches
-                .withCleanup(cleanupActionDecorator.decorate(createCleanupAction(cacheMetaData, fileAccessTimeJournal, usedGradleVersions)))
+                .withCleanup(createCacheCleanup(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cleanupActionDecorator, cacheConfigurations))
                 .open();
     }
 
-    private CleanupAction createCleanupAction(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions) {
-        long maxAgeInDays = Long.getLong("org.gradle.internal.cleanup.external.max.age", DEFAULT_MAX_AGE_IN_DAYS_FOR_EXTERNAL_CACHE_ENTRIES);
+    private DefaultCacheCleanup createCacheCleanup(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions, CleanupActionDecorator cleanupActionDecorator, CacheConfigurationsInternal cacheConfigurations) {
+        return DefaultCacheCleanup.from(
+            cleanupActionDecorator.decorate(createCleanupAction(cacheMetaData, fileAccessTimeJournal, usedGradleVersions, cacheConfigurations)),
+            cacheConfigurations.getCleanupFrequency()
+        );
+    }
+
+    private CleanupAction createCleanupAction(ArtifactCacheMetadata cacheMetaData, FileAccessTimeJournal fileAccessTimeJournal, UsedGradleVersions usedGradleVersions, CacheConfigurations cacheConfigurations) {
         return CompositeCleanupAction.builder()
                 .add(UnusedVersionsCacheCleanup.create(CacheLayout.ROOT.getName(), CacheLayout.ROOT.getVersionMapping(), usedGradleVersions))
                 .add(cacheMetaData.getExternalResourcesStoreDirectory(),
                     UnusedVersionsCacheCleanup.create(CacheLayout.RESOURCES.getName(), CacheLayout.RESOURCES.getVersionMapping(), usedGradleVersions),
-                    new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(DefaultExternalResourceFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, maxAgeInDays))
+                    new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(DefaultExternalResourceFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, () -> getMaxAgeInDays(cacheConfigurations)))
                 .add(cacheMetaData.getFileStoreDirectory(),
                     UnusedVersionsCacheCleanup.create(CacheLayout.FILE_STORE.getName(), CacheLayout.FILE_STORE.getVersionMapping(), usedGradleVersions),
-                    new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(DefaultArtifactIdentifierFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, maxAgeInDays))
+                    new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(DefaultArtifactIdentifierFileStore.FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, () -> getMaxAgeInDays(cacheConfigurations)))
                 .add(cacheMetaData.getMetaDataStoreDirectory().getParentFile(),
                     UnusedVersionsCacheCleanup.create(CacheLayout.META_DATA.getName(), CacheLayout.META_DATA.getVersionMapping(), usedGradleVersions))
                 .build();
+    }
+
+    private int getMaxAgeInDays(CacheConfigurations cacheConfigurations) {
+        return Integer.getInteger("org.gradle.internal.cleanup.external.max.age", cacheConfigurations.getDownloadedResources().getRemoveUnusedEntriesAfterDays().get());
     }
 
     @Override

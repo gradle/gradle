@@ -1768,6 +1768,7 @@ All Artifacts:
             metaDataProvider,
             Mock(TaskResolver),
             TestFiles.resolver(),
+            TestFiles.taskDependencyFactory(),
         )
         def defaultConfigurationFactory = new DefaultConfigurationFactory(
             DirectInstantiator.INSTANCE,
@@ -1785,7 +1786,8 @@ All Artifacts:
             projectStateRegistry,
             Stub(WorkerThreadRegistry),
             TestUtil.domainObjectCollectionFactory(),
-            calculatedValueContainerFactory
+            calculatedValueContainerFactory,
+            TestFiles.taskDependencyFactory()
         )
         defaultConfigurationFactory.create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder)
     }

@@ -15,10 +15,14 @@
  */
 
 plugins {
-    kotlin("jvm") version "1.7.10"
+    kotlin("jvm") version "1.7.22"
 }
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+repositories {
+    mavenCentral()
+}
 
 // tag::configure[]
 tasks.withType<KotlinCompile>().configureEach {

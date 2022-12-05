@@ -16,9 +16,15 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.api.cache.CacheResourceConfiguration
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.provider.Property
+import org.gradle.cache.CleanupFrequency
 import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.initialization.GradleUserHomeDirProvider
+import org.gradle.internal.cache.MonitoredCleanupAction
+import org.gradle.internal.cache.MonitoredCleanupActionDecorator
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -28,8 +34,11 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_30_DAYS
+import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.notUsedWithinDays
 
 class GradleUserHomeCleanupServiceTest extends Specification implements GradleUserHomeCleanupFixture {
+    private static final int HALF_DEFAULT_MAX_AGE_IN_DAYS = Math.max(1, CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS/2 as int)
+    private static final int TWICE_DEFAULT_MAX_AGE_IN_DAYS = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS * 2
 
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
@@ -49,6 +58,18 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
     def cleanupActionDecorator = Stub(MonitoredCleanupActionDecorator) {
         decorate(_) >> { args -> args[0] }
     }
+    def releasedWrappers = Stub(CacheResourceConfiguration) {
+        getRemoveUnusedEntriesAfterDays() >> property(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS)
+    }
+    def cacheConfigurations = Stub(CacheConfigurationsInternal) {
+        getReleasedWrappers() >> releasedWrappers
+    }
+
+    def property(Object value) {
+        return Stub(Property) {
+            get() >> value
+        }
+    }
 
     @Subject def cleanupService = new GradleUserHomeCleanupService(
             TestFiles.deleter(),
@@ -56,10 +77,104 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
             globalScopedCache,
             usedGradleVersions,
             progressLoggerFactory,
-            cleanupActionDecorator
+            cleanupActionDecorator,
+            cacheConfigurations
     )
 
-    def "cleans up unused version-specific cache directories and deletes distributions for unused versions"() {
+    def "cleans up unused version-specific cache directories and deletes distributions for unused versions with the default retention"() {
+        given:
+        def oldVersion = GradleVersion.version("2.3.4")
+        def oldCacheDir = createVersionSpecificCacheDir(oldVersion, NOT_USED_WITHIN_30_DAYS)
+        def oldDist = createDistributionChecksumDir(oldVersion).parentFile
+        def currentDist = createDistributionChecksumDir(currentVersion).parentFile
+
+        when:
+        cleanupService.cleanup()
+
+        then:
+        oldCacheDir.assertDoesNotExist()
+        oldDist.assertDoesNotExist()
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
+    }
+
+    def "cleans up unused version-specific cache directories and deletes distributions for unused versions when retention is configured"() {
+        given:
+        def oldVersion = GradleVersion.version("2.3.4")
+        def oldCacheDir = createVersionSpecificCacheDir(oldVersion, notUsedWithinDays(TWICE_DEFAULT_MAX_AGE_IN_DAYS))
+        def oldDist = createDistributionChecksumDir(oldVersion).parentFile
+        def currentDist = createDistributionChecksumDir(currentVersion).parentFile
+
+        when:
+        cleanupService.cleanup()
+
+        then:
+        releasedWrappers.getRemoveUnusedEntriesAfterDays() >> property(TWICE_DEFAULT_MAX_AGE_IN_DAYS - 1)
+
+        and:
+        oldCacheDir.assertDoesNotExist()
+        oldDist.assertDoesNotExist()
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
+    }
+
+    def "does not clean up version-specific cache directories and distributions for unused versions newer than the configured retention"() {
+        given:
+        def oldVersion = GradleVersion.version("2.3.4")
+        def oldCacheDir = createVersionSpecificCacheDir(oldVersion, notUsedWithinDays(HALF_DEFAULT_MAX_AGE_IN_DAYS))
+        def oldDist = createDistributionChecksumDir(oldVersion).parentFile
+        def currentDist = createDistributionChecksumDir(currentVersion).parentFile
+
+        when:
+        cleanupService.cleanup()
+
+        then:
+        releasedWrappers.getRemoveUnusedEntriesAfterDays() >> property(TWICE_DEFAULT_MAX_AGE_IN_DAYS)
+        usedGradleVersions.getUsedGradleVersions() >> ([ GradleVersion.version('2.3.4') ] as SortedSet)
+
+        and:
+        oldCacheDir.assertExists()
+        oldDist.assertExists()
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
+    }
+
+    def "skips cleanup of version-specific caches and distributions if gc.properties has recently been changed"() {
+        given:
+        def oldVersion = GradleVersion.version("2.3.4")
+        def oldCacheDir = createVersionSpecificCacheDir(oldVersion, NOT_USED_WITHIN_30_DAYS)
+        def oldDist = createDistributionChecksumDir(oldVersion).parentFile
+
+        when:
+        getGcFile(currentCacheDir).touch()
+        cleanupService.cleanup()
+
+        then:
+        oldCacheDir.assertExists()
+        oldDist.assertExists()
+    }
+
+    def "skips cleanup of version-specific caches and distributions if cleanup has been disabled"() {
+        given:
+        def oldVersion = GradleVersion.version("2.3.4")
+        def oldCacheDir = createVersionSpecificCacheDir(oldVersion, NOT_USED_WITHIN_30_DAYS)
+        def oldDist = createDistributionChecksumDir(oldVersion).parentFile
+        def currentDist = createDistributionChecksumDir(currentVersion).parentFile
+
+        when:
+        cleanupService.cleanup()
+
+        then:
+        cleanupActionDecorator.decorate(_) >> Stub(MonitoredCleanupAction)
+
+        and:
+        oldCacheDir.assertExists()
+        oldDist.assertExists()
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
+    }
+
+    def "cleans up unused version-specific cache directories and deletes distributions for unused versions on stop when clean up has not already occurred"() {
         given:
         def oldVersion = GradleVersion.version("2.3.4")
         def oldCacheDir = createVersionSpecificCacheDir(oldVersion, NOT_USED_WITHIN_30_DAYS)
@@ -76,37 +191,54 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
         currentDist.assertExists()
     }
 
-    def "skips cleanup of version-specific caches and distributions if gc.properties has recently been changed"() {
-        given:
-        def oldVersion = GradleVersion.version("2.3.4")
-        def oldCacheDir = createVersionSpecificCacheDir(oldVersion, NOT_USED_WITHIN_30_DAYS)
-        def oldDist = createDistributionChecksumDir(oldVersion).parentFile
-
+    def "skips clean up on stop when clean up has already occurred"() {
         when:
-        getGcFile(currentCacheDir).touch()
-        cleanupService.stop()
+        cleanupService.cleanup()
 
         then:
-        oldCacheDir.assertExists()
-        oldDist.assertExists()
-    }
+        cacheConfigurations.getCleanupFrequency() >> property(CleanupFrequency.ALWAYS)
 
-    def "skips cleanup of version-specific caches and distributions if cleanup has been disabled"() {
-        given:
+        when:
         def oldVersion = GradleVersion.version("2.3.4")
         def oldCacheDir = createVersionSpecificCacheDir(oldVersion, NOT_USED_WITHIN_30_DAYS)
         def oldDist = createDistributionChecksumDir(oldVersion).parentFile
         def currentDist = createDistributionChecksumDir(currentVersion).parentFile
 
-        when:
+        and:
         cleanupService.stop()
 
         then:
-        cleanupActionDecorator.decorate(_) >> Stub(MonitoredCleanupAction)
+        cacheConfigurations.getCleanupFrequency() >> property(CleanupFrequency.ALWAYS)
 
         and:
         oldCacheDir.assertExists()
         oldDist.assertExists()
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
+    }
+
+    def "can clean up multiple times when configured to"() {
+        when:
+        cleanupService.cleanup()
+
+        then:
+        cacheConfigurations.getCleanupFrequency() >> property(CleanupFrequency.ALWAYS)
+
+        when:
+        def oldVersion = GradleVersion.version("2.3.4")
+        def oldCacheDir = createVersionSpecificCacheDir(oldVersion, NOT_USED_WITHIN_30_DAYS)
+        def oldDist = createDistributionChecksumDir(oldVersion).parentFile
+        def currentDist = createDistributionChecksumDir(currentVersion).parentFile
+
+        and:
+        cleanupService.cleanup()
+
+        then:
+        cacheConfigurations.getCleanupFrequency() >> property(CleanupFrequency.ALWAYS)
+
+        and:
+        oldCacheDir.assertDoesNotExist()
+        oldDist.assertDoesNotExist()
         currentCacheDir.assertExists()
         currentDist.assertExists()
     }

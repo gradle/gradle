@@ -16,8 +16,11 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.internal.cache.MonitoredCleanupAction;
+import org.gradle.internal.cache.MonitoredCleanupActionDecorator;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -26,16 +29,14 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import java.io.File;
 
 public class GradleUserHomeCleanupService implements Stoppable {
-
-    private static final long MAX_UNUSED_DAYS_FOR_RELEASES = 30;
-    private static final long MAX_UNUSED_DAYS_FOR_SNAPSHOTS = 7;
-
     private final Deleter deleter;
     private final GradleUserHomeDirProvider userHomeDirProvider;
     private final GlobalScopedCache globalScopedCache;
     private final UsedGradleVersions usedGradleVersions;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final MonitoredCleanupActionDecorator cleanupActionDecorator;
+    private final CacheConfigurationsInternal cacheConfigurations;
+    private boolean alreadyCleaned;
 
     public GradleUserHomeCleanupService(
         Deleter deleter,
@@ -43,7 +44,8 @@ public class GradleUserHomeCleanupService implements Stoppable {
         GlobalScopedCache globalScopedCache,
         UsedGradleVersions usedGradleVersions,
         ProgressLoggerFactory progressLoggerFactory,
-        MonitoredCleanupActionDecorator cleanupActionDecorator
+        MonitoredCleanupActionDecorator cleanupActionDecorator,
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         this.deleter = deleter;
         this.userHomeDirProvider = userHomeDirProvider;
@@ -51,15 +53,36 @@ public class GradleUserHomeCleanupService implements Stoppable {
         this.usedGradleVersions = usedGradleVersions;
         this.progressLoggerFactory = progressLoggerFactory;
         this.cleanupActionDecorator = cleanupActionDecorator;
+        this.cacheConfigurations = cacheConfigurations;
+    }
+
+    public void cleanup() {
+        File cacheBaseDir = globalScopedCache.getRootDir();
+        boolean wasCleanedUp = execute(
+            cleanupActionDecorator.decorate(
+                new VersionSpecificCacheCleanupAction(
+                    cacheBaseDir,
+                    cacheConfigurations.getReleasedWrappers().getRemoveUnusedEntriesAfterDays().get(),
+                    cacheConfigurations.getSnapshotWrappers().getRemoveUnusedEntriesAfterDays().get(),
+                    deleter,
+                    cacheConfigurations.getCleanupFrequency().get()
+                )
+            )
+        );
+        if (wasCleanedUp) {
+            execute(
+                cleanupActionDecorator.decorate(
+                    new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions)
+                )
+            );
+        }
+        alreadyCleaned = true;
     }
 
     @Override
     public void stop() {
-        File cacheBaseDir = globalScopedCache.getRootDir();
-        boolean wasCleanedUp = execute(
-            cleanupActionDecorator.decorate(new VersionSpecificCacheCleanupAction(cacheBaseDir, MAX_UNUSED_DAYS_FOR_RELEASES, MAX_UNUSED_DAYS_FOR_SNAPSHOTS, deleter)));
-        if (wasCleanedUp) {
-            execute(cleanupActionDecorator.decorate(new WrapperDistributionCleanupAction(userHomeDirProvider.getGradleUserHomeDirectory(), usedGradleVersions)));
+        if (!alreadyCleaned) {
+            cleanup();
         }
     }
 

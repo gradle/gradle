@@ -23,8 +23,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.PropertyHost
-import org.gradle.api.internal.tasks.DefaultTaskDependency
-import org.gradle.api.internal.tasks.TaskDependencyFactory
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
 
@@ -38,9 +37,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
     def taskResolver = Mock(TaskResolver)
     def host = Mock(PropertyHost)
     def patternSetFactory = TestFiles.patternSetFactory
-    def taskDependencyFactory = Stub(TaskDependencyFactory) {
-        _ * configurableDependency() >> new DefaultTaskDependency(taskResolver)
-    }
+    def taskDependencyFactory = DefaultTaskDependencyFactory.forProject(taskResolver, (tasks) -> { })
     def collection = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, patternSetFactory, host)
 
     @Override

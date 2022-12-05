@@ -18,7 +18,7 @@ import gradlebuild.docs.FindBrokenInternalLinks
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.testcleanup.extension.TestFilesCleanupBuildServiceRootExtension
-import me.champeau.gradle.japicmp.JapicmpTask
+import gradlebuild.binarycompatibility.JapicmpTask
 import org.jlleitschuh.gradle.ktlint.tasks.GenerateReportsTask
 
 if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {

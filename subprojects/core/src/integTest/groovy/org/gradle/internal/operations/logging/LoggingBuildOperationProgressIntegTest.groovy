@@ -376,7 +376,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
         List<BuildOperationRecord.Progress> output = []
         operations.walk(operations.root(RunBuildBuildOperationType)) {
-            output.addAll(it.progress.findAll { it.hasDetailsOfType(LogEventBuildOperationProgressDetails) })
+            output.addAll(it.progress(LogEventBuildOperationProgressDetails))
         }
 
         def uniqueMessages = output.collect { it.details.message }.unique()

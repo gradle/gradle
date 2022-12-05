@@ -28,10 +28,12 @@ public class DefaultGradleEnterprisePluginConfig implements GradleEnterprisePlug
 
     private final BuildScanRequest buildScanRequest;
     private final boolean taskExecutingBuild;
+    private final boolean autoApplied;
 
-    public DefaultGradleEnterprisePluginConfig(GradleInternal gradle, BuildType buildType) {
+    public DefaultGradleEnterprisePluginConfig(GradleInternal gradle, BuildType buildType, GradleEnterprisePluginAutoAppliedStatus autoAppliedStatus) {
         this.buildScanRequest = buildScanRequest(gradle.getStartParameter());
         this.taskExecutingBuild = buildType == BuildType.TASKS;
+        this.autoApplied = autoAppliedStatus.isAutoApplied();
     }
 
     @Override
@@ -44,7 +46,12 @@ public class DefaultGradleEnterprisePluginConfig implements GradleEnterprisePlug
         return taskExecutingBuild;
     }
 
-    private static BuildScanRequest buildScanRequest(StartParameter startParameter) {
+    @Override
+    public boolean isAutoApplied() {
+        return autoApplied;
+    }
+
+    private BuildScanRequest buildScanRequest(StartParameter startParameter) {
         if (startParameter.isNoBuildScan()) {
             return BuildScanRequest.SUPPRESSED;
         } else if (startParameter.isBuildScan()) {

@@ -16,8 +16,11 @@
 
 package org.gradle.internal.execution.workspace.impl;
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
+import org.gradle.api.internal.cache.DefaultCacheCleanup;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.CacheBuilder;
+import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
@@ -36,7 +39,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.util.function.Function;
 
-import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Closeable {
@@ -53,7 +55,8 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHasher,
-        CleanupActionDecorator cleanupActionDecorator
+        CleanupActionDecorator cleanupActionDecorator,
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         return withBuiltInHistory(
             cacheBuilder,
@@ -62,7 +65,8 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
             stringInterner,
             classLoaderHasher,
             DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
-            cleanupActionDecorator
+            cleanupActionDecorator,
+            cacheConfigurations
         );
     }
 
@@ -73,14 +77,16 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         StringInterner stringInterner,
         ClassLoaderHierarchyHasher classLoaderHasher,
         int treeDepthToTrackAndCleanup,
-        CleanupActionDecorator cleanupActionDecorator
+        CleanupActionDecorator cleanupActionDecorator,
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         return new DefaultImmutableWorkspaceProvider(
             cacheBuilder,
             fileAccessTimeJournal,
             cache -> new DefaultExecutionHistoryStore(() -> cache, inMemoryCacheDecoratorFactory, stringInterner, classLoaderHasher),
             treeDepthToTrackAndCleanup,
-            cleanupActionDecorator
+            cleanupActionDecorator,
+            cacheConfigurations
         );
     }
 
@@ -88,14 +94,16 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
-        CleanupActionDecorator cleanupActionDecorator
+        CleanupActionDecorator cleanupActionDecorator,
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         return new DefaultImmutableWorkspaceProvider(
             cacheBuilder,
             fileAccessTimeJournal,
             __ -> executionHistoryStore,
             DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
-            cleanupActionDecorator
+            cleanupActionDecorator,
+            cacheConfigurations
         );
     }
 
@@ -104,10 +112,11 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         FileAccessTimeJournal fileAccessTimeJournal,
         Function<PersistentCache, ExecutionHistoryStore> historyFactory,
         int treeDepthToTrackAndCleanup,
-        CleanupActionDecorator cleanupActionDecorator
+        CleanupActionDecorator cleanupActionDecorator,
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         PersistentCache cache = cacheBuilder
-            .withCleanup(cleanupActionDecorator.decorate(createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup)))
+            .withCleanup(createCacheCleanup(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cleanupActionDecorator, cacheConfigurations))
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
         this.cache = cache;
@@ -116,11 +125,18 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         this.executionHistoryStore = historyFactory.apply(cache);
     }
 
-    private static CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup) {
+    private DefaultCacheCleanup createCacheCleanup(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CleanupActionDecorator cleanupActionDecorator, CacheConfigurationsInternal cacheConfigurations) {
+        return DefaultCacheCleanup.from(
+            cleanupActionDecorator.decorate(createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations)),
+            cacheConfigurations.getCleanupFrequency()
+        );
+    }
+
+    private static CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurations cacheConfigurations) {
         return new LeastRecentlyUsedCacheCleanup(
             new SingleDepthFilesFinder(treeDepthToTrackAndCleanup),
             fileAccessTimeJournal,
-            DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+            () -> cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesAfterDays().get()
         );
     }
 

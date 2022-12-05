@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
@@ -48,11 +49,12 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
                                  CacheRepository cacheRepository,
                                  WritableArtifactCacheLockingParameters params,
                                  DocumentationRegistry documentationRegistry,
-                                 CleanupActionDecorator cleanupActionDecorator
+                                 CleanupActionDecorator cleanupActionDecorator,
+                                 CacheConfigurationsInternal cacheConfigurations
                                  ) {
         writableCacheMetadata = new DefaultArtifactCacheMetadata(globalScopedCache);
         writableArtifactCacheLockingManager = new LateInitWritableArtifactCacheLockingManager(() -> {
-            return new WritableArtifactCacheLockingManager(cacheRepository, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions(), cleanupActionDecorator);
+            return new WritableArtifactCacheLockingManager(cacheRepository, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions(), cleanupActionDecorator, cacheConfigurations);
         });
         String roCache = System.getenv(READONLY_CACHE_ENV_VAR);
         if (StringUtils.isNotEmpty(roCache)) {

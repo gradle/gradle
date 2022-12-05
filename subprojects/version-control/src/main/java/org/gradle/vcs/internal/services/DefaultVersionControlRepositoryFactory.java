@@ -17,9 +17,11 @@
 package org.gradle.vcs.internal.services;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.cache.DefaultCacheCleanup;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.scopes.BuildTreeScopedCache;
@@ -39,7 +41,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 
-import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 import static org.gradle.internal.hash.Hashing.hashString;
 
@@ -51,8 +52,16 @@ public class DefaultVersionControlRepositoryFactory implements VersionControlRep
             .crossVersionCache("vcs-1")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
             .withDisplayName("VCS Checkout Cache")
-            .withCleanup(cleanupActionDecorator.decorate(new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(1), new ModificationTimeFileAccessTimeJournal(), DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES)))
+            .withCleanup(createCacheCleanup(cleanupActionDecorator))
             .open();
+    }
+
+    private DefaultCacheCleanup createCacheCleanup(CleanupActionDecorator cleanupActionDecorator) {
+        return DefaultCacheCleanup.from(
+            cleanupActionDecorator.decorate(
+                new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(1), new ModificationTimeFileAccessTimeJournal(), () -> CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES)
+            )
+        );
     }
 
     @Override

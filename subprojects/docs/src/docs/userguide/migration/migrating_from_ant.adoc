@@ -80,6 +80,9 @@ The rest of the chapter covers some common scenarios you will likely deal with d
 [[migant:imported_builds]]
 == Working with an imported build
 
+WARNING: Importing an Ant build is not supported with the <<configuration_cache.adoc#config_cache,configuration cache>>.
+You need to complete the conversion to Gradle to get the benefits of caching.
+
 The first step of many migrations will involve <<ant#sec:import_ant_build,importing an Ant build>> using `ant.importBuild()`. If you do that, how do you then move towards a standard Gradle build without replacing everything at once?
 
 The important thing to remember is that the Ant targets become real Gradle tasks, meaning you can do things like modify their task dependencies, attach extra task actions, and so on. This allows you to substitute native Gradle tasks for the equivalent Ant ones, maintaining any links to other existing tasks.

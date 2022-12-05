@@ -45,13 +45,13 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
     }
 
     private static boolean isServiceRequiredBy(TaskInternal task, BuildServiceProvider<?, ?> provider) {
-        return task.getRequiredServices().contains(provider);
+        return task.getRequiredServices().isServiceRequired(provider);
     }
 
     private static void nagAboutUndeclaredUsageOf(BuildServiceProvider<?, ?> provider, TaskInternal task) {
         deprecateBehaviour(undeclaredBuildServiceUsage(provider, task))
             .withAdvice("Declare the association between the task and the build service using 'Task#usesService'.")
-            .willBecomeAnErrorInGradle8()
+            .willBecomeAnErrorInGradle9()
             .withUpgradeGuideSection(7, "undeclared_build_service_usage")
             .nagUser();
     }

@@ -33,7 +33,7 @@ public class NativeDependencyResolverServices {
 
     public NativeDependencyResolver createResolver(LibraryBinaryLocator locator, FileCollectionFactory fileCollectionFactory) {
         NativeDependencyResolver resolver = new LibraryNativeDependencyResolver(locator);
-        resolver = new ApiRequirementNativeDependencyResolver(resolver, fileCollectionFactory);
+        resolver = new ApiRequirementNativeDependencyResolver(resolver);
         resolver = new RequirementParsingNativeDependencyResolver(resolver);
         resolver = new SourceSetNativeDependencyResolver(resolver, fileCollectionFactory);
         return new InputHandlingNativeDependencyResolver(resolver);

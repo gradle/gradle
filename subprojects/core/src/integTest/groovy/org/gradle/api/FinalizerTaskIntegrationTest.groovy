@@ -126,18 +126,25 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/21000")
+    @Issue(value = ["https://github.com/gradle/gradle/issues/21000", "https://github.com/gradle/gradle/issues/22734"])
     def "finalizer task can depend on finalized task that is not an entry point task"() {
         given:
         buildFile '''
             task finalizer(type: BreakingTask) {
-                dependsOn 'finalizerDep'
+                dependsOn 'finalizerDep1'
+                dependsOn 'finalizerDep2'
             }
-            task finalizerDep(type: BreakingTask) {
-                dependsOn 'finalizerDepDep'
+            task finalizerDep1(type: BreakingTask) {
+                dependsOn 'finalizerDepDep1'
                 finalizedBy 'finalizer'
             }
-            task finalizerDepDep(type: BreakingTask) {
+            task finalizerDepDep1(type: BreakingTask) {
+            }
+            task finalizerDep2(type: BreakingTask) {
+                dependsOn 'finalizerDepDep2'
+                finalizedBy 'finalizer'
+            }
+            task finalizerDepDep2(type: BreakingTask) {
             }
             task entryPoint(type: BreakingTask) {
                 finalizedBy 'finalizer'
@@ -147,24 +154,29 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             succeeds 'entryPoint'
-            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep', ':finalizer'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep1', ':finalizerDep1', ':finalizer'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep2', ':finalizerDep2', ':finalizer'
         }
         2.times {
             fails 'entryPoint', '-PentryPoint.broken'
-            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep', ':finalizer'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep1', ':finalizerDep1', ':finalizer'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep2', ':finalizerDep2', ':finalizer'
         }
         2.times {
-            fails 'entryPoint', '-PfinalizerDepDep.broken'
-            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep'
+            fails 'entryPoint', '-PfinalizerDepDep1.broken', '--continue'
+            result.assertTasksExecuted(':entryPoint', ':finalizerDepDep1', ':finalizerDepDep2', ':finalizerDep2')
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep1'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep2', ':finalizerDep2'
         }
         2.times {
-            fails 'entryPoint', '-PfinalizerDep.broken'
-            result.assertTasksExecutedInOrder ':entryPoint', ':finalizerDepDep', ':finalizerDep'
+            fails 'entryPoint', '-PfinalizerDep1.broken', '--continue'
+            result.assertTasksExecuted(':entryPoint', ':finalizerDepDep1', ':finalizerDep1', ':finalizerDepDep2', ':finalizerDep2')
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep1', ':finalizerDep1'
+            result.assertTaskOrder ':entryPoint', ':finalizerDepDep2', ':finalizerDep2'
         }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/21000")
-    @Ignore("https://github.com/gradle/gradle-private/issues/3574")
     def "finalizer task can depend on finalized tasks where one is an entry point task and one is not"() {
         given:
         buildFile '''

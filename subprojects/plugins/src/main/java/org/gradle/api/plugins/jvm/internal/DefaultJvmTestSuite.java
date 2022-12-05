@@ -25,10 +25,9 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyAdder;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
@@ -68,7 +67,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 // spock-core references junit-jupiter's BOM, which in turn specifies the platform version
                 "org.junit.platform:junit-platform-launcher"
         )),
-        KOTLIN_TEST("org.jetbrains.kotlin", "kotlin-test-junit5", "1.7.10", Collections.singletonList(
+        KOTLIN_TEST("org.jetbrains.kotlin", "kotlin-test-junit5", "1.7.22", Collections.singletonList(
                 // kotlin-test-junit5 depends on junit-jupiter, which in turn specifies the platform version
                 "org.junit.platform:junit-platform-launcher"
         )),
@@ -143,11 +142,13 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
     private final SourceSet sourceSet;
     private final String name;
     private final JvmComponentDependencies dependencies;
+    private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
-    public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations) {
+    public DefaultJvmTestSuite(String name, SourceSetContainer sourceSets, ConfigurationContainer configurations, TaskDependencyFactory taskDependencyFactory) {
         this.name = name;
         this.sourceSet = sourceSets.create(getName());
+        this.taskDependencyFactory = taskDependencyFactory;
 
         Configuration compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
         Configuration implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
@@ -204,7 +205,7 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
                 case SPOCK:
                     return new JUnitPlatformTestFramework((DefaultTestFilter) task.getFilter(), false);
                 case TESTNG:
-                    return new TestNGTestFramework(task, task.getClasspath(), (DefaultTestFilter) task.getFilter(), getObjectFactory());
+                    return new TestNGTestFramework(task, (DefaultTestFilter) task.getFilter(), getObjectFactory());
                 default:
                     throw new IllegalStateException("do not know how to handle " + vtf);
             }
@@ -362,11 +363,8 @@ public abstract class DefaultJvmTestSuite implements JvmTestSuite {
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return new AbstractTaskDependency() {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                getTargets().forEach(context::add);
-            }
-        };
+        return taskDependencyFactory.visitingDependencies(context -> {
+            getTargets().forEach(context::add);
+        });
     }
 }
