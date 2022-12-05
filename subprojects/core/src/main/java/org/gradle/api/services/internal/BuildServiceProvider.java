@@ -88,11 +88,11 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
      * This method does not distinguish between consumed/registered providers.
      */
     public static boolean isSameService(Provider<? extends BuildService<?>> thisProvider, Provider<? extends BuildService<?>> anotherProvider) {
-        if (!(thisProvider instanceof BuildServiceProvider && anotherProvider instanceof BuildServiceProvider)) {
-            return false;
-        }
         if (thisProvider == anotherProvider) {
             return true;
+        }
+        if (!(thisProvider instanceof BuildServiceProvider && anotherProvider instanceof BuildServiceProvider)) {
+            return false;
         }
         BuildServiceProvider thisBuildServiceProvider = (BuildServiceProvider) thisProvider;
         BuildServiceProvider otherBuildServiceProvider = (BuildServiceProvider) anotherProvider;

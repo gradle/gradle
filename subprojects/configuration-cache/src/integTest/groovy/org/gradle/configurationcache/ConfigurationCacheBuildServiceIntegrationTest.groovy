@@ -69,20 +69,44 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         outputDoesNotContain onFinishMessage
     }
 
-    def "build service is restored when using @ServiceReference"() {
+    def "build service is restored"(boolean legacy, boolean finalize, boolean finalizeOnRead, boolean registeredByPlugin) {
         given:
-        withCountingServicePlugin("counter", "counter")
+        def propertyAnnotations = legacy ?
+            """
+            @$Internal.name
+        """ :
+            """
+            @$ServiceReference.name("counter")
+            @$Optional.name
+        """
+
+        withCountingServicePlugin(registeredByPlugin, propertyAnnotations)
         file('settings.gradle') << """
             pluginManagement {
                 includeBuild 'counting-service-plugin'
             }
+            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
         """
         file('build.gradle') << """
             plugins { id 'counting-service-plugin' version '1.0' }
 
+            def altServiceProvider = project.getGradle().getSharedServices().registerIfAbsent(
+                "counter",
+                CountingService.class,
+                (spec) -> {}
+            );
+
             tasks.register('count', CountingTask) {
+                ${ legacy ? """
+                countingService.convention(altServiceProvider)
+                usesService(altServiceProvider)
+                """ : "" }
+                ${ finalizeOnRead ? "countingService.finalizeValueOnRead()" : "" }
+                ${ finalize ? "countingService.finalizeValue()" : "" }
                 doLast {
                     assert countingService.get().increment() == 2
+                    assert requiredServices.elements.size() == 1
+                    assert altServiceProvider.get().increment() == 3
                 }
             }
         """
@@ -101,11 +125,30 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         then:
         configurationCache.assertStateLoaded()
         outputContains 'Count: 1'
+
+        where:
+        legacy | finalize | finalizeOnRead | registeredByPlugin
+        false  | false    | false          | true
+        false  | true     | false          | true
+        false  | false    | true           | true
+        true   | false    | false          | true
+        true   | true     | false          | true
+        true   | false    | true           | true
+        false  | false    | false          | false
+        false  | true     | false          | false
+        false  | false    | true           | false
+        true   | false    | false          | false
+        true   | true     | false          | false
+        true   | false    | true           | false
+
     }
 
     def "missing build service when using @ServiceReference"() {
         given:
-        withCountingServicePlugin("registeredCounter", "consumedCounter")
+        withCountingServicePlugin(true, """
+            @$ServiceReference.name("consumedCounter")
+            @$Optional.name
+        """)
         file('settings.gradle') << """
             pluginManagement {
                 includeBuild 'counting-service-plugin'
@@ -139,25 +182,26 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         failureCauseContains("Cannot query the value of task ':failedCount' property 'countingService' because it has no value available.")
     }
 
-    private void withCountingServicePlugin(String registeredServiceName, String consumedServiceName) {
+    private void withCountingServicePlugin(boolean register, String propertyAnnotations) {
         createDir('counting-service-plugin') {
             file("src/main/java/CountingServicePlugin.java") << """
                 public abstract class CountingServicePlugin implements $Plugin.name<$Project.name> {
                     private $Provider.name<?> counterProvider;
                     @Override
                     public void apply($Project.name project) {
+                        ${register ? """
                         project.getGradle().getSharedServices().registerIfAbsent(
-                            "${registeredServiceName}",
+                            "counter",
                             CountingService.class,
                             (spec) -> {}
                         );
+                        """ : ""}
                     }
                 }
 
                 abstract class CountingTask extends $DefaultTask.name {
 
-                    @$ServiceReference.name("${consumedServiceName}")
-                    @$Optional.name
+                    $propertyAnnotations
                     public abstract $Property.name<CountingService> getCountingService();
 
                     public CountingTask() {}
