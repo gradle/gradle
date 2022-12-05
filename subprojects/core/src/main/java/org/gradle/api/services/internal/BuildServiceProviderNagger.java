@@ -35,6 +35,9 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
     public void beforeGet(BuildServiceProvider<?, ?> provider) {
         currentTask().ifPresent(task -> {
             if (!isServiceRequiredBy(task, provider)) {
+                System.out.println("Service not declared but used: " + provider);
+                System.out.println("Required services");
+                task.getRequiredServices().getElements().stream().forEach(it -> System.out.println(it));
                 nagAboutUndeclaredUsageOf(provider, task);
             }
         });

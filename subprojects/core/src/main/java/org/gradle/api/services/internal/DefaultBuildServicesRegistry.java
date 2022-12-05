@@ -135,6 +135,28 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     @Override
     public <T extends BuildService<P>, P extends BuildServiceParameters> Provider<T> registerIfAbsent(String name, Class<T> implementationType, Action<? super BuildServiceSpec<P>> configureAction) {
+        return doRegisterIfAbsent(name, implementationType, () -> {
+            // TODO - extract some shared infrastructure to take care of parameter instantiation (eg strict vs lenient, which services are visible)
+            P parameters = instantiateParametersOf(implementationType);
+
+            // TODO - should defer execution of the action, to match behaviour for other container `register()` methods.
+            DefaultServiceSpec<P> spec = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceSpec.class, parameters));
+            configureAction.execute(spec);
+            return spec;
+        });
+    }
+
+    @Override
+    public BuildServiceProvider<?, ?> registerIfAbsent(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages) {
+        Supplier<BuildServiceSpec<?>> buildServiceSpecSupplier = () -> {
+            DefaultServiceSpec<?> spec = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceSpec.class, parameters));
+            spec.getMaxParallelUsages().set(maxUsages);
+            return spec;
+        };
+        return doRegisterIfAbsent(name, uncheckedNonnullCast(implementationType), uncheckedNonnullCast(buildServiceSpecSupplier));
+    }
+
+    private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegisterIfAbsent(String name, Class<T> implementationType, Supplier<BuildServiceSpec<P>> specSupplier) {
         return withRegistrations(registrations -> {
             BuildServiceRegistration<?, ?> existing = registrations.findByName(name);
             if (existing != null) {
@@ -142,19 +164,10 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
                 // TODO - assert same parameters
                 return uncheckedNonnullCast(existing.getService());
             }
-
-            // TODO - extract some shared infrastructure to take care of parameter instantiation (eg strict vs lenient, which services are visible)
-            P parameters = instantiateParametersOf(implementationType);
-
-            // TODO - should defer execution of the action, to match behaviour for other container `register()` methods.
-
-            DefaultServiceSpec<P> spec = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceSpec.class, parameters));
-            configureAction.execute(spec);
-            Integer maxParallelUsages = spec.getMaxParallelUsages().getOrNull();
-
             // TODO - finalize the parameters during isolation
             // TODO - need to lock the project during isolation - should do this the same way as artifact transforms
-            return doRegister(name, implementationType, parameters, maxParallelUsages, registrations);
+            BuildServiceSpec<P> spec = specSupplier.get();
+            return doRegister(name, implementationType, spec.getParameters(), spec.getMaxParallelUsages().getOrNull(), registrations);
         });
     }
 
