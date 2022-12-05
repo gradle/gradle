@@ -31,20 +31,34 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
         withClassJar("utils.jar", JavaClassUtil::class.java)
 
         withBuildScript("""
-            import org.gradle.integtests.fixtures.jvm.JavaClassUtil
-
             buildscript {
                 dependencies {
                     classpath(files("utils.jar"))
                 }
             }
 
-            println("Java Class Major Version = ${'$'}{JavaClassUtil.getClassMajorVersion(this::class.java)}")
+            $printScriptJavaClassFileMajorVersion
         """)
 
-        build("help").apply {
-            assertThat(output, containsString("Java Class Major Version = ${JavaClassUtil.getClassMajorVersion(JavaVersion.current())}"))
-        }
+        assertThat(build("help").output, containsString(outputFor(JavaVersion.current())))
+    }
+
+    @Test
+    fun `precompiled scripts use jvmTarget 8 by default`() {
+
+        withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
+
+        withDefaultSettingsIn("buildSrc")
+        withKotlinDslPluginIn("buildSrc").appendText("""
+            dependencies {
+                implementation(files("utils.jar"))
+            }
+        """)
+
+        withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
+        withBuildScript("""plugins { id("some") }""")
+
+        assertThat(build("help").output, containsString(outputFor(JavaVersion.VERSION_1_8)))
     }
 
     @Test
@@ -65,19 +79,18 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        withFile("buildSrc/src/main/kotlin/some.gradle.kts", """
-            import org.gradle.integtests.fixtures.jvm.JavaClassUtil
+        withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
+        withBuildScript("""plugins { id("some") }""")
 
-            println("Java Class Major Version = ${'$'}{JavaClassUtil.getClassMajorVersion(this::class.java)}")
-        """)
-        withBuildScript("""
-            plugins {
-                id("some")
-            }
-        """)
-
-        build("help").apply {
-            assertThat(output, containsString("Java Class Major Version = 55"))
-        }
+        assertThat(build("help").output, containsString(outputFor(JavaVersion.VERSION_11)))
     }
+
+    private
+    val printScriptJavaClassFileMajorVersion = """
+        println("Java Class Major Version = ${'$'}{org.gradle.integtests.fixtures.jvm.JavaClassUtil.getClassMajorVersion(this::class.java)}")
+    """
+
+    private
+    fun outputFor(javaVersion: JavaVersion) =
+        "Java Class Major Version = ${JavaClassUtil.getClassMajorVersion(javaVersion)}"
 }
