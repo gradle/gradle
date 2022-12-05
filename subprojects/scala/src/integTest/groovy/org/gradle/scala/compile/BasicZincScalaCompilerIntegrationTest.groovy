@@ -176,6 +176,7 @@ abstract class BasicZincScalaCompilerIntegrationTest extends MultiVersionIntegra
         fullDebug.debugIncludesLineNumbers
         fullDebug.debugIncludesLocalVariables
 
+        // Scala 3 does not support `-g` option configured via `scalaCompileOptions.debugLevel`
         if (versionNumber.major >= 3) {
             return
         }

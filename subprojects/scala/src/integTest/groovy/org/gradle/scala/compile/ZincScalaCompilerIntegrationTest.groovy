@@ -75,7 +75,7 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
 
     @Issue("https://github.com/gradle/gradle/issues/22964")
     def "compiles Scala code incrementally"() {
-        // TODO: remove when fixed
+        // TODO: remove the assumption when the linked issue fixed for Scala 3
         Assume.assumeTrue(versionNumber.major == 2)
 
         file("src/main/scala/Person.scala") << """class Person(val name: String = "foo", val age: Int = 1)"""
@@ -146,7 +146,7 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
 
     @Issue("https://github.com/gradle/gradle/issues/22964")
     def "compiles Scala incrementally across project boundaries"() {
-        // TODO: remove when fixed
+        // TODO: remove the assumption when the linked issue fixed for Scala 3
         Assume.assumeTrue(versionNumber.major == 2)
 
         file("settings.gradle") << """include 'a', 'b'"""
