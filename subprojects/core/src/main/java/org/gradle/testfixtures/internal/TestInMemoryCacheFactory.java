@@ -120,7 +120,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
-        public <K, V> boolean cacheExists(IndexedCacheParameters<K, V> parameters) {
+        public <K, V> boolean indexedCacheExists(IndexedCacheParameters<K, V> parameters) {
             return true;
         }
 

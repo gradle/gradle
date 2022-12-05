@@ -205,8 +205,8 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
-        public <K, V> boolean cacheExists(IndexedCacheParameters<K, V> parameters) {
-            return reference.cache.cacheExists(parameters);
+        public <K, V> boolean indexedCacheExists(IndexedCacheParameters<K, V> parameters) {
+            return reference.cache.indexedCacheExists(parameters);
         }
 
         @Override
