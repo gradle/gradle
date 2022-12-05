@@ -552,7 +552,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         mavenHttpRepo.module('org.foo', 'broken-transitive').pom.expectGetBroken()
 
         and:
-        fails 'checkDeps'
+        fails ':checkDeps'
 
         then:
         failedResolve.assertFailurePresent(failure)
