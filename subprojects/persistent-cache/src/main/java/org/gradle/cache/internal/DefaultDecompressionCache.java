@@ -44,7 +44,7 @@ public class DefaultDecompressionCache implements DecompressionCache, Stoppable,
         this.cache = cacheFactory.cache(EXPANSION_CACHE_KEY)
                 .withDisplayName(EXPANSION_CACHE_NAME)
                 .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-                .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
+                .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
                 .open();
     }
 

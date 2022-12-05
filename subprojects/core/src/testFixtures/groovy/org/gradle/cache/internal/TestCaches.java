@@ -31,7 +31,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
+import static org.gradle.cache.FileLockManager.LockMode.OnDemand;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 /**
@@ -121,7 +121,7 @@ public abstract class TestCaches {
         private Map<String, ?> properties = Collections.emptyMap();
         private LockTarget lockTarget = LockTarget.DefaultTarget;
         private String displayName = "Test In Memory Cache";
-        private LockOptions lockOptions = mode(Exclusive);
+        private LockOptions lockOptions = mode(OnDemand);
         private Action<? super PersistentCache> initializer = Actions.doNothing();
         private CleanupAction cleanup = CleanupAction.NO_OP;
 
