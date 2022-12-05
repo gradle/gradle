@@ -10,9 +10,9 @@ tasks.withType<JavaCompile>().configureEach {
     })
 }
 
-tasks.register<Test>("testsOn14") {
+tasks.register<Test>("testsOn17") {
     javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(14))
+        languageVersion.set(JavaLanguageVersion.of(17))
     })
 }
 // end::customToolchain[]
