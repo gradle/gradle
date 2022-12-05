@@ -276,6 +276,7 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         } else {
             resultProcessor.failure(testId, TestFailure.fromTestFrameworkFailure(rawFailure));
         }
+        resultProcessor.failure(testId, rawFailure);
     }
 
     @Override
@@ -303,8 +304,10 @@ public class TestNGTestResultProcessorAdapter implements ISuiteListener, ITestLi
         Object parentId = classInfo == null ? null : classInfo.id;
         resultProcessor.started(test, new TestStartEvent(testResult.getStartMillis(), parentId));
         TestFailure testFailure = TestFailure.fromTestFrameworkFailure(testResult.getThrowable());
-        resultProcessor.failure(test.getId(), testFailure);
-        resultProcessor.completed(test.getId(), new TestCompleteEvent(testResult.getEndMillis(), TestResult.ResultType.FAILURE));
+        Object testId = test.getId();
+        resultProcessor.failure(testId, testFailure);
+        resultProcessor.failure(testId, testResult.getThrowable());
+        resultProcessor.completed(testId, new TestCompleteEvent(testResult.getEndMillis(), TestResult.ResultType.FAILURE));
     }
 
     @Override

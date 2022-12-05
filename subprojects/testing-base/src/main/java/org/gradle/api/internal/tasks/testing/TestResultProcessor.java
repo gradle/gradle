@@ -45,6 +45,13 @@ public interface TestResultProcessor {
 
     /**
      * Notifies this processor that a failure has occurred in the given test.
+     * @deprecated This method was introduced to preserve backward compatibility with third-party plugins and will be removed in Gradle 8.0.
+     */
+    @Deprecated
+    void failure(Object testId, Throwable result);
+
+    /**
+     * Notifies this processor that a failure has occurred in the given test.
      */
     @UsedByScanPlugin("test-distribution")
     void failure(Object testId, TestFailure result);

@@ -157,6 +157,7 @@ class TestNGTestClassProcessorTest extends Specification {
         then: 1 * processor.started({ it.id == 2 } , _)
         then: 1 * processor.started({ it.name == 'beforeMethod' && it.className == ATestNGClassWithBrokenSetupMethod.name }, _)
         then: 1 * processor.failure(3, ATestNGClassWithBrokenSetupMethod.failure)
+        then: 1 * processor.failure(3, ATestNGClassWithBrokenSetupMethod.failure.rawFailure)
         then: 1 * processor.completed(3, { it.resultType == ResultType.FAILURE })
 
         then: 1 * processor.started({ it.name == 'test' && it.className == ATestNGClassWithBrokenSetupMethod.name }, _)
@@ -176,6 +177,7 @@ class TestNGTestClassProcessorTest extends Specification {
         then: 1 * processor.started({ it.name == 'beforeMethod' && it.className == ATestNGClassWithBrokenDependencyMethod.name }, _)
 
         then: 1 * processor.failure(3, ATestNGClassWithBrokenDependencyMethod.failure)
+        then: 1 * processor.failure(3, ATestNGClassWithBrokenDependencyMethod.failure.rawFailure)
         then: 1 * processor.completed(3, { it.resultType == ResultType.FAILURE })
 
         then: 1 * processor.started({ it.name == 'test' && it.className == ATestNGClassWithBrokenDependencyMethod.name }, _)

@@ -142,6 +142,7 @@ class JUnitTestClassProcessorTest extends Specification {
         1 * processor.started({ it.id == 2 && it.name == "broken" && it.className == ATestClassWithRunner.name }, { it.parentId == 1 })
         1 * processor.started({ it.id == 3 && it.name == "ok" && it.className == ATestClassWithRunner.name }, { it.parentId == 1 })
         1 * processor.failure(2, CustomRunner.failure)
+        1 * processor.failure(2, CustomRunner.failure.rawFailure)
         1 * processor.completed(3, { it.resultType == null })
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
@@ -170,7 +171,9 @@ class JUnitTestClassProcessorTest extends Specification {
         1 * processor.started({ it.id == 1 }, { it.parentId == null })
         1 * processor.started({ it.id == 2 && it.name == 'test' && it.className == ATestClassWithBrokenBeforeAndAfterMethod.name }, { it.parentId == 1 })
         1 * processor.failure(2, ATestClassWithBrokenBeforeAndAfterMethod.beforeFailure)
+        1 * processor.failure(2, ATestClassWithBrokenBeforeAndAfterMethod.beforeFailure.rawFailure)
         1 * processor.failure(2, ATestClassWithBrokenBeforeAndAfterMethod.afterFailure)
+        1 * processor.failure(2, ATestClassWithBrokenBeforeAndAfterMethod.afterFailure.rawFailure)
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
@@ -184,6 +187,7 @@ class JUnitTestClassProcessorTest extends Specification {
         1 * processor.started({ it.id == 1 }, { it.parentId == null })
         1 * processor.started({ it.id == 2 && it.name == testMethodName && it.className == testClass.name }, { it.parentId == 1 })
         1 * processor.failure(2, failure)
+        1 * processor.failure(2, failure.rawFailure)
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
@@ -213,6 +217,7 @@ class JUnitTestClassProcessorTest extends Specification {
 
         1 * processor.started({ it.id == 3 && it.name == 'broken' && it.className == ATestClassWithRunnerThatBreaksAfterRunningSomeTests.name }, { it.parentId == 1 })
         1 * processor.failure(3, CustomRunnerWithRunMethodThatBreaksAfterRunningSomeTests.failure)
+        1 * processor.failure(3, CustomRunnerWithRunMethodThatBreaksAfterRunningSomeTests.failure.rawFailure)
         1 * processor.completed(3, { it.resultType == null })
 
         1 * processor.completed(1, { it.resultType == null })
@@ -230,6 +235,7 @@ class JUnitTestClassProcessorTest extends Specification {
         1 * processor.started({ it.id == 1 }, { it.parentId == null })
         1 * processor.started({ it.id == 2 && it.name == 'pass' && it.className == testClassName }, { it.parentId == 1 })
         1 * processor.failure(2, { it.rawFailure instanceof NoClassDefFoundError})
+        1 * processor.failure(2, { it instanceof NoClassDefFoundError})
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
@@ -306,6 +312,7 @@ class JUnitTestClassProcessorTest extends Specification {
         1 * processor.started({ it.id == 2 && it.name == "broken" && it.className == ATestClassWithRunner.name }, { it.parentId == 1 })
         1 * processor.started({ it.id == 3 && it.name == "ok" && it.className == ATestClassWithRunner.name }, { it.parentId == 1 })
         1 * processor.failure(2, CustomRunner.failure)
+        1 * processor.failure(2, CustomRunner.failure.rawFailure)
         1 * processor.completed(3, { it.resultType == null })
         1 * processor.completed(2, { it.resultType == null })
         1 * processor.completed(1, { it.resultType == null })

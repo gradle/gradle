@@ -74,6 +74,7 @@ class TestClassExecutionEventGeneratorTest extends Specification {
         then:
         1 * target.started({it.id == 2 && it.className == 'some-test' && it.name == 'initializationError'}, !null)
         1 * target.failure(2, failure)
+        1 * target.failure(2, failure.rawFailure)
         1 * target.completed(2, !null)
         1 * target.completed(1, !null)
         0 * target._
@@ -99,7 +100,9 @@ class TestClassExecutionEventGeneratorTest extends Specification {
 
         then:
         1 * target.failure(2, failure)
+        1 * target.failure(2, failure.rawFailure)
         1 * target.failure(3, failure)
+        1 * target.failure(3, failure.rawFailure)
         1 * target.completed(2, !null)
         1 * target.completed(3, !null)
         1 * target.completed(1, !null)
@@ -125,6 +128,7 @@ class TestClassExecutionEventGeneratorTest extends Specification {
         then:
         1 * target.started({it.id == 3 && it.className == 'some-test' && it.name == 'executionError'}, !null)
         1 * target.failure(3, failure)
+        1 * target.failure(3, failure.rawFailure)
         1 * target.completed(3, !null)
         1 * target.completed(1, !null)
         0 * target._

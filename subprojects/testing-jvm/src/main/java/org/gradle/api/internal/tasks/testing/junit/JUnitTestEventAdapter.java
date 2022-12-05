@@ -102,6 +102,7 @@ public class JUnitTestEventAdapter extends RunListener {
         } else {
             resultProcessor.failure(descriptorId, TestFailure.fromTestFrameworkFailure(failure));
         }
+        resultProcessor.failure(descriptorId, failure);
     }
 
     private String getValueOfStringField(String name, junit.framework.ComparisonFailure comparisonFailure) {

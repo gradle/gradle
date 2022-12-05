@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor
+import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.internal.time.Clock
 import spock.lang.Specification
 
@@ -68,7 +69,7 @@ class SuiteTestClassProcessorTest extends Specification {
         then:
         1 * resultProcessor.started(suiteDescriptor, !null)
         1 * targetProcessor.startProcessing(!null) >> { throw failure }
-        1 * resultProcessor.failure('id', !null) >> { args ->
+        1 * resultProcessor.failure('id', _ as TestFailure) >> { args ->
             def e = args[1]
             assert e instanceof DefaultTestFailure
             assert !e.details.assertionFailure
@@ -87,7 +88,7 @@ class SuiteTestClassProcessorTest extends Specification {
 
         then:
         1 * targetProcessor.processTestClass(testClass) >> { throw failure }
-        1 * resultProcessor.failure('id', !null) >> { args ->
+        1 * resultProcessor.failure('id', _ as TestFailure) >> { args ->
             def e = args[1]
             assert e instanceof DefaultTestFailure
             assert !e.details.assertionFailure
@@ -106,7 +107,7 @@ class SuiteTestClassProcessorTest extends Specification {
 
         then:
         1 * targetProcessor.stop() >> { throw failure }
-        1 * resultProcessor.failure('id', !null) >> { args ->
+        1 * resultProcessor.failure('id', _ as TestFailure) >> { args ->
             def e = args[1]
             assert e instanceof DefaultTestFailure
             assert !e.details.assertionFailure

@@ -89,6 +89,12 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
     }
 
     @Override
+    @SuppressWarnings("deprecation")
+    public void failure(Object testId, Throwable result) {
+        processor.failure(testId, result);
+    }
+
+    @Override
     public void failure(Object testId, TestFailure result) {
         processor.failure(testId, result);
     }

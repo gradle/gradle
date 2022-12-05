@@ -59,11 +59,14 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
                     String testName = testsStarted ? "executionError": "initializationError";
                     DefaultTestDescriptor initializationError = new DefaultTestDescriptor(idGenerator.generateId(), currentTestClass.getClassName(), testName);
                     resultProcessor.started(initializationError, new TestStartEvent(now));
-                    resultProcessor.failure(initializationError.getId(), failure);
-                    resultProcessor.completed(initializationError.getId(), new TestCompleteEvent(now));
+                    Object errorId = initializationError.getId();
+                    resultProcessor.failure(errorId, failure);
+                    resultProcessor.failure(errorId, failure.getRawFailure());
+                    resultProcessor.completed(errorId, new TestCompleteEvent(now));
                 } else {
                     for (Object test : currentTests) {
                         resultProcessor.failure(test, failure);
+                        resultProcessor.failure(test, failure.getRawFailure());
                         resultProcessor.completed(test, new TestCompleteEvent(now));
                     }
                 }
@@ -92,6 +95,11 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
     @Override
     public void output(Object testId, TestOutputEvent event) {
         resultProcessor.output(testId, event);
+    }
+
+    @Override
+    public void failure(Object testId, Throwable result) {
+        resultProcessor.failure(testId, result);
     }
 
     @Override

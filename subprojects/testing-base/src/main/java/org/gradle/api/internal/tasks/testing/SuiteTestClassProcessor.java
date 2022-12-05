@@ -35,6 +35,7 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void startProcessing(TestResultProcessor testResultProcessor) {
         try {
             resultProcessor = new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(testResultProcessor, new JULRedirector()));
@@ -42,29 +43,37 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
             processor.startProcessing(resultProcessor);
         } catch (Throwable t) {
             Throwable rawFailure = new TestSuiteExecutionException(String.format("Could not start %s.", suiteDescriptor), t);
-            resultProcessor.failure(suiteDescriptor.getId(), TestFailure.fromTestFrameworkFailure(rawFailure));
+            Object suiteDescriptorId = suiteDescriptor.getId();
+            resultProcessor.failure(suiteDescriptorId, TestFailure.fromTestFrameworkFailure(rawFailure));
+            resultProcessor.failure(suiteDescriptorId, rawFailure);
         }
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void processTestClass(TestClassRunInfo testClass) {
         try {
             processor.processTestClass(testClass);
         } catch (Throwable t) {
             Throwable rawFailure = new TestSuiteExecutionException(String.format("Could not execute test class '%s'.", testClass.getTestClassName()), t);
-            resultProcessor.failure(suiteDescriptor.getId(), TestFailure.fromTestFrameworkFailure(rawFailure));
+            Object suiteDescriptorId = suiteDescriptor.getId();
+            resultProcessor.failure(suiteDescriptorId, TestFailure.fromTestFrameworkFailure(rawFailure));
+            resultProcessor.failure(suiteDescriptorId, rawFailure);
         }
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void stop() {
+        Object suiteDescriptorId = suiteDescriptor.getId();
         try {
             processor.stop();
         } catch (Throwable t) {
             Throwable rawFailure = new TestSuiteExecutionException(String.format("Could not complete execution for %s.", suiteDescriptor), t);
-            resultProcessor.failure(suiteDescriptor.getId(), TestFailure.fromTestFrameworkFailure(rawFailure));
+            resultProcessor.failure(suiteDescriptorId, TestFailure.fromTestFrameworkFailure(rawFailure));
+            resultProcessor.failure(suiteDescriptorId, rawFailure);
         } finally {
-            resultProcessor.completed(suiteDescriptor.getId(), new TestCompleteEvent(clock.getCurrentTime()));
+            resultProcessor.completed(suiteDescriptorId, new TestCompleteEvent(clock.getCurrentTime()));
         }
     }
 

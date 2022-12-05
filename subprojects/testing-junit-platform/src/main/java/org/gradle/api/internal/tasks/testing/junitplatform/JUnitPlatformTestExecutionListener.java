@@ -97,6 +97,7 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void executionFinished(TestIdentifier testIdentifier, TestExecutionResult testExecutionResult) {
         if (testExecutionResult.getStatus() == ABORTED) {
             reportSkipped(testIdentifier);
@@ -110,8 +111,10 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
             } else {
                 TestDescriptorInternal syntheticTestDescriptor = createSyntheticTestDescriptorForContainer(testIdentifier);
                 resultProcessor.started(syntheticTestDescriptor, startEvent(getId(testIdentifier)));
-                resultProcessor.failure(syntheticTestDescriptor.getId(), TestFailure.fromTestFrameworkFailure(failure));
-                resultProcessor.completed(syntheticTestDescriptor.getId(), completeEvent());
+                Object testDescriptorId = syntheticTestDescriptor.getId();
+                resultProcessor.failure(testDescriptorId, TestFailure.fromTestFrameworkFailure(failure));
+                resultProcessor.failure(testDescriptorId, failure);
+                resultProcessor.completed(testDescriptorId, completeEvent());
             }
         }
         if (wasStarted(testIdentifier)) {
@@ -119,9 +122,12 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void reportTestFailure(TestIdentifier testIdentifier, Throwable failure) {
         TestFailure testFailure = createFailure(failure);
-        resultProcessor.failure(getId(testIdentifier), testFailure);
+        Object id = getId(testIdentifier);
+        resultProcessor.failure(id, testFailure);
+        resultProcessor.failure(id, failure);
     }
 
     private static TestFailure createFailure(Throwable failure) {

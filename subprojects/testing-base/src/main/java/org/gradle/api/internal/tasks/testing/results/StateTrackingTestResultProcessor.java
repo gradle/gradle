@@ -98,6 +98,11 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
+    public void failure(Object testId, Throwable result) {
+    }
+
+    @Override
     public final void failure(Object testId, TestFailure testFailure) {
         TestState testState = executing.get(testId);
         if (testState == null) {
