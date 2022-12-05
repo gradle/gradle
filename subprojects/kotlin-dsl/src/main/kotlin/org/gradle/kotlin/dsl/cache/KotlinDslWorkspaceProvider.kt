@@ -29,13 +29,13 @@ import java.io.Closeable
 
 
 class KotlinDslWorkspaceProvider(
-        cacheRepository: GlobalScopedCacheBuilderFactory,
-        fileAccessTimeJournal: FileAccessTimeJournal,
-        inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
-        stringInterner: StringInterner,
-        classLoaderHasher: ClassLoaderHierarchyHasher,
-        cleanupActionDecorator: CleanupActionDecorator,
-        cacheConfigurations: CacheConfigurationsInternal
+    cacheRepository: GlobalScopedCacheBuilderFactory,
+    fileAccessTimeJournal: FileAccessTimeJournal,
+    inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
+    stringInterner: StringInterner,
+    classLoaderHasher: ClassLoaderHierarchyHasher,
+    cleanupActionDecorator: CleanupActionDecorator,
+    cacheConfigurations: CacheConfigurationsInternal
 ) : Closeable {
 
     private

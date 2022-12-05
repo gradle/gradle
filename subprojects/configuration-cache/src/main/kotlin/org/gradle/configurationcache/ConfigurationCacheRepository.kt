@@ -48,10 +48,10 @@ import java.nio.file.StandardCopyOption
 @ServiceScope(Scopes.BuildTree::class)
 internal
 class ConfigurationCacheRepository(
-        cacheRepository: BuildTreeScopedCacheBuilderFactory,
-        cleanupActionDecorator: CleanupActionDecorator,
-        private val fileAccessTimeJournal: FileAccessTimeJournal,
-        private val fileSystem: FileSystem
+    cacheRepository: BuildTreeScopedCacheBuilderFactory,
+    cleanupActionDecorator: CleanupActionDecorator,
+    private val fileAccessTimeJournal: FileAccessTimeJournal,
+    private val fileSystem: FileSystem
 ) : Stoppable {
     fun forKey(cacheKey: String): ConfigurationCacheStateStore {
         return StoreImpl(cache.baseDirFor(cacheKey))

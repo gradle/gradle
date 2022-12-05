@@ -30,13 +30,13 @@ object GradleUserHomeServices {
 
     @Suppress("unused")
     fun createKotlinDslWorkspaceProvider(
-            cacheRepository: GlobalScopedCacheBuilderFactory,
-            fileAccessTimeJournal: FileAccessTimeJournal,
-            inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
-            stringInterner: StringInterner,
-            classLoaderHasher: ClassLoaderHierarchyHasher,
-            cleanupActionDecorator: CleanupActionDecorator,
-            cacheConfigurations: CacheConfigurationsInternal
+        cacheRepository: GlobalScopedCacheBuilderFactory,
+        fileAccessTimeJournal: FileAccessTimeJournal,
+        inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
+        stringInterner: StringInterner,
+        classLoaderHasher: ClassLoaderHierarchyHasher,
+        cleanupActionDecorator: CleanupActionDecorator,
+        cacheConfigurations: CacheConfigurationsInternal
     ): KotlinDslWorkspaceProvider {
         return KotlinDslWorkspaceProvider(
             cacheRepository,
