@@ -13,9 +13,9 @@ application {
 }
 
 // tag::customExec[]
-tasks.register<JavaExec>("runOn14") {
+tasks.register<JavaExec>("runOn17") {
     javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(14))
+        languageVersion.set(JavaLanguageVersion.of(17))
     })
 
     classpath = sourceSets["main"].runtimeClasspath
