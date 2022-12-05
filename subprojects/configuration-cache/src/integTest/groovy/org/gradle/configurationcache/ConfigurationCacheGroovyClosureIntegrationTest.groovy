@@ -28,8 +28,6 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
             }
         """
 
-        configurationCacheRun ":some"
-
         when:
         configurationCacheFails ":some"
 
@@ -52,8 +50,6 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
             }
         """
 
-        configurationCacheRun ":some"
-
         when:
         configurationCacheFails ":some"
 
@@ -74,8 +70,6 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
                 }
             }
         """
-
-        configurationCacheRun ":some"
 
         when:
         configurationCacheFails ":some"
@@ -102,8 +96,6 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
             }
         """
 
-        configurationCacheRun ":some"
-
         when:
         configurationCacheFails ":some"
 
@@ -127,8 +119,6 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
                 }
             }
         """
-
-        configurationCacheRun ":some"
 
         when:
         configurationCacheFails ":some"
@@ -155,7 +145,6 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
             }
         """
         executer.beforeExecute { withArguments("-I", initScript.absolutePath) }
-        configurationCacheRun ":some"
 
         when:
         configurationCacheFails ":some"
@@ -181,8 +170,6 @@ class ConfigurationCacheGroovyClosureIntegrationTest extends AbstractConfigurati
                 }
             }
         """
-
-        configurationCacheRun ":some"
 
         when:
         configurationCacheFails ":some"
