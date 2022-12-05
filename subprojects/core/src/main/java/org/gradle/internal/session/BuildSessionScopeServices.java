@@ -39,8 +39,8 @@ import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cache.internal.BuildOperationCleanupActionDecorator;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCache;
-import org.gradle.cache.scopes.BuildTreeScopedCache;
+import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCacheFactory;
+import org.gradle.cache.scopes.BuildTreeScopedCacheFactory;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.PendingChangesManager;
 import org.gradle.groovy.scripts.internal.DefaultScriptSourceHasher;
@@ -163,11 +163,11 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         return new ProjectCacheDir(cacheDir.getDir(), progressLoggerFactory, deleter);
     }
 
-    BuildTreeScopedCache createBuildTreeScopedCache(ProjectCacheDir projectCacheDir, CacheRepository cacheRepository) {
-        return new DefaultBuildTreeScopedCache(projectCacheDir.getDir(), cacheRepository);
+    BuildTreeScopedCacheFactory createBuildTreeScopedCache(ProjectCacheDir projectCacheDir, CacheRepository cacheRepository) {
+        return new DefaultBuildTreeScopedCacheFactory(projectCacheDir.getDir(), cacheRepository);
     }
 
-    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(BuildTreeScopedCache scopedCache) {
+    BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(BuildTreeScopedCacheFactory scopedCache) {
         File workDir = scopedCache.baseDirForCache("fileChanges");
         return new BuildSessionScopeFileTimeStampInspector(workDir);
     }
@@ -208,7 +208,7 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
             .build();
     }
 
-    CrossBuildFileHashCacheWrapper createCrossBuildChecksumCache(BuildTreeScopedCache scopedCache, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    CrossBuildFileHashCacheWrapper createCrossBuildChecksumCache(BuildTreeScopedCacheFactory scopedCache, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         CrossBuildFileHashCache crossBuildCache = new CrossBuildFileHashCache(scopedCache, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
         return new CrossBuildFileHashCacheWrapper(crossBuildCache);
     }

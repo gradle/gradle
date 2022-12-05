@@ -23,8 +23,8 @@ import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPSignatureList;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.scopes.BuildScopedCache;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.BuildScopedCacheFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -58,20 +58,20 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
     private static final HashCode NO_KEYRING_FILE_HASH = Hashing.signature(DefaultSignatureVerificationServiceFactory.class);
 
     private final RepositoryTransportFactory transportFactory;
-    private final GlobalScopedCache cacheRepository;
+    private final GlobalScopedCacheFactory cacheRepository;
     private final InMemoryCacheDecoratorFactory decoratorFactory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final FileHasher fileHasher;
-    private final BuildScopedCache buildScopedCache;
+    private final BuildScopedCacheFactory buildScopedCache;
     private final BuildCommencedTimeProvider timeProvider;
     private final boolean refreshKeys;
 
     public DefaultSignatureVerificationServiceFactory(RepositoryTransportFactory transportFactory,
-                                                      GlobalScopedCache cacheRepository,
+                                                      GlobalScopedCacheFactory cacheRepository,
                                                       InMemoryCacheDecoratorFactory decoratorFactory,
                                                       BuildOperationExecutor buildOperationExecutor,
                                                       FileHasher fileHasher,
-                                                      BuildScopedCache buildScopedCache,
+                                                      BuildScopedCacheFactory buildScopedCache,
                                                       BuildCommencedTimeProvider timeProvider,
                                                       boolean refreshKeys) {
         this.transportFactory = transportFactory;

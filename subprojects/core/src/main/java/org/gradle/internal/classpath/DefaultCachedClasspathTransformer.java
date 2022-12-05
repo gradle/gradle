@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheFactory;
 import org.gradle.internal.Either;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -61,7 +61,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final ManagedExecutor executor;
 
     public DefaultCachedClasspathTransformer(
-        GlobalScopedCache globalScopedCache,
+        GlobalScopedCacheFactory globalScopedCache,
         ClasspathTransformerCacheFactory classpathTransformerCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ClasspathWalker classpathWalker,

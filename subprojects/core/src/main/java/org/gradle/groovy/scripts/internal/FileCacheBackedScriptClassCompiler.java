@@ -21,7 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Pair;
 import org.gradle.internal.classanalysis.AsmConstants;
@@ -61,14 +61,14 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private final GlobalScopedCache cacheRepository;
+    private final GlobalScopedCacheFactory cacheRepository;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final CachedClasspathTransformer classpathTransformer;
 
     public FileCacheBackedScriptClassCompiler(
-        GlobalScopedCache cacheRepository, ScriptCompilationHandler scriptCompilationHandler,
-        ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        CachedClasspathTransformer classpathTransformer) {
+            GlobalScopedCacheFactory cacheRepository, ScriptCompilationHandler scriptCompilationHandler,
+            ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+            CachedClasspathTransformer classpathTransformer) {
         this.cacheRepository = cacheRepository;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;

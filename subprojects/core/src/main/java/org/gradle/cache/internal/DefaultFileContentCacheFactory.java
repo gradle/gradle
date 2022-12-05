@@ -20,7 +20,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.scopes.ScopedCache;
+import org.gradle.cache.scopes.ScopedCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
@@ -46,7 +46,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
     private final ConcurrentMap<String, DefaultFileContentCache<?>> caches = new ConcurrentHashMap<>();
 
-    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileSystemAccess fileSystemAccess, ScopedCache cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileSystemAccess fileSystemAccess, ScopedCacheFactory cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         this.listenerManager = listenerManager;
         this.fileSystemAccess = fileSystemAccess;
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;

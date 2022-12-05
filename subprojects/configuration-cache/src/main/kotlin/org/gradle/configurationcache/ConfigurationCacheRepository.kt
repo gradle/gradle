@@ -28,7 +28,7 @@ import org.gradle.cache.internal.SingleDepthFilesFinder
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.internal.streams.DefaultValueStore
 import org.gradle.cache.internal.streams.ValueStore
-import org.gradle.cache.scopes.BuildTreeScopedCache
+import org.gradle.cache.scopes.BuildTreeScopedCacheFactory
 import org.gradle.configurationcache.extensions.toDefaultLowerCase
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.internal.Factory
@@ -48,10 +48,10 @@ import java.nio.file.StandardCopyOption
 @ServiceScope(Scopes.BuildTree::class)
 internal
 class ConfigurationCacheRepository(
-    cacheRepository: BuildTreeScopedCache,
-    cleanupActionDecorator: CleanupActionDecorator,
-    private val fileAccessTimeJournal: FileAccessTimeJournal,
-    private val fileSystem: FileSystem
+        cacheRepository: BuildTreeScopedCacheFactory,
+        cleanupActionDecorator: CleanupActionDecorator,
+        private val fileAccessTimeJournal: FileAccessTimeJournal,
+        private val fileSystem: FileSystem
 ) : Stoppable {
     fun forKey(cacheKey: String): ConfigurationCacheStateStore {
         return StoreImpl(cache.baseDirFor(cacheKey))

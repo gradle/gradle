@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.scopes.BuildTreeScopedCache;
+import org.gradle.cache.scopes.BuildTreeScopedCacheFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.serialize.Decoder;
@@ -39,7 +39,7 @@ public class PersistentVcsMetadataCache implements Stoppable {
     private final PersistentCache cache;
     private final PersistentIndexedCache<String, VersionRef> workingDirCache;
 
-    public PersistentVcsMetadataCache(BuildTreeScopedCache scopedCache) {
+    public PersistentVcsMetadataCache(BuildTreeScopedCacheFactory scopedCache) {
         cache = scopedCache
             .cache("vcsMetadata")
             .withDisplayName("VCS metadata")

@@ -18,7 +18,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheFactory;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.cache.MonitoredCleanupActionDecorator;
 import org.gradle.internal.event.ListenerManager;
@@ -31,7 +31,7 @@ public class GradleUserHomeCleanupServices {
 
     public void configure(
         ServiceRegistration registration,
-        GlobalScopedCache globalScopedCache,
+        GlobalScopedCacheFactory globalScopedCache,
         Deleter deleter,
         GradleUserHomeDirProvider gradleUserHomeDirProvider,
         ProgressLoggerFactory progressLoggerFactory,

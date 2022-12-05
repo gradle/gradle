@@ -26,7 +26,7 @@ import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
-import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.cache.scopes.GlobalScopedCacheFactory
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
@@ -46,7 +46,7 @@ import javax.inject.Inject
 
 class CrossBuildCachingRuleExecutorTest extends Specification {
 
-    GlobalScopedCache cacheRepository = Mock()
+    GlobalScopedCacheFactory cacheRepository = Mock()
     DefaultInMemoryCacheDecoratorFactory cacheDecoratorFactory = Mock()
     ValueSnapshotter valueSnapshotter = Mock()
     BuildCommencedTimeProvider timeProvider = Stub()

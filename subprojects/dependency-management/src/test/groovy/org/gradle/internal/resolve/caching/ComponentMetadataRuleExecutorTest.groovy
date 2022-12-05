@@ -34,7 +34,7 @@ import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
-import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.cache.scopes.GlobalScopedCacheFactory
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
@@ -61,7 +61,7 @@ import java.time.Duration
 class ComponentMetadataRuleExecutorTest extends Specification {
     @Subject
     ComponentMetadataRuleExecutor executor
-    GlobalScopedCache cacheRepository
+    GlobalScopedCacheFactory cacheRepository
     DefaultInMemoryCacheDecoratorFactory cacheDecoratorFactory
     ValueSnapshotter valueSnapshotter
     long time = 0

@@ -20,17 +20,17 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
-import org.gradle.cache.scopes.ScopedCache;
+import org.gradle.cache.scopes.ScopedCacheFactory;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
 
-public abstract class AbstractScopedCache implements ScopedCache {
+public abstract class AbstractScopedCacheFactory implements ScopedCacheFactory {
     private final CacheScopeMapping cacheScopeMapping;
     private final CacheRepository cacheRepository;
     private final File rootDir;
 
-    public AbstractScopedCache(File rootDir, CacheRepository cacheRepository) {
+    public AbstractScopedCacheFactory(File rootDir, CacheRepository cacheRepository) {
         this.rootDir = rootDir;
         this.cacheScopeMapping = new DefaultCacheScopeMapping(rootDir, GradleVersion.current());
         this.cacheRepository = cacheRepository;

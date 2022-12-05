@@ -29,7 +29,7 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.ConfigurableRules;
@@ -67,7 +67,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     private final EntryValidator<RESULT> validator;
 
     public CrossBuildCachingRuleExecutor(String name,
-                                         GlobalScopedCache cacheRepository,
+                                         GlobalScopedCacheFactory cacheRepository,
                                          InMemoryCacheDecoratorFactory cacheDecoratorFactory,
                                          ValueSnapshotter snapshotter,
                                          BuildCommencedTimeProvider timeProvider,

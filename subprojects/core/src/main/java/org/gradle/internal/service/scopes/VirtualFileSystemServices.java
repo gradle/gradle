@@ -43,8 +43,8 @@ import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.scopes.BuildTreeScopedCache;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.BuildTreeScopedCacheFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheFactory;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.build.BuildAddedListener;
 import org.gradle.internal.buildoption.IntegerInternalOption;
@@ -154,7 +154,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     @VisibleForTesting
     static class GradleUserHomeServices {
 
-        CrossBuildFileHashCache createCrossBuildFileHashCache(GlobalScopedCache scopedCache, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        CrossBuildFileHashCache createCrossBuildFileHashCache(GlobalScopedCacheFactory scopedCache, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
             return new CrossBuildFileHashCache(scopedCache, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES);
         }
 
@@ -322,7 +322,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
     @VisibleForTesting
     static class BuildSessionServices {
-        CrossBuildFileHashCache createCrossBuildFileHashCache(BuildTreeScopedCache scopedCache, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        CrossBuildFileHashCache createCrossBuildFileHashCache(BuildTreeScopedCacheFactory scopedCache, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
             return new CrossBuildFileHashCache(scopedCache, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.FILE_HASHES);
         }
 

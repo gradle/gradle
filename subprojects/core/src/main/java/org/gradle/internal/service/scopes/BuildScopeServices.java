@@ -80,9 +80,9 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.BuildScopeCacheDir;
-import org.gradle.cache.internal.scopes.DefaultBuildScopedCache;
-import org.gradle.cache.scopes.BuildScopedCache;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.internal.scopes.DefaultBuildScopedCacheFactory;
+import org.gradle.cache.scopes.BuildScopedCacheFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheFactory;
 import org.gradle.caching.internal.BuildCacheServices;
 import org.gradle.configuration.BuildOperationFiringProjectsPreparer;
 import org.gradle.configuration.BuildTreePreparingProjectsPreparer;
@@ -264,14 +264,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new ExecutionNodeAccessHierarchies(fileSystem.isCaseSensitive() ? CaseSensitivity.CASE_SENSITIVE : CaseSensitivity.CASE_INSENSITIVE, stat);
     }
 
-    protected BuildScopedCache createBuildScopedCache(
+    protected BuildScopedCacheFactory createBuildScopedCache(
         GradleUserHomeDirProvider userHomeDirProvider,
         BuildLayout buildLayout,
         StartParameter startParameter,
         CacheRepository cacheRepository
     ) {
         BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLayout, startParameter);
-        return new DefaultBuildScopedCache(cacheDir.getDir(), cacheRepository);
+        return new DefaultBuildScopedCacheFactory(cacheDir.getDir(), cacheRepository);
     }
 
     protected BuildLayout createBuildLayout(BuildLayoutFactory buildLayoutFactory, BuildDefinition buildDefinition) {
@@ -431,7 +431,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected FileCacheBackedScriptClassCompiler createFileCacheBackedScriptClassCompiler(
         BuildOperationExecutor buildOperationExecutor,
-        GlobalScopedCache cacheRepository,
+        GlobalScopedCacheFactory cacheRepository,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         DefaultScriptCompilationHandler scriptCompilationHandler,
         CachedClasspathTransformer classpathTransformer,

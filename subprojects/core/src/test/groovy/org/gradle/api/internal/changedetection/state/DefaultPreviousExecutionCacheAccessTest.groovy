@@ -20,11 +20,11 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
-import org.gradle.cache.scopes.BuildScopedCache
+import org.gradle.cache.scopes.BuildScopedCacheFactory
 import spock.lang.Specification
 
 class DefaultPreviousExecutionCacheAccessTest extends Specification {
-    final BuildScopedCache cacheRepository = Mock()
+    final BuildScopedCacheFactory cacheRepository = Mock()
 
     def "opens backing cache on construction"() {
         CacheBuilder cacheBuilder = Mock()

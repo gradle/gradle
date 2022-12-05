@@ -26,7 +26,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.MinimalPersistentCache;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheFactory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
 
@@ -39,7 +39,7 @@ public class UserHomeScopedCompileCaches implements GeneralCompileCaches, Closea
     private final PersistentCache cache;
     private final Cache<HashCode, ClassAnalysis> classAnalysisCache;
 
-    public UserHomeScopedCompileCaches(GlobalScopedCache cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
+    public UserHomeScopedCompileCaches(GlobalScopedCacheFactory cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
         cache = cacheRepository
             .cache("javaCompile")
             .withDisplayName("Java compile cache")

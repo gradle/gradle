@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 
-import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.cache.scopes.GlobalScopedCacheFactory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class DefaultArtifactCacheMetadataTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
-    def cache = Stub(GlobalScopedCache)
+    def cache = Stub(GlobalScopedCacheFactory)
 
     def "calculates file store directory"() {
         given:

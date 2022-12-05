@@ -24,7 +24,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.cache.scopes.BuildTreeScopedCache;
+import org.gradle.cache.scopes.BuildTreeScopedCacheFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal;
@@ -47,7 +47,7 @@ import static org.gradle.internal.hash.Hashing.hashString;
 public class DefaultVersionControlRepositoryFactory implements VersionControlRepositoryConnectionFactory, Stoppable {
     private final PersistentCache vcsWorkingDirCache;
 
-    public DefaultVersionControlRepositoryFactory(BuildTreeScopedCache scopedCache, CleanupActionDecorator cleanupActionDecorator) {
+    public DefaultVersionControlRepositoryFactory(BuildTreeScopedCacheFactory scopedCache, CleanupActionDecorator cleanupActionDecorator) {
         this.vcsWorkingDirCache = scopedCache
             .crossVersionCache("vcs-1")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))

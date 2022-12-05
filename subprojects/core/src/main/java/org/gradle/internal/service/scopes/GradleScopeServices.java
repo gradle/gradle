@@ -39,7 +39,7 @@ import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.SplitFileContentCacheFactory;
-import org.gradle.cache.scopes.BuildScopedCache;
+import org.gradle.cache.scopes.BuildScopedCacheFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
@@ -207,7 +207,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     FileContentCacheFactory createFileContentCacheFactory(
         GlobalCacheLocations globalCacheLocations,
-        BuildScopedCache cacheRepository,
+        BuildScopedCacheFactory cacheRepository,
         FileContentCacheFactory globalCacheFactory,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         ListenerManager listenerManager,

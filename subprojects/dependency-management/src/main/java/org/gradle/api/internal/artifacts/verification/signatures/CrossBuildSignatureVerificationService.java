@@ -23,7 +23,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.scopes.BuildScopedCache;
+import org.gradle.cache.scopes.BuildScopedCacheFactory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.AbstractSerializer;
@@ -54,7 +54,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
 
     public CrossBuildSignatureVerificationService(SignatureVerificationService delegate,
                                                   FileHasher fileHasher,
-                                                  BuildScopedCache scopedCache,
+                                                  BuildScopedCacheFactory scopedCache,
                                                   InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
                                                   BuildCommencedTimeProvider timeProvider,
                                                   boolean refreshKeys,
