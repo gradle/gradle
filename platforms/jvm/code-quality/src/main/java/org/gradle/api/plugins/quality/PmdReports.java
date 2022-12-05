@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.reporting.ReportContainer;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.tasks.Internal;
@@ -40,4 +41,34 @@ public interface PmdReports extends ReportContainer<SingleFileReport> {
      */
     @Internal
     SingleFileReport getXml();
+
+    /**
+     * The pmd (single file) CSV report
+     *
+     * @return The pmd (single file) CSV report
+     * @since 9.4.0
+     */
+    @Incubating
+    @Internal
+    SingleFileReport getCsv();
+
+    /**
+     * The pmd (single file) Code Climate JSON report
+     *
+     * @return The pmd (single file) Code Climate JSON report
+     * @since 9.4.0
+     */
+    @Incubating
+    @Internal
+    SingleFileReport getCodeClimate();
+
+    /**
+     * The pmd (single file) sarif JSON report
+     *
+     * @return The pmd (single file) sarif JSON report
+     * @since 9.4.0
+     */
+    @Incubating
+    @Internal
+    SingleFileReport getSarif();
 }
