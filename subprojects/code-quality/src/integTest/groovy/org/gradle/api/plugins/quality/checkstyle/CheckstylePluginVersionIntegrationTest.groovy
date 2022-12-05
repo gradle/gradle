@@ -25,6 +25,7 @@ import org.gradle.util.internal.Resources
 import org.gradle.util.internal.ToBeImplemented
 import org.gradle.util.internal.VersionNumber
 import org.hamcrest.Matcher
+import org.junit.Assume
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -266,9 +267,9 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         executedAndNotSkipped(":checkstyleMain")
     }
 
-    @IgnoreIf({ !isSarifSupported(version.toString()) })
     def "can configure sarif reporting"() {
         given:
+        Assume.assumeTrue(isSarifSupported())
         goodCode()
 
         when:
@@ -344,9 +345,9 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         !file("build/tmp/checkstyleMain/main.xml").exists()
     }
 
-    @IgnoreIf({ !isSarifSupported(version.toString()) })
     def "output SARIF report only when SARIF report is enabled"() {
         given:
+        Assume.assumeTrue(isSarifSupported())
         goodCode()
         buildFile << '''
             tasks.withType(Checkstyle) {
@@ -369,9 +370,9 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         !file("build/tmp/checkstyleMain/main.html").exists()
     }
 
-    @IgnoreIf({ isSarifSupported(version.toString()) })
     def "fails when SARIF enabled on unsupported checkstyle versions"() {
         given:
+        Assume.assumeFalse(isSarifSupported())
         goodCode()
         buildFile << '''
             tasks.withType(Checkstyle) {
@@ -387,7 +388,6 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         fails 'checkstyleMain'
 
         then:
-        def versionNumber = VersionNumber.parse(version.toString())
         executedAndNotSkipped(":checkstyleMain")
         result.assertHasErrorOutput("SARIF report format is supported on Checkstyle versions greater than 10.3.3 and newer. Please upgrade from Checkstyle $versionNumber or disable the SARIF format.")
     }
@@ -477,8 +477,8 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         result.hasErrorOutput("[ant:checkstyle] [WARN]") || result.hasErrorOutput("warning: Name 'class1' must match pattern")
     }
 
-    private static isSarifSupported(String version) {
-        return VersionNumber.parse(version) >= VersionNumber.parse("10.3.3")
+    private static isSarifSupported() {
+        return versionNumber >= VersionNumber.parse("10.3.3")
     }
 
     private goodCode() {
