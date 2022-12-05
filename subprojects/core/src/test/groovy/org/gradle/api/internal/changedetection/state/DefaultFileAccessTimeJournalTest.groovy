@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.cache.CacheDecorator
-import org.gradle.cache.internal.DefaultCacheRepository
+import org.gradle.cache.internal.DefaultCacheBuilderFactory
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
@@ -41,7 +41,7 @@ class DefaultFileAccessTimeJournalTest extends Specification {
 
     def cachesDir = tmpDir.createDir("caches")
     def cacheScopeMapping = new DefaultCacheScopeMapping(cachesDir, GradleVersion.current())
-    def cacheRepository = new DefaultCacheRepository(cacheScopeMapping, new TestInMemoryCacheFactory())
+    def cacheRepository = new DefaultCacheBuilderFactory(cacheScopeMapping, new TestInMemoryCacheFactory())
     def globalScopedCache = new DefaultGlobalScopedCacheBuilderFactory(cachesDir, cacheRepository)
     def cacheDecoratorFactory = Stub(DefaultInMemoryCacheDecoratorFactory) {
         decorator(_, _) >> Stub(CacheDecorator) {

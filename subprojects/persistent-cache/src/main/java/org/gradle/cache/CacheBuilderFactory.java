@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.io.File;
 
 /**
- * A repository of persistent caches. A cache is a store of persistent data backed by a directory.
+ * A factory for creating builders of {@link PersistentCache}s.
  *
  * This is migrating to become an internal type for the caching infrastructure. Please use
  * {@link GlobalScopedCacheBuilderFactory}
@@ -32,7 +32,7 @@ import java.io.File;
  * or {@link BuildScopedCacheBuilderFactory} instead.
  */
 @ServiceScope(Scopes.UserHome.class)
-public interface CacheRepository {
+public interface CacheBuilderFactory {
     /**
      * Returns a builder for the cache with the given key and global scope. Default is a Gradle version-specific cache shared by all builds, though this
      * can be changed using the provided builder.

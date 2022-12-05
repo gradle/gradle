@@ -20,7 +20,7 @@ import org.gradle.api.cache.CacheResourceConfiguration
 import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.provider.Property
-import org.gradle.cache.internal.DefaultCacheRepository
+import org.gradle.cache.internal.DefaultCacheBuilderFactory
 import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -33,7 +33,7 @@ import spock.lang.Subject
 class DefaultArtifactCacheLockingManagerTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    def cacheRepository = new DefaultCacheRepository(null, new TestInMemoryCacheFactory())
+    def cacheRepository = new DefaultCacheBuilderFactory(null, new TestInMemoryCacheFactory())
     def cacheDir = temporaryFolder.createDir(CacheLayout.ROOT.key)
     def resourcesDir = cacheDir.createDir(CacheLayout.RESOURCES.key)
     def filesDir = cacheDir.createDir(CacheLayout.FILE_STORE.key)

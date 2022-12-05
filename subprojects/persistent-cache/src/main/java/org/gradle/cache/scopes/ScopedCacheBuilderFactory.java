@@ -17,19 +17,20 @@
 package org.gradle.cache.scopes;
 
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheBuilderFactory;
 
 import java.io.File;
 
 public interface ScopedCacheBuilderFactory {
     /**
-     * Creates a builder for Gradle-version specific caches in this scope. See {@link org.gradle.cache.CacheRepository#cacheBuilder(String)}.
+     * Creates a builder for Gradle-version specific caches in this scope. See {@link CacheBuilderFactory#cacheBuilder(String)}.
      *
      * @param key A unique name for the cache.
      */
     CacheBuilder cacheBuilder(String key);
 
     /**
-     * Creates a builder for cross Gradle version caches in this scope. See {@link org.gradle.cache.CacheRepository#cacheBuilder(String)}.
+     * Creates a builder for cross Gradle version caches in this scope. See {@link CacheBuilderFactory#cacheBuilder(String)}.
      *
      * @param key A unique name for the cache.
      */

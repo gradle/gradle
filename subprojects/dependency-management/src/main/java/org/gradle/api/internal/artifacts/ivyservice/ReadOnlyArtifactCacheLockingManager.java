@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.CacheBuilderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.PersistentCache;
@@ -45,9 +45,10 @@ public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLocking
 
     private final PersistentCache cache;
 
-    public ReadOnlyArtifactCacheLockingManager(CacheRepository cacheRepository,
-                                               ArtifactCacheMetadata cacheMetaData) {
-        cache = cacheRepository
+    public ReadOnlyArtifactCacheLockingManager(
+            CacheBuilderFactory cacheBuilderFactory,
+            ArtifactCacheMetadata cacheMetaData) {
+        cache = cacheBuilderFactory
             .cacheBuilder(cacheMetaData.getCacheDir())
             .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
             .withDisplayName("read only artifact cache")

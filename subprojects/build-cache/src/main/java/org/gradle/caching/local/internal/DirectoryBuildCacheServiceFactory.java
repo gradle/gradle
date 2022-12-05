@@ -20,7 +20,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.cache.DefaultCacheCleanup;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.CacheBuilderFactory;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
@@ -49,7 +49,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private static final String DIRECTORY_BUILD_CACHE_TYPE = "directory";
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
-    private final CacheRepository cacheRepository;
+    private final CacheBuilderFactory cacheBuilderFactory;
     private final GlobalScopedCacheBuilderFactory globalScopedCache;
     private final PathToFileResolver resolver;
     private final DirectoryBuildCacheFileStoreFactory fileStoreFactory;
@@ -58,9 +58,10 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
     private final TemporaryFileProvider temporaryFileProvider;
 
     @Inject
-    public DirectoryBuildCacheServiceFactory(CacheRepository cacheRepository, GlobalScopedCacheBuilderFactory globalScopedCache, PathToFileResolver resolver, DirectoryBuildCacheFileStoreFactory fileStoreFactory,
-                                             CleanupActionDecorator cleanupActionDecorator, FileAccessTimeJournal fileAccessTimeJournal, TemporaryFileProvider temporaryFileProvider) {
-        this.cacheRepository = cacheRepository;
+    public DirectoryBuildCacheServiceFactory(
+            CacheBuilderFactory cacheBuilderFactory, GlobalScopedCacheBuilderFactory globalScopedCache, PathToFileResolver resolver, DirectoryBuildCacheFileStoreFactory fileStoreFactory,
+            CleanupActionDecorator cleanupActionDecorator, FileAccessTimeJournal fileAccessTimeJournal, TemporaryFileProvider temporaryFileProvider) {
+        this.cacheBuilderFactory = cacheBuilderFactory;
         this.globalScopedCache = globalScopedCache;
         this.resolver = resolver;
         this.fileStoreFactory = fileStoreFactory;
@@ -86,7 +87,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             config("removeUnusedEntriesAfter", String.valueOf(removeUnusedEntriesAfterDays) + " days");
 
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
-        PersistentCache persistentCache = cacheRepository
+        PersistentCache persistentCache = cacheBuilderFactory
             .cacheBuilder(target)
             .withCleanup(createCacheCleanup(removeUnusedEntriesAfterDays))
             .withDisplayName("Build cache")

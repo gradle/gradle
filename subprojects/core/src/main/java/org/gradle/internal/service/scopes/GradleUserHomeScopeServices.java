@@ -31,12 +31,12 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.CacheBuilderFactory;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.cache.internal.DefaultCacheRepository;
+import org.gradle.cache.internal.DefaultCacheBuilderFactory;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.DefaultGlobalCacheLocations;
@@ -115,12 +115,12 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         }
     }
 
-    CacheRepository createCacheRepository(GlobalCacheDir globalCacheDir, CacheFactory cacheFactory) {
-        return new DefaultCacheRepository(new DefaultCacheScopeMapping(globalCacheDir.getDir(), GradleVersion.current()), cacheFactory);
+    CacheBuilderFactory createCacheRepository(GlobalCacheDir globalCacheDir, CacheFactory cacheFactory) {
+        return new DefaultCacheBuilderFactory(new DefaultCacheScopeMapping(globalCacheDir.getDir(), GradleVersion.current()), cacheFactory);
     }
 
-    DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(GlobalCacheDir globalCacheDir, CacheRepository cacheRepository) {
-        return new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.getDir(), cacheRepository);
+    DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(GlobalCacheDir globalCacheDir, CacheBuilderFactory cacheBuilderFactory) {
+        return new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.getDir(), cacheBuilderFactory);
     }
 
     DefaultListenerManager createListenerManager(DefaultListenerManager parent) {

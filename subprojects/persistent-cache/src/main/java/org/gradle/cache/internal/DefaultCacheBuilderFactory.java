@@ -17,8 +17,8 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheBuilderFactory;
 import org.gradle.cache.CacheCleanup;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
@@ -29,11 +29,11 @@ import java.util.Map;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultCacheRepository implements CacheRepository {
+public class DefaultCacheBuilderFactory implements CacheBuilderFactory {
     private final CacheScopeMapping cacheScopeMapping;
     private final CacheFactory factory;
 
-    public DefaultCacheRepository(CacheScopeMapping cacheScopeMapping, CacheFactory factory) {
+    public DefaultCacheBuilderFactory(CacheScopeMapping cacheScopeMapping, CacheFactory factory) {
         this.cacheScopeMapping = cacheScopeMapping;
         this.factory = factory;
     }

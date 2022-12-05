@@ -78,7 +78,7 @@ public interface CacheBuilder {
     CacheBuilder withCleanup(CacheCleanup cleanup);
 
     /**
-     * Opens the cache. It is the caller's responsibility to close the cache when finished with it.
+     * Creates (if necessary) and opens the cache. It is the caller's responsibility to close the cache when finished with it.
      *
      * <p>
      *     NOTE: The <em>initial</em> lock option is {@link org.gradle.cache.FileLockManager.LockMode#Shared}.
