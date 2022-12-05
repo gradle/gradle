@@ -24,7 +24,7 @@ import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCacheParameters;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
@@ -59,7 +59,7 @@ import static org.gradle.security.internal.SecuritySupport.toLongIdHexString;
 public class CrossBuildCachingKeyService implements PublicKeyService, Closeable {
     final static long MISSING_KEY_TIMEOUT = TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS);
 
-    private final PersistentCache cache;
+    private final PersistentExclusiveCache cache;
     private final BuildOperationExecutor buildOperationExecutor;
     private final PublicKeyService delegate;
     private final BuildCommencedTimeProvider timeProvider;

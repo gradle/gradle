@@ -42,8 +42,8 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
 
     private final DefaultArtifactCacheMetadata writableCacheMetadata;
     private final DefaultArtifactCacheMetadata readOnlyCacheMetadata;
-    private final LateInitWritableArtifactCacheLockingManager writableArtifactCacheLockingManager;
-    private final ReadOnlyArtifactCacheLockingManager readOnlyArtifactCacheLockingManager;
+    private final LateInitWritableArtifactExclusiveCacheLockingManager writableArtifactCacheLockingManager;
+    private final ReadOnlyArtifactExclusiveCacheLockingManager readOnlyArtifactCacheLockingManager;
 
     public DefaultArtifactCaches(
             GlobalScopedCacheBuilderFactory globalScopedCache,
@@ -54,8 +54,8 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
             CacheConfigurationsInternal cacheConfigurations
                                  ) {
         writableCacheMetadata = new DefaultArtifactCacheMetadata(globalScopedCache);
-        writableArtifactCacheLockingManager = new LateInitWritableArtifactCacheLockingManager(() -> {
-            return new WritableArtifactCacheLockingManager(cacheBuilderFactory, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions(), cleanupActionDecorator, cacheConfigurations);
+        writableArtifactCacheLockingManager = new LateInitWritableArtifactExclusiveCacheLockingManager(() -> {
+            return new WritableArtifactExclusiveCacheLockingManager(cacheBuilderFactory, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions(), cleanupActionDecorator, cacheConfigurations);
         });
         String roCache = System.getenv(READONLY_CACHE_ENV_VAR);
         if (StringUtils.isNotEmpty(roCache)) {
@@ -63,7 +63,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
             File baseDir = validateReadOnlyCache(documentationRegistry, new File(roCache).getAbsoluteFile());
             if (baseDir != null) {
                 readOnlyCacheMetadata = new DefaultArtifactCacheMetadata(globalScopedCache, baseDir);
-                readOnlyArtifactCacheLockingManager = new ReadOnlyArtifactCacheLockingManager(cacheBuilderFactory, readOnlyCacheMetadata);
+                readOnlyArtifactCacheLockingManager = new ReadOnlyArtifactExclusiveCacheLockingManager(cacheBuilderFactory, readOnlyCacheMetadata);
                 LOGGER.info("The read-only dependency cache is enabled \nThe {} environment variable was set to {}", READONLY_CACHE_ENV_VAR, baseDir);
             } else {
                 readOnlyCacheMetadata = null;
@@ -104,12 +104,12 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
     }
 
     @Override
-    public ArtifactCacheLockingManager getWritableCacheLockingManager() {
+    public ArtifactExclusiveCacheLockingManager getWritableCacheLockingManager() {
         return writableArtifactCacheLockingManager;
     }
 
     @Override
-    public Optional<ArtifactCacheLockingManager> getReadOnlyCacheLockingManager() {
+    public Optional<ArtifactExclusiveCacheLockingManager> getReadOnlyCacheLockingManager() {
         return Optional.ofNullable(readOnlyArtifactCacheLockingManager);
     }
 
@@ -134,15 +134,15 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
         UsedGradleVersions getUsedGradleVersions();
     }
 
-    private static class LateInitWritableArtifactCacheLockingManager implements ArtifactCacheLockingManager, Closeable {
-        private final Factory<WritableArtifactCacheLockingManager> factory;
-        private volatile WritableArtifactCacheLockingManager delegate;
+    private static class LateInitWritableArtifactExclusiveCacheLockingManager implements ArtifactExclusiveCacheLockingManager, Closeable {
+        private final Factory<WritableArtifactExclusiveCacheLockingManager> factory;
+        private volatile WritableArtifactExclusiveCacheLockingManager delegate;
 
-        private LateInitWritableArtifactCacheLockingManager(Factory<WritableArtifactCacheLockingManager> factory) {
+        private LateInitWritableArtifactExclusiveCacheLockingManager(Factory<WritableArtifactExclusiveCacheLockingManager> factory) {
             this.factory = factory;
         }
 
-        private WritableArtifactCacheLockingManager getDelegate() {
+        private WritableArtifactExclusiveCacheLockingManager getDelegate() {
             if (delegate == null) {
                 synchronized (factory) {
                     if (delegate == null) {

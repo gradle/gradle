@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactExclusiveCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 
@@ -25,7 +25,7 @@ import java.util.Set;
 
 public class ReadOnlyModuleVersionsCache extends DefaultModuleVersionsCache {
 
-    public ReadOnlyModuleVersionsCache(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
+    public ReadOnlyModuleVersionsCache(BuildCommencedTimeProvider timeProvider, ArtifactExclusiveCacheLockingManager artifactCacheLockingManager, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(timeProvider, artifactCacheLockingManager, moduleIdentifierFactory);
     }
 

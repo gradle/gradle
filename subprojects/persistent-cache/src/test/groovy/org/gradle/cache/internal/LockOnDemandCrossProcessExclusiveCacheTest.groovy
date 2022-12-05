@@ -28,7 +28,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 import java.util.concurrent.locks.ReentrantLock
 
-class LockOnDemandCrossProcessCacheAccessTest extends ConcurrentSpec {
+class LockOnDemandCrossProcessExclusiveCacheTest extends ConcurrentSpec {
     def file = new TestFile("some-file.lock")
     def lockManager = Mock(FileLockManager)
     def cacheAccess = new LockOnDemandCrossProcessCacheAccess("<cache>", file, LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive), lockManager, new ReentrantLock(), Stub(CacheInitializationAction), Stub(Action), Stub(Action))

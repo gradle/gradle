@@ -19,7 +19,7 @@ package org.gradle.cache.internal;
 import org.gradle.api.Action;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCache;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 
 import java.io.Closeable;
@@ -30,7 +30,7 @@ import java.util.List;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, Closeable, GlobalCache {
-    private final PersistentCache cache;
+    private final PersistentExclusiveCache cache;
     private final String gradleVersion;
 
     public DefaultGeneratedGradleJarCache(GlobalScopedCacheBuilderFactory cacheRepository, String gradleVersion) {

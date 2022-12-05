@@ -20,7 +20,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
@@ -101,7 +101,7 @@ public class ExecutionGradleServices {
     }
 
     OutputFilesRepository createOutputFilesRepository(BuildScopedCacheBuilderFactory cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        PersistentCache cacheAccess = cacheRepository
+        PersistentExclusiveCache cacheAccess = cacheRepository
             .crossVersionCacheBuilder("buildOutputCleanup")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName("Build Output Cleanup Cache")

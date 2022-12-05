@@ -24,7 +24,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import java.io.File;
 
 /**
- * A factory for creating builders of {@link PersistentCache}s.
+ * A factory for creating builders of {@link PersistentExclusiveCache}s.
  *
  * This is migrating to become an internal type for the caching infrastructure. Please use
  * {@link GlobalScopedCacheBuilderFactory}

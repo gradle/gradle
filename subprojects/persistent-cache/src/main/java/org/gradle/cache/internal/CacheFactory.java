@@ -20,7 +20,7 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheCleanup;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.LockOptions;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -30,7 +30,7 @@ public interface CacheFactory {
     /**
      * Opens a cache with the given options. The caller must close the cache when finished with it.
      */
-    PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, @Nullable Action<? super PersistentCache> initializer, @Nullable CacheCleanup cacheCleanup) throws CacheOpenException;
+    PersistentExclusiveCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, @Nullable Action<? super PersistentExclusiveCache> initializer, @Nullable CacheCleanup cacheCleanup) throws CacheOpenException;
 
     /**
      * Visit the caches created by this factory.

@@ -22,7 +22,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.serialize.Serializer
 import org.gradle.testfixtures.internal.TestInMemoryIndexedCache
 
-class ArtifactCacheLockingManagerStub implements ArtifactCacheLockingManager {
+class ArtifactExclusiveCacheLockingManagerStub implements ArtifactExclusiveCacheLockingManager {
     private final Map<String, IndexedCache<?, ?>> caches = [:]
 
     IndexedCache<?, ?> getCache(String cacheName) {

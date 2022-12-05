@@ -40,7 +40,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
-public class DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
+public class DefaultPersistentDirectoryStore implements ReferencablePersistentExclusiveCache {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryStore.class);
 
@@ -57,7 +57,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     protected final File propertiesFile;
     private final File gcFile;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private CacheCoordinator cacheAccess;
+    private ExclusiveCacheCoordinator cacheAccess;
 
     public DefaultPersistentDirectoryStore(
         File dir,
@@ -94,8 +94,8 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         return this;
     }
 
-    private CacheCoordinator createCacheAccess() {
-        return new DefaultCacheAccess(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), getCleanupAction(), executorFactory);
+    private ExclusiveCacheCoordinator createCacheAccess() {
+        return new DefaultExclusiveCache(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), getCleanupAction(), executorFactory);
     }
 
     private File getLockTarget() {

@@ -20,7 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.cache.DefaultCacheCleanup;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
@@ -45,7 +45,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 import static org.gradle.internal.hash.Hashing.hashString;
 
 public class DefaultVersionControlRepositoryFactory implements VersionControlRepositoryConnectionFactory, Stoppable {
-    private final PersistentCache vcsWorkingDirCache;
+    private final PersistentExclusiveCache vcsWorkingDirCache;
 
     public DefaultVersionControlRepositoryFactory(BuildTreeScopedCacheBuilderFactory scopedCache, CleanupActionDecorator cleanupActionDecorator) {
         this.vcsWorkingDirCache = scopedCache
@@ -84,9 +84,9 @@ public class DefaultVersionControlRepositoryFactory implements VersionControlRep
     private static final class LockingVersionControlRepository implements VersionControlRepositoryConnection {
         private final VersionControlSpec spec;
         private final VersionControlSystem delegate;
-        private final PersistentCache cacheAccess;
+        private final PersistentExclusiveCache cacheAccess;
 
-        private LockingVersionControlRepository(VersionControlSpec spec, VersionControlSystem delegate, PersistentCache cacheAccess) {
+        private LockingVersionControlRepository(VersionControlSpec spec, VersionControlSystem delegate, PersistentExclusiveCache cacheAccess) {
             this.spec = spec;
             this.delegate = delegate;
             this.cacheAccess = cacheAccess;

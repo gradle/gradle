@@ -16,7 +16,8 @@
 
 package org.gradle.internal.resource.cached
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManagerStub
+
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactExclusiveCacheLockingManagerStub
 import org.gradle.internal.file.FileAccessTracker
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -33,7 +34,7 @@ class AbstractCachedIndexTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     static final CACHE_NAME = "my-cache"
-    def cacheLockingManager = new ArtifactCacheLockingManagerStub()
+    def cacheLockingManager = new ArtifactExclusiveCacheLockingManagerStub()
     def fileAccessTracker = Mock(FileAccessTracker)
     def valueSerializer = new Serializer<CachedItem>() {
         @Override

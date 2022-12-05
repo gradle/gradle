@@ -23,7 +23,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -62,7 +62,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     }
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanup cacheCleanup) throws CacheOpenException {
+    public PersistentExclusiveCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentExclusiveCache> initializer, @Nullable CacheCleanup cacheCleanup) throws CacheOpenException {
         lock.lock();
         try {
             return doOpen(cacheDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanup);
@@ -87,21 +87,21 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
     }
 
-    private PersistentCache doOpen(
+    private PersistentExclusiveCache doOpen(
         File cacheDir,
         String displayName,
         Map<String, ?> properties,
         CacheBuilder.LockTarget lockTarget,
         LockOptions lockOptions,
-        @Nullable Action<? super PersistentCache> initializer,
+        @Nullable Action<? super PersistentExclusiveCache> initializer,
         @Nullable CacheCleanup cacheCleanup
     ) {
         File canonicalDir = FileUtils.canonicalize(cacheDir);
         DirCacheReference dirCacheReference = dirCaches.get(canonicalDir);
         if (dirCacheReference == null) {
-            ReferencablePersistentCache cache;
+            ReferencablePersistentExclusiveCache cache;
             if (!properties.isEmpty() || initializer != null) {
-                cache = new DefaultPersistentDirectoryCache(canonicalDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanup, lockManager, executorFactory, progressLoggerFactory);
+                cache = new DefaultPersistentDirectoryExclusiveCache(canonicalDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanup, lockManager, executorFactory, progressLoggerFactory);
             } else {
                 cache = new DefaultPersistentDirectoryStore(canonicalDir, displayName, lockTarget, lockOptions, cacheCleanup, lockManager, executorFactory, progressLoggerFactory);
             }
@@ -119,17 +119,17 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
                 throw new IllegalStateException(String.format("Cache '%s' is already open with different properties.", cacheDir));
             }
         }
-        return new ReferenceTrackingCache(dirCacheReference);
+        return new ReferenceTrackingExclusiveCache(dirCacheReference);
     }
 
     private class DirCacheReference implements Closeable {
         private final Map<String, ?> properties;
         private final CacheBuilder.LockTarget lockTarget;
         private final LockOptions lockOptions;
-        private final ReferencablePersistentCache cache;
-        private final Set<ReferenceTrackingCache> references = new HashSet<>();
+        private final ReferencablePersistentExclusiveCache cache;
+        private final Set<ReferenceTrackingExclusiveCache> references = new HashSet<>();
 
-        DirCacheReference(ReferencablePersistentCache cache, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions) {
+        DirCacheReference(ReferencablePersistentExclusiveCache cache, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions) {
             this.cache = cache;
             this.properties = properties;
             this.lockTarget = lockTarget;
@@ -137,11 +137,11 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
             onOpen(cache);
         }
 
-        public void addReference(ReferenceTrackingCache cache) {
+        public void addReference(ReferenceTrackingExclusiveCache cache) {
             references.add(cache);
         }
 
-        public void release(ReferenceTrackingCache cache) {
+        public void release(ReferenceTrackingExclusiveCache cache) {
             lock.lock();
             try {
                 if (references.remove(cache) && references.isEmpty()) {
@@ -161,10 +161,10 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
     }
 
-    private static class ReferenceTrackingCache implements PersistentCache {
+    private static class ReferenceTrackingExclusiveCache implements PersistentExclusiveCache {
         private final DirCacheReference reference;
 
-        private ReferenceTrackingCache(DirCacheReference reference) {
+        private ReferenceTrackingExclusiveCache(DirCacheReference reference) {
             this.reference = reference;
             reference.addReference(this);
         }

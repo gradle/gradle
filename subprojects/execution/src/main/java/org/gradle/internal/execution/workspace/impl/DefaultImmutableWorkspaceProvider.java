@@ -22,9 +22,9 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.cache.CleanupAction;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
@@ -47,7 +47,7 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     private final SingleDepthFileAccessTracker fileAccessTracker;
     private final File baseDirectory;
     private final ExecutionHistoryStore executionHistoryStore;
-    private final PersistentCache cache;
+    private final PersistentExclusiveCache cache;
 
     public static DefaultImmutableWorkspaceProvider withBuiltInHistory(
         CacheBuilder cacheBuilder,
@@ -110,12 +110,12 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
     private DefaultImmutableWorkspaceProvider(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
-        Function<PersistentCache, ExecutionHistoryStore> historyFactory,
+        Function<PersistentExclusiveCache, ExecutionHistoryStore> historyFactory,
         int treeDepthToTrackAndCleanup,
         CleanupActionDecorator cleanupActionDecorator,
         CacheConfigurationsInternal cacheConfigurations
     ) {
-        PersistentCache cache = cacheBuilder
+        PersistentExclusiveCache cache = cacheBuilder
             .withCleanup(createCacheCleanup(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cleanupActionDecorator, cacheConfigurations))
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();

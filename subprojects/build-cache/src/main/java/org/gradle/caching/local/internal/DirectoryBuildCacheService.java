@@ -19,7 +19,7 @@ package org.gradle.caching.local.internal;
 import com.google.common.io.Closer;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.caching.BuildCacheEntryReader;
 import org.gradle.caching.BuildCacheEntryWriter;
 import org.gradle.caching.BuildCacheException;
@@ -42,13 +42,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class DirectoryBuildCacheService implements LocalBuildCacheService, BuildCacheService {
 
     private final PathKeyFileStore fileStore;
-    private final PersistentCache persistentCache;
+    private final PersistentExclusiveCache persistentCache;
     private final BuildCacheTempFileStore tempFileStore;
     private final FileAccessTracker fileAccessTracker;
     private final String failedFileSuffix;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public DirectoryBuildCacheService(PathKeyFileStore fileStore, PersistentCache persistentCache, BuildCacheTempFileStore tempFileStore, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
+    public DirectoryBuildCacheService(PathKeyFileStore fileStore, PersistentExclusiveCache persistentCache, BuildCacheTempFileStore tempFileStore, FileAccessTracker fileAccessTracker, String failedFileSuffix) {
         this.fileStore = fileStore;
         this.persistentCache = persistentCache;
         this.tempFileStore = tempFileStore;

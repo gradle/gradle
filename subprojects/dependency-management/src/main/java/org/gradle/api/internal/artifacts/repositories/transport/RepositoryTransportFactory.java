@@ -19,7 +19,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.credentials.Credentials;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactExclusiveCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterResolutionOverride;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
@@ -55,7 +55,7 @@ public class RepositoryTransportFactory {
     private final TemporaryFileProvider temporaryFileProvider;
     private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
     private final BuildCommencedTimeProvider timeProvider;
-    private final ArtifactCacheLockingManager artifactCacheLockingManager;
+    private final ArtifactExclusiveCacheLockingManager artifactCacheLockingManager;
     private final BuildOperationExecutor buildOperationExecutor;
     private final StartParameterResolutionOverride startParameterResolutionOverride;
     private final ProducerGuard<ExternalResourceName> producerGuard;
@@ -67,7 +67,7 @@ public class RepositoryTransportFactory {
                                       TemporaryFileProvider temporaryFileProvider,
                                       CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                       BuildCommencedTimeProvider timeProvider,
-                                      ArtifactCacheLockingManager artifactCacheLockingManager,
+                                      ArtifactExclusiveCacheLockingManager artifactCacheLockingManager,
                                       BuildOperationExecutor buildOperationExecutor,
                                       StartParameterResolutionOverride startParameterResolutionOverride,
                                       ProducerGuard<ExternalResourceName> producerGuard,

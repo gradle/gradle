@@ -19,7 +19,7 @@ package org.gradle.internal.execution.history.impl;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Interner;
 import org.gradle.cache.CacheDecorator;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -41,7 +41,7 @@ public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
     private final IndexedCache<String, PreviousExecutionState> store;
 
     public DefaultExecutionHistoryStore(
-        Supplier<PersistentCache> cache,
+        Supplier<PersistentExclusiveCache> cache,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         Interner<String> stringInterner,
         ClassLoaderHierarchyHasher classLoaderHasher

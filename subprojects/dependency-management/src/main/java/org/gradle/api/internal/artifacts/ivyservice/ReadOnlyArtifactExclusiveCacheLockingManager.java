@@ -21,7 +21,7 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheBuilderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
@@ -40,12 +40,12 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
  * Operations use in-process locking for the read-only cache (even when requesting file locking) and
  * write operations use the regular locking mechanism (file or in-process).
  */
-public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLockingManager, Closeable {
-    private final static Logger LOGGER = Logging.getLogger(ReadOnlyArtifactCacheLockingManager.class);
+public class ReadOnlyArtifactExclusiveCacheLockingManager implements ArtifactExclusiveCacheLockingManager, Closeable {
+    private final static Logger LOGGER = Logging.getLogger(ReadOnlyArtifactExclusiveCacheLockingManager.class);
 
-    private final PersistentCache cache;
+    private final PersistentExclusiveCache cache;
 
-    public ReadOnlyArtifactCacheLockingManager(
+    public ReadOnlyArtifactExclusiveCacheLockingManager(
             CacheBuilderFactory cacheBuilderFactory,
             ArtifactCacheMetadata cacheMetaData) {
         cache = cacheBuilderFactory

@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.transfer
 
 import org.gradle.api.Transformer
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManagerStub
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactExclusiveCacheLockingManagerStub
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.cache.internal.ProducerGuard
@@ -53,7 +53,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
     final temporaryFileProvider = Stub(TemporaryFileProvider) {
         createTemporaryFile(_, _, _) >> tempFile
     }
-    final cacheLockingManager = new ArtifactCacheLockingManagerStub()
+    final cacheLockingManager = new ArtifactExclusiveCacheLockingManagerStub()
     final fileRepository = Mock(FileResourceRepository)
     final cachePolicy = new DefaultExternalResourceCachePolicy()
     final ProducerGuard<URI> producerGuard = Stub() {

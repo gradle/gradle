@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transport;
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactExclusiveCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.internal.ProducerGuard;
@@ -42,7 +42,7 @@ public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTran
                                                 TemporaryFileProvider temporaryFileProvider,
                                                 CachedExternalResourceIndex<String> cachedExternalResourceIndex,
                                                 BuildCommencedTimeProvider timeProvider,
-                                                ArtifactCacheLockingManager artifactCacheLockingManager,
+                                                ArtifactExclusiveCacheLockingManager artifactCacheLockingManager,
                                                 ExternalResourceConnector connector,
                                                 BuildOperationExecutor buildOperationExecutor,
                                                 ExternalResourceCachePolicy cachePolicy,

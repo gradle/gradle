@@ -18,7 +18,7 @@ package org.gradle.internal.execution.history.impl
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.CacheDecorator
-import org.gradle.cache.PersistentCache
+import org.gradle.cache.PersistentExclusiveCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
@@ -37,7 +37,7 @@ class DefaultOutputFilesRepositoryTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def outputFiles = new TestInMemoryIndexedCache<String, Boolean>(BaseSerializerFactory.BOOLEAN_SERIALIZER)
-    def cacheAccess = Stub(PersistentCache) {
+    def cacheAccess = Stub(PersistentExclusiveCache) {
         createIndexedCache(_) >> outputFiles
     }
     def cacheDecorator = Mock(CacheDecorator)

@@ -58,7 +58,7 @@ class DefaultArtifactCacheLockingManagerTest extends Specification {
     }
 
     @Subject @AutoCleanup
-    def cacheLockingManager = new WritableArtifactCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, usedGradleVersions, cleanupActionFactory, cacheConfigurations)
+    def cacheLockingManager = new WritableArtifactExclusiveCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, usedGradleVersions, cleanupActionFactory, cacheConfigurations)
 
     def "cleans up resources"() {
         given:

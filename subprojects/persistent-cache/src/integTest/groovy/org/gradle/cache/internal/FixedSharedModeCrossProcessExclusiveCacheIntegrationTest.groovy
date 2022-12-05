@@ -26,7 +26,7 @@ import spock.lang.Issue
 import spock.lang.Subject
 
 @Subject(FixedSharedModeCrossProcessCacheAccess)
-class FixedSharedModeCrossProcessCacheAccessIntegrationTest extends AbstractIntegrationSpec {
+class FixedSharedModeCrossProcessExclusiveCacheIntegrationTest extends AbstractIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     @Issue("https://github.com/gradle/gradle/issues/2737")

@@ -24,7 +24,7 @@ import org.gradle.api.internal.ClassPathProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
@@ -166,7 +166,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         if (name.equals("WORKER_MAIN")) {
             synchronized (lock) {
                 if (workerClassPath == null) {
-                    PersistentCache workerClassPathCache = cacheRepository
+                    PersistentExclusiveCache workerClassPathCache = cacheRepository
                         .cacheBuilder("workerMain")
                         .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive))
                         .withInitializer(new CacheInitializer())
@@ -231,15 +231,15 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         return classpath;
     }
 
-    private static File jarFile(PersistentCache cache) {
+    private static File jarFile(PersistentExclusiveCache cache) {
         return new File(cache.getBaseDir(), "gradle-worker.jar");
     }
 
-    private static class CacheInitializer implements Action<PersistentCache> {
+    private static class CacheInitializer implements Action<PersistentExclusiveCache> {
         private final WorkerClassRemapper remapper = new WorkerClassRemapper();
 
         @Override
-        public void execute(PersistentCache cache) {
+        public void execute(PersistentExclusiveCache cache) {
             try {
                 File jarFile = jarFile(cache);
                 LOGGER.debug("Generating worker process classes to {}.", jarFile);

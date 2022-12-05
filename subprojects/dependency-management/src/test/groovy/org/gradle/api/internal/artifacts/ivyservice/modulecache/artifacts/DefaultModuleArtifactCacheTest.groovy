@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager
+
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactExclusiveCacheLockingManager
 import org.gradle.cache.IndexedCache
 import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
@@ -37,7 +38,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider(getClass())
 
-    ArtifactCacheLockingManager cacheLockingManager = Mock(ArtifactCacheLockingManager)
+    ArtifactExclusiveCacheLockingManager cacheLockingManager = Mock(ArtifactExclusiveCacheLockingManager)
     BuildCommencedTimeProvider timeProvider = Mock(BuildCommencedTimeProvider)
     IndexedCache persistentIndexedCache = Mock(IndexedCache)
     CachedArtifact cachedArtifact = Stub(CachedArtifact)

@@ -18,7 +18,7 @@ package org.gradle.cache.internal.cacheops
 
 import org.gradle.util.ConcurrentSpecification
 
-class CacheAccessOperationsStackTest extends ConcurrentSpecification {
+class ExclusiveCacheOperationsStackTest extends ConcurrentSpecification {
 
     def stack = new CacheAccessOperationsStack()
 

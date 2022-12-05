@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import javax.annotation.concurrent.ThreadSafe;
-import org.gradle.cache.CacheAccess;
+import org.gradle.cache.ExclusiveCache;
 import org.gradle.cache.IndexedCache;
 import org.gradle.internal.serialize.Serializer;
 
@@ -24,7 +24,7 @@ import org.gradle.internal.serialize.Serializer;
  * Provides synchronized access to the artifact cache.
  */
 @ThreadSafe
-public interface ArtifactCacheLockingManager extends CacheAccess {
+public interface ArtifactExclusiveCacheLockingManager extends ExclusiveCache {
     /**
      * Creates a cache implementation that is managed by this locking manager. This method may be used at any time.
      *

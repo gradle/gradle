@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactExclusiveCacheLockingManager;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.ModuleComponentFileArtifactIdentifierSerializer;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
@@ -42,7 +42,7 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
     private static final ArtifactAtRepositoryKeySerializer KEY_SERIALIZER = keySerializer();
     private final BuildCommencedTimeProvider timeProvider;
 
-    public DefaultModuleArtifactCache(String persistentCacheFile, BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, FileAccessTracker fileAccessTracker, Path commonRootPath) {
+    public DefaultModuleArtifactCache(String persistentCacheFile, BuildCommencedTimeProvider timeProvider, ArtifactExclusiveCacheLockingManager artifactCacheLockingManager, FileAccessTracker fileAccessTracker, Path commonRootPath) {
         super(persistentCacheFile, KEY_SERIALIZER, new CachedArtifactSerializer(commonRootPath), artifactCacheLockingManager, fileAccessTracker);
         this.timeProvider = timeProvider;
     }

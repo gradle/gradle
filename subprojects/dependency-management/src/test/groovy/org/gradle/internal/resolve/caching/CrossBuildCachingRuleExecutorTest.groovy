@@ -23,8 +23,8 @@ import org.gradle.api.artifacts.CacheableRule
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
-import org.gradle.cache.PersistentCache
 import org.gradle.cache.IndexedCache
+import org.gradle.cache.PersistentExclusiveCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.action.DefaultConfigurableRule
@@ -95,7 +95,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
         cacheBuilder = Mock(CacheBuilder) {
             withLockOptions(_) >> { cacheBuilder }
             open() >> {
-                Mock(PersistentCache) {
+                Mock(PersistentExclusiveCache) {
                     createIndexedCache(_) >> {
                         store
                     }

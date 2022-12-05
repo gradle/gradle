@@ -19,7 +19,7 @@ package org.gradle.internal.classpath;
 import com.google.common.collect.ImmutableList;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCacheLocations;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Either;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -51,7 +51,7 @@ import static org.gradle.internal.UncheckedException.unchecked;
 
 public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, Closeable {
 
-    private final PersistentCache cache;
+    private final PersistentExclusiveCache cache;
     private final FileAccessTracker fileAccessTracker;
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;

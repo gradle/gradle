@@ -19,7 +19,7 @@ package org.gradle.cache.internal
 import org.apache.commons.io.FileUtils
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.FileLockManager
-import org.gradle.cache.PersistentCache
+import org.gradle.cache.PersistentExclusiveCache
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
@@ -38,7 +38,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
     def cacheRepository = Mock(GlobalScopedCacheBuilderFactory)
     def gradleVersion = GradleVersion.current().version
     def cacheBuilder = Mock(CacheBuilder)
-    def cache = Mock(PersistentCache)
+    def cache = Mock(PersistentExclusiveCache)
 
     def "can close cache"() {
         when:
@@ -57,7 +57,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         def cacheDir = tmpDir.testDirectory
         def jarFile = cacheDir.file("gradle-${identifier}-${gradleVersion}.jar")
         def cacheBuilder = Mock(CacheBuilder)
-        def cache = Mock(PersistentCache)
+        def cache = Mock(PersistentExclusiveCache)
 
         when:
         def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion)
@@ -80,7 +80,7 @@ class DefaultGeneratedGradleJarCacheTest extends Specification {
         def cacheDir = tmpDir.testDirectory
         def jarFile = cacheDir.file("gradle-api-${gradleVersion}.jar")
         def cacheBuilder = Mock(CacheBuilder)
-        def cache = Mock(PersistentCache)
+        def cache = Mock(PersistentExclusiveCache)
 
         when:
         def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion)

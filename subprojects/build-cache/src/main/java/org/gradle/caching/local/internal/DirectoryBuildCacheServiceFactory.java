@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheBuilderFactory;
 import org.gradle.cache.internal.CleanupActionDecorator;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
@@ -87,7 +87,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
             config("removeUnusedEntriesAfter", String.valueOf(removeUnusedEntriesAfterDays) + " days");
 
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
-        PersistentCache persistentCache = cacheBuilderFactory
+        PersistentExclusiveCache persistentCache = cacheBuilderFactory
             .cacheBuilder(target)
             .withCleanup(createCacheCleanup(removeUnusedEntriesAfterDays))
             .withDisplayName("Build cache")

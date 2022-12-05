@@ -18,7 +18,7 @@ package org.gradle.process.internal.worker.child
 
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.PersistentCache
+import org.gradle.cache.PersistentExclusiveCache
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -39,7 +39,7 @@ class WorkerProcessClassPathProviderTest extends Specification {
         def cacheDir = tmpDir.testDirectory
         def jarFile = cacheDir.file('gradle-worker.jar')
         CacheBuilder cacheBuilder = Mock()
-        PersistentCache cache = Mock()
+        PersistentExclusiveCache cache = Mock()
         def initializer = null
 
         when:
@@ -61,7 +61,7 @@ class WorkerProcessClassPathProviderTest extends Specification {
         def cacheDir = tmpDir.testDirectory
         def jarFile = cacheDir.file('gradle-worker.jar')
         CacheBuilder cacheBuilder = Mock()
-        PersistentCache cache = Mock()
+        PersistentExclusiveCache cache = Mock()
 
         when:
         def classpath = provider.findClassPath('WORKER_MAIN')

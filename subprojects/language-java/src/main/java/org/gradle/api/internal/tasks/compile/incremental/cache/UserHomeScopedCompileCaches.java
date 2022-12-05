@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.compile.incremental.serialization.Hierarchi
 import org.gradle.cache.Cache;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCacheParameters;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.MinimalPersistentCache;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
@@ -36,7 +36,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class UserHomeScopedCompileCaches implements GeneralCompileCaches, Closeable {
     private final Cache<HashCode, ClassSetAnalysisData> classpathEntrySnapshotCache;
-    private final PersistentCache cache;
+    private final PersistentExclusiveCache cache;
     private final Cache<HashCode, ClassAnalysis> classAnalysisCache;
 
     public UserHomeScopedCompileCaches(GlobalScopedCacheBuilderFactory cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {

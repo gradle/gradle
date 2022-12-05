@@ -58,7 +58,7 @@ public interface CacheBuilder {
     CacheBuilder withDisplayName(String displayName);
 
     /**
-     * Specifies the <em>initial</em> lock options to use. See {@link PersistentCache} for details.
+     * Specifies the <em>initial</em> lock options to use. See {@link PersistentExclusiveCache} for details.
      *
      * Note that not every combination of cache type and lock options is supported.
      */
@@ -68,7 +68,7 @@ public interface CacheBuilder {
      * Specifies an action to execute to initialize the cache contents, if the cache does not exist or is invalid. An exclusive lock is held while the initializer is executing, to prevent
      * cross-process access.
      */
-    CacheBuilder withInitializer(Action<? super PersistentCache> initializer);
+    CacheBuilder withInitializer(Action<? super PersistentExclusiveCache> initializer);
 
     /**
      * Specifies an action to execute when the cache needs to be cleaned up. An exclusive lock is held while the cleanup is executing, to prevent cross-process access.
@@ -84,11 +84,11 @@ public interface CacheBuilder {
      *     NOTE: The <em>initial</em> lock option is {@link org.gradle.cache.FileLockManager.LockMode#Shared}.
      * </p>
      * <ul>
-     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#Exclusive} will lock the cache on open() and keep it locked until {@link PersistentCache#close()} is called.</li>
+     *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#Exclusive} will lock the cache on open() and keep it locked until {@link PersistentExclusiveCache#close()} is called.</li>
      *     <li>Using {@link org.gradle.cache.FileLockManager.LockMode#OnDemand} or {@link org.gradle.cache.FileLockManager.LockMode#Shared} will <em>not</em> lock the cache on open().</li>
      * </ul>
      *
      * @return The cache.
      */
-    PersistentCache open() throws CacheOpenException;
+    PersistentExclusiveCache open() throws CacheOpenException;
 }

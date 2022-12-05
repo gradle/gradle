@@ -17,7 +17,7 @@
 package org.gradle.caching.local.internal
 
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
-import org.gradle.cache.PersistentCache
+import org.gradle.cache.PersistentExclusiveCache
 import org.gradle.caching.BuildCacheEntryReader
 import org.gradle.caching.BuildCacheEntryWriter
 import org.gradle.caching.BuildCacheKey
@@ -36,7 +36,7 @@ class DirectoryBuildCacheServiceTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def cacheDir = temporaryFolder.createDir("cache")
     def fileStore = new DefaultPathKeyFileStore(TestUtil.checksumService, cacheDir)
-    def persistentCache = Mock(PersistentCache) {
+    def persistentCache = Mock(PersistentExclusiveCache) {
         getBaseDir() >> cacheDir
         withFileLock(_) >> { Runnable r -> r.run() }
     }

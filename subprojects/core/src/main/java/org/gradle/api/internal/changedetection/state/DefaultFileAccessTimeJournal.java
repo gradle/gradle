@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
@@ -41,7 +41,7 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
     public static final String FILE_ACCESS_PROPERTIES_FILE_NAME = FILE_ACCESS_CACHE_NAME + ".properties";
     public static final String INCEPTION_TIMESTAMP_KEY = "inceptionTimestamp";
 
-    private final PersistentCache cache;
+    private final PersistentExclusiveCache cache;
     private final IndexedCache<File, Long> store;
     private final long inceptionTimestamp;
 

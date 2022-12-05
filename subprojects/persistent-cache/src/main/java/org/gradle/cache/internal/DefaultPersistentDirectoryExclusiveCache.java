@@ -22,7 +22,7 @@ import org.gradle.cache.CacheCleanup;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.util.internal.GFileUtils;
@@ -34,14 +34,14 @@ import java.io.File;
 import java.util.Map;
 import java.util.Properties;
 
-public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
+public class DefaultPersistentDirectoryExclusiveCache extends DefaultPersistentDirectoryStore implements ReferencablePersistentExclusiveCache {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryCache.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryExclusiveCache.class);
 
     private final Properties properties = new Properties();
-    private final Action<? super PersistentCache> initAction;
+    private final Action<? super PersistentExclusiveCache> initAction;
 
-    public DefaultPersistentDirectoryCache(File dir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initAction, CacheCleanup cacheCleanup, FileLockManager lockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
+    public DefaultPersistentDirectoryExclusiveCache(File dir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentExclusiveCache> initAction, CacheCleanup cacheCleanup, FileLockManager lockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
         super(dir, displayName, lockTarget, lockOptions, cacheCleanup, lockManager, executorFactory, progressLoggerFactory);
         this.initAction = initAction;
         this.properties.putAll(properties);
@@ -61,14 +61,14 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
         public boolean requiresInitialization(FileLock lock) {
             if (!lock.getUnlockedCleanly()) {
                 if (lock.getState().canDetectChanges() && !lock.getState().isInInitialState()) {
-                    LOGGER.warn("Invalidating {} as it was not closed cleanly.", DefaultPersistentDirectoryCache.this);
+                    LOGGER.warn("Invalidating {} as it was not closed cleanly.", DefaultPersistentDirectoryExclusiveCache.this);
                 }
                 return true;
             }
 
             if (!properties.isEmpty()) {
                 if (!propertiesFile.exists()) {
-                    LOGGER.debug("Invalidating {} as cache properties file {} is missing and cache properties are not empty.", DefaultPersistentDirectoryCache.this, propertiesFile.getAbsolutePath());
+                    LOGGER.debug("Invalidating {} as cache properties file {} is missing and cache properties are not empty.", DefaultPersistentDirectoryExclusiveCache.this, propertiesFile.getAbsolutePath());
                     return true;
                 }
                 Properties cachedProperties = GUtil.loadProperties(propertiesFile);
@@ -76,7 +76,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                     String previousValue = cachedProperties.getProperty(entry.getKey().toString());
                     String currentValue = entry.getValue().toString();
                     if (!currentValue.equals(previousValue)) {
-                        LOGGER.debug("Invalidating {} as cache property {} has changed from {} to {}.", DefaultPersistentDirectoryCache.this, entry.getKey(), previousValue, currentValue);
+                        LOGGER.debug("Invalidating {} as cache property {} has changed from {} to {}.", DefaultPersistentDirectoryExclusiveCache.this, entry.getKey(), previousValue, currentValue);
                         return true;
                     }
                 }
@@ -97,7 +97,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
                 GFileUtils.forceDelete(file);
             }
             if (initAction != null) {
-                initAction.execute(DefaultPersistentDirectoryCache.this);
+                initAction.execute(DefaultPersistentDirectoryExclusiveCache.this);
             }
             GUtil.saveProperties(properties, propertiesFile);
         }

@@ -59,8 +59,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 
 @ThreadSafe
-public class DefaultCacheAccess implements CacheCoordinator {
-    private final static Logger LOG = LoggerFactory.getLogger(DefaultCacheAccess.class);
+public class DefaultExclusiveCache implements ExclusiveCacheCoordinator {
+    private final static Logger LOG = LoggerFactory.getLogger(DefaultExclusiveCache.class);
     private final static Runnable NO_OP = () -> {
         // Empty initial operation to trigger onStartWork calls
     };
@@ -87,7 +87,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private int cacheClosedCount;
     private boolean alreadyCleaned;
 
-    public DefaultCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupAction cleanupAction, ExecutorFactory executorFactory) {
+    public DefaultExclusiveCache(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupAction cleanupAction, ExecutorFactory executorFactory) {
         this.cacheDisplayName = cacheDisplayName;
         this.baseDir = baseDir;
         this.cleanupAction = cleanupAction;

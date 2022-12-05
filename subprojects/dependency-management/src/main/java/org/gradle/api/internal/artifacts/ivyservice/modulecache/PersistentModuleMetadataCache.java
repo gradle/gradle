@@ -19,7 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Interner;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactExclusiveCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
@@ -39,10 +39,10 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
 
     private IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
     private final ModuleMetadataStore moduleMetadataStore;
-    private final ArtifactCacheLockingManager artifactCacheLockingManager;
+    private final ArtifactExclusiveCacheLockingManager artifactCacheLockingManager;
 
     public PersistentModuleMetadataCache(BuildCommencedTimeProvider timeProvider,
-                                         ArtifactCacheLockingManager artifactCacheLockingManager,
+                                         ArtifactExclusiveCacheLockingManager artifactCacheLockingManager,
                                          ArtifactCacheMetadata artifactCacheMetadata,
                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                          AttributeContainerSerializer attributeContainerSerializer,

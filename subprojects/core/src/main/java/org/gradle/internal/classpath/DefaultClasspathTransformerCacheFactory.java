@@ -20,9 +20,9 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.DefaultCacheCleanup;
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheVersionMapping;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
@@ -61,7 +61,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     }
 
     @Override
-    public PersistentCache createCache(GlobalScopedCacheBuilderFactory cacheRepository, FileAccessTimeJournal fileAccessTimeJournal) {
+    public PersistentExclusiveCache createCache(GlobalScopedCacheBuilderFactory cacheRepository, FileAccessTimeJournal fileAccessTimeJournal) {
         return cacheRepository
             .crossVersionCacheBuilder(CACHE_KEY)
             .withDisplayName(CACHE_NAME)
@@ -91,7 +91,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     }
 
     @Override
-    public FileAccessTracker createFileAccessTracker(PersistentCache persistentCache, FileAccessTimeJournal fileAccessTimeJournal) {
+    public FileAccessTracker createFileAccessTracker(PersistentExclusiveCache persistentCache, FileAccessTimeJournal fileAccessTimeJournal) {
         return new SingleDepthFileAccessTracker(fileAccessTimeJournal, persistentCache.getBaseDir(), FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
     }
 }

@@ -16,7 +16,8 @@
 
 package org.gradle.internal.resource.cached
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManagerStub
+
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactExclusiveCacheLockingManagerStub
 import org.gradle.internal.file.FileAccessTracker
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
@@ -35,7 +36,7 @@ class DefaultArtifactResolutionCacheTest extends Specification {
         getCurrentTime() >> 1234L
     }
 
-    def cacheLockingManager = new ArtifactCacheLockingManagerStub()
+    def cacheLockingManager = new ArtifactExclusiveCacheLockingManagerStub()
     def fileAccessTracker = Stub(FileAccessTracker)
 
     DefaultCachedExternalResourceIndex<String> index

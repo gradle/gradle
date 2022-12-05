@@ -17,7 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.AsyncCacheAccess;
-import org.gradle.cache.CacheAccess;
+import org.gradle.cache.ExclusiveCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorPolicy;
@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private final BlockingQueue<Runnable> workQueue;
     private final String displayName;
-    private final CacheAccess cacheAccess;
+    private final ExclusiveCache exclusiveCache;
     private final long batchWindowMillis;
     private final long maximumLockingTimeMillis;
     private boolean closed;
@@ -47,9 +47,9 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private final CountDownLatch doneSignal = new CountDownLatch(1);
     private final ExecutorPolicy.CatchAndRecordFailures failureHandler = new ExecutorPolicy.CatchAndRecordFailures();
 
-    CacheAccessWorker(String displayName, CacheAccess cacheAccess) {
+    CacheAccessWorker(String displayName, ExclusiveCache exclusiveCache) {
         this.displayName = displayName;
-        this.cacheAccess = cacheAccess;
+        this.exclusiveCache = exclusiveCache;
         this.batchWindowMillis = 200;
         this.maximumLockingTimeMillis = 5000;
         HeapProportionalCacheSizer heapProportionalCacheSizer = new HeapProportionalCacheSizer();
@@ -172,7 +172,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private void flushOperations(final Runnable updateOperation) {
         final List<FlushOperationsCommand> flushOperations = new ArrayList<FlushOperationsCommand>();
         try {
-            cacheAccess.useCache(new Runnable() {
+            exclusiveCache.useCache(new Runnable() {
                 @Override
                 public void run() {
                     CountdownTimer timer = Time.startCountdownTimer(maximumLockingTimeMillis, TimeUnit.MILLISECONDS);

@@ -23,7 +23,7 @@ import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Specification
 
-class FixedSharedModeCrossProcessCacheAccessTest extends Specification {
+class FixedSharedModeCrossProcessExclusiveCacheTest extends Specification {
     def file = new TestFile("some-file.lock")
     def lockManager = Mock(FileLockManager)
     def initAction = Mock(CacheInitializationAction)

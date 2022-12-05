@@ -16,11 +16,11 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.cache.PersistentCache;
+import org.gradle.cache.PersistentExclusiveCache;
 
 /**
  * A visitor to a cache instance.  See {@link CacheFactory#visitCaches(CacheVisitor)}.
  */
 public interface CacheVisitor {
-    void visit(PersistentCache cache);
+    void visit(PersistentExclusiveCache cache);
 }

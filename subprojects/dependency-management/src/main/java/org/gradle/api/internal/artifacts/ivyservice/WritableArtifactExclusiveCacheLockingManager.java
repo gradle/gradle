@@ -23,9 +23,9 @@ import org.gradle.cache.CacheBuilderFactory;
 import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.IndexedCacheParameters;
+import org.gradle.cache.PersistentExclusiveCache;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
@@ -43,10 +43,10 @@ import java.util.function.Function;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class WritableArtifactCacheLockingManager implements ArtifactCacheLockingManager, Closeable {
-    private final PersistentCache cache;
+public class WritableArtifactExclusiveCacheLockingManager implements ArtifactExclusiveCacheLockingManager, Closeable {
+    private final PersistentExclusiveCache cache;
 
-    public WritableArtifactCacheLockingManager(
+    public WritableArtifactExclusiveCacheLockingManager(
             CacheBuilderFactory cacheBuilderFactory,
             ArtifactCacheMetadata cacheMetaData,
             FileAccessTimeJournal fileAccessTimeJournal,

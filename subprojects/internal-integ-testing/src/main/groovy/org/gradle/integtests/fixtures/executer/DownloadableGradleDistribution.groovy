@@ -19,7 +19,7 @@ package org.gradle.integtests.fixtures.executer
 import org.gradle.api.Action
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.FileLockManager
-import org.gradle.cache.PersistentCache
+import org.gradle.cache.PersistentExclusiveCache
 import org.gradle.cache.internal.CacheFactory
 import org.gradle.cache.internal.DefaultCacheFactory
 import org.gradle.cache.internal.DefaultFileLockManager
@@ -47,7 +47,7 @@ abstract class DownloadableGradleDistribution extends DefaultGradleDistribution 
     }
 
     protected TestFile versionDir
-    private PersistentCache cache
+    private PersistentExclusiveCache cache
 
     DownloadableGradleDistribution(String version, TestFile versionDir) {
         super(GradleVersion.version(version), versionDir.file("gradle-$version"), versionDir.file("gradle-$version-bin.zip"))

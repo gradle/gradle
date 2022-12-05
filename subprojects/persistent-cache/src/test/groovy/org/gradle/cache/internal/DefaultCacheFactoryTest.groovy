@@ -17,7 +17,7 @@ package org.gradle.cache.internal
 
 import org.gradle.api.Action
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.PersistentCache
+import org.gradle.cache.PersistentExclusiveCache
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
@@ -58,7 +58,7 @@ class DefaultCacheFactoryTest extends Specification {
         def cache = factory.open(tmpDir.testDirectory, "<display>", [prop: 'value'], CacheBuilder.LockTarget.DefaultTarget, mode(Shared), null, null)
 
         then:
-        cache.reference.cache instanceof DefaultPersistentDirectoryCache
+        cache.reference.cache instanceof DefaultPersistentDirectoryExclusiveCache
         cache.baseDir == tmpDir.testDirectory
         cache.toString().startsWith "<display>"
 
@@ -219,7 +219,7 @@ class DefaultCacheFactoryTest extends Specification {
         and:
         factory.visitCaches(new CacheVisitor() {
             @Override
-            void visit(PersistentCache cache) {
+            void visit(PersistentExclusiveCache cache) {
                 visited << cache.displayName.split(' ')[0]
             }
         })
@@ -245,7 +245,7 @@ class DefaultCacheFactoryTest extends Specification {
         and:
         factory.visitCaches(new CacheVisitor() {
             @Override
-            void visit(PersistentCache cache) {
+            void visit(PersistentExclusiveCache cache) {
                 visited << cache.displayName.split(' ')[0]
             }
         })
