@@ -182,7 +182,7 @@ public abstract class EclipseWtpPlugin extends IdePlugin {
                 Set<Configuration> minusConfigurations = component.getMinusConfigurations();
 
                 libConfigurations.add(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
-                minusConfigurations.add(project.getConfigurations().getByName("providedRuntime"));
+                minusConfigurations.add(project.getConfigurations().getByName(WarPlugin.PROVIDED_RUNTIME_CLASSPATH_CONFIGURATION_NAME));
                 component.setClassesDeployPath("/WEB-INF/classes");
                 ConventionMapping convention = ((IConventionAware) component).getConventionMapping();
                 convention.map("libDeployPath", new Callable<String>() {

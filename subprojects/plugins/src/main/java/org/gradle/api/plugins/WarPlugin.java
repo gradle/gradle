@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -49,7 +50,15 @@ public abstract class WarPlugin implements Plugin<Project> {
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";
     private static final String PROVIDED_COMPILE_CLASSPATH_CONFIGURATION_NAME = "providedCompileClasspath";
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
-    private static final String PROVIDED_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "providedRuntimeClasspath";
+    /**
+     * This is the resolvable configuration that should be used to resolve the classpath containing the dependencies
+     * added to the {@link #PROVIDED_RUNTIME_CONFIGURATION_NAME} configuration.
+     *
+     * @since 8.0
+     */
+    @Incubating
+    public static final String PROVIDED_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "providedRuntimeClasspath";
+
     public static final String WAR_TASK_NAME = "war";
     public static final String WEB_APP_GROUP = "web application";
 
