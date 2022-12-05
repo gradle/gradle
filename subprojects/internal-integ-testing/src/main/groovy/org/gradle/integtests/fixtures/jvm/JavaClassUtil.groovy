@@ -23,6 +23,7 @@ import org.gradle.api.JavaVersion
 class JavaClassUtil {
 
     private static final int MAGIC_BYTES = (int) 0xCAFEBABE
+    private static final int CLASS_MAJOR_VERSION_OFFSET = 44
 
     static int getClassMajorVersion(Class<?> javaClass) {
         URL url = classFileUrlOf(javaClass)
@@ -50,7 +51,7 @@ class JavaClassUtil {
         if (javaVersion == JavaVersion.VERSION_HIGHER) {
             throw new UnsupportedOperationException("Unable to provide class file major version for '$javaVersion'")
         }
-        return javaVersion.majorVersion.toInteger() + 44
+        return javaVersion.majorVersion.toInteger() + CLASS_MAJOR_VERSION_OFFSET
     }
 
     private JavaClassUtil() {}
