@@ -74,25 +74,11 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-#### Warning modes `all` and `fail` are more verbose
 
-Warning modes that are supposed to print all warnings were printing only one for each specific warning message.
-If there were two warnings with the same message, but originating from different steps of the build process (i.e. different stack traces), only one of them was printed. 
-Now one gets printed for each combination of message and stack trace.
-
-#### PMD and CodeNarc tasks execute in parallel by default
-The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process and therefore their tasks may now run in parallel within one project.
-
-In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
-
-#### CodeNarc Plugin automatically detects appropriate version for current Groovy runtime
-
-The [CodeNarc](https://codenarc.org/) project now publishes separate versions for use with Groovy 4.
-Gradle still currently ships with Groovy 3.
-To ensure future compatibility, the [CodeNarcPlugin](userguide/codenarc_plugin.html) now automatically detects the appropriate version of CodeNarc for the current Groovy runtime.
-You can still explicitly specify a CodeNarc version with the `toolVersion` property on the [CodeNarcExtension](dsl/org.gradle.api.plugins.quality.CodeNarcExtension.html#org.gradle.api.plugins.quality.CodeNarcExtension).
+### JVM
 
 #### Introduced `projectInternalView()` dependency for test suites with access to project internals
+
 The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now
 supports depending on the internal view of the current project at compile-time.
 Previously it was only possible to depend on the current project's API. This allows
@@ -117,24 +103,10 @@ testing {
 }
 ```
 
-#### Dependency verification metadata improvements
+For more information about warning modes, see [JVM test suite](userguide/jvm_test_suite_plugin.html).
 
-The following nodes with dependency verification metadata file `verification-metadata.xml` now support a `reason` attribute:
 
-- the `trust` xml node under `trusted-artifacts`
-- the `md5`, `sha1`, `sha256` and `sha512` nodes under `component`
-
-#### Dependency verification CLI improvements
-
-You can now use the `export-keys` flag to export all already trusted keys:
-
-```asciidoc
-./gradlew --export-keys
-```
-
-For more information, see [Exporting keys](userguide/dependency_verification.html#sec:local-keyring).
-
-### Kotlin DSL improvements
+###  Kotlin DSL
 
 Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assist, refactoring, documentation, and more.
 
@@ -153,7 +125,7 @@ Highlights include:
 
 For information about breaking and nonbreaking changes in this upgrade, see the [upgrading guide](userguide/upgrading_version_7.html#kotlin_language_1_7).
 
-##### Script compilation now uses the Gradle JVM as Kotlin JVM Target
+##### Enhanced script compilation to use the Gradle JVM as Kotlin JVM Target
 
 Previously, the compilation of `.gradle.kts` scripts always used Java 8 as the Kotlin JVM target.
 Starting with Gradle 8.0, it now uses the version of the JVM running the build.
@@ -162,7 +134,7 @@ If your team is using e.g. Java 11 to run Gradle, this allows you to use Java 11
 
 Note that this doesn't apply to [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) which use the configured `kotlinDslPluginOptions.jvmTarget`.
 
-##### Script compilation performance improvement
+##### Imporved Script compilation performance 
 
 This Gradle version introduces an interpreter for [declarative `plugins {}` blocks](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts.
 It allows to avoid calling the Kotlin compiler for declarative `plugins {}` blocks and is enabled by default.
@@ -201,6 +173,63 @@ plugins {
 3. Version catalog plugin reference, unsupported
 
 In the cases above, Gradle falls back to the Kotlin compiler, providing the same performance as previous Gradle releases.
+
+
+### General Improvements
+
+
+#### Enhanced warning modes `all` and `fail` are now more verbose
+
+Warning modes that are supposed to print all warnings were printing only one for each specific warning message.
+
+If there were two warnings with the same message, but originating from different steps of the build process (i.e. different stack traces), only one of them was printed. 
+
+Now one gets printed for each combination of message and stack trace.
+
+For more information about warning modes, see [Showing or hiding warnings](userguide/command_line_interface.html#sec:command_line_warnings).
+
+
+#### Improved Dependency verification metadata 
+
+The following nodes with dependency verification metadata file `verification-metadata.xml` now support a `reason` attribute:
+
+- the `trust` xml node under `trusted-artifacts`
+- the `md5`, `sha1`, `sha256` and `sha512` nodes under `component`
+
+#### Improved Dependency verification CLI
+
+You can now use the `export-keys` flag to export all already trusted keys:
+
+```asciidoc
+./gradlew --export-keys
+```
+
+For more information, see [Exporting keys](userguide/dependency_verification.html#sec:local-keyring).
+
+### Dependency Management
+
+### Configuration Cache
+
+### Plugin Development
+
+#### Enhanced CodeNarc Plugin to automatically detects appropriate version for current Groovy runtime
+
+The [CodeNarc](https://codenarc.org/) project now publishes separate versions for use with Groovy 4.
+Gradle still currently ships with Groovy 3.
+
+To ensure future compatibility, the [CodeNarcPlugin](userguide/codenarc_plugin.html) now automatically detects the appropriate version of CodeNarc for the current Groovy runtime.
+
+You can still explicitly specify a CodeNarc version with the `toolVersion` property on the [CodeNarcExtension](dsl/org.gradle.api.plugins.quality.CodeNarcExtension.html#org.gradle.api.plugins.quality.CodeNarcExtension).
+
+#### Enhanced PMD and CodeNarc tasks to execute in parallel by default
+
+The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process and therefore their tasks may now run in parallel within one project.
+
+In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
+
+### IDE Integration
+
+
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
