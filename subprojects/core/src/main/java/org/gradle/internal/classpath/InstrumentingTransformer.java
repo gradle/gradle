@@ -254,11 +254,20 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                         _F_SAME();
                     }
                     next = new Label();
+                    Handle implHandle = (Handle) factory.bootstrapMethodArguments.get(1);
+
                     _ALOAD(0);
                     _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodName", RETURN_STRING);
-                    _LDC(((Handle) factory.bootstrapMethodArguments.get(1)).getName());
+                    _LDC(implHandle.getName());
                     _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
                     _IFEQ(next);
+
+                    _ALOAD(0);
+                    _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodSignature", RETURN_STRING);
+                    _LDC(implHandle.getDesc());
+                    _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
+                    _IFEQ(next);
+
                     Type[] argumentTypes = Type.getArgumentTypes(factory.descriptor);
                     for (int i = 0; i < argumentTypes.length; i++) {
                         _ALOAD(0);
