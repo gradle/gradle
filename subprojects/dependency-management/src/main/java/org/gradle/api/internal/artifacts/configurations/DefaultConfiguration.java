@@ -260,64 +260,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
      */
-    @SuppressWarnings("deprecation")
-    public DefaultConfiguration(
-        DomainObjectContext domainObjectContext,
-        String name,
-        ConfigurationsProvider configurationsProvider,
-        ConfigurationResolver resolver,
-        ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
-        ProjectDependencyObservedListener dependencyObservedBroadcast,
-        DependencyMetaDataProvider metaDataProvider,
-        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        FileCollectionFactory fileCollectionFactory,
-        BuildOperationExecutor buildOperationExecutor,
-        Instantiator instantiator,
-        NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
-        NotationParser<Object, Capability> capabilityNotationParser,
-        ImmutableAttributesFactory attributesFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder,
-        DocumentationRegistry documentationRegistry,
-        UserCodeApplicationContext userCodeApplicationContext,
-        ProjectStateRegistry projectStateRegistry,
-        WorkerThreadRegistry workerThreadRegistry,
-        DomainObjectCollectionFactory domainObjectCollectionFactory,
-        CalculatedValueContainerFactory calculatedValueContainerFactory,
-        DefaultConfigurationFactory defaultConfigurationFactory,
-        TaskDependencyFactory taskDependencyFactory
-    ) {
-        this(
-            domainObjectContext,
-            name,
-            configurationsProvider,
-            resolver,
-            dependencyResolutionListeners,
-            dependencyObservedBroadcast,
-            metaDataProvider,
-            resolutionStrategyFactory,
-            fileCollectionFactory,
-            buildOperationExecutor,
-            instantiator,
-            artifactNotationParser,
-            capabilityNotationParser,
-            attributesFactory,
-            rootComponentMetadataBuilder,
-            documentationRegistry,
-            userCodeApplicationContext,
-            projectStateRegistry,
-            workerThreadRegistry,
-            domainObjectCollectionFactory,
-            calculatedValueContainerFactory,
-            defaultConfigurationFactory,
-            taskDependencyFactory,
-            ConfigurationRoles.LEGACY,
-            false
-        );
-    }
-
-    /**
-     * To create an instance, use {@link DefaultConfigurationFactory#create}.
-     */
     public DefaultConfiguration(
             DomainObjectContext domainObjectContext,
             String name,
@@ -1724,13 +1666,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void logChangingUsage(String usage, boolean allowed) {
         String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
         if (warnOnChangingUsage) {
-            DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName() , describeChangingUsage(usage, allowed)))
+            DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName(), describeChangingUsage(usage, allowed)))
                     .withAdvice("Usage should be fixed upon creation.")
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "configurations_allowed_usage")
                     .nagUser();
         } else if (LOGGER.isInfoEnabled()) {
-            LOGGER.info(String.format(msgTemplate, getDisplayName() , describeChangingUsage(usage, allowed)));
+            LOGGER.info(String.format(msgTemplate, getDisplayName(), describeChangingUsage(usage, allowed)));
         }
     }
 
