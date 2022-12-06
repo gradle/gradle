@@ -16,18 +16,18 @@ apply<AdoptiumPlugin>()
 toolchainManagement {
     jvm { // <1>
         javaRepositories {
-            repository("disco") { // <2>
+            repository("foojay") { // <2>
                 resolverClass.set(org.gradle.toolchains.foojay.FoojayToolchainResolver::class.java)
+            }
+            repository("adoptium") { // <3>
+                resolverClass.set(AdoptiumResolver::class.java)
                 credentials {
                     username = "user"
                     password = "password"
                 }
                 authentication {
                     create<DigestAuthentication>("digest")
-                } // <3>
-            }
-            repository("adoptium") { // <4>
-                resolverClass.set(AdoptiumResolver::class.java)
+                } // <4>
             }
         }
     }
