@@ -389,7 +389,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         assert wtp.sourceDirs == project.sourceSets.main.allSource.srcDirs
         assert wtp.rootConfigurations == [] as Set
         assert wtp.libConfigurations == [project.configurations.runtimeClasspath] as Set
-        assert wtp.minusConfigurations == [project.configurations.providedRuntime] as Set
+        assert wtp.minusConfigurations == [project.configurations.providedRuntimeClasspath] as Set
         assert wtp.deployName == project.name
         assert wtp.contextPath == project.war.archiveBaseName.get()
         assert wtp.resources == [new WbResource('/', project.convention.plugins.war.webAppDirName)]
