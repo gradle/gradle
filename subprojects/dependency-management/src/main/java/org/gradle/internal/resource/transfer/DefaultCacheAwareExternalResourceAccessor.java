@@ -33,6 +33,7 @@ import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.cached.CachedExternalResource;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
+import org.gradle.internal.resource.cached.CachedExternalResourceListener;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
@@ -64,8 +65,9 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final ProducerGuard<ExternalResourceName> producerGuard;
     private final FileResourceRepository fileResourceRepository;
     private final ChecksumService checksumService;
+    private final CachedExternalResourceListener listener;
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository, ChecksumService checksumService) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository, ChecksumService checksumService, CachedExternalResourceListener listener) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
@@ -75,6 +77,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         this.producerGuard = producerGuard;
         this.fileResourceRepository = fileResourceRepository;
         this.checksumService = checksumService;
+        this.listener = listener;
     }
 
     @Nullable
@@ -86,6 +89,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
             // If we have no caching options, just get the thing directly
             if (cached == null && (additionalCandidates == null || additionalCandidates.isNone())) {
+                listener.cachedExternalResourceObserved(location.getDisplayName(), timeProvider.getCurrentTime());
                 return copyToCache(location, fileStore, delegate.withProgressLogging().resource(location));
             }
 

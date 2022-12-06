@@ -191,6 +191,7 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
+import org.gradle.internal.resource.cached.CachedExternalResourceListener;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.cached.TwoStageByUrlCachedExternalResourceIndex;
@@ -513,7 +514,8 @@ class DependencyManagementBuildScopeServices {
             producerGuard,
             fileResourceRepository,
             checksumService,
-            listenerManager.getBroadcaster(FileResourceListener.class)));
+            listenerManager.getBroadcaster(FileResourceListener.class),
+            listenerManager.getBroadcaster(CachedExternalResourceListener.class)));
     }
 
     RepositoryDisabler createRepositoryDisabler() {

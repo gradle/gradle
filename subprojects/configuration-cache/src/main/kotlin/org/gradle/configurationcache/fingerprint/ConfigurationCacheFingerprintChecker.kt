@@ -50,6 +50,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun hashCodeOf(file: File): HashCode?
         fun displayNameOf(fileOrDirectory: File): String
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
+        fun mustRefreshExternalResource(ageMillis : Long) : Boolean
     }
 
     suspend fun ReadContext.checkBuildScopedFingerprint(): CheckedFingerprint {
@@ -173,6 +174,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             is ConfigurationCacheFingerprint.ChangingDependencyResolutionValue -> input.run {
                 if (host.buildStartTime >= expireAt) {
                     return reason
+                }
+            }
+            is ConfigurationCacheFingerprint.CachedExternalResource -> input.run {
+                if (host.mustRefreshExternalResource(cachedAt)){
+                    return "cached external resource $displayName has expired"
                 }
             }
             is ConfigurationCacheFingerprint.GradleEnvironment -> input.run {

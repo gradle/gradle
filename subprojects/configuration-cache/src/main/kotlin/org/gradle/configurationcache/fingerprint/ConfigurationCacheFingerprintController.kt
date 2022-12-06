@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.fingerprint
 
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
@@ -77,13 +78,16 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val userCodeApplicationContext: UserCodeApplicationContext,
     private val taskExecutionTracker: TaskExecutionTracker,
     private val environmentChangeTracker: EnvironmentChangeTracker,
-    private val inputTrackingState: InputTrackingState,
+    private val inputTrackingState: InputTrackingState
 ) : Stoppable {
 
     interface Host {
         val valueSourceProviderFactory: ValueSourceProviderFactory
         val gradleProperties: GradleProperties
     }
+
+    private
+    val externalResourceCachePolicy = DefaultExternalResourceCachePolicy()
 
     private
     val fileCollectionFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileNormalizationSpec.from(InputNormalizer.ABSOLUTE_PATH, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT))
@@ -346,6 +350,9 @@ class ConfigurationCacheFingerprintController internal constructor(
                 obtainedValue.valueSourceParametersType,
                 obtainedValue.valueSourceParameters
             )
+
+        override fun mustRefreshExternalResource(ageMillis: Long): Boolean =
+            externalResourceCachePolicy.mustRefreshExternalResource(buildStartTime - ageMillis)
     }
 
     private

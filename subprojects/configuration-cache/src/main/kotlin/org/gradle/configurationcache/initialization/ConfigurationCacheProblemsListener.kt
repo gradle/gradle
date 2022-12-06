@@ -27,7 +27,6 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.credentials.CredentialListener
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
-import org.gradle.configuration.internal.ScriptSourceListener
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
@@ -39,7 +38,6 @@ import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
-import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.service.scopes.Scopes
@@ -47,7 +45,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 
 
 @ServiceScope(Scopes.BuildTree::class)
-interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener, CredentialListener, ScriptSourceListener
+interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, BuildScopeListenerRegistrationListener, ExternalProcessStartedListener, CredentialListener
 
 
 class DefaultConfigurationCacheProblemsListener internal constructor(
@@ -153,22 +151,6 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
                 documentationSection = RequirementsSafeCredentials
             )
         )
-    }
-
-    override fun onScriptSource(scriptSource: ScriptSource) {
-        val uri = scriptSource.resource.location.uri
-        if (uri != null && uri.scheme != "file") {
-            problems.onProblem(
-                PropertyProblem(
-                    userCodeLocation(),
-                    StructuredMessage.build {
-                        text("Changes to ")
-                        reference(scriptSource.displayName)
-                        text(" won't be tracked by the configuration cache.")
-                    }
-                )
-            )
-        }
     }
 
     private

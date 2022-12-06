@@ -31,6 +31,7 @@ import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
+import org.gradle.internal.resource.cached.CachedExternalResourceListener;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.local.FileResourceListener;
@@ -62,6 +63,7 @@ public class RepositoryTransportFactory {
     private final FileResourceRepository fileRepository;
     private final ChecksumService checksumService;
     private final FileResourceListener listener;
+    private final CachedExternalResourceListener cachedExternalResourceListener;
 
     public RepositoryTransportFactory(Collection<ResourceConnectorFactory> resourceConnectorFactory,
                                       TemporaryFileProvider temporaryFileProvider,
@@ -73,7 +75,9 @@ public class RepositoryTransportFactory {
                                       ProducerGuard<ExternalResourceName> producerGuard,
                                       FileResourceRepository fileRepository,
                                       ChecksumService checksumService,
-                                      FileResourceListener listener) {
+                                      FileResourceListener listener,
+                                      CachedExternalResourceListener cachedExternalResourceListener
+    ) {
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
@@ -84,6 +88,7 @@ public class RepositoryTransportFactory {
         this.fileRepository = fileRepository;
         this.checksumService = checksumService;
         this.listener = listener;
+        this.cachedExternalResourceListener = cachedExternalResourceListener;
 
         registeredProtocols.addAll(resourceConnectorFactory);
     }
@@ -97,7 +102,7 @@ public class RepositoryTransportFactory {
     }
 
     public RepositoryTransport createFileTransport(String name) {
-        return new FileTransport(name, fileRepository, cachedExternalResourceIndex, temporaryFileProvider, timeProvider, artifactCacheLockingManager, producerGuard, checksumService, listener);
+        return new FileTransport(name, fileRepository, cachedExternalResourceIndex, temporaryFileProvider, timeProvider, artifactCacheLockingManager, producerGuard, checksumService, listener, cachedExternalResourceListener);
     }
 
     public RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier) {
@@ -127,7 +132,7 @@ public class RepositoryTransportFactory {
         ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
         cachePolicy = startParameterResolutionOverride.overrideExternalResourceCachePolicy(cachePolicy);
 
-        return new ResourceConnectorRepositoryTransport(name, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, artifactCacheLockingManager, resourceConnector, buildOperationExecutor, cachePolicy, producerGuard, fileRepository, checksumService);
+        return new ResourceConnectorRepositoryTransport(name, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, artifactCacheLockingManager, resourceConnector, buildOperationExecutor, cachePolicy, producerGuard, fileRepository, checksumService, cachedExternalResourceListener);
     }
 
     private void validateSchemes(Set<String> schemes) {

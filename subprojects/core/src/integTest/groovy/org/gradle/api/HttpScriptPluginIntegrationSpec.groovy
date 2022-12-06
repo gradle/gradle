@@ -32,7 +32,6 @@ import spock.lang.Issue
 
 import static org.junit.Assert.fail
 
-@IgnoreIf({ GradleContextualExecuter.configCache })
 class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
     @org.junit.Rule
     HttpServer server = new HttpServer()
