@@ -20,14 +20,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.GUtil
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import static org.junit.Assert.fail

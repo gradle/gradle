@@ -186,7 +186,7 @@ class ConfigurationCacheFingerprintWriter(
             return
         }
 
-        sink().cachedExternalResourceObserved(displayName, cachedAt);
+        sink().cachedExternalResourceObserved(displayName, cachedAt)
     }
 
     override fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry, versions: Set<ModuleVersionIdentifier>) {
@@ -473,6 +473,12 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
+    override fun onScriptSource(scriptSource: ScriptSource) {
+        scriptSource.resource.location.file?.let {
+            fileObserved(it)
+        }
+    }
+
     fun append(fingerprint: ProjectSpecificFingerprint) {
         // TODO - should add to report as an input
         projectScopedWriter.write(fingerprint)
@@ -715,12 +721,6 @@ class ConfigurationCacheFingerprintWriter(
     ) : Sink(host) {
         override fun write(value: ConfigurationCacheFingerprint) {
             writer.write(ProjectSpecificFingerprint.ProjectFingerprint(project, value))
-        }
-    }
-
-    override fun onScriptSource(scriptSource: ScriptSource) {
-        scriptSource.resource.location.file?.let {
-            fileObserved(it)
         }
     }
 }

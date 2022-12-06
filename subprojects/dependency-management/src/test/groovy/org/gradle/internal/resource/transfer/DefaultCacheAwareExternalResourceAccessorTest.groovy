@@ -28,6 +28,7 @@ import org.gradle.internal.resource.ExternalResourceReadResult
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.CachedExternalResource
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex
+import org.gradle.internal.resource.cached.CachedExternalResourceListener
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
@@ -48,6 +49,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
     final progressLoggingRepo = Mock(ExternalResourceRepository)
     final index = Mock(CachedExternalResourceIndex)
     final timeProvider = Mock(BuildCommencedTimeProvider)
+    final listener = Mock(CachedExternalResourceListener)
     final tempFile = tempDir.file("temp-file")
     final cachedFile = tempDir.file("cached-file")
     final temporaryFileProvider = Stub(TemporaryFileProvider) {
@@ -62,7 +64,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
             supplier.get()
         }
     }
-    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheLockingManager, cachePolicy, producerGuard, fileRepository, TestUtil.checksumService)
+    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheLockingManager, cachePolicy, producerGuard, fileRepository, TestUtil.checksumService, listener)
 
     def "returns null when the request resource is not cached and does not exist in the remote repository"() {
         def location = new ExternalResourceName("thing")
