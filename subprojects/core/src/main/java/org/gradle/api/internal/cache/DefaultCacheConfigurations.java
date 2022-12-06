@@ -149,7 +149,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         }
 
         /**
-         * Returns a supplier mapped from the property.  This provides a supplier that is resilient
+         * @implNote Returns a supplier mapped from the property.  This provides a supplier that is resilient
          * to subsequent changes to the property value as opposed to just calling get() on the property.
          */
         @Override
