@@ -23,7 +23,6 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.CompileView;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -87,11 +86,10 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
 
     @Override
     public ImmutableAttributes compileScope(ImmutableAttributes original) {
-        List<Object> key = ImmutableList.of(original, Usage.JAVA_API, CompileView.JAVA_INTERNAL);
+        List<Object> key = ImmutableList.of(original, Usage.JAVA_API);
         return concatCache.computeIfAbsent(key, k -> {
             ImmutableAttributes result = original;
             result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_API, objectInstantiator));
-            result = concat(result, COMPILE_VIEW_ATTRIBUTE, new CoercingStringValueSnapshot(CompileView.JAVA_INTERNAL, objectInstantiator));
             result = concat(result, FORMAT_ATTRIBUTE, new CoercingStringValueSnapshot(LibraryElements.JAR, objectInstantiator));
             result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.LIBRARY, objectInstantiator));
             return result;
