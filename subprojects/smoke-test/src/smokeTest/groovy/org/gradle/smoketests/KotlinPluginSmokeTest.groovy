@@ -236,9 +236,9 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
             }
 
             task resolve {
-                dependsOn configurations.compileClasspath
+                def files = configurations.compileClasspath
                 doLast {
-                    println("Files: " + configurations.compileClasspath.files)
+                    println("Files: " + files.files)
                 }
             }
         """
