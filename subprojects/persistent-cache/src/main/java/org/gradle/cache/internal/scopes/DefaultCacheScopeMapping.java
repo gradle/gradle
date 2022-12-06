@@ -31,14 +31,24 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
     public static final String GLOBAL_CACHE_DIR_NAME = "caches";
     private static final Pattern CACHE_KEY_NAME_PATTERN = Pattern.compile("\\p{Alpha}+[-/.\\w]*");
 
-    private final File globalCacheDir;
+    private final File defaultGlobalCacheDir;
     private final GradleVersion version;
 
-    public DefaultCacheScopeMapping(File rootDir, GradleVersion version) {
-        this.globalCacheDir = rootDir;
+    /**
+     * Creates a new cache scope mapping for a given Gradle version.
+     *
+     * @param defaultRootDir The default global cache directory which will be used if the user does not specify a different one when
+     * requesting the base directory via {@link #getBaseDirectory(File, String, VersionStrategy)}
+     * @param version The current version of Gradle
+     */
+    public DefaultCacheScopeMapping(File defaultRootDir, GradleVersion version) {
+        this.defaultGlobalCacheDir = defaultRootDir;
         this.version = version;
     }
 
+    /**
+     * @implNote if no {@code cacheDir} is provided, the default global cache directory is used
+     */
     @Override
     public File getBaseDirectory(@Nullable File baseDir, String key, VersionStrategy versionStrategy) {
         if (!CACHE_KEY_NAME_PATTERN.matcher(key).matches()) {
@@ -50,7 +60,7 @@ public class DefaultCacheScopeMapping implements CacheScopeMapping {
 
     private File getRootDirectory(@Nullable File scope) {
         if (scope == null) {
-            return globalCacheDir;
+            return defaultGlobalCacheDir;
         } else {
             return scope;
         }

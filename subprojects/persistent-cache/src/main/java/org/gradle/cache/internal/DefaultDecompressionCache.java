@@ -29,53 +29,68 @@ import java.io.File;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 /**
- * The default implementation of {@link DecompressionCache} that can be used to store decompressed data extracted from archive files like zip and tars.
+ * The default implementation of {@link DecompressionCache} that can be used to store decompressed
+ * data extracted from archive files like zip and tars.
  *
  * Will manage access to the cache, so that access to the archive's contents
- * are only permitted to one client at a time.  The cache will be a Gradle cross version cache.
+ * are only permitted to one client at a time.  The cache will be a Gradle cross version cache.  The
+ * cache will lazily create the cache directory when the first client requests access to or information
+ * about the cache.  This allows the project's build directory time to be configured prior to
+ * creating the cache directory within it.
  */
+@SuppressWarnings("resource")
 public class DefaultDecompressionCache implements DecompressionCache, Stoppable, Closeable {
     private static final String EXPANSION_CACHE_KEY = "compressed-file-expansion";
     private static final String EXPANSION_CACHE_NAME = "Compressed Files Expansion Cache";
 
-    private final PersistentCache cache;
+    private final ScopedCache cacheFactory;
+    private PersistentCache cache;
 
     public DefaultDecompressionCache(ScopedCache cacheFactory) {
-        this.cache = cacheFactory.cache(EXPANSION_CACHE_KEY)
-                .withDisplayName(EXPANSION_CACHE_NAME)
-                .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-                .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
-                .open();
+        this.cacheFactory = cacheFactory;
+    }
+
+    private PersistentCache createOrRetrieveCache() {
+        if (null == cache) {
+            cache = cacheFactory.cache(EXPANSION_CACHE_KEY)
+                    .withDisplayName(EXPANSION_CACHE_NAME)
+                    .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
+                    .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
+                    .open();
+        }
+        return cache;
     }
 
     @Override
     public <T> T useCache(Factory<? extends T> action) {
-        return cache.useCache(action);
+        return createOrRetrieveCache().useCache(action);
     }
 
     @Override
     public void useCache(Runnable action) {
-        cache.useCache(action);
+        createOrRetrieveCache().useCache(action);
     }
 
     @Override
     public <T> T withFileLock(Factory<? extends T> action) {
-        return cache.withFileLock(action);
+        return createOrRetrieveCache().withFileLock(action);
     }
 
     @Override
     public void withFileLock(Runnable action) {
-        cache.withFileLock(action);
+        createOrRetrieveCache().withFileLock(action);
     }
 
     @Override
     public File getBaseDir() {
-        return cache.getBaseDir();
+        return createOrRetrieveCache().getBaseDir();
     }
 
     @Override
     public void close() {
-        cache.close();
+        if (null != cache) {
+            cache.close();
+        }
     }
 
     @Override

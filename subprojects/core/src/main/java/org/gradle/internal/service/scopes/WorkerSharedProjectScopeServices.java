@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultArchiveOperations;
@@ -158,11 +159,12 @@ public class WorkerSharedProjectScopeServices {
     }
 
     protected CacheRepository createCacheRepository(CacheFactory cacheFactory, DefaultProjectLayout projectLayout) {
+        // It looks like this is eagerly evaluating the build dir, but remember this is only the default cache dir for the scope, we'll provide a specific one to use so this is largely irrelevant
         return new DefaultCacheRepository(new DefaultCacheScopeMapping(projectLevelCacheDir(projectLayout), GradleVersion.current()), cacheFactory);
     }
 
     protected ProjectScopedCache createProjectScopedCache(CacheRepository cacheRepository, DefaultProjectLayout projectLayout) {
-        return new DefaultProjectScopedCache(projectLevelCacheDir(projectLayout), cacheRepository);
+        return new DefaultProjectScopedCache(() -> projectLevelCacheDir(projectLayout), cacheRepository);
     }
 
     protected DecompressionCache createDecompressionCache(ProjectScopedCache cacheFactory) {

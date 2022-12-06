@@ -20,12 +20,13 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.scopes.ProjectScopedCache;
 
 import java.io.File;
+import java.util.function.Supplier;
 
 /**
- * Default implementation of {@link ProjectScopedCache}, implements interface using {@link AbstractScopedCache}.
+ * Default implementation of {@link ProjectScopedCache}, implements interface using {@link AbstractLazilyLocatedScopedCache}.
  */
-public class DefaultProjectScopedCache extends AbstractScopedCache implements ProjectScopedCache {
-    public DefaultProjectScopedCache(File rootDir, CacheRepository cacheRepository) {
-        super(rootDir, cacheRepository);
+public class DefaultProjectScopedCache extends AbstractLazilyLocatedScopedCache implements ProjectScopedCache {
+    public DefaultProjectScopedCache(Supplier<File> buildDirSupplier, CacheRepository cacheRepository) {
+        super(buildDirSupplier, cacheRepository);
     }
 }
