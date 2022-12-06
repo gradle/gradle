@@ -43,7 +43,6 @@ import kotlin.script.templates.ScriptTemplateDefinition
     [
         "-language-version", "1.7",
         "-api-version", "1.7",
-        "-jvm-target", "1.8",
         "-Xjvm-default=all",
         "-Xjsr305=strict",
         "-XXLanguage:+DisableCompatibilityModeForNewInference",

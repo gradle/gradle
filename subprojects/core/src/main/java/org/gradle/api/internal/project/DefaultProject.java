@@ -94,6 +94,7 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -1120,6 +1121,35 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Inject
     @Override
     public abstract SoftwareComponentContainer getComponents();
+
+    /**
+     * This is an implementation of the {@link groovy.lang.GroovyObject}'s corresponding method.
+     * The interface itself is mixed-in at runtime, but we want to keep this implementation as it
+     * properly handles the dynamicLookupRoutine.
+     *
+     * @see AsmBackedClassGenerator.ClassBuilderImpl#addDynamicMethods
+     */
+    @Nullable
+    public Object getProperty(String propertyName) {
+        return property(propertyName);
+    }
+
+    /**
+     * This is an implementation of the {@link groovy.lang.GroovyObject}'s corresponding method.
+     * The interface itself is mixed-in at runtime, but we want to keep this implementation as it
+     * properly handles the dynamicLookupRoutine.
+     *
+     * @see AsmBackedClassGenerator.ClassBuilderImpl#addDynamicMethods
+     */
+    @Nullable
+    public Object invokeMethod(String name, Object args) {
+        if (args instanceof Object[]) {
+            // Spread the 'args' array as varargs:
+            return dynamicLookupRoutine.invokeMethod(extensibleDynamicObject, name, (Object[]) args);
+        } else {
+            return dynamicLookupRoutine.invokeMethod(extensibleDynamicObject, name, args);
+        }
+    }
 
     @Override
     public Object property(String propertyName) throws MissingPropertyException {

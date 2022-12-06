@@ -40,8 +40,8 @@ property to print the name of the project:
 
 .Access a Project property
 ====
-include::sample[dir="snippets/tutorial/projectApi/groovy",files="build.gradle[tags=project-name]"]
 include::sample[dir="snippets/tutorial/projectApi/kotlin",files="build.gradle.kts[tags=project-name]"]
+include::sample[dir="snippets/tutorial/projectApi/groovy",files="build.gradle[tags=project-name]"]
 
 .Output of **`gradle -q check`**
 ----
@@ -121,16 +121,16 @@ Build scripts can declare two kinds of variables: local variables and extra prop
 [[sec:local_variables]]
 === Local Variables
 
-[.multi-language-text.lang-groovy]
-Declare local variables with the `def` keyword. Local variables are only visible in the scope where they have been declared. They are a feature of the underlying Groovy language.
-
 [.multi-language-text.lang-kotlin]
 Declare local variables with the `val` keyword. Local variables are only visible in the scope where they have been declared. They are a feature of the underlying Kotlin language.
 
+[.multi-language-text.lang-groovy]
+Declare local variables with the `def` keyword. Local variables are only visible in the scope where they have been declared. They are a feature of the underlying Groovy language.
+
 .Declare a local variable
 ====
-include::sample[dir="snippets/tutorial/localVariables/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/localVariables/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/localVariables/groovy",files="build.gradle[]"]
 ====
 
 [[sec:extra_properties]]
@@ -138,16 +138,16 @@ include::sample[dir="snippets/tutorial/localVariables/kotlin",files="build.gradl
 
 All of Gradle's enhanced objects, including projects, tasks, and source sets, can hold user-defined properties.
 
-[.multi-language-text.lang-groovy]
-Add, read, and set extra properties via the owning object's `ext` property. Alternatively, you can use an `ext` block to add multiple properties at once.
-
 [.multi-language-text.lang-kotlin]
 Add, read, and set extra properties via the owning object's `extra` property. Alternatively, you can access extra properties via Kotlin delegated properties using `by extra`.
 
+[.multi-language-text.lang-groovy]
+Add, read, and set extra properties via the owning object's `ext` property. Alternatively, you can use an `ext` block to add multiple properties at once.
+
 .Use extra properties
 ====
-include::sample[dir="snippets/tutorial/extraProperties/groovy",files="build.gradle[tags=extraProperties]"]
 include::sample[dir="snippets/tutorial/extraProperties/kotlin",files="build.gradle.kts[tags=extraProperties]"]
+include::sample[dir="snippets/tutorial/extraProperties/groovy",files="build.gradle[tags=extraProperties]"]
 
 .Output of **`gradle -q printProperties`**
 ----
@@ -156,11 +156,11 @@ include::{snippetsPath}/tutorial/extraProperties/tests/extraProperties.out[]
 ----
 ====
 
-[.multi-language-text.lang-groovy]
-This example adds two extra properties to the `project` object via an `ext` block. Additionally, this example adds a property named `purpose` to each source set by setting `ext.purpose` to `null`. Once added, you can read and set all of these properties just like predefined properties.
-
 [.multi-language-text.lang-kotlin]
 This example adds two extra properties to the `project` object via `by extra`. Additionally, this example adds a property named `purpose` to each source set by setting `extra["purpose"]` to `null`. Once added, you can read and set all of these properties via `extra`.
+
+[.multi-language-text.lang-groovy]
+This example adds two extra properties to the `project` object via an `ext` block. Additionally, this example adds a property named `purpose` to each source set by setting `ext.purpose` to `null`. Once added, you can read and set all of these properties just like predefined properties.
 
 Gradle requires special syntax for adding a property so it can fail fast. For example, this allows Gradle to recognize
 when a script attempts to set a property that does not exist. You can access extra properties anywhere where you can
@@ -177,8 +177,8 @@ Configure arbitrary objects with `configure()`:
 
 .Configure arbitrary objects
 ====
-include::sample[dir="snippets/tutorial/configureObject/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/configureObject/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/configureObject/groovy",files="build.gradle[]"]
 
 .Output of **`gradle -q configure`**
 ----

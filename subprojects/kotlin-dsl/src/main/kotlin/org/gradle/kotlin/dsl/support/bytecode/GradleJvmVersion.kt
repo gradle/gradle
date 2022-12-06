@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures.configurationcache;
+package org.gradle.kotlin.dsl.support.bytecode
 
-import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor;
-import org.gradle.integtests.fixtures.extensions.MultiTestExtension;
+import org.gradle.api.JavaVersion
+import org.objectweb.asm.Opcodes
 
-public class ConfigurationCacheTestExtension extends MultiTestExtension<ConfigurationCacheTest> {
 
-    @Override
-    protected AbstractMultiTestInterceptor makeInterceptor(Class<?> testClass) {
-        return new ConfigurationCacheTestInterceptor(testClass);
-    }
+object GradleJvmVersion {
+
+    /**
+     * The minimal Java version required to run Gradle.
+     */
+    val minimalJavaVersion: JavaVersion =
+        JavaVersion.VERSION_1_8
+
+    /**
+     * The class file version for the minimal Java version required to run Gradle.
+     */
+    val minimalAsmClassVersion: Int =
+        Opcodes.V1_8
 }

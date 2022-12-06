@@ -283,8 +283,8 @@ If the file isn't produced by another task, you may want to make sure that it ex
 If what you want to declare is that it doesn't matter that the file exists or not when the task is executed, you can use `@InputFiles` that won't fail for non-existing inputs:
 
 ====
-include::sample[dir="snippets/tasks/customTaskWithMissingFileProperty/groovy",files="build.gradle[tags=task]"]
 include::sample[dir="snippets/tasks/customTaskWithMissingFileProperty/kotlin",files="build.gradle.kts[tags=task]"]
+include::sample[dir="snippets/tasks/customTaskWithMissingFileProperty/groovy",files="build.gradle[tags=task]"]
 ====
 
 [[unexpected_input_file_type]]

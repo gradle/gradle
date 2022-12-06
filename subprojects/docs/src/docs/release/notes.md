@@ -134,6 +134,10 @@ You can now use the `export-keys` flag to export all already trusted keys:
 
 For more information, see [Exporting keys](userguide/dependency_verification.html#sec:local-keyring).
 
+### Kotlin DSL improvements
+
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assist, refactoring, documentation, and more.
+
 #### Updated the Kotlin DSL to Kotlin API Level 1.7
 
 Previously, the Kotlin DSL used Kotlin API level 1.4.
@@ -148,6 +152,56 @@ Highlights include:
 - improved sealed types hierarchies
 
 For information about breaking and nonbreaking changes in this upgrade, see the [upgrading guide](userguide/upgrading_version_7.html#kotlin_language_1_7).
+
+##### Script compilation now uses the Gradle JVM as Kotlin JVM Target
+
+Previously, the compilation of `.gradle.kts` scripts always used Java 8 as the Kotlin JVM target.
+Starting with Gradle 8.0, it now uses the version of the JVM running the build.
+
+If your team is using e.g. Java 11 to run Gradle, this allows you to use Java 11 librairies and language features in your build scripts.
+
+Note that this doesn't apply to [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) which use the configured `kotlinDslPluginOptions.jvmTarget`.
+
+##### Script compilation performance improvement
+
+This Gradle version introduces an interpreter for [declarative `plugins {}` blocks](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts.
+It allows to avoid calling the Kotlin compiler for declarative `plugins {}` blocks and is enabled by default.
+
+On a build with declarative `plugins {}` blocks, a Gradle invocation that needs to compile all scripts, the interpreter makes the overall build time around 20% faster.
+As usual, compiled scripts are stored in the build cache and can be reused by other builds.
+
+Here is what is supported in declarative `plugins {}` blocks:
+
+```kotlin
+plugins {
+    id("java-library")                               // <1>
+    id("com.acme.example") version "1.0 apply false" // <2>
+    kotlin("jvm") version "1.7.21"                   // <3>
+}
+```
+1. Plugin specification by plugin identifier string
+2. Plugin specification with version and/or the plugin application flag
+3. Kotlin plugin specification helper
+
+Note that using version catalog aliases for plugins or plugin specification type-safe accessors is not supported by the `plugins {}` block interpreter.
+
+Here are examples of unsupported constructs:
+
+```kotlin
+plugins {
+    val v = "2"
+    id("some") version v    // <1>
+
+    `java-library`          // <2>
+    alias(libs.plugins.jmh) // <3>
+}
+```
+1. Non-declarative code, unsupported
+2. Plugin specification type-safe accessor, unsupported
+3. Version catalog plugin reference, unsupported
+
+In the cases above, Gradle falls back to the Kotlin compiler, providing the same performance as previous Gradle releases.
+
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

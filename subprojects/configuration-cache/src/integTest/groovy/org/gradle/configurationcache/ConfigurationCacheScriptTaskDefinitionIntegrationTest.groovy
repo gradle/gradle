@@ -198,7 +198,7 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
     }
 
-    def "each task receives is own copy of outer Groovy closure state"() {
+    def "each task receives its own copy of outer Groovy closure state"() {
         given:
         buildFile << """
             def values1 = new ${CopyOnWriteArrayList.name}()
@@ -227,7 +227,7 @@ class ConfigurationCacheScriptTaskDefinitionIntegrationTest extends AbstractConf
         then:
         result.groupedOutput.task(":one").assertOutputContains("values1=[1]")
         result.groupedOutput.task(":one").assertOutputContains("values2=[2]")
-        result.groupedOutput.task(":two").assertOutputContains("values1=[1, 12]")
+        result.groupedOutput.task(":two").assertOutputContains("values1=[12]")
 
         when:
         configurationCacheRun ":one", ":two"

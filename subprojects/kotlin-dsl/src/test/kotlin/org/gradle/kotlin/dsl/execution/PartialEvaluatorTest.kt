@@ -19,10 +19,12 @@ package org.gradle.kotlin.dsl.execution
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyBasePlugins
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyDefaultPluginRequests
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequests
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequestsOf
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CloseTargetScope
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.SetupEmbeddedKotlin
+import org.gradle.kotlin.dsl.execution.ResidualProgram.PluginRequestSpec
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 
 import org.hamcrest.CoreMatchers.equalTo
@@ -127,6 +129,32 @@ class PartialEvaluatorTest {
                 Static(
                     SetupEmbeddedKotlin,
                     ApplyPluginRequestsOf(program),
+                    ApplyBasePlugins
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `optimises top-level declarative Project plugins block`() {
+
+        val program =
+            Program.Plugins(fragment("plugins", """id("plugin-id")"""))
+
+        assertThat(
+            "reduces to static program that applies declared plugin requests and base plugins",
+            partialEvaluationOf(
+                program,
+                ProgramKind.TopLevel,
+                ProgramTarget.Project
+            ),
+            isResidualProgram(
+                Static(
+                    SetupEmbeddedKotlin,
+                    ApplyPluginRequests(
+                        listOf(PluginRequestSpec("plugin-id")),
+                        source = program
+                    ),
                     ApplyBasePlugins
                 )
             )

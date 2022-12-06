@@ -63,34 +63,6 @@ Each Gradle build has its own folder.
 The minimum to make these folders Gradle builds is to add an empty `settings.gradle(.kts)` file to each of them.
 Let's do this for all the components we have in our software:
 
-[source.multi-language-sample,groovy]
-----
-├── android-app
-│   └── settings.gradle
-├── server-application
-│   └── settings.gradle
-│
-├── admin-feature
-│   └── settings.gradle
-├── user-feature
-│   └── settings.gradle
-│
-├── state
-│   └── settings.gradle
-│
-├── domain-model
-│   └── settings.gradle
-│
-├── build-logic
-│   └── settings.gradle
-│
-├── platforms
-│   └── settings.gradle
-│
-└── aggregation
-    └── settings.gradle
-----
-
 [source.multi-language-sample,kotlin]
 ----
 ├── android-app
@@ -119,6 +91,34 @@ Let's do this for all the components we have in our software:
     └── settings.gradle.kts
 ----
 
+[source.multi-language-sample,groovy]
+----
+├── android-app
+│   └── settings.gradle
+├── server-application
+│   └── settings.gradle
+│
+├── admin-feature
+│   └── settings.gradle
+├── user-feature
+│   └── settings.gradle
+│
+├── state
+│   └── settings.gradle
+│
+├── domain-model
+│   └── settings.gradle
+│
+├── build-logic
+│   └── settings.gradle
+│
+├── platforms
+│   └── settings.gradle
+│
+└── aggregation
+    └── settings.gradle
+----
+
 In the listing, each component lives in a separate folder.
 Here we arrange them as a flat list in a root folder.
 This root folder can be used as root of a Git repository for example.
@@ -143,8 +143,8 @@ A project is added by using the `include()` construct in the settings file.
 
 .Use include() to add a project to a component
 ====
-include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="domain-model/settings.gradle[tags=include]"]
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="domain-model/settings.gradle.kts[tags=include]"]
+include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="domain-model/settings.gradle[tags=include]"]
 ====
 
 Once included, you may create a folder matching the project name and create a `build.gradle(.kts)` file in it to configure that part of the component.
@@ -154,6 +154,14 @@ You can find more information in the chapter about <<multi_project_builds.adoc#m
 
 Let's zoom into the _domain-model_ component:
 
+[source.multi-language-sample,kotlin]
+----
+└── domain-model              <-- component
+    ├── settings.gradle.kts   <-- define inner structure of component and where to locate other components
+    └── release               <-- project in component
+        └── build.gradle.kts  <-- defines type of the project and its dependencies
+----
+
 [source.multi-language-sample,groovy]
 ----
 └── domain-model              <-- component
@@ -162,13 +170,6 @@ Let's zoom into the _domain-model_ component:
         └── build.gradle      <-- defines type of the project and its dependencies
 ----
 
-[source.multi-language-sample,kotlin]
-----
-└── domain-model              <-- component
-    ├── settings.gradle.kts   <-- define inner structure of component and where to locate other components
-    └── release               <-- project in component
-        └── build.gradle.kts  <-- defines type of the project and its dependencies
-----
 
 Initially, `release/build.gradle(.kts)` is empty.
 The project is of no specific type and does not offer any useful content.
@@ -186,13 +187,13 @@ Thus, the recommendation is to start using custom project types right away:
 
 .Assign the custom type `com.example.java-library` to a project in the `user-feature` component
 ====
-include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="user-feature/data/build.gradle[tags=project-type]"]
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="user-feature/data/build.gradle.kts[tags=project-type]"]
+include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="user-feature/data/build.gradle[tags=project-type]"]
 ====
 .Assign the custom type `com.example.kotlin-library` to a project in the `domain-model` component
 ====
-include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="domain-model/release/build.gradle[tags=project-type]"]
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="domain-model/release/build.gradle.kts[tags=project-type]"]
+include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="domain-model/release/build.gradle[tags=project-type]"]
 ====
 
 As stated above, a project type is represented by a plugin in Gradle.
@@ -230,8 +231,8 @@ Also, there is a project called `commons` for build configuration shared by all 
 
 .Assign a custom type to a component's project by applying a convention plugin
 ====
-include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="build-logic/spring-boot-application/build.gradle"]
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="build-logic/spring-boot-application/build.gradle.kts"]
+include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="build-logic/spring-boot-application/build.gradle"]
 ====
 
 Looking at the `build.gradle(.kts)` of the `build-logic` project for spring boot applications, we see:
@@ -245,8 +246,8 @@ Now, we can write the convention plugin for Spring application like this:
 
 .Defining a custom project type as convention plugin
 ====
-include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="build-logic/spring-boot-application/src/main/groovy/com.example.spring-boot-application.gradle"]
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="build-logic/spring-boot-application/src/main/kotlin/com.example.spring-boot-application.gradle.kts"]
+include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="build-logic/spring-boot-application/src/main/groovy/com.example.spring-boot-application.gradle"]
 ====
 
 We see that we apply our own `com.example.commons` plugin which is another convention plugin that, among other things, configures the Java version we are targeting and adds a dependency to a platform (`com.example.platform:product-platform` from our `platforms` component).
@@ -284,8 +285,8 @@ As another example, consider the setup of our `server-application` component:
 
 .Defining component locations and inner structure of the `server-application` component
 ====
-include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="server-application/settings.gradle"]
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="server-application/settings.gradle.kts"]
+include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="server-application/settings.gradle"]
 ====
 
 We see that the `settings.gradle(.kts)` file only defines location for build logic components, other production code components and the inner structure of the component.
@@ -293,8 +294,8 @@ Only the `build.gradle(.kts)` file in the `app` project then defines actual depe
 
 .Configuring type and dependencies of the `app` project inside the `server-application` component
 ====
-include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="server-application/app/build.gradle"]
 include::sample[dir="samples/build-organization/structuring-software-projects/kotlin",files="server-application/app/build.gradle.kts"]
+include::sample[dir="samples/build-organization/structuring-software-projects/groovy",files="server-application/app/build.gradle"]
 ====
 
 == The model of your software
