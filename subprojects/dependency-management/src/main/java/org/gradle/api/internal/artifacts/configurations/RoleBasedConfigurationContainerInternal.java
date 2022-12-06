@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.internal.Actions;
 
 /**
@@ -234,7 +235,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
          */
         public static void assertIsInRole(ConfigurationInternal configuration, ConfigurationRole role) {
             if (!isUsageConsistentWithRole(configuration, role)) {
-                throw new IllegalStateException(describeDifferenceFromRole(configuration, role));
+                throw new GradleException(describeDifferenceFromRole(configuration, role));
             }
         }
 
