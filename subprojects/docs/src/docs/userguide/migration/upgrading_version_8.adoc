@@ -80,4 +80,15 @@ See the <<java_plugin.adoc#tab:configurations, The Java Plugin's Dependency Mana
 [[upgrading_version_8:changes_8.0]]
 
 [[configurations_allowed_usage]]
-The usage of configurations is meant to be fixed at creation.  Mutating the allowed usage on a configuration is deprecated.
+The usage of configurations should be fixed at creation.  Mutating the allowed usage on a configuration is deprecated.
+This includes calling any of the following `Configuration` methods:
+
+- `setCanBeConsumed(boolean)`
+- `setCanBeResolved(boolean)`
+
+It also includes calling the following method on `ConfigurationInternal`:
+
+- `setCanBeDeclaredAgainst(boolean)`
+
+The ability to change the allowed usage of a configuration after
+creation will be removed in Gradle 9.0.
