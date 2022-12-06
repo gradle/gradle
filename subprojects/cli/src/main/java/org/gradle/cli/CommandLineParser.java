@@ -445,7 +445,7 @@ public class CommandLineParser {
         @Override
         public ParserState onComplete() {
             if (getHasArgument() && values.isEmpty()) {
-                throw new CommandLineArgumentException(String.format("No argument was provided for command-line option '%s'.", optionString));
+                throw new CommandLineArgumentException(String.format("No argument was provided for command-line option '%s' with description: '%s'", optionString, option.getDescription()));
             }
 
             ParsedCommandLineOption parsedOption = commandLine.addOption(optionString.option, option);
