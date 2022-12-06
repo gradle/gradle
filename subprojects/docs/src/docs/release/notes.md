@@ -196,6 +196,8 @@ The following nodes with dependency verification metadata file `verification-met
 - the `trust` xml node under `trusted-artifacts`
 - the `md5`, `sha1`, `sha256` and `sha512` nodes under `component`
 
+With that you can specify a reason, why some artifact is trusted or why some selected checksum verification is required for an artifact, directly in the `verification-metadata.xml`.
+
 #### Improved Dependency verification CLI
 
 You can now use the `export-keys` flag to export all already trusted keys:
@@ -204,6 +206,7 @@ You can now use the `export-keys` flag to export all already trusted keys:
 ./gradlew --export-keys
 ```
 
+This is useful when you want to export trusted keys without writing the verification metadata. 
 For more information, see [Exporting keys](userguide/dependency_verification.html#sec:local-keyring).
 
 ### Dependency Management
