@@ -1298,7 +1298,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints) {
-        ConfigurationRole currentUsage = ConfigurationRole.forUsage(this.canBeConsumed, this.canBeResolved, this.canBeDeclaredAgainst);
+        ConfigurationRole currentUsage = ConfigurationRole.forUsage(this.canBeConsumed, this.canBeResolved, this.canBeDeclaredAgainst, this.consumptionDeprecated, this.resolutionDeprecated, this.declarationDeprecated);
         DefaultConfiguration copiedConfiguration = newConfiguration(currentUsage, this.usageCanBeMutated);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
