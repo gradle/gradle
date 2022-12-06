@@ -60,11 +60,23 @@ data class BuildToStore(val build: VintageGradleBuild, val hasWork: Boolean)
 internal
 sealed class CachedBuildState(
     val identityPath: Path,
-    val rootProjectName: String,
-    val projects: List<CachedProjectState>,
 )
 
 
+/**
+ * A build in the tree whose projects were loaded. May or may not have work scheduled.
+ */
+internal
+sealed class BuildWithProjects(
+    identityPath: Path,
+    val rootProjectName: String,
+    val projects: List<CachedProjectState>
+) : CachedBuildState(identityPath)
+
+
+/**
+ * A build in the tree with work scheduled.
+ */
 internal
 class BuildWithWork(
     identityPath: Path,
@@ -72,12 +84,24 @@ class BuildWithWork(
     rootProjectName: String,
     projects: List<CachedProjectState>,
     val workGraph: List<Node>
-) : CachedBuildState(identityPath, rootProjectName, projects)
+) : BuildWithProjects(identityPath, rootProjectName, projects)
 
 
+/**
+ * A build in the tree with no work scheduled.
+ */
 internal
 class BuildWithNoWork(
     identityPath: Path,
     rootProjectName: String,
     projects: List<ProjectWithNoWork>
-) : CachedBuildState(identityPath, rootProjectName, projects)
+) : BuildWithProjects(identityPath, rootProjectName, projects)
+
+
+/**
+ * A build in the tree whose projects were not loaded. Has no work as a result.
+ */
+internal
+class BuildWithNoProjects(
+    identityPath: Path
+) : CachedBuildState(identityPath)
