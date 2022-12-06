@@ -1827,7 +1827,7 @@ All Artifacts:
             calculatedValueContainerFactory,
             TestFiles.taskDependencyFactory()
         )
-        defaultConfigurationFactory.create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder)
+        defaultConfigurationFactory.create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, ConfigurationRoles.LEGACY, false)
     }
 
     private DefaultPublishArtifact artifact(String name) {
