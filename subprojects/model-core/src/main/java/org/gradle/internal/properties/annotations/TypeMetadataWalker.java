@@ -17,42 +17,41 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.reflect.TypeToken;
+import org.gradle.api.provider.Provider;
 
 import java.lang.annotation.Annotation;
 import java.util.function.Supplier;
 
 /***
- * A generalized Type Metadata Walker for traversing Gradle types or instances in a Depth-first order.
+ * A generalized type metadata walker for traversing annotated types and instances using their {@link TypeMetadata}.
  *
- * A visited nodes are leaf nodes, i.e. properties, or an intermediate nodes, i.e. nested nodes.
+ * During the walk we first visit the root (the type or instance passed to {@link #walk(Object, TypeMetadataVisitor)},
+ * and then the properties are visited in depth-first order.
+ * Nested properties are marked with a nested annotation and their child properties are visited next.
  *
- * A property can be:
- *  - a property of a type/instance
- *  - an element of an iterable which is annotated with a nested annotation (iterables of iterables are supported)
- *  - a value of a map annotated which is annotated with a nested annotation (maps of maps are supported)
- *  - a property of a nested type/instance which is annotated with a nested annotation
- *
- * A nested node is a node tha contain properties or other nested nodes. It's marked with a special nested annotation,
- * normally {@link org.gradle.api.tasks.Nested}. A nested annotation can be passed as a parameter to a walker.
- * Note: Maps, Iterables and Providers annotated with the nested annotations are automatically flatten.
- *
- * TypeMetadataWalker uses {@link TypeMetadataStore} to read nodes' {@link TypeMetadata} and to further discover the tree properties.
- * Usually a TypeMetadataStore that supports well known Gradle annotations like {@link org.gradle.api.tasks.Input} should be used,
- * but in general any TypeMetadataStore implementation can be used.
+ * The {@link TypeMetadataStore} associated with the walker determines which property annotations are recognized
+ * during the walk.
+ * Nested {@code Map}s, {@code Iterable}s are resolved as child properties.
+ * Iterables and maps can be nested, i.e. {@code Map<String, Iterable<Iterable<String>>>} is supported.
+ * Nested {@link Provider}s are unpacked, and the provided type is traversed transparaently.
  */
 public interface TypeMetadataWalker<T> {
 
     /**
-     * A factory method for a walker that can visit an instance.
+     * A factory method for a walker that can visit the property hierarchy of an instance.
      *
-     * Instance walker will throw {@link org.gradle.api.GradleException} in case a nested property cycle is detected.
+     * When visiting a nested property, child properties are discovered using the type of the
+     * return property value. This can be a more specific type than the return type of the property's
+     * getter method (and can declare additional child properties).
+     *
+     * Instance walker will throw {@link IllegalStateException} in case a nested property cycle is detected.
      */
     static TypeMetadataWalker<Object> instanceWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
         return new AbstractTypeMetadataWalker.InstanceTypeMetadataWalker(typeMetadataStore, nestedAnnotation);
     }
 
     /**
-     * A factory method for a walker that can visit a type.
+     * A factory method for a walker that can visit property hierarchy declared by a type.
      *
      * Type walker can detect a nested property cycle and stop walking the path with a cycle, no exception is thrown.
      */
@@ -60,9 +59,9 @@ public interface TypeMetadataWalker<T> {
         return new AbstractTypeMetadataWalker.StaticTypeMetadataWalker(typeMetadataStore, nestedAnnotation);
     }
 
-    void walk(T root, NodeMetadataVisitor<T> visitor);
+    void walk(T root, TypeMetadataVisitor<T> visitor);
 
-    interface NodeMetadataVisitor<T> {
+    interface TypeMetadataVisitor<T> {
         void visitRoot(TypeMetadata typeMetadata, T value);
 
         void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, T value);

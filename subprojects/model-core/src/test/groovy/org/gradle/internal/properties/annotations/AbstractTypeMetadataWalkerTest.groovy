@@ -170,7 +170,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         return toString.replace("$AbstractTypeMetadataWalkerTest.class.name\$", "")
     }
 
-    static class TestNodeMetadataVisitor<T> implements TypeMetadataWalker.NodeMetadataVisitor<T> {
+    static class TestNodeMetadataVisitor<T> implements TypeMetadataWalker.TypeMetadataVisitor<T> {
         private List<CollectedNode> all = []
         private List<CollectedNode> roots = []
         private List<CollectedNode> nested = []
