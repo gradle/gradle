@@ -17,12 +17,13 @@
 package org.gradle.api.internal.plugins;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Rule;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.tasks.TaskContainer;
 
-public class BuildConfigurationRule extends AbstractRule {
+public class BuildConfigurationRule implements Rule {
 
     public static final String PREFIX = "build";
 
@@ -51,5 +52,10 @@ public class BuildConfigurationRule extends AbstractRule {
                 task.setDescription("Builds the artifacts belonging to " + configuration + ".");
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Rule: " + getDescription();
     }
 }
