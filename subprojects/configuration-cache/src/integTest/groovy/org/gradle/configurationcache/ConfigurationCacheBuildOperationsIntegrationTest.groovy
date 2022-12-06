@@ -125,13 +125,64 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         configurationCacheRun 'assemble'
 
         then:
-        buildLogicBuiltAndWorkGraphStoredAndLoaded(':buildSrc')
+        buildLogicBuiltAndWorkGraphStoredAndLoaded(':buildSrc', file('buildSrc'))
 
         when:
         configurationCacheRun 'assemble'
 
         then:
-        compositeBuildRootBuildWorkGraphLoaded(':buildSrc')
+        compositeBuildRootBuildWorkGraphLoaded(':buildSrc', file('buildSrc'))
+    }
+
+    def "emits relevant build operations when configuration cache is used - with unused included build"() {
+        given:
+        settingsFile << """
+            rootProject.name = "root-changed"
+            includeBuild('unused') {
+                dependencySubstitution {
+                    substitute(module("none:none:infinity")).using(project(":"))
+                }
+            }
+        """
+        file("unused/settings.gradle").createFile()
+
+        when:
+        configurationCacheRun 'help'
+
+        then:
+        hasOperationsForStoreAndLoad()
+        hasCompositeWithUnusedBuildIdentified()
+        operations.all(EvaluateSettingsBuildOperationType).size() == 2
+        operations.only(ConfigureBuildBuildOperationType)
+        operations.only(LoadProjectsBuildOperationType)
+        operations.only(ConfigureProjectBuildOperationType)
+
+        when:
+        configurationCacheRun 'help'
+
+        then:
+        hasOperationsForLoad()
+        hasCompositeWithUnusedBuildIdentified()
+        operations.none(EvaluateSettingsBuildOperationType)
+        operations.none(ConfigureBuildBuildOperationType)
+        operations.none(LoadProjectsBuildOperationType)
+        operations.none(ConfigureProjectBuildOperationType)
+    }
+
+    void hasCompositeWithUnusedBuildIdentified() {
+        def buildIdentified = operations.progress(BuildIdentifiedProgressDetails)
+        assert buildIdentified.size() == 2
+        with(buildIdentified[0].details) {
+            assert buildPath == ':'
+        }
+        with(buildIdentified[1].details) {
+            assert buildPath == ':unused'
+        }
+        def projectsIdentified = operations.progress(ProjectsIdentifiedProgressDetails)
+        assert projectsIdentified.size() == 1
+        with(projectsIdentified[0].details) {
+            assert buildPath == ':'
+        }
     }
 
     private void workGraphStoredAndLoaded() {
@@ -174,7 +225,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
     }
 
     private void compositeBuildWorkGraphCalculated() {
-        compositeBuildsIdentified()
+        compositeBuildsIdentified(testDirectory.file('app'))
 
         def loadBuildOps = operations.all(LoadBuildBuildOperationType)
         assert loadBuildOps.size() == 2
@@ -315,7 +366,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
 
     private void compositeBuildWorkGraphLoaded() {
         hasOperationsForLoad()
-        compositeBuildsIdentified()
+        compositeBuildsIdentified(testDirectory.file('app'))
 
         operations.none(LoadBuildBuildOperationType)
         operations.none(LoadProjectsBuildOperationType)
@@ -326,15 +377,15 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         hasCompositeBuildsWorkGraphPopulated()
     }
 
-    private void buildLogicBuiltAndWorkGraphStoredAndLoaded(String buildLogicBuild = ':lib') {
+    private void buildLogicBuiltAndWorkGraphStoredAndLoaded(String buildLogicBuild = ':lib', TestFile buildLogicDir = testDirectory.file('lib')) {
         hasOperationsForStoreAndLoad()
-        compositeBuildsIdentified(buildLogicBuild)
+        compositeBuildsIdentified(testDirectory, buildLogicBuild, buildLogicDir)
         buildLogicBuiltAndWorkGraphCalculated(buildLogicBuild)
     }
 
-    private void compositeBuildRootBuildWorkGraphLoaded(String childBuild = ':lib') {
+    private void compositeBuildRootBuildWorkGraphLoaded(String childBuild = ':lib', TestFile childBuildDir = testDirectory.file('lib')) {
         hasOperationsForLoad()
-        compositeBuildsIdentified(childBuild)
+        compositeBuildsIdentified(testDirectory, childBuild, childBuildDir)
 
         operations.none(LoadBuildBuildOperationType)
         operations.none(LoadProjectsBuildOperationType)
@@ -361,7 +412,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         }
     }
 
-    private void compositeBuildsIdentified(String childBuild = ':lib') {
+    private void compositeBuildsIdentified(TestFile rootDir = testDirectory, String childBuild = ':lib', TestFile childDir = testDirectory.file('lib')) {
         def buildIdentified = operations.progress(BuildIdentifiedProgressDetails)
         assert buildIdentified.size() == 2
         with(buildIdentified[0].details) {
@@ -374,9 +425,13 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
         assert projectsIdentified.size() == 2
         with(projectsIdentified[0].details) {
             assert buildPath == ':'
+            assert rootProject.projectDir == rootDir.absolutePath
+            assert rootProject.buildFile == rootDir.file("build.gradle").absolutePath
         }
         with(projectsIdentified[1].details) {
             assert buildPath == childBuild
+            assert rootProject.projectDir == childDir.absolutePath
+            assert rootProject.buildFile == childDir.file("build.gradle").absolutePath
         }
     }
 
