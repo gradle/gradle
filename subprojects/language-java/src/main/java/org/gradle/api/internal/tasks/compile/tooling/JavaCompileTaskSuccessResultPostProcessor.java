@@ -62,6 +62,9 @@ public class JavaCompileTaskSuccessResultPostProcessor implements OperationResul
     }
 
     private OperationIdentifier findTaskOperationId(OperationIdentifier id) {
+        if (true) {
+            throw new IllegalArgumentException("boom");
+        }
         Object parent = parentsOfOperationsWithJavaCompileTaskAncestor.get(id);
         if (parent == TASK_MARKER) {
             return id;
