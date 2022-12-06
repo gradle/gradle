@@ -14,77 +14,89 @@
  * limitations under the License.
  */
 
-package org.gradle.groovy.compile
+package org.gradle.scala.compile
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
 
-import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 
-@TargetCoverage({ GroovyCoverage.SINCE_3_0 })
-class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
+@TargetCoverage({ ScalaCoverage.DEFAULT })
+class ScalaCompileJavaToolchainIntegrationTest extends MultiVersionIntegrationSpec implements JavaToolchainFixture {
+
+    def getTargetJava8() {
+        return versionNumber >= VersionNumber.parse("2.13.9") ? "-release:8"
+            : versionNumber >= VersionNumber.parse("2.13.1") ? "-target:8"
+            : "-target:jvm-1.8"
+    }
 
     def setup() {
-        file("src/main/groovy/JavaThing.java") << "public class JavaThing {}"
-        file("src/main/groovy/GroovyBar.groovy") << "public class GroovyBar { def bar() {} }"
+        file("src/main/scala/JavaThing.java") << "public class JavaThing {}"
+        file("src/main/scala/ScalaHall.scala") << "class ScalaHall(name: String)"
 
         buildFile << """
-            apply plugin: "groovy"
+            apply plugin: "scala"
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation "${groovyModuleDependency("groovy", version)}"
+                implementation "${scalaDependency(version.toString())}"
             }
         """
     }
 
-    def "forkOptions #option is ignored for Groovy "() {
+    def "forkOptions #option is ignored for Scala "() {
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.getDifferentVersion()
 
         if (option == "executable") {
             buildFile << """
-                compileGroovy {
+                compileScala {
                     options.fork = true
                     options.forkOptions.executable = "${TextUtil.normaliseFileSeparators(otherJdk.javaExecutable.absolutePath)}"
                 }
             """
         } else {
             buildFile << """
-                compileGroovy {
+                compileScala {
                     options.fork = true
                     options.forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(otherJdk.javaHome.absolutePath)}")
                 }
             """
         }
 
-        def groovyTarget = GroovyCoverage.getEffectiveTarget(versionNumber, currentJdk.javaVersion)
-
         when:
-        withInstallations(otherJdk).run(":compileGroovy")
+        withInstallations(otherJdk).run(":compileScala")
 
         then:
-        executedAndNotSkipped(":compileGroovy")
-        JavaVersion.forClass(groovyClassFile("JavaThing.class").bytes) == currentJdk.javaVersion
-        JavaVersion.forClass(groovyClassFile("GroovyBar.class").bytes) == groovyTarget
+        executedAndNotSkipped(":compileScala")
+        outputDoesNotContain("[Warn]")
+
+        JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == currentJdk.javaVersion
+        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
 
         where:
         option << ["executable", "javaHome"]
     }
 
-    def "uses #what toolchain #when for Groovy "() {
+    def "uses #what toolchain #when for Scala "() {
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.differentVersion
         def selectJdk = { it == "other" ? otherJdk : it == "current" ? currentJdk : null }
+
+        buildFile << """
+            compileScala {
+                scalaCompileOptions.additionalParameters = ["${targetJava8}"]
+            }
+        """
 
         if (withTool != null) {
             configureTool(selectJdk(withTool))
@@ -94,16 +106,17 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         }
 
         def targetJdk = selectJdk(target)
-        def groovyTarget = GroovyCoverage.getEffectiveTarget(versionNumber, targetJdk.javaVersion)
 
         when:
-        withInstallations(currentJdk, otherJdk).run(":compileGroovy", "--info")
+        withInstallations(currentJdk, otherJdk).run(":compileScala", "--info")
 
         then:
-        executedAndNotSkipped(":compileGroovy")
-        outputContains("Compiling with JDK Java compiler API")
-        JavaVersion.forClass(groovyClassFile("JavaThing.class").bytes) == targetJdk.javaVersion
-        JavaVersion.forClass(groovyClassFile("GroovyBar.class").bytes) == groovyTarget
+        executedAndNotSkipped(":compileScala")
+        outputDoesNotContain("[Warn]")
+        outputContains("Compiling with Zinc Scala compiler")
+
+        JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == targetJdk.javaVersion
+        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
 
         where:
         what             | when                         | withTool | withJavaExtension | target
@@ -113,12 +126,14 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         "assigned tool"  | "over java extension"        | "other"  | "current"         | "other"
     }
 
-    def "up-to-date depends on the toolchain for Groovy "() {
+    def "up-to-date depends on the toolchain for Scala "() {
         def currentJdk = Jvm.current()
         def otherJdk = AvailableJavaHomes.getDifferentVersion()
 
         buildFile << """
-            compileGroovy {
+            compileScala {
+                scalaCompileOptions.additionalParameters = ["${targetJava8}"]
+
                 javaLauncher = javaToolchains.launcherFor {
                     languageVersion = JavaLanguageVersion.of(
                         providers.gradleProperty("changed").isPresent()
@@ -130,29 +145,29 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         """
 
         when:
-        withInstallations(currentJdk, otherJdk).run(":compileGroovy")
+        withInstallations(currentJdk, otherJdk).run(":compileScala")
         then:
-        executedAndNotSkipped(":compileGroovy")
+        executedAndNotSkipped(":compileScala")
+        outputDoesNotContain("[Warn]")
 
         when:
-        withInstallations(currentJdk, otherJdk).run(":compileGroovy")
+        withInstallations(currentJdk, otherJdk).run(":compileScala")
         then:
-        skipped(":compileGroovy")
+        skipped(":compileScala")
 
         when:
-        withInstallations(currentJdk, otherJdk).run(":compileGroovy", "-Pchanged", "--info")
+        withInstallations(currentJdk, otherJdk).run(":compileScala", "-Pchanged", "--info")
         then:
-        executedAndNotSkipped(":compileGroovy")
-        outputContains("Value of input property 'groovyCompilerJvmVersion' has changed for task ':compileGroovy'")
-        outputContains("Value of input property 'javaLauncher.metadata.languageVersion' has changed for task ':compileGroovy'")
+        executedAndNotSkipped(":compileScala")
+        outputContains("Value of input property 'javaLauncher.metadata.languageVersion' has changed for task ':compileScala'")
 
         when:
-        withInstallations(currentJdk, otherJdk).run(":compileGroovy", "-Pchanged")
+        withInstallations(currentJdk, otherJdk).run(":compileScala", "-Pchanged")
         then:
-        skipped(":compileGroovy")
+        skipped(":compileScala")
     }
 
-    def 'source and target compatibility override toolchain (source #source, target #target) for Groovy '() {
+    def "source and target compatibility override toolchain (source #source, target #target) for Scala "() {
         def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
 
         buildFile << """
@@ -162,7 +177,9 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
                 }
             }
 
-            compileGroovy {
+            compileScala {
+                scalaCompileOptions.additionalParameters = ["${targetJava8}"]
+
                 ${source != 'none' ? "sourceCompatibility = JavaVersion.toVersion($source)" : ''}
                 ${target != 'none' ? "targetCompatibility = JavaVersion.toVersion($target)" : ''}
                 def projectSourceCompat = project.java.sourceCompatibility
@@ -177,17 +194,18 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         """
 
         when:
-        withInstallations(jdk11).run(":compileGroovy")
+        withInstallations(jdk11).run(":compileScala")
 
         then:
-        executedAndNotSkipped(":compileGroovy")
+        executedAndNotSkipped(":compileScala")
+        outputDoesNotContain("[Warn]")
 
         outputContains("project.sourceCompatibility = 11")
         outputContains("project.targetCompatibility = 11")
         outputContains("task.sourceCompatibility = $sourceOut")
         outputContains("task.targetCompatibility = $targetOut")
-        JavaVersion.forClass(groovyClassFile("JavaThing.class").bytes) == JavaVersion.toVersion(targetOut)
-        JavaVersion.forClass(groovyClassFile("GroovyBar.class").bytes) == JavaVersion.toVersion(targetOut)
+        JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == JavaVersion.toVersion(targetOut)
+        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
 
         where:
         source | target | sourceOut | targetOut
@@ -196,56 +214,54 @@ class GroovyCompileToolchainIntegrationTest extends MultiVersionIntegrationSpec 
         'none' | 'none' | '11'      | '11'
     }
 
-    def "can compile source and run tests using Java #javaVersion for Groovy "() {
+    def "can compile source and run tests using Java #javaVersion for Scala "() {
         def jdk = AvailableJavaHomes.getJdk(javaVersion)
         Assume.assumeTrue(jdk != null)
 
         configureJavaPluginToolchainVersion(jdk)
 
         buildFile << """
+            tasks.withType(ScalaCompile).configureEach {
+                scalaCompileOptions.additionalParameters = ["${targetJava8}"]
+            }
+
             dependencies {
-                testImplementation "org.spockframework:spock-core:${getSpockVersion(versionNumber)}"
+               testImplementation "junit:junit:4.13"
             }
 
             test {
-                useJUnitPlatform()
+                useJUnit()
             }
         """
 
-        file("src/test/groovy/GroovySpec.groovy") << """
-            class GroovySpec extends spock.lang.Specification {
-                def test() {
-                    given:
-                    def v = System.getProperty("java.version")
-                    println "Running Groovy test with Java version \$v"
-                }
+        file("src/test/scala/ScalaTest.scala") << """
+            import _root_.org.junit.Test;
+
+            class ScalaTest {
+                @Test
+                def verify(): Unit = println("Running Scala test with Java version " + System.getProperty("java.version"))
             }
         """
-
-        def groovyTarget = GroovyCoverage.getEffectiveTarget(versionNumber, jdk.javaVersion)
 
         when:
         withInstallations(jdk).run(":test", "--info")
 
         then:
         executedAndNotSkipped(":test")
-        outputContains("Running Groovy test with Java version ${jdk.javaVersion}")
+        outputDoesNotContain("[Warn]")
+        outputContains("Running Scala test with Java version ${jdk.javaVersion}")
 
-        JavaVersion.forClass(groovyClassFile("JavaThing.class").bytes) == javaVersion
-        JavaVersion.forClass(groovyClassFile("GroovyBar.class").bytes) == groovyTarget
-        JavaVersion.forClass(classFile("groovy", "test", "GroovySpec.class").bytes) == groovyTarget
+        JavaVersion.forClass(scalaClassFile("JavaThing.class").bytes) == javaVersion
+        JavaVersion.forClass(scalaClassFile("ScalaHall.class").bytes) == JavaVersion.VERSION_1_8
+        JavaVersion.forClass(classFile("scala", "test", "ScalaTest.class").bytes) == JavaVersion.VERSION_1_8
 
         where:
         javaVersion << JavaVersion.values().findAll { JavaVersion.VERSION_1_8 <= it }
     }
 
-    private def getSpockVersion(VersionNumber groovyVersion) {
-        return "2.3-groovy-${groovyVersion.major}.${groovyVersion.minor}"
-    }
-
     private TestFile configureTool(Jvm jdk) {
         buildFile << """
-            compileGroovy {
+            compileScala {
                 javaLauncher = javaToolchains.launcherFor {
                     languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
                 }
