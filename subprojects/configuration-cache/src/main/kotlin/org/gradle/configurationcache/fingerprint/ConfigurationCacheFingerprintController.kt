@@ -35,6 +35,7 @@ import org.gradle.configurationcache.problems.location
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
 import org.gradle.internal.agents.AgentControl
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.concurrent.Stoppable
@@ -57,6 +58,7 @@ import org.gradle.util.internal.GFileUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
+import java.net.URI
 import java.nio.file.Files
 
 
@@ -80,7 +82,8 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val taskExecutionTracker: TaskExecutionTracker,
     private val environmentChangeTracker: EnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
-    private val scriptFileResolverListeners: ScriptFileResolverListeners
+    private val scriptFileResolverListeners: ScriptFileResolverListeners,
+    private val remoteScriptUpToDateChecker: RemoteScriptUpToDateChecker
 ) : Stoppable {
 
     interface Host {
@@ -130,7 +133,7 @@ class ConfigurationCacheFingerprintController internal constructor(
                 directoryFileTreeFactory,
                 taskExecutionTracker,
                 environmentChangeTracker,
-                inputTrackingState,
+                inputTrackingState
             )
             addListener(fingerprintWriter)
             return Writing(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)
@@ -363,6 +366,9 @@ class ConfigurationCacheFingerprintController internal constructor(
                 obtainedValue.valueSourceParametersType,
                 obtainedValue.valueSourceParameters
             )
+
+        override fun isRemoteScriptUpToDate(uri: URI): Boolean =
+            remoteScriptUpToDateChecker.isUpToDate(uri)
     }
 
     private

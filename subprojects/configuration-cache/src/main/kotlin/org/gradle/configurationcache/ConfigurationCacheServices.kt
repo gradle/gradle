@@ -16,6 +16,9 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
@@ -24,6 +27,9 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheStartParam
 import org.gradle.configurationcache.initialization.DefaultConfigurationCacheProblemsListener
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
+import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
+import org.gradle.internal.resource.connector.ResourceConnectorFactory
+import org.gradle.internal.resource.connector.ResourceConnectorSpecification
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistration
@@ -54,6 +60,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(InputTrackingState::class.java)
             add(InstrumentedInputAccessListener::class.java)
             add(ConfigurationCacheFingerprintController::class.java)
+            addProvider(RemoteScriptUpToDateCheckerProvider())
         }
     }
 
@@ -69,6 +76,32 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(ConfigurationCacheHost::class.java)
             add(ConfigurationCacheIO::class.java)
         }
+    }
+
+    private
+    class RemoteScriptUpToDateCheckerProvider {
+        fun createRemoteScriptUpToDateChecker(
+            artifactCachesProvider: ArtifactCachesProvider,
+            startParameter: ConfigurationCacheStartParameter,
+            temporaryFileProvider: TemporaryFileProvider,
+            fileStoreAndIndexProvider: FileStoreAndIndexProvider,
+            resourceConnectorFactories: List<ResourceConnectorFactory>
+        ): RemoteScriptUpToDateChecker =
+            artifactCachesProvider.withWritableCache { _, cacheLockingManager ->
+                val externalResourceConnector =
+                    resourceConnectorFactories
+                        .single { it.supportedProtocols.contains("http") }
+                        .createResourceConnector(object : ResourceConnectorSpecification {})
+
+                RemoteScriptUpToDateChecker(
+                    cacheLockingManager,
+                    startParameter,
+                    temporaryFileProvider,
+                    fileStoreAndIndexProvider.externalResourceFileStore,
+                    externalResourceConnector,
+                    fileStoreAndIndexProvider.externalResourceIndex
+                )
+            }
     }
 
     private
