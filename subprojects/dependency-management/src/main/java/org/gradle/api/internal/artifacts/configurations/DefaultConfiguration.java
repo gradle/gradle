@@ -1722,15 +1722,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void logChangingUsage(String usage, boolean allowed) {
-        String msgTemplate = "Allowed usage is changing for {}, {}. Ideally, usage should be fixed upon creation.";
+        String msgTemplate = "Allowed usage is changing for %s, %s. Ideally, usage should be fixed upon creation.";
         if (warnOnChangingUsage) {
-            DeprecationLogger.deprecateBehaviour(msgTemplate.replaceFirst("\\{\\}", getDisplayName()).replaceFirst("\\{\\}", describeChangingUsage(usage, allowed)))
+            DeprecationLogger.deprecateBehaviour(String.format(msgTemplate, getDisplayName() , describeChangingUsage(usage, allowed)))
                     .withAdvice("Usage should be fixed upon creation.")
                     .willBeRemovedInGradle9()
                     .withUpgradeGuideSection(8, "configurations_allowed_usage")
                     .nagUser();
-        } else {
-            LOGGER.info(msgTemplate, getDisplayName(), describeChangingUsage(usage, allowed));
+        } else if (LOGGER.isInfoEnabled()) {
+            LOGGER.info(String.format(msgTemplate, getDisplayName() , describeChangingUsage(usage, allowed)));
         }
     }
 
