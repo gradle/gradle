@@ -468,7 +468,7 @@ public abstract class IdeaPlugin extends IdePlugin {
             @Override
             public void execute(GenerateIdeaModule ideaModule) {
                 ConfigurationContainer configurations = project.getConfigurations();
-                Configuration providedRuntime = configurations.getByName(WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME);
+                Configuration providedRuntime = configurations.getByName(WarPlugin.PROVIDED_RUNTIME_CLASSPATH_CONFIGURATION_NAME);
                 Collection<Configuration> providedPlus = ideaModule.getModule().getScopes().get(GeneratedIdeaScope.PROVIDED.name()).get(IdeaDependenciesProvider.SCOPE_PLUS);
                 providedPlus.add(providedRuntime);
                 Collection<Configuration> runtimeMinus = ideaModule.getModule().getScopes().get(GeneratedIdeaScope.RUNTIME.name()).get(IdeaDependenciesProvider.SCOPE_MINUS);
