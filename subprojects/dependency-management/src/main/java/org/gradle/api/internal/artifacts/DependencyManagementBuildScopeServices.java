@@ -106,8 +106,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
-import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
-import org.gradle.api.internal.filestore.TwoStageArtifactIdentifierFileStore;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyConstraintNotationParser;
@@ -188,12 +186,6 @@ import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.TextUriResourceLoader;
-import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
-import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
-import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
-import org.gradle.internal.resource.cached.ExternalResourceFileStore;
-import org.gradle.internal.resource.cached.TwoStageByUrlCachedExternalResourceIndex;
-import org.gradle.internal.resource.cached.TwoStageExternalResourceFileStore;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceListener;
@@ -221,8 +213,6 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 class DependencyManagementBuildScopeServices {
     void configure(ServiceRegistration registration) {
-        registration.add(DefaultExternalResourceFileStore.Factory.class);
-        registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
         registration.add(TransformationNodeDependencyResolver.class);
         registration.add(DefaultProjectLocalComponentProvider.class);
         registration.add(DefaultProjectPublicationRegistry.class);
@@ -430,36 +420,6 @@ class DependencyManagementBuildScopeServices {
             moduleMetadataCache,
             moduleArtifactsCache,
             moduleArtifactCache
-        );
-    }
-
-    FileStoreAndIndexProvider createFileStoreAndIndexProvider(
-        BuildCommencedTimeProvider timeProvider,
-        ArtifactCachesProvider artifactCaches,
-        DefaultExternalResourceFileStore.Factory defaultExternalResourceFileStoreFactory,
-        DefaultArtifactIdentifierFileStore.Factory defaultArtifactIdentifierFileStoreFactory
-    ) {
-        ExternalResourceFileStore writableFileStore = defaultExternalResourceFileStoreFactory.create(artifactCaches.getWritableCacheMetadata());
-        ExternalResourceFileStore externalResourceFileStore = artifactCaches.withReadOnlyCache((md, manager) ->
-            (ExternalResourceFileStore) new TwoStageExternalResourceFileStore(defaultExternalResourceFileStoreFactory.create(md), writableFileStore)).orElse(writableFileStore);
-        CachedExternalResourceIndex<String> writableByUrlCachedExternalResourceIndex = prepareArtifactUrlCachedResolutionIndex(timeProvider, artifactCaches.getWritableCacheLockingManager(), externalResourceFileStore, artifactCaches.getWritableCacheMetadata());
-        ArtifactIdentifierFileStore writableArtifactIdentifierFileStore = artifactCaches.withWritableCache((md, manager) -> defaultArtifactIdentifierFileStoreFactory.create(md));
-        ArtifactIdentifierFileStore artifactIdentifierFileStore = artifactCaches.withReadOnlyCache((md, manager) -> (ArtifactIdentifierFileStore) new TwoStageArtifactIdentifierFileStore(
-            defaultArtifactIdentifierFileStoreFactory.create(md),
-            writableArtifactIdentifierFileStore
-        )).orElse(writableArtifactIdentifierFileStore);
-        return new FileStoreAndIndexProvider(
-            artifactCaches.withReadOnlyCache((md, manager) -> (CachedExternalResourceIndex<String>) new TwoStageByUrlCachedExternalResourceIndex(md.getCacheDir().toPath(), prepareArtifactUrlCachedResolutionIndex(timeProvider, manager, externalResourceFileStore, md), writableByUrlCachedExternalResourceIndex)).orElse(writableByUrlCachedExternalResourceIndex),
-            externalResourceFileStore, artifactIdentifierFileStore);
-    }
-
-    private ByUrlCachedExternalResourceIndex prepareArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceFileStore externalResourceFileStore, ArtifactCacheMetadata artifactCacheMetadata) {
-        return new ByUrlCachedExternalResourceIndex(
-            "resource-at-url",
-            timeProvider,
-            artifactCacheLockingManager,
-            externalResourceFileStore.getFileAccessTracker(),
-            artifactCacheMetadata.getCacheDir().toPath()
         );
     }
 

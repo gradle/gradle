@@ -49,8 +49,8 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.configurationcache.CoupledProjectsListener
 import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.UndeclaredBuildInputListener
-import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.extensions.fileSystemEntryType
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFile
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFileSystemEntry
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.ValueSource
@@ -62,6 +62,7 @@ import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.configurationcache.services.EnvironmentChangeTracker
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.groovy.scripts.internal.ScriptSourceListener
 import org.gradle.internal.buildoption.FeatureFlag
 import org.gradle.internal.buildoption.FeatureFlagListener
 import org.gradle.internal.concurrent.CompositeStoppable
@@ -77,6 +78,7 @@ import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.scripts.ScriptFileResolvedListener
 import org.gradle.util.Path
 import java.io.File
+import java.net.URI
 import java.util.EnumSet
 
 
@@ -89,7 +91,7 @@ class ConfigurationCacheFingerprintWriter(
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val taskExecutionTracker: TaskExecutionTracker,
     private val environmentChangeTracker: EnvironmentChangeTracker,
-    private val inputTrackingState: InputTrackingState
+    private val inputTrackingState: InputTrackingState,
 ) : ValueSourceProviderFactory.ValueListener,
     ValueSourceProviderFactory.ComputationListener,
     WorkInputListener,
@@ -102,6 +104,7 @@ class ConfigurationCacheFingerprintWriter(
     ScriptFileResolvedListener,
     FeatureFlagListener,
     FileCollectionObservationListener,
+    ScriptSourceListener,
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
@@ -189,6 +192,18 @@ class ConfigurationCacheFingerprintWriter(
             }
         }
         CompositeStoppable.stoppable(buildScopedWriter, projectScopedWriter).stop()
+    }
+
+    override fun scriptSourceObserved(scriptSource: ScriptSource) {
+        if (isInputTrackingDisabled()) {
+            return
+        }
+
+        scriptSource.resource.location.uri?.let { uri ->
+            if (uri.scheme.startsWith("http")) {
+                sink().captureRemoteScript(uri)
+            }
+        }
     }
 
     override fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry, versions: Set<ModuleVersionIdentifier>) {
@@ -710,6 +725,9 @@ class ConfigurationCacheFingerprintWriter(
         private
         val undeclaredEnvironmentVariables = newConcurrentHashSet<String>()
 
+        private
+        val remoteScriptsUris = newConcurrentHashSet<URI>()
+
         fun captureFile(file: File) {
             if (!capturedFiles.add(file)) {
                 return
@@ -722,6 +740,12 @@ class ConfigurationCacheFingerprintWriter(
                 return
             }
             write(ConfigurationCacheFingerprint.DirectoryChildren(file, host.hashCodeOfDirectoryContent(file)))
+        }
+
+        fun captureRemoteScript(uri: URI) {
+            if (remoteScriptsUris.add(uri)) {
+                write(ConfigurationCacheFingerprint.RemoteScript(uri))
+            }
         }
 
         fun captureFileSystemEntry(file: File) {
