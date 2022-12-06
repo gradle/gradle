@@ -271,15 +271,6 @@ project(':api') {
         then:
         executed ":api:jar", ":impl:jar"
         fixture.assertProjectsConfigured(":", ":impl", ":api")
-
-        when:
-        run("impl:build", "--no-rebuild") // impl -> api
-
-        then:
-        executed ":impl:jar"
-        notExecuted ":api:jar"
-        // :api is configured to resolve impl.compileClasspath configuration
-        fixture.assertProjectsConfigured(":", ":impl", ":api")
     }
 
     def "respects external task dependencies"() {
