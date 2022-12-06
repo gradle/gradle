@@ -1708,7 +1708,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void assertUsageIsMutable() {
         if (!usageCanBeMutated) {
             // Don't print role message for legacy role - users might not have actively chosen this role
-            if (roleAtCreation != null && roleAtCreation != ConfigurationRoles.LEGACY) {
+            if (roleAtCreation != ConfigurationRoles.LEGACY) {
                 throw new GradleException(
                         String.format("Cannot change the allowed usage of %s, as it was locked upon creation to the role: '%s'.\n" +
                                 "This role permits the following usage:\n" +
