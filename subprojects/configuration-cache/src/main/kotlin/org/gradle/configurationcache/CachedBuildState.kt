@@ -29,7 +29,7 @@ internal
 sealed class CachedProjectState(
     val path: Path,
     val projectDir: File,
-    val buildDir: File
+    val buildFile: File
 )
 
 
@@ -37,17 +37,18 @@ internal
 class ProjectWithWork(
     path: Path,
     projectDir: File,
-    buildDir: File,
+    buildFile: File,
+    val buildDir: File,
     val normalizationState: InputNormalizationHandlerInternal.CachedState?
-) : CachedProjectState(path, projectDir, buildDir)
+) : CachedProjectState(path, projectDir, buildFile)
 
 
 internal
 class ProjectWithNoWork(
     path: Path,
     projectDir: File,
-    buildDir: File
-) : CachedProjectState(path, projectDir, buildDir)
+    buildFile: File
+) : CachedProjectState(path, projectDir, buildFile)
 
 
 data class BuildToStore(val build: VintageGradleBuild, val hasWork: Boolean)
