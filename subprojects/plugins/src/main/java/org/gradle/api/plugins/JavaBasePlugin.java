@@ -259,7 +259,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         jvmPluginServices.configureAsRuntimeClasspath(annotationProcessorConfiguration);
 
         warnIfConfigurationAlreadyExists(configurations, runtimeOnlyConfigurationName);
-        Configuration runtimeOnlyConfiguration = configurations.maybeCreateWithRole(runtimeOnlyConfigurationName, ConfigurationRoles.INTENDED_BUCKET, false, true);
+        Configuration runtimeOnlyConfiguration = configurations.maybeCreateWithRole(runtimeOnlyConfigurationName, ConfigurationRoles.INTENDED_BUCKET, false, false);
         runtimeOnlyConfiguration.setVisible(false);
         runtimeOnlyConfiguration.setDescription("Runtime only dependencies for " + sourceSetName + ".");
 
