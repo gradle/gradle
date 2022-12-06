@@ -161,9 +161,9 @@ class ConfigurationCacheState(
     ): BuildStructureOperationProject {
         val childProjects = children.getOrDefault(project.path, emptyList()).map { convertProject(converted, it, rootProjectName, children) }.toSet()
         return converted.computeIfAbsent(project.path) {
-            // Root project name is serialized separately, could perhaps move it to this cached project state
+            // Root project name is serialized separately, could perhaps move it to this cached project state object
             val projectName = project.path.name ?: rootProjectName
-            BuildStructureOperationProject(projectName, project.path.path, project.path.path, project.projectDir.absolutePath, project.buildDir.absolutePath, childProjects)
+            BuildStructureOperationProject(projectName, project.path.path, project.path.path, project.projectDir.absolutePath, project.buildFile.absolutePath, childProjects)
         }
     }
 
@@ -688,11 +688,11 @@ class ConfigurationCacheState(
         val relevantProjects = relevantProjectsRegistry.relevantProjects(nodes)
         return projects.allProjects.map { project ->
             val mutableModel = project.mutableModel
-            mutableModel.layout.buildDirectory.finalizeValue()
             if (relevantProjects.contains(project)) {
-                ProjectWithWork(project.projectPath, mutableModel.projectDir, mutableModel.buildDir, mutableModel.normalization.computeCachedState())
+                mutableModel.layout.buildDirectory.finalizeValue()
+                ProjectWithWork(project.projectPath, mutableModel.projectDir, mutableModel.buildFile, mutableModel.buildDir, mutableModel.normalization.computeCachedState())
             } else {
-                ProjectWithNoWork(project.projectPath, mutableModel.projectDir, mutableModel.buildDir)
+                ProjectWithNoWork(project.projectPath, mutableModel.projectDir, mutableModel.buildFile)
             }
         }
     }
