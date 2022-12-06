@@ -207,4 +207,53 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
         then:
         outputContains("args: [-Dfoo=bar]")
     }
+
+    def "lambda serialization can handle implementation methods with the same name"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaPlugin.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import org.gradle.api.*;
+
+                import javax.inject.Inject;
+
+                class TaskA extends DefaultTask {
+                    @Inject
+                    public TaskA() { }
+                }
+
+                class TaskB extends DefaultTask {
+                    @Inject
+                    public TaskB() { }
+                }
+
+                public class LambdaPlugin implements Plugin<Project> {
+                    // Use these overloads as lambda implementation methods - they should appear in SerializedLambda
+                    static void foo(TaskA taskA) { }
+                    static void foo(TaskB taskB) { }
+
+                    @Override
+                    public void apply(Project project) {
+                        Action<? super TaskA> actionA = LambdaPlugin::foo;
+                        Action<? super TaskB> actionB = LambdaPlugin::foo;
+
+                        project.getTasks().register("a", TaskA.class, task -> task.doLast(a -> actionA.execute((TaskA) a)));
+                        project.getTasks().register("b", TaskB.class, task -> task.doLast(b -> actionB.execute((TaskB) b)));
+                    }
+                }
+            """
+        }
+        buildFile << """
+            apply plugin: my.LambdaPlugin
+        """
+
+        when:
+        configurationCacheRun("a", "b")
+        configurationCacheRun("a", "b")
+
+        then:
+        succeeds("a", "b")
+    }
 }
