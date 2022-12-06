@@ -19,201 +19,494 @@ package org.gradle.util
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
-import org.testcontainers.DockerClientFactory;
+import org.testcontainers.DockerClientFactory
 
 @CompileStatic
-class UnitTestPreconditions {
+class UnitTestPreconditions extends BaseTestPreconditions {
 
-    static final TestPrecondition TRUE_REQUIREMENT = new TestPrecondition(
-        () -> true
-    )
+    static final class Symlinks implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return doSatisfies{ MacOs } || doSatisfies { Linux }
+        }
+    }
 
-    static final TestPrecondition FALSE_REQUIREMENT = new TestPrecondition(
-        () -> false
-    )
+    static final class NoSymlinks implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return doSatisfies { Symlinks }
+        }
+    }
 
-    static final TestPrecondition SYMLINKS_AVAILABLE = new TestPrecondition(
-        () -> MAC_OS_X.getAsBoolean() || LINUX.getAsBoolean()
-    )
+    static final class CaseInsensitiveFs implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return doSatisfies { MacOs } || doSatisfies { Windows }
+        }
+    }
 
-    static final TestPrecondition NO_SYMLINKS = new TestPrecondition(
-        () -> !SYMLINKS_AVAILABLE.getAsBoolean()
-    )
+    static final class FilePermissions implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return doSatisfies { MacOs } || doSatisfies { Linux }
+        }
+    }
 
-    static final TestPrecondition CASE_INSENSITIVE_FS = new TestPrecondition(
-        () -> MAC_OS_X.getAsBoolean() || WINDOWS.getAsBoolean()
-    )
-    static final TestPrecondition FILE_PERMISSIONS = new TestPrecondition(
-        () -> MAC_OS_X.getAsBoolean() || LINUX.getAsBoolean()
-    )
-    static final TestPrecondition NO_FILE_PERMISSIONS = new TestPrecondition(
-        () -> !FILE_PERMISSIONS.getAsBoolean()
-    )
-    static final TestPrecondition WORKING_DIR = new TestPrecondition(
-        () -> JavaVersion.current() < JavaVersion.VERSION_11
-    )
-    static final TestPrecondition NO_FILE_LOCK_ON_OPEN = new TestPrecondition(
-        () -> MAC_OS_X.getAsBoolean() || LINUX.getAsBoolean()
-    )
-    static final TestPrecondition MANDATORY_FILE_LOCKING = new TestPrecondition(
-        () -> OperatingSystem.current().windows)
-    )
-    static final TestPrecondition WINDOWS = new TestPrecondition(
-        () -> OperatingSystem.current().windows
-    )
-    static final TestPrecondition NOT_WINDOWS = new TestPrecondition(
-        () -> !OperatingSystem.current().windows
-    )
-    static final TestPrecondition MAC_OS_X = new TestPrecondition(
-        () -> OperatingSystem.current().macOsX
-    )
-    static final TestPrecondition MAC_OS_X_M1 = new TestPrecondition(
-        () -> OperatingSystem.current().macOsX && OperatingSystem.current().toString().contains("aarch64")
-    )
-    static final TestPrecondition NOT_MAC_OS_X_M1 = new TestPrecondition(
-        () -> !MAC_OS_X_M1.getAsBoolean()
-    )
-    static final TestPrecondition NOT_MAC_OS_X = new TestPrecondition(
-        () -> !OperatingSystem.current().macOsX
-    )
-    static final TestPrecondition LINUX = new TestPrecondition(
-        () -> OperatingSystem.current().linux
-    )
-    static final TestPrecondition NOT_LINUX = new TestPrecondition(
-        () -> !LINUX.getAsBoolean()
-    )
-    static final TestPrecondition UNIX = new TestPrecondition(
-        () -> OperatingSystem.current().unix
-    )
-    static final TestPrecondition UNIX_DERIVATIVE = new TestPrecondition(
-        () -> MAC_OS_X.getAsBoolean() || LINUX.getAsBoolean() || UNIX.getAsBoolean()
-    )
+    static final class NoFilePermissions implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return notSatisfies { FilePermissions }
+        }
+    }
 
-    static final TestPrecondition HAS_DOCKER = new TestPrecondition(
-        () -> {
+    static final class WorkingDirectory implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() < JavaVersion.VERSION_11
+        }
+    }
+
+    static final class NoFileLockOnOpen implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return doSatisfies { MacOs } || doSatisfies { Linux }
+        }
+    }
+
+    static final class FileLockOnOpen implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return OperatingSystem.current().isWindows()
+        }
+    }
+
+    static final class Windows implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return OperatingSystem.current().isWindows()
+        }
+    }
+
+    static final class NotWindows implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return !OperatingSystem.current().isWindows()
+        }
+    }
+
+    static final class MacOs implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return OperatingSystem.current().isMacOsX()
+        }
+    }
+
+    static final class MacOsM1 implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return OperatingSystem.current().isMacOsX() && OperatingSystem.current().toString().contains("aarch64")
+        }
+    }
+
+    static final class NOT_MAC_OS_X implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            !OperatingSystem.current().macOsX
+        }
+    }
+
+    static final class Linux implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return OperatingSystem.current().linux
+        }
+    }
+
+    static final class NotLinux implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return notSatisfies { Linux }
+        }
+    }
+
+    static final class Unix implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return OperatingSystem.current().isUnix()
+        }
+    }
+
+    static final class UnixDerivative implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            doSatisfies { MacOs } || doSatisfies { Linux } || doSatisfies { Unix }
+        }
+    }
+
+    static final class HasDocker implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
             try {
-                DockerClientFactory.instance();
-                return true;
+                DockerClientFactory.instance().client()
             } catch (Exception ex) {
-                return false;
+                return false
+            }
+            return true
+        }
+    }
+
+    static final class Jdk6OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_1_6
+        }
+    }
+
+    static final class Jdk6OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_1_6
+        }
+    }
+
+    static final class Jdk7OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_1_7
+        }
+    }
+
+    static final class Jdk7OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_1_7
+        }
+    }
+
+    static final class Jdk8OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_1_8
+        }
+    }
+
+    static final class Jdk8OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_1_8
+        }
+    }
+
+    static final class Jdk9OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_1_9
+        }
+    }
+
+    static final class Jdk9OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_1_9
+        }
+    }
+
+    static final class Jdk10OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_1_10
+        }
+    }
+
+    static final class Jdk10OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_1_10
+        }
+    }
+
+    static final class Jdk11OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_11
+        }
+    }
+
+    static final class Jdk11OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_11
+        }
+    }
+
+    static final class Jdk12OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_12
+        }
+    }
+
+    static final class Jdk12OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_12
+        }
+    }
+
+    static final class Jdk13OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_13
+        }
+    }
+
+    static final class Jdk13OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_13
+        }
+    }
+
+    static final class Jdk14OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_14
+        }
+    }
+
+    static final class Jdk14OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_14
+        }
+    }
+
+    static final class Jdk15OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_15
+        }
+    }
+
+    static final class Jdk15OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_15
+        }
+    }
+
+    static final class Jdk16OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_16
+        }
+    }
+
+    static final class Jdk16OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_16
+        }
+    }
+
+    static final class Jdk17OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_17
+        }
+    }
+
+    static final class Jdk17OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_17
+        }
+    }
+
+    static final class Jdk18OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_18
+        }
+    }
+
+    static final class Jdk18OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_18
+        }
+    }
+
+    static final class Jdk19OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_19
+        }
+    }
+
+    static final class Jdk19OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_19
+        }
+    }
+
+    static final class Jdk20OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_20
+        }
+    }
+
+    static final class Jdk20OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_20
+        }
+    }
+
+    static final class Jdk21OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_21
+        }
+    }
+
+    static final class Jdk21OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_21
+        }
+    }
+
+    static final class Jdk22OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_22
+        }
+    }
+
+    static final class Jdk22OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_22
+        }
+    }
+
+    static final class Jdk23OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_23
+        }
+    }
+
+    static final class Jdk23OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_23
+        }
+    }
+
+    static final class Jdk24OrLater implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() >= JavaVersion.VERSION_24
+        }
+    }
+
+    static final class Jdk24OrEarlier implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return JavaVersion.current() <= JavaVersion.VERSION_24
+        }
+    }
+
+    static final class JdkOracle implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            System.getProperty('java.vm.vendor') == 'Oracle Corporation'
+        }
+    }
+
+    static final class Online implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            try {
+                new URL("http://google.com").openConnection().getInputStream().close()
+                return true
+            } catch (IOException ex) {
+                return false
             }
         }
-    )
+    }
 
-
-    // Runtime JDKs
-    static final TestPrecondition JDK8_OR_EARLIER = new TestPrecondition(
-        () -> JavaVersion.current() <= JavaVersion.VERSION_1_8
-    )
-    static final TestPrecondition JDK9_OR_EARLIER = new TestPrecondition(
-        () -> JavaVersion.current() <= JavaVersion.VERSION_1_9
-    )
-    static final TestPrecondition JDK9_OR_LATER = new TestPrecondition(
-        () -> JavaVersion.current() >= JavaVersion.VERSION_1_9
-    )
-    static final TestPrecondition JDK10_OR_LATER = new TestPrecondition(
-        () -> JavaVersion.current() >= JavaVersion.VERSION_1_10
-    )
-    static final TestPrecondition JDK10_OR_EARLIER = new TestPrecondition(
-        () -> JavaVersion.current() <= JavaVersion.VERSION_1_10
-    )
-    static final TestPrecondition JDK11_OR_EARLIER = new TestPrecondition(
-        () -> JavaVersion.current() <= JavaVersion.VERSION_11
-    )
-    static final TestPrecondition JDK11_OR_LATER = new TestPrecondition(
-        () -> JavaVersion.current() >= JavaVersion.VERSION_11
-    )
-    static final TestPrecondition JDK12_OR_LATER = new TestPrecondition(
-        () -> JavaVersion.current() >= JavaVersion.VERSION_12
-    )
-    static final TestPrecondition JDK13_OR_EARLIER = new TestPrecondition(
-        () -> JavaVersion.current() <= JavaVersion.VERSION_13
-    )
-    static final TestPrecondition JDK13_OR_LATER = new TestPrecondition(
-        () -> JavaVersion.current() >= JavaVersion.VERSION_13
-    )
-    static final TestPrecondition JDK14_OR_LATER = new TestPrecondition(
-        () -> JavaVersion.current() >= JavaVersion.VERSION_14
-    )
-    static final TestPrecondition JDK15_OR_EARLIER = new TestPrecondition(
-        () -> JavaVersion.current() <= JavaVersion.VERSION_15
-    )
-    static final TestPrecondition JDK16_OR_LATER = new TestPrecondition(
-        () -> JavaVersion.current() >= JavaVersion.VERSION_16
-    )
-    static final TestPrecondition JDK16_OR_EARLIER = new TestPrecondition(
-        () -> JavaVersion.current() <= JavaVersion.VERSION_16
-    )
-    static final TestPrecondition JDK17_OR_LATER = new TestPrecondition(
-        () -> JavaVersion.current() >= JavaVersion.VERSION_17
-    )
-    static final TestPrecondition JDK17_OR_EARLIER = new TestPrecondition(
-        () -> JavaVersion.current() <= JavaVersion.VERSION_17
-    )
-    static final TestPrecondition JDK18_OR_LATER = new TestPrecondition(
-        () -> JavaVersion.current() >= JavaVersion.VERSION_18
-    )
-    static final TestPrecondition JDK19_OR_LATER = new TestPrecondition(
-        () -> JavaVersion.current() >= JavaVersion.VERSION_19
-    )
-    static final TestPrecondition JDK_ORACLE = new TestPrecondition(
-        () -> System.getProperty('java.vm.vendor') == 'Oracle Corporation'
-    )
-
-    // Available JDKs
-    static final TestPrecondition ONLINE = new TestPrecondition(() -> {
-        try {
-            new URL("http://google.com").openConnection().getInputStream().close()
-            return true
-        } catch (IOException) {
-            return false
+    static final class CanInstallExecutable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return doSatisfies { FilePermissions } || doSatisfies { Windows }
         }
-    })
-    static final TestPrecondition CAN_INSTALL_EXECUTABLE = new TestPrecondition(
-        () -> FILE_PERMISSIONS.getAsBoolean() || WINDOWS.getAsBoolean()
-    )
-    static final TestPrecondition SMART_TERMINAL = new TestPrecondition(
-        () -> System.getenv("TERM").toUpperCase() != "DUMB"
-    )
-    static final TestPrecondition XCODE = new TestPrecondition(() ->
-        // Simplistic approach at detecting Xcode by assuming macOS imply Xcode is present
-        MAC_OS_X.getAsBoolean()
-    )
-    static final TestPrecondition MSBUILD = new TestPrecondition(() ->
-        // Simplistic approach at detecting MSBuild by assuming Windows imply MSBuild is present
-        WINDOWS.getAsBoolean() && "embedded" != System.getProperty("org.gradle.integtest.executer")
-    )
+    }
 
-    static final TestPrecondition SUPPORTS_TARGETING_JAVA6 = new TestPrecondition(
-        () -> !JDK12_OR_LATER.getAsBoolean()
-    )
+    static final class SmartTerminalAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return Optional.ofNullable(System.getenv("TERM"))
+                .map(String::toUpperCase)
+                .map("DUMB"::equals)
+                .orElse(false)
+        }
+    }
+
+    static final class HasXCode implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            // Simplistic approach at detecting Xcode by assuming macOS imply Xcode is present
+            return doSatisfies { MacOs }
+        }
+    }
+
+    static final class HasMsBuild implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            // Simplistic approach at detecting MSBuild by assuming Windows imply MSBuild is present
+            return doSatisfies { Windows } && !"embedded".equals(System.getProperty("org.gradle.integtest.executer"))
+        }
+    }
+
+    static final class SupportsTargetingJava6 implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return notSatisfies { Jdk12OrLater }
+        }
+    }
+
     // Currently mac agents are not that strong so we avoid running high-concurrency tests on them
-    static final TestPrecondition HIGH_PERFORMANCE = new TestPrecondition(
-        () -> NOT_MAC_OS_X.getAsBoolean()
-    )
-    static final TestPrecondition NOT_EC2_AGENT = new TestPrecondition(
-        () -> !InetAddress.getLocalHost().getHostName().startsWith("ip-")
-    )
+    static final class HighPerformance implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return notSatisfies { MacOs }
+        }
+    }
 
-    static final TestPrecondition STABLE_GROOVY = new TestPrecondition(
-        () -> !GroovySystem.version.endsWith("-SNAPSHOT")
-    )
+    static final class NotEC2Agent implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws UnknownHostException {
+            return !InetAddress.getLocalHost().getHostName().startsWith("ip-")
+        }
+    }
 
-    static final TestPrecondition NOT_STABLE_GROOVY = new TestPrecondition(
-        () -> !STABLE_GROOVY.getAsBoolean()
-    )
+    static final class StableGroovy implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            !GroovySystem.version.endsWith("-SNAPSHOT")
+        }
+    }
 
-    static final TestPrecondition BASH_AVAILABLE = new TestPrecondition(
-        () -> ExecutableLocator.locate("bash")
-    )
-    static final TestPrecondition DASH_AVAILABLE = new TestPrecondition(
-        () -> ExecutableLocator.locate("dash")
-    )
-    static final TestPrecondition STATIC_SH_AVAILABLE = new TestPrecondition(
-        () -> ExecutableLocator.locate("static-sh")
-    )
-    static final TestPrecondition SHELLCHECK_AVAILABLE = new TestPrecondition(
-        () -> ExecutableLocator.locate("shellcheck")
-    )
+    static final class NotStableGroovy implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            notSatisfies { StableGroovy }
+        }
+    }
 
 }

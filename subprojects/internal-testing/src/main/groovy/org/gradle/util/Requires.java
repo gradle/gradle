@@ -17,6 +17,7 @@ package org.gradle.util;
 
 import groovy.lang.Closure;
 import org.gradle.util.internal.AlwaysTrue;
+import org.junit.Test;
 import org.spockframework.runtime.extension.ExtensionAnnotation;
 
 import java.lang.annotation.ElementType;
@@ -30,14 +31,5 @@ import java.lang.annotation.Target;
 @Inherited
 @ExtensionAnnotation(TestPreconditionExtension.class)
 public @interface Requires {
-    TestPrecondition[] value() default {TestPrecondition.NULL_REQUIREMENT};
-
-    /**
-     * @deprecated Do not introduce new adhoc logic.
-     * Consider avoiding it entirely or adding a new TestPrecondition enum value instead.
-     * It is hard to ensure a test with this annotation would be run at CI at least once.
-     * See <a href="https://github.com/gradle/gradle-private/issues/3616">issue</a> for more details.
-     */
-    @Deprecated
-    Class<? extends Closure<?>> adhoc() default AlwaysTrue.class;
+    Class<TestPrecondition>[] value();
 }

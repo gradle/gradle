@@ -13,13 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.util
-
-import org.gradle.api.JavaVersion
-import org.gradle.internal.os.OperatingSystem
-import org.testcontainers.DockerClientFactory
-
-import java.util.function.BooleanSupplier
+package org.gradle.util;
 
 /**
  * Usage:
@@ -32,17 +26,7 @@ import java.util.function.BooleanSupplier
  *
  * @see Requires
  */
-public class TestPrecondition implements BooleanSupplier {
-
-    private BooleanSupplier supplier;
-
-    TestPrecondition(BooleanSupplier supplier) {
-        this.supplier = supplier
-    }
-
-    @Override
-    boolean getAsBoolean() {
-        return supplier.getAsBoolean();
-    }
+public interface TestPrecondition {
+    boolean isSatisfied() throws Exception;
 }
 
