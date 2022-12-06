@@ -54,7 +54,7 @@ Usage of the following `@link:{javadocPath}/javadoc/org/gradle/api/internal/arti
 === Deprecations
 
 [[custom_configuration_roles]]
-The pre-defined roles in `@link:{javadocPath}/javadoc/org/gradle/api/internal/artifacts/configurations/ConfigurationRoles.htm[ConfigurationRoles]` should be used instead of custom roles wherever possible.
+Custom roles have been deprecated. Use pre-defined roles from `@link:{javadocPath}/javadoc/org/gradle/api/internal/artifacts/configurations/ConfigurationRoles.htm[ConfigurationRoles]` instead.
 
 [[reserved_configuration_names]]
 The names of standard configuration created for sourcesets by the `java-base` should be considered reserved - do not explicitly create them.
