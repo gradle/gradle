@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.util.internal.ToBeImplemented
 import org.junit.Test
 import spock.lang.Issue
 
@@ -49,5 +50,26 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
         )
 
         build("help")
+    }
+
+    @Test
+    @Issue("https://youtrack.jetbrains.com/issue/KT-55068")
+    @ToBeImplemented
+    fun `kotlin ir backend issue kt-55068`() {
+
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            data class Container(val property: Property<String> = objects.property())
+        """)
+        withBuildScript("""plugins { id("my-plugin") }""")
+
+        executer.withStackTraceChecksDisabled()
+        buildAndFail("help").run {
+            assertHasFailure("Execution failed for task ':buildSrc:compileKotlin'.") {
+                assertHasCause("Internal compiler error. See log for more details")
+            }
+            assertHasErrorOutput("Backend Internal error: Exception during IR lowering")
+            assertHasErrorOutput("buildSrc/src/main/kotlin/my-plugin.gradle.kts")
+        }
     }
 }
