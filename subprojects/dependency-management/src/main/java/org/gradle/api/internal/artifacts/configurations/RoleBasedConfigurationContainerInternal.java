@@ -97,14 +97,17 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
      * using the role of {@link ConfigurationRoles#DEPRECATED_CONSUMABLE}.
      */
-    ConfigurationInternal deprecatedConsumable(String name, boolean lockRole);
+    default ConfigurationInternal deprecatedConsumable(String name, boolean lockRole) {
+        return createWithRole(name, ConfigurationRoles.DEPRECATED_CONSUMABLE, lockRole);
+    }
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
      * using the role of {@link ConfigurationRoles#DEPRECATED_RESOLVABLE}.
      */
-    ConfigurationInternal deprecatedResolvable(String name, boolean lockRole);
-
+    default ConfigurationInternal deprecatedResolvable(String name, boolean lockRole) {
+        return createWithRole(name, ConfigurationRoles.DEPRECATED_RESOLVABLE, lockRole);
+    }
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
