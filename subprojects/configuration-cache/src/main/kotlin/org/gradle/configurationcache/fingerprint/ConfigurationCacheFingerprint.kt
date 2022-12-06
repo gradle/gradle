@@ -61,6 +61,11 @@ sealed class ConfigurationCacheFingerprint {
         val value: Any?
     ) : ConfigurationCacheFingerprint()
 
+    data class CachedExternalResource(
+        val displayName: String,
+        val cachedAt: Long
+    ) : ConfigurationCacheFingerprint()
+
     abstract class ChangingDependencyResolutionValue(
         val expireAt: Long
     ) : ConfigurationCacheFingerprint() {

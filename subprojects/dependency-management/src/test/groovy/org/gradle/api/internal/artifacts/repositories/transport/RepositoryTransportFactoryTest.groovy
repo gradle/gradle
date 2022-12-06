@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterRes
 import org.gradle.authentication.Authentication
 import org.gradle.cache.internal.ProducerGuard
 import org.gradle.internal.authentication.AbstractAuthentication
+import org.gradle.internal.resource.cached.CachedExternalResourceListener
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.resource.local.FileResourceRepository
@@ -46,7 +47,7 @@ class RepositoryTransportFactoryTest extends Specification {
         connectorFactory2.getSupportedAuthentication() >> ([] as Set)
         List<ResourceConnectorFactory> resourceConnectorFactories = Lists.newArrayList(connectorFactory1, connectorFactory2)
         StartParameterResolutionOverride override = new StartParameterResolutionOverride(new StartParameter(), new File("dummy"))
-        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, override, producerGuard, Mock(FileResourceRepository), TestUtil.checksumService, Stub(FileResourceListener))
+        repositoryTransportFactory = new RepositoryTransportFactory(resourceConnectorFactories, null, null, null, null, null, override, producerGuard, Mock(FileResourceRepository), TestUtil.checksumService, Stub(FileResourceListener), Stub(CachedExternalResourceListener))
     }
 
     RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications) {

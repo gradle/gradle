@@ -70,6 +70,7 @@ import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.WorkInputListener
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.properties.InputBehavior
+import org.gradle.internal.resource.cached.CachedExternalResourceListener
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.util.Path
@@ -97,6 +98,7 @@ class ConfigurationCacheFingerprintWriter(
     CoupledProjectsListener,
     FileResourceListener,
     FeatureFlagListener,
+    CachedExternalResourceListener,
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
@@ -175,6 +177,14 @@ class ConfigurationCacheFingerprintWriter(
             }
         }
         CompositeStoppable.stoppable(buildScopedWriter, projectScopedWriter).stop()
+    }
+
+    override fun cachedExternalResourceObserved(displayName: String, cachedAt: Long) {
+        if (isInputTrackingDisabled()) {
+            return
+        }
+
+        sink().cachedExternalResourceObserved(displayName, cachedAt)
     }
 
     override fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry, versions: Set<ModuleVersionIdentifier>) {
@@ -461,6 +471,12 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
+    override fun onScriptSource(scriptSource: ScriptSource) {
+        scriptSource.resource.location.file?.let {
+            fileObserved(it)
+        }
+    }
+
     fun append(fingerprint: ProjectSpecificFingerprint) {
         // TODO - should add to report as an input
         projectScopedWriter.write(fingerprint)
@@ -639,11 +655,20 @@ class ConfigurationCacheFingerprintWriter(
         private
         val undeclaredEnvironmentVariables = newConcurrentHashSet<String>()
 
+        private
+        val cachedExternalResources = newConcurrentHashSet<String>()
+
         fun captureFile(file: File) {
             if (!capturedFiles.add(file)) {
                 return
             }
             write(inputFile(file))
+        }
+
+        fun cachedExternalResourceObserved(displayName: String, cachedAt: Long) {
+            if (!cachedExternalResources.add(displayName)) {
+                write(ConfigurationCacheFingerprint.CachedExternalResource(displayName, cachedAt))
+            }
         }
 
         fun systemPropertyRead(key: String, value: Any?) {
