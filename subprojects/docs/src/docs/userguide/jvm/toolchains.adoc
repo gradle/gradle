@@ -62,7 +62,8 @@ include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradl
 
 If the vendor you want to target is not a known vendor, you can still restrict the toolchain to those matching the `java.vendor` system property of the available toolchains.
 
-The following snippet uses filtering to include a subset of available toolchains. This example only includes toolchains whose `java.vendor` property contains the given match string.
+The following snippet uses filtering to include a subset of available toolchains.
+This example only includes toolchains whose `java.vendor` property contains the given match string.
 The matching is done in a case-insensitive manner.
 
 ====
@@ -214,7 +215,8 @@ There is no support for downloading early access versions.
 
 Once installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>, a provisioned JDK becomes one of the JDKs visible to <<#sec:auto_detection,auto-detection>> and can be used by any subsequent builds, just like any other JDK installed on the system.
 
-Since auto-provisioning only kicks in when auto-detection fails to find a matching JDK, auto-provisioning can only download new JDKs and is in no way involved in updating any of the already installed ones. None of the auto-provisioned JDKs will ever be revisited and automatically updated by auto-provisioning, even if there is a newer minor version available for them.
+Since auto-provisioning only kicks in when auto-detection fails to find a matching JDK, auto-provisioning can only download new JDKs and is in no way involved in updating any of the already installed ones.
+None of the auto-provisioned JDKs will ever be revisited and automatically updated by auto-provisioning, even if there is a newer minor version available for them.
 
 [[sub:download_repositories]]
 === Toolchain Download Repositories
@@ -224,7 +226,9 @@ For details on writing such plugins, consult the <<toolchain_plugins.adoc#toolch
 
 One example of a toolchain resolver plugin is the https://github.com/gradle/disco-toolchains[Disco Toolchains Plugin], based on the https://github.com/foojayio/discoapi[foojay Disco API].
 
-Beyond applying toolchain resolver plugins, the toolchain download resolvers provided by them also need to be configured. Let's illustrate with an example. Consider two toolchain resolver plugins applied by the build:
+Beyond applying toolchain resolver plugins, the toolchain download resolvers provided by them also need to be configured.
+Let's illustrate with an example.
+Consider two toolchain resolver plugins applied by the build:
 
 * One is the Disco plugin mentioned above, which downloads toolchains via the `DiscoToolchainResolver` it provides.
 * The other contains a resolver named `AdoptiumResolver`, which duplicates the legacy toolchain resolver from past Gradle versions.
@@ -236,9 +240,11 @@ include::sample[dir="snippets/java/toolchain-management/groovy/",files="settings
 include::sample[dir="snippets/java/toolchain-management/kotlin/",files="settings.gradle.kts[tags=toolchain-management]"]
 ====
 <1> In the `toolchainManagement` block, the `jvm` block contains configuration for Java toolchains.
-<2> The `javaRepositories` block defines named Java toolchain repository configurations. Use the `resolverClass` property to link these configurations to plugins.
-<3> You can configure toolchain repositories with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options>> used for dependency management.
-<4> Toolchain declaration order matters. Gradle downloads from the first repository that provides a match, starting with the first repository in the list.
+<2> The `javaRepositories` block defines named Java toolchain repository configurations.
+Use the `resolverClass` property to link these configurations to plugins.
+<3> Toolchain declaration order matters.
+Gradle downloads from the first repository that provides a match, starting with the first repository in the list.
+<4> You can configure toolchain repositories with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options>> used for dependency management.
 
 [WARNING]
 ====
@@ -364,7 +370,8 @@ between installations of the same type, from the same vendor and with the same v
 
 All these rules are applied as multilevel sorting criteria, *in the order shown*.
 Let's illustrate with an example.
-A toolchain specification requests Java version 17. Gradle detects the following matching installations:
+A toolchain specification requests Java version 17.
+Gradle detects the following matching installations:
 
 * Oracle JRE v17.0.0
 * Oracle JDK v17.0.1
@@ -372,7 +379,8 @@ A toolchain specification requests Java version 17. Gradle detects the following
 * Microsoft JRE 17.0.1
 * Microsoft JDK 17.0.1
 
-Assume that Gradle runs on a major Java version other than 17. Otherwise, that installation would have priority.
+Assume that Gradle runs on a major Java version other than 17.
+Otherwise, that installation would have priority.
 
 When we apply the above rules to sort this set we will end up with following ordering:
 

@@ -34,6 +34,7 @@ public interface JavaToolchainUsageProgressDetails {
      */
     JavaToolchain getToolchain();
 
+    @SuppressWarnings("unused")
     interface JavaToolchain {
 
         /**
@@ -72,7 +73,7 @@ public interface JavaToolchainUsageProgressDetails {
         String getJvmVersion();
 
         /**
-         * Returns Java VM vendor such as {@code Oracle}.
+         * Returns Java VM vendor such as {@code Eclipse Adoptium}.
          */
         String getJvmVendor();
 

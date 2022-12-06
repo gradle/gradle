@@ -11,18 +11,18 @@ apply plugin: AdoptiumPlugin
 toolchainManagement {
     jvm { // <1>
         javaRepositories {
-            repository('disco') { // <2>
+            repository('foojay') { // <2>
                 resolverClass = org.gradle.toolchains.foojay.FoojayToolchainResolver
+            }
+            repository('adoptium') { // <3>
+                resolverClass = AdoptiumResolver
                 credentials {
                     username "user"
                     password "password"
                 }
                 authentication {
                     digest(BasicAuthentication)
-                } // <3>
-            }
-            repository('adoptium') { // <4>
-                resolverClass = AdoptiumResolver
+                } // <4>
             }
         }
     }
