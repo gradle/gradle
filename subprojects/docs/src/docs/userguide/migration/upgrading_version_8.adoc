@@ -57,7 +57,27 @@ Usage of the following `@link:{javadocPath}/javadoc/org/gradle/api/internal/arti
 Custom roles have been deprecated. Use pre-defined roles from `@link:{javadocPath}/javadoc/org/gradle/api/internal/artifacts/configurations/ConfigurationRoles.htm[ConfigurationRoles]` instead.
 
 [[reserved_configuration_names]]
-The names of standard configuration created for sourcesets by the `java-base` should be considered reserved - do not explicitly create them.
+The `java-base` plugin will create configurations with for every sourceset using these patterns:
+
+ - `<SourceSet Name>Implementation`
+ - `<SourceSet Name>CompileOnly`
+ - `<SourceSet Name>RuntimeOnly`
+ - `<SourceSet Name>CompileClasspath`
+ - `<SourceSet Name>RuntimeClasspath`
+ - `<SourceSet Name>AnnotationProcessor`
+ - `<SourceSet Name>RuntimeElements`
+
+In addition, the `java-library` plugin will create configurations with these patterns:
+
+ - `<SourceSet Name>Api`
+ - `<SourceSet Name>ApiElements`
+ - `<SourceSet Name>CompileOnlyApi`
+
+The names of these standard configurations should be considered reserved - do not explicitly create configurations using them.
+
+See the <<java_plugin.adoc#tab:configurations, The Java Plugin's Dependency Management Reference>> for more information.
+
+[[upgrading_version_8:changes_8.0]]
 
 [[configurations_allowed_usage]]
 The usage of configurations is meant to be fixed at creation.  Mutating the allowed usage on a configuration is deprecated.
