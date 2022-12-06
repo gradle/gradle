@@ -17,7 +17,6 @@
 package org.gradle.internal.properties.annotations
 
 import com.google.common.reflect.TypeToken
-import org.gradle.api.GradleException
 import org.gradle.api.Named
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -154,7 +153,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
 
         then:
-        def exception = thrown(GradleException)
+        def exception = thrown(IllegalStateException)
         exception.message == "Cycles between nested beans are not allowed. Cycle detected between: $expectedCycle."
 
         where:
@@ -170,7 +169,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         return toString.replace("$AbstractTypeMetadataWalkerTest.class.name\$", "")
     }
 
-    static class TestNodeMetadataVisitor<T> implements TypeMetadataWalker.NodeMetadataVisitor<T> {
+    static class TestNodeMetadataVisitor<T> implements TypeMetadataWalker.TypeMetadataVisitor<T> {
         private List<CollectedNode> all = []
         private List<CollectedNode> roots = []
         private List<CollectedNode> nested = []
