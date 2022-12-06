@@ -27,13 +27,13 @@ import java.util.function.Supplier;
  *
  * During the walk we first visit the root (the type or instance passed to {@link #walk(Object, TypeMetadataVisitor)},
  * and then the properties are visited in depth-first order.
- * Nested properties are marked with a nested annotation and their child properties are visited next.
- *
- * The {@link TypeMetadataStore} associated with the walker determines which property annotations are recognized
+ * Nested properties are marked with a nested annotation and are inspected for child properties that can be
+ * "leaf" annotated properties, or other nested properties.
+ * The {@link TypeMetadataStore} associated with the walker determines which non-nested property annotations are recognized
  * during the walk.
  * Nested {@code Map}s, {@code Iterable}s are resolved as child properties.
- * Iterables and maps can be nested, i.e. {@code Map<String, Iterable<Iterable<String>>>} is supported.
- * Nested {@link Provider}s are unpacked, and the provided type is traversed transparaently.
+ * Nested iterables and maps can be further nested, i.e. {@code Map<String, Iterable<Iterable<String>>>} is supported.
+ * Nested {@link Provider}s are unpacked, and the provided type is traversed transparently.
  */
 public interface TypeMetadataWalker<T> {
 
