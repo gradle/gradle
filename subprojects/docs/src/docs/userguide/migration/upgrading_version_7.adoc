@@ -352,6 +352,17 @@ For information about breaking and nonbreaking changes in this upgrade, see the 
 * Kotlin 1.6 link:https://kotlinlang.org/docs/whatsnew16.html#language[language] / link:https://kotlinlang.org/docs/whatsnew16.html#standard-library[stdlib]
 * Kotlin 1.7 link:https://kotlinlang.org/docs/whatsnew17.html#language[language] / link:https://kotlinlang.org/docs/whatsnew15.html#standard-library[stdlib]
 
+==== Java Base Plugin now sets Jar, War, and Ear destination directory defaults
+
+Previously, the `base` plugin configured the
+link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:destinationDirectory[destinationDirectory] of
+link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar], link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War], and
+link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] tasks to the directory specified by
+link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html#org.gradle.api.plugins.BasePluginExtension:libsDirectory[BasePluginExtension#getLibsDirectory].
+In Gradle 8.0, `java-base` handles this configuration.
+No changes are required for projects that already apply the
+`java-base` plugin directly or indirectly through the `java`, `application`, `java-library`, or other JVM ecosystem plugins.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 

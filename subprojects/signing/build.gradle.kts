@@ -12,7 +12,7 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":file-collections"))
-    implementation(project(":plugins"))
+    implementation(project(":platform-base"))
     implementation(project(":dependency-management"))
     implementation(project(":publish"))
     implementation(project(":maven"))
