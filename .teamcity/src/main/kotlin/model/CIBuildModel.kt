@@ -62,7 +62,8 @@ data class CIBuildModel(
             ),
             functionalTests = listOf(
                 TestCoverage(1, TestType.quick, Os.LINUX, JvmCategory.MAX_VERSION, expectedBucketNumber = DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
-            )
+            ),
+            triggerOnPullRequestPush = true
         ),
         Stage(
             StageName.QUICK_FEEDBACK,
@@ -209,7 +210,8 @@ data class Stage(
     val performanceTestPartialTriggers: List<PerformanceTestPartialTrigger> = emptyList(),
     val flameGraphs: List<FlameGraphGeneration> = emptyList(),
     val trigger: Trigger = Trigger.never,
-    val runsIndependent: Boolean = false
+    val runsIndependent: Boolean = false,
+    val triggerOnPullRequestPush: Boolean = false
 ) {
     val id = stageName.id
 }

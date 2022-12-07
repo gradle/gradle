@@ -65,6 +65,20 @@ fun BuildFeatures.enablePullRequestFeature() {
     }
 }
 
+
+fun BuildFeatures.triggerOnPullRequestPush() {
+    pullRequests {
+        vcsRootExtId = VersionedSettingsBranch.fromDslContext().vcsRootId()
+        provider = github {
+            filterTargetBranch = VersionedSettingsBranch.fromDslContext().branchName
+            filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER_OR_COLLABORATOR
+            authType = token {
+                token = "%github.bot-teamcity.token%"
+            }
+        }
+    }
+}
+
 fun BuildFeatures.publishBuildStatusToGithub() {
     commitStatusPublisher {
         vcsRootExtId = VersionedSettingsBranch.fromDslContext().vcsRootId()
