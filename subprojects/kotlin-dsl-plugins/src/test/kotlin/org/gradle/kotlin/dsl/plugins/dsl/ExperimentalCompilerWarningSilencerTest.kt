@@ -28,34 +28,63 @@ class ExperimentalCompilerWarningSilencerTest {
     @Test
     fun `does not tamper regular message`() {
         val silencer = ExperimentalCompilerWarningSilencer(listOf("SOME"))
-        val rewritten = silencer.rewrite(LogLevel.WARN, "Hello, World!")
-        assertThat(rewritten, equalTo("Hello, World!"))
+
+        val message = "Hello, World!"
+        val rewritten = silencer.rewrite(LogLevel.WARN, message)
+
+        assertThat(rewritten, equalTo(message))
     }
 
     @Test
-    fun `silence unsafe internal compiler arguments`() {
+    fun `silences unsafe internal compiler arguments`() {
         val silencer = ExperimentalCompilerWarningSilencer(listOf("-XXLanguage:+DisableCompatibilityModeForNewInference"))
-        val rewritten = silencer.rewrite(
-            LogLevel.WARN,
-            "w: ATTENTION!\n" +
-                "This build uses unsafe internal compiler arguments:\n" +
-                "\n" +
-                "-XXLanguage:+DisableCompatibilityModeForNewInference\n" +
-                "\n" +
-                "This mode is not recommended for production use,\n" +
-                "as no stability/compatibility guarantees are given on\n" +
-                "compiler or generated code. Use it at your own risk!\n"
-        )
+
+        val message = "w: ATTENTION!\n" +
+            "This build uses unsafe internal compiler arguments:\n" +
+            "\n" +
+            "-XXLanguage:+DisableCompatibilityModeForNewInference\n" +
+            "\n" +
+            "This mode is not recommended for production use,\n" +
+            "as no stability/compatibility guarantees are given on\n" +
+            "compiler or generated code. Use it at your own risk!\n"
+        val rewritten = silencer.rewrite(LogLevel.WARN, message)
+
         assertThat(rewritten, nullValue())
     }
 
     @Test
-    fun `silence deprecated compiler flag`() {
+    fun `does not silence unsafe internal compiler arguments`() {
+        val silencer = ExperimentalCompilerWarningSilencer(listOf("-XXLanguage:+DisableCompatibilityModeForNewInference"))
+
+        val message = "w: ATTENTION!\n" +
+            "This build uses unsafe internal compiler arguments:\n" +
+            "\n" +
+            "-XXLanguage:+DisableCompatibilityModeForNewInference\n" +
+            "-XXLanguage:+FunctionReferenceWithDefaultValueAsOtherType\n" +
+            "\n" +
+            "This mode is not recommended for production use,\n" +
+            "as no stability/compatibility guarantees are given on\n" +
+            "compiler or generated code. Use it at your own risk!\n"
+        val rewritten = silencer.rewrite(LogLevel.WARN, message)
+
+        val expected = "w: ATTENTION!\n" +
+            "This build uses unsafe internal compiler arguments:\n" +
+            "\n" +
+            "-XXLanguage:+FunctionReferenceWithDefaultValueAsOtherType\n" +
+            "\n" +
+            "This mode is not recommended for production use,\n" +
+            "as no stability/compatibility guarantees are given on\n" +
+            "compiler or generated code. Use it at your own risk!\n"
+        assertThat(rewritten, equalTo(expected))
+    }
+
+    @Test
+    fun `silences deprecated compiler flag`() {
         val silencer = ExperimentalCompilerWarningSilencer(listOf("-Xuse-old-backend"))
-        val rewritten = silencer.rewrite(
-            LogLevel.WARN,
-            "w: -Xuse-old-backend is deprecated and will be removed in a future release"
-        )
+
+        val message = "w: -Xuse-old-backend is deprecated and will be removed in a future release"
+        val rewritten = silencer.rewrite(LogLevel.WARN, message)
+
         assertThat(rewritten, nullValue())
     }
 }
