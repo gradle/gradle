@@ -27,6 +27,7 @@ import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.TextFileResourceLoader;
 import org.gradle.internal.resource.TextResource;
+import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.util.internal.NameValidator;
 
 import javax.annotation.Nullable;
@@ -42,7 +43,7 @@ public class ProjectFactory implements IProjectFactory {
     }
 
     @Override
-    public ProjectInternal createProject(GradleInternal gradle, ProjectDescriptor projectDescriptor, ProjectState owner, @Nullable ProjectInternal parent, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
+    public ProjectInternal createProject(GradleInternal gradle, ProjectDescriptor projectDescriptor, ProjectState owner, @Nullable ProjectInternal parent, ServiceRegistryFactory serviceRegistryFactory, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
         File buildFile = projectDescriptor.getBuildFile();
         TextResource resource = textFileResourceLoader.loadFile("build file", buildFile);
         ScriptSource source = new TextResourceScriptSource(resource);
@@ -54,7 +55,7 @@ public class ProjectFactory implements IProjectFactory {
             source,
             gradle,
             owner,
-            gradle.getServiceRegistryFactory(),
+            serviceRegistryFactory,
             selfClassLoaderScope,
             baseClassLoaderScope
         );
