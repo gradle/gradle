@@ -72,7 +72,7 @@ fun BuildFeatures.triggerOnPullRequestPush() {
         provider = github {
 //            filterSourceBranch = "+:refs/pull/*"
 //            filterTargetBranch = VersionedSettingsBranch.fromDslContext().branchName
-//            filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER_OR_COLLABORATOR
+            filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER_OR_COLLABORATOR
             authType = token {
                 token = "%github.bot-gradle.token%"
             }

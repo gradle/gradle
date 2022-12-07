@@ -120,10 +120,6 @@ fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, b
         branchFilter = branchesFilterExcluding()
     }
 
-    features {
-        enablePullRequestFeature()
-    }
-
     requirements {
         requiresOs(os)
         requiresArch(os, arch)
