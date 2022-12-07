@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.io.Serializable;
@@ -59,7 +59,7 @@ public class DefaultTestResult implements TestResult, Serializable {
 
     @Override
     public List<Throwable> getExceptions() {
-        return CollectionUtils.collect(failures, new Transformer<Throwable, TestFailure>() {
+        return CollectionUtils.collect(failures, new InternalTransformer<Throwable, TestFailure>() {
             @Override
             public Throwable transform(TestFailure testFailure) {
                 return testFailure.getRawFailure();

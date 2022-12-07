@@ -961,15 +961,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     FileTree tarTree(Object tarPath);
 
     /**
-     * Creates a {@code Provider} implementation based on the provided value.
+     * Creates a {@link Provider} implementation based on the provided value.
      *
-     * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
+     * <p>The provider is live and will call the {@link Callable} each time its value is queried. The {@link Callable} may return {@code null}, in which case the provider is considered to have no value.
+     *
+     * @param value The {@link Callable} use to calculate the value.
      * @return The provider. Never returns null.
-     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
      * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
      * @since 4.0
      */
-    <T> Provider<T> provider(Callable<T> value);
+    <T> Provider<T> provider(Callable<? extends @org.jetbrains.annotations.Nullable T> value);
 
     /**
      * Provides access to methods to create various kinds of {@link Provider} instances.

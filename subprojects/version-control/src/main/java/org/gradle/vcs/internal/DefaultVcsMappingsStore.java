@@ -19,8 +19,8 @@ package org.gradle.vcs.internal;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.Actions;
@@ -71,12 +71,7 @@ public class DefaultVcsMappingsStore implements VcsMappingsStore, VcsResolver {
                 }
             }
             if (resolutions.size() > 1) {
-                Set<String> resolutionDisplayNames = CollectionUtils.collect(resolutions, new Transformer<String, VersionControlSpec>() {
-                    @Override
-                    public String transform(VersionControlSpec versionControlSpec) {
-                        return versionControlSpec.getDisplayName();
-                    }
-                });
+                Set<String> resolutionDisplayNames = CollectionUtils.collect(resolutions, Describable::getDisplayName);
                 throw new GradleException("Conflicting external source dependency rules were found in nested builds for " + mapping.getRequested().getDisplayName() + ":\n  " + CollectionUtils.join("\n  ", resolutionDisplayNames));
             }
         }
