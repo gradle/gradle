@@ -223,7 +223,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         given:
         def gradleUserHome = file("home").absoluteFile
         buildFile << """
-            import org.gradle.cache.CacheRepository
+            import org.gradle.cache.CacheBuilderFactory
             import org.gradle.cache.PersistentCache
             import org.gradle.cache.FileLockManager
             import org.gradle.cache.internal.filelock.LockOptionsBuilder
@@ -252,9 +252,9 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
             abstract class ToolSetupWorkAction implements WorkAction<WorkParameters.None> {
                 void execute() {
-                    CacheRepository cacheRepository = ZincCompilerServices.getInstance(new File("${escapeString(gradleUserHome)}")).get(CacheRepository.class);
+                    CacheBuilderFactory cacheBuilderFactory = ZincCompilerServices.getInstance(new File("${escapeString(gradleUserHome)}")).get(CacheBuilderFactory.class);
                     println "Waiting for lock..."
-                    final PersistentCache zincCache = cacheRepository.cache("zinc-0.3.15")
+                    final PersistentCache zincCache = cacheBuilderFactory.cache("zinc-0.3.15")
                             .withDisplayName("Zinc 0.3.15 compiler cache")
                             .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive))
                             .open();

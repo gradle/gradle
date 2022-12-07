@@ -20,7 +20,7 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.FileLockManager
-import org.gradle.cache.PersistentExclusiveCache
+import org.gradle.cache.PersistentCache
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.cache.DefaultCacheCleanup
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
@@ -250,7 +250,7 @@ class ConfigurationCacheRepository(
         )
 
     private
-    fun PersistentExclusiveCache.baseDirFor(cacheKey: String) =
+    fun PersistentCache.baseDirFor(cacheKey: String) =
         baseDir.resolve(cacheKey)
 
     private

@@ -22,7 +22,7 @@ import org.gradle.cache.CacheCleanup;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
-import org.gradle.cache.PersistentExclusiveCache;
+import org.gradle.cache.PersistentCache;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.util.internal.GFileUtils;
@@ -39,9 +39,9 @@ public class DefaultPersistentDirectoryExclusiveCache extends DefaultPersistentD
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPersistentDirectoryExclusiveCache.class);
 
     private final Properties properties = new Properties();
-    private final Action<? super PersistentExclusiveCache> initAction;
+    private final Action<? super PersistentCache> initAction;
 
-    public DefaultPersistentDirectoryExclusiveCache(File dir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentExclusiveCache> initAction, CacheCleanup cacheCleanup, FileLockManager lockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
+    public DefaultPersistentDirectoryExclusiveCache(File dir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initAction, CacheCleanup cacheCleanup, FileLockManager lockManager, ExecutorFactory executorFactory, ProgressLoggerFactory progressLoggerFactory) {
         super(dir, displayName, lockTarget, lockOptions, cacheCleanup, lockManager, executorFactory, progressLoggerFactory);
         this.initAction = initAction;
         this.properties.putAll(properties);

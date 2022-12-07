@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
-import org.gradle.cache.PersistentExclusiveCache;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
@@ -29,7 +29,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class CrossBuildFileHashCache implements Closeable {
 
-    private final PersistentExclusiveCache cache;
+    private final PersistentCache cache;
     private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
 
     public CrossBuildFileHashCache(ScopedCacheBuilderFactory scopedCacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Kind cacheKind) {

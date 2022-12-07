@@ -30,7 +30,7 @@ import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePoli
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
-import org.gradle.cache.PersistentExclusiveCache
+import org.gradle.cache.PersistentCache
 import org.gradle.cache.IndexedCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
@@ -75,7 +75,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
         cacheBuilder = Mock(CacheBuilder) {
             withLockOptions(_) >> { cacheBuilder }
             open() >> {
-                Mock(PersistentExclusiveCache) {
+                Mock(PersistentCache) {
                     createIndexedCache(_) >> {
                         store
                     }

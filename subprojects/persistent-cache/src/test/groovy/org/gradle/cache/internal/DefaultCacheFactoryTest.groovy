@@ -17,7 +17,7 @@ package org.gradle.cache.internal
 
 import org.gradle.api.Action
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.PersistentExclusiveCache
+import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.progress.NoOpProgressLoggerFactory
@@ -219,7 +219,7 @@ class DefaultCacheFactoryTest extends Specification {
         and:
         factory.visitCaches(new CacheVisitor() {
             @Override
-            void visit(PersistentExclusiveCache cache) {
+            void visit(PersistentCache cache) {
                 visited << cache.displayName.split(' ')[0]
             }
         })
@@ -245,7 +245,7 @@ class DefaultCacheFactoryTest extends Specification {
         and:
         factory.visitCaches(new CacheVisitor() {
             @Override
-            void visit(PersistentExclusiveCache cache) {
+            void visit(PersistentCache cache) {
                 visited << cache.displayName.split(' ')[0]
             }
         })

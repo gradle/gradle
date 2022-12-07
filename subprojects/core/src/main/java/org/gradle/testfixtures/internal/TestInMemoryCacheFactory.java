@@ -25,7 +25,7 @@ import org.gradle.cache.CleanupProgressMonitor;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
-import org.gradle.cache.PersistentExclusiveCache;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CacheVisitor;
 import org.gradle.internal.Cast;
@@ -48,7 +48,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
     final Map<Pair<File, String>, IndexedCache<?, ?>> caches = Collections.synchronizedMap(Maps.newLinkedHashMap());
 
     @Override
-    public PersistentExclusiveCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentExclusiveCache> initializer, @Nullable CacheCleanup cacheCleanup) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanup cacheCleanup) throws CacheOpenException {
         GFileUtils.mkdirs(cacheDir);
         InMemoryExclusiveCache cache = new InMemoryExclusiveCache(cacheDir, displayName, cacheCleanup != null ? cacheCleanup.getCleanupAction() : null);
         if (initializer != null) {
@@ -57,7 +57,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         return cache;
     }
 
-    public PersistentExclusiveCache open(File cacheDir, String displayName) {
+    public PersistentCache open(File cacheDir, String displayName) {
         return new InMemoryExclusiveCache(cacheDir, displayName, CleanupAction.NO_OP);
     }
 
@@ -66,7 +66,7 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         throw new UnsupportedOperationException();
     }
 
-    private class InMemoryExclusiveCache implements PersistentExclusiveCache {
+    private class InMemoryExclusiveCache implements PersistentCache {
         private final File cacheDir;
         private final String displayName;
         private boolean closed;

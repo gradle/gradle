@@ -23,7 +23,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.LockOptions;
-import org.gradle.cache.PersistentExclusiveCache;
+import org.gradle.cache.PersistentCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -62,7 +62,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
     }
 
     @Override
-    public PersistentExclusiveCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentExclusiveCache> initializer, @Nullable CacheCleanup cacheCleanup) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanup cacheCleanup) throws CacheOpenException {
         lock.lock();
         try {
             return doOpen(cacheDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanup);
@@ -87,13 +87,13 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
     }
 
-    private PersistentExclusiveCache doOpen(
+    private PersistentCache doOpen(
         File cacheDir,
         String displayName,
         Map<String, ?> properties,
         CacheBuilder.LockTarget lockTarget,
         LockOptions lockOptions,
-        @Nullable Action<? super PersistentExclusiveCache> initializer,
+        @Nullable Action<? super PersistentCache> initializer,
         @Nullable CacheCleanup cacheCleanup
     ) {
         File canonicalDir = FileUtils.canonicalize(cacheDir);
@@ -161,7 +161,7 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
     }
 
-    private static class ReferenceTrackingExclusiveCache implements PersistentExclusiveCache {
+    private static class ReferenceTrackingExclusiveCache implements PersistentCache {
         private final DirCacheReference reference;
 
         private ReferenceTrackingExclusiveCache(DirCacheReference reference) {

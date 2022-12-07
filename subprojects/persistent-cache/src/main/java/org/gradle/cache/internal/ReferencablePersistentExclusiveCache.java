@@ -16,11 +16,11 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.cache.PersistentExclusiveCache;
+import org.gradle.cache.PersistentCache;
 
 import java.io.Closeable;
 
-public interface ReferencablePersistentExclusiveCache extends PersistentExclusiveCache, Closeable {
+public interface ReferencablePersistentExclusiveCache extends PersistentCache, Closeable {
 
     @Override
     void close();

@@ -17,7 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentExclusiveCache;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
@@ -42,7 +42,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
     private final ListenerManager listenerManager;
     private final FileSystemAccess fileSystemAccess;
     private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
-    private final PersistentExclusiveCache cache;
+    private final PersistentCache cache;
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
     private final ConcurrentMap<String, DefaultFileContentCache<?>> caches = new ConcurrentHashMap<>();
 

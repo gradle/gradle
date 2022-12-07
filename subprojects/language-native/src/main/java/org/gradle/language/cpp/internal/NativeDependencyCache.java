@@ -17,7 +17,7 @@
 package org.gradle.language.cpp.internal;
 
 import org.gradle.cache.FileLockManager;
-import org.gradle.cache.PersistentExclusiveCache;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
@@ -32,7 +32,7 @@ import static org.gradle.nativeplatform.internal.modulemap.GenerateModuleMapFile
  * This is intended to be temporary, until more metadata can be published and the dependency resolution engine can deal with it. As such, it's not particularly performant or robust.
  */
 public class NativeDependencyCache implements Stoppable {
-    private final PersistentExclusiveCache cache;
+    private final PersistentCache cache;
 
     public NativeDependencyCache(GlobalScopedCacheBuilderFactory cacheRepository) {
         cache = cacheRepository.cacheBuilder("native-dep").withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand)).open();

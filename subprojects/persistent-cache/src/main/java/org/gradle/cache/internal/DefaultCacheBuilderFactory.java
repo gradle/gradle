@@ -21,7 +21,7 @@ import org.gradle.cache.CacheBuilderFactory;
 import org.gradle.cache.CacheCleanup;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
-import org.gradle.cache.PersistentExclusiveCache;
+import org.gradle.cache.PersistentCache;
 
 import java.io.File;
 import java.util.Collections;
@@ -52,7 +52,7 @@ public class DefaultCacheBuilderFactory implements CacheBuilderFactory {
         final String key;
         final File baseDir;
         Map<String, ?> properties = Collections.emptyMap();
-        Action<? super PersistentExclusiveCache> initializer;
+        Action<? super PersistentCache> initializer;
         CacheCleanup cacheCleanup;
         LockOptions lockOptions = mode(FileLockManager.LockMode.Shared);
         String displayName;
@@ -95,7 +95,7 @@ public class DefaultCacheBuilderFactory implements CacheBuilderFactory {
         }
 
         @Override
-        public CacheBuilder withInitializer(Action<? super PersistentExclusiveCache> initializer) {
+        public CacheBuilder withInitializer(Action<? super PersistentCache> initializer) {
             this.initializer = initializer;
             return this;
         }
@@ -107,7 +107,7 @@ public class DefaultCacheBuilderFactory implements CacheBuilderFactory {
         }
 
         @Override
-        public PersistentExclusiveCache open() {
+        public PersistentCache open() {
             File cacheBaseDir;
             if (baseDir != null) {
                 cacheBaseDir = baseDir;

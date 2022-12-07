@@ -20,7 +20,7 @@ import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.cache.PersistentExclusiveCache;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Pair;
@@ -108,7 +108,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         // Both caches can be closed directly after use because:
         // For 1, if the script changes or its compile classpath changes, a different directory will be used
         // For 2, if the script changes, a different cache is used. If the classpath changes, the cache is invalidated, but classes are remapped to 1. anyway so never directly used
-        final PersistentExclusiveCache cache = cacheRepository.cacheBuilder("scripts/" + key)
+        final PersistentCache cache = cacheRepository.cacheBuilder("scripts/" + key)
             .withDisplayName(dslId + " generic class cache for " + source.getDisplayName())
             .withInitializer(new ProgressReportingInitializer(
                 progressLoggerFactory,
@@ -160,15 +160,15 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     public void close() {
     }
 
-    private File classesDir(PersistentExclusiveCache cache, CompileOperation<?> operation) {
+    private File classesDir(PersistentCache cache, CompileOperation<?> operation) {
         return new File(cache.getBaseDir(), operation.getId());
     }
 
-    private File metadataDir(PersistentExclusiveCache cache) {
+    private File metadataDir(PersistentCache cache) {
         return new File(cache.getBaseDir(), "metadata");
     }
 
-    private class CompileToCrossBuildCacheAction implements Action<PersistentExclusiveCache> {
+    private class CompileToCrossBuildCacheAction implements Action<PersistentCache> {
         private final Action<? super ClassNode> verifier;
         private final Class<? extends Script> scriptBaseClass;
         private final ClassLoader classLoader;
@@ -185,20 +185,20 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         }
 
         @Override
-        public void execute(PersistentExclusiveCache cache) {
+        public void execute(PersistentCache cache) {
             File classesDir = classesDir(cache, operation);
             File metadataDir = metadataDir(cache);
             scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir, operation, scriptBaseClass, verifier);
         }
     }
 
-    static class ProgressReportingInitializer implements Action<PersistentExclusiveCache> {
+    static class ProgressReportingInitializer implements Action<PersistentCache> {
         private final ProgressLoggerFactory progressLoggerFactory;
-        private final Action<? super PersistentExclusiveCache> delegate;
+        private final Action<? super PersistentCache> delegate;
         private final String shortDescription;
 
         public ProgressReportingInitializer(ProgressLoggerFactory progressLoggerFactory,
-                                            Action<PersistentExclusiveCache> delegate,
+                                            Action<PersistentCache> delegate,
                                             String shortDescription) {
             this.progressLoggerFactory = progressLoggerFactory;
             this.delegate = delegate;
@@ -206,7 +206,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         }
 
         @Override
-        public void execute(PersistentExclusiveCache cache) {
+        public void execute(PersistentCache cache) {
             ProgressLogger op = progressLoggerFactory.newOperation(FileCacheBackedScriptClassCompiler.class).start(shortDescription, shortDescription);
             try {
                 delegate.execute(cache);

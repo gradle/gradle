@@ -17,7 +17,7 @@ package org.gradle.cache.internal
 
 import org.gradle.api.Action
 import org.gradle.cache.CacheBuilder
-import org.gradle.cache.PersistentExclusiveCache
+import org.gradle.cache.PersistentCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -34,7 +34,7 @@ class DefaultCacheBuilderFactoryTest extends Specification {
     private final TestFile sharedCacheDir = homeDir.file("caches")
     private final Map<String, ?> properties = [a: "value", b: "value2"]
     private final CacheFactory cacheFactory = Mock()
-    private final PersistentExclusiveCache cache = Mock()
+    private final PersistentCache cache = Mock()
     private final CacheScopeMapping scopeMapping = Mock()
     private final DefaultCacheBuilderFactory repository = new DefaultCacheBuilderFactory(scopeMapping, cacheFactory)
 

@@ -19,7 +19,7 @@ import org.gradle.api.Action
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheCleanup
 import org.gradle.cache.FileLockManager
-import org.gradle.cache.PersistentExclusiveCache
+import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -59,7 +59,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         }
 
         then:
-        1 * initializationAction.execute(_ as PersistentExclusiveCache)
+        1 * initializationAction.execute(_ as PersistentCache)
         0 * _
         loadProperties(emptyDir.file("cache.properties")) == properties
     }
@@ -77,7 +77,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         }
 
         then:
-        1 * initializationAction.execute(_ as PersistentExclusiveCache)
+        1 * initializationAction.execute(_ as PersistentCache)
         0 * _
         loadProperties(dir.file("cache.properties")) == properties
     }
@@ -95,7 +95,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         }
 
         then:
-        1 * initializationAction.execute(_ as PersistentExclusiveCache)
+        1 * initializationAction.execute(_ as PersistentCache)
         0 * _
         loadProperties(dir.file("cache.properties")) == properties
     }
@@ -114,7 +114,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         }
 
         then:
-        1 * initializationAction.execute(_ as PersistentExclusiveCache)
+        1 * initializationAction.execute(_ as PersistentCache)
         0 * _
         loadProperties(dir.file("cache.properties")) == properties
     }
@@ -123,8 +123,8 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         given:
         def dir = temporaryFolder.getTestDirectory().file("dir").createDir()
         final RuntimeException failure = new RuntimeException()
-        Action<PersistentExclusiveCache> failingAction = Stub(Action) {
-            execute(_ as PersistentExclusiveCache) >> { throw failure }
+        Action<PersistentCache> failingAction = Stub(Action) {
+            execute(_ as PersistentCache) >> { throw failure }
         }
         def cache = new DefaultPersistentDirectoryExclusiveCache(dir, "<display-name>", properties, CacheBuilder.LockTarget.DefaultTarget, mode(FileLockManager.LockMode.Shared), failingAction, cacheCleanup, lockManager, Mock(ExecutorFactory), progressLoggerFactory)
 
@@ -148,7 +148,7 @@ class DefaultPersistentDirectoryCacheTest extends AbstractProjectBuilderSpec {
         }
 
         then:
-        1 * initializationAction.execute(_ as PersistentExclusiveCache)
+        1 * initializationAction.execute(_ as PersistentCache)
         0 * _
         loadProperties(dir.file("cache.properties")) == properties
     }

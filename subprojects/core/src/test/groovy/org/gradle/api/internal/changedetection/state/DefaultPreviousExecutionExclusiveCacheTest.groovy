@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.FileLockManager
-import org.gradle.cache.PersistentExclusiveCache
+import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory
 import spock.lang.Specification
@@ -28,7 +28,7 @@ class DefaultPreviousExecutionExclusiveCacheTest extends Specification {
 
     def "opens backing cache on construction"() {
         CacheBuilder cacheBuilder = Mock()
-        PersistentExclusiveCache backingCache = Mock()
+        PersistentCache backingCache = Mock()
 
         when:
         new DefaultExecutionHistoryCacheAccess(cacheRepository)

@@ -19,7 +19,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.ObjectCache;
-import org.gradle.cache.PersistentExclusiveCache;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
@@ -34,7 +34,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class DefaultCompilationStateCacheFactory implements CompilationStateCacheFactory, Closeable {
 
     private final IndexedCache<String, CompilationState> compilationStateIndexedCache;
-    private final PersistentExclusiveCache cache;
+    private final PersistentCache cache;
 
     public DefaultCompilationStateCacheFactory(BuildScopedCacheBuilderFactory cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         cache = cacheRepository

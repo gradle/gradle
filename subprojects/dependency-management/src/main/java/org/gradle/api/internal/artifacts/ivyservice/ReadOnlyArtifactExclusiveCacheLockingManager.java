@@ -21,7 +21,7 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheBuilderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
-import org.gradle.cache.PersistentExclusiveCache;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
@@ -43,7 +43,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class ReadOnlyArtifactExclusiveCacheLockingManager implements ArtifactExclusiveCacheLockingManager, Closeable {
     private final static Logger LOGGER = Logging.getLogger(ReadOnlyArtifactExclusiveCacheLockingManager.class);
 
-    private final PersistentExclusiveCache cache;
+    private final PersistentCache cache;
 
     public ReadOnlyArtifactExclusiveCacheLockingManager(
             CacheBuilderFactory cacheBuilderFactory,
