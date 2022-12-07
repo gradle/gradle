@@ -21,39 +21,21 @@ import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 
 
 internal
-class ExperimentalCompilerWarningSilencer(private val warningsToSilence: List<String>) : ContextAwareTaskLogger.MessageRewriter {
+class ExperimentalCompilerWarningSilencer(
 
     private
-    val unsafeCompilerArgumentsWarningHeader = "This build uses unsafe internal compiler arguments:"
+    val warningsToSilence: List<String>
 
-    override fun rewrite(logLevel: LogLevel, message: String): String? {
-        return if (containsWarningsToBeSilenced(logLevel, message)) {
-            rewriteMessage(message)
-        } else {
-            message
-        }
-    }
+) : ContextAwareTaskLogger.MessageRewriter {
 
     private
-    fun rewriteMessage(message: String): String? {
-        var rewrittenMessage = message
-        for (warning in warningsToSilence) {
-            rewrittenMessage = rewrittenMessage.replace("$warning\n", "")
-        }
-        if (rewrittenMessage.lines().any { it.startsWith("-") }) {
-            return rewrittenMessage
-        }
-        return null
-    }
+    val rewrittenLevels = listOf(LogLevel.WARN, LogLevel.ERROR)
+
+    override fun rewrite(logLevel: LogLevel, message: String): String? =
+        if (logLevel in rewrittenLevels && message.containsSilencedWarning()) null
+        else message
 
     private
-    fun containsWarningsToBeSilenced(logLevel: LogLevel, message: String): Boolean {
-        if (logLevel != LogLevel.WARN && logLevel != LogLevel.ERROR) {
-            return false
-        }
-        if (!message.contains(unsafeCompilerArgumentsWarningHeader)) {
-            return false
-        }
-        return true
-    }
+    fun String.containsSilencedWarning() =
+        warningsToSilence.any { contains(it) }
 }
