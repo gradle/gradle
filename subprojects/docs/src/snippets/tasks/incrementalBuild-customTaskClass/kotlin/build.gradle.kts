@@ -123,5 +123,5 @@ tasks.register("removeTempDir") {
 // end::adhoc-destroyable-task[]
 
 tasks.build {
-    dependsOn(processTemplates, "processTemplatesAdHoc", "processTemplatesAdHocSkipWhenEmpty", "processTemplatesWithExtraInputs", "processTemplatesWithoutAnnotations")
+    dependsOn(processTemplates, "processTemplatesAdHoc", "processTemplatesAdHocSkipWhenEmpty", "processTemplatesWithExtraInputs")
 }
