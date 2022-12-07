@@ -25,8 +25,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
     private static final int MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES + 1
     private static final int MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1
 
-    private static final String THIS_PROPERTY_FINAL_ERROR = "The value for this property is final and cannot be changed any further"
-    private static final String REMOVE_UNUSED_ENTRIES_FINAL_ERROR = "The value for property 'removeUnusedEntriesOlderThan' is final and cannot be changed any further"
+    private static final String CANNOT_CONFIGURE_MESSAGE = "You can only configure the property '%s' in an init script, preferably stored in the init.d directory inside the Gradle user home directory."
 
     def setup() {
         requireOwnGradleUserHomeDir()
@@ -103,15 +102,15 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("help")
-        failureCauseContains(error)
+        failureCauseContains(String.format(CANNOT_CONFIGURE_MESSAGE, errorProperty))
 
         where:
-        property                                           | error                             | value
-        'cleanup'                                          | THIS_PROPERTY_FINAL_ERROR         | 'Cleanup.DISABLED'
-        'releasedWrappers.removeUnusedEntriesAfterDays'    | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}"
-        'snapshotWrappers.removeUnusedEntriesAfterDays'    | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}"
-        'downloadedResources.removeUnusedEntriesAfterDays' | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}"
-        'createdResources.removeUnusedEntriesAfterDays'    | REMOVE_UNUSED_ENTRIES_FINAL_ERROR | "${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}"
+        property                                           | errorProperty                  | value
+        'cleanup'                                          | 'cleanup'                      | 'Cleanup.DISABLED'
+        'releasedWrappers.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesOlderThan' | "${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}"
+        'snapshotWrappers.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesOlderThan' | "${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}"
+        'downloadedResources.removeUnusedEntriesAfterDays' | 'removeUnusedEntriesOlderThan' | "${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}"
+        'createdResources.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesOlderThan' | "${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}"
     }
 
     static String modifyCacheConfiguration(String property, String value) {

@@ -23,8 +23,8 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
+import org.gradle.api.internal.cache.CacheConfigurationsInternal.UnlockableProperty
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
-import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
@@ -561,7 +561,7 @@ class ConfigurationCacheState(
             cacheConfigurations.snapshotWrappers = read() as CacheResourceConfigurationInternal?
             cacheConfigurations.downloadedResources = read() as CacheResourceConfigurationInternal?
             cacheConfigurations.createdResources = read() as CacheResourceConfigurationInternal?
-            cacheConfigurations.cleanup = readNonNull<Property<Cleanup>>()
+            cacheConfigurations.cleanup = readNonNull<UnlockableProperty<Cleanup>>()
         }
     }
 
