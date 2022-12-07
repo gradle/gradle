@@ -44,6 +44,6 @@ public interface TypeMetadataWalker<T, V extends TypeMetadataWalker.NodeMetadata
     interface StaticMetadataVisitor extends NodeMetadataVisitor<TypeToken<?>> {}
     interface InstanceMetadataVisitor extends NodeMetadataVisitor<Object> {
         void visitMissingNested(String qualifiedName, PropertyMetadata propertyMetadata);
-        void visitUnpackNestedError(String qualifiedName, Exception e);
+        void visitNestedUnpackingError(String qualifiedName, Exception e);
     }
 }
