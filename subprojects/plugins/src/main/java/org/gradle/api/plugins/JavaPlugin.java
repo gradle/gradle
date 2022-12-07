@@ -59,7 +59,6 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
-import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
@@ -284,20 +283,13 @@ public abstract class JavaPlugin implements Plugin<Project> {
         SourceSet mainSourceSet = javaExtension.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
         projectInternal.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(project, mainSourceSet));
 
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
         PublishArtifact jarArtifact = configureArchives(project, mainSourceSet);
 
         configureBuiltInTest(project, mainSourceSet);
-        configureSourceSets(javaExtension, buildOutputCleanupRegistry);
         createConsumableConfigurations(project, mainSourceSet, jarArtifact);
         JvmPluginsHelper.configureJavaDocTask(null, mainSourceSet, project.getTasks(), javaExtension);
         configureBuild(project);
         configurePublishing(project, mainSourceSet);
-    }
-
-    private static void configureSourceSets(JavaPluginExtension pluginExtension, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
-        // Register the project's source set output directories
-        pluginExtension.getSourceSets().all(sourceSet -> buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput()));
     }
 
     private static void configureBuiltInTest(Project project, SourceSet mainSourceSet) {

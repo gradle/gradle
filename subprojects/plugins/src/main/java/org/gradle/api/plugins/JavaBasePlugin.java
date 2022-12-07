@@ -59,8 +59,9 @@ import org.gradle.api.tasks.javadoc.internal.JavadocExecutableUtils;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Cast;
-import org.gradle.jvm.tasks.Jar;
+import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
@@ -131,7 +132,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
         DefaultJavaPluginExtension javaPluginExtension = addExtensions(projectInternal);
 
-        configureSourceSetDefaults(project, javaPluginExtension);
+        configureSourceSetDefaults(projectInternal, javaPluginExtension);
         configureCompileDefaults(project, javaPluginExtension);
 
         configureJavaDoc(project, javaPluginExtension);
@@ -149,7 +150,9 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         return javaPluginExtension;
     }
 
-    private void configureSourceSetDefaults(Project project, final JavaPluginExtension javaPluginExtension) {
+    private void configureSourceSetDefaults(ProjectInternal project, final JavaPluginExtension javaPluginExtension) {
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
+
         javaPluginExtension.getSourceSets().all(sourceSet -> {
             ConventionMapping outputConventionMapping = ((IConventionAware) sourceSet.getOutput()).getConventionMapping();
 
@@ -166,6 +169,9 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             configureTargetPlatform(compileTask, sourceSet, configurations);
 
             JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(JavaCompile::getOptions));
+
+            // Consider source set outputs as safe to delete
+            buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput());
         });
     }
 
