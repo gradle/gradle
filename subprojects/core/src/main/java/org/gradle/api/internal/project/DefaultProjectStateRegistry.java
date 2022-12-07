@@ -91,7 +91,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry {
     }
 
     @Override
-    public void resetState(BuildState build) {
+    public void discardProjectsFor(BuildState build) {
         DefaultBuildProjectRegistry registry = projectsByBuild.get(build.getBuildIdentifier());
         if (registry != null) {
             for (ProjectStateImpl project : registry.projectsByPath.values()) {

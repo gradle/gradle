@@ -58,8 +58,8 @@ class ConfigurationCacheHost internal constructor(
         }
     }
 
-    override fun createBuild(settingsFile: File?, rootProjectName: String): ConfigurationCacheBuild =
-        DefaultConfigurationCacheBuild(gradle, service(), service(), settingsFile, rootProjectName)
+    override fun createBuild(settingsFile: File?): ConfigurationCacheBuild =
+        DefaultConfigurationCacheBuild(gradle, service(), service(), settingsFile)
 
     override fun <T> service(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
@@ -91,8 +91,7 @@ class ConfigurationCacheHost internal constructor(
         override val gradle: GradleInternal,
         private val fileResolver: PathToFileResolver,
         private val buildStateRegistry: BuildStateRegistry,
-        private val settingsFile: File?,
-        private val rootProjectName: String
+        private val settingsFile: File?
     ) : ConfigurationCacheBuild {
 
         private
@@ -103,24 +102,32 @@ class ConfigurationCacheHost internal constructor(
             gradle.run {
                 settings = createSettings()
                 setBaseProjectClassLoaderScope(coreScope)
-                rootProjectDescriptor().name = rootProjectName
             }
         }
 
-        override fun createProject(projectPath: Path, dir: File, buildDir: File) {
+        override fun registerRootProject(rootProjectName: String, projectDir: File, buildDir: File) {
+            // Root project is registered when the settings are created, just need to adjust its properties
+            val descriptor = rootProjectDescriptor()
+            descriptor.name = rootProjectName
+            descriptor.projectDir = projectDir
+            buildDirs[Path.ROOT] = buildDir
+        }
+
+        override fun registerProject(projectPath: Path, dir: File, buildDir: File) {
             val name = projectPath.name
-            val projectDescriptor = DefaultProjectDescriptor(
+            require(name != null)
+            // Adds the descriptor to the registry as a side effect
+            DefaultProjectDescriptor(
                 getProjectDescriptor(projectPath.parent),
-                name ?: rootProjectName,
+                name,
                 dir,
                 projectDescriptorRegistry,
                 fileResolver
             )
-            projectDescriptorRegistry.addProject(projectDescriptor)
             buildDirs[projectPath] = buildDir
         }
 
-        override fun registerProjects() {
+        override fun createProjects() {
             // Ensure projects are registered for look up e.g. by dependency resolution
             val projectRegistry = service<ProjectStateRegistry>()
             projectRegistry.registerProjects(state, projectDescriptorRegistry)
@@ -155,8 +162,8 @@ class ConfigurationCacheHost internal constructor(
         override fun getProject(path: String): ProjectInternal =
             state.projects.getProject(Path.path(path)).mutableModel
 
-        override fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, rootProjectName: String): ConfigurationCacheBuild {
-            return DefaultConfigurationCacheBuild(buildStateRegistry.addIncludedBuild(buildDefinition).mutableModel, fileResolver, buildStateRegistry, settingsFile, rootProjectName)
+        override fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?): ConfigurationCacheBuild {
+            return DefaultConfigurationCacheBuild(buildStateRegistry.addIncludedBuild(buildDefinition).mutableModel, fileResolver, buildStateRegistry, settingsFile)
         }
 
         private
@@ -185,6 +192,14 @@ class ConfigurationCacheHost internal constructor(
         fun settingsDir() =
             service<BuildLayout>().settingsDir
 
+        private
+        fun getProjectDescriptor(parentPath: Path?): DefaultProjectDescriptor? =
+            parentPath?.let { projectDescriptorRegistry.getProject(it.path) }
+
+        private
+        val projectDescriptorRegistry
+            get() = (gradle.settings as DefaultSettings).projectDescriptorRegistry
+
         override
         val state: CompositeBuildParticipantBuildState = gradle.owner as CompositeBuildParticipantBuildState
     }
@@ -196,12 +211,4 @@ class ConfigurationCacheHost internal constructor(
     private
     val coreAndPluginsScope: ClassLoaderScope
         get() = classLoaderScopeRegistry.coreAndPluginsScope
-
-    private
-    fun getProjectDescriptor(parentPath: Path?): DefaultProjectDescriptor? =
-        parentPath?.let { projectDescriptorRegistry.getProject(it.path) }
-
-    private
-    val projectDescriptorRegistry
-        get() = (gradle.settings as DefaultSettings).projectDescriptorRegistry
 }
