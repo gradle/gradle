@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.CacheDecorator;
+import org.gradle.cache.ExclusiveCacheAccessCoordinator;
 import org.gradle.cache.FileAccess;
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
@@ -59,8 +60,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 
 @ThreadSafe
-public class DefaultExclusiveCache implements ExclusiveCacheCoordinator {
-    private final static Logger LOG = LoggerFactory.getLogger(DefaultExclusiveCache.class);
+public class DefaultCacheCoordinator implements CacheCreationCoordinator, ExclusiveCacheAccessCoordinator {
+    private final static Logger LOG = LoggerFactory.getLogger(DefaultCacheCoordinator.class);
     private final static Runnable NO_OP = () -> {
         // Empty initial operation to trigger onStartWork calls
     };
@@ -87,7 +88,7 @@ public class DefaultExclusiveCache implements ExclusiveCacheCoordinator {
     private int cacheClosedCount;
     private boolean alreadyCleaned;
 
-    public DefaultExclusiveCache(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupAction cleanupAction, ExecutorFactory executorFactory) {
+    public DefaultCacheCoordinator(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupAction cleanupAction, ExecutorFactory executorFactory) {
         this.cacheDisplayName = cacheDisplayName;
         this.baseDir = baseDir;
         this.cleanupAction = cleanupAction;

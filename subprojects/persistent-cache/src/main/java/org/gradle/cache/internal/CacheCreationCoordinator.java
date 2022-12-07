@@ -16,14 +16,13 @@
 
 package org.gradle.cache.internal;
 
-import org.gradle.cache.ExclusiveCache;
 import org.gradle.cache.HasCleanupAction;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
 
 import java.io.Closeable;
 
-public interface ExclusiveCacheCoordinator extends ExclusiveCache, Closeable, HasCleanupAction {
+public interface CacheCreationCoordinator extends Closeable, HasCleanupAction {
     void open();
 
     /**

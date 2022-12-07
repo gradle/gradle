@@ -57,7 +57,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentEx
     protected final File propertiesFile;
     private final File gcFile;
     private final ProgressLoggerFactory progressLoggerFactory;
-    private ExclusiveCacheCoordinator cacheAccess;
+    private DefaultCacheCoordinator cacheAccess;
 
     public DefaultPersistentDirectoryStore(
         File dir,
@@ -94,8 +94,8 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentEx
         return this;
     }
 
-    private ExclusiveCacheCoordinator createCacheAccess() {
-        return new DefaultExclusiveCache(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), getCleanupAction(), executorFactory);
+    private DefaultCacheCoordinator createCacheAccess() {
+        return new DefaultCacheCoordinator(displayName, getLockTarget(), lockOptions, dir, lockManager, getInitAction(), getCleanupAction(), executorFactory);
     }
 
     private File getLockTarget() {

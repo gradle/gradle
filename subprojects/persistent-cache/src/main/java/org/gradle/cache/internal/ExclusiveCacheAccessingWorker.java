@@ -17,7 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.AsyncCacheAccess;
-import org.gradle.cache.ExclusiveCache;
+import org.gradle.cache.ExclusiveCacheAccessCoordinator;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorPolicy;
@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit;
 class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private final BlockingQueue<Runnable> workQueue;
     private final String displayName;
-    private final ExclusiveCache exclusiveCache;
+    private final ExclusiveCacheAccessCoordinator exclusiveCacheAccessCoordinator;
     private final long batchWindowMillis;
     private final long maximumLockingTimeMillis;
     private boolean closed;
@@ -47,9 +47,9 @@ class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, AsyncCacheAc
     private final CountDownLatch doneSignal = new CountDownLatch(1);
     private final ExecutorPolicy.CatchAndRecordFailures failureHandler = new ExecutorPolicy.CatchAndRecordFailures();
 
-    ExclusiveCacheAccessingWorker(String displayName, ExclusiveCache exclusiveCache) {
+    ExclusiveCacheAccessingWorker(String displayName, ExclusiveCacheAccessCoordinator exclusiveCacheAccessCoordinator) {
         this.displayName = displayName;
-        this.exclusiveCache = exclusiveCache;
+        this.exclusiveCacheAccessCoordinator = exclusiveCacheAccessCoordinator;
         this.batchWindowMillis = 200;
         this.maximumLockingTimeMillis = 5000;
         HeapProportionalCacheSizer heapProportionalCacheSizer = new HeapProportionalCacheSizer();
@@ -172,7 +172,7 @@ class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, AsyncCacheAc
     private void flushOperations(final Runnable updateOperation) {
         final List<FlushOperationsCommand> flushOperations = new ArrayList<FlushOperationsCommand>();
         try {
-            exclusiveCache.useCache(new Runnable() {
+            exclusiveCacheAccessCoordinator.useCache(new Runnable() {
                 @Override
                 public void run() {
                     CountdownTimer timer = Time.startCountdownTimer(maximumLockingTimeMillis, TimeUnit.MILLISECONDS);

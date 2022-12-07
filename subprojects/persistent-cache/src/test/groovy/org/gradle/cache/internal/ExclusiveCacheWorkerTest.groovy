@@ -17,15 +17,15 @@
 package org.gradle.cache.internal
 
 
-import org.gradle.cache.ExclusiveCache
+import org.gradle.cache.ExclusiveCacheAccessCoordinator
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 class ExclusiveCacheWorkerTest extends ConcurrentSpec {
-    ExclusiveCache cacheAccess
+    ExclusiveCacheAccessCoordinator cacheAccess
     ExclusiveCacheAccessingWorker cacheAccessWorker
 
     def setup() {
-        cacheAccess = Stub(ExclusiveCache) {
+        cacheAccess = Stub(ExclusiveCacheAccessCoordinator) {
             useCache(_) >> { Runnable action -> action.run() }
         }
         cacheAccessWorker = new ExclusiveCacheAccessingWorker("<cache>", cacheAccess)
