@@ -25,6 +25,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
@@ -84,6 +85,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 
 public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<EclipseRuntime> {
     private final GradleProjectBuilder gradleProjectBuilder;
@@ -186,7 +189,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
     private DefaultEclipseProject buildHierarchy(Project project) {
         List<DefaultEclipseProject> children = new ArrayList<>();
-        for (Project child : project.getChildProjects().values()) {
+        for (Project child : getChildProjectsForInternalUse(project)) {
             children.add(buildHierarchy(child));
         }
 
@@ -225,7 +228,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             eclipseProject.setSourceDirectories(classpathElements.getSourceDirectories());
             eclipseProject.setClasspathContainers(classpathElements.getClasspathContainers());
             eclipseProject.setOutputLocation(classpathElements.getEclipseOutputLocation() != null ? classpathElements.getEclipseOutputLocation() : new DefaultEclipseOutputLocation("bin"));
-            eclipseProject.setAutoBuildTasks(!eclipseModel.getAutoBuildTasks().getDependencies(null).isEmpty());
+            eclipseProject.setAutoBuildTasks(!TaskDependencyUtil.getDependenciesForInternalUse(eclipseModel.getAutoBuildTasks(), null).isEmpty());
 
             org.gradle.plugins.ide.eclipse.model.Project xmlProject = new org.gradle.plugins.ide.eclipse.model.Project(new XmlTransformer());
 
@@ -241,7 +244,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
             populateEclipseProjectJdt(eclipseProject, eclipseModel.getJdt());
         });
 
-        for (Project childProject : project.getChildProjects().values()) {
+        for (Project childProject : getChildProjectsForInternalUse(project)) {
             populate(childProject);
         }
     }

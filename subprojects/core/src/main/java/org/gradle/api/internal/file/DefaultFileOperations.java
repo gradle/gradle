@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
 import org.gradle.api.UncheckedIOException;
@@ -39,6 +40,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -51,7 +53,6 @@ import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
@@ -84,6 +85,7 @@ public class DefaultFileOperations implements FileOperations {
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileCollectionFactory fileCollectionFactory;
+    private final TaskDependencyFactory taskDependencyFactory;
     private final ProviderFactory providers;
 
     public DefaultFileOperations(
@@ -100,6 +102,7 @@ public class DefaultFileOperations implements FileOperations {
         Factory<PatternSet> patternSetFactory,
         Deleter deleter,
         DocumentationRegistry documentationRegistry,
+        TaskDependencyFactory taskDependencyFactory,
         ProviderFactory providers
     ) {
         this.fileCollectionFactory = fileCollectionFactory;
@@ -111,6 +114,7 @@ public class DefaultFileOperations implements FileOperations {
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
         this.patternSetFactory = patternSetFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
         this.providers = providers;
         this.fileCopier = new FileCopier(
             deleter,
@@ -174,7 +178,7 @@ public class DefaultFileOperations implements FileOperations {
     @Override
     public FileTreeInternal zipTree(Object zipPath) {
         Provider<File> fileProvider = asFileProvider(zipPath);
-        return new FileTreeAdapter(new ZipFileTree(fileProvider, getExpandDir(), fileSystem, directoryFileTreeFactory, fileHasher), patternSetFactory);
+        return new FileTreeAdapter(new ZipFileTree(fileProvider, getExpandDir(), fileSystem, directoryFileTreeFactory, fileHasher), taskDependencyFactory, patternSetFactory);
     }
 
     @Override
@@ -183,34 +187,24 @@ public class DefaultFileOperations implements FileOperations {
         Provider<ReadableResourceInternal> resource = providers.provider(() -> {
             if (tarPath instanceof ReadableResourceInternal) {
                 return (ReadableResourceInternal) tarPath;
-            } else if (tarPath instanceof ReadableResource) {
-                // custom type
-                return new UnknownBackingFileReadableResource((ReadableResource) tarPath);
             } else {
                 File tarFile = file(tarPath);
                 return new LocalResourceAdapter(new LocalFileStandInExternalResource(tarFile, fileSystem));
             }
         });
 
-        if (tarPath instanceof ReadableResource) {
-            boolean hasBackingFile = tarPath instanceof ReadableResourceInternal
-                && ((ReadableResourceInternal) tarPath).getBackingFile() != null;
-            if (!hasBackingFile) {
-                DeprecationLogger.deprecateAction("Using tarTree() on a resource without a backing file")
-                    .withAdvice("Convert the resource to a file and then pass this file to tarTree(). For converting the resource to a file you can use a custom task or declare a dependency.")
-                    .willBecomeAnErrorInGradle8()
-                    .withUpgradeGuideSection(7, "tar_tree_no_backing_file")
-                    .nagUser();
-            }
-        }
-
-        TarFileTree tarTree = new TarFileTree(fileProvider, resource.map(MaybeCompressedFileResource::new), getExpandDir(), fileSystem, directoryFileTreeFactory, streamHasher, fileHasher);
-        return new FileTreeAdapter(tarTree, patternSetFactory);
+        TarFileTree tarTree = new TarFileTree(fileProvider, resource.map(MaybeCompressedFileResource::new), getExpandDir(), fileSystem, directoryFileTreeFactory, fileHasher);
+        return new FileTreeAdapter(tarTree, taskDependencyFactory, patternSetFactory);
     }
 
     private Provider<File> asFileProvider(Object path) {
         if (path instanceof ReadableResource) {
-            return providers.provider(() -> null);
+            boolean hasBackingFile = path instanceof ReadableResourceInternal
+                && ((ReadableResourceInternal) path).getBackingFile() != null;
+            if (!hasBackingFile) {
+                throw new InvalidUserCodeException("Cannot use tarTree() on a resource without a backing file.");
+            }
+            return providers.provider(() -> ((ReadableResourceInternal) path).getBackingFile());
         }
         if (path instanceof Provider) {
             ProviderInternal<?> provider = (ProviderInternal<?>) path;
@@ -312,9 +306,11 @@ public class DefaultFileOperations implements FileOperations {
         Deleter deleter = services.get(Deleter.class);
         DocumentationRegistry documentationRegistry = services.get(DocumentationRegistry.class);
         ProviderFactory providers = services.get(ProviderFactory.class);
+        TaskDependencyFactory taskDependencyFactory = services.get(TaskDependencyFactory.class);
 
         DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
             fileResolver,
+            taskDependencyFactory,
             fileSystem,
             null,
             textResourceAdapterFactory
@@ -334,6 +330,7 @@ public class DefaultFileOperations implements FileOperations {
             patternSetFactory,
             deleter,
             documentationRegistry,
+            taskDependencyFactory,
             providers);
     }
 }

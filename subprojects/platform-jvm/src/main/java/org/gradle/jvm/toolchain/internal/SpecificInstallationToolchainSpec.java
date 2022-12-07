@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.base.MoreObjects;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.model.ObjectFactory;
 
 import java.io.File;
@@ -52,14 +53,39 @@ public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
 
     private final File javaHome;
 
-    public SpecificInstallationToolchainSpec(ObjectFactory factory, File javaHome) {
+    private SpecificInstallationToolchainSpec(ObjectFactory factory, File javaHome) {
         super(factory);
         this.javaHome = javaHome;
 
         // disallow changing property values
-        getLanguageVersion().finalizeValue();
-        getVendor().finalizeValue();
-        getImplementation().finalizeValue();
+        finalizeProperties();
+    }
+
+    public static SpecificInstallationToolchainSpec fromJavaHome(ObjectFactory objectFactory, File javaHome) {
+        if (javaHome.exists()) {
+            if (javaHome.isDirectory()) {
+                return new SpecificInstallationToolchainSpec(objectFactory, javaHome);
+            } else {
+                throw new InvalidUserDataException("The configured Java home is not a directory (" + javaHome.getAbsolutePath() + ")");
+            }
+        } else {
+            throw new InvalidUserDataException("The configured Java home does not exist (" + javaHome.getAbsolutePath() + ")");
+        }
+    }
+
+    public static SpecificInstallationToolchainSpec fromJavaExecutable(ObjectFactory objectFactory, String executable) {
+        final File executableFile = new File(executable);
+        if (executableFile.exists()) {
+            if (!executableFile.isDirectory()) {
+                // Relying on the layout of the toolchain distribution: <JAVA HOME>/bin/<executable>
+                final File parentJavaHome = executableFile.getParentFile().getParentFile();
+                return new SpecificInstallationToolchainSpec(objectFactory, parentJavaHome);
+            } else {
+                throw new InvalidUserDataException("The configured executable is a directory (" + executableFile.getAbsolutePath() + ")");
+            }
+        } else {
+            throw new InvalidUserDataException("The configured executable does not exist (" + executableFile.getAbsolutePath() + ")");
+        }
     }
 
     @Override

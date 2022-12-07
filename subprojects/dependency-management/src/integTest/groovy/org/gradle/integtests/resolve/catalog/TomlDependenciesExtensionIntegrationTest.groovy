@@ -446,7 +446,7 @@ from-included="org.gradle.test:other:1.1"
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("com.acme:included:1.0", "project :included", "com.acme:included:zloubi") {
+                edge("com.acme:included:1.0", ":included", "com.acme:included:zloubi") {
                     compositeSubstitute()
                     configuration = "runtimeElements"
                     module('org.gradle.test:other:1.1')
@@ -854,6 +854,7 @@ dependencyResolutionManagement {
 """
 
         when:
+        executer.withStacktraceEnabled()
         fails 'help'
 
         then:
@@ -862,4 +863,90 @@ dependencyResolutionManagement {
         })
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20060")
+    def "no name conflicting of accessors"() {
+        def lib1 = mavenHttpRepo.module("com.company", "a", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("com.companylibs", "b", "1.0").publish()
+        def lib3 = mavenHttpRepo.module("com.companyLibs", "c", "1.0").publish()
+
+        def lib4 = mavenHttpRepo.module("com.company", "d", "1.0").publish()
+        def lib5 = mavenHttpRepo.module("com.company", "e", "1.0").publish()
+
+        tomlFile << """
+            [versions]
+            version-libs-v1 = "1.0"
+            versionLibs-v2 = "2.0"
+            versionlibs-v3 = "3.0"
+
+            [libraries]
+            com-company-libs-a = "com.company:a:1.0"
+            com-companylibs-b = "com.companylibs:b:1.0"
+            com-companyLibs-c = "com.companyLibs:c:1.0"
+
+            com-company-d = "com.company:d:1.0"
+            com-company-e = "com.company:e:1.0"
+
+            [bundles]
+            com-company-libs-bundle = ["com-company-d"]
+            com-companylibs-bundle = ["com-company-e"]
+
+            [plugins]
+            p-some-plugin-p1 = "plugin1:1.0"
+            p-somePlugin-p2 = "plugin2:1.0"
+        """
+
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                implementation libs.com.company.libs.a
+                implementation libs.com.companylibs.b
+                implementation libs.com.companyLibs.c
+
+                implementation libs.bundles.com.company.libs.bundle
+                implementation libs.bundles.com.companylibs.bundle
+            }
+
+            tasks.register('checkVersions') {
+                assert libs.versions.version.libs.v1.get() == '1.0'
+                assert libs.versions.versionLibs.v2.get() == '2.0'
+                assert libs.versions.versionlibs.v3.get() == '3.0'
+            }
+
+            tasks.register('checkPlugins') {
+                assert libs.plugins.p.some.plugin.p1.get().getPluginId() == 'plugin1'
+                assert libs.plugins.p.somePlugin.p2.get().getPluginId() == 'plugin2'
+            }
+        """
+
+        when:
+        lib1.pom.expectGet()
+        lib1.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+        lib3.pom.expectGet()
+        lib3.artifact.expectGet()
+
+        lib4.pom.expectGet()
+        lib4.artifact.expectGet()
+        lib5.pom.expectGet()
+        lib5.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+        run ':checkVersions'
+        run ':checkPlugins'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('com.company:a:1.0')
+                module('com.companylibs:b:1.0')
+                module('com.companyLibs:c:1.0')
+
+                module('com.company:d:1.0')
+                module('com.company:e:1.0')
+            }
+        }
+    }
 }

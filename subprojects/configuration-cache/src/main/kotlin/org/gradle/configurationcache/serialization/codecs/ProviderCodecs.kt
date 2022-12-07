@@ -36,6 +36,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.services.internal.BuildServiceDetails
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.configurationcache.extensions.serviceOf
@@ -43,7 +44,9 @@ import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.decodePreservingSharedIdentity
+import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
 import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
 import org.gradle.configurationcache.serialization.logPropertyProblem
 import org.gradle.configurationcache.serialization.readClassOf
@@ -91,12 +94,14 @@ class FixedValueReplacingProviderCodec(
                 // TODO - should preserve information about the source, for diagnostics at execution time
                 writeByte(1)
             }
+
             value.hasFixedValue() && sideEffect == null -> {
                 // Can serialize a fixed value and discard the provider
                 // TODO - should preserve information about the source, for diagnostics at execution time
                 writeByte(2)
                 write(value.fixedValue)
             }
+
             value.hasFixedValue() && sideEffect != null -> {
                 // Can serialize a fixed value and discard the provider
                 // TODO - should preserve information about the source, for diagnostics at execution time
@@ -104,6 +109,7 @@ class FixedValueReplacingProviderCodec(
                 write(value.fixedValue)
                 write(sideEffect)
             }
+
             else -> {
                 // Cannot write a fixed value, so write the provider itself
                 writeByte(4)
@@ -122,6 +128,7 @@ class FixedValueReplacingProviderCodec(
                 val value = read() as BrokenValue
                 ValueSupplier.ExecutionTimeValue.changingValue(DefaultProvider { value.rethrow() })
             }
+
             1.toByte() -> ValueSupplier.ExecutionTimeValue.missing<Any>()
             2.toByte() -> ValueSupplier.ExecutionTimeValue.ofNullable(read()) // nullable because serialization may replace value with null, eg when using provider of Task
             3.toByte() -> {
@@ -162,14 +169,15 @@ class BuildServiceProviderCodec(
 
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
         encodePreservingSharedIdentityOf(value) {
-            val buildIdentifier = value.buildIdentifier
-            write(buildIdentifier)
-            writeString(value.name)
-            writeClass(value.implementationType)
-            write(value.parameters)
-            writeInt(
-                buildServiceRegistryOf(buildIdentifier).forService(value).maxUsages
-            )
+            val serviceDetails: BuildServiceDetails<*, *> = value.serviceDetails
+            write(serviceDetails.buildIdentifier)
+            writeString(serviceDetails.name)
+            writeClass(serviceDetails.implementationType)
+            writeBoolean(serviceDetails.isResolved)
+            if (serviceDetails.isResolved) {
+                write(serviceDetails.parameters)
+                writeInt(serviceDetails.maxUsages)
+            }
         }
     }
 
@@ -178,9 +186,14 @@ class BuildServiceProviderCodec(
             val buildIdentifier = readNonNull<BuildIdentifier>()
             val name = readString()
             val implementationType = readClassOf<BuildService<*>>()
-            val parameters = read() as BuildServiceParameters?
-            val maxUsages = readInt()
-            buildServiceRegistryOf(buildIdentifier).register(name, implementationType, parameters, maxUsages)
+            val isResolved = readBoolean()
+            if (isResolved) {
+                val parameters = read() as BuildServiceParameters?
+                val maxUsages = readInt()
+                buildServiceRegistryOf(buildIdentifier).register(name, implementationType, parameters, maxUsages)
+            } else {
+                buildServiceRegistryOf(buildIdentifier).consume(name, implementationType)
+            }
         }
 
     private
@@ -202,6 +215,7 @@ class ValueSourceProviderCodec(
                 writeBoolean(true)
                 encodeValueSource(value)
             }
+
             else -> {
                 // source has been used as build logic input:
                 // serialize the value directly as it will be part of the
@@ -260,14 +274,20 @@ class PropertyCodec(
 ) : Codec<DefaultProperty<*>> {
 
     override suspend fun WriteContext.encode(value: DefaultProperty<*>) {
-        writeClass(value.type as Class<*>)
-        providerCodec.run { encodeProvider(value.provider) }
+        encodePreservingIdentityOf(value) {
+            writeClass(value.type as Class<*>)
+            providerCodec.run { encodeProvider(value.provider) }
+        }
     }
 
     override suspend fun ReadContext.decode(): DefaultProperty<*> {
-        val type: Class<Any> = readClass().uncheckedCast()
-        val provider = providerCodec.run { decodeProvider() }
-        return propertyFactory.property(type).provider(provider)
+        return decodePreservingIdentity { id ->
+            val type: Class<Any> = readClass().uncheckedCast()
+            val provider = providerCodec.run { decodeProvider() }
+            val property = propertyFactory.property(type).provider(provider)
+            isolate.identities.putInstance(id, property)
+            property
+        }
     }
 }
 

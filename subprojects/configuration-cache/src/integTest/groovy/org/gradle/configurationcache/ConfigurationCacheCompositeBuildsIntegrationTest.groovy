@@ -16,14 +16,11 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.integtests.fixtures.BuildOperationTreeQueries
-import org.gradle.internal.operations.trace.BuildOperationRecord
+
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.scan.config.fixtures.ApplyGradleEnterprisePluginFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
-
-import java.util.regex.Pattern
 
 class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -48,69 +45,6 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
         then:
         postBuildOutputContains 'Build scan written to'
         configurationCache.assertStateLoaded()
-    }
-
-    def "hierarchy of build scan relevant build operations is preserved"() {
-        given:
-        def expectedOperations = [
-            "Run build / Load build",
-            "Run build / Load build / Evaluate settings",
-            "Run build / Load build / Load build (:lib)",
-            "Run build / Load build / Load build (:lib) / Evaluate settings (:lib)",
-            "Run build / Configure build / Load projects",
-            "Run build / Configure build / Configure build (:lib) / Load projects",
-            "Run build / Configure build / Configure build (:lib) / Configure project :lib",
-            "Run build / Configure build / Configure project :",
-            "Run build / Calculate build tree task graph",
-            "Run build / Calculate build tree task graph / Calculate task graph",
-            "Run build / Calculate build tree task graph / Calculate task graph (:lib)",
-            "Run build / Calculate build tree task graph / Notify task graph whenReady listeners (:lib)",
-            "Run build / Calculate build tree task graph / Notify task graph whenReady listeners"
-        ]
-        def configurationCache = newConfigurationCacheFixture()
-        withLibBuild()
-        withAppBuild()
-
-        when:
-        inDirectory 'app'
-        configurationCacheRun 'assemble'
-
-        then:
-        configurationCache.assertStateStored()
-        def buildScanOperationsOnStore = buildScanOperationsOf(configurationCache.operations)
-        buildScanOperationsOnStore == expectedOperations
-
-        when:
-        inDirectory 'app'
-        configurationCacheRun 'assemble'
-
-        then:
-        configurationCache.assertStateLoaded()
-        def buildScanOperationsOnLoad = buildScanOperationsOf(configurationCache.operations)
-        buildScanOperationsOnLoad == buildScanOperationsOnStore
-    }
-
-    private static List<?> buildScanOperationsOf(BuildOperationTreeQueries operations) {
-        scanRelevantOperationsIn(operations).collect {
-            (parentsOf(it, operations) + it)
-                .collect { it.displayName }
-                .join ' / '
-        }
-    }
-
-    private static List<BuildOperationRecord> parentsOf(BuildOperationRecord buildOperationRecord, BuildOperationTreeQueries operations) {
-        operations.parentsOf(buildOperationRecord).findAll {
-            // remove intermediate configuration cache state operation from the tree
-            it.displayName != 'Load configuration cache state'
-        }
-    }
-
-    private static List<BuildOperationRecord> scanRelevantOperationsIn(BuildOperationTreeQueries operations) {
-        operations.all(
-            Pattern.compile(
-                /(Load build|Evaluate settings|Load projects|Configure project|Calculate build tree task graph|Calculate task graph|Notify task graph whenReady listeners).*/
-            )
-        )
     }
 
     def "can use lib produced by included build"() {
@@ -246,6 +180,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
         then:
         problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(2)
             withUniqueProblems(expectedProblem)
             withProblemsWithStackTraceCount(0)
         }

@@ -16,22 +16,18 @@
 
 package org.gradle.performance.regression.android
 
-import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AvailableJavaHomes
+
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.performance.fixture.AndroidTestProject
-import org.gradle.profiler.BuildMutator
-import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD
-import static org.gradle.performance.fixture.AndroidTestProject.LARGE_ANDROID_BUILD_2
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanceTest implements AndroidPerformanceTestFixture {
@@ -39,9 +35,10 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
         AndroidTestProject.useStableAgpVersion(runner)
-        // AGP 4.1 requires 6.5+
-        // forUseAtConfigurationTime API used in this scenario
-        runner.minimumBaseVersion = "6.5"
+        AndroidTestProject.useStableKotlinVersion(runner)
+        // AGP 7.3 requires Gradle 7.4
+        runner.minimumBaseVersion = "7.4"
+        configureProjectJavaHomeToJdk11()
     }
 
     @RunFor([
@@ -59,11 +56,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         applyEnterprisePlugin()
-
-        and:
-        if (androidTestProject == LARGE_ANDROID_BUILD_2) {
-            configureForLargeAndroidBuild2()
-        }
 
         when:
         def result = runner.run()
@@ -110,18 +102,5 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
         where:
         tasks << ['assembleDebug', 'phthalic:assembleDebug']
-    }
-
-    private void configureForLargeAndroidBuild2() {
-        def buildJavaHome = AvailableJavaHomes.getAvailableJdks { it.languageVersion == JavaVersion.VERSION_11 }.first().javaHome
-        runner.addBuildMutator { invocation ->
-            new BuildMutator() {
-                @Override
-                void beforeScenario(ScenarioContext context) {
-                    def gradleProps = new File(invocation.projectDir, "gradle.properties")
-                    gradleProps << "\norg.gradle.java.home=${buildJavaHome}\n"
-                }
-            }
-        }
     }
 }

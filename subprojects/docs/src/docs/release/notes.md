@@ -1,52 +1,38 @@
-
 The Gradle team is excited to announce Gradle @version@.
 
-This release includes [building and running code with Java 19](#java19),
-a flag to [rerun tasks individually](#individual-rerun),
-a new [strongly-typed dependencies block](#strongly-typed-dependencies) for JVM test suites,
-and a [pluggable system for Java Toolchains provisioning](#toolchain-provision).
-
-As always there are also performance improvements like enhancements to the [configuration cache](#configuration) and
-[incremental compilation](#incremental-compilation-after-failure).
+This release features [1](), [2](), ... [n](), and more.
 
 <!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 
- THiS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+ THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+ The list is rendered as is, so use commas after each contributor's name, and a period at the end.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
-[altrisi](https://github.com/altrisi),
-[aSemy](https://github.com/aSemy),
-[Ashwin Pankaj](https://github.com/ashwinpankaj),
-[Aurimas](https://github.com/liutikas),
-[BJ Hargrave](https://github.com/bjhargrave),
+
+[Andrei Nevedomskii](https://github.com/monosoul),
 [Björn Kautler](https://github.com/Vampire),
-[Bradley Turek](https://github.com/TurekBot),
-[Craig Andrews](https://github.com/candrews),
-[Daniel Lin](https://github.com/ephemient),
-[David Morris](https://github.com/codefish1),
-[Edmund Mok](https://github.com/edmundmok),
-[Frosty-J](https://github.com/Frosty-J),
-[Gabriel Feo](https://github.com/gabrielfeo),
-[Ivan Gavrilovic](https://github.com/gavra0),
-[Jendrik Johannes](https://github.com/jjohannes),
-[John](https://github.com/goughy000),
-[Joseph Woolf](https://github.com/jsmwoolf),
-[Karl-Michael Schindler](https://github.com/kamischi),
-[Konstantin Gribov](https://github.com/grossws),
-[Leonardo Brondani Schenkel](https://github.com/lbschenkel),
-[Martin d'Anjou](https://github.com/martinda),
-[Michael Bailey](https://github.com/yogurtearl),
-[Pete Bentley](https://github.com/prbprbprb),
-[Rob Bavey](https://github.com/robbavey),
-[Sam Snyder](https://github.com/sambsnyd),
-[sll552](https://github.com/sll552),
-[teawithbrownsugar](https://github.com/teawithbrownsugar),
-[Thomas Broadley](https://github.com/tbroadley),
-[urdak](https://github.com/urdak),
-[Varun Sharma](https://github.com/varunsh-coder),
-[Xin Wang](https://github.com/scaventz)
+[Clara Guerrero](https://github.com/cguerreros),
+[David Marin](https://github.com/dmarin),
+[Denis Buzmakov](https://github.com/bacecek),
+[Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy),
+[Dzmitry Neviadomski](https://github.com/nevack),
+[Eliezer Graber](https://github.com/eygraber),
+[Fedor Ihnatkevich](https://github.com/Jeffset),
+[Gabriel Rodriguez](https://github.com/gabrielrodriguez2746),
+[Guruprasad Bagade](https://github.com/prasad-333),
+[Herbert von Broeuschmeul](https://github.com/HvB),
+[Matthew Haughton](https://github.com/3flex),
+[Michael Torres](https://github.com/torresmi),
+[Pankaj Kumar](https://github.com/p1729),
+[Ricardo Jiang](https://github.com/RicardoJiang),
+[Siddardha Bezawada](https://github.com/SidB3),
+[Stephen Topley](https://github.com/stopley),
+[Victor Maldonado](https://github.com/vmmaldonadoz),
+[Vinay Potluri](https://github.com/vinaypotluri),
+[Jeff Gaston](https://github.com/mathjeff),
+[David Morris](https://github.com/codefish1).
 
 ## Upgrade instructions
 
@@ -57,6 +43,8 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 See the [Gradle 7.x upgrade guide](userguide/upgrading_version_7.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
+
+## New features and usability improvements
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
@@ -86,367 +74,156 @@ Example:
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-## New features and usability improvements
 
-<a name="jvm"></a>
 ### JVM
 
-<a name="java19"></a>
-#### Added Support for Java 19
+#### Introduced `projectInternalView()` dependency for test suites with access to project internals
 
-Gradle 7.6 supports compiling, testing and running on Java 19.
+The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now
+supports depending on the internal view of the current project at compile-time.
+Previously it was only possible to depend on the current project's API. This allows
+test suites to access project internals that are not declared on
+the `api` or `compileOnlyApi` configurations. This functionality can be useful when
+testing internal classes that use dependencies which are not exposed as part of a
+project's API, like those declared on the `implementation` and `compileOnly` configurations.
 
-<a name="strongly-typed-dependencies"></a>
-#### Introduced strongly-typed `dependencies` block for JVM test suites
-
-The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now uses a [strongly-typed API](dsl/org.gradle.api.plugins.jvm.JvmComponentDependencies.html).
-This makes the build logic cleaner and improves assistance in the IDEs, especially with the Kotlin DSL.
-
-Previously, the JVM test suite `dependencies` block only accepted dependencies of type `Object`.
-
-```kotlin
-testing {
-    suites {
-        val test by getting(JvmTestSuite::class) {
-            useJUnitJupiter()
-            dependencies {
-                implementation(project(":foo")) {
-                    // Receiver (this) is of type Dependency
-                    // To access ProjectDependency
-                    // methods, smart-cast:
-                    this as ProjectDependency
-                    // Now available as a ProjectDependency
-                    println(dependencyProject)
-                }
-            }
-        }
-    }
-}
-```
-
-Now, each notation provides its `Dependency` subtype:
+For example, the following snippet uses the new `projectInternalView()` API to define a
+test suite with access to project internals:
 
 ```kotlin
 testing {
     suites {
-        val test by getting(JvmTestSuite::class) {
+        val unitLikeTestSuite by registering(JvmTestSuite::class) {
             useJUnitJupiter()
             dependencies {
-                implementation(project(":foo")) {
-                    // `this` already of type ProjectDependency
-                    println(dependencyProject)
-                }
+                implementation(projectInternalView())
             }
         }
     }
 }
 ```
 
-For example, using a `String` provides an `ExternalModuleDependency`.
-Using a `FileCollection` provides a `FileCollectionDependency`.
-This allows Java and Kotlin to properly configure all types of dependencies
-and improves IDE support for the Groovy DSL.
+For more information about warning modes, see [JVM test suite](userguide/jvm_test_suite_plugin.html).
 
-In addition, the Kotlin DSL now supports named arguments for external dependencies in this block:
+
+###  Kotlin DSL
+
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assist, refactoring, documentation, and more.
+
+#### Updated the Kotlin DSL to Kotlin API Level 1.5
+
+Previously, the Kotlin DSL used Kotlin API level 1.4.
+Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.5.
+This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0.
+
+For information about breaking and nonbreaking changes in this upgrade, see the [upgrading guide](userguide/upgrading_version_7.html#kotlin_language_1_5).
+
+##### Enhanced script compilation to use the Gradle JVM as Kotlin JVM Target
+
+Previously, the compilation of `.gradle.kts` scripts always used Java 8 as the Kotlin JVM target.
+Starting with Gradle 8.0, it now uses the version of the JVM running the build.
+
+If your team is using e.g. Java 11 to run Gradle, this allows you to use Java 11 librairies and language features in your build scripts.
+
+Note that this doesn't apply to [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) which use the configured `kotlinDslPluginOptions.jvmTarget`.
+
+##### Imporved Script compilation performance 
+
+This Gradle version introduces an interpreter for [declarative `plugins {}` blocks](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts.
+It allows to avoid calling the Kotlin compiler for declarative `plugins {}` blocks and is enabled by default.
+
+On a build with declarative `plugins {}` blocks, a Gradle invocation that needs to compile all scripts, the interpreter makes the overall build time around 20% faster.
+As usual, compiled scripts are stored in the build cache and can be reused by other builds.
+
+Here is what is supported in declarative `plugins {}` blocks:
 
 ```kotlin
-testing {
-    suites {
-        "test"(JvmTestSuite::class) { 
-            useJUnitJupiter()
-            dependencies {
-                implementation(module(group = "com.google.guava",
-                               name = "guava",
-                               version = "31.1-jre"))
-            }
-        }
-    }
+plugins {
+    id("java-library")                               // <1>
+    id("com.acme.example") version "1.0 apply false" // <2>
+    kotlin("jvm") version "1.7.21"                   // <3>
 }
 ```
+1. Plugin specification by plugin identifier string
+2. Plugin specification with version and/or the plugin application flag
+3. Kotlin plugin specification helper
 
-For more information about the test suite `dependencies` block, see
-[Differences Between Test Suite and Top-Level Dependencies](userguide/jvm_test_suite_plugin.html#differences_between_the_test_suite_dependencies_and_the_top_level_dependencies_blocks).
+Note that using version catalog aliases for plugins or plugin specification type-safe accessors is not supported by the `plugins {}` block interpreter.
 
-<a name="toolchain-provision"></a>
-#### Added support for Java Toolchain downloads from arbitrary repositories
-
-Starting in Gradle 7.6, Gradle can download JVM [toolchains](userguide/toolchains.html) from arbitrary repositories.
-By default, Gradle downloads toolchains from Adoptium/AdoptOpenJDK.
-You can now override the default providers with repositories of your choice using a toolchain resolver plugin.
-
-For example, the following uses custom plugins that provide `AzulResolver` and `AdoptiumResolver` to add custom toolchains for Adoptium and Azul:
+Here are examples of unsupported constructs:
 
 ```kotlin
-toolchainManagement {
-    jvm {
-        javaRepositories {
-            repository("azul") {
-                resolverClass.set(AzulResolver::class.java)
-                credentials {
-                    username = "user"
-                    password = "password"
-                }
-                authentication {
-                    create<DigestAuthentication>("digest")
-                }
-            }
-            repository("adoptium") {
-                resolverClass.set(AdoptiumResolver::class.java)
-            }
-        }
-    }
+plugins {
+    val v = "2"
+    id("some") version v    // <1>
+
+    `java-library`          // <2>
+    alias(libs.plugins.jmh) // <3>
 }
 ```
+1. Non-declarative code, unsupported
+2. Plugin specification type-safe accessor, unsupported
+3. Version catalog plugin reference, unsupported
 
-For more information about using custom toolchain resolvers, see the [Toolchain Download Repositories documentation](userguide/toolchains.html#sub:download_repositories).
-For more information about writing custom toolchain resolvers, see the [Toolchain Resolver Plugins documentation](userguide/toolchain_plugins.html).
+In the cases above, Gradle falls back to the Kotlin compiler, providing the same performance as previous Gradle releases.
 
-<a name="incremental-compilation-after-failure"></a>
-#### Added support for incremental compilation following a compilation failure
 
-Gradle supports [Java incremental compilation](userguide/java_plugin.html#sec:incremental_compile)
-by default and [Groovy incremental compilation](userguide/groovy_plugin.html#sec:incremental_groovy_compilation)
-as an opt-in experimental feature.
-
-In previous versions, a compilation failure caused the next compilation to perform a full recompile.
-Starting in Gradle 7.6, Java and Groovy incremental compilation can work even after a failure.
-
-This feature is enabled by default when incremental compilation is enabled.
-The feature can be disabled with the [`incrementalAfterFailure`](javadoc/org/gradle/api/tasks/compile/CompileOptions.html#getIncrementalAfterFailure--) compile option.
-
-#### Introduced support for Java 9+ network debugging
-
-You can run a Java test or application child process with [debugging options](userguide/java_testing.html#sec:debugging_java_tests) to accept debugger client connections over the network. If the debugging options only specify a port, but not a host address, the set of accepted connections depends on your version of Java:
-
-- Before Java 9, the debugger client accepts connections from any machine.
-- Starting in Java 9, the debugger client accepts connections originating from the host machine *only*.
-
-This release adds a new property to [`JavaDebugOptions`](javadoc/org/gradle/process/JavaDebugOptions.html): `host`.
-This allows you to specify the debugger host address along with the port.
-
-Similarly, the new Gradle property `org.gradle.debug.host` now enables [running the Gradle process with the debugger server](userguide/troubleshooting.html#sec:troubleshooting_build_logic) accepting connections via network on Java 9 and above.
-
-On Java 9 and above, use the special host address value `*` to make the debugger server listen on all network interfaces.
-Otherwise, use the address of one of the machine's network interfaces.
-
-#### Revised dependencies generated from `init` Maven conversions from `implementation` to `api`
-
-The `init` task now adds compile-time Maven dependencies to Gradle's `api` configuration when converting a Maven project.
-This sharply reduces the number of compilation errors.
-It is still recommended to use [`implementation`](userguide/java_library_plugin.html#sec:java_library_separation) where possible. 
-
-For more information about Maven conversions, see the [Build Init Plugin](userguide/build_init_plugin.html#sec:pom_maven_conversion).
-
-<a name="general-improvements"></a>
 ### General Improvements
 
-<a name="individual-rerun"></a>
-#### Introduced flag for individual task `rerun`
+#### Enhanced warning modes `all` and `fail` are now more verbose
 
-All tasks can now use the `--rerun` option. This option works like `--rerun-tasks`,
-except `--rerun` only affects a single task. For example, you can force tests to
-ignore up-to-date checks like this:
+Warning modes that are supposed to print all warnings were printing only one for each specific warning message.
 
-```
-gradle test --rerun
-```
+If there were two warnings with the same message, but originating from different steps of the build process (i.e. different stack traces), only one of them was printed. 
 
-For more information about the rerun option, see [Built-in Task Options](userguide/command_line_interface.html#sec:builtin_task_options).
+Now one gets printed for each combination of message and stack trace.
 
-<a name="init"></a>
-#### Relocated convention plugins in projects generated with `init`
+For more information about warning modes, see [Showing or hiding warnings](userguide/command_line_interface.html#sec:command_line_warnings).
 
-> 🐣 *This feature is incubating*.
 
-When generating builds with the `init` task and opting in to incubating features,
-Gradle now places convention plugins under the `build-logic` directory instead of in `buildSrc`.
+#### Improved Dependency verification metadata 
 
-Convention plugins are Gradle’s recommended way of organizing build logic where you can compose custom build logic by applying and configuring both core and external plugins. 
+The following nodes with dependency verification metadata file `verification-metadata.xml` now support a `reason` attribute:
 
-For more information about convention plugins, see [Convention Plugins](userguide/sharing_build_logic_between_subprojects.html#sec:convention_plugins).
+- the `trust` xml node under `trusted-artifacts`
+- the `md5`, `sha1`, `sha256` and `sha512` nodes under `component`
 
-#### Introduced network timeout configuration for wrapper download
+A reason is helpful to provide more details on why an artifact is trusted or why a selected checksum verification is required for an artifact directly in the `verification-metadata.xml`.
 
-It is now possible to configure the network timeout for downloading Gradle wrapper files.
-The default value is 10000ms and can be changed in several ways:
+#### Improved Dependency verification CLI
 
-From the command line:
+You can now use the `export-keys` flag to export all already trusted keys:
 
-```shell
-$ ./gradlew wrapper --network-timeout=30000
+```asciidoc
+./gradlew --export-keys
 ```
 
-In your build scripts or convention plugins:
+There is no longer a need to write verification metadata when exporting trusted keys. 
 
-```kotlin
-tasks.wrapper {
-    networkTimeout.set(30000)
-}
-```
+For more information, see [Exporting keys](userguide/dependency_verification.html#sec:local-keyring).
 
-Or in `gradle/wrapper/gradle-wrapper.properties`:
-
-```properties
-networkTimeout=30000
-```
-
-For more information about the Gradle wrapper, see [Gradle Wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper).
-
-#### Introduced ability to explain why a task was skipped with a message
-
-You can now provide a reason message when conditionally disabling a task using the
-[`Task.onlyIf` predicate](userguide/more_about_tasks.html#sec:using_a_predicate):
-
-```groovy
-tasks.register("slowBenchmark") {
-    onlyIf("slow benchmarks not enabled") {
-        false
-    }
-}
-```
-
-Gradle outputs reason messages at log level `INFO`.
-To output reason messages to the console, use the `--info` or `--debug` [log levels](userguide/logging.html).
-
-<a name="dependency-management"></a>
 ### Dependency Management
 
-
-#### Clarified the ordering of disambiguation rule checks in `resolvableConfigurations` reports
-
-Attribute disambiguation rules control the variant of a dependency selected by
-Gradle when:
-
-- multiple variants of a dependency exist with different compatible values for a
-  requested attribute
-- no variant exactly matches that attribute
-
-Attribute disambiguation rules select a single matching dependency variant in
-such cases. The `resolvableConfigurations` reporting task now prints the order
-of these rules:
-
-```shell
-$ ./gradlew resolvableConfigurations
-```
-
-```
---------------------------------------------------
-Disambiguation Rules
---------------------------------------------------
-The following Attributes have disambiguation rules defined.
-
-    - flavor
-    - org.gradle.category (1)
-    - org.gradle.dependency.bundling (5)
-    - org.gradle.jvm.environment (6)
-    - org.gradle.jvm.version (3)
-    - org.gradle.libraryelements (4)
-    - org.gradle.plugin.api-version
-    - org.gradle.usage (2)
-
-(#): Attribute disambiguation precedence
-```
-
-For more information, see [Attribute Disambiguation Rules](userguide/variant_attributes.html#sec:abm_disambiguation_rules).
-
-
-
-<a name="configuration"></a>
 ### Configuration Cache
 
-The [configuration cache](https://docs.gradle.org/7.5/userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds.
-
-#### Improved configuration cache failure recovery
-
-In previous Gradle versions, it was possible to leave a configuration cache entry in a permanently broken state after a dependency resolution failure. Following builds would simply reproduce the failure without any attempt to recover from it.
-
-Starting with Gradle 7.6, this is no longer the case. Gradle recovers from dependency resolution failures in exactly the same way whether the configuration cache is enabled or not.
-
-#### Extended configuration cache task compatibility
-
-The `dependencies`, `buildEnvironment`, `projects` and `properties` tasks are now compatible with the configuration cache.
-
-#### Added configuration cache support to the Maven Publish Plugin
-
-The [Maven Publish Plugin](userguide/publishing_maven.html) is now compatible with the configuration cache.
-
-Note that when using credentials, the configuration cache requires [safe credential containers](userguide/configuration_cache.html#config_cache:requirements:safe_credentials).
-
-#### Improved handling of `--offline` option
-
-Gradle now stores configuration caches for online and offline modes separately.
-This change supports builds and plugins that need to behave differently during configuration depending on whether the `--offline` option is in effect.
-
-For more information, see [the `--offline` CLI option](userguide/command_line_interface.html#sec:command_line_execution_options).
-
-<a name="plugin"></a>
 ### Plugin Development
 
-#### Introduced support for task options of type `Integer`
+#### Enhanced CodeNarc Plugin to automatically detects appropriate version for current Groovy runtime
 
-You can now pass integer task options declared as `Property<Integer>` from the command line.
+The [CodeNarc](https://codenarc.org/) project now publishes separate versions for use with Groovy 4.
+Gradle still currently ships with Groovy 3.
 
-For example, the following task option:
+To ensure future compatibility, the [CodeNarcPlugin](userguide/codenarc_plugin.html) now automatically detects the appropriate version of CodeNarc for the current Groovy runtime.
 
-```java
-@Option(option = "integer-option", description = "description")
-public abstract Property<Integer> getIntegerOption();
-```
+You can still explicitly specify a CodeNarc version with the `toolVersion` property on the [CodeNarcExtension](dsl/org.gradle.api.plugins.quality.CodeNarcExtension.html#org.gradle.api.plugins.quality.CodeNarcExtension).
 
-can be passed from the command line as follows:
+#### Enhanced PMD and CodeNarc tasks to execute in parallel by default
 
-```shell
-gradle myCustomTask --integer-option=123
-```
+The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process and therefore their tasks may now run in parallel within one project.
 
-<a name="ide"></a>
+In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
+
 ### IDE Integration
-
-These improvements are for IDE integrators and are not directly for end-users until their specific IDE implements the integration. 
-
-#### Enhanced test events to distinguish between assertion and framework failures
-
-Gradle 7.6 introduces new failure types for the `Failure` interface returned by
-[`FailureResult.getFailures()`](javadoc/org/gradle/tooling/events/FailureResult.html#getFailures--): `TestAssertionFailure` and `TestFrameworkFailure`.
-IDEs can now distinguish between assertion and framework failures using progress event listeners.
-For test frameworks that expose expected and actual values, `TestAssertionFailure` contains those values.
-
-<a name="testlauncher"></a>
-#### Introduced `TestLauncher` task execution
-
-The [`TestLauncher`](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients
-to execute any tasks along with the selected tests:
-
-```
-ProjectConnection connection = ...
-connection.newTestLauncher()
-          .withTaskAndTestClasses("integTest", ["org.MyTest"])
-          .forTasks("startDB")
-          .run()
-```
-
-#### Introduced class, method, package, and pattern test selection via `TestLauncher`
-
-The [TestLauncher](javadoc/org/gradle/tooling/TestLauncher.html) interface now allows Tooling API clients
-to select test classes, methods, packages and patterns with a new API.
-
-```
-TestLauncher testLauncher = projectConnection.newTestLauncher();
-testLauncher.withTestsFor(spec -> {
-    spec.forTaskPath(":test")
-        .includePackage("org.pkg")
-        .includeClass("com.TestClass")
-        .includeMethod("com.TestClass")
-        .includePattern("io.*")
-}).run();
-```
-
-<a name="pass-system-properties-to-build"></a>
-#### Added support for passing system properties to the build with the Tooling API
-
-Before 7.6, the Tooling API started builds with the system properties from the host JVM. This leaked configuration from the IDE to the build.
-Starting in Gradle 7.6, `LongRunningOperation.withSystemProperties(Map)` provides an isolated set of build system properties.
-For more information, see [`LongRunningOperation`](javadoc/org/gradle/tooling/LongRunningOperation.html#withSystemProperties-java.util.Map-).
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
@@ -455,14 +232,45 @@ ADD RELEASE FEATURES ABOVE
 -->
 
 ## Promoted features
-
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
-This Gradle release promotes the following features to stable:
+The following are the features that have been promoted in this Gradle release.
 
-- `getTestSources` and `getTestResources`
-- `getDestinationDirectory` and `getTestResults`
+### Promoted features in the Tooling API
+
+- The `GradleConnector.disconnect()` method is now considered stable.
+
+### Promoted features in the antlr plugin
+
+- The `AntlrSourceDirectorySet` interface is now considered stable.
+
+### Promoted features in the ear plugin
+
+- The `Ear.getAppDirectory()` method is now considered stable.
+
+### Promoted features in the eclipse plugin
+
+- The `EclipseClasspath.getContainsTestFixtures()` method is now considered stable.
+
+### Promoted features in the groovy plugin
+
+The following type and method are now considered stable:
+- `GroovySourceDirectorySet`
+- `GroovyCompileOptions.getDisabledGlobalASTTransformations()`
+
+### Promoted features in the scala plugin
+
+- The `ScalaSourceDirectorySet` interface is now considered stable.
+
+### Promoted features in the war plugin
+
+- The `War.getWebAppDirectory()` method is now considered stable.
+
+### Promoted features in the `Settings` API
+
+- The methods `Settings.dependencyResolutionManagement(Action)`  and `Settings.getDependencyResolutionManagement()` are now considered stable.
+  - All the methods in `DependencyResolutionManagement` are now stable, except the ones for central repository declaration.
 
 ## Fixed issues
 

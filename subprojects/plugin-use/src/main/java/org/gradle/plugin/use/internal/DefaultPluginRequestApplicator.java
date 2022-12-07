@@ -30,18 +30,19 @@ import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.PluginResolutionStrategyInternal;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.AlreadyOnClasspathPluginResolver;
+import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositoriesProvider;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
-import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.tracker.internal.PluginVersionTracker;
 import org.gradle.util.internal.TextUtil;
 
@@ -66,6 +67,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginInspector pluginInspector;
     private final CachedClasspathTransformer cachedClasspathTransformer;
     private final PluginVersionTracker pluginVersionTracker;
+    private final PluginApplicationListener pluginApplicationListenerBroadcaster;
 
     public DefaultPluginRequestApplicator(
         PluginRegistry pluginRegistry,
@@ -74,7 +76,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         PluginResolutionStrategyInternal pluginResolutionStrategy,
         PluginInspector pluginInspector,
         CachedClasspathTransformer cachedClasspathTransformer,
-        PluginVersionTracker pluginVersionTracker
+        PluginVersionTracker pluginVersionTracker,
+        ListenerManager listenerManager
     ) {
         this.pluginRegistry = pluginRegistry;
         this.pluginResolverFactory = pluginResolverFactory;
@@ -83,6 +86,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         this.pluginInspector = pluginInspector;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
         this.pluginVersionTracker = pluginVersionTracker;
+        this.pluginApplicationListenerBroadcaster = listenerManager.getBroadcaster(PluginApplicationListener.class);
     }
 
     @Override
@@ -199,6 +203,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         try {
             try {
                 applicator.run();
+                pluginApplicationListenerBroadcaster.pluginApplied(request);
             } catch (UnknownPluginException e) {
                 throw couldNotApply(request, id, e);
             } catch (Exception e) {

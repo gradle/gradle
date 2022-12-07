@@ -16,7 +16,6 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.logging.Logger;
@@ -27,6 +26,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.ExecutionResult;
+import org.gradle.internal.buildoption.InternalFlag;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -59,7 +60,7 @@ import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY;
 
 @NonNullApi
 public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
-    public static final String STAT_PROPERTY_NAME = "org.gradle.internal.executor.stats";
+    public static final InternalFlag STATS = new InternalFlag("org.gradle.internal.executor.stats");
     private static final Logger LOGGER = Logging.getLogger(DefaultPlanExecutor.class);
     private final int executorCount;
     private final WorkerLeaseService workerLeaseService;
@@ -76,7 +77,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         WorkerLeaseService workerLeaseService,
         BuildCancellationToken cancellationToken,
         ResourceLockCoordinationService coordinationService,
-        StartParameter startParameter
+        InternalOptions internalOptions
     ) {
         this.cancellationToken = cancellationToken;
         this.coordinationService = coordinationService;
@@ -87,7 +88,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
         this.executorCount = numberOfParallelExecutors;
         this.workerLeaseService = workerLeaseService;
-        this.stats = startParameter.getSystemPropertiesArgs().getOrDefault(STAT_PROPERTY_NAME, "false").equalsIgnoreCase("true") ? new CollectingExecutorStats(state) : state;
+        this.stats = internalOptions.getOption(STATS).get() ? new CollectingExecutorStats(state) : state;
         this.queue = new MergedQueues(coordinationService, false);
         this.executor = executorFactory.create("Execution worker");
     }

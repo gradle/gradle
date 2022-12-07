@@ -36,6 +36,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
+import org.gradle.api.internal.tasks.compile.daemon.CompilerWorkerExecutor;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -44,12 +45,10 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
-import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DaemonForkOptionsBuilder;
 import org.gradle.workers.internal.HierarchicalClassLoaderStructure;
 import org.gradle.workers.internal.KeepAliveMode;
-import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
 
@@ -62,8 +61,8 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
 
-    public DaemonScalaCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> compilerClass, Object[] compilerConstructorArguments, WorkerDaemonFactory workerDaemonFactory, Iterable<File> zincClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
-        super(workerDaemonFactory, actionExecutionSpecFactory);
+    public DaemonScalaCompiler(File daemonWorkingDir, Class<? extends Compiler<T>> compilerClass, Object[] compilerConstructorArguments, CompilerWorkerExecutor compilerWorkerExecutor, Iterable<File> zincClasspath, JavaForkOptionsFactory forkOptionsFactory, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry) {
+        super(compilerWorkerExecutor);
         this.compilerClass = compilerClass;
         this.compilerConstructorArguments = compilerConstructorArguments;
         this.zincClasspath = zincClasspath;
@@ -74,7 +73,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
     }
 
     @Override
-    protected CompilerParameters getCompilerParameters(T spec) {
+    protected CompilerWorkerExecutor.CompilerParameters getCompilerParameters(T spec) {
         return new ScalaCompilerParameters<T>(compilerClass.getName(), compilerConstructorArguments, spec);
     }
 
@@ -85,10 +84,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         MinimalScalaCompilerDaemonForkOptions forkOptions = compileOptions.getForkOptions();
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, forkOptions));
         javaForkOptions.setWorkingDir(daemonWorkingDir);
-        String javaExecutable = javaOptions.getExecutable();
-        if (javaExecutable != null) {
-            javaForkOptions.setExecutable(javaExecutable);
-        }
+        javaForkOptions.setExecutable(spec.getJavaExecutable().getAbsolutePath());
 
         ClassPath compilerClasspath = classPathRegistry.getClassPath("SCALA-COMPILER").plus(DefaultClassPath.of(zincClasspath));
 
@@ -115,7 +111,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         return gradleApiAndScalaSpec;
     }
 
-    public static class ScalaCompilerParameters<T extends ScalaJavaJointCompileSpec> extends CompilerParameters {
+    public static class ScalaCompilerParameters<T extends ScalaJavaJointCompileSpec> extends CompilerWorkerExecutor.CompilerParameters {
         private final T compileSpec;
 
         public ScalaCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, T compileSpec) {

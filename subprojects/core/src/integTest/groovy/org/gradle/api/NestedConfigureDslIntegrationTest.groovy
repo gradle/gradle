@@ -211,8 +211,7 @@ assert repositories.empty
         succeeds()
     }
 
-    // NOTE: Documents actual behaviour, for backwards compatibility purposes, not desired behaviour
-    def "can reference script level configure method from named container configure closure when that closure would fail with MME if applied to a new element"() {
+    def "cannot reference script level configure method from named container configure closure when that closure would fail with MME if applied to a new element"() {
         buildFile << """
 configurations {
     ${mavenCentralRepository()}
@@ -225,12 +224,11 @@ assert repositories.size() == 1
 """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Referencing 'repositories' in this block is deprecated. Fully qualify your reference to this API or access it in another block. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#referencing_script_configure_method_from_container_configure_closure_deprecated")
-        succeeds()
+        fails "help"
+        errorOutput.contains("Could not find method maven() for arguments")
     }
 
-    // NOTE: Documents actual behaviour, for backwards compatibility purposes, not desired behaviour
-    def "can reference script level configure method from async closure in named container configure closure when that closure would fail with MME if applied to a new element"() {
+    def "cannot reference script level configure method from async closure in named container configure closure when that closure would fail with MME if applied to a new element"() {
         buildFile << """
 plugins {
     id 'distribution'
@@ -259,8 +257,8 @@ assert configurations*.name.contains('conf')
 """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Referencing 'distributions' in this block is deprecated. Fully qualify your reference to this API or access it in another block. This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#referencing_script_configure_method_from_container_configure_closure_deprecated")
-        succeeds "resolve"
+        fails "resolve"
+        errorOutput.contains("Could not find method myDist() for arguments")
     }
 
     def "reports missing method from inside configure closure"() {

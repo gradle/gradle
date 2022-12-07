@@ -58,7 +58,9 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.logging.Logger
+import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.Convention
@@ -78,7 +80,9 @@ import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.StructuredMessage
 import org.gradle.configurationcache.problems.location
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.metaobject.BeanDynamicObject
 import org.gradle.internal.metaobject.DynamicObject
@@ -103,7 +107,8 @@ class ProblemReportingCrossProjectModelAccess(
     private val delegate: CrossProjectModelAccess,
     private val problems: ProblemsListener,
     private val coupledProjectsListener: CoupledProjectsListener,
-    private val userCodeContext: UserCodeApplicationContext
+    private val userCodeContext: UserCodeApplicationContext,
+    private val dynamicCallProblemReporting: DynamicCallProblemReporting
 ) : CrossProjectModelAccess {
     override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
         return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer)
@@ -119,6 +124,25 @@ class ProblemReportingCrossProjectModelAccess(
 
     override fun getAllprojects(referrer: ProjectInternal, relativeTo: ProjectInternal): MutableSet<out ProjectInternal> {
         return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
+    }
+
+    override fun gradleInstanceForProject(referrerProject: ProjectInternal, gradle: GradleInternal): GradleInternal {
+        return CrossProjectConfigurationReportingGradle.from(gradle, referrerProject)
+    }
+
+    override fun taskDependencyUsageTracker(referrerProject: ProjectInternal): TaskDependencyUsageTracker {
+        return ReportingTaskDependencyUsageTracker(referrerProject, coupledProjectsListener, problems, userCodeContext)
+    }
+
+    override fun taskGraphForProject(referrerProject: ProjectInternal, taskGraph: TaskExecutionGraphInternal): TaskExecutionGraphInternal {
+        return CrossProjectConfigurationReportingTaskExecutionGraph(taskGraph, referrerProject, problems, this, coupledProjectsListener, userCodeContext)
+    }
+
+    override fun parentProjectDynamicInheritedScope(referrerProject: ProjectInternal): DynamicObject? {
+        val parent = referrerProject.parent ?: return null
+        return CrossProjectModelAccessTrackingParentDynamicObject(
+            parent, parent.inheritedScope, referrerProject, problems, coupledProjectsListener, userCodeContext, dynamicCallProblemReporting
+        )
     }
 
     private
@@ -272,8 +296,13 @@ class ProblemReportingCrossProjectModelAccess(
             delegate.status = status
         }
 
+        @AllowUsingApiForExternalUse
         override fun getChildProjects(): MutableMap<String, Project> {
             return delegate.childProjects
+        }
+
+        override fun getChildProjectsUnchecked(): MutableMap<String, Project> {
+            return delegate.childProjectsUnchecked
         }
 
         override fun setProperty(name: String, value: Any?) {
@@ -886,7 +915,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getInheritedScope(): DynamicObject {
-            shouldNotBeUsed()
+            return delegate.inheritedScope
         }
 
         override fun getGradle(): GradleInternal {
@@ -907,6 +936,10 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getFileResolver(): FileResolver {
+            shouldNotBeUsed()
+        }
+
+        override fun getTaskDependencyFactory(): TaskDependencyFactory {
             shouldNotBeUsed()
         }
 

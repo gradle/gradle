@@ -102,10 +102,7 @@ public abstract class Node {
             } else {
                 builder.append(", ");
             }
-            builder.append(node);
-            if (node.isComplete()) {
-                builder.append(" (complete)");
-            }
+            builder.append(node).append(" (").append(node.getState()).append(")");
         }
         builder.append(']');
         return builder.toString();

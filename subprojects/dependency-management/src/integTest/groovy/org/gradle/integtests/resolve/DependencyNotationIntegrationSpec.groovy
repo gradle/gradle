@@ -23,7 +23,7 @@ import spock.lang.Issue
 
 class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache(because = "unsupported type Dependency")
+    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "understands dependency notations"() {
         when:
         buildFile <<  """
@@ -46,7 +46,6 @@ dependencies {
            prefer '1.1'
         }
         transitive = false
-        force = true
     }
 
     conf module('org.foo:moduleOne:1.0'), module('org.foo:moduleTwo:1.0')
@@ -66,7 +65,6 @@ task checkDeps {
         def configuredDep = deps.find { it instanceof ExternalDependency && it.group == 'org.test' && it.name == 'configured' }
         assert configuredDep.version == '1.1'
         assert configuredDep.transitive == false
-        assert configuredDep.force == true
 
         assert deps.find { it instanceof ClientModule && it.name == 'moduleOne' && it.group == 'org.foo' }
         assert deps.find { it instanceof ClientModule && it.name == 'moduleTwo' && it.version == '1.0' }
@@ -82,7 +80,6 @@ task checkDeps {
 }
 """
         then:
-        executer.expectDeprecationWarning()
         succeeds 'checkDeps'
     }
 
@@ -264,7 +261,7 @@ task checkDeps
         succeeds "check"
     }
 
-    def "warns if using a configuration as a dependency"() {
+    def "fails if using a configuration as a dependency"() {
         given:
         buildFile << """
             configurations {
@@ -279,12 +276,9 @@ task checkDeps
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Adding a Configuration as a dependency is a confusing behavior which isn't recommended."
-            + " This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0."
-            + " If you're interested in inheriting the dependencies from the Configuration you are adding, you should use Configuration#extendsFrom instead."
-            + " See https://docs.gradle.org/current/dsl/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:extendsFrom(org.gradle.api.artifacts.Configuration[]) for more details.")
+        fails "dependencies", '--configuration', 'conf'
 
         then:
-        succeeds "dependencies", '--configuration', 'conf'
+        result.hasErrorOutput("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.")
     }
 }

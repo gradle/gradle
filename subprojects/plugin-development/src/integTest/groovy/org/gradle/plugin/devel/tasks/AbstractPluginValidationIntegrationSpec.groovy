@@ -380,14 +380,14 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import org.gradle.api.tasks.Input;
 
             public class Pojo {
-                private final Boolean enabled;
+                private final boolean enabled;
 
-                public Pojo(Boolean enabled) {
+                public Pojo(boolean enabled) {
                     this.enabled = enabled;
                 }
 
                 @Input
-                public Boolean isEnabled() {
+                public boolean isEnabled() {
                     return enabled;
                 }
             }
@@ -671,12 +671,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
     abstract void assertValidationSucceeds()
 
-    @Deprecated
-    final void assertValidationFailsWith(Map<String, Severity> messages) {
-        assertValidationFailsWith(messages.collect { message, severity ->
-            new DocumentedProblem(message, severity)
-        })
-    }
 
     abstract void assertValidationFailsWith(List<DocumentedProblem> messages)
 

@@ -102,7 +102,7 @@ class EnvironmentChangeTracker(private val userCodeApplicationContext: UserCodeA
         }
 
         override fun toRestoring(): Restoring {
-            throw IllegalStateException("Cannot restore state because change tracking is already in progress")
+            return Restoring()
         }
 
         fun isSystemPropertyMutated(key: String): Boolean {

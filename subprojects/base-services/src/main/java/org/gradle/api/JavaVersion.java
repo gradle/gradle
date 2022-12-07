@@ -143,8 +143,7 @@ public enum JavaVersion {
      */
     VERSION_HIGHER;
     // Since Java 9, version should be X instead of 1.X
-    // However, to keep backward compatibility, we change from 11
-    private static final int FIRST_MAJOR_VERSION_ORDINAL = 10;
+    private static final int FIRST_MAJOR_VERSION_ORDINAL = 9 - 1;
     private static JavaVersion currentJavaVersion;
     private final String versionName;
 

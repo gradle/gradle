@@ -524,6 +524,7 @@ BUILD SUCCESSFUL"""
         failure.assertHasCause("Unknown command-line option '--tasssk'.")
         failure.assertHasResolutions(
             "Run gradle help --task :help to get task usage details.",
+            "Run with --stacktrace option to get the stack trace.",
             "Run with --info or --debug option to get more log output.",
             "Run with --scan to get full insights.",
         )

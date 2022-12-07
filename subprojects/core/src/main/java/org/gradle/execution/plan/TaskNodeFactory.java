@@ -25,6 +25,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.internal.Cast;
@@ -83,7 +84,7 @@ public class TaskNodeFactory {
     public TaskNode getOrCreateNode(Task task) {
         TaskNode node = nodes.get(task);
         if (node == null) {
-            if (task.getProject().getGradle() == thisBuild) {
+            if (((ProjectInternal) task.getProject()).getGradle().getIdentityPath().equals(thisBuild.getIdentityPath())) {
                 node = new LocalTaskNode((TaskInternal) task, new DefaultWorkValidationContext(documentationRegistry, typeOriginInspectorFactory.forTask(task)), resolveMutationsNodeFactory);
             } else {
                 node = TaskInAnotherBuild.of((TaskInternal) task, workGraphController);

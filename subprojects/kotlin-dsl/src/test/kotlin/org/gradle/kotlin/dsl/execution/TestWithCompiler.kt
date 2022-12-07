@@ -22,6 +22,7 @@ import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import org.gradle.api.Action
+import org.gradle.api.JavaVersion
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
@@ -72,6 +73,7 @@ abstract class TestWithCompiler : TestWithTempFiles() {
     ) {
         ResidualProgramCompiler(
             outputDir,
+            JavaVersion.current(),
             testRuntimeClassPath,
             sourceHash,
             programKind,

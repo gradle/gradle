@@ -18,15 +18,17 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
-class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture, ExecutionOptimizationDeprecationFixture {
+class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker, DirectoryBuildCacheFixture {
+
+    def setup() {
+        expectReindentedValidationMessage()
+    }
 
     def "implementation of nested property in Groovy build script is tracked"() {
         setupTaskClassWithActionProperty()
@@ -76,58 +78,32 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         """
     }
 
-    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/21109")
     @ValidationTestFor(
         ValidationProblemId.UNKNOWN_IMPLEMENTATION
     )
     @Issue("https://github.com/gradle/gradle/issues/5510")
-    def "task with nested property defined by non-serializable Java lambda disables execution optimizations"() {
+    def "task with nested property defined by non-serializable Java lambda fails the build"() {
         setupTaskClassWithConsumerProperty()
-        def originalClassName = "LambdaOriginal"
-        def changedClassName = "LambdaChanged"
-
-        file("buildSrc/src/main/java/${originalClassName}.java") <<
-            javaClass(originalClassName, nonSerializableLambdaWritingFile("ACTION", "original"))
-        file("buildSrc/src/main/java/${changedClassName}.java") <<
-            javaClass(changedClassName, nonSerializableLambdaWritingFile("ACTION", "changed"))
+        file("buildSrc/src/main/java/Lambdas.java") <<
+            javaClass("Lambdas", nonSerializableLambdaWritingFile("ACTION", "original"))
 
         buildFile << """
             task myTask(type: TaskWithConsumerProperty) {
-                consumer = providers.gradleProperty("changed").isPresent()
-                    ? ${changedClassName}.ACTION
-                    : ${originalClassName}.ACTION
+                consumer = Lambdas.ACTION
             }
         """
 
         buildFile.makeOlder()
 
         when:
-        expectImplementationUnknownDeprecation {
-            nestedProperty('consumer')
-            implementedByLambda(originalClassName)
-        }
-        run 'myTask'
+        fails 'myTask'
         then:
         executedAndNotSkipped(':myTask')
-
-        when:
-        expectImplementationUnknownDeprecation {
+        failureDescriptionStartsWith("A problem was found with the configuration of task ':myTask' (type 'TaskWithConsumerProperty').")
+        failureDescriptionContains(implementationUnknown {
             nestedProperty('consumer')
-            implementedByLambda(originalClassName)
-        }
-        run 'myTask'
-        then:
-        executedAndNotSkipped(':myTask')
-
-        when:
-        expectImplementationUnknownDeprecation {
-            nestedProperty('consumer')
-            implementedByLambda(changedClassName)
-        }
-        run 'myTask', '-Pchanged'
-        then:
-        executedAndNotSkipped(':myTask')
-        file('build/tmp/myTask/output.txt').text == "changed"
+            implementedByLambda("Lambdas")
+        })
     }
 
     def "can change nested property from one serializable Java lambda to another and back"() {

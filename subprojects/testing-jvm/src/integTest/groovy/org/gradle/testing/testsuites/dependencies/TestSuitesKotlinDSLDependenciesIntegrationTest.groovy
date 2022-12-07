@@ -848,7 +848,9 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
                 // Due to the named-args method being invoked, we are actually requesting a single dependency
                 val ${suiteName}Implementation = configurations.getByName("${suiteName}Implementation")
                 // We might get junit included too, dependending on the test suite, so filter it
-                val deps = ${suiteName}Implementation.dependencies.filter { it.name != "junit-jupiter" }
+                val deps = ${suiteName}Implementation.dependencies
+                            .filter { it.name != "junit-jupiter" }
+                            .filter { it.name != "junit-platform-launcher" }
                             .map { listOf(it.group, it.name, it.version ?: "null") }
                 doLast {
                     assert(deps.size == 1) { "expected 1 dependency, found " + (deps.size) + " dependencies" }

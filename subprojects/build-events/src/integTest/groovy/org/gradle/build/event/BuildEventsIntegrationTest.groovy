@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.events.FinishEvent
@@ -35,7 +34,6 @@ import org.gradle.util.internal.TextUtil
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@ConfigurationCacheTest
 class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
     def "listener can subscribe to task completion events"() {
         loggingListener()
@@ -47,8 +45,9 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
                 doFirst { println("not up-to-date") }
             }
             task upToDate {
-                outputs.file("thing.txt")
-                doFirst { file("thing.txt").text = "thing" }
+                def file = file("thing.txt")
+                outputs.file(file)
+                doFirst { file.text = "thing" }
             }
             task broken {
                 dependsOn notUpToDate, upToDate

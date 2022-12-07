@@ -25,8 +25,8 @@ import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import org.apache.commons.io.FileUtils
 import org.gradle.api.GradleException
-import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
@@ -115,6 +115,9 @@ abstract class PerformanceTest extends DistributionTest {
 
     @Input
     abstract Property<String> getReportGeneratorClass()
+
+    @Internal
+    abstract DirectoryProperty getCommitDistributionsDir()
 
     private final PerformanceReporter performanceReporter = project.objects.newInstance(PerformanceReporter)
 
@@ -268,11 +271,6 @@ abstract class PerformanceTest extends DistributionTest {
     @InputFiles
     abstract ConfigurableFileCollection getTestProjectFiles()
 
-    void setTestProjectGenerationTask(Task testProjectGenerationTask) {
-        getTestProjectName().set(testProjectGenerationTask.name)
-        getTestProjectFiles().setFrom(testProjectGenerationTask)
-    }
-
     void addDatabaseParameters(Map<String, String> databaseConnectionParameters) {
         this.databaseParameters.putAll(databaseConnectionParameters)
     }
@@ -317,6 +315,7 @@ abstract class PerformanceTest extends DistributionTest {
         }
 
         private void addExecutionParameters(List<String> result) {
+            addSystemPropertyIfExist(result, "integTest.commitDistributionsDir", commitDistributionsDir.get().asFile.absolutePath)
             addSystemPropertyIfExist(result, "org.gradle.performance.scenarios", scenarios)
             addSystemPropertyIfExist(result, "org.gradle.performance.testProject", getTestProjectName().getOrNull())
             addSystemPropertyIfExist(result, "org.gradle.performance.baselines", baselines.getOrNull())

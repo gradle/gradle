@@ -58,10 +58,10 @@ public class DependencyVerifierBuilder {
         topLevelComments.add(comment);
     }
 
-    public void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin) {
+    public void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin, @Nullable String reason) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
         byComponent.computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
-            .addChecksum(artifact, kind, value, origin);
+            .addChecksum(artifact, kind, value, origin, reason);
     }
 
     public void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key) {
@@ -109,8 +109,12 @@ public class DependencyVerifierBuilder {
     }
 
     public void addTrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+        addTrustedArtifact(group, name, version, fileName, regex, null);
+    }
+
+    public void addTrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String reason) {
         validateUserInput(group, name, version, fileName);
-        trustedArtifacts.add(new DependencyVerificationConfiguration.TrustedArtifact(group, name, version, fileName, regex));
+        trustedArtifacts.add(new DependencyVerificationConfiguration.TrustedArtifact(group, name, version, fileName, regex, reason));
     }
 
     public void addIgnoredKey(IgnoredKey keyId) {
@@ -153,8 +157,8 @@ public class DependencyVerifierBuilder {
             this.component = component;
         }
 
-        void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin) {
-            byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addChecksum(kind, value, origin);
+        void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin, @Nullable String reason) {
+            byArtifact.computeIfAbsent(artifact.getFileName(), id -> new ArtifactVerificationBuilder()).addChecksum(kind, value, origin, reason);
         }
 
         void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key) {
@@ -191,11 +195,14 @@ public class DependencyVerifierBuilder {
         private final Set<String> pgpKeys = Sets.newLinkedHashSet();
         private final Set<IgnoredKey> ignoredPgpKeys = Sets.newLinkedHashSet();
 
-        void addChecksum(ChecksumKind kind, String value, @Nullable String origin) {
+        void addChecksum(ChecksumKind kind, String value, @Nullable String origin, @Nullable String reason) {
             ChecksumBuilder builder = this.builder.computeIfAbsent(kind, ChecksumBuilder::new);
             builder.addChecksum(value);
             if (origin != null) {
                 builder.withOrigin(origin);
+            }
+            if (reason != null) {
+                builder.withReason(reason);
             }
         }
 
@@ -228,6 +235,7 @@ public class DependencyVerifierBuilder {
         private final ChecksumKind kind;
         private String value;
         private String origin;
+        private String reason;
         private Set<String> alternatives;
 
         private ChecksumBuilder(ChecksumKind kind) {
@@ -241,6 +249,15 @@ public class DependencyVerifierBuilder {
         void withOrigin(String origin) {
             if (this.origin == null) {
                 this.origin = origin;
+            }
+        }
+
+        /**
+         * Sets the reason, if not set already.
+         */
+        void withReason(String reason) {
+            if (this.reason == null) {
+                this.reason = reason;
             }
         }
 
@@ -260,7 +277,8 @@ public class DependencyVerifierBuilder {
                 kind,
                 value,
                 alternatives,
-                origin
+                origin,
+                reason
             );
         }
     }

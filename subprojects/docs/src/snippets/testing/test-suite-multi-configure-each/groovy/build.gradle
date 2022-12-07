@@ -27,7 +27,7 @@ repositories {
 
 // tag::multi-configure[]
 testing {
-    suites { 
+    suites {
         configureEach { // <1>
             useJUnitJupiter()
             dependencies { // <2>
@@ -46,18 +46,17 @@ testing {
 // end::multi-configure[]
 
 tasks.register('checkDependencies') {
-    dependsOn(
-        configurations.integrationTestRuntimeClasspath,
-        configurations.functionalTestRuntimeClasspath,
-        configurations.testRuntimeClasspath
-    )
+    def testRuntimeClasspath = configurations.getByName("testRuntimeClasspath")
+    def integrationTestRuntimeClasspath = configurations.getByName("integrationTestRuntimeClasspath")
+    def functionalTestRuntimeClasspath = configurations.getByName("functionalTestRuntimeClasspath")
+    dependsOn(testRuntimeClasspath, integrationTestRuntimeClasspath, functionalTestRuntimeClasspath)
     doLast {
-        assert configurations.testRuntimeClasspath.files.size() == 12
-        assert configurations.testRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
-        assert configurations.integrationTestRuntimeClasspath.files.size() == 12
-        assert configurations.integrationTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
-        assert configurations.functionalTestRuntimeClasspath.files.size() == 13
-        assert configurations.functionalTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
-        assert configurations.functionalTestRuntimeClasspath.files.any { it.name == "commons-lang3-3.11.jar" }
+        assert testRuntimeClasspath.files.size() == 13
+        assert testRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
+        assert integrationTestRuntimeClasspath.files.size() == 13
+        assert integrationTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
+        assert functionalTestRuntimeClasspath.files.size() == 14
+        assert functionalTestRuntimeClasspath.files.any { it.name == "mockito-junit-jupiter-4.6.1.jar" }
+        assert functionalTestRuntimeClasspath.files.any { it.name == "commons-lang3-3.11.jar" }
     }
 }

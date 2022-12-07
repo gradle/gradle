@@ -25,7 +25,6 @@ import org.gradle.internal.Describables
 import org.gradle.util.internal.TextUtil
 
 abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
-    @Override
     AbstractCollectionProperty<String, C> propertyWithDefaultValue() {
         return property()
     }
@@ -617,7 +616,7 @@ The value of this property is derived from: <source>""")
         def value = property.calculateExecutionTimeValue()
         value.hasFixedValue()
         !value.hasChangingContent()
-        value.fixedValue.isEmpty()
+        value.getFixedValue().isEmpty()
     }
 
     def "has no producer and missing execution time value when element provider with no value added"() {
@@ -656,7 +655,7 @@ The value of this property is derived from: <source>""")
         def value = property.calculateExecutionTimeValue()
         value.hasFixedValue()
         !value.hasChangingContent()
-        value.fixedValue == toImmutable(["a", "b"])
+        value.getFixedValue() == toImmutable(["a", "b"])
     }
 
     def "has no producer and fixed execution time value when elements added"() {
@@ -704,8 +703,8 @@ The value of this property is derived from: <source>""")
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
         value.isChangingValue()
-        value.changingValue.get() == toImmutable(["a", "b", "c"])
-        value.changingValue.get() == toImmutable(["a", "c"])
+        value.getChangingValue().get() == toImmutable(["a", "b", "c"])
+        value.getChangingValue().get() == toImmutable(["a", "c"])
     }
 
     def "has union of producer task from providers unless producer task attached"() {

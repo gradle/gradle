@@ -88,7 +88,7 @@ public class DefaultVersionCatalogBuilderContainer extends AbstractNamedDomainOb
 
     @Override
     protected VersionCatalogBuilder doCreate(String name) {
-        return objects.newInstance(DefaultVersionCatalogBuilder.class, name, strings, versions, objects, providers, dependencyResolutionServices);
+        return objects.newInstance(DefaultVersionCatalogBuilder.class, name, strings, versions, objects, dependencyResolutionServices);
     }
 
     @Override

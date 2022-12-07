@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.provider
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -26,15 +27,17 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.cache.CacheOpenException
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
+import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.execution.ExecutionEngine
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
+import org.gradle.internal.execution.UnitOfWork.InputVisitor
+import org.gradle.internal.execution.UnitOfWork.OutputFileValueSupplier
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
@@ -142,11 +145,15 @@ class StandardKotlinScriptEvaluator(
     }
 
     private
+    val jvmTarget: JavaVersion =
+        JavaVersion.current()
+
+    private
     val interpreter by lazy {
-        Interpreter(InterpreterHost())
+        Interpreter(InterpreterHost(jvmTarget))
     }
 
-    inner class InterpreterHost : Interpreter.Host {
+    inner class InterpreterHost(override val jvmTarget: JavaVersion) : Interpreter.Host {
 
         override fun pluginAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             (scriptHost.target as? ProjectInternal)?.let {
@@ -239,6 +246,7 @@ class StandardKotlinScriptEvaluator(
         ): File = try {
             executionEngineFor(scriptHost).createRequest(
                 CompileKotlinScript(
+                    jvmTarget,
                     templateId,
                     sourceHash,
                     compilationClassPath,
@@ -249,7 +257,7 @@ class StandardKotlinScriptEvaluator(
                     fileCollectionFactory,
                     inputFingerprinter
                 )
-            ).execute().executionResult.get().output as File
+            ).execute().execution.get().output as File
         } catch (e: CacheOpenException) {
             throw e.cause as? ScriptCompilationException ?: e
         }
@@ -260,13 +268,14 @@ class StandardKotlinScriptEvaluator(
         override fun loadClassInChildScopeOf(
             classLoaderScope: ClassLoaderScope,
             childScopeId: String,
+            origin: ClassLoaderScopeOrigin,
             location: File,
             className: String,
             accessorsClassPath: ClassPath
         ): CompiledScript {
             val instrumentedClasses = cachedClasspathTransformer.transform(DefaultClassPath.of(location), BuildLogic)
             val classpath = instrumentedClasses.plus(accessorsClassPath)
-            return ScopeBackedCompiledScript(classLoaderScope, childScopeId, classpath, className)
+            return ScopeBackedCompiledScript(classLoaderScope, childScopeId, origin, classpath, className)
         }
 
         override val implicitImports: List<String>
@@ -285,6 +294,7 @@ class StandardKotlinScriptEvaluator(
     class ScopeBackedCompiledScript(
         private val classLoaderScope: ClassLoaderScope,
         private val childScopeId: String,
+        private val origin: ClassLoaderScopeOrigin,
         override val classPath: ClassPath,
         private val className: String
     ) : CompiledScript {
@@ -316,6 +326,7 @@ class StandardKotlinScriptEvaluator(
         fun prepareClassLoaderScope() =
             classLoaderScope.createLockedChild(
                 childScopeId,
+                origin,
                 classPath,
                 null,
                 null
@@ -326,6 +337,7 @@ class StandardKotlinScriptEvaluator(
 
 internal
 class CompileKotlinScript(
+    private val jvmTarget: JavaVersion,
     private val templateId: String,
     private val sourceHash: HashCode,
     private val compilationClassPath: ClassPath,
@@ -340,6 +352,7 @@ class CompileKotlinScript(
     override fun visitIdentityInputs(
         visitor: InputVisitor
     ) {
+        visitor.visitInputProperty("jvmTarget") { jvmTarget.majorVersion }
         visitor.visitInputProperty("templateId") { templateId }
         visitor.visitInputProperty("sourceHash") { sourceHash }
         visitor.visitClassPathProperty("compilationClassPath", compilationClassPath)
@@ -354,8 +367,7 @@ class CompileKotlinScript(
         visitor.visitOutputProperty(
             "classesDir",
             TreeType.DIRECTORY,
-            classesDir,
-            fileCollectionFactory.fixed(classesDir)
+            OutputFileValueSupplier.fromStatic(classesDir, fileCollectionFactory.fixed(classesDir))
         )
     }
 
@@ -382,13 +394,13 @@ class CompileKotlinScript(
     fun workOutputFor(workspace: File): UnitOfWork.WorkOutput =
         object : UnitOfWork.WorkOutput {
             override fun getDidWork() = UnitOfWork.WorkResult.DID_WORK
-            override fun getOutput() = loadRestoredOutput(workspace)
+            override fun getOutput() = loadAlreadyProducedOutput(workspace)
         }
 
     override fun getDisplayName(): String =
         "Kotlin DSL script compilation ($templateId)"
 
-    override fun loadRestoredOutput(workspace: File): Any =
+    override fun loadAlreadyProducedOutput(workspace: File): Any =
         classesDir(workspace)
 
     override fun getWorkspaceProvider() = workspaceProvider.scripts

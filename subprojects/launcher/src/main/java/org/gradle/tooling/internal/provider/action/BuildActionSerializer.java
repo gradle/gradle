@@ -29,7 +29,7 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCachePr
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.RunDefaultTasksExecutionRequest;
 import org.gradle.internal.build.event.BuildEventSubscriptions;
-import org.gradle.internal.buildoption.BuildOption;
+import org.gradle.internal.buildoption.Option;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
@@ -84,7 +84,7 @@ public class BuildActionSerializer {
         private final Serializer<List<String>> stringListSerializer = new ListSerializer<>(BaseSerializerFactory.STRING_SERIALIZER);
         private final Serializer<List<File>> fileListSerializer = new ListSerializer<>(BaseSerializerFactory.FILE_SERIALIZER);
         private final Serializer<Set<String>> stringSetSerializer = new SetSerializer<>(BaseSerializerFactory.STRING_SERIALIZER);
-        private final Serializer<BuildOption.Value<Boolean>> valueSerializer = new ValueSerializer();
+        private final Serializer<Option.Value<Boolean>> valueSerializer = new ValueSerializer();
 
         StartParameterSerializer() {
             BaseSerializerFactory serializerFactory = new BaseSerializerFactory();
@@ -483,30 +483,30 @@ public class BuildActionSerializer {
         }
     }
 
-    private static class ValueSerializer implements Serializer<BuildOption.Value<Boolean>> {
+    private static class ValueSerializer implements Serializer<Option.Value<Boolean>> {
         private static final byte EXPLICIT_TRUE = (byte) 1;
         private static final byte EXPLICIT_FALSE = (byte) 2;
         public static final byte IMPLICIT_TRUE = (byte) 3;
         public static final byte IMPLICIT_FALSE = (byte) 4;
 
         @Override
-        public BuildOption.Value<Boolean> read(Decoder decoder) throws Exception {
+        public Option.Value<Boolean> read(Decoder decoder) throws Exception {
             switch (decoder.readByte()) {
                 case EXPLICIT_TRUE:
-                    return BuildOption.Value.value(true);
+                    return Option.Value.value(true);
                 case EXPLICIT_FALSE:
-                    return BuildOption.Value.value(false);
+                    return Option.Value.value(false);
                 case IMPLICIT_TRUE:
-                    return BuildOption.Value.defaultValue(true);
+                    return Option.Value.defaultValue(true);
                 case IMPLICIT_FALSE:
-                    return BuildOption.Value.defaultValue(false);
+                    return Option.Value.defaultValue(false);
                 default:
                     throw new IllegalStateException();
             }
         }
 
         @Override
-        public void write(Encoder encoder, BuildOption.Value<Boolean> value) throws Exception {
+        public void write(Encoder encoder, Option.Value<Boolean> value) throws Exception {
             if (value.isExplicit() && value.get()) {
                 encoder.writeByte(EXPLICIT_TRUE);
             } else if (value.isExplicit()) {

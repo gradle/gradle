@@ -265,7 +265,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
         assertThat(
             build("plugins").output,
-            containsString("*BasePlugin*")
+            containsString("*BasePlugin\$Inject*")
         )
     }
 
@@ -288,7 +288,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     fun `given an exception thrown during buildscript block execution, its stack trace should contain correct file and line info`() {
-
+        executer.withStacktraceEnabled()
         withBuildScript(
             """ // line 1
             // line 2

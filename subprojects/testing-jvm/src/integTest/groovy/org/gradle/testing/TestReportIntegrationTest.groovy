@@ -229,19 +229,17 @@ public class SubClassTests extends SuperClassTests {
         new HtmlTestExecutionResult(testDirectory, "build/reports/tr").assertTestClassesExecuted("Thing")
     }
 
-    @Issue("https://issues.gradle.org//browse/GRADLE-2821")
+
+    // TODO: remove in Gradle 9.0
     def "nag with deprecation warnings when using legacy TestReport APIs"() {
         given:
         buildScript """
             apply plugin: 'java'
-
              $junitSetup
-
             tasks.register('otherTests', Test) {
                 binaryResultsDirectory = file("bin")
                 testClassesDirs = files("blah")
             }
-
             tasks.register('testReport', TestReport) {
                 reportOn test, otherTests
                 destinationDir reporting.file("tr")
@@ -252,8 +250,8 @@ public class SubClassTests extends SuperClassTests {
         testClass("Thing")
 
         when:
-        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testResults method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.')
-        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.')
+        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the testResults method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.')
+        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.')
         succeeds "testReport"
 
         then:
@@ -583,31 +581,26 @@ public class SubClassTests extends SuperClassTests {
             .assertStderr(containsString("System.err from ThrowingListener"))
     }
 
-    // TODO: remove in Gradle 8.0
+    // TODO: remove in Gradle 9.0
     def "using deprecated testReport elements emits deprecation warnings"() {
         when:
         buildScript """
             apply plugin: 'java'
-
             $junitSetup
-
             // Need a second test task to reportOn
             tasks.register('otherTests', Test) {
                 binaryResultsDirectory = file('otherBin')
                 testClassesDirs = files('otherClasses')
             }
-
             tasks.register('testReport', TestReport) {
                 reportOn test, otherTests
-                testResultDirs = [test.binaryResultsDirectory.asFile.get()]
                 destinationDir reporting.file("myTestReports")
             }
         """
 
         then:
-        executer.expectDocumentedDeprecationWarning('The TestReport.testResultDirs property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testResults property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResultDirs for more details.')
-        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the testResults method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.')
-        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.')
+        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the testResults method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.')
+        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.')
         succeeds "testReport"
     }
 

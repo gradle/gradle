@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
@@ -28,6 +29,7 @@ import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleDependencyCapabilitiesHandler;
+import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
@@ -44,6 +46,7 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
+import org.gradle.api.internal.artifacts.dependencies.AbstractExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMinimalDependencyVariant;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.provider.ProviderInternal;
@@ -55,7 +58,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.internal.ConfigureUtil;
@@ -174,15 +176,19 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     @Nullable
     private Dependency doAdd(Configuration configuration, Object dependencyNotation, @Nullable Closure configureClosure) {
         if (dependencyNotation instanceof Configuration) {
-            DeprecationLogger.deprecateBehaviour("Adding a Configuration as a dependency is a confusing behavior which isn't recommended.")
-                .withAdvice("If you're interested in inheriting the dependencies from the Configuration you are adding, you should use Configuration#extendsFrom instead.")
-                .willBeRemovedInGradle8()
-                .withDslReference(Configuration.class, "extendsFrom(org.gradle.api.artifacts.Configuration[])")
-                .nagUser();
-            return doAddConfiguration(configuration, (Configuration) dependencyNotation);
-        }
-        if (dependencyNotation instanceof ProviderConvertible<?>) {
-            return doAddProvider(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
+            throw new GradleException("Adding a Configuration as a dependency is no longer allowed as of Gradle 8.0.");
+        } else if (dependencyNotation instanceof ProviderConvertible<?>) {
+            return doAdd(configuration, ((ProviderConvertible<?>) dependencyNotation).asProvider(), configureClosure);
+        } else if (dependencyNotation instanceof ProviderInternal<?>) {
+            ProviderInternal<?> provider = (ProviderInternal<?>) dependencyNotation;
+            if (provider.getType()!=null && ExternalModuleDependencyBundle.class.isAssignableFrom(provider.getType())) {
+                ExternalModuleDependencyBundle bundle = Cast.uncheckedCast(provider.get());
+                for (MinimalExternalModuleDependency dependency : bundle) {
+                    doAddRegularDependency(configuration, dependency, configureClosure);
+                }
+                return null;
+            }
+            return doAddProvider(configuration, provider, configureClosure);
         } else if (dependencyNotation instanceof Provider<?>) {
             return doAddProvider(configuration, (Provider<?>) dependencyNotation, configureClosure);
         } else {
@@ -221,16 +227,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
             }
             return create(lazyNotation, configureClosure);
         };
-    }
-
-    @Nullable
-    private Dependency doAddConfiguration(Configuration configuration, Configuration dependencyNotation) {
-        Configuration other = dependencyNotation;
-        if (!configurationContainer.contains(other)) {
-            throw new UnsupportedOperationException("Currently you can only declare dependencies on configurations from the same project.");
-        }
-        configuration.extendsFrom(other);
-        return null;
     }
 
     @Override
@@ -330,17 +326,6 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public void registerTransform(Action<? super org.gradle.api.artifacts.transform.VariantTransform> registrationAction) {
-        DeprecationLogger.deprecate("Registering artifact transforms extending ArtifactTransform")
-            .withAdvice("Implement TransformAction instead.")
-            .willBeRemovedInGradle8()
-            .withUserManual("artifact_transforms")
-            .nagUser();
-        transforms.registerTransform(registrationAction);
-    }
-
-    @Override
     public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
         transforms.registerTransform(actionType, registrationAction);
     }
@@ -370,8 +355,9 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
     public Dependency enforcedPlatform(Object notation) {
         Dependency platformDependency = create(notation);
         if (platformDependency instanceof ExternalModuleDependency) {
-            ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) platformDependency;
-            DeprecationLogger.whileDisabled(() -> externalModuleDependency.setForce(true));
+            AbstractExternalModuleDependency externalModuleDependency = (AbstractExternalModuleDependency) platformDependency;
+            MutableVersionConstraint constraint = (MutableVersionConstraint) externalModuleDependency.getVersionConstraint();
+            constraint.strictly(externalModuleDependency.getVersion());
             platformSupport.addPlatformAttribute(externalModuleDependency, toCategory(Category.ENFORCED_PLATFORM));
         } else if (platformDependency instanceof HasConfigurableAttributes) {
             platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) platformDependency, toCategory(Category.ENFORCED_PLATFORM));

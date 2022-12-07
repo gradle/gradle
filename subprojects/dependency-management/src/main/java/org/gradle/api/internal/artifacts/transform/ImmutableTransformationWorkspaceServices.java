@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
@@ -36,9 +38,11 @@ public class ImmutableTransformationWorkspaceServices implements TransformationW
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
-        CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformationResult>> identityCache
+        CrossBuildInMemoryCache<UnitOfWork.Identity, Try<TransformationResult>> identityCache,
+        CleanupActionDecorator cleanupActionDecorator,
+        CacheConfigurationsInternal cacheConfigurations
     ) {
-        this.workspaceProvider = DefaultImmutableWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore);
+        this.workspaceProvider = DefaultImmutableWorkspaceProvider.withExternalHistory(cacheBuilder, fileAccessTimeJournal, executionHistoryStore, cleanupActionDecorator, cacheConfigurations);
         this.identityCache = identityCache;
     }
 

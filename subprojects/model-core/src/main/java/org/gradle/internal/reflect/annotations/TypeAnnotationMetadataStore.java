@@ -22,7 +22,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
  * A validating metadata store that handles annotations on types and their JavaBeans properties.
  *
  * <p>
- * The store considers property annotations to belong to {@linkplain org.gradle.internal.reflect.AnnotationCategory categories}.
+ * The store considers property annotations to belong to {@linkplain AnnotationCategory categories}.
  * Each property can have at most one annotation per category.
  * Validation failures with a given type can be visited using {@link TypeAnnotationMetadata#visitValidationFailures(TypeValidationContext)}.
  * </p>

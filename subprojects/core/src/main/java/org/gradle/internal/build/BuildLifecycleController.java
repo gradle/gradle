@@ -121,6 +121,11 @@ public interface BuildLifecycleController {
      */
     void addListener(Object listener);
 
+    /**
+     * Restarts the lifecycle of this build.
+     */
+    void resetState();
+
     interface WorkGraphBuilder {
         /**
          * Adds requested tasks, as defined in the {@link org.gradle.StartParameter}, and their dependencies to the work graph for this build.

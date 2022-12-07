@@ -44,8 +44,8 @@ Having a task repeatably produce the same output is not enough if its inputs kee
 Such unstable inputs can be supplied directly to the task. Consider a version number that includes a timestamp being added to the jar file's manifest:
 
 ====
-include::sample[dir="snippets/buildCache/timestamp-in-manifest/groovy",files="build.gradle[tags=timestamp]"]
 include::sample[dir="snippets/buildCache/timestamp-in-manifest/kotlin",files="build.gradle.kts[tags=timestamp]"]
+include::sample[dir="snippets/buildCache/timestamp-in-manifest/groovy",files="build.gradle[tags=timestamp]"]
 ====
 
 In the above example the inputs for the `jar` task will be different for each build execution since this timestamp will continually change.
@@ -125,8 +125,8 @@ Nonetheless, this file is part of the runtime classpath for the `test` task. Sin
 To fix this you can ignore `build-info.properties` on any runtime classpath by adding the following configuration to the build script in the _consuming_ project:
 
 ====
-include::sample[dir="snippets/buildCache/normalization/groovy",files="build.gradle[tags=normalization]"]
 include::sample[dir="snippets/buildCache/normalization/kotlin",files="build.gradle.kts[tags=normalization]"]
+include::sample[dir="snippets/buildCache/normalization/groovy",files="build.gradle[tags=normalization]"]
 ====
 
 If adding such a file to your jar files is something you do for all of the projects in your build, and you want to filter this file for all consumers, you may wrap the configurations described above in an `allprojects {}` or `subprojects {}` block in the root build script.

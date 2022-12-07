@@ -5,13 +5,14 @@ import ratpack.gradle.RatpackExtension
 
 // tag::root[]
 plugins {
-    id("com.github.johnrengelman.shadow") version "4.0.1" apply false
+    id("com.github.johnrengelman.shadow") version "7.1.2" apply false
     id("io.ratpack.ratpack-java") version "1.8.2" apply false
 }
 // end::root[]
 
 project(":domain") {
     apply(plugin = "java-library")
+    repositories { mavenCentral() }
     dependencies {
         "api"("javax.measure:unit-api:1.0")
         "implementation"("tec.units:unit-ri:1.0.3")

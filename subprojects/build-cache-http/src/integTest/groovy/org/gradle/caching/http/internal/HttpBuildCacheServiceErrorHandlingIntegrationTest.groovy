@@ -79,7 +79,6 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
 
         when:
         executer.withStackTraceChecksDisabled()
-        executer.withStacktraceDisabled()
         withBuildCache().run "customTask"
 
         then:
@@ -102,7 +101,6 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
 
         when:
         executer.withStackTraceChecksDisabled()
-        executer.withStacktraceDisabled()
         withBuildCache().run "customTask"
 
         then:
@@ -163,7 +161,6 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
 
         when:
         executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
-        executer.withStacktraceDisabled()
         withBuildCache().run("customTask")
 
         then:
@@ -180,7 +177,6 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         settingsFile << withHttpBuildCacheServer()
 
         when:
-        executer.withStacktraceDisabled()
         withBuildCache().run("customTask", "customTask2")
 
         then:
@@ -200,7 +196,6 @@ class HttpBuildCacheServiceErrorHandlingIntegrationTest extends HttpBuildCacheFi
         settingsFile << withHttpBuildCacheServer()
 
         when:
-        executer.withStacktraceDisabled()
         withBuildCache().run("-D${BuildCacheControllerFactory.REMOTE_CONTINUE_ON_ERROR_PROPERTY}=true", "customTask", "customTask2")
 
         then:

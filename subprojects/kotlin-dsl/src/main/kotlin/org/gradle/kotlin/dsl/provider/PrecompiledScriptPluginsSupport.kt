@@ -16,13 +16,12 @@
 
 package org.gradle.kotlin.dsl.provider
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.provider.Provider
 
 import java.io.File
-import java.util.function.Consumer
 
 
 /**
@@ -35,24 +34,16 @@ import java.util.function.Consumer
  */
 interface PrecompiledScriptPluginsSupport {
 
-    @Deprecated("Use enableOn(Target)")
-    fun enableOn(
-        project: Project,
-        kotlinSourceDirectorySet: SourceDirectorySet,
-        kotlinCompileTask: TaskProvider<out Task>,
-        kotlinCompilerArgsConsumer: Consumer<List<String>>
-    )
-
     fun enableOn(target: Target): Boolean
 
     fun collectScriptPluginFilesOf(project: Project): List<File>
 
     interface Target {
+
         val project: Project
+
+        val jvmTarget: Provider<JavaVersion>
+
         val kotlinSourceDirectorySet: SourceDirectorySet
-        @Deprecated("No longer used.")
-        val kotlinCompileTask: TaskProvider<out Task>
-        @Deprecated("No longer used.")
-        fun applyKotlinCompilerArgs(args: List<String>)
     }
 }

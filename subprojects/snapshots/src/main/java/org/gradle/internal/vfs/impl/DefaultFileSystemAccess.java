@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -77,12 +76,12 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
     }
 
     @Override
-    public <T> T read(String location, Function<FileSystemLocationSnapshot, T> visitor) {
-        return visitor.apply(readLocation(location));
+    public FileSystemLocationSnapshot read(String location) {
+        return readLocation(location);
     }
 
     @Override
-    public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
+    public Optional<HashCode> readRegularFileContentHash(String location) {
         return virtualFileSystem.findMetadata(location)
             .<Optional<FileSystemLocationSnapshot>>flatMap(snapshot -> {
                 if (snapshot.getType() != FileType.RegularFile) {
@@ -114,14 +113,13 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
                         throw new IllegalArgumentException("Unknown file type: " + fileMetadata.getType());
                 }
             }))
-            .map(FileSystemLocationSnapshot::getHash)
-            .map(visitor);
+            .map(FileSystemLocationSnapshot::getHash);
     }
 
     @Override
-    public void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor) {
+    public Optional<FileSystemLocationSnapshot> read(String location, SnapshottingFilter filter) {
         if (filter.isEmpty()) {
-            visitor.accept(readLocation(location));
+            return Optional.of(read(location));
         } else {
             FileSystemSnapshot filteredSnapshot = readSnapshotFromLocation(location,
                 snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot),
@@ -134,7 +132,9 @@ public class DefaultFileSystemAccess implements FileSystemAccess {
                 });
 
             if (filteredSnapshot instanceof FileSystemLocationSnapshot) {
-                visitor.accept((FileSystemLocationSnapshot) filteredSnapshot);
+                return Optional.of((FileSystemLocationSnapshot) filteredSnapshot);
+            } else {
+                return Optional.empty();
             }
         }
     }
