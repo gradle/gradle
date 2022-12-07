@@ -31,7 +31,9 @@ class TestPreconditionExtension implements IAnnotationDrivenExtension<Requires> 
         feature.skipped |= unsatisfied(annotation)
     }
 
-    private boolean unsatisfied(Requires annotation) {
-        annotation.value().any { !it.fulfilled } || !annotation.adhoc().newInstance(null, null).call()
+    private static boolean unsatisfied(Requires annotation) {
+        annotation.value().any {
+            it.getDeclaredConstructor().newInstance().satisfied
+        }
     }
 }
