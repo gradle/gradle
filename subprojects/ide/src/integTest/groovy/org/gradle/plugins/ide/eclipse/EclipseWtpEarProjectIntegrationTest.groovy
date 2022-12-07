@@ -56,14 +56,11 @@ class EclipseWtpEarProjectIntegrationTest extends AbstractEclipseIntegrationSpec
         then:
         // Builders and natures
         def project = project
-        project.assertHasNatures('org.eclipse.wst.common.project.facet.core.nature',
-            'org.eclipse.wst.common.modulecore.ModuleCoreNature',
-            'org.eclipse.jem.workbench.JavaEMFNature')
-        project.assertHasBuilders('org.eclipse.wst.common.project.facet.core.builder',
-            'org.eclipse.wst.validation.validationbuilder')
+        project.assertHasJavaFacetNatures()
+        project.assertHasJavaFacetBuilders()
 
         // Classpath
-        !testDirectory.file('.classpath').exists()
+        testDirectory.file('.classpath').exists()
 
         // Facets
         def facets = wtpFacets

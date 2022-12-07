@@ -6,7 +6,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "3.1.1"
+version = "3.2.5"
 
 base.archivesName.set("plugins")
 
@@ -54,6 +54,7 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/plugins/base/**")
+    excludePatterns.add("org/gradle/kotlin/dsl/plugins/precompiled/**")
 }
 
 testFilesCleanup.reportOnly.set(true)

@@ -58,6 +58,11 @@ Usage of invalid Java toolchain specifications is no longer supported.
 Related build errors can be avoided by making sure that language version is set on all toolchain specifications.
 See <<toolchains#sec:configuring_toolchain_specifications,user manual>> for more information.
 
+==== Using automatic toolchain downloading without having a repository configured
+
+Automatic toolchain downloading without explicitly providing repositories to use is no longer supported.
+See <<toolchains#sub:download_repositories,user manual>> for more information.
+
 ==== Changing test framework after setting test framework options is now an error
 
 When configuring the built-in test task for Java, Groovy, and Scala projects, Gradle no longer allows you to
@@ -86,7 +91,7 @@ test {
 }
 ```
 
-=== Removed APIs
+=== Removed APIs and features
 
 ==== Legacy ArtifactTransform API
 
@@ -102,6 +107,11 @@ The legacy `IncrementalTaskInputs` API has been removed. For more information, s
 The legacy `AntlrSourceVirtualDirectory` API has been removed.
 This change affects the `antlr` plugin.
 In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
+
+==== `--no-rebuild` command line option
+
+The `--no-rebuild` command line option and its short variant `-a` have been removed.
+They were used to tell Gradle not to rebuild project dependencies and could lead to wrong results.
 
 === Potential breaking changes
 
@@ -333,6 +343,36 @@ Use the link:java_gradle_plugin.html[`java-gradle-plugin`]'s `validatePlugins` t
 
 Gradle changes the compression library used for creating archives from an Ant based one to https://commons.apache.org/proper/commons-compress/[Apache Commons Compress™]. As a consequence archives created from the same content, are unlikely to end up identical byte-by-byte to their older versions, created with the old library.
 
+[[kotlin_1_7_22]]
+==== Upgrade to Kotlin 1.7.22
+
+The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.7.22[Kotlin 1.7.22].
+For more information, see the release notes for Kotlin https://github.com/JetBrains/kotlin/releases/tag/v1.7.20[1.7.20] and https://github.com/JetBrains/kotlin/releases/tag/v1.7.21[1.7.21].
+
+[[kotlin_language_1_7]]
+==== Updated the Kotlin DSL to Kotlin API Level 1.7
+
+Previously, the Kotlin DSL used Kotlin API level 1.4.
+Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.7.
+This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0.
+
+For information about breaking and nonbreaking changes in this upgrade, see the following links to the Kotlin documentation:
+
+* Kotlin 1.5 link:https://kotlinlang.org/docs/whatsnew15.html#language-features[language] / link:https://kotlinlang.org/docs/whatsnew17.html#standard-library[stdlib]
+* Kotlin 1.6 link:https://kotlinlang.org/docs/whatsnew16.html#language[language] / link:https://kotlinlang.org/docs/whatsnew16.html#standard-library[stdlib]
+* Kotlin 1.7 link:https://kotlinlang.org/docs/whatsnew17.html#language[language] / link:https://kotlinlang.org/docs/whatsnew15.html#standard-library[stdlib]
+
+==== Java Base Plugin now sets Jar, War, and Ear destination directory defaults
+
+Previously, the `base` plugin configured the
+link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:destinationDirectory[destinationDirectory] of
+link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar], link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War], and
+link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] tasks to the directory specified by
+link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html#org.gradle.api.plugins.BasePluginExtension:libsDirectory[BasePluginExtension#getLibsDirectory].
+In Gradle 8.0, `java-base` handles this configuration.
+No changes are required for projects that already apply the
+`java-base` plugin directly or indirectly through the `java`, `application`, `java-library`, or other JVM ecosystem plugins.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
@@ -529,7 +569,7 @@ These deprecated elements will be removed in a future version of Gradle.
 ==== Deprecated implicit references to outer scope methods in some configuration blocks
 
 Prior to Gradle 7.6, Groovy scripts permitted access to root project configure methods
-within named container configure methods that throw `MissingMethodException`.
+within named container configure methods that throw `MissingMethodException`s.
 Consider the following snippets for examples of this behavior:
 
 Gradle permits access to the top-level `repositories` block from within the `configurations` block
@@ -1353,7 +1393,7 @@ The following plugin configurations have been deprecated for consumption:
 
 If your use case needs to consume any of the above mentioned configurations in another project, please create a separate consumable
 configuration that extends from the internal ones. For example:
-```kotlin
+```
 plugins {
     id("codenarc")
 }
@@ -1422,46 +1462,3 @@ Gradle 5.3 introduced the interface `TransformAction` for implementing artifact 
 Using the registration method link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(org.gradle.api.Action)[DependencyHandler.registerTransform(Action)] for `ArtifactTransform` has been deprecated.
 Migrate your artifact transform to use `TransformAction` and use link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(java.lang.Class,%20org.gradle.api.Action)[DependencyHandler.registerTransform(Class, Action)] instead.
 See the <<artifact_transforms#sec:abm_artifact_transforms,user manual>> for more information on implementing `TransformAction`.
-
-[[gmm_modification_after_publication_populated]]
-==== Modifying Gradle Module Metadata after a publication has been populated
-
-Altering the link:publishing_gradle_module_metadata.html[GMM] (e.g. changing a component configuration variants) *after* a Maven or Ivy publication has been populated from their components is now deprecated. This feature will be removed in Gradle 9.0.
-
-Eager population of the publication can happen if the following methods are called:
-
-====== Maven
-
-* link:{javadocPath}/org/gradle/api/publish/maven/MavenPublication.html#getArtifacts--[MavenPublication.getArtifacts()]
-
-====== Ivy
-
-* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getArtifacts--[IvyPublication.getArtifacts()]
-* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getConfigurations--[IvyPublication.getConfigurations()]
-* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#configurations(Action)--[IvyPublication.configurations(Action)]
-
-Previously, this code block did not generate warnings, but it created inconsistencies between published artifacts:
-
-```kotlin
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-        }
-        create<IvyPublication>("ivy") {
-            from(components["java"])
-        }
-    }
-}
-
-// These calls eagerly populate the Maven and Ivy publications
-(publishing.publications["maven"] as MavenPublication).artifacts
-(publishing.publications["ivy"] as IvyPublication).artifacts
-
-(components["java"] as DefaultAdhocSoftwareComponent).apply {
-  withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
-  withVariantsFromConfiguration(configurations["runtimeElements"]) { skip() }
-}
-```
-
-In this example, the Maven and Ivy publications will contain the main JAR artifacts for the project, whereas the GMM link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[module file] will omit them.

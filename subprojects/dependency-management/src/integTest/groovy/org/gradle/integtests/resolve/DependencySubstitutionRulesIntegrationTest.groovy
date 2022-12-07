@@ -364,7 +364,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                edge("org.utils:api:1.5", ":api", "depsub:api:") {
                     configuration = "conf"
                     selectedByRule()
                 }
@@ -499,7 +499,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         resolve.expectGraph {
             root(":test", "depsub:test:") {
                 module("org.utils:impl:1.5") {
-                    edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                    edge("org.utils:api:1.5", ":api", "depsub:api:") {
                         configuration = "conf"
                         selectedByRule()
                     }
@@ -549,7 +549,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                edge("org.utils:api:1.5", ":api", "depsub:api:") {
                     variant "default"
                     selectedByRule()
                 }
@@ -583,8 +583,9 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                module("org.utils:bela:1.5:default") {
-                    edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                module("org.utils:bela:1.5") {
+                    variant "default"
+                    edge("org.utils:api:1.5", ":api", "depsub:api:") {
                         variant "default"
                         selectedByRule()
                     }
@@ -623,7 +624,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                edge("org.utils:api:1.5", ":api", "depsub:api:") {
                     variant("default")
                     selectedByRule()
                 }
@@ -658,7 +659,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                edge("org.utils:api:1.5", ":api", "depsub:api:") {
                     variant("default")
                     selectedByRule()
                 }
@@ -719,7 +720,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":impl", "depsub:impl:") {
-                edge("org.utils:api:1.5", "project :api", "depsub:api:") {
+                edge("org.utils:api:1.5", ":api", "depsub:api:") {
                     configuration = 'conf'
                     selectedByRule()
                 }
@@ -751,7 +752,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         resolve.expectGraph {
             root(":test", "depsub:test:") {
-                edge("org.utils:impl:1.5", "project :impl", "depsub:impl:") {
+                edge("org.utils:impl:1.5", ":impl", "depsub:impl:") {
                     variant "default"
                     selectedByRule()
                 }
@@ -863,7 +864,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 edge("org.utils:dep1:1.5", "org.utils:dep1:2.0").byConflictResolution("between versions 1.6 and 2.0")
                 edge("org.utils:dep1:2.0", "org.utils:dep1:2.0")
 
-                edge("org.utils:dep2:1.5", "project :dep2", "org.utils:dep2:3.0") {
+                edge("org.utils:dep2:1.5", ":dep2", "org.utils:dep2:3.0") {
                     variant "default"
                     selectedByRule().byConflictResolution("between versions 3.0 and 2.0")
                 }
@@ -1522,18 +1523,9 @@ configurations.all {
                 }
             }
 
-
             dependencies {
                 conf 'org:lib:1.0:classy'
                 conf 'org:other:1.0'
-            }
-
-            checkDeps {
-               def files = configurations.conf
-               doLast {
-                  // additional check on top of what the test fixture allows
-                  assert files*.name as Set == ['lib-1.1.jar', 'other-1.0.jar'] as Set
-               }
             }
         """
 
@@ -1609,14 +1601,6 @@ configurations.all {
                 conf 'org:lib:1.0'
                 conf 'org:other:1.0'
             }
-
-            checkDeps {
-               def files = configurations.conf
-               doLast {
-                  // additional check on top of what the test fixture allows
-                  assert files*.name as Set == ['lib-1.1-classy.jar', 'other-1.0.jar'] as Set
-               }
-            }
         """
 
         when:
@@ -1634,7 +1618,6 @@ configurations.all {
                 }
             }
         }
-
     }
 
     @Issue("https://github.com/gradle/gradle/issues/13658")
@@ -1674,8 +1657,7 @@ configurations.all {
         """
 
         when:
-        resolve.config = "runtimeClasspath"
-        resolve.prepare()
+        resolve.prepare("runtimeClasspath")
         run(":checkDeps")
 
         then:

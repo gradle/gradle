@@ -26,7 +26,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.java.usagecontext.ConfigurationVariantMapping;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Map;
@@ -36,8 +35,6 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     private final String componentName;
     private final Map<Configuration, ConfigurationVariantMapping> variants = Maps.newLinkedHashMapWithExpectedSize(4);
     private final Instantiator instantiator;
-
-    private boolean finalized = false;
 
     public DefaultAdhocSoftwareComponent(String componentName, Instantiator instantiator) {
         this.componentName = componentName;
@@ -51,13 +48,11 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
 
     @Override
     public void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> spec) {
-        checkNotFinalized();
         variants.put(outgoingConfiguration, new ConfigurationVariantMapping((ConfigurationInternal) outgoingConfiguration, spec, instantiator));
     }
 
     @Override
     public void withVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
-        checkNotFinalized();
         if (!variants.containsKey(outgoingConfiguration)) {
             throw new InvalidUserDataException("Variant for configuration " + outgoingConfiguration.getName() + " does not exist in component " + componentName);
         }
@@ -71,19 +66,5 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
             variant.collectUsageContexts(builder);
         }
         return builder.build();
-    }
-
-    @Override
-    public void finalizeValue() {
-        finalized = true;
-    }
-
-    protected void checkNotFinalized() {
-        if (finalized) {
-            DeprecationLogger.deprecateBehaviour("Gradle Module Metadata is modified after an eagerly populated publication.")
-                .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(7, "gmm_modification_after_publication_populated")
-                .nagUser();
-        }
     }
 }
