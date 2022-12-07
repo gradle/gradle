@@ -254,7 +254,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                 void execute() {
                     CacheBuilderFactory cacheBuilderFactory = ZincCompilerServices.getInstance(new File("${escapeString(gradleUserHome)}")).get(CacheBuilderFactory.class);
                     println "Waiting for lock..."
-                    final PersistentCache zincCache = cacheBuilderFactory.cache("zinc-0.3.15")
+                    final PersistentCache zincCache = cacheBuilderFactory.cacheBuilder("zinc-0.3.15")
                             .withDisplayName("Zinc 0.3.15 compiler cache")
                             .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.Exclusive))
                             .open();
