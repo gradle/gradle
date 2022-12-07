@@ -59,7 +59,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.configuration.internal.UserCodeApplicationContext
@@ -1766,7 +1765,6 @@ All Artifacts:
         def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
             instantiator,
             metaDataProvider,
-            Mock(TaskResolver),
             TestFiles.resolver(),
             TestFiles.taskDependencyFactory(),
         )
