@@ -47,6 +47,7 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
                         jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
                         apiVersion = "1.5"
                         languageVersion = "1.5"
+                        useOldBackend = true
                         freeCompilerArgs += KotlinDslPluginSupport.kotlinCompilerArgs
                     }
                     it.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf("-XXLanguage:+DisableCompatibilityModeForNewInference")))
