@@ -174,7 +174,7 @@ public class TestFiles {
             documentationRegistry(),
             taskDependencyFactory(),
             providerFactory(),
-            TestCaches.decompressionCache(temporaryFileProvider.newTemporaryDirectory("cache-dir")));
+            TestCaches.decompressionCacheFactory(temporaryFileProvider.newTemporaryDirectory("cache-dir")));
     }
 
     public static ApiTextResourceAdapter.Factory textResourceAdapterFactory(@Nullable TemporaryFileProvider temporaryFileProvider) {

@@ -22,6 +22,7 @@ import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.internal.DecompressionCache;
+import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.internal.DefaultDecompressionCache;
 import org.gradle.cache.scopes.BuildTreeScopedCache;
 import org.gradle.execution.DefaultTaskSelector;
@@ -101,5 +102,14 @@ public class BuildTreeScopeServices {
 
     protected DecompressionCache createDecompressionCache(BuildTreeScopedCache cacheFactory) {
         return new DefaultDecompressionCache(cacheFactory);
+    }
+
+    protected DecompressionCacheFactory createDecompressionCacheFactory(BuildTreeScopedCache cacheFactory) {
+        return new DecompressionCacheFactory() {
+            @Override
+            public DecompressionCache create() {
+                return new DefaultDecompressionCache(cacheFactory);
+            }
+        };
     }
 }

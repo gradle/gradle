@@ -27,6 +27,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
@@ -46,6 +47,16 @@ public abstract class TestCaches {
 
     public static DecompressionCache decompressionCache(File cacheDir) {
         return new TestInMemoryDecompressionCache(cacheDir);
+    }
+
+    public static DecompressionCacheFactory decompressionCacheFactory(File cacheDir) {
+        return new DecompressionCacheFactory() {
+            @Nullable
+            @Override
+            public DecompressionCache create() {
+                return decompressionCache(cacheDir);
+            }
+        };
     }
 
     private static final class TestInMemoryDecompressionCache implements DecompressionCache {
