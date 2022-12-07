@@ -37,13 +37,21 @@ public interface CacheConfigurationsInternal extends CacheConfigurations {
     @Override
     CacheResourceConfigurationInternal getCreatedResources();
 
+    @Override
+    UnlockableProperty<Cleanup> getCleanup();
+
     void setReleasedWrappers(CacheResourceConfigurationInternal releasedWrappers);
     void setSnapshotWrappers(CacheResourceConfigurationInternal snapshotWrappers);
     void setDownloadedResources(CacheResourceConfigurationInternal downloadedResources);
     void setCreatedResources(CacheResourceConfigurationInternal createdResources);
-    void setCleanup(Property<Cleanup> cleanup);
+    void setCleanup(UnlockableProperty<Cleanup> cleanup);
 
-    void finalizeConfigurations();
+    void withMutableValues(Runnable runnable);
 
     Provider<CleanupFrequency> getCleanupFrequency();
+
+    interface UnlockableProperty<T> extends Property<T> {
+        void lock();
+        void unlock();
+    }
 }
