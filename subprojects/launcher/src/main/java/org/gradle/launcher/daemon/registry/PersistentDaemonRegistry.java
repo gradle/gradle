@@ -23,7 +23,7 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.ObjectCache;
 import org.gradle.cache.internal.FileIntegrityViolationSuppressingObjectCacheDecorator;
 import org.gradle.cache.internal.OnDemandFileAccess;
-import org.gradle.cache.internal.SimpleStateCache;
+import org.gradle.cache.internal.FileBackedObjectCache;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.inet.InetEndpoint;
@@ -53,7 +53,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager, Chmod chmod) {
         this.registryFile = registryFile;
         cache = new FileIntegrityViolationSuppressingObjectCacheDecorator<DaemonRegistryContent>(
-            new SimpleStateCache<DaemonRegistryContent>(
+            new FileBackedObjectCache<DaemonRegistryContent>(
                 registryFile,
                 new OnDemandFileAccess(
                     registryFile,

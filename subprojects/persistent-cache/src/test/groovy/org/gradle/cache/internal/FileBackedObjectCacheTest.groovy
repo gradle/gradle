@@ -28,16 +28,16 @@ import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createO
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.isIntegrityViolated
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
 
-class SimpleStateCacheTest extends Specification {
+class FileBackedObjectCacheTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final FileAccess fileAccess = Mock()
     final Chmod chmod = Mock()
     final File file = tmpDir.file("state.bin")
-    final SimpleStateCache<String> cache = createStateCache(fileAccess)
+    final FileBackedObjectCache<String> cache = createStateCache(fileAccess)
 
-    private SimpleStateCache createStateCache(FileAccess fileAccess, File file = file, Serializer serializer = new DefaultSerializer()) {
-        return new SimpleStateCache(file, fileAccess, serializer, chmod)
+    private FileBackedObjectCache createStateCache(FileAccess fileAccess, File file = file, Serializer serializer = new DefaultSerializer()) {
+        return new FileBackedObjectCache(file, fileAccess, serializer, chmod)
     }
 
     def "returns null when file does not exist"() {

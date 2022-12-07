@@ -31,13 +31,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
-public class SimpleStateCache<T> implements ObjectCache<T> {
+public class FileBackedObjectCache<T> implements ObjectCache<T> {
     private final FileAccess fileAccess;
     private final Serializer<T> serializer;
     private final Chmod chmod;
     private final File cacheFile;
 
-    public SimpleStateCache(File cacheFile, FileAccess fileAccess, Serializer<T> serializer, Chmod chmod) {
+    public FileBackedObjectCache(File cacheFile, FileAccess fileAccess, Serializer<T> serializer, Chmod chmod) {
         this.cacheFile = cacheFile;
         this.fileAccess = fileAccess;
         this.serializer = serializer;
