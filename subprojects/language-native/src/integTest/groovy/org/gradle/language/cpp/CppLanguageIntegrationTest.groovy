@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Assume
 
 import static org.gradle.util.Matchers.containsText
@@ -85,7 +85,7 @@ model {
         output.contains("Found all include files for ':compileMainSharedLibraryMainCpp'")
     }
 
-    @Requires(TestPrecondition.MAC_OS_X)
+    @Requires(UnitTestPreconditions.MacOsX)
     @ToBeFixedForConfigurationCache
     def "can compile and link C++ code using standard macOS framework"() {
         given:

@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
 
 class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {
@@ -255,7 +255,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         mainSolution.assertReferencesProject(dllProjectFile, projectConfigurations)
     }
 
-    @Requires(TestPrecondition.MSBUILD)
+    @Requires(UnitTestPreconditions.Msbuild)
     def "can build executable from visual studio"() {
         useMsbuildTool()
         def debugBinary = executable("build/install/main/debug/lib/app")
@@ -285,7 +285,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         installation('build/install/main/debug').assertInstalled()
     }
 
-    @Requires(TestPrecondition.MSBUILD)
+    @Requires(UnitTestPreconditions.Msbuild)
     def "can build library from visual studio"() {
         useMsbuildTool()
         def debugBinaryLib = staticLibrary("build/lib/main/debug/static/lib")

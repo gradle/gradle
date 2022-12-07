@@ -18,7 +18,7 @@ package org.gradle.scala.environment
 
 import org.gradle.integtests.fixtures.*
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
@@ -58,7 +58,7 @@ class JreJavaHomeScalaIntegrationTest extends AbstractIntegrationSpec {
         scalaClassFile("org/test/ScalaClazz.class").exists()
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "scala compilation works when gradle is started with no java_home defined"() {
         given:
         writeScalaTestSource("src/main/scala");

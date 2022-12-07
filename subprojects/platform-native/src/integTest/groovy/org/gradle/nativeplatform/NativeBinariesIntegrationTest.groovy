@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
 import static org.gradle.util.Matchers.containsText
 
@@ -310,7 +310,7 @@ model {
         failure.assertThatCause(containsText("Static library archiver failed while archiving ${libName}"))
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "installed executable receives command-line parameters"() {
         buildFile << """

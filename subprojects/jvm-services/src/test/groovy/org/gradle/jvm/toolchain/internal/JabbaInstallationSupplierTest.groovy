@@ -22,7 +22,7 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -115,7 +115,7 @@ class JabbaInstallationSupplierTest extends Specification {
         directories*.source == ["Jabba", "Jabba", "Jabba"]
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "supplies installations with symlinked candidate"() {
         given:
         def otherLocation = temporaryFolder.createDir("other")

@@ -24,9 +24,9 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import org.gradle.util.internal.TextUtil
 import org.hamcrest.CoreMatchers
+import org.gradle.util.internal.TextUtil
+import org.gradle.util.UnitTestPreconditions
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -155,7 +155,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
         results.testClass("ExceptionTest").assertTestFailed("testThrow", equalTo('ExceptionTest$BadlyBehavedException: Broken readObject()'))
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "can use long paths for working directory"() {
         given:
         // windows can handle a path up to 260 characters
@@ -516,7 +516,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements
     }
 
     @IgnoreIf({ GradleContextualExecuter.embedded })
-    @Requires(TestPrecondition.JDK14_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk14OrLater)
     def "useful NPE messages are transported to the daemon"() {
         buildFile << """
             apply plugin:'java-library'

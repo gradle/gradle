@@ -21,7 +21,7 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
 import static org.junit.Assume.assumeTrue
 
@@ -39,7 +39,7 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
     }
 
     @NoDebug
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "disables file system watching on Windows"() {
         when:
         def result = runAssemble()
@@ -48,7 +48,7 @@ class GradleRunnerFileSystemWatchingIntegrationTest extends BaseGradleRunnerInte
     }
 
     @NoDebug
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "file system watching is enabled on non-Windows OSes"() {
         when:
         def result = runAssemble()

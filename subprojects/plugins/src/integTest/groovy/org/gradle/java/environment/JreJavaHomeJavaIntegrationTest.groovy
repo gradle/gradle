@@ -19,7 +19,7 @@ package org.gradle.java.environment
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import spock.lang.IgnoreIf
 
 class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
@@ -45,7 +45,7 @@ class JreJavaHomeJavaIntegrationTest extends AbstractIntegrationSpec {
         forkMode << [true, false]
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "java compilation works in forking mode = #forkMode when gradle is started with no JAVA_HOME defined"() {
         given:
         writeJavaTestSource("src/main/java");

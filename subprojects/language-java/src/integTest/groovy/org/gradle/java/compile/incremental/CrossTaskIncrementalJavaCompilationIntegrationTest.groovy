@@ -19,7 +19,7 @@ package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import spock.lang.Issue
 
 abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationIntegrationTest {
@@ -39,7 +39,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
     }
 
     // This behavior is kept for backward compatibility - may be removed in the future
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def "recompiles when upstream module-info changes with manual module path"() {
         source api: ["package a; public class A {}"], impl: ["package b; import a.A; class B extends A {}"]
         def moduleInfo = file("api/src/main/${language.name}/module-info.${language.name}")
@@ -73,7 +73,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         result.hasErrorOutput("package a is not visible")
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     @Issue("https://github.com/gradle/gradle/issues/23067")
     def "incremental compilation works with modules #description"() {
         file("impl/build.gradle") << """

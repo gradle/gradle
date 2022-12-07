@@ -22,7 +22,7 @@ import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -65,7 +65,7 @@ class CachingJvmMetadataDetectorTest extends Specification {
         metadata1.is(metadata2)
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "cached probe are not affected by symlink changes"() {
         given:
         NativeServicesTestFixture.initialize()

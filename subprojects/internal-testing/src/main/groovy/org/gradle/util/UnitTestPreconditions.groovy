@@ -59,7 +59,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
         }
     }
 
-    static final class WorkingDirectory implements TestPrecondition {
+    static final class WorkingDir implements TestPrecondition {
         @Override
         boolean isSatisfied() {
             return JavaVersion.current() < JavaVersion.VERSION_11
@@ -101,17 +101,17 @@ class UnitTestPreconditions extends BaseTestPreconditions {
         }
     }
 
+    static final class NotMacOs implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            !OperatingSystem.current().macOsX
+        }
+    }
+
     static final class MacOsM1 implements TestPrecondition {
         @Override
         boolean isSatisfied() {
             return OperatingSystem.current().isMacOsX() && OperatingSystem.current().toString().contains("aarch64")
-        }
-    }
-
-    static final class NOT_MAC_OS_X implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            !OperatingSystem.current().macOsX
         }
     }
 

@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
 
@@ -215,7 +215,7 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
         project.products.children[0].path == sharedLib("build/lib/main/debug/x86-64/app").absolutePath
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     def "returns meaningful errors from xcode when C++ executable product doesn't have test configured"() {
         useXcodebuildTool()
@@ -259,7 +259,7 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
         resultRunner.error.contains("Scheme App is not currently configured for the test action.")
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     def "returns meaningful errors from xcode when C++ library doesn't have test configured"() {
         useXcodebuildTool()
@@ -303,7 +303,7 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
         resultRunner.error.contains("Scheme App is not currently configured for the test action.")
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     def "can build C++ executable from Xcode"() {
         useXcodebuildTool()
@@ -394,7 +394,7 @@ class XcodeSingleCppProjectIntegrationTest extends AbstractXcodeIntegrationSpec 
         fixture(releaseBinary).assertHasDebugSymbolsFor(app.sourceFileNamesWithoutHeaders)
     }
 
-    @Requires(TestPrecondition.XCODE)
+    @Requires(UnitTestPreconditions.HasXCode)
     @ToBeFixedForConfigurationCache
     def "can build C++ library from Xcode"() {
         useXcodebuildTool()

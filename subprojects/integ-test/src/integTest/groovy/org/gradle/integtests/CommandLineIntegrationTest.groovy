@@ -26,7 +26,7 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.internal.GFileUtils
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
@@ -96,7 +96,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     void failsWhenJavaHomeNotSetAndPathDoesNotContainJava() {
         Assume.assumeFalse(GradleContextualExecuter.embedded)
 
@@ -144,7 +144,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Requires(TestPrecondition.NOT_EC2_AGENT)
+    @Requires(UnitTestPreconditions.NotEC2Agent)
     @Issue('https://github.com/gradle/gradle-private/issues/2876')
     void checkDefaultGradleUserHome() {
         Assume.assumeFalse(GradleContextualExecuter.embedded)
@@ -173,7 +173,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    @Requires(UnitTestPreconditions.UnixDerivative)
     void canSpecifySystemPropertiesUsingGradleOptsEnvironmentVariableWithLinebreaks() {
         Assume.assumeFalse(GradleContextualExecuter.embedded)
         // the actual testing is done in the build script.
@@ -231,7 +231,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     void resolvesLinksWhenDeterminingHomeDirectory() {
         Assume.assumeFalse(GradleContextualExecuter.embedded)
 

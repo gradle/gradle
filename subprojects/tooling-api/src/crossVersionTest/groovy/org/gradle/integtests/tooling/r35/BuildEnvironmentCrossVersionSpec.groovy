@@ -23,13 +23,13 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
 class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=3.5")
     @TargetGradleVersion(">=3.5")
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     def "old versions can mutate environment on JDK < 9"() {
         given:
         toolingApi.requireDaemons() //cannot be run in embedded mode

@@ -23,14 +23,14 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 
 class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "can start Gradle with a JDK that contains symlinks"() {
         // Zulu sets their Java distribution up like this
         def installedJdk = Jvm.current().javaHome
@@ -46,7 +46,7 @@ class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
     // This test deletes a JDK installation while the daemon is running.
     // This is difficult to setup on Windows since you can't delete files
     // that are in use.
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     @Issue("https://github.com/gradle/gradle/issues/16816")
     def "can successful start after a running daemon's JDK has been removed"() {
         def installedJdk = Jvm.current().javaHome

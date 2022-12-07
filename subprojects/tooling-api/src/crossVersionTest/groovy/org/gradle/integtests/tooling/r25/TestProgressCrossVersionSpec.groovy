@@ -35,7 +35,7 @@ import org.gradle.tooling.events.test.TestSkippedResult
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
 class TestProgressCrossVersionSpec extends ToolingApiSpecification implements WithOldConfigurationsSupport {
     def "receive test progress events when requesting a model"() {
@@ -362,7 +362,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification implements Wi
         events.tests.tail().every { it.descriptor.parent != null }
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "test progress event ids are unique across multiple test tasks, even when run in parallel"() {
         given:
         projectDir.createFile('settings.gradle') << """

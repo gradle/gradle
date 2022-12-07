@@ -17,13 +17,13 @@ package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
 import static org.hamcrest.CoreMatchers.containsString
 
 class BasePluginIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(TestPrecondition.MANDATORY_FILE_LOCKING)
+    @Requires(UnitTestPreconditions.MandatoryFileLocking)
     def "clean failure message indicates file"() {
         given:
         buildFile << """

@@ -17,12 +17,12 @@
 package org.gradle.smoketests
 
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import spock.lang.Issue
 
 class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     // AspectJ does not support JDK17 yet
-    @Requires(TestPrecondition.JDK16_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk16OrEarlier)
     @Issue('https://plugins.gradle.org/plugin/io.freefair.aspectj')
     def 'freefair aspectj plugin'() {
         given:

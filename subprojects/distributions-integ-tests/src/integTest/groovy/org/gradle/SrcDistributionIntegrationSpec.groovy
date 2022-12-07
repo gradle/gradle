@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.gradle.util.internal.AntUtil
 import org.gradle.util.internal.ToBeImplemented
 
@@ -46,7 +46,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
         0
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     @ToBeFixedForConfigurationCache
     def sourceZipContents() {
         given:
@@ -84,7 +84,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
     }
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/21114")
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "source distribution must contain generated sources"() {
         given:
         TestFile contentsDir = unpackDistribution()

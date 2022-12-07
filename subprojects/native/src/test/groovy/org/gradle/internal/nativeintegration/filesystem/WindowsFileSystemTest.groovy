@@ -18,10 +18,10 @@ package org.gradle.internal.nativeintegration.filesystem
 
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import spock.lang.Specification
 
-@Requires(TestPrecondition.WINDOWS)
+@Requires(UnitTestPreconditions.Windows)
 class WindowsFileSystemTest extends Specification {
     def fs = NativeServicesTestFixture.instance.get(FileSystem)
 

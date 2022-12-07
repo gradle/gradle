@@ -22,7 +22,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -33,7 +33,7 @@ class JavaVersionCrossVersionTest extends ToolingApiSpecification {
         projectDir.file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk8.javaHome.absolutePath)
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     @IgnoreIf({ AvailableJavaHomes.jdk8 == null })
     def "smoke test for JavaVersion scheme patch"() {
         configureJava8()

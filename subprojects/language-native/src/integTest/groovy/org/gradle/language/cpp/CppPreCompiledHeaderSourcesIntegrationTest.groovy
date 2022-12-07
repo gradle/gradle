@@ -22,7 +22,7 @@ import org.gradle.language.AbstractNativePreCompiledHeaderIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
 class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompiledHeaderIntegrationTest implements DirectoryBuildCacheFixture {
 
@@ -48,7 +48,7 @@ class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompil
             "  'Pre-compiled headers are used' satisfied"
     }
 
-    @Requires(TestPrecondition.MAC_OS_X)
+    @Requires(UnitTestPreconditions.MacOsX)
     @ToBeFixedForConfigurationCache
     def "can compile and link C++ code with precompiled headers using standard macOS framework" () {
         given:

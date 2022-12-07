@@ -18,10 +18,10 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 
-@Requires(TestPrecondition.JDK9_OR_LATER)
+@Requires(UnitTestPreconditions.Jdk9OrLater)
 class SamplesJavaPatchModuleIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule Sample sample = new Sample(temporaryFolder, 'testing/patch-module')

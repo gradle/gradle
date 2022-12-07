@@ -19,7 +19,7 @@ package org.gradle.integtests.fixtures
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.util.GradleVersion
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
 import javax.annotation.Nullable
 
@@ -210,6 +210,7 @@ class RetryConditions {
     }
 
     static boolean runsOnWindowsAndJava7or8() {
-        return TestPrecondition.WINDOWS.fulfilled && [JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_8].contains(JavaVersion.current())
+        def windowsPrecondition = new UnitTestPreconditions.Windows()
+        return windowsPrecondition.satisfied && [JavaVersion.VERSION_1_7, JavaVersion.VERSION_1_8].contains(JavaVersion.current())
     }
 }

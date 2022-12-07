@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import spock.lang.IgnoreIf
 
@@ -55,7 +55,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         failure.assertHasDescription("Value '${dummyJdk.absolutePath}' given for org.gradle.java.home Gradle property is invalid (Java home supplied seems to be invalid)")
     }
 
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     def "handles java home that is a symlink"() {
         given:
         def javaHome = Jvm.current().javaHome

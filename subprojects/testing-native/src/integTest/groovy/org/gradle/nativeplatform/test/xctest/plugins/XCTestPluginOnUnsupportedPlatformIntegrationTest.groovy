@@ -20,9 +20,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.nativeplatform.fixtures.HostPlatform
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithXCTest
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
-@Requires(TestPrecondition.WINDOWS)
+@Requires(UnitTestPreconditions.Windows)
 class XCTestPluginOnUnsupportedPlatformIntegrationTest extends AbstractIntegrationSpec implements HostPlatform {
     def setup() {
         buildFile << "apply plugin: 'xctest'"

@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
 import static org.gradle.language.VariantContext.dimensions
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
@@ -104,7 +104,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         solutionFile.assertReferencesProject(projectFile, contexts*.asVariantName as Set)
     }
 
-    @Requires(TestPrecondition.MSBUILD)
+    @Requires(UnitTestPreconditions.Msbuild)
     @ToBeFixedForConfigurationCache
     def "build generated visual studio solution with multiple target machines"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
@@ -202,7 +202,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         outputContains("'main' component in project ':' is not buildable.");
     }
 
-    @Requires(TestPrecondition.MSBUILD)
+    @Requires(UnitTestPreconditions.Msbuild)
     @ToBeFixedForConfigurationCache
     def "returns meaningful errors from visual studio when component product is unbuildable due to operating system"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
@@ -237,7 +237,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         resultProject.assertOutputContains('The project "' + visualStudioProjectName + '" is not selected for building in solution configuration "unbuildable|Win32".')
     }
 
-    @Requires(TestPrecondition.MSBUILD)
+    @Requires(UnitTestPreconditions.Msbuild)
     @ToBeFixedForConfigurationCache
     def "returns meaningful errors from visual studio when component product is unbuildable due to architecture"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))

@@ -28,11 +28,11 @@ import org.gradle.tooling.model.cpp.CppSharedLibrary
 import org.gradle.tooling.model.cpp.CppStaticLibrary
 import org.gradle.tooling.model.cpp.CppTestSuite
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
 @ToolingApiVersion(">=4.10")
 @TargetGradleVersion(">=4.10")
-@Requires(TestPrecondition.NOT_MAC_OS_X_M1) // TODO KM how to limit non-backwards compatible checks when aarch64 is not available on Gradle 7.5 and prior?
+@Requires(UnitTestPreconditions.NotMacOsXM1) // TODO KM how to limit non-backwards compatible checks when aarch64 is not available on Gradle 7.5 and prior?
 class CppModelCrossVersionSpec extends ToolingApiSpecification {
     def toolchain = AvailableToolChains.defaultToolChain
 
