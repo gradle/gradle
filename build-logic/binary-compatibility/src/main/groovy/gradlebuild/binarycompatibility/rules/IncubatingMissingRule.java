@@ -28,8 +28,8 @@ import java.util.Map;
 
 public class IncubatingMissingRule extends AbstractGradleViolationRule {
 
-    public IncubatingMissingRule(Map<String, String> acceptedViolations) {
-        super(acceptedViolations);
+    public IncubatingMissingRule(Map<String, Object> params) {
+        super(params);
     }
 
     @Override

@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.HttpRepository
 
 abstract class ComponentMetadataRulesChangingModulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -41,7 +40,7 @@ configurations {
 
 class VerifyingRule implements ComponentMetadataRule {
     public void execute(ComponentMetadataContext context) {
-        assert !context.details.changing
+        println "changing=" + context.details.changing
     }
 }
 
@@ -52,14 +51,17 @@ dependencies {
     }
 }
 task resolve {
+    def files = configurations.modules
     doLast {
-        configurations.modules.resolve()
+        files*.name
     }
 }
 """
 
         expect:
         succeeds("resolve")
+        output.count("changing=") == 1
+        outputContains("changing=false")
     }
 
     def "static and dynamic dependencies have changing flag initialized to false"() {
@@ -72,7 +74,7 @@ configurations {
 
 class VerifyingRule implements ComponentMetadataRule {
     public void execute(ComponentMetadataContext context) {
-        assert !context.details.changing
+        println "changing=" + context.details.changing
     }
 }
 
@@ -83,20 +85,22 @@ dependencies {
     }
 }
 task resolve {
+    def files = configurations.modules
     doLast {
-        configurations.modules.resolve()
+        files*.name
     }
 }
 """
 
         expect:
         succeeds("resolve")
+        output.count("changing=") == 1
+        outputContains("changing=false")
 
         where:
         version << ["1.0", "[1.0,2.0]"]
     }
 
-    @ToBeFixedForConfigurationCache
     def "rule can make a component changing"() {
         buildFile <<
 """
@@ -119,24 +123,20 @@ dependencies {
         all(ChangingTrueRule)
     }
 }
-task resolve {
-    doLast {
-        copy {
-            from configurations.modules
-            into "modules"
-        }
-    }
+task retrieve(type: Sync) {
+    from configurations.modules
+    into 'modules'
 }
 """
 
         when:
-        run("resolve")
+        run("retrieve")
         def artifact = file("modules/moduleA-1.0.jar")
         def snapshot = artifact.snapshot()
 
         and:
         moduleA.publishWithChangedContent()
-        run("resolve")
+        run("retrieve")
 
         then:
         artifact.assertContentsHaveChangedSince(snapshot)
@@ -155,13 +155,12 @@ dependencies.components.all(ChangingFalseRule)
         server.resetExpectations()
 
         and:
-        run("resolve")
+        run("retrieve")
 
         then:
         artifact.assertContentsHaveNotChangedSince(snapshot)
     }
 
-    @ToBeFixedForConfigurationCache
     def "rule cannot make a dependency non-changing"() {
         buildFile <<
 """
@@ -184,24 +183,20 @@ dependencies {
         all(UpdatingRule)
     }
 }
-task resolve {
-    doLast {
-        copy {
-            from configurations.modules
-            into "modules"
-        }
-    }
+task retrieve(type: Sync) {
+    from configurations.modules
+    into 'modules'
 }
 """
 
         when:
-        run("resolve")
+        run("retrieve")
         def artifact = file("modules/moduleA-1.0.jar")
         def snapshot = artifact.snapshot()
 
         and:
         moduleA.publishWithChangedContent()
-        run("resolve")
+        run("retrieve")
 
         then:
         artifact.assertContentsHaveChangedSince(snapshot)

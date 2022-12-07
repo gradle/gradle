@@ -63,7 +63,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge('org:lib:1.0', 'project :platform', 'depsub:platform:') {
+                edge('org:lib:1.0', ':platform', 'depsub:platform:') {
                     variant(expectedVariant, [
                         'org.gradle.category': expectedCategory,
                         'org.gradle.usage': 'java-runtime'
@@ -299,7 +299,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge('org:lib:1.0', 'project :other', 'org:other:') {
+                edge('org:lib:1.0', ':other', 'org:other:') {
                     configuration = 'runtimeElements'
                     selectedByRule()
                 }

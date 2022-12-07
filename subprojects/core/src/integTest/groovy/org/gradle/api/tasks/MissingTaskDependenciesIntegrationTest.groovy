@@ -17,25 +17,23 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ExecutionOptimizationDeprecationFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.problems.ValidationProblemId
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Issue
 
-import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
-
 @ValidationTestFor(
     ValidationProblemId.IMPLICIT_DEPENDENCY
 )
-class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements ExecutionOptimizationDeprecationFixture {
+class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
-    def "detects missing dependency between two tasks (#description)"() {
+    def "detects missing dependency between two tasks and fails (#description)"() {
         buildFile << """
             task producer {
                 def outputFile = file("${producedLocation}")
@@ -58,14 +56,9 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         """
 
         when:
-        expectMissingDependencyDeprecation(":producer", ":consumer", file(consumedLocation))
+        runAndFail("producer", "consumer")
         then:
-        succeeds("producer", "consumer")
-
-        when:
-        expectMissingDependencyDeprecation(":producer", ":consumer", file(producerOutput ?: producedLocation))
-        then:
-        succeeds("consumer", "producer")
+        assertMissingDependency(":producer", ":consumer", file(consumedLocation))
 
         where:
         description            | producerOutput | outputType | producedLocation           | consumedLocation
@@ -182,7 +175,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         "b.finalizedBy(c)"  | _
     }
 
-    def "only having shouldRunAfter causes a validation warning"() {
+    def "only having shouldRunAfter fails"() {
         buildFile << """
             task producer {
                 def outputFile = file("output.txt")
@@ -205,12 +198,13 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
             consumer.shouldRunAfter(producer)
         """
 
-        expect:
-        expectMissingDependencyDeprecation(":producer", ":consumer", file("output.txt"))
-        succeeds("producer", "consumer")
+        when:
+        runAndFail("producer", "consumer")
+        then:
+        assertMissingDependency(":producer", ":consumer", file("output.txt"))
     }
 
-    def "detects missing dependencies even if the consumer does not have outputs"() {
+    def "fails with missing dependencies even if the consumer does not have outputs"() {
         buildFile << """
             task producer {
                 def outputFile = file("output.txt")
@@ -229,9 +223,10 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
             }
         """
 
-        expect:
-        expectMissingDependencyDeprecation(":producer", ":consumer", file("output.txt"))
-        succeeds("producer", "consumer")
+        when:
+        runAndFail("producer", "consumer")
+        then:
+        assertMissingDependency(":producer", ":consumer", file("output.txt"))
     }
 
     def "does not report missing dependencies when #disabledTask is disabled"() {
@@ -301,7 +296,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         skipped(":producer", ":filteredConsumer")
     }
 
-    def "detects missing dependencies when using filtered inputs"() {
+    def "fails when missing dependencies using filtered inputs"() {
         file("src/main/java/MyClass.java").createFile()
         buildFile << """
             task producer {
@@ -321,16 +316,9 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         """
 
         when:
-        expectMissingDependencyDeprecation(":producer", ":consumer", testDirectory)
-        run("producer", "consumer")
+        runAndFail("producer", "consumer")
         then:
-        executedAndNotSkipped(":producer", ":consumer")
-
-        when:
-        expectMissingDependencyDeprecation(":producer", ":consumer", file("build/problematic/output.txt"))
-        run("consumer", "producer")
-        then:
-        executed(":producer", ":consumer")
+        assertMissingDependency(":producer", ":consumer", testDirectory)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/16061")
@@ -543,10 +531,7 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
         executedAndNotSkipped(":lib:compile")
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.UNRESOLVABLE_INPUT
-    )
-    def "emits a deprecation warning when an input file collection can't be resolved"() {
+    def "fails when an input file collection can't be resolved"() {
         buildFile """
             task "broken" {
                 inputs.files(5).withPropertyName("invalidInputFileCollection")
@@ -556,31 +541,33 @@ class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec imp
                 }
             }
         """
-        def rootCause = """
-              Cannot convert the provided notation to a File or URI: 5.
-              The following types/formats are supported:
-                - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
-                - A String or CharSequence URI, for example 'file:/usr/include'.
-                - A File instance.
-                - A Path instance.
-                - A Directory instance.
-                - A RegularFile instance.
-                - A URI or URL instance.
-                - A TextResource instance."""
-
-        def expectedWarning = unresolvableInput({
-            property('invalidInputFileCollection')
-            conversionProblem(rootCause.stripIndent())
-        }, false)
+        def cause = """Cannot convert the provided notation to a File or URI: 5.
+The following types/formats are supported:
+  - A String or CharSequence path, for example 'src/main/java' or '/usr/include'.
+  - A String or CharSequence URI, for example 'file:/usr/include'.
+  - A File instance.
+  - A Path instance.
+  - A Directory instance.
+  - A RegularFile instance.
+  - A URI or URL instance.
+  - A TextResource instance."""
 
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, expectedWarning, 'validation_problems', 'unresolvable_input')
-
-        run "broken"
-
+        fails "broken"
         then:
         executedAndNotSkipped ":broken"
-        outputContains("""Execution optimizations have been disabled for task ':broken' to ensure correctness due to the following reasons:
-  - ${convertToSingleLine(expectedWarning)}""")
+        failureDescriptionContains("Execution failed for task ':broken'.")
+        failureCauseContains(cause)
+    }
+
+    void assertMissingDependency(String producerTask, String consumerTask, File producedConsumedLocation) {
+        expectReindentedValidationMessage()
+        def expectedMessage = implicitDependency {
+            at(producedConsumedLocation)
+            consumer(consumerTask)
+            producer(producerTask)
+            includeLink()
+        }
+        failure.assertThatDescription(containsNormalizedString(expectedMessage))
     }
 }

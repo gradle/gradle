@@ -35,7 +35,7 @@ class JUnitLoggingOutputCaptureIntegrationTest extends JUnitMultiVersionIntegrat
             apply plugin: "java"
             ${mavenCentralRepository()}
             dependencies {
-                testImplementation '$dependencyNotation'
+                ${dependencyNotation.collect { "testImplementation '$it'" }.join('\n')}
             }
             test {
                 reports.junitXml.outputPerTestCase = true

@@ -16,8 +16,13 @@
 package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import spock.lang.Shared
 
 class ResolutionOverrideIntegrationTest extends AbstractHttpDependencyResolutionTest {
+
+    @Shared
+    def refreshDependenciesArgs = ['-U', '--refresh-dependencies']
+
     void "will refresh non-changing module when run with --refresh-dependencies"() {
         given:
         def module = mavenHttpRepo.module('org.name', 'projectA', '1.2').publish()
@@ -57,11 +62,14 @@ task retrieve(type: Sync) {
         module.artifact.expectGet()
 
         and:
-        executer.withArguments('--refresh-dependencies')
+        executer.withArguments(arg)
         succeeds 'retrieve'
 
         then:
         file('libs/projectA-1.2.jar').assertIsCopyOf(module.artifactFile).assertHasChangedSince(snapshot)
+
+        where:
+        arg << refreshDependenciesArgs
     }
 
     void "will recover from missing module when run with --refresh-dependencies"() {
@@ -94,8 +102,11 @@ task showMissing { doLast { println configurations.missing.files } }
         module.artifact.expectGet()
 
         then:
-        executer.withArguments("--refresh-dependencies")
+        executer.withArguments(arg)
         succeeds('showMissing')
+
+        where:
+        arg << refreshDependenciesArgs
     }
 
     void "will recover from missing artifact when run with --refresh-dependencies"() {
@@ -133,9 +144,12 @@ task retrieve(type: Sync) {
         artifact.expectGet()
 
         then:
-        executer.withArguments("--refresh-dependencies")
+        executer.withArguments(arg)
         succeeds 'retrieve'
         file('libs').assertHasDescendants('projectA-1.2.jar')
+
+        where:
+        arg << refreshDependenciesArgs
     }
 
     void "will not expire cache entries when run with offline flag"() {

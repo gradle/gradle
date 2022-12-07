@@ -23,7 +23,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.isolated.IsolationScheme;
@@ -54,7 +53,6 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static org.gradle.internal.classloader.ClassLoaderUtils.classFromContextLoader;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RETAIN_PROJECT_LOCKS;
 
 public class DefaultWorkerExecutor implements WorkerExecutor {
@@ -142,47 +140,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
         return instantiator.newInstance(DefaultWorkQueue.class, this, spec, daemonWorkerFactory);
     }
-
-    @Override
-    @SuppressWarnings("deprecation")
-    public void submit(Class<? extends Runnable> actionClass, Action<? super org.gradle.workers.WorkerConfiguration> configAction) {
-        DeprecationLogger.deprecateMethod(WorkerExecutor.class, "submit()")
-            .replaceWith("noIsolation(), classLoaderIsolation() or processIsolation()")
-            .willBeRemovedInGradle8()
-            .withUserManual("upgrading_version_5", "method_workerexecutor_submit_is_deprecated")
-            .nagUser();
-
-        DefaultWorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory);
-        configAction.execute(configuration);
-
-        Action<AdapterWorkParameters> parametersAction = parameters -> {
-            parameters.setImplementationClassName(actionClass.getName());
-            parameters.setParams(configuration.getParams());
-            parameters.setDisplayName(configuration.getDisplayName());
-        };
-
-        WorkQueue workQueue;
-        switch (configuration.getIsolationMode()) {
-            case NONE:
-            case AUTO:
-                workQueue = noIsolation(getWorkerSpecAdapterAction(configuration));
-                break;
-            case CLASSLOADER:
-                workQueue = classLoaderIsolation(getWorkerSpecAdapterAction(configuration));
-                break;
-            case PROCESS:
-                workQueue = processIsolation(getWorkerSpecAdapterAction(configuration));
-                break;
-            default:
-                throw new IllegalArgumentException("Unknown isolation mode: " + configuration.getIsolationMode());
-        }
-        workQueue.submit(AdapterWorkAction.class, parametersAction);
-    }
-
-    <T extends WorkerSpec> Action<T> getWorkerSpecAdapterAction(DefaultWorkerConfiguration configuration) {
-        return spec -> configuration.adaptTo(spec);
-    }
-
     private <T extends WorkParameters> AsyncWorkCompletion submitWork(Class<? extends WorkAction<T>> workActionClass, Action<? super T> parameterAction, WorkerSpec workerSpec, WorkerFactory workerFactory) {
         Class<T> parameterType = isolationScheme.parameterTypeFor(workActionClass);
         T parameters = (parameterType == null) ? null : instantiator.newInstance(parameterType);
@@ -190,7 +147,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             parameterAction.execute(parameters);
         }
 
-        String description = getWorkerDisplayName(workActionClass, parameters);
+        String description = workActionClass.getName();
         WorkerRequirement workerRequirement = getWorkerRequirement(workActionClass, workerSpec, parameters);
         IsolatedParametersActionExecutionSpec<?> spec;
         try {
@@ -217,19 +174,6 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         executionQueue.submit(execution);
         asyncWorkTracker.registerWork(currentBuildOperation, execution);
         return execution;
-    }
-
-    private static String getWorkerDisplayName(Class<?> workActionClass, WorkParameters parameters) {
-        if (workActionClass == AdapterWorkAction.class) {
-            AdapterWorkParameters adapterWorkParameters = (AdapterWorkParameters) parameters;
-            if (adapterWorkParameters.getDisplayName() != null) {
-                return adapterWorkParameters.getDisplayName();
-            } else {
-                return adapterWorkParameters.getImplementationClassName();
-            }
-        } else {
-            return workActionClass.getName();
-        }
     }
 
     private void checkIsManagedThread() {
@@ -280,7 +224,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     WorkerRequirement getWorkerRequirement(Class<?> executionClass, WorkerSpec configuration, WorkParameters parameters) {
         if (configuration instanceof ProcessWorkerSpec) {
             DaemonForkOptionsBuilder builder = new DaemonForkOptionsBuilder(forkOptionsFactory)
-                .keepAliveMode(KeepAliveMode.DAEMON);
+                .keepAliveMode(KeepAliveMode.SESSION);
             ProcessWorkerSpec processConfiguration = (ProcessWorkerSpec) configuration;
             JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
             processConfiguration.getForkOptions().copyTo(forkOptions);
@@ -301,19 +245,10 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     private Class<?>[] getParamClasses(Class<?> actionClass, WorkParameters parameters) {
-        Class<?> implementationClass;
-        Object[] params;
-        if (parameters instanceof AdapterWorkParameters) {
-            AdapterWorkParameters adapterWorkParameters = (AdapterWorkParameters) parameters;
-            implementationClass = classFromContextLoader(adapterWorkParameters.getImplementationClassName());
-            params = adapterWorkParameters.getParams();
-        } else {
-            implementationClass = actionClass;
-            params = new Object[]{parameters};
-        }
+        Object[] params = new Object[]{parameters};
 
         List<Class<?>> classes = Lists.newArrayList();
-        classes.add(implementationClass);
+        classes.add(actionClass);
         for (Object param : params) {
             if (param != null) {
                 classes.add(param.getClass());

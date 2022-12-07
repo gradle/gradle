@@ -16,6 +16,7 @@
 
 package org.gradle.initialization.layout;
 
+import org.gradle.cache.CleanupFrequency;
 import org.gradle.cache.internal.DefaultCleanupProgressMonitor;
 import org.gradle.cache.internal.VersionSpecificCacheCleanupAction;
 import org.gradle.internal.concurrent.Stoppable;
@@ -68,7 +69,8 @@ public class ProjectCacheDir implements Stoppable {
         VersionSpecificCacheCleanupAction cleanupAction = new VersionSpecificCacheCleanupAction(
             dir,
             MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS,
-            deleter
+            deleter,
+            CleanupFrequency.DAILY
         );
         String description = cleanupAction.getDisplayName();
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(ProjectCacheDir.class).start(description, description);

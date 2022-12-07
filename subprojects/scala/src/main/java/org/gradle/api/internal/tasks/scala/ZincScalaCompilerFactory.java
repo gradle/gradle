@@ -226,7 +226,7 @@ public class ZincScalaCompilerFactory {
 
                 final String interfaceCompletedMessage = String.format("Scala Compiler interface compilation took %s", timer.getElapsed());
                 if (timer.getElapsedMillis() > 30000) {
-                    LOGGER.warn(interfaceCompletedMessage);
+                    LOGGER.info(interfaceCompletedMessage);
                 } else {
                     LOGGER.debug(interfaceCompletedMessage);
                 }

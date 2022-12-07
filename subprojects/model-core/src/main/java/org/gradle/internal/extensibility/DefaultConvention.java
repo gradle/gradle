@@ -25,6 +25,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionsSchema;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
@@ -355,12 +356,18 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
     }
 
     private boolean isConfigureExtensionMethod(String name, Object[] args) {
-        return args.length == 1 && args[0] instanceof Closure && extensionsStorage.hasExtension(name);
+        return args.length == 1 &&
+            (args[0] instanceof Closure || args[0] instanceof Action) &&
+            extensionsStorage.hasExtension(name);
     }
 
     private Object configureExtension(String name, Object[] args) {
-        Closure closure = (Closure) args[0];
-        Action<Object> action = ConfigureUtil.configureUsing(closure);
+        Action<Object> action;
+        if (args[0] instanceof Closure) {
+            action = ConfigureUtil.configureUsing(Cast.uncheckedCast(args[0]));
+        } else {
+            action = Cast.uncheckedCast(args[0]);
+        }
         return extensionsStorage.configureExtension(name, action);
     }
 }

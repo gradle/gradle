@@ -22,8 +22,8 @@ import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.reflect.AnnotationCategory
 import org.gradle.internal.reflect.DefaultTypeValidationContext
+import org.gradle.internal.reflect.annotations.AnnotationCategory
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
@@ -38,12 +38,21 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 import java.lang.reflect.Method
 
-import static org.gradle.internal.reflect.AnnotationCategory.TYPE
+import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE
 import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class DefaultTypeAnnotationMetadataStoreTest extends Specification implements ValidationMessageChecker {
-    private static final COLOR = { "color" } as AnnotationCategory
+    private static final COLOR = new AnnotationCategory() {
+        @Override
+        String getDisplayName() {
+            return "color"
+        }
+        @Override
+        String toString() {
+            return displayName
+        }
+    }
 
     private final DocumentationRegistry documentationRegistry = new DocumentationRegistry()
 
@@ -218,7 +227,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
                     .includeLink()
             })
         ]
-        store.getTypeAnnotationMetadata(TypeWithIsAndGetProperty).propertiesAnnotationMetadata[0].method.name == "getBool"
+        store.getTypeAnnotationMetadata(TypeWithIsAndGetProperty).propertiesAnnotationMetadata[0].getter.name == "getBool"
     }
 
     @SuppressWarnings("unused")
@@ -249,7 +258,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         assertProperties TypeWithIgnoredIsGetterBooleanProperty, [
             bool: [(TYPE): Small],
         ]
-        store.getTypeAnnotationMetadata(TypeWithIgnoredIsGetterBooleanProperty).propertiesAnnotationMetadata[0].method.name == "getBool"
+        store.getTypeAnnotationMetadata(TypeWithIgnoredIsGetterBooleanProperty).propertiesAnnotationMetadata[0].getter.name == "getBool"
     }
 
     @SuppressWarnings("unused")
@@ -267,7 +276,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         assertProperties TypeWithIgnoredGetGetterBooleanProperty, [
             bool: [(TYPE): Small],
         ]
-        store.getTypeAnnotationMetadata(TypeWithIgnoredGetGetterBooleanProperty).propertiesAnnotationMetadata[0].method.name == "isBool"
+        store.getTypeAnnotationMetadata(TypeWithIgnoredGetGetterBooleanProperty).propertiesAnnotationMetadata[0].getter.name == "isBool"
     }
 
     @SuppressWarnings("unused")
@@ -478,7 +487,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         when:
         def metadata = store.getTypeAnnotationMetadata(TypeWithOverride)
         then:
-        metadata.propertiesAnnotationMetadata[0].method.declaringClass == TypeWithOverride
+        metadata.propertiesAnnotationMetadata[0].getter.declaringClass == TypeWithOverride
     }
 
     @SuppressWarnings("unused")

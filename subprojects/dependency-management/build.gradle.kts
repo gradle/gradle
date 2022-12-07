@@ -11,6 +11,7 @@ description = """This project contains most of the dependency management logic o
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":build-option"))
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
     implementation(project(":messaging"))

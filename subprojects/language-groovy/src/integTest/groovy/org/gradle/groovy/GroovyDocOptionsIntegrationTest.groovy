@@ -144,53 +144,6 @@ class GroovyDocOptionsIntegrationTest extends MultiVersionIntegrationSpec {
         text =~ GROOVY_DOC_PUBLIC_PATTERN
     }
 
-    def "private scope can be enabled with old method and produces deprecation warning"() {
-        when:
-        buildFile << "groovydoc { includePrivate = true; println(includePrivate) }"
-        executer.expectDocumentedDeprecationWarning(
-            "The Groovydoc.includePrivate property has been deprecated." +
-                " This is scheduled to be removed in Gradle 8.0. Please use the access property instead." +
-                " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#groovydoc_option_improvements"
-        )
-        run "groovydoc"
-
-        then:
-        def text = file('build/docs/groovydoc/options/Thing.html').text
-        text =~ GROOVY_DOC_PRIVATE_PATTERN
-        text =~ GROOVY_DOC_PACKAGE_PATTERN
-        text =~ GROOVY_DOC_PROTECTED_PATTERN
-        text =~ GROOVY_DOC_PUBLIC_PATTERN
-    }
-
-    def "includePrivate is reflected in access property"() {
-        when:
-        buildFile << """
-            groovydoc {
-                includePrivate = true
-                assert(access.get() == GroovydocAccess.PRIVATE)
-                includePrivate = false
-                assert(access.get() == GroovydocAccess.PUBLIC)
-                access = GroovydocAccess.PRIVATE
-                assert(includePrivate)
-                // This maps to a "false" for includePrivate
-                access = GroovydocAccess.PROTECTED
-                assert(!includePrivate)
-                access = GroovydocAccess.PACKAGE
-                assert(!includePrivate)
-                access = GroovydocAccess.PUBLIC
-                assert(!includePrivate)
-            }
-        """
-        executer.expectDocumentedDeprecationWarning(
-            "The Groovydoc.includePrivate property has been deprecated." +
-                " This is scheduled to be removed in Gradle 8.0. Please use the access property instead." +
-                " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#groovydoc_option_improvements"
-        )
-
-        then:
-        succeeds "groovydoc"
-    }
-
     def "can limit to only public members"() {
         when:
         buildFile << "groovydoc { access = GroovydocAccess.PUBLIC }"

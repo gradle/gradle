@@ -17,7 +17,7 @@
 import gradlebuild.basics.BuildEnvironment
 import java.time.Duration
 
-// Lifecycle tasks used to to fan out the build into multiple builds in a CI pipeline.
+// Lifecycle tasks used to fan out the build into multiple builds in a CI pipeline.
 
 val ciGroup = "CI Lifecycle"
 

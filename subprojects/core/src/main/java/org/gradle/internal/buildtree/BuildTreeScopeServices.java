@@ -16,6 +16,7 @@
 
 package org.gradle.internal.buildtree;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -29,12 +30,15 @@ import org.gradle.execution.selection.DefaultBuildTaskSelector;
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
 import org.gradle.initialization.exception.ExceptionAnalyser;
+import org.gradle.initialization.exception.ExceptionCollector;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
+import org.gradle.internal.buildoption.DefaultFeatureFlags;
+import org.gradle.internal.buildoption.DefaultInternalOptions;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.DefaultListenerManager;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
@@ -67,7 +71,13 @@ public class BuildTreeScopeServices {
         registration.add(DefaultConfigurationTimeBarrier.class);
         registration.add(DeprecationsReporter.class);
         registration.add(TaskPathProjectEvaluator.class);
+        registration.add(DefaultFeatureFlags.class);
+        registration.add(DefaultExceptionAnalyser.class);
         modelServices.applyServicesTo(registration);
+    }
+
+    protected InternalOptions createInternalOptions(StartParameter startParameter) {
+        return new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
     }
 
     protected TaskSelector createTaskSelector(ProjectConfigurer projectConfigurer) {
@@ -78,8 +88,8 @@ public class BuildTreeScopeServices {
         return parent.createChild(Scopes.BuildTree.class);
     }
 
-    protected ExceptionAnalyser createExceptionAnalyser(ListenerManager listenerManager, LoggingConfiguration loggingConfiguration) {
-        ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser(listenerManager));
+    protected ExceptionAnalyser createExceptionAnalyser(LoggingConfiguration loggingConfiguration, ExceptionCollector exceptionCollector) {
+        ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(exceptionCollector);
         if (loggingConfiguration.getShowStacktrace() != ShowStacktrace.ALWAYS_FULL) {
             exceptionAnalyser = new StackTraceSanitizingExceptionAnalyser(exceptionAnalyser);
         }

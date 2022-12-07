@@ -92,6 +92,7 @@ import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.Cli
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.FOREGROUND;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NOT_DEFINED;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.NO_DAEMON;
+import static org.gradle.integtests.fixtures.executer.DocumentationUtils.normalizeDocumentationLink;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES;
 import static org.gradle.util.internal.CollectionUtils.collect;
@@ -168,7 +169,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean useOwnUserHomeServices;
     private ConsoleOutput consoleType;
     protected WarningMode warningMode = WarningMode.All;
-    private boolean showStacktrace = true;
+    private boolean showStacktrace = false;
     private boolean renderWelcomeMessage;
     private boolean disableToolchainDownload = true;
     private boolean disableToolchainDetection = true;
@@ -423,8 +424,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         executer.withWarningMode(warningMode);
 
-        if (!showStacktrace) {
-            executer.withStacktraceDisabled();
+        if (showStacktrace) {
+            executer.withStacktraceEnabled();
         }
 
         if (renderWelcomeMessage) {
@@ -854,8 +855,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter withStacktraceDisabled() {
-        showStacktrace = false;
+    public GradleExecuter withStacktraceEnabled() {
+        showStacktrace = true;
         return this;
     }
 
@@ -1157,10 +1158,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
 
         properties.put(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
-
-        // Setting this to false is now deprecated, true will be the default in 8.0
-        // TODO Remove this once the property itself is deprecated
-        properties.put("org.gradle.kotlin.dsl.precompiled.accessors.strict", "true");
 
         return properties;
     }
@@ -1468,13 +1465,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
-        String pattern = "https://docs.gradle.org/current/";
-        String replacement = "https://docs.gradle.org/" + GradleVersion.current().getVersion() + "/";
-        String expectedWarning = warning.replace(pattern, replacement);
-        if (warning.equals(expectedWarning)) {
-            throw new IllegalArgumentException("Documented deprecation warning must reference '" + pattern + "'.");
-        }
-        return expectDeprecationWarning(expectedWarning);
+        return expectDeprecationWarning(normalizeDocumentationLink(warning));
     }
 
     @Override

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.capitalize
 import gradlebuild.pluginpublish.extension.PluginPublishExtension
 import java.time.Year
 
@@ -24,7 +25,7 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
-extensions.create<PluginPublishExtension>("pluginPublish", gradlePlugin, pluginBundle)
+extensions.create<PluginPublishExtension>("pluginPublish", gradlePlugin)
 
 tasks.validatePlugins {
     enableStricterValidation.set(true)
@@ -37,12 +38,6 @@ configurations.all {
         remove(project.dependencies.gradleApi())
         remove(project.dependencies.gradleTestKit())
     }
-}
-
-pluginBundle {
-    tags = listOf("Kotlin", "DSL")
-    website = "https://github.com/gradle/kotlin-dsl"
-    vcsUrl = "https://github.com/gradle/kotlin-dsl"
 }
 
 publishing.publications.withType<MavenPublication>().configureEach {
@@ -99,9 +94,14 @@ publishing {
 }
 
 gradlePlugin {
+    website.set("https://github.com/gradle/kotlin-dsl")
+    vcsUrl.set("https://github.com/gradle/kotlin-dsl")
+
     plugins.all {
 
         val plugin = this
+
+        tags.addAll("Kotlin", "DSL")
 
         publishPluginsToTestRepository.configure {
             dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")

@@ -569,7 +569,7 @@ Run the build as a composite, including the specified build. See <<composite_bui
 `--offline`::
 Specifies that the build should operate without accessing network resources. Learn more about <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,options to override dependency caching>>.
 
-`--refresh-dependencies`::
+`-U`, `--refresh-dependencies`::
 Refresh the state of dependencies. Learn more about how to use this in the <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,dependency management docs>>.
 
 `--continue`::
@@ -589,10 +589,6 @@ Learn more about this in <<dependency_locking.adoc#dependency-locking,dependency
 Indicates that versions for the specified modules have to be updated in the lock file.
 This flag also implies `--write-locks`.
 Learn more about this in <<dependency_locking.adoc#dependency-locking,dependency locking>>.
-
-`-a`, `--no-rebuild`::
-Do not rebuild project dependencies.
-Useful for <<organizing_gradle_projects.adoc#sec:build_sources, debugging and fine-tuning `buildSrc`>>, but can lead to wrong results. Use with caution!
 
 [[sec:dependency_verification_options]]
 == Dependency verification options

@@ -26,7 +26,6 @@ import org.gradle.api.internal.catalog.AbstractExternalDependencyFactory.Version
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugin.use.PluginDependency;
 
 import javax.inject.Inject;
@@ -48,17 +47,6 @@ public class VersionCatalogView implements VersionCatalog {
         this.providerFactory = providerFactory;
         this.objects = objects;
         this.dependencyFactory = new DefaultExternalDependencyFactory(config, providerFactory, objects);
-    }
-
-    @Override
-    @Deprecated
-    public Optional<Provider<MinimalExternalModuleDependency>> findDependency(String alias) {
-        DeprecationLogger.deprecateMethod(VersionCatalog.class, "findDependency(String)")
-            .replaceWith("findLibrary(String)")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "version_catalog_deprecations")
-            .nagUser();
-        return findLibrary(alias);
     }
 
     @Override
@@ -100,17 +88,6 @@ public class VersionCatalogView implements VersionCatalog {
     @Override
     public final String getName() {
         return config.getName();
-    }
-
-    @Override
-    @Deprecated
-    public List<String> getDependencyAliases() {
-        DeprecationLogger.deprecateMethod(VersionCatalog.class, "getDependencyAliases()")
-            .replaceWith("getLibraryAliases()")
-            .willBeRemovedInGradle8()
-            .withUpgradeGuideSection(7, "version_catalog_deprecations")
-            .nagUser();
-        return getLibraryAliases();
     }
 
     @Override

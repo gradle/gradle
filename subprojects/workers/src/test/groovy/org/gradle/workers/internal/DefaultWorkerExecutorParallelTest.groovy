@@ -34,6 +34,7 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.util.UsesNativeServices
 import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
+import org.gradle.workers.WorkQueue
 import org.gradle.workers.WorkerExecutionException
 import spock.lang.TempDir
 
@@ -81,7 +82,8 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
             6.times {
                 start {
                     thread.blockUntil.allStarted
-                    workerExecutor."${isolationMode}"().submit(TestExecution.class, Actions.doNothing())
+                    WorkQueue queue = workerExecutor."${isolationMode}" Actions.doNothing()
+                    queue.submit(TestExecution.class, Actions.doNothing())
                 }
             }
             instant.allStarted

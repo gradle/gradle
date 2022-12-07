@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
@@ -49,7 +49,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
     }
 
     @Override
-    public void validate(TaskValidationContext context) {
+    public void validate(PropertyValidationContext context) {
         Object unpacked = DeferredUtil.unpackOrNull(value.call());
         if (unpacked == null) {
             if (!optional) {

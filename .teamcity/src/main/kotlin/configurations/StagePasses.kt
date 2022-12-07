@@ -72,6 +72,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
         snapshotDependencies(stageProject.specificBuildTypes)
         snapshotDependencies(stageProject.performanceTests)
         snapshotDependencies(stageProject.functionalTests)
+        snapshotDependencies(stageProject.docsTestTriggers)
     }
 })
 

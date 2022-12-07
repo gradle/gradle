@@ -39,6 +39,7 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource
 import org.gradle.api.internal.provider.sources.EnvironmentVariablesPrefixedByValueSource
 import org.gradle.api.internal.provider.sources.FileContentValueSource
+import org.gradle.api.internal.provider.sources.GradlePropertiesPrefixedByValueSource
 import org.gradle.api.internal.provider.sources.GradlePropertyValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertiesPrefixedByValueSource
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
@@ -59,13 +60,16 @@ import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.configurationcache.services.EnvironmentChangeTracker
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.buildoption.FeatureFlag
+import org.gradle.internal.buildoption.FeatureFlagListener
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.UnitOfWork.InputFileValueSupplier
+import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.WorkInputListener
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.util.Path
@@ -92,6 +96,7 @@ class ConfigurationCacheFingerprintWriter(
     ProjectDependencyObservedListener,
     CoupledProjectsListener,
     FileResourceListener,
+    FeatureFlagListener,
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
@@ -322,6 +327,10 @@ class ConfigurationCacheFingerprintWriter(
                 // The set of Gradle properties is already an input
             }
 
+            is GradlePropertiesPrefixedByValueSource.Parameters -> {
+                // The set of Gradle properties is already an input
+            }
+
             is SystemPropertyValueSource.Parameters -> {
                 addSystemPropertyToFingerprint(parameters.propertyName.get(), obtainedValue.value.get())
             }
@@ -371,8 +380,8 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    override fun onExecute(work: UnitOfWork, relevantTypes: EnumSet<InputFingerprinter.InputPropertyType>) {
-        captureWorkInputs(work, relevantTypes)
+    override fun onExecute(work: UnitOfWork, relevantBehaviors: EnumSet<InputBehavior>) {
+        captureWorkInputs(work, relevantBehaviors)
     }
 
     private
@@ -381,11 +390,11 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
-    fun captureWorkInputs(work: UnitOfWork, relevantTypes: EnumSet<InputFingerprinter.InputPropertyType>) {
+    fun captureWorkInputs(work: UnitOfWork, relevantInputBehaviors: EnumSet<InputBehavior>) {
         captureWorkInputs(work.displayName) { visitStructure ->
             work.visitRegularInputs(object : InputVisitor {
-                override fun visitInputFileProperty(propertyName: String, type: InputFingerprinter.InputPropertyType, value: InputFingerprinter.FileValueSupplier) {
-                    if (relevantTypes.contains(type)) {
+                override fun visitInputFileProperty(propertyName: String, behavior: InputBehavior, value: InputFileValueSupplier) {
+                    if (relevantInputBehaviors.contains(behavior)) {
                         visitStructure(value.files as FileCollectionInternal)
                     }
                 }
@@ -435,11 +444,20 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     override fun onProjectReference(referrer: ProjectState, target: ProjectState) {
+        if (referrer.identityPath == target.identityPath)
+            return
+
         if (host.cacheIntermediateModels) {
             val dependency = ProjectSpecificFingerprint.CoupledProjects(referrer.identityPath, target.identityPath)
             if (projectDependencies.add(dependency)) {
                 projectScopedWriter.write(dependency)
             }
+        }
+    }
+
+    override fun flagRead(flag: FeatureFlag) {
+        flag.systemPropertyName?.let { propertyName ->
+            sink().systemPropertyRead(propertyName, System.getProperty(propertyName))
         }
     }
 
@@ -466,10 +484,6 @@ class ConfigurationCacheFingerprintWriter(
 
         override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) {
             elements.addAll(contents)
-        }
-
-        override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
-            elements.addAll(fileTree)
         }
 
         override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {

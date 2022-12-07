@@ -633,50 +633,6 @@ org:leaf:2.0 -> 1.0
 """
     }
 
-    def "shows forced dynamic version"() {
-        given:
-        mavenRepo.module("org", "leaf", "1").publish()
-        mavenRepo.module("org", "leaf", "2").publish()
-        mavenRepo.module("org", "leaf", "3").publish()
-
-        file("build.gradle") << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf('org:leaf:[1,2]') {
-                    because 'testing stuff'
-                    force true
-                }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        run "dependencyInsight", "--configuration", "conf", "--dependency", "leaf"
-
-        then:
-        outputContains """
-org:leaf:2
-  Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
-   Selection reasons:
-      - Was requested: didn't match version 3 because testing stuff
-      - Forced
-
-org:leaf:[1,2] -> 2
-\\--- conf
-"""
-    }
-
     def "shows multiple outgoing dependencies"() {
         given:
         ivyRepo.module("org", "leaf", "1.0").publish()
@@ -1211,60 +1167,6 @@ org:leaf:1.0 -> 1.5
      \\--- conf
 
 org:leaf:2.0 -> 1.5
-\\--- org:bar:1.0
-     \\--- conf
-"""
-    }
-
-    def "forced version at dependency level"() {
-        given:
-        mavenRepo.module("org", "leaf", "1.0").publish()
-        mavenRepo.module("org", "leaf", "2.0").publish()
-
-        mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
-        mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
-
-        file("build.gradle") << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
-            configurations {
-                conf
-            }
-            dependencies {
-                conf 'org:foo:1.0', 'org:bar:1.0'
-                conf('org:leaf:1.0') {
-                  force = true
-                }
-            }
-            task insight(type: DependencyInsightReportTask) {
-                showingAllVariants = false
-                configuration = configurations.conf
-                setDependencySpec { it.requested.module == 'leaf' }
-            }
-        """
-
-        when:
-        executer.expectDeprecationWarning()
-        run "insight"
-
-        then:
-        outputContains """
-org:leaf:1.0 (forced)
-  Variant runtime:
-    | Attribute Name             | Provided     | Requested |
-    |----------------------------|--------------|-----------|
-    | org.gradle.category        | library      |           |
-    | org.gradle.libraryelements | jar          |           |
-    | org.gradle.status          | release      |           |
-    | org.gradle.usage           | java-runtime |           |
-
-org:leaf:1.0
-+--- conf
-\\--- org:foo:1.0
-     \\--- conf
-
-org:leaf:2.0 -> 1.0
 \\--- org:bar:1.0
      \\--- conf
 """
@@ -1851,6 +1753,7 @@ project :impl
     | Attribute Name                 | Provided | Requested    |
     |--------------------------------|----------|--------------|
     | org.gradle.category            | library  | library      |
+    | org.gradle.compile-view        | java-api | java-api     |
     | org.gradle.dependency.bundling | external | external     |
     | org.gradle.jvm.version         | ${jvmVersion.padRight("java-api".length())} | ${jvmVersion.padRight("standard-jvm".length())} |
     | org.gradle.libraryelements     | jar      | classes      |
@@ -1909,6 +1812,7 @@ org:leaf4:1.0
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -1948,6 +1852,7 @@ org:leaf1:1.0
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -1969,6 +1874,7 @@ org:leaf2:1.0
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -2028,6 +1934,7 @@ project :api
     | Attribute Name                 | Provided | Requested    |
     |--------------------------------|----------|--------------|
     | org.gradle.category            | library  | library      |
+    | org.gradle.compile-view        | java-api | java-api     |
     | org.gradle.dependency.bundling | external | external     |
     | org.gradle.jvm.version         | ${jvmVersion.padRight("java-api".length())} | ${jvmVersion.padRight("standard-jvm".length())} |
     | org.gradle.libraryelements     | jar      | classes      |
@@ -2049,6 +1956,7 @@ project :some:deeply:nested
     | Attribute Name                 | Provided | Requested    |
     |--------------------------------|----------|--------------|
     | org.gradle.category            | library  | library      |
+    | org.gradle.compile-view        | java-api | java-api     |
     | org.gradle.dependency.bundling | external | external     |
     | org.gradle.jvm.version         | ${jvmVersion.padRight("java-api".length())} | ${jvmVersion.padRight("standard-jvm".length())} |
     | org.gradle.libraryelements     | jar      | classes      |
@@ -2069,6 +1977,7 @@ project :some:deeply:nested
     | Attribute Name                 | Provided | Requested    |
     |--------------------------------|----------|--------------|
     | org.gradle.category            | library  | library      |
+    | org.gradle.compile-view        | java-api | java-api     |
     | org.gradle.dependency.bundling | external | external     |
     | org.gradle.jvm.version         | ${jvmVersion.padRight("java-api".length())} | ${jvmVersion.padRight("standard-jvm".length())} |
     | org.gradle.libraryelements     | jar      | classes      |
@@ -2126,6 +2035,7 @@ org:leaf3:1.0
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -2237,6 +2147,7 @@ foo:foo:1.0
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -2293,6 +2204,7 @@ org:foo -> $selected
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -2346,6 +2258,7 @@ org:foo -> $selected
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -2397,6 +2310,7 @@ org:foo:${displayVersion} -> $selected
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -2454,6 +2368,7 @@ org:foo:[1.1,1.3] -> 1.3
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -2471,6 +2386,7 @@ org:foo:1.1
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -2532,6 +2448,7 @@ org:bar:1.0
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -2550,6 +2467,7 @@ org:foo:1.1
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -2595,6 +2513,7 @@ org:leaf:1.0 (by constraint)
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -2648,6 +2567,7 @@ org.test:leaf:1.0
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -2706,7 +2626,7 @@ org:leaf2:1.0
 |         \\--- conf
 \\--- org:top:1.0 (*)
 
-(*) - dependencies omitted (listed previously)
+(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
 
 A web-based, searchable dependency report is available by adding the --scan option.
 """
@@ -2834,6 +2754,7 @@ org:foo:1.0
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -2890,6 +2811,7 @@ org:foo:{require [1.0,); reject 1.1} -> 1.0
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -2956,6 +2878,7 @@ org:foo:1.0
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -2963,6 +2886,7 @@ org:foo:1.0
       - Rejection: version 1.2:
           - Attribute 'color' didn't match. Requested 'blue', was: 'red'
           - Attribute 'org.gradle.category' didn't match. Requested 'library', was: not found
+          - Attribute 'org.gradle.compile-view' didn't match. Requested 'java-api', was: not found
           - Attribute 'org.gradle.dependency.bundling' didn't match. Requested 'external', was: not found
           - Attribute 'org.gradle.jvm.environment' didn't match. Requested 'standard-jvm', was: not found
           - Attribute 'org.gradle.jvm.version' didn't match. Requested '${JavaVersion.current().majorVersion}', was: not found
@@ -2971,6 +2895,7 @@ org:foo:1.0
       - Rejection: version 1.1:
           - Attribute 'color' didn't match. Requested 'blue', was: 'green'
           - Attribute 'org.gradle.category' didn't match. Requested 'library', was: not found
+          - Attribute 'org.gradle.compile-view' didn't match. Requested 'java-api', was: not found
           - Attribute 'org.gradle.dependency.bundling' didn't match. Requested 'external', was: not found
           - Attribute 'org.gradle.jvm.environment' didn't match. Requested 'standard-jvm', was: not found
           - Attribute 'org.gradle.jvm.version' didn't match. Requested '${JavaVersion.current().majorVersion}', was: not found
@@ -3038,6 +2963,7 @@ planet:mercury:1.0.2
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -3070,6 +2996,7 @@ planet:venus:2.0.1
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -3102,6 +3029,7 @@ planet:pluto:1.0.0
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |
@@ -3152,6 +3080,7 @@ org:foo:1.5
     | org.gradle.category            | library  | library      |
     | org.gradle.libraryelements     | jar      | classes      |
     | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.compile-view        |          | java-api     |
     | org.gradle.dependency.bundling |          | external     |
     | org.gradle.jvm.environment     |          | standard-jvm |
     | org.gradle.jvm.version         |          | ${jvmVersion.padRight("standard-jvm".length())} |

@@ -35,6 +35,7 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.reflect.Instantiator;
@@ -58,21 +59,25 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final FileCollectionFactory fileCollectionFactory;
     private final ImmutableAttributesFactory attributesFactory;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
+    private final TaskDependencyFactory taskDependencyFactory;
     private NamedDomainObjectContainer<ConfigurationVariant> variants;
     private ConfigurationVariantFactory variantFactory;
     private List<Capability> capabilities;
     private boolean canCreate = true;
 
-    public DefaultConfigurationPublications(DisplayName displayName,
-                                            PublishArtifactSet artifacts,
-                                            PublishArtifactSetProvider allArtifacts,
-                                            AttributeContainerInternal parentAttributes,
-                                            Instantiator instantiator,
-                                            NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
-                                            NotationParser<Object, Capability> capabilityNotationParser,
-                                            FileCollectionFactory fileCollectionFactory,
-                                            ImmutableAttributesFactory attributesFactory,
-                                            DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    public DefaultConfigurationPublications(
+        DisplayName displayName,
+        PublishArtifactSet artifacts,
+        PublishArtifactSetProvider allArtifacts,
+        AttributeContainerInternal parentAttributes,
+        Instantiator instantiator,
+        NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+        NotationParser<Object, Capability> capabilityNotationParser,
+        FileCollectionFactory fileCollectionFactory,
+        ImmutableAttributesFactory attributesFactory,
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        TaskDependencyFactory taskDependencyFactory
+    ) {
         this.displayName = displayName;
         this.artifacts = artifacts;
         this.allArtifacts = allArtifacts;
@@ -83,6 +88,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         this.fileCollectionFactory = fileCollectionFactory;
         this.attributesFactory = attributesFactory;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
         this.attributes = attributesFactory.mutable(parentAttributes);
     }
 
@@ -232,7 +238,9 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         @Override
         public ConfigurationVariant create(String name) {
             if (canCreate) {
-                return instantiator.newInstance(DefaultVariant.class, displayName, name, parentAttributes, artifactNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory);
+                return instantiator.newInstance(
+                    DefaultVariant.class, displayName, name, parentAttributes, artifactNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory
+                );
             } else {
                 throw new InvalidUserCodeException("Cannot create variant '" + name + "' after dependency " + displayName + " has been resolved");
             }

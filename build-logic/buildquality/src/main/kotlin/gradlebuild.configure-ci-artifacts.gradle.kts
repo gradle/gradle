@@ -18,7 +18,7 @@ import gradlebuild.docs.FindBrokenInternalLinks
 import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.testcleanup.extension.TestFilesCleanupBuildServiceRootExtension
-import me.champeau.gradle.japicmp.JapicmpTask
+import gradlebuild.binarycompatibility.JapicmpTask
 import org.jlleitschuh.gradle.ktlint.tasks.GenerateReportsTask
 
 if (BuildEnvironment.isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
@@ -43,7 +43,7 @@ fun Task.customReports(): List<File> = when (this) {
 }
 
 fun Task.attachedReportLocations() = when (this) {
-    is JapicmpTask -> listOf(richReport.destinationDir.resolve(richReport.reportName))
+    is JapicmpTask -> listOf(richReport.get().destinationDir.get().asFile.resolve(richReport.get().reportName.get()))
     is PerformanceTest -> listOf(reportDir.parentFile)
     else -> emptyList()
 }

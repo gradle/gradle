@@ -16,10 +16,10 @@
 
 package org.gradle.internal.watch
 
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType
 import org.gradle.internal.watch.vfs.BuildStartedFileSystemWatchingBuildOperationType
-import com.gradle.enterprise.testing.annotations.LocalOnly
 
 @LocalOnly
 class BuildOperationsFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {

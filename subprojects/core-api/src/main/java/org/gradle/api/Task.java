@@ -275,12 +275,11 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     /**
      * Do not track the state of the task.
      *
-     * Instructs Gradle to treat the task as untracked.
+     * <p>Instructs Gradle to treat the task as untracked.
      *
      * @see org.gradle.api.tasks.UntrackedTask
      * @since 7.3
      */
-    @Incubating
     void doNotTrackState(String reasonNotToTrackState);
 
     /**
@@ -303,7 +302,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @since 7.4
      */
-    @Incubating
     void notCompatibleWithConfigurationCache(String reason);
 
     /**
@@ -833,6 +831,5 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * @param service The service provider.
      * @since 6.1
      */
-    @Incubating
     void usesService(Provider<? extends BuildService<?>> service);
 }

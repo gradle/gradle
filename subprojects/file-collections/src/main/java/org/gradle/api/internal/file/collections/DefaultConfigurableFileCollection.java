@@ -19,7 +19,6 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.internal.AbstractTaskDependencyContainerVisitingContext;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -46,7 +45,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -69,10 +67,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private boolean disallowChanges;
     private boolean disallowUnsafeRead;
     private ValueCollector value = EMPTY_COLLECTOR;
-    private Predicate<Object> taskDependencyFilter = null;
 
     public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, TaskDependencyFactory dependencyFactory, Factory<PatternSet> patternSetFactory, PropertyHost host) {
-        super(patternSetFactory);
+        super(dependencyFactory, patternSetFactory);
         this.displayName = displayName;
         this.resolver = fileResolver;
         this.dependencyFactory = dependencyFactory;
@@ -246,13 +243,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             public void visitCollection(Source source, Iterable<File> contents) {
                 ImmutableSet<File> files = ImmutableSet.copyOf(contents);
                 if (!files.isEmpty()) {
-                    builder.add(new FileCollectionAdapter(new ListBackedFileSet(files), patternSetFactory));
+                    builder.add(new FileCollectionAdapter(new ListBackedFileSet(files), taskDependencyFactory, patternSetFactory));
                 }
-            }
-
-            @Override
-            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                builder.add(fileTree);
             }
 
             @Override
@@ -287,46 +279,10 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         value.visitContents(visitor);
     }
 
-    /**
-     * Sets a filter which is applied to all build dependencies for this collection and any child file collections.
-     */
-    public DefaultConfigurableFileCollection setTaskDependencyFilter(@Nullable Predicate<Object> filter) {
-        this.taskDependencyFilter = filter;
-        return this;
-    }
-
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        TaskDependencyResolveContext actual = context;
-        if (taskDependencyFilter != null) {
-            actual = new FilteringTaskDependencyResolveContext(context, taskDependencyFilter);
-        }
-
-        actual.add(buildDependency);
-        super.visitDependencies(actual);
-    }
-
-    /**
-     * A {@link TaskDependencyResolveContext} which wraps a delegate and only passes along dependencies which satisfy a given filter.
-     */
-    private static class FilteringTaskDependencyResolveContext extends AbstractTaskDependencyContainerVisitingContext {
-        private final Predicate<Object> filter;
-        public FilteringTaskDependencyResolveContext(TaskDependencyResolveContext delegate, Predicate<Object> filter) {
-            super(delegate);
-            this.filter = filter;
-        }
-
-        @Override
-        public void add(Object dependency) {
-            if (filter.test(dependency)) {
-                super.add(dependency);
-            }
-        }
-
-        @Override
-        public void visitFailure(Throwable failure) {
-            delegate.visitFailure(failure);
-        }
+        context.add(buildDependency);
+        super.visitDependencies(context);
     }
 
     private interface ValueCollector {
@@ -367,7 +323,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         @Override
         public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object[] paths) {
-            return new UnresolvedItemsCollector(resolver, patternSetFactory, paths);
+            return new UnresolvedItemsCollector(resolver, taskDependencyFactory, patternSetFactory, paths);
         }
 
         @Override
@@ -385,16 +341,19 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private static class UnresolvedItemsCollector implements ValueCollector {
         private final PathToFileResolver resolver;
         private final Factory<PatternSet> patternSetFactory;
+        private final TaskDependencyFactory taskDependencyFactory;
         private final Set<Object> items = new LinkedHashSet<>();
 
         public UnresolvedItemsCollector(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Iterable<?> item) {
             this.resolver = resolver;
             this.patternSetFactory = patternSetFactory;
+            this.taskDependencyFactory = taskDependencyFactory;
             setFrom(owner, resolver, patternSetFactory, taskDependencyFactory, propertyHost, item);
         }
 
-        public UnresolvedItemsCollector(PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, Object[] item) {
+        public UnresolvedItemsCollector(PathToFileResolver resolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, Object[] item) {
             this.resolver = resolver;
+            this.taskDependencyFactory = taskDependencyFactory;
             this.patternSetFactory = patternSetFactory;
             Collections.addAll(items, item);
         }
@@ -406,7 +365,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         @Override
         public void visitContents(Consumer<FileCollectionInternal> visitor) {
-            UnpackingVisitor nested = new UnpackingVisitor(visitor, resolver, patternSetFactory);
+            UnpackingVisitor nested = new UnpackingVisitor(visitor, resolver, taskDependencyFactory, patternSetFactory);
             for (Object item : items) {
                 nested.add(item);
             }

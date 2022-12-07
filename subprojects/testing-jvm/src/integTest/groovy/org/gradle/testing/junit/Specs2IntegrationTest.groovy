@@ -33,22 +33,20 @@ class Specs2IntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 id("scala")
             }
 
-            repositories {
-                 mavenCentral()
-            }
-            
+            ${mavenCentralRepository()}
+
             dependencies {
                 implementation 'org.scala-lang:scala-library:2.11.8'
-                testImplementation 'org.specs2:specs2_2.11:3.7' 
-                testImplementation 'org.specs2:specs2-junit_2.11:4.7.0' 
-                testImplementation '$dependencyNotation'
+                testImplementation 'org.specs2:specs2_2.11:3.7'
+                testImplementation 'org.specs2:specs2-junit_2.11:4.7.0'
+                ${dependencyNotation.collect { "testImplementation '$it'" }.join('\n')}
             }
         """
         file('src/test/scala/BasicSpec.scala') << '''
             import org.junit.runner.RunWith
             import org.specs2.runner.JUnitRunner
             import org.specs2.mutable.Specification
-            
+
             @RunWith(classOf[JUnitRunner])
             class BasicSpec extends Specification {
               "Basic Math" >> {

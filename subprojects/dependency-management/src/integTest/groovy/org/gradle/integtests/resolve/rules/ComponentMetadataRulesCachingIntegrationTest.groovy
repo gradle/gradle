@@ -300,7 +300,6 @@ dependencies {
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForConfigurationCache
     def 'can cache rules setting custom type attributes'() {
         repository {
             'org.test:projectA:1.0'()

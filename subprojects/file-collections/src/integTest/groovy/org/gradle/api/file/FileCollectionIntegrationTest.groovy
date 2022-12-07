@@ -476,7 +476,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19817")
-    def "nag user when concatenation of files is used for path instead of single files"() {
+    def "fail when concatenation of files is used for path instead of single files"() {
         def path = file("files/file0.txt${File.pathSeparator}files/dir1").path
         buildFile """
             def files = files('${escapeString(path)}')
@@ -487,11 +487,13 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
             }
         """
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' has been deprecated." +
-            " The path separator is not a valid element of a file path. Problematic paths in 'file collection' are: '$path'." +
-            " This will fail with an error in Gradle 8.0. Add the individual files to the file collection instead." +
+        when:
+        runAndFail "getAsPath"
+        then:
+        failure.assertHasDocumentedCause("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' is not supported." +
+            " The path separator is not a valid element of a file path." +
+            " Problematic paths in 'file collection' are: '$path'." +
+            " Add the individual files to the file collection instead." +
             " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
-        succeeds "getAsPath"
     }
 }

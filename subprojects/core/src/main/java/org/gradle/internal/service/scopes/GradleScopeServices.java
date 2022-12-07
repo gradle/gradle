@@ -54,7 +54,6 @@ import org.gradle.execution.SelectedTaskExecutionAction;
 import org.gradle.execution.TaskNameResolvingBuildTaskScheduler;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
-import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.LocalTaskNodeExecutor;
 import org.gradle.execution.plan.NodeExecutor;
 import org.gradle.execution.plan.PlanExecutor;
@@ -67,6 +66,7 @@ import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -133,10 +133,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new DefaultProjectFinder(gradle::getRootProject);
     }
 
-    LocalTaskNodeExecutor createLocalTaskNodeExecutor(ExecutionNodeAccessHierarchies executionNodeAccessHierarchies) {
-        return new LocalTaskNodeExecutor(
-            executionNodeAccessHierarchies.getOutputHierarchy()
-        );
+    LocalTaskNodeExecutor createLocalTaskNodeExecutor() {
+        return new LocalTaskNodeExecutor();
     }
 
     WorkNodeExecutor createWorkNodeExecutor() {
@@ -237,7 +235,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         ListenerManager listenerManager,
         IsolatableFactory isolatableFactory,
         SharedResourceLeaseRegistry sharedResourceLeaseRegistry,
-        FeaturePreviews featurePreviews
+        FeatureFlags featureFlags
     ) {
         // Instantiate via `instantiator` for the DSL decorations to the `BuildServiceRegistry` API
         return instantiator.newInstance(
@@ -249,7 +247,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             listenerManager,
             isolatableFactory,
             sharedResourceLeaseRegistry,
-            featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
+            featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
                 ? new BuildServiceProviderNagger(services.get(TaskExecutionTracker.class))
                 : BuildServiceProvider.Listener.EMPTY
         );

@@ -19,14 +19,13 @@ package org.gradle.smoketests
 import spock.lang.Issue
 
 class SpringDependencyManagementPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
-
     @Issue('https://plugins.gradle.org/plugin/io.spring.dependency-management')
     def 'spring dependency management plugin'() {
         given:
         buildFile << """
             plugins {
                 id 'java'
-                id 'io.spring.dependency-management' version '${TestedVersions.springDependencyManagement}'
+                id 'io.spring.dependency-management' version '${TestedVersions.springDependencyManagement}' // TODO:Finalize Upload Removal - Issue #21439
             }
 
             ${mavenCentralRepository()}

@@ -16,7 +16,6 @@
 
 package org.gradle.composite.internal
 
-import org.gradle.StartParameter
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.component.BuildIdentifier
@@ -34,7 +33,6 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
-import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.execution.plan.BuildWorkPlan
 import org.gradle.execution.plan.DefaultExecutionPlan
@@ -56,6 +54,7 @@ import org.gradle.internal.build.BuildToolingModelController
 import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.DefaultBuildWorkGraphController
 import org.gradle.internal.build.ExecutionResult
+import org.gradle.internal.buildoption.DefaultInternalOptions
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.concurrent.CompositeStoppable
@@ -64,6 +63,7 @@ import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.file.Stat
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -206,7 +206,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         stdout.stdOut.contains("- Build ':':")
         stdout.stdOut.contains("- test node (state=SHOULD_RUN")
         stdout.stdOut.contains("- :task (state=SHOULD_RUN")
-        stdout.stdOut.contains("- Ordinal groups: group 0 entry nodes: [:task]")
+        stdout.stdOut.contains("- Ordinal groups: group 0 entry nodes: [:task (SHOULD_RUN)]")
     }
 
     def "fails when no further nodes can be selected across multiple builds"() {
@@ -239,11 +239,11 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         stdout.stdOut.contains("- Build ':':")
         stdout.stdOut.contains("- main build node (state=SHOULD_RUN")
         stdout.stdOut.contains("- :task (state=SHOULD_RUN")
-        stdout.stdOut.contains("- Ordinal groups: group 0 entry nodes: [:task]")
+        stdout.stdOut.contains("- Ordinal groups: group 0 entry nodes: [:task (SHOULD_RUN)]")
         stdout.stdOut.contains("- Build 'child':")
         stdout.stdOut.contains("- child build node (state=SHOULD_RUN")
         stdout.stdOut.contains("- :child:task (state=SHOULD_RUN")
-        stdout.stdOut.contains("- Ordinal groups: group 0 entry nodes: [:child:task]")
+        stdout.stdOut.contains("- group 0 entry nodes: [:child:task (SHOULD_RUN)]")
     }
 
     ExecutionResult<Void> scheduleAndRun(TreeServices services, Action<BuildTreeWorkGraph.Builder> action) {
@@ -262,7 +262,11 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     }
 
     BuildServices build(TreeServices services, BuildIdentifier identifier) {
-        return new BuildServices(services, identifier, Stub(GradleInternal))
+        def identityPath = Stub(Path)
+        def gradle = Stub(GradleInternal) {
+            getIdentityPath() >> identityPath
+        }
+        return new BuildServices(services, identifier, gradle)
     }
 
     TaskInternal task(BuildServices services, Node dependsOn) {
@@ -333,6 +337,10 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
             this.plan = plan
             this.builder = builder
             this.services = services
+        }
+
+        @Override
+        void resetState() {
         }
 
         @Override
@@ -435,7 +443,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
             def configuration = new DefaultParallelismConfiguration(true, workers)
             workerLeaseService = new DefaultWorkerLeaseService(coordinationService, configuration)
             execFactory = new DefaultExecutorFactory()
-            planExecutor = new DefaultPlanExecutor(configuration, execFactory, workerLeaseService, cancellationToken, coordinationService, new StartParameter())
+            planExecutor = new DefaultPlanExecutor(configuration, execFactory, workerLeaseService, cancellationToken, coordinationService, new DefaultInternalOptions([:]))
             buildTaskGraph = new DefaultIncludedBuildTaskGraph(
                 execFactory,
                 new TestBuildOperationExecutor(),

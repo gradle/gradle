@@ -19,6 +19,17 @@ import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 import org.testcontainers.DockerClientFactory
 
+/**
+ * Usage:
+ * <pre>
+ * <code>@</code>Requires(TestPrecondition.JDK17_OR_LATER)
+ * def "test with environment expectations"() {
+ *     // the test is executed with Java 17 or later
+ * }
+ * </pre>
+ *
+ * @see Requires
+ */
 enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NULL_REQUIREMENT({ true }),
     SYMLINKS({
@@ -168,7 +179,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     HIGH_PERFORMANCE(NOT_MAC_OS_X),
     NOT_EC2_AGENT({
         !InetAddress.getLocalHost().getHostName().startsWith("ip-")
-    })
+    }),
+    STABLE_GROOVY({ !GroovySystem.version.endsWith("-SNAPSHOT") }),
+    NOT_STABLE_GROOVY({ !STABLE_GROOVY.fulfilled })
 
     /**
      * A predicate for testing whether the precondition is fulfilled.
