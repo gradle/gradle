@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.hamcrest.CoreMatchers
 import org.spockframework.util.TextUtil
 
@@ -417,7 +417,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
         failure.assertThatCause(CoreMatchers.containsString("compiler failed while compiling prefix-headers"))
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "can build and run an executable with library using pch" () {
         given:

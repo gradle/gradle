@@ -29,7 +29,7 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
@@ -151,7 +151,7 @@ model {
     }
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     @ToBeFixedForConfigurationCache
     def "can have objectiveC and objectiveCpp source files with same name in different directories"() {
         setup:

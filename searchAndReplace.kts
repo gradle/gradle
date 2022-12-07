@@ -23,7 +23,14 @@ import java.util.stream.Collectors
  * limitations under the License.
  */
 
-val requiresRegex = Regex("(\\s*)@Requires\\(TestPrecondition\\.([^\\)]+)\\)")
+val importLine = "import org.gradle.util.TestPrecondition"
+val requiresRegex = Regex("(\\s*)@Requires\\(TestPrecondition\\.([^\\)]+)\\)(.*)")
+
+val exceptions = mapOf(
+    "NOT_EC2_AGENT" to "NotEC2Agent",
+    "XCODE" to "HasXCode"
+    "SMART" to "SmartTerminalAvailable"
+)
 
 fun camelizeFromShoutingSnakeCase(value: String): String {
     val components = value.split("_")
@@ -37,26 +44,36 @@ fun camelizeFromShoutingSnakeCase(value: String): String {
 fun processMatch(line: String, matchResult: MatchResult): String {
     val spaces = matchResult.groups.get(1)!!.value;
     val matchedValue = matchResult.groups.get(2)!!.value;
-    val mappedValue = camelizeFromShoutingSnakeCase(matchedValue);
+    val mappedValue = exceptions.getOrDefault(
+        matchedValue,
+        camelizeFromShoutingSnakeCase(matchedValue)
+    )
+    val tail = matchResult.groups.get(3)?.value ?: ""
 
     println(line)
     println("  Spaces: ${spaces.length}")
     println("  Old value: ${matchedValue}")
     println("  New value: ${mappedValue}")
 
-    return "${spaces}@Requires(UnitTestPreconditions.${mappedValue})"
+    return "${spaces}@Requires(UnitTestPreconditions.${mappedValue})${tail}"
 }
 
 fun processFile(filePath: Path) {
     val result = Files.lines(filePath, StandardCharsets.UTF_8).map {
-        val match = requiresRegex.matchEntire(it)
-        if (match != null) processMatch(it, match!!) else it
+        if (importLine == it) {
+            "import org.gradle.util.UnitTestPreconditions"
+        } else {
+            val match = requiresRegex.matchEntire(it)
+            if (match != null) processMatch(it, match!!) else it
+        }
     }.collect(Collectors.joining(System.lineSeparator()))
 
-    filePath.toFile().writeText(result)
+    val file = filePath.toFile()
+    file.writeText(result)
+    file.appendText(System.lineSeparator())
 }
 
-class SourceVisitor: SimpleFileVisitor<Path>() {
+class SourceVisitor : SimpleFileVisitor<Path>() {
 
     override fun visitFile(file: Path?, attrs: BasicFileAttributes?): FileVisitResult {
         if (file!!.toString().endsWith(".java") || file!!.toString().endsWith(".groovy")) {

@@ -21,9 +21,9 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
-@Requires(TestPrecondition.NOT_MAC_OS_X)
+@Requires(UnitTestPreconditions.NotMacOsX)
 class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_LIB_CLASS = "hello.cpp"

@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.RedirectStdIn
 import org.gradle.internal.stream.EncodedStream
 import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -28,7 +28,7 @@ import java.security.AllPermission
 import java.security.Permission
 
 @RedirectStdIn
-@Requires(TestPrecondition.JDK8_OR_EARLIER)
+@Requires(UnitTestPreconditions.Jdk8OrEarlier)
 class BootstrapSecurityManagerTest extends Specification {
     @Rule SetSystemProperties systemProperties
 

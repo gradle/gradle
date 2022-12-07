@@ -17,14 +17,14 @@
 package org.gradle.process.internal.health.memory
 
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
 @UsesNativeServices
 class DefaultOsMemoryInfoIntegrationTest extends Specification {
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "gets OS total memory on a Windows system"() {
         when:
         new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
@@ -33,7 +33,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
         notThrown UnsupportedOperationException
     }
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "gets OS free memory on a Windows system"() {
         when:
         new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()
@@ -42,7 +42,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
         notThrown UnsupportedOperationException
     }
 
-    @Requires(TestPrecondition.LINUX)
+    @Requires(UnitTestPreconditions.Linux)
     def "gets OS total memory on a Linux system"() {
         when:
         new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
@@ -51,7 +51,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
         notThrown UnsupportedOperationException
     }
 
-    @Requires(TestPrecondition.LINUX)
+    @Requires(UnitTestPreconditions.Linux)
     def "gets OS free memory on a Linux system"() {
         when:
         new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()
@@ -60,7 +60,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
         notThrown UnsupportedOperationException
     }
 
-    @Requires(TestPrecondition.MAC_OS_X)
+    @Requires(UnitTestPreconditions.MacOsX)
     def "gets OS total memory on a MacOS system"() {
         when:
         new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
@@ -69,7 +69,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
         notThrown UnsupportedOperationException
     }
 
-    @Requires(TestPrecondition.MAC_OS_X)
+    @Requires(UnitTestPreconditions.MacOsX)
     def "gets OS free memory on a MacOS system"() {
         when:
         new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()

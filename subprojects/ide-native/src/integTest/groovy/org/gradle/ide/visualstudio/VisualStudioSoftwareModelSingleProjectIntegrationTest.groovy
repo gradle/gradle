@@ -27,7 +27,7 @@ import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWor
 import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
@@ -145,7 +145,7 @@ model {
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
 
-    @Requires(TestPrecondition.MSBUILD)
+    @Requires(UnitTestPreconditions.Msbuild)
     @ToBeFixedForConfigurationCache
     def "can build executable from visual studio"() {
         useMsbuildTool()
@@ -177,7 +177,7 @@ model {
         installation('build/install/main/win32/debug').assertInstalled()
     }
 
-    @Requires(TestPrecondition.MSBUILD)
+    @Requires(UnitTestPreconditions.Msbuild)
     @ToBeFixedForConfigurationCache
     def "can build library from visual studio"() {
         useMsbuildTool()
@@ -210,7 +210,7 @@ model {
         debugBinaryDll.assertExists()
     }
 
-    @Requires(TestPrecondition.MSBUILD)
+    @Requires(UnitTestPreconditions.Msbuild)
     @ToBeFixedForConfigurationCache
     def "can detect build failure from visual studio"() {
         useMsbuildTool()
@@ -239,7 +239,7 @@ model {
         resultDebug.assertHasErrorOutput("broken.cpp(1): error C2143: syntax error: missing ';' before '!'")
     }
 
-    @Requires(TestPrecondition.MSBUILD)
+    @Requires(UnitTestPreconditions.Msbuild)
     @ToBeFixedForConfigurationCache
     def "can clean from visual studio"() {
         useMsbuildTool()

@@ -21,7 +21,7 @@ import org.eclipse.jgit.revwalk.RevCommit
 import org.gradle.api.GradleException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.gradle.vcs.git.GitVersionControlSpec
 import org.gradle.vcs.internal.VersionRef
@@ -115,7 +115,7 @@ class GitVersionControlSystemSpec extends Specification {
     }
 
     // commit() method seems to leak files
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def 'reset a cloned repository with local commits'() {
         given:
         def target = tmpDir.file('versionDir')

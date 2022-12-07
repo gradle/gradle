@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
@@ -31,7 +31,7 @@ class JUnitJnaIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
 
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def canRunTestsUsingJna() {
         when:
         executer.withTasks('build').run()

@@ -33,10 +33,10 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 
-@Requires(TestPrecondition.NOT_WINDOWS)
+@Requires(UnitTestPreconditions.NotWindows)
 class UndeclaredBuildInputsTestKitInjectedJavaPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements JavaPluginImplementation {
     TestFile jar
     TestFile testKitDir

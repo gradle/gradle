@@ -23,7 +23,7 @@ import org.gradle.integtests.resource.s3.fixtures.S3Artifact
 import org.gradle.integtests.resource.s3.fixtures.S3IntegrationTestPrecondition
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.gradle.internal.credentials.DefaultAwsCredentials
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Requires
 

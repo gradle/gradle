@@ -18,13 +18,13 @@ package org.gradle.plugins.ide.eclipse
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.autoModuleJar
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.moduleJar
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.traditionalJar
 
-@Requires(TestPrecondition.JDK9_OR_LATER)
+@Requires(UnitTestPreconditions.Jdk9OrLater)
 class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
 
     def setup() {

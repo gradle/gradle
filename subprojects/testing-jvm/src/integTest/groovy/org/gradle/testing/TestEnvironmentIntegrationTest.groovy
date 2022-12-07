@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Matchers
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
@@ -59,7 +59,7 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         }
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Requires(UnitTestPreconditions.Jdk9OrLater)
     def canRunTestsReferencingSlf4jWithModularJava() {
         given:
         if(isJupiter() && TestPrecondition.JDK14_OR_LATER.fulfilled) {
@@ -87,7 +87,7 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         }
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER) //hangs on Java9
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier) //hangs on Java9
     def canRunTestsWithCustomSystemClassLoaderAndJavaAgent() {
         ignoreWhenJUnitPlatform()
 

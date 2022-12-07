@@ -21,12 +21,12 @@ import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
 /**
  * JDK11 or later since AGP 7.x requires Java11
  */
-@Requires(TestPrecondition.JDK11_OR_LATER)
+@Requires(UnitTestPreconditions.Jdk11OrLater)
 class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
 
     @Override

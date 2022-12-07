@@ -29,7 +29,7 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Ignore
@@ -475,7 +475,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
     @Ignore
     @Issue("https://issues.gradle.org/browse/GRADLE-3377")
-    @Requires(TestPrecondition.ONLINE)
+    @Requires(UnitTestPreconditions.Online)
     def "can compile with Groovy library resolved by classifier"() {
         def gradleBaseServicesClass = Action
         buildScript """

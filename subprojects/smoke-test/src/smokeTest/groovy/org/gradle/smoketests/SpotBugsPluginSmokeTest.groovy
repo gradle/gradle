@@ -17,13 +17,13 @@
 package org.gradle.smoketests
 
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import spock.lang.Issue
 
 class SpotBugsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/com.github.spotbugs')
-    @Requires(TestPrecondition.JDK11_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk11OrEarlier)
     def 'spotbugs plugin'() {
         given:
         buildFile << """

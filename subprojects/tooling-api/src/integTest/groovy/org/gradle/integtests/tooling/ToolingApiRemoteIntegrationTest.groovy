@@ -30,7 +30,7 @@ import org.gradle.tooling.events.OperationType
 import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -281,7 +281,7 @@ class ToolingApiRemoteIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/15405')
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     // cannot delete files when daemon is running
     def "calling disconnect on existing connection does not re-trigger wrapper download"() {
         setup:

@@ -24,7 +24,7 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.gradle.util.internal.GUtil
 import org.junit.Assume
 import spock.lang.IgnoreIf
@@ -158,7 +158,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "recompiles library and relinks executable after library source file change"() {
         given:
@@ -292,7 +292,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         }
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "rebuilds binary with compiler option change"() {
         given:
@@ -327,7 +327,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         install.exec().out == app.frenchOutput
     }
 
-    @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @Requires(UnitTestPreconditions.CanInstallExecutable)
     @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
     @ToBeFixedForConfigurationCache
     def "rebuilds binary with target platform change"() {

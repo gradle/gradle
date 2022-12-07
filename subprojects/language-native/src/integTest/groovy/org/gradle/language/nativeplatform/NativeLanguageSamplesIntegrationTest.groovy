@@ -22,7 +22,7 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
@@ -96,7 +96,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     @ToBeFixedForConfigurationCache
     def "objectiveC"() {
         given:
@@ -113,7 +113,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     @ToBeFixedForConfigurationCache
     def "objectiveCpp"() {
         given:

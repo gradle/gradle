@@ -22,14 +22,14 @@ import org.gradle.integtests.resource.gcs.fixtures.GcsArtifact
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsRepository
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 
 import static org.gradle.internal.resource.transport.gcp.gcs.GcsConnectionProperties.GCS_DISABLE_AUTH_PROPERTY
 import static org.gradle.internal.resource.transport.gcp.gcs.GcsConnectionProperties.GCS_ENDPOINT_PROPERTY
 import static org.gradle.internal.resource.transport.gcp.gcs.GcsConnectionProperties.GCS_SERVICE_PATH_PROPERTY
 
-@Requires(TestPrecondition.NOT_WINDOWS)
+@Requires(UnitTestPreconditions.NotWindows)
 class MavenPublishGcsIntegrationTest extends AbstractMavenPublishIntegTest {
     @Rule
     public GcsServer server = new GcsServer(temporaryFolder)

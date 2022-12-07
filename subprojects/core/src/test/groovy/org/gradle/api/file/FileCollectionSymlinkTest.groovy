@@ -20,13 +20,13 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.gradle.util.UsesNativeServices
 import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Specification
 
-@Requires(TestPrecondition.SYMLINKS)
+@Requires(UnitTestPreconditions.Symlinks)
 @UsesNativeServices
 class FileCollectionSymlinkTest extends Specification {
     @Shared Project project = ProjectBuilder.builder().build()

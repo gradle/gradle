@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -55,7 +55,7 @@ The following types/formats are supported:
     }
 
     @Test
-    @Requires(TestPrecondition.SYMLINKS)
+    @Requires(UnitTestPreconditions.Symlinks)
     void reportsSymLinkWhichPointsToNothing() {
         TestFile link = testFile('src/file')
         link.createLink(testFile('missing'))
@@ -77,7 +77,7 @@ The following types/formats are supported:
     }
 
     @Test
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(UnitTestPreconditions.FilePermissions)
     void reportsUnreadableSourceDir() {
         TestFile dir = testFile('src').createDir()
         def oldPermissions = dir.permissions

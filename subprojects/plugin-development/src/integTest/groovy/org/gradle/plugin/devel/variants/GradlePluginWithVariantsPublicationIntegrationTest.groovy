@@ -18,11 +18,11 @@ package org.gradle.plugin.devel.variants
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
 class GradlePluginWithVariantsPublicationIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(TestPrecondition.JDK15_OR_EARLIER) // older Gradle version 6.7.1 is used in test
+    @Requires(UnitTestPreconditions.Jdk15OrEarlier) // older Gradle version 6.7.1 is used in test
     def "can publish and use Gradle plugin with multiple variants"() {
         given:
         def producer = file('producer')

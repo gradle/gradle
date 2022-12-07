@@ -21,14 +21,14 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
 import java.nio.file.AccessDeniedException
 
-@Requires(TestPrecondition.FILE_PERMISSIONS)
+@Requires(UnitTestPreconditions.FilePermissions)
 @Issue('https://github.com/gradle/gradle/issues/2639')
 class DefaultUnauthorizedDirectoryWalkerTest extends Specification {
 

@@ -18,9 +18,9 @@ package org.gradle.api.tasks
 
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
-@Requires(TestPrecondition.UNIX_DERIVATIVE)
+@Requires(UnitTestPreconditions.UnixDerivative)
 class DeleteTaskUnixDerivativeSymlinkIntegrationTest extends DeleteIntegrationTest {
     @Override
     protected void createSymbolicLink(TestFile link, TestFile target) {

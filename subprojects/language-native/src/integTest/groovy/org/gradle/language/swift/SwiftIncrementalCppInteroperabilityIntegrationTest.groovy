@@ -21,9 +21,9 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyCppDepApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyCppDepHeadersApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyCppDepModuleMapApp
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 
-@Requires(TestPrecondition.NOT_MAC_OS_X)
+@Requires(UnitTestPreconditions.NotMacOsX)
 class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
     @ToBeFixedForConfigurationCache
     def "relinks but does not recompile when c++ sources change"() {

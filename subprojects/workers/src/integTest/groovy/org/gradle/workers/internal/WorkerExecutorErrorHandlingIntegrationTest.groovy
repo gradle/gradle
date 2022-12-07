@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
@@ -259,7 +259,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         isolationMode << ISOLATION_MODES
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "produces a sensible error when worker fails before logging is initialized"() {
         fixture.withWorkActionClassInBuildScript()
 

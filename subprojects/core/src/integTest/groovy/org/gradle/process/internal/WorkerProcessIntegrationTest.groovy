@@ -31,7 +31,7 @@ import org.gradle.process.internal.worker.WorkerProcess
 import org.gradle.process.internal.worker.WorkerProcessBuilder
 import org.gradle.process.internal.worker.WorkerProcessContext
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import spock.lang.Timeout
 
@@ -259,7 +259,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         stdout.stdErr == ""
     }
 
-    @Requires(TestPrecondition.NOT_WINDOWS)
+    @Requires(UnitTestPreconditions.NotWindows)
     def "handles output when worker fails before logging is started"() {
         when:
         execute(worker(new RemoteProcess()).jvmArgs("-Dorg.gradle.native.dir=/dev/null").expectStartFailure())

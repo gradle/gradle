@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 
@@ -69,7 +69,7 @@ class JUnitCategoriesIntegrationSpec extends AbstractSampleIntegrationTest {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/3189')
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Requires(UnitTestPreconditions.Jdk8OrEarlier)
     def canWorkWithPowerMock() {
         given:
         buildFile << """

@@ -23,7 +23,7 @@ import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 
 class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
@@ -129,7 +129,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
      * that allows us to attach to the same console some other process is attached to.  If that process is not attached
      * to any console, we get a specific error that we check for.
      */
-    @Requires(TestPrecondition.WINDOWS)
+    @Requires(UnitTestPreconditions.Windows)
     def "daemon is not attached to a console"() {
         given:
         withAttachConsoleProject()

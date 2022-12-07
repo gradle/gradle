@@ -23,7 +23,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -32,7 +32,7 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
 import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ CodeNarcCoverage.supportedVersionsByCurrentJdk })
-@Requires(TestPrecondition.STABLE_GROOVY)
+@Requires(UnitTestPreconditions.StableGroovy)
 class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec implements CodeNarcTestFixture {
     def setup() {
         buildFile << """
