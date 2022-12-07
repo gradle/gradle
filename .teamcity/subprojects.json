@@ -443,7 +443,7 @@
   {
     "dirName": "kotlin-dsl-plugins",
     "name": "kotlin-dsl-plugins",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
