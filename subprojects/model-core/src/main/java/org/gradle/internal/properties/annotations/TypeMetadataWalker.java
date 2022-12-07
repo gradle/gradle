@@ -61,7 +61,6 @@ public interface TypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMetadata
 
     void walk(T root, V visitor);
 
-
     interface StaticMetadataWalker extends TypeMetadataWalker<TypeToken<?>, StaticMetadataVisitor> {}
 
     interface InstanceMetadataWalker extends TypeMetadataWalker<Object, InstanceMetadataVisitor> {}
