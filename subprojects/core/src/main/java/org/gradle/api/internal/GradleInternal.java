@@ -29,7 +29,6 @@ import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
@@ -119,8 +118,6 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     @UsedByScanPlugin
     ServiceRegistry getServices();
-
-    ServiceRegistryFactory getServiceRegistryFactory();
 
     void setClassLoaderScope(Supplier<? extends ClassLoaderScope> classLoaderScope);
 
