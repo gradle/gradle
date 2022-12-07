@@ -30,11 +30,11 @@ import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMetadataVisitor<T>> implements TypeMetadataWalker<T, V> {
@@ -88,10 +88,9 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         typeMetadata.getPropertiesMetadata().forEach(propertyMetadata -> {
             String childQualifiedName = getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName());
             if (propertyMetadata.getPropertyType() == nestedAnnotation) {
-                Optional<T> childOptional = getNestedChild(node, childQualifiedName, propertyMetadata, visitor);
-                childOptional.ifPresent(child -> walkNested(child, childQualifiedName, propertyMetadata, visitor, nestedNodesOnPath, false));
+                walkNestedChild(node, childQualifiedName, propertyMetadata, visitor, child -> walkNested(child, childQualifiedName, propertyMetadata, visitor, nestedNodesOnPath, false));
             } else {
-                visitor.visitLeaf(childQualifiedName, propertyMetadata, () -> getChild(node, propertyMetadata).orElse(null));
+                visitor.visitLeaf(childQualifiedName, propertyMetadata, () -> getChild(node, propertyMetadata));
             }
         });
     }
@@ -104,11 +103,11 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
 
     abstract protected void walkNestedIterable(T node, String qualifiedName, BiConsumer<String, T> handler);
 
+    abstract protected void walkNestedChild(T parent, String childQualifiedName, PropertyMetadata propertyMetadata, V visitor, Consumer<T> handler);
+
     abstract protected Class<?> resolveType(T type);
 
-    abstract protected Optional<T> getNestedChild(T parent, String childQualifiedName, PropertyMetadata propertyMetadata, V visitor);
-
-    abstract protected Optional<T> getChild(T parent, PropertyMetadata property);
+    abstract protected @Nullable T getChild(T parent, PropertyMetadata property);
 
     private static String getQualifiedName(@Nullable String parentPropertyName, String childPropertyName) {
         return parentPropertyName == null
@@ -133,20 +132,15 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
 
         @Override
         protected void walkNestedProvider(Object node, String qualifiedName, PropertyMetadata propertyMetadata, InstanceMetadataVisitor visitor, boolean isElementOfCollection, Consumer<Object> handler) {
-            Optional<Object> value = tryUnpackNested(
-                qualifiedName,
-                visitor,
-                () -> visitMissingNestedProvider(visitor, qualifiedName, propertyMetadata, isElementOfCollection),
-                () -> Optional.ofNullable(((Provider<?>) node).getOrNull())
-            );
-            value.ifPresent(handler);
-        }
-
-        private void visitMissingNestedProvider(InstanceMetadataVisitor visitor, String qualifiedName, PropertyMetadata propertyMetadata, boolean isElementOfCollect) {
-            if (isElementOfCollect) {
+            OptionalOrError value = tryUnpackNested(() -> ((Provider<?>) node).getOrNull());
+            if (value.isError()) {
+                visitor.visitNestedUnpackingError(qualifiedName, value.getError());
+            } else if (value.isEmpty() && isElementOfCollection) {
                 throw new IllegalStateException(getNullNestedCollectionValueExceptionMessage(qualifiedName));
-            } else {
+            } else if (value.isEmpty()) {
                 visitor.visitMissingNested(qualifiedName, propertyMetadata);
+            } else {
+                handler.accept(value.get());
             }
         }
 
@@ -173,22 +167,24 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         }
 
         @Override
-        protected Optional<Object> getNestedChild(Object parent, String childQualifiedName, PropertyMetadata propertyMetadata, InstanceMetadataVisitor visitor) {
-            return tryUnpackNested(
-                childQualifiedName,
-                visitor,
-                () -> visitor.visitMissingNested(childQualifiedName, propertyMetadata),
-                () -> getChild(parent, propertyMetadata)
-            );
+        protected void walkNestedChild(Object parent, String childQualifiedName, PropertyMetadata propertyMetadata, InstanceMetadataVisitor visitor, Consumer<Object> handler) {
+            OptionalOrError optionalOrError = tryUnpackNested(() -> getChild(parent, propertyMetadata));
+            if (optionalOrError.isError()) {
+                visitor.visitNestedUnpackingError(childQualifiedName, optionalOrError.getError());
+            } else if (optionalOrError.isEmpty()) {
+                visitor.visitMissingNested(childQualifiedName, propertyMetadata);
+            } else {
+                handler.accept(optionalOrError.get());
+            }
         }
 
         @Override
-        protected Optional<Object> getChild(Object parent, PropertyMetadata property) {
+        protected @Nullable Object getChild(Object parent, PropertyMetadata property) {
             Method method = property.getGetterMethod();
             try {
                 // TODO: Move method.setAccessible(true) to PropertyMetadata
                 method.setAccessible(true);
-                return Optional.ofNullable(method.invoke(parent));
+                return method.invoke(parent);
             } catch (InvocationTargetException e) {
                 throw UncheckedException.throwAsUncheckedException(e.getCause());
             } catch (Exception e) {
@@ -196,19 +192,12 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
             }
         }
 
-        private Optional<Object> tryUnpackNested(String childQualifiedName, InstanceMetadataVisitor visitor, Runnable onMissingValue, Supplier<Optional<Object>> unpacker) {
-            Optional<Object> value;
+        private static OptionalOrError tryUnpackNested(Supplier<Object> unpacker) {
             try {
-                value = unpacker.get();
+                return OptionalOrError.ofNullable(unpacker.get());
             } catch (Exception e) {
-                visitor.visitNestedUnpackingError(childQualifiedName, e);
-                return Optional.empty();
+                return OptionalOrError.ofError(e);
             }
-
-            if (!value.isPresent()) {
-                onMissingValue.run();
-            }
-            return value;
         }
 
         private static void checkNotNullNestedCollectionValue(@Nullable String parentQualifiedName, String name, @Nullable Object value) {
@@ -219,6 +208,41 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
 
         private static String getNullNestedCollectionValueExceptionMessage(String qualifiedName) {
             return String.format("Null value is not allowed for a nested collection property '%s'", qualifiedName);
+        }
+
+        private static class OptionalOrError {
+            private final Object value;
+            private final Exception error;
+
+            private OptionalOrError(@Nullable Object value, @Nullable Exception exception) {
+                this.value = value;
+                this.error = exception;
+            }
+
+            public boolean isError() {
+                return error != null;
+            }
+
+            public boolean isEmpty() {
+                return value == null;
+            }
+
+            public Exception getError() {
+                return checkNotNull(error);
+            }
+
+            public Object get() {
+                checkArgument(!isError());
+                return checkNotNull(value);
+            }
+
+            public static OptionalOrError ofError(Exception error) {
+                return new OptionalOrError(null, checkNotNull(error));
+            }
+
+            public static OptionalOrError ofNullable(@Nullable Object value) {
+                return new OptionalOrError(value, null);
+            }
         }
     }
 
@@ -259,13 +283,13 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         }
 
         @Override
-        protected Optional<TypeToken<?>> getNestedChild(TypeToken<?> parent, String childQualifiedName, PropertyMetadata propertyMetadata, StaticMetadataVisitor visitor) {
-            return getChild(parent, propertyMetadata);
+        protected void walkNestedChild(TypeToken<?> parent, String childQualifiedName, PropertyMetadata propertyMetadata, StaticMetadataVisitor visitor, Consumer<TypeToken<?>> handler) {
+            handler.accept(getChild(parent, propertyMetadata));
         }
 
         @Override
-        protected Optional<TypeToken<?>> getChild(TypeToken<?> parent, PropertyMetadata property) {
-            return Optional.of(TypeToken.of(property.getGetterMethod().getGenericReturnType()));
+        protected TypeToken<?> getChild(TypeToken<?> parent, PropertyMetadata property) {
+            return TypeToken.of(property.getGetterMethod().getGenericReturnType());
         }
 
         private static String determinePropertyName(TypeToken<?> nestedType) {
