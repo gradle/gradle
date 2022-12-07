@@ -26,9 +26,10 @@ import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.jvm.toolchain.JavaToolchainDownload
 import org.gradle.jvm.toolchain.JavaToolchainRequest
+import org.gradle.jvm.toolchain.JavaToolchainResolver
 import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal
-import org.gradle.jvm.toolchain.internal.install.AdoptOpenJdkRemoteBinary
+import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService
 import org.gradle.jvm.toolchain.internal.install.JdkCacheDirectory
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
@@ -45,7 +46,6 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
     @TempDir
     public File temporaryFolder
 
-    def binary = Mock(AdoptOpenJdkRemoteBinary)
     def registry = Mock(JavaToolchainResolverRegistryInternal)
     def downloader = Mock(SecureFileDownloader)
     def cache = Mock(JdkCacheDirectory)
@@ -53,13 +53,13 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
     def buildPlatform = Mock(BuildPlatform)
 
     def setup() {
-        registry.requestedRepositories() >> Collections.emptyList()
+        ExternalResourceMetaData downloadResourceMetadata = Mock(ExternalResourceMetaData)
+        downloadResourceMetadata.getFilename() >> ARCHIVE_NAME
 
         ExternalResource downloadResource = Mock(ExternalResource)
-        downloader.getResourceFor(_ as URI, _ as Collection<Authentication>) >> downloadResource
-        ExternalResourceMetaData downloadResourceMetadata = Mock(ExternalResourceMetaData)
         downloadResource.getMetaData() >> downloadResourceMetadata
-        downloadResourceMetadata.getFilename() >> ARCHIVE_NAME
+
+        downloader.getResourceFor(_ as URI, _ as Collection<Authentication>) >> downloadResource
 
         cache.acquireWriteLock(_ as File, _ as String) >> archiveFileLock
         cache.getDownloadLocation() >> temporaryFolder
@@ -73,9 +73,9 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD)
+        mockRegistry(Optional.of(DOWNLOAD))
 
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, operationExecutor, buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, operationExecutor, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
@@ -102,9 +102,9 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD)
+        mockRegistry(Optional.of(DOWNLOAD))
         new File(temporaryFolder, ARCHIVE_NAME).createNewFile()
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
@@ -118,8 +118,8 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.resolve(_ as JavaToolchainRequest) >> Optional.empty()
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
+        mockRegistry(Optional.empty())
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
 
         when:
         def result = provisioningService.tryInstall(spec)
@@ -134,8 +134,8 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("false")
 
         given:
-        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD)
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
+        mockRegistry(Optional.of(DOWNLOAD))
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
 
         when:
         def result = provisioningService.tryInstall(spec)
@@ -150,9 +150,8 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         def providerFactory = createProviderFactory("true")
 
         given:
-        binary.resolve(_ as JavaToolchainRequest) >> Optional.of(DOWNLOAD)
-
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, binary, downloader, cache, providerFactory, operationExecutor, buildPlatform)
+        mockRegistry(Optional.of(DOWNLOAD))
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, operationExecutor, buildPlatform)
 
         when:
         provisioningService.tryInstall(spec)
@@ -165,6 +164,17 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         return Mock(ProviderFactory) {
             gradleProperty("org.gradle.java.installations.auto-download") >> Providers.ofNullable(propertyValue)
         }
+    }
+
+    private void mockRegistry(Optional<URI> uri) {
+        JavaToolchainResolver resolver = Mock(JavaToolchainResolver)
+        resolver.resolve(_ as JavaToolchainRequest) >> uri
+        RealizedJavaToolchainRepository repository = Mock(RealizedJavaToolchainRepository)
+        repository.getResolver() >> resolver
+
+        repository.getAuthentications(_ as URI) >> Collections.emptyList()
+
+        registry.requestedRepositories() >> Collections.singletonList(repository)
     }
 
 }
