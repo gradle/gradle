@@ -33,4 +33,9 @@ public interface TaskExecutionAccessListener {
      * Called when accessing task dependencies during task execution.
      */
     void onTaskDependenciesAccess(String invocationDescription, TaskInternal task);
+
+    /**
+     * Called when accessing task configuration-only state during task execution.
+     */
+    void onConfigurationOnlyStateAccess(String invocationDescription, TaskInternal task);
 }

@@ -71,6 +71,13 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         onTaskExecutionAccessProblem(invocationDescription, task)
     }
 
+    override fun onConfigurationOnlyStateAccess(invocationDescription: String, task: TaskInternal) {
+        if (atConfigurationTime()) {
+            return
+        }
+        onTaskExecutionAccessProblem(invocationDescription, task)
+    }
+
     override fun onExternalProcessStarted(command: String, consumer: String?) {
         if (!isStableConfigurationCacheEnabled() || !atConfigurationTime() || isExecutingTask() || isInputTrackingDisabled()) {
             return

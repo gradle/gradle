@@ -78,6 +78,15 @@ class StableConfigurationCacheUnsupportedApiManagerAction(
             }
         }
 
+        override fun onConfigurationOnlyStateAccess(invocationDescription: String, task: TaskInternal) {
+            if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
+                DeprecationLogger.deprecateAction("Accessing configuration-time only task state using $invocationDescription() at execution time")
+                    .willBecomeAnErrorInGradle9()
+                    .undocumented()
+                    .nagUser()
+            }
+        }
+
         private
         fun throwUnsupported(reason: String): Nothing =
             throw UnsupportedOperationException("$reason is unsupported with the STABLE_CONFIGURATION_CACHE feature preview.")

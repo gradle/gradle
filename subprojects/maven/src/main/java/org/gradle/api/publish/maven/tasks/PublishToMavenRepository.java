@@ -67,6 +67,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
      */
     @Internal
     public MavenArtifactRepository getRepository() {
+        notifyConfigurationOnlyStateAccess("PublishToMavenRepository.getRepository");
         return repository.get();
     }
 

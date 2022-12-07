@@ -1044,16 +1044,27 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return getServices().get(BuildServiceRegistryInternal.class);
     }
 
+    @Override
+    public void notifyConfigurationOnlyStateAccess(String invocationDescription) {
+        if (isAtExecutionTime()) {
+            getTaskExecutionAccessBroadcaster().onConfigurationOnlyStateAccess(invocationDescription, this);
+        }
+    }
+
     private void notifyProjectAccess() {
-        if (state.getExecuting()) {
+        if (isAtExecutionTime()) {
             getTaskExecutionAccessBroadcaster().onProjectAccess("Task.project", this);
         }
     }
 
     private void notifyTaskDependenciesAccess(String invocationDescription) {
-        if (state.getExecuting()) {
+        if (isAtExecutionTime()) {
             getTaskExecutionAccessBroadcaster().onTaskDependenciesAccess(invocationDescription, this);
         }
+    }
+
+    private boolean isAtExecutionTime() {
+        return state.getExecuting();
     }
 
     private TaskExecutionAccessListener getTaskExecutionAccessBroadcaster() {

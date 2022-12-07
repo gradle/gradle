@@ -121,4 +121,13 @@ public interface TaskInternal extends Task, Configurable<Task> {
      */
     @Internal
     TaskDependency getLifecycleDependencies();
+
+    /**
+     * Called before accessing the state that is only accessible at configuration time.
+     * Typical use is to guard calls to the transient state that isn't available after restoring the task from the configuration cache.
+     * Calls to this method at execution time may yield a deprecation warning or a configuration cache problem.
+     *
+     * @param invocationDescription the description of the invocation, e.g. `TaskClass.methodName`, without trailing parentheses
+     */
+    void notifyConfigurationOnlyStateAccess(String invocationDescription);
 }
