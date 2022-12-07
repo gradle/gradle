@@ -165,8 +165,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
         }
 
         when:
-        resolve.config = 'baseConf'
-        resolve.prepare()
+        resolve.prepare('baseConf')
         succeeds('ProjectA:checkDeps')
 
         then:

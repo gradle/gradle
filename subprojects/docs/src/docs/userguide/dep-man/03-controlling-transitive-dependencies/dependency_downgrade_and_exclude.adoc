@@ -39,8 +39,8 @@ A dependency version can be enforced by declaring it as strict it in the build s
 
 .Setting a strict version
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForDependency/groovy",files="build.gradle[tags=force-using-strictly]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForDependency/kotlin",files="build.gradle.kts[tags=force-using-strictly]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForDependency/groovy",files="build.gradle[tags=force-using-strictly]"]
 ====
 
 [[sec:strict-version-consequences]]
@@ -71,8 +71,8 @@ If the project requires a specific version of a dependency at the configuration-
 
 .Enforcing a dependency version on the configuration-level
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForConfiguration/groovy",files="build.gradle[tags=force-per-configuration]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForConfiguration/kotlin",files="build.gradle.kts[tags=force-per-configuration]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-forceForConfiguration/groovy",files="build.gradle[tags=force-per-configuration]"]
 ====
 
 [[sec:excluding-transitive-deps]]
@@ -93,8 +93,8 @@ For more information, refer to link:{javadocPath}/org/gradle/api/artifacts/Modul
 
 .Excluding a transitive dependency for a particular dependency declaration
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies-1]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies-1]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies-1]"]
 ====
 
 In this example, we add a dependency to `commons-beanutils` but exclude the transitive dependency `commons-collections`.
@@ -126,16 +126,16 @@ For example, if we add `opencsv` as another dependency to our project above, whi
 
 .Excludes only apply if all dependency declarations agree on an exclude
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies-2]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies-2]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies-2]"]
 ====
 
 If we still want to have `commons-collections` excluded, because our combined usage of `commons-beanutils` and `opencsv` does not need it, we need to exclude it from the transitive dependencies of `opencsv` as well.
 
 .Excluding a transitive dependency for multiple dependency declaration
 ====
-include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies-3]"]
 include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies-3]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies-3]"]
 ====
 
 Historically, excludes were also used as a band aid to fix other issues not supported by some dependency management systems.

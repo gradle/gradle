@@ -14,20 +14,20 @@ This method will also work locally.
 
 .Settings
 ====
-include::sample[dir="groovy",files="settings.gradle[]"]
 include::sample[dir="kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="groovy",files="settings.gradle[]"]
 ====
 
 .Producer's build
 ====
-include::sample[dir="groovy",files="producer/build.gradle[]"]
 include::sample[dir="kotlin",files="producer/build.gradle.kts[]"]
+include::sample[dir="groovy",files="producer/build.gradle[]"]
 ====
 
 .Consumer's build
 ====
-include::sample[dir="groovy",files="consumer/build.gradle[]"]
 include::sample[dir="kotlin",files="consumer/build.gradle.kts[]"]
+include::sample[dir="groovy",files="consumer/build.gradle[]"]
 ====
 
 See also:

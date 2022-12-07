@@ -136,7 +136,7 @@ Then force push your branch:
 
 ### Java Toolchain
 
-The Gradle build uses [Java Toolchain](userguide/toolchains.html) support to compile and execute tests across multiple versions of Java.
+The Gradle build uses [Java Toolchain](https://docs.gradle.org/current/userguide/toolchains.html) support to compile and execute tests across multiple versions of Java.
 
 Available JDKs on your machine are automatically detected and wired for the various compile and test tasks.
 

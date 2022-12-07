@@ -1449,17 +1449,6 @@ Found the following transforms:
                         to.attribute(artifactType, "size")
                     }
                 }
-                ext.checkArtifacts = { artifacts ->
-                    assert artifacts.collect { it.id.displayName } == ['lib.jar.txt (project :lib)']
-                    assert artifacts.collect { it.file.name } == ['lib.jar.txt']
-                }
-                ext.checkLegacyArtifacts = { artifacts ->
-                    assert artifacts.collect { it.id.displayName } == ['lib.jar.txt (project :lib)']
-                    assert artifacts.collect { it.file.name } == ['lib.jar.txt']
-                }
-                ext.checkFiles = { config ->
-                    assert config.collect { it.name } == ['lib.jar.txt']
-                }
             }
         """
         fixture.expectDefaultConfiguration("compile")
@@ -1470,7 +1459,7 @@ Found the following transforms:
         fixture.expectGraph {
             root(":app", "root:app:") {
                 project(":lib", "root:lib:") {
-                    artifact(name: "lib", type: "jar.txt")
+                    artifact(name: "lib.jar", type: "txt")
                 }
             }
         }

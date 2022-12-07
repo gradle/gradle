@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures.configurationcache;
+package gradlebuild
 
-import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor;
-import org.gradle.integtests.fixtures.extensions.MultiTestExtension;
+import java.util.Locale
 
-public class ConfigurationCacheTestExtension extends MultiTestExtension<ConfigurationCacheTest> {
+fun String.toLowerCase(): String =
+    lowercase(Locale.US)
 
-    @Override
-    protected AbstractMultiTestInterceptor makeInterceptor(Class<?> testClass) {
-        return new ConfigurationCacheTestInterceptor(testClass);
-    }
-}
+fun String.toUpperCase(): String =
+    uppercase(Locale.US)
+
+fun String.capitalize(): String =
+    replaceFirstChar { it.uppercase(Locale.US) }
+
+fun String.decapitalize(): String =
+    replaceFirstChar { it.lowercase(Locale.US) }

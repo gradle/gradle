@@ -276,7 +276,9 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
 
         then:
         outputContains("backgroundJob.property = value")
-        configurationCache.assertStateStored()
+        configurationCache.assertStateStored {
+            loadsOnStore = false // for now
+        }
 
         when:
         succeeds("check", "-Dproperty=other")
@@ -311,7 +313,9 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
 
         then:
         outputContains("backgroundJob.property = value")
-        configurationCache.assertStateStored()
+        configurationCache.assertStateStored {
+            loadsOnStore = false // for now
+        }
 
         when:
         succeeds("check", "-Dproperty=other")
@@ -322,7 +326,9 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
         //  so the configuration should be loaded from the cache. A naive solution of gating the input
         //  recording will break the other test as only the first value source read is broadcasted to
         //  listeners.
-        configurationCache.assertStateStored()
+        configurationCache.assertStateStored {
+            loadsOnStore = false // for now
+        }
         outputContains("backgroundJob.property = other")
     }
 
@@ -354,7 +360,9 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
         then:
         outputContains("backgroundJob.property = value")
         outputContains("buildscript.property = value")
-        configurationCache.assertStateStored()
+        configurationCache.assertStateStored {
+            loadsOnStore = false // for now
+        }
 
         when:
         succeeds("check", "-Dproperty=other")
@@ -362,7 +370,9 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
         then:
         outputContains("backgroundJob.property = other")
         outputContains("buildscript.property = other")
-        configurationCache.assertStateStored()
+        configurationCache.assertStateStored {
+            loadsOnStore = false // for now
+        }
     }
 
     def "background job can execute external process with process API at configuration time"() {

@@ -16,9 +16,17 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class IvyDescriptorResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
+
+    def setup() {
+        settingsFile """
+            rootProject.name = 'test'
+        """
+    }
+
     def "substitutes system properties into ivy descriptor"() {
         given:
         ivyRepo.module("org.gradle", "test", "1.45")
@@ -48,26 +56,32 @@ task check {
     }
 }
 """
+        resolve.prepare()
 
         when:
         executer.withArgument("-Dsys_prop=111")
+        run "checkDeps"
 
         then:
-        succeeds "check"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.gradle:test:1.45") {
+                    module("org.gradle.111:module_111:v_111")
+                }
+            }
+        }
     }
 
-    @ToBeFixedForConfigurationCache
     def "merges values from parent descriptor file that is available locally"() {
         given:
         def parentModule = ivyHttpRepo.module("org.gradle.parent", "parent_module", "1.1").dependsOn("org.gradle.dep", "dep_module", "1.1").publish()
         def depModule = ivyHttpRepo.module("org.gradle.dep", "dep_module", "1.1").publish()
 
-        def module = ivyHttpRepo.module("org.gradle", "test", "1.45")
-        module.extendsFrom(organisation: "org.gradle.parent", module: "parent_module", revision: "1.1", location: parentModule.ivyFile.toURI().toURL())
+        def dep = ivyHttpRepo.module("org.gradle", "test", "1.45")
+        dep.extendsFrom(organisation: "org.gradle.parent", module: "parent_module", revision: "1.1", location: parentModule.ivyFile.toURI().toURL())
         parentModule.publish()
-        module.publish()
+        dep.publish()
 
-        when:
         buildFile << """
 repositories { ivy { url "${ivyHttpRepo.uri}" } }
 configurations { compile }
@@ -81,36 +95,51 @@ task check {
     }
 }
 """
+        resolve.prepare()
 
         and:
-        module.ivy.expectGet()
+        dep.ivy.expectGet()
         depModule.ivy.expectGet()
-        module.jar.expectGet()
+        dep.jar.expectGet()
         depModule.jar.expectGet()
 
+        when:
+        run "checkDeps"
+
         then:
-        succeeds "check"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.gradle:test:1.45") {
+                    module("org.gradle.dep:dep_module:1.1")
+                }
+            }
+        }
 
         when:
         server.resetExpectations()
+        run "checkDeps"
 
         then:
-        succeeds "check"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.gradle:test:1.45") {
+                    module("org.gradle.dep:dep_module:1.1")
+                }
+            }
+        }
     }
 
-    @ToBeFixedForConfigurationCache
     def "merges values from parent descriptor file"() {
         given:
         final parentModule = ivyHttpRepo.module("org.gradle.parent", "parent_module", "1.1").dependsOn("org.gradle.dep", "dep_module", "1.1").publish()
         final depModule = ivyHttpRepo.module("org.gradle.dep", "dep_module", "1.1").publish()
 
-        final module = ivyHttpRepo.module("org.gradle", "test", "1.45")
+        final dep = ivyHttpRepo.module("org.gradle", "test", "1.45")
         final extendAttributes = [organisation: "org.gradle.parent", module: "parent_module", revision: "1.1"]
-        module.extendsFrom(extendAttributes)
+        dep.extendsFrom(extendAttributes)
         parentModule.publish()
-        module.publish()
+        dep.publish()
 
-        when:
         buildFile << """
 repositories { ivy { url "${ivyHttpRepo.uri}" } }
 configurations { compile }
@@ -124,21 +153,38 @@ task check {
     }
 }
 """
+        resolve.prepare()
 
         and:
-        module.ivy.expectGet()
+        dep.ivy.expectGet()
         parentModule.ivy.expectGet()
         depModule.ivy.expectGet()
-        module.jar.expectGet()
+        dep.jar.expectGet()
         depModule.jar.expectGet()
 
+        when:
+        run "checkDeps"
+
         then:
-        succeeds "check"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.gradle:test:1.45") {
+                    module("org.gradle.dep:dep_module:1.1")
+                }
+            }
+        }
 
         when:
         server.resetExpectations()
+        run "checkDeps"
 
         then:
-        succeeds "check"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org.gradle:test:1.45") {
+                    module("org.gradle.dep:dep_module:1.1")
+                }
+            }
+        }
     }
 }

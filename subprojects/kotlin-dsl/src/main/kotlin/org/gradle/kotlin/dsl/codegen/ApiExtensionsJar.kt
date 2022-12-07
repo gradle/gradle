@@ -22,6 +22,7 @@ import org.gradle.kotlin.dsl.support.zipTo
 
 import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
+import org.gradle.kotlin.dsl.support.bytecode.GradleJvmVersion
 
 import java.io.File
 
@@ -116,6 +117,7 @@ fun compileKotlinApiExtensionsTo(
 
     val success = compileToDirectory(
         outputDirectory,
+        GradleJvmVersion.minimalJavaVersion,
         "gradle-api-extensions",
         sourceFiles,
         logger,
