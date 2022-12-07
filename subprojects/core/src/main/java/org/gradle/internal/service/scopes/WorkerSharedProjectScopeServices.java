@@ -18,7 +18,9 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.cache.ProjectScopedDecompressionCacheFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultArchiveOperations;
 import org.gradle.api.internal.file.DefaultFileCollectionFactory;
@@ -44,14 +46,8 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheFactory;
-import org.gradle.cache.internal.DecompressionCache;
-import org.gradle.cache.internal.DefaultCacheRepository;
-import org.gradle.cache.internal.DefaultDecompressionCache;
-import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
-import org.gradle.cache.internal.scopes.DefaultProjectScopedCache;
-import org.gradle.cache.scopes.ProjectScopedCache;
+import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.FileHasher;
@@ -64,7 +60,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.ExecOperations;
 import org.gradle.process.internal.DefaultExecOperations;
 import org.gradle.process.internal.ExecFactory;
-import org.gradle.util.GradleVersion;
 
 import java.io.File;
 
@@ -104,7 +99,7 @@ public class WorkerSharedProjectScopeServices {
             DocumentationRegistry documentationRegistry,
             ProviderFactory providers,
             TaskDependencyFactory taskDependencyFactory,
-            DecompressionCache decompressionCache
+            DecompressionCacheFactory decompressionCache
     ) {
         return new DefaultFileOperations(
                 fileResolver,
@@ -157,19 +152,7 @@ public class WorkerSharedProjectScopeServices {
         return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 
-    protected CacheRepository createCacheRepository(CacheFactory cacheFactory, DefaultProjectLayout projectLayout) {
-        return new DefaultCacheRepository(new DefaultCacheScopeMapping(projectLevelCacheDir(projectLayout), GradleVersion.current()), cacheFactory);
-    }
-
-    protected ProjectScopedCache createProjectScopedCache(CacheRepository cacheRepository, DefaultProjectLayout projectLayout) {
-        return new DefaultProjectScopedCache(projectLevelCacheDir(projectLayout), cacheRepository);
-    }
-
-    protected DecompressionCache createDecompressionCache(ProjectScopedCache cacheFactory) {
-        return new DefaultDecompressionCache(cacheFactory);
-    }
-
-    private File projectLevelCacheDir(DefaultProjectLayout projectLayout) {
-        return projectLayout.getBuildDirectory().file(".cache").get().getAsFile();
+    protected DecompressionCacheFactory createDecompressionCacheFactory(ProjectLayout projectLayout, CacheFactory cacheFactory) {
+        return new ProjectScopedDecompressionCacheFactory(projectLayout, cacheFactory);
     }
 }
