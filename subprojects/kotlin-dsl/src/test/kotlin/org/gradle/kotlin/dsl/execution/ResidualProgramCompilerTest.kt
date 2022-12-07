@@ -32,6 +32,7 @@ import org.gradle.internal.hash.TestHashCodes
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyBasePlugins
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyDefaultPluginRequests
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequests
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequestsOf
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CloseTargetScope
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
@@ -279,13 +280,35 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
 
     @Test
     fun `Static(ApplyPluginRequestsOf(plugins), ApplyBasePlugins)`() {
-
         val fragment = fragmentAtLine(
             3,
             "plugins",
             """id("stage-1")"""
         )
+        assertPluginApplicationBehaviorOf(
+            fragment,
+            ApplyPluginRequestsOf(Program.Plugins(fragment))
+        )
+    }
 
+    @Test
+    fun `Static(ApplyPluginRequests(plugins), ApplyBasePlugins)`() {
+        val fragment = fragmentAtLine(
+            3,
+            "plugins",
+            """id("stage-1")"""
+        )
+        assertPluginApplicationBehaviorOf(
+            fragment,
+            ApplyPluginRequests(
+                listOf(ResidualProgram.PluginRequestSpec("stage-1")),
+                source = Program.Plugins(fragment)
+            )
+        )
+    }
+
+    private
+    fun assertPluginApplicationBehaviorOf(fragment: ProgramSourceFragment, applyPlugins: ResidualProgram.Instruction) {
         val target = mock<Project>()
 
         val scriptHost = scriptHostWith(target = target)
@@ -303,7 +326,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
 
         withExecutableProgramFor(
             Static(
-                ApplyPluginRequestsOf(Program.Plugins(fragment)),
+                applyPlugins,
                 ApplyBasePlugins
             ),
             programTarget = ProgramTarget.Project
@@ -330,7 +353,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
 
         assertThat(
             pluginRequests.single().lineNumber,
-            equalTo(3)
+            equalTo(fragment.lineNumber)
         )
     }
 

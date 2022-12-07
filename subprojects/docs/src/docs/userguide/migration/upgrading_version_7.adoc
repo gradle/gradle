@@ -339,6 +339,19 @@ Gradle changes the compression library used for creating archives from an Ant ba
 The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.7.22[Kotlin 1.7.22].
 For more information, see the release notes for Kotlin https://github.com/JetBrains/kotlin/releases/tag/v1.7.20[1.7.20] and https://github.com/JetBrains/kotlin/releases/tag/v1.7.21[1.7.21].
 
+[[kotlin_language_1_7]]
+==== Updated the Kotlin DSL to Kotlin API Level 1.7
+
+Previously, the Kotlin DSL used Kotlin API level 1.4.
+Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.7.
+This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0.
+
+For information about breaking and nonbreaking changes in this upgrade, see the following links to the Kotlin documentation:
+
+* Kotlin 1.5 link:https://kotlinlang.org/docs/whatsnew15.html#language-features[language] / link:https://kotlinlang.org/docs/whatsnew17.html#standard-library[stdlib]
+* Kotlin 1.6 link:https://kotlinlang.org/docs/whatsnew16.html#language[language] / link:https://kotlinlang.org/docs/whatsnew16.html#standard-library[stdlib]
+* Kotlin 1.7 link:https://kotlinlang.org/docs/whatsnew17.html#language[language] / link:https://kotlinlang.org/docs/whatsnew15.html#standard-library[stdlib]
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
@@ -789,7 +802,7 @@ If you are using TestNG, versions prior to `5.14.6` perform illegal reflection. 
 
 The <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle plugin>> now uses the Gradle worker API to run Checkstyle as an external worker process. Multiple Checkstyle tasks may now run in parallel within a project.
 
-Some projects will need to increase the amount of memory available to Checkstyle to avoid out of memory errors. You can <<checkstyle_plugin.adoc#sec:checkstyle_customize_memory,increase the maximum memory for the Checkstyle process>> by setting the `maxHeapSize` for the Checkstyle task. By default, the process will start with a maximum heap size of 512MB. 
+Some projects will need to increase the amount of memory available to Checkstyle to avoid out of memory errors. You can <<checkstyle_plugin.adoc#sec:checkstyle_customize_memory,increase the maximum memory for the Checkstyle process>> by setting the `maxHeapSize` for the Checkstyle task. By default, the process will start with a maximum heap size of 512MB.
 
 We also recommend to update Checkstyle to version 9.3 or later.
 

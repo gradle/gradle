@@ -38,16 +38,16 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOp
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 import javax.inject.Inject
 
 import static org.hamcrest.CoreMatchers.containsString
 
-@ConfigurationCacheTest
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
     def "does not nag when service is used by task without a corresponding usesService call and feature preview is NOT enabled"() {
@@ -710,7 +710,7 @@ service: closed with value 12
         outputContains("service: closed with value 11")
     }
 
-    @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "true")
+    @IgnoreIf({ !GradleContextualExecuter.configCache })
     def "service used at configuration and execution time can be used with configuration cache"() {
         serviceImplementation()
         buildFile << """

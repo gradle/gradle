@@ -45,8 +45,8 @@ It is important to keep in mind that Gradle has a distinct configuration and exe
 
 .Distinct configuration and execution phase
 ====
-include::sample[dir="snippets/tutorial/mkdirTrap/groovy", files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/mkdirTrap/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/mkdirTrap/groovy", files="build.gradle[]"]
 ====
 
 .Output of **`gradle -q compile`**
