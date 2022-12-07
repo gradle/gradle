@@ -29,6 +29,8 @@ dependencies {
     implementation(libs.futureKotlin("gradle-plugin"))
     implementation(libs.futureKotlin("sam-with-receiver"))
 
+    testImplementation(projects.logging)
+
     integTestImplementation(project(":base-services"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":core-api"))
