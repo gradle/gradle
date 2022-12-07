@@ -30,11 +30,14 @@ interface ConfigurationCacheBuild {
 
     val state: CompositeBuildParticipantBuildState
 
-    fun createProject(projectPath: Path, dir: File, buildDir: File)
+    fun registerRootProject(rootProjectName: String, projectDir: File, buildDir: File)
+
+    fun registerProject(projectPath: Path, dir: File, buildDir: File)
 
     fun getProject(path: String): ProjectInternal
 
-    fun registerProjects()
+    // Creates all registered projects for this build
+    fun createProjects()
 
-    fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, rootProjectName: String): ConfigurationCacheBuild
+    fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?): ConfigurationCacheBuild
 }
