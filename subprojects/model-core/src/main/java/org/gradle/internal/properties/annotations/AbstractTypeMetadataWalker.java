@@ -37,7 +37,7 @@ import java.util.function.Supplier;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.NodeMetadataVisitor<T>> implements TypeMetadataWalker<T, V> {
+abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMetadataVisitor<T>> implements TypeMetadataWalker<T, V> {
     private final TypeMetadataStore typeMetadataStore;
     private final Class<? extends Annotation> nestedAnnotation;
     private final Supplier<Map<T, String>> nestedNodeToQualifiedNameMapFactory;

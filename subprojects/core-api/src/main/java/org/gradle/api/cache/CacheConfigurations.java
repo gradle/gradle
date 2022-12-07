@@ -77,16 +77,8 @@ public interface CacheConfigurations {
     CacheResourceConfiguration getCreatedResources();
 
     /**
-     * Represents the configuration of a given type of cache resource.
-     *
-     * @since 8.0
+     * Returns the cache cleanup settings that apply to all caches.
      */
-    @HasInternalProtocol
-    @Incubating
-    interface CacheResourceConfiguration {
-        /**
-         * Configures the maximum number of days an unused entry will be retained in the cache.
-         */
-        Property<Integer> getRemoveUnusedEntriesAfterDays();
-    }
+    Property<Cleanup> getCleanup();
+
 }

@@ -66,8 +66,8 @@ The task configuration APIs are described in more detail in the <<task_configura
 
 .Defining tasks using strings for task names
 ====
-include::sample[dir="snippets/tasks/defineUsingStringTaskNames/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tasks/defineUsingStringTaskNames/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/defineUsingStringTaskNames/groovy",files="build.gradle[]"]
 ====
 
 We add the tasks to the `tasks` collection.
@@ -77,8 +77,8 @@ In the Kotlin DSL there is also a specific link:https://kotlinlang.org/docs/refe
 
 .Assigning tasks to variables with DSL specific syntax
 ====
-include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty/groovy",files="build.gradle[]"]
 ====
 
 [WARNING]
@@ -99,8 +99,8 @@ You should use of the methods that return a _task provider_ – `register()` or 
 
 .Accessing tasks via tasks collection
 ====
-include::sample[dir="snippets/tasks/accessFromTaskContainer/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tasks/accessFromTaskContainer/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/accessFromTaskContainer/groovy",files="build.gradle[]"]
 ====
 
 Tasks of a specific type can also be accessed by using the `tasks.withType()` method.
@@ -108,8 +108,8 @@ This enables to easily avoid duplication of code and reduce redundancy.
 
 .Accessing tasks by their type
 ====
-include::sample[dir="snippets/tasks/accessUsingType/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tasks/accessUsingType/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/accessUsingType/groovy",files="build.gradle[]"]
 ====
 
 [WARNING]
@@ -124,8 +124,8 @@ You can call the `getByPath()` method with a task name, or a relative path, or a
 
 .Accessing tasks by path
 ====
-include::sample[dir="snippets/tasks/accessUsingPath/groovy",files="project-a/build.gradle[];build.gradle[]"]
 include::sample[dir="snippets/tasks/accessUsingPath/kotlin",files="project-a/build.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/accessUsingPath/groovy",files="project-a/build.gradle[];build.gradle[]"]
 
 .Output of **`gradle -q hello`**
 ----
@@ -144,8 +144,8 @@ To register a `Copy` task for your build, you can declare in your build script:
 
 .Registering a copy task
 ====
-include::sample[dir="snippets/tasks/configureUsingBlock/groovy",files="build.gradle[tags=declare-task]"]
 include::sample[dir="snippets/tasks/configureUsingBlock/kotlin",files="build.gradle.kts[tags=declare-task]"]
+include::sample[dir="snippets/tasks/configureUsingBlock/groovy",files="build.gradle[tags=declare-task]"]
 ====
 
 This registers a copy task with no default behavior.
@@ -158,16 +158,16 @@ You'll find this gives you a lot of power to implement cross-cutting concerns ac
 
 .Configuring a task
 ====
-include::sample[dir="snippets/tasks/configureUsingVar/groovy",files="build.gradle[tags=configure]"]
 include::sample[dir="snippets/tasks/configureUsingVar/kotlin",files="build.gradle.kts[tags=configure]"]
+include::sample[dir="snippets/tasks/configureUsingVar/groovy",files="build.gradle[tags=configure]"]
 ====
 
 You can also store the task reference in a variable and use to configure the task further at a later point in the script.
 
 .Retrieve a task reference and use it to configuring the task
 ====
-include::sample[dir="snippets/tasks/configureUsingBlock/groovy",files="build.gradle[tags=configure]"]
 include::sample[dir="snippets/tasks/configureUsingBlock/kotlin",files="build.gradle.kts[tags=configure]"]
+include::sample[dir="snippets/tasks/configureUsingBlock/groovy",files="build.gradle[tags=configure]"]
 ====
 
 Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more options for configuring tasks.
@@ -182,8 +182,8 @@ You can also use a configuration block when you define a task.
 
 .Defining a task with a configuration block
 ====
-include::sample[dir="snippets/tasks/defineAndConfigure/groovy",files="build.gradle[tags=no-description]"]
 include::sample[dir="snippets/tasks/defineAndConfigure/kotlin",files="build.gradle.kts[tags=no-description]"]
+include::sample[dir="snippets/tasks/defineAndConfigure/groovy",files="build.gradle[tags=no-description]"]
 ====
 
 [TIP]
@@ -200,16 +200,16 @@ In order to pass values to the `Task` constructor, you must annotate the relevan
 
 .Task class with `@Inject` constructor
 ====
-include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/groovy",files="build.gradle[tags=inject-task-constructor]"]
 include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/kotlin",files="build.gradle.kts[tags=inject-task-constructor]"]
+include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/groovy",files="build.gradle[tags=inject-task-constructor]"]
 ====
 
 You can then create a task, passing the constructor arguments at the end of the parameter list.
 
 .Registering a task with constructor arguments using TaskContainer
 ====
-include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/groovy",files="build.gradle[tags=on-task-container]"]
 include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/kotlin",files="build.gradle.kts[tags=on-task-container]"]
+include::sample[dir="snippets/tasks/taskConstructorArgs-onTaskContainer/groovy",files="build.gradle[tags=on-task-container]"]
 ====
 
 [NOTE]
@@ -227,8 +227,8 @@ There are several ways you can define the dependencies of a task. In <<tutorial_
 
 .Adding dependency on task from another project
 ====
-include::sample[dir="snippets/tasks/addDependencyUsingPath/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tasks/addDependencyUsingPath/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/addDependencyUsingPath/groovy",files="build.gradle[]"]
 
 .Output of **`gradle -q taskX`**
 ----
@@ -241,8 +241,8 @@ Instead of using a task name, you can define a dependency using a `TaskProvider`
 
 .Adding dependency using task provider object
 ====
-include::sample[dir="snippets/tasks/addDependencyUsingTask/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tasks/addDependencyUsingTask/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/addDependencyUsingTask/groovy",files="build.gradle[]"]
 
 .Output of **`gradle -q taskX`**
 ----
@@ -258,8 +258,8 @@ The following example adds a dependency from `taskX` to all the tasks in the pro
 
 .Adding dependency using a lazy block
 ====
-include::sample[dir="snippets/tasks/addDependencyUsingClosure/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tasks/addDependencyUsingClosure/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/addDependencyUsingClosure/groovy",files="build.gradle[]"]
 
 .Output of **`gradle -q taskX`**
 ----
@@ -290,8 +290,8 @@ With these rules present it is still possible to execute `taskA` without `taskB`
 
 .Adding a 'must run after' task ordering
 ====
-include::sample[dir="snippets/tasks/mustRunAfter/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tasks/mustRunAfter/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/mustRunAfter/groovy",files="build.gradle[]"]
 
 .Output of **`gradle -q taskY taskX`**
 ----
@@ -302,8 +302,8 @@ include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfter.out[]
 
 .Adding a 'should run after' task ordering
 ====
-include::sample[dir="snippets/tasks/shouldRunAfter/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tasks/shouldRunAfter/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/shouldRunAfter/groovy",files="build.gradle[]"]
 
 .Output of **`gradle -q taskY taskX`**
 ----
@@ -335,8 +335,8 @@ As mentioned before, the “should run after” ordering rule will be ignored if
 
 .A 'should run after' task ordering is ignored if it introduces an ordering cycle
 ====
-include::sample[dir="snippets/tasks/shouldRunAfterWithCycle/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tasks/shouldRunAfterWithCycle/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/shouldRunAfterWithCycle/groovy",files="build.gradle[]"]
 
 .Output of **`gradle -q taskX`**
 ----
@@ -352,8 +352,8 @@ You can add a description to your task. This description is displayed when execu
 
 .Adding a description to a task
 ====
-include::sample[dir="snippets/tasks/defineAndConfigure/groovy",files="build.gradle[tags=all]"]
 include::sample[dir="snippets/tasks/defineAndConfigure/kotlin",files="build.gradle.kts[tags=all]"]
+include::sample[dir="snippets/tasks/defineAndConfigure/groovy",files="build.gradle[tags=all]"]
 ====
 
 [[sec:skipping_tasks]]
@@ -370,8 +370,8 @@ Passing an optional reason string to `onlyIf()` is useful for explaining why the
 
 .Skipping a task using a predicate
 ====
-include::sample[dir="snippets/tutorial/taskOnlyIf/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/taskOnlyIf/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/taskOnlyIf/groovy",files="build.gradle[]"]
 
 .Output of **`gradle hello -PskipHello`**
 ----
@@ -396,8 +396,8 @@ If the logic for skipping a task can't be expressed with a predicate, you can us
 
 .Skipping tasks with StopExecutionException
 ====
-include::sample[dir="snippets/tutorial/stopExecutionException/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/stopExecutionException/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/stopExecutionException/groovy",files="build.gradle[]"]
 
 .Output of **`gradle -q myTask`**
 ----
@@ -415,8 +415,8 @@ Every task has an `enabled` flag which defaults to `true`. Setting it to `false`
 
 .Enabling and disabling tasks
 ====
-include::sample[dir="snippets/tutorial/disableTask/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tutorial/disableTask/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/disableTask/groovy",files="build.gradle[]"]
 
 .Output of **`gradle disableMe`**
 ----
@@ -437,8 +437,8 @@ All of Gradle's built-in tasks respond to timeouts in a timely manner.
 
 .Specifying task timeouts
 ====
-include::sample[dir="snippets/tasks/timeout/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tasks/timeout/kotlin",files="build.gradle.kts[tags=without-import]"]
+include::sample[dir="snippets/tasks/timeout/groovy",files="build.gradle[]"]
 ====
 
 [[sec:up_to_date_checks]]
@@ -876,8 +876,8 @@ Let’s take the template processing example from before and see how it would lo
 
 .Ad-hoc task
 ====
-include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task]"]
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task]"]
 
 .Output of **`gradle processTemplatesAdHoc`**
 ----
@@ -896,8 +896,8 @@ The files that a task removes can be specified through `destroyables.register()`
 
 .Ad-hoc task declaring a destroyable
 ====
-include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=adhoc-destroyable-task]"]
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=adhoc-destroyable-task]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=adhoc-destroyable-task]"]
 ====
 
 One notable difference between the runtime API and the annotations is the lack of a method that corresponds directly to `@Nested`. That’s why the example uses two `property()` declarations for the template data, one for each `TemplateData` property. You should utilize the same technique when using the runtime API with nested values.  Any given task can either declare destroyables or inputs/outputs, but cannot declare both.
@@ -913,8 +913,8 @@ Let’s say we don’t want to run the `processTemplates` task if there are no s
 
 .Using skipWhenEmpty() via the runtime API
 ====
-include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task-skip-when-empty]"]
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=ad-hoc-task-skip-when-empty]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task-skip-when-empty]"]
 
 .Output of **`gradle clean processTemplatesAdHocSkipWhenEmpty`**
 ----
@@ -937,8 +937,8 @@ With the runtime API you can do just that:
 
 .Using runtime API with custom task type
 ====
-include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=custom-class-runtime-api]"]
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=custom-class-runtime-api]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=custom-class-runtime-api]"]
 ====
 
 Using the runtime API like this is a little like using `doLast()` and `doFirst()` to attach extra actions to a task, except in this case we’re attaching information about inputs and outputs.
@@ -963,8 +963,8 @@ Consider an archive task that packages the output of the `processTemplates` task
 
 .Inferred task dependency via task outputs
 ====
-include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=inferred-task-dep-via-outputs]"]
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=inferred-task-dep-via-outputs]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=inferred-task-dep-via-outputs]"]
 
 .Output of **`gradle clean packageFiles`**
 ----
@@ -979,8 +979,8 @@ The above example can also be written as
 
 .Inferred task dependency via a task argument
 ====
-include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=inferred-task-dep-via-task]"]
 include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=inferred-task-dep-via-task]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=inferred-task-dep-via-task]"]
 
 .Output of **`gradle clean packageFiles2`**
 ----
@@ -1079,8 +1079,8 @@ The implementation is quite simple and you can use the same technique for your o
 
 .Declaring a method to add task inputs
 ====
-include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=custom-task-class]"]
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=custom-task-class]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=custom-task-class]"]
 
 .ProcessTemplates.java
 [source,java]
@@ -1101,8 +1101,8 @@ If we want to support tasks as arguments as well and treat their outputs as the 
 
 .Declaring a method to add a task as an input
 ====
-include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=task-arg-method]"]
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=task-arg-method]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=task-arg-method]"]
 
 .ProcessTemplates.java
 [source,java]
@@ -1133,8 +1133,8 @@ As an example, imagine you want to use the output of a Java compilation task —
 
 .Failed attempt at setting up an inferred task dependency
 ====
-include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=failed-inferred-task-dep]"]
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=failed-inferred-task-dep]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=failed-inferred-task-dep]"]
 
 .Output of **`gradle clean badInstrumentClasses`**
 ----
@@ -1149,8 +1149,8 @@ One solution is to use the `TaskOutputs.files` property, as demonstrated by the 
 
 .Setting up an inferred task dependency between output dir and input files
 ====
-include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep]"]
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep]"]
 
 .Output of **`gradle clean instrumentClasses`**
 ----
@@ -1163,8 +1163,8 @@ Alternatively, you can get Gradle to access the appropriate property itself by u
 
 .Setting up an inferred task dependency with `layout.files()`
 ====
-include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep-with-files]"]
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep-with-files]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep-with-files]"]
 
 .Output of **`gradle clean instrumentClasses2`**
 ----
@@ -1179,8 +1179,8 @@ The downside of this approach is that all file outputs of the source task become
 
 .Setting up an inferred task dependency with builtBy()
 ====
-include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep-with-builtby]"]
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=inferred-task-dep-with-builtby]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=inferred-task-dep-with-builtby]"]
 
 .Output of **`gradle clean instrumentClassesBuiltBy`**
 ----
@@ -1203,8 +1203,8 @@ One can use this to disable up-to-date checks completely for a task, like so:
 
 .Ignoring up-to-date checks
 ====
-include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=disable-up-to-date-checks]"]
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=disable-up-to-date-checks]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=disable-up-to-date-checks]"]
 
 .Output of `gradle clean alwaysInstrumentClasses`
 ----
@@ -1239,8 +1239,8 @@ For example, let's say you want to implement a task which clones a Git repositor
 include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/groovy/buildSrc/src/main/java/org/example/GitClone.java[tag=git-clone]
 ----
 
-include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=git-clone]"]
 include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/kotlin",files="build.gradle.kts[tags=git-clone]"]
+include::sample[dir="snippets/tasks/incrementalBuild-incrementalBuildAdvanced/groovy",files="build.gradle[tags=git-clone]"]
 ====
 - (1) Declare the task as untracked.
 - (2) Use the output directory to run the external tool.
@@ -1266,8 +1266,8 @@ In order to benefit from incremental builds again, you are able tell Gradle to i
 
 .Runtime classpath normalization
 ====
-include::sample[dir="snippets/tasks/inputNormalization/groovy",files="build.gradle[tags=ignore-build-info-properties]"]
 include::sample[dir="snippets/tasks/inputNormalization/kotlin",files="build.gradle.kts[tags=ignore-build-info-properties]"]
+include::sample[dir="snippets/tasks/inputNormalization/groovy",files="build.gradle[tags=ignore-build-info-properties]"]
 ====
 
 If adding such a file to your jar files is something you do for all of the projects in your build, and you want to filter this file for all consumers,
@@ -1293,14 +1293,14 @@ In other words, if the file cannot be loaded as a properties file, any changes t
 
 .Ignore a property in selected properties files
 ====
-include::sample[dir="snippets/tasks/inputNormalizationPropertiesFiles/groovy",files="build.gradle[tags=ignore-property-selected]"]
 include::sample[dir="snippets/tasks/inputNormalizationPropertiesFiles/kotlin",files="build.gradle.kts[tags=ignore-property-selected]"]
+include::sample[dir="snippets/tasks/inputNormalizationPropertiesFiles/groovy",files="build.gradle[tags=ignore-property-selected]"]
 ====
 
 .Ignore a property in all properties files
 ====
-include::sample[dir="snippets/tasks/inputNormalizationPropertiesFiles/groovy",files="build.gradle[tags=ignore-property-all]"]
 include::sample[dir="snippets/tasks/inputNormalizationPropertiesFiles/kotlin",files="build.gradle.kts[tags=ignore-property-all]"]
+include::sample[dir="snippets/tasks/inputNormalizationPropertiesFiles/groovy",files="build.gradle[tags=ignore-property-all]"]
 ====
 
 [[sec:meta_inf_normalization]]
@@ -1314,26 +1314,26 @@ Manifest properties files are normalized according to <<more_about_tasks.adoc#se
 
 .Ignore `META-INF` manifest attributes
 ====
-include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-attribute]"]
 include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="build.gradle.kts[tags=ignore-metainf-attribute]"]
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-attribute]"]
 ====
 
 .Ignore `META-INF` property keys
 ====
-include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-properties]"]
 include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="build.gradle.kts[tags=ignore-metainf-properties]"]
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-properties]"]
 ====
 
 .Ignore `META-INF/MANIFEST.MF`
 ====
-include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-manifest]"]
 include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="build.gradle.kts[tags=ignore-metainf-manifest]"]
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-manifest]"]
 ====
 
 .Ignore all files and directories inside `META-INF`
 ====
-include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-completely]"]
 include::sample[dir="snippets/tasks/inputNormalizationMetaInf/kotlin",files="build.gradle.kts[tags=ignore-metainf-completely]"]
+include::sample[dir="snippets/tasks/inputNormalizationMetaInf/groovy",files="build.gradle[tags=ignore-metainf-completely]"]
 ====
 
 [[sec:custom_up_to_date_logic]]
@@ -1374,8 +1374,8 @@ Sometimes you want to have a task whose behavior depends on a large or infinite 
 
 .Task rule
 ====
-include::sample[dir="snippets/tasks/addRules/groovy",files="build.gradle[tags=task-rule]"]
 include::sample[dir="snippets/tasks/addRules/kotlin",files="build.gradle.kts[tags=task-rule]"]
+include::sample[dir="snippets/tasks/addRules/groovy",files="build.gradle[tags=task-rule]"]
 
 .Output of **`gradle -q pingServer1`**
 ----
@@ -1390,8 +1390,8 @@ Rules are not only used when calling tasks from the command line. You can also c
 
 .Dependency on rule based tasks
 ====
-include::sample[dir="snippets/tasks/addRules/groovy",files="build.gradle[tags=all]"]
 include::sample[dir="snippets/tasks/addRules/kotlin",files="build.gradle.kts[tags=all]"]
+include::sample[dir="snippets/tasks/addRules/groovy",files="build.gradle[tags=all]"]
 
 .Output of **`gradle -q groupPing`**
 ----
@@ -1409,8 +1409,8 @@ Finalizer tasks are automatically added to the task graph when the finalized tas
 
 .Adding a task finalizer
 ====
-include::sample[dir="snippets/tasks/finalizers/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tasks/finalizers/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/finalizers/groovy",files="build.gradle[]"]
 
 .Output of **`gradle -q taskX`**
 ----
@@ -1423,8 +1423,8 @@ Finalizer tasks will be executed even if the finalized task fails or if the fina
 
 .Task finalizer for a failing task
 ====
-include::sample[dir="snippets/tasks/finalizersWithFailure/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tasks/finalizersWithFailure/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/finalizersWithFailure/groovy",files="build.gradle[]"]
 
 .Output of **`gradle -q taskX`**
 ----

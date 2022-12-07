@@ -58,9 +58,10 @@ class ExtraAttributeDisambiguationIntegrationTest extends AbstractIntegrationSpe
             }
 
             tasks.register("consumeConfiguration") {
-                dependsOn configurations.resolvable
+                def files = configurations.resolvable
+                dependsOn files
                 doFirst {
-                    println("Resolved: " + configurations.resolvable.files*.name)
+                    println("Resolved: " + files*.name)
                 }
             }
         """)

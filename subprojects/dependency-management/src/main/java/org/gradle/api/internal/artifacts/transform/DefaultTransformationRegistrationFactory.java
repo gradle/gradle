@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ArtifactTransformRegistration;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
@@ -189,12 +188,12 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         }
 
         @Override
-        public AttributeContainerInternal getFrom() {
+        public ImmutableAttributes getFrom() {
             return from;
         }
 
         @Override
-        public AttributeContainerInternal getTo() {
+        public ImmutableAttributes getTo() {
             return to;
         }
 

@@ -110,8 +110,8 @@ class DetermineExecutionPlanAction {
         Deque<Node> queue = new ArrayDeque<>(finalizers);
         while (!queue.isEmpty()) {
             Node node = queue.peek();
-            if (visited.contains(node)) {
-                // Already visited node, skip
+            if (node.isCannotRunInAnyPlan() || visited.contains(node)) {
+                // Already visited node or node cannot execute (eg has already executed), skip
                 queue.remove();
             } else if (visiting.add(node)) {
                 // Haven't seen this node

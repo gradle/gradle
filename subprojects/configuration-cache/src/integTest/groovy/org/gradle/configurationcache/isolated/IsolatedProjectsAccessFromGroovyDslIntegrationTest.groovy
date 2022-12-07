@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache.isolated
 
+import spock.lang.Issue
+
 class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         settingsFile << """
@@ -571,6 +573,37 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
             projectsConfigured(":", ":sub", ":sub:sub-sub")
             problem("Build file 'sub/sub-sub/build.gradle': Project ':sub' cannot dynamically look up a property in the parent project ':'")
             problem("Build file 'sub/sub-sub/build.gradle': Project ':sub:sub-sub' cannot dynamically look up a property in the parent project ':sub'")
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22949")
+    def "invocations of GroovyObject methods on DefaultProject track the dynamic call context"() {
+        settingsFile << """
+            include("a")
+        """
+        file("build.gradle") << """
+            ext.foo = 1
+            def bar() { }
+        """
+        file("a/build.gradle") << """
+            ext.baz = 0
+
+            def o = project as GroovyObject
+            o.getProperty('foo')
+            o.invokeMethod('bar', new Object[] {})
+            o.setProperty('baz', 1)
+
+            assert project.hasProperty('baz')
+        """
+
+        when:
+        configurationCacheFails(":a:help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a")
+            problem("Build file 'a/build.gradle': Project ':a' cannot dynamically look up a method in the parent project ':'")
+            problem("Build file 'a/build.gradle': Project ':a' cannot dynamically look up a property in the parent project ':'")
         }
     }
 

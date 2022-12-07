@@ -291,7 +291,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         }
     }
 
-    static abstract class TestNodeMetadataVisitor<T> implements TypeMetadataWalker.NodeMetadataVisitor<T> {
+    static abstract class TestNodeMetadataVisitor<T> implements TypeMetadataWalker.TypeMetadataVisitor<T> {
         private List<CollectedNode> all = []
         private List<CollectedNode> roots = []
         private List<CollectedNode> nested = []

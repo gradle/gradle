@@ -61,8 +61,8 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
       - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 6
       - Other compatible attribute:
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'compileElements' capability test:producer:unspecified declares the internal view of a library for use during compile-time, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 6
+  - Variant 'compileElements' capability test:producer:unspecified declares a library for use during compile-time, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares the internal view of a component, compatible with Java 7 and the consumer needed the API view of a component, compatible with Java 6
       - Other compatible attribute:
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
   - Variant 'mainSourceElements' capability test:producer:unspecified declares a component, and its dependencies declared externally:
@@ -133,7 +133,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
                             'org.gradle.compile-view': 'java-api',
                             'org.gradle.libraryelements': 'jar'
                     ])
-                    artifact(classifier: "jdk${selected}")
+                    artifact(name: "producer-jdk${selected}")
                 }
             }
         }
@@ -171,8 +171,8 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
       - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 6
       - Other compatible attribute:
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
-  - Variant 'compileElements' capability test:producer:unspecified declares the internal view of a library for use during compile-time, packaged as a jar, and its dependencies declared externally:
-      - Incompatible because this component declares a component, compatible with Java 7 and the consumer needed a component, compatible with Java 6
+  - Variant 'compileElements' capability test:producer:unspecified declares a library for use during compile-time, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares the internal view of a component, compatible with Java 7 and the consumer needed the API view of a component, compatible with Java 6
       - Other compatible attribute:
           - Doesn't say anything about its target Java environment (preferred optimized for standard JVMs)
   - Variant 'mainSourceElements' capability test:producer:unspecified declares a component, and its dependencies declared externally:
@@ -218,7 +218,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
                             'org.gradle.libraryelements': 'jar',
                             'org.gradle.compile-view': 'java-api'
                     ])
-                    artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
+                    artifact name: 'main', extension: '', type: 'java-classes-directory'
                 }
             }
         }

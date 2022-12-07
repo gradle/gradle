@@ -18,6 +18,7 @@ package org.gradle.architecture.test;
 
 import com.google.common.collect.ImmutableSet;
 import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaAnnotation;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaGenericArrayType;
 import com.tngtech.archunit.core.domain.JavaMember;
@@ -28,6 +29,7 @@ import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.domain.JavaTypeVariable;
 import com.tngtech.archunit.core.domain.JavaWildcardType;
 import com.tngtech.archunit.core.domain.PackageMatchers;
+import com.tngtech.archunit.core.domain.properties.HasType;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
@@ -44,6 +46,7 @@ import org.gradle.util.TestPreconditionExtension;
 import org.gradle.util.UsesNativeServices;
 import org.gradle.util.UsesNativeServicesExtension;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -51,14 +54,18 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.tngtech.archunit.base.DescribedPredicate.equalTo;
 import static com.tngtech.archunit.base.DescribedPredicate.not;
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
 import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
+import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static java.util.stream.Collectors.toSet;
 
 public interface ArchUnitFixture {
@@ -115,6 +122,19 @@ public interface ArchUnitFixture {
 
     static ArchCondition<JavaMethod> haveOnlyArgumentsOrReturnTypesThatAre(DescribedPredicate<JavaClass> types) {
         return new HaveOnlyArgumentsOrReturnTypesThatAre(types);
+    }
+
+    static DescribedPredicate<JavaMember> annotatedMaybeInSupertypeWith(final Class<? extends Annotation> annotationType) {
+        return annotatedMaybeInSupertypeWith(annotationType.getName());
+    }
+
+    static DescribedPredicate<JavaMember> annotatedMaybeInSupertypeWith(final String annotationTypeName) {
+        DescribedPredicate<HasType> typeNameMatches = GET_RAW_TYPE.then(GET_NAME).is(equalTo(annotationTypeName));
+        return annotatedMaybeInSupertypeWith(typeNameMatches.as("@" + annotationTypeName));
+    }
+
+    static DescribedPredicate<JavaMember> annotatedMaybeInSupertypeWith(final DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+        return new AnnotatedMaybeInSupertypePredicate(predicate);
     }
 
     class HaveOnlyArgumentsOrReturnTypesThatAre extends ArchCondition<JavaMethod> {
@@ -228,6 +248,46 @@ public interface ArchUnitFixture {
                 item.getSourceCodeLocation()
             );
             events.add(new SimpleConditionEvent(item, fulfilled, message));
+        }
+    }
+
+    class AnnotatedMaybeInSupertypePredicate extends DescribedPredicate<JavaMember> {
+        private final DescribedPredicate<? super JavaAnnotation<?>> predicate;
+
+        AnnotatedMaybeInSupertypePredicate(DescribedPredicate<? super JavaAnnotation<?>> predicate) {
+            super("annotated, maybe in a supertype, with " + predicate.getDescription());
+            this.predicate = predicate;
+        }
+
+        @Override
+        public boolean test(JavaMember input) {
+            Stream<JavaClass> ownerAndSupertypes = Stream.of(
+                Stream.of(input.getOwner()),
+                input.getOwner().getAllRawSuperclasses().stream(),
+                input.getOwner().getAllRawInterfaces().stream()
+            ).flatMap(Function.identity());
+
+            return ownerAndSupertypes.anyMatch(classInHierarchy ->
+                findMatchingCallableMember(classInHierarchy, input)
+                    .map(member -> member.isAnnotatedWith(predicate))
+                    .orElse(false)
+            );
+        }
+
+        private Optional<? extends JavaMember> findMatchingCallableMember(JavaClass owner, JavaMember memberToFind) {
+            if (owner.equals(memberToFind.getOwner())) {
+                return Optional.of(memberToFind);
+            }
+
+            // only methods can be overridden, while constructors and fields are always referenced directly
+            if (memberToFind instanceof JavaMethod) {
+                String[] parameterFqNames = ((JavaMethod) memberToFind).getParameters().stream()
+                    .map(it -> it.getRawType().getFullName())
+                    .toArray(String[]::new);
+                return owner.tryGetMethod(memberToFind.getName(), parameterFqNames);
+            } else {
+                return Optional.empty();
+            }
         }
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.caching.local.internal;
 
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.cache.DefaultCacheCleanup;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
@@ -87,7 +88,7 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         PathKeyFileStore fileStore = fileStoreFactory.createFileStore(target);
         PersistentCache persistentCache = cacheRepository
             .cache(target)
-            .withCleanup(cleanupActionDecorator.decorate(createCleanupAction(removeUnusedEntriesAfterDays)))
+            .withCleanup(createCacheCleanup(removeUnusedEntriesAfterDays))
             .withDisplayName("Build cache")
             .withLockOptions(mode(OnDemand))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
@@ -96,6 +97,10 @@ public class DirectoryBuildCacheServiceFactory implements BuildCacheServiceFacto
         FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, target, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
 
         return new DirectoryBuildCacheService(fileStore, persistentCache, tempFileStore, fileAccessTracker, FAILED_READ_SUFFIX);
+    }
+
+    private DefaultCacheCleanup createCacheCleanup(int removeUnusedEntriesAfterDays) {
+        return DefaultCacheCleanup.from(cleanupActionDecorator.decorate(createCleanupAction(removeUnusedEntriesAfterDays)));
     }
 
     private LeastRecentlyUsedCacheCleanup createCleanupAction(int removeUnusedEntriesAfterDays) {

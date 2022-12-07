@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.integration
 
 import com.nhaarman.mockito_kotlin.mock
+import org.gradle.api.JavaVersion
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
@@ -93,6 +94,7 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
     ) {
         compileKotlinScriptToDirectory(
             outputDir,
+            JavaVersion.current(),
             file("script.kts").apply {
                 writeText(script)
             },
