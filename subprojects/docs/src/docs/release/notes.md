@@ -177,7 +177,6 @@ In the cases above, Gradle falls back to the Kotlin compiler, providing the same
 
 ### General Improvements
 
-
 #### Enhanced warning modes `all` and `fail` are now more verbose
 
 Warning modes that are supposed to print all warnings were printing only one for each specific warning message.
@@ -232,9 +231,6 @@ The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.ht
 In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
 
 ### IDE Integration
-
-
-
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
