@@ -91,7 +91,7 @@ test {
 }
 ```
 
-=== Removed APIs
+=== Removed APIs and features
 
 ==== Legacy ArtifactTransform API
 
@@ -107,6 +107,11 @@ The legacy `IncrementalTaskInputs` API has been removed. For more information, s
 The legacy `AntlrSourceVirtualDirectory` API has been removed.
 This change affects the `antlr` plugin.
 In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
+
+==== `--no-rebuild` command line option
+
+The `--no-rebuild` command line option and its short variant `-a` have been removed.
+They were used to tell Gradle not to rebuild project dependencies and could lead to wrong results.
 
 === Potential breaking changes
 
