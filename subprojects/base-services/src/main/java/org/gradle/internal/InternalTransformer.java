@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api;
+
+package org.gradle.internal;
 
 /**
+ * Equivalent to {@code Transformer}, but does not declare nullability due to Java 6 restrictions.
+ * /**
  * <p>A {@code Transformer} transforms objects of type.</p>
  *
  * <p>Implementations are free to return new objects or mutate the incoming value.</p>
@@ -23,7 +26,7 @@ package org.gradle.api;
  * @param <OUT> The type the value is transformed to.
  * @param <IN> The type of the value to be transformed.
  */
-public interface Transformer<OUT, IN> {
+public interface InternalTransformer<OUT, IN> {
     /**
      * Transforms the given object, and returns the transformed value.
      *
