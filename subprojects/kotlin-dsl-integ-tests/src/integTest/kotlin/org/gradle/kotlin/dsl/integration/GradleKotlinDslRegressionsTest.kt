@@ -57,7 +57,18 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
     @ToBeImplemented
     fun `kotlin ir backend issue kt-55068`() {
 
-        withKotlinBuildSrc()
+        withDefaultSettingsIn("buildSrc")
+        withBuildScriptIn("buildSrc", """
+            plugins { `kotlin-dsl` }
+            $repositoriesBlock
+            afterEvaluate {
+                kotlinDslPluginOptions {
+                    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                        kotlinOptions.useOldBackend = false
+                    }
+                }
+            }
+        """)
         withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
             data class Container(val property: Property<String> = objects.property())
         """)
@@ -78,7 +89,18 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
     @ToBeImplemented
     fun `kotlin ir backend issue kt-55065`() {
 
-        withKotlinBuildSrc()
+        withDefaultSettingsIn("buildSrc")
+        withBuildScriptIn("buildSrc", """
+            plugins { `kotlin-dsl` }
+            $repositoriesBlock
+            afterEvaluate {
+                kotlinDslPluginOptions {
+                    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                        kotlinOptions.useOldBackend = false
+                    }
+                }
+            }
+        """)
         withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
             tasks.withType<DefaultTask>().configureEach {
                 val p: String by project
