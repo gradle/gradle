@@ -374,8 +374,8 @@ fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
 
 private
 val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
-    languageVersion = LanguageVersion.KOTLIN_1_7,
-    apiVersion = ApiVersion.KOTLIN_1_7,
+    languageVersion = LanguageVersion.KOTLIN_1_5,
+    apiVersion = ApiVersion.KOTLIN_1_5,
     analysisFlags = mapOf(
         AnalysisFlags.skipMetadataVersionCheck to true,
         JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
