@@ -31,9 +31,30 @@ class ExperimentalCompilerWarningSilencer(
     private
     val rewrittenLevels = listOf(LogLevel.WARN, LogLevel.ERROR)
 
+    private
+    val unsafeCompilerArgumentsWarningHeader = "This build uses unsafe internal compiler arguments:"
+
     override fun rewrite(logLevel: LogLevel, message: String): String? =
-        if (logLevel in rewrittenLevels && message.containsSilencedWarning()) null
+        if (logLevel in rewrittenLevels) rewriteMessage(message)
         else message
+
+    private
+    fun rewriteMessage(message: String) =
+        if (message.contains(unsafeCompilerArgumentsWarningHeader)) rewriteUnsafeCompilerArgumentsWarning(message)
+        else if (message.containsSilencedWarning()) null
+        else message
+
+    private
+    fun rewriteUnsafeCompilerArgumentsWarning(message: String): String? {
+        var rewrittenMessage = message
+        for (warning in warningsToSilence) {
+            rewrittenMessage = rewrittenMessage.replace("$warning\n", "")
+        }
+        if (rewrittenMessage.lines().any { it.startsWith("-") }) {
+            return rewrittenMessage
+        }
+        return null
+    }
 
     private
     fun String.containsSilencedWarning() =
