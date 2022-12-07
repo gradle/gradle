@@ -305,6 +305,270 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         classJavaVersion(javaClassFile("Foo.class")) == javaVersion
     }
 
+    def "source compatibility lower than compiler version does not allow accessing newer Java language features"() {
+        def jdk = AvailableJavaHomes.getJdk(toolchain)
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+            }
+
+            compileJava.sourceCompatibility = "$sourceCompatibility"
+        """
+
+        file("src/main/java/Parent.java") << """
+            // Sealed classes and interfaces are only available in Java 17
+            public sealed interface Parent permits Parent.Child {
+                public static record Child(String name) implements Parent {}
+            }
+        """
+
+        when:
+        if (fails) {
+            withInstallations(jdk).fails(":compileJava")
+        } else {
+            withInstallations(jdk).succeeds(":compileJava")
+        }
+
+        then:
+        if (fails) {
+            failure.assertHasErrorOutput("Parent.java:3: error: sealed classes are not supported in -source 11")
+            javaClassFile("Parent.class").assertDoesNotExist()
+        } else {
+            classJavaVersion(javaClassFile("Parent.class")) == JavaVersion.VERSION_17
+        }
+
+        where:
+        sourceCompatibility    | toolchain              | fails
+        JavaVersion.VERSION_17 | JavaVersion.VERSION_17 | false
+        JavaVersion.VERSION_11 | JavaVersion.VERSION_17 | true
+    }
+
+    def "release flag lower than compiler version does not allow accessing newer Java language features"() {
+        def jdk = AvailableJavaHomes.getJdk(toolchain)
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+            }
+
+            compileJava.options.release = ${release.majorVersion}
+        """
+
+        file("src/main/java/Parent.java") << """
+            // Sealed classes and interfaces are only available in Java 17
+            public sealed interface Parent permits Parent.Child {
+                public static record Child(String name) implements Parent {}
+            }
+        """
+
+        when:
+        if (fails) {
+            withInstallations(jdk).fails(":compileJava")
+        } else {
+            withInstallations(jdk).succeeds(":compileJava")
+        }
+
+        then:
+        if (fails) {
+            failure.assertHasErrorOutput("Parent.java:3: error: sealed classes are not supported in -source 11")
+            javaClassFile("Parent.class").assertDoesNotExist()
+        } else {
+            classJavaVersion(javaClassFile("Parent.class")) == JavaVersion.VERSION_17
+        }
+
+        where:
+        release                | toolchain              | fails
+        JavaVersion.VERSION_17 | JavaVersion.VERSION_17 | false
+        JavaVersion.VERSION_11 | JavaVersion.VERSION_17 | true
+    }
+
+    def "source compatibility lower than compiler version allows accessing newer JDK APIs"() {
+        def jdk11 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_11)
+        def jdk17 = AvailableJavaHomes.getJdk(JavaVersion.VERSION_17)
+
+        buildFile << """
+            apply plugin: "java"
+            apply plugin: "application"
+
+            application.mainClass = "Main"
+
+            java {
+                sourceCompatibility = "${JavaVersion.VERSION_11}"
+            }
+
+            def compile11 = providers.gradleProperty("compile11").isPresent()
+            compileJava {
+                javaCompiler = javaToolchains.compilerFor {
+                    languageVersion = JavaLanguageVersion.of(compile11 ? ${jdk11.javaVersion.majorVersion} : ${jdk17.javaVersion.majorVersion})
+                }
+            }
+
+            def run11 = providers.gradleProperty("run11").isPresent()
+            run {
+                javaLauncher = javaToolchains.launcherFor {
+                    languageVersion = JavaLanguageVersion.of(run11 ? ${jdk11.javaVersion.majorVersion} : ${jdk17.javaVersion.majorVersion})
+                }
+            }
+        """
+
+        file("src/main/java/Main.java") << """
+            public class Main {
+                public static void main(String[] args) {
+                    System.out.println("Main: java " + System.getProperty("java.version"));
+
+                    // API added in Java 15
+                    long x = Math.absExact(-42);
+                    System.out.println("Main: value " + x);
+                }
+            }
+        """
+
+        // Compiling with Java 11 fails, because the source code uses a Java 15 API
+        when:
+        withInstallations(jdk11).fails(":compileJava", "-Pcompile11")
+        then:
+        failure.assertHasErrorOutput("Main.java:7: error: cannot find symbol")
+        failure.assertHasErrorOutput("symbol:   method absExact(int)")
+        javaClassFile("Main.class").assertDoesNotExist()
+
+        // Compiling with Java 17 works, because the source does not use any language features that are not supported by Java 11 source compatibility
+        when:
+        withInstallations(jdk17).succeeds(":compileJava")
+        then:
+        executedAndNotSkipped(":compileJava")
+        classJavaVersion(javaClassFile("Main.class")) == JavaVersion.VERSION_11
+
+        // Running with JVM 17 works, because the required Java 15 API is available at runtime
+        when:
+        withInstallations(jdk17).succeeds(":run")
+        then:
+        executedAndNotSkipped(":run")
+        outputContains("Main: java 17.")
+        outputContains("Main: value 42")
+
+        // Running with JVM 11 fails, but only at the point where we try to use the Java 15 API
+        when:
+        withInstallations(jdk11, jdk17).fails(":run", "-Prun11")
+        then:
+        outputContains("Main: java 11.")
+        failure.assertHasErrorOutput("Exception in thread \"main\" java.lang.NoSuchMethodError: 'int java.lang.Math.absExact(int)'\n")
+    }
+
+    def "release flag lower than compiler version does not allow accessing newer JDK APIs"() {
+        def jdk = AvailableJavaHomes.getJdk(toolchain)
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+            }
+
+            compileJava.options.release = ${release.majorVersion}
+        """
+
+        file("src/main/java/Main.java") << """
+            public class Main {
+                public static void main(String[] args) {
+                    System.out.println("Main: java " + System.getProperty("java.version"));
+
+                    // API added in Java 15
+                    long x = Math.absExact(-42);
+                    System.out.println("Main: value " + x);
+                }
+            }
+        """
+
+        when:
+        if (fails) {
+            withInstallations(jdk).fails(":compileJava")
+        } else {
+            withInstallations(jdk).succeeds(":compileJava")
+        }
+
+        then:
+        if (fails) {
+            failure.assertHasErrorOutput("Main.java:7: error: cannot find symbol")
+            failure.assertHasErrorOutput("symbol:   method absExact(int)")
+            javaClassFile("Main.class").assertDoesNotExist()
+        } else {
+            classJavaVersion(javaClassFile("Main.class")) == JavaVersion.VERSION_17
+        }
+
+        where:
+        release                | toolchain              | fails
+        JavaVersion.VERSION_17 | JavaVersion.VERSION_17 | false
+        JavaVersion.VERSION_11 | JavaVersion.VERSION_17 | true
+    }
+
+    def "lower toolchain does not allow accessing newer JDK APIs"() {
+        def jdk = AvailableJavaHomes.getJdk(toolchain)
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+            }
+
+            compileJava.doFirst {
+                logger.lifecycle("Source is set to '\${compileJava.sourceCompatibility}'")
+                logger.lifecycle("Release is set to '\${compileJava.options.release.getOrNull()}'")
+            }
+        """
+
+        file("src/main/java/Main.java") << """
+            public class Main {
+                public static void main(String[] args) {
+                    System.out.println("Main: java " + System.getProperty("java.version"));
+
+                    // API added in Java 15
+                    long x = Math.absExact(-42);
+                    System.out.println("Main: value " + x);
+                }
+            }
+        """
+
+        when:
+        if (fails) {
+            withInstallations(jdk).fails(":compileJava")
+        } else {
+            withInstallations(jdk).succeeds(":compileJava")
+        }
+
+        then:
+        // Configuring a toolchain only affects sourceCompatibility and not release
+        outputContains("Source is set to '${toolchain}'")
+        outputContains("Release is set to 'null'")
+
+        // But compilation still fails, because the compiler is effectively older and does not support the newer APIs
+        if (fails) {
+            failure.assertHasErrorOutput("Main.java:7: error: cannot find symbol")
+            failure.assertHasErrorOutput("symbol:   method absExact(int)")
+            javaClassFile("Main.class").assertDoesNotExist()
+        } else {
+            classJavaVersion(javaClassFile("Main.class")) == JavaVersion.VERSION_17
+        }
+
+        where:
+        toolchain              | fails
+        JavaVersion.VERSION_17 | false
+        JavaVersion.VERSION_11 | true
+    }
+
     private static String currentJavaVersion() {
         return Jvm.current().javaVersion.toString()
     }
