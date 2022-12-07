@@ -83,7 +83,7 @@ public class DefaultPropertyWalker implements PropertyWalker {
             }
 
             @Override
-            public void visitUnpackNestedError(String qualifiedName, Exception e) {
+            public void visitNestedUnpackingError(String qualifiedName, Exception e) {
                 visitor.visitInputProperty(qualifiedName, new InvalidValue(e), false);
             }
 

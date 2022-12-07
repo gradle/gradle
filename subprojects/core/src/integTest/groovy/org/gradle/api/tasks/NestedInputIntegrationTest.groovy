@@ -465,7 +465,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
     @ValidationTestFor(
         ValidationProblemId.VALUE_NOT_SET
     )
-    def "null on nested bean is validated #descriptionSuffix"() {
+    def "null on nested bean is validated #description"() {
         buildFile << """
             class TaskWithAbsentNestedInput extends DefaultTask {
                 @Nested
@@ -494,12 +494,12 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         failureDescriptionContains(missingValueMessage { type('TaskWithAbsentNestedInput').property('nested') })
 
         where:
-        property                                                        | descriptionSuffix
-        "Object nested"                                                 | "for plain Java property"
-        "Provider<Object> nested = project.providers.provider { null }" | "for Provider property"
+        description               | property
+        "for plain Java property" | "Object nested"
+        "for Provider property"   | "Provider<Object> nested = project.providers.provider { null }"
     }
 
-    def "null on optional nested bean is allowed #descriptionSuffix"() {
+    def "null on optional nested bean is allowed #description"() {
         buildFile << """
             class TaskWithAbsentNestedInput extends DefaultTask {
                 @Nested
@@ -527,9 +527,9 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         succeeds "myTask"
 
         where:
-        property                                                        | descriptionSuffix
-        "Object nested"                                                 | "for plain Java property"
-        "Provider<Object> nested = project.providers.provider { null }" | "for Provider property"
+        description               | property
+        "for plain Java property" | "Object nested"
+        "for Provider property"   | "Provider<Object> nested = project.providers.provider { null }"
     }
 
     def "changes to nested bean implementation are detected"() {
@@ -603,7 +603,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
         expect:
         fails 'myTask'
-        failure.assertHasCause('Null or absent is not allowed for the nested property \'beans.$1\', since it\'s an element of a collection')
+        failure.assertHasCause('Null value is not allowed for a nested collection property \'beans.$1\'')
 
         where:
         description | elementValue

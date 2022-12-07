@@ -144,7 +144,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         ]
     }
 
-    def "instance walker should throw exception when nested cycles for '#propertyWithCycle' property"() {
+    def "instance walker should throw exception when detecting nested cycles for '#propertyWithCycle' property"() {
         given:
         def instance = new MyCycleTask()
         instance[propertyWithCycle] = propertyValue
@@ -200,7 +200,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         Map<String, Throwable> errors = [:]
         def visitor = new TestInstanceMetadataVisitor() {
             @Override
-            void visitUnpackNestedError(String qualifiedName, Exception e) {
+            void visitNestedUnpackingError(String qualifiedName, Exception e) {
                 errors[qualifiedName] = e
             }
         }
@@ -238,11 +238,11 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
 
         where:
         descriptionSuffix         | value                                                                   | exceptionType         | exceptionMessage
-        "map values"              | ["key1": "Hello", "key2": null]                                         | IllegalStateException | "Null or absent is not allowed for the nested property 'nested.key2', since it's an element of a collection"
+        "map values"              | ["key1": "Hello", "key2": null]                                         | IllegalStateException | "Null value is not allowed for a nested collection property 'nested.key2'"
         "map keys"                | ["key1": "Hello", (null): "Hello"]                                      | NullPointerException  | "Null keys in nested map 'nested' are not allowed."
-        "iterable values"         | ["hello", null]                                                         | IllegalStateException | "Null or absent is not allowed for the nested property 'nested.\$1', since it's an element of a collection"
-        "map provider value"      | ["key1": "Hello", "key2": TestUtil.providerFactory().provider { null }] | IllegalStateException | "Null or absent is not allowed for the nested property 'nested.key2', since it's an element of a collection"
-        "iterable provider value" | ["hello", TestUtil.providerFactory().provider { null }]                 | IllegalStateException | "Null or absent is not allowed for the nested property 'nested.\$1', since it's an element of a collection"
+        "iterable values"         | ["hello", null]                                                         | IllegalStateException | "Null value is not allowed for a nested collection property 'nested.\$1'"
+        "map provider value"      | ["key1": "Hello", "key2": TestUtil.providerFactory().provider { null }] | IllegalStateException | "Null value is not allowed for a nested collection property 'nested.key2'"
+        "iterable provider value" | ["hello", TestUtil.providerFactory().provider { null }]                 | IllegalStateException | "Null value is not allowed for a nested collection property 'nested.\$1'"
     }
 
     def "instance walker should allow visiting missing nested values for #propertyType"() {
@@ -287,7 +287,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         }
 
         @Override
-        void visitUnpackNestedError(String qualifiedName, Exception e) {
+        void visitNestedUnpackingError(String qualifiedName, Exception e) {
         }
     }
 
