@@ -15,9 +15,6 @@
  */
 package org.gradle.util;
 
-import groovy.lang.Closure;
-import org.gradle.util.internal.AlwaysTrue;
-import org.junit.Test;
 import org.spockframework.runtime.extension.ExtensionAnnotation;
 
 import java.lang.annotation.ElementType;
