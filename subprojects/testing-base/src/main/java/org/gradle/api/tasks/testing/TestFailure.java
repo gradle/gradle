@@ -27,7 +27,16 @@ import java.util.List;
  * @since 7.6
  */
 @Incubating
-public abstract class TestFailure {
+public abstract class TestFailure extends Throwable {
+
+    /**
+     * Constructor storing the raw failure.
+     *
+     * @since 7.6.1
+     */
+    protected TestFailure(Throwable rawFailure) {
+        super(rawFailure);
+    }
 
     /**
      * Returns the list of causes.

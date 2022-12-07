@@ -98,14 +98,18 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
     }
 
     @Override
-    public final void failure(Object testId, TestFailure testFailure) {
+    public final void failure(Object testId, Throwable testFailure) {
         TestState testState = executing.get(testId);
         if (testState == null) {
             throw new IllegalArgumentException(String.format(
                     "Received a failure event for test with unknown id '%s'. Registered test ids: '%s'",
                     testId, executing.keySet()));
         }
-        testState.failures.add(testFailure);
+        if (testFailure instanceof TestFailure) {
+            testState.failures.add((TestFailure) testFailure);
+        } else {
+            testState.failures.add(TestFailure.fromTestFrameworkFailure(testFailure));
+        }
     }
 
     @Override

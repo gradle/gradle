@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
@@ -47,5 +46,5 @@ public interface TestResultProcessor {
      * Notifies this processor that a failure has occurred in the given test.
      */
     @UsedByScanPlugin("test-distribution")
-    void failure(Object testId, TestFailure result);
+    void failure(Object testId, Throwable result);
 }

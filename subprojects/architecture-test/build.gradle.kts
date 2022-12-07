@@ -17,6 +17,7 @@ dependencies {
     testImplementation(project(":model-core"))
     testImplementation(project(":file-temp"))
     testImplementation(project(":core"))
+    testImplementation(project(":testing-base"))
     testImplementation(libs.inject)
 
     testImplementation(libs.archunitJunit5)

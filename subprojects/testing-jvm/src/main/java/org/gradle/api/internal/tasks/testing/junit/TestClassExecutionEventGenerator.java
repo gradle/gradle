@@ -95,7 +95,7 @@ public class TestClassExecutionEventGenerator implements TestResultProcessor, Te
     }
 
     @Override
-    public void failure(Object testId, TestFailure result) {
+    public void failure(Object testId, Throwable result) {
         resultProcessor.failure(testId, result);
     }
 }

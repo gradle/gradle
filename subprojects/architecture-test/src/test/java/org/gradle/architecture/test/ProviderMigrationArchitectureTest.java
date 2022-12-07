@@ -38,6 +38,7 @@ import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.resources.TextResource;
+import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.internal.reflect.PropertyAccessorType;
 
 import javax.inject.Inject;
@@ -77,6 +78,7 @@ public class ProviderMigrationArchitectureTest {
         .and(not(declaredIn(Configuration.class)))
         .and(not(declaredIn(FileCollection.class)))
         .and(not(declaredIn(ConfigurableFileCollection.class)))
+        .and(not(declaredIn(TestFailure.class))) // extends Throwable which has setter
         .and(are(declaredIn(class_with_any_mutable_property)))
         .and(are(getters))
         .and(not(annotatedWith(Inject.class)))

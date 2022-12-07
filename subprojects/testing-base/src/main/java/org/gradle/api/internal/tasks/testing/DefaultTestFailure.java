@@ -27,20 +27,19 @@ import java.util.List;
 
 public class DefaultTestFailure extends TestFailure {
 
-    private final Throwable rawFailure;
     private final TestFailureDetails details;
 
     private final List<TestFailure> causes;
 
     public DefaultTestFailure(Throwable rawFailure, TestFailureDetails details, List<TestFailure> causes) {
-        this.rawFailure = rawFailure;
+        super(rawFailure);
         this.details = details;
         this.causes = causes;
     }
 
     @Override
     public Throwable getRawFailure() {
-        return rawFailure;
+        return getCause();
     }
 
     @Override
@@ -64,7 +63,7 @@ public class DefaultTestFailure extends TestFailure {
 
         DefaultTestFailure that = (DefaultTestFailure) o;
 
-        if (rawFailure != null ? !rawFailure.equals(that.rawFailure) : that.rawFailure != null) {
+        if (getCause() != null ? !getCause().equals(that.getCause()) : that.getCause() != null) {
             return false;
         }
         return details != null ? details.equals(that.details) : that.details == null;
@@ -72,7 +71,7 @@ public class DefaultTestFailure extends TestFailure {
 
     @Override
     public int hashCode() {
-        int result = rawFailure != null ? rawFailure.hashCode() : 0;
+        int result = getCause() != null ? getCause().hashCode() : 0;
         result = 31 * result + (details != null ? details.hashCode() : 0);
         return result;
     }
