@@ -6,7 +6,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "3.2.5"
+version = "3.2.7"
 
 base.archivesName.set("plugins")
 
@@ -28,6 +28,8 @@ dependencies {
     implementation(libs.futureKotlin("stdlib-jdk8"))
     implementation(libs.futureKotlin("gradle-plugin"))
     implementation(libs.futureKotlin("sam-with-receiver"))
+
+    testImplementation(projects.logging)
 
     integTestImplementation(project(":base-services"))
     integTestImplementation(project(":logging"))

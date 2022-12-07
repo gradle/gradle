@@ -110,20 +110,13 @@ For more information about warning modes, see [JVM test suite](userguide/jvm_tes
 
 Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assist, refactoring, documentation, and more.
 
-#### Updated the Kotlin DSL to Kotlin API Level 1.7
+#### Updated the Kotlin DSL to Kotlin API Level 1.5
 
 Previously, the Kotlin DSL used Kotlin API level 1.4.
-Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.7.
+Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.5.
 This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0.
 
-Highlights include:
-
-- exhaustive `when` statements
-- improved type inference
-- stable inline classes
-- improved sealed types hierarchies
-
-For information about breaking and nonbreaking changes in this upgrade, see the [upgrading guide](userguide/upgrading_version_7.html#kotlin_language_1_7).
+For information about breaking and nonbreaking changes in this upgrade, see the [upgrading guide](userguide/upgrading_version_7.html#kotlin_language_1_5).
 
 ##### Enhanced script compilation to use the Gradle JVM as Kotlin JVM Target
 
