@@ -70,10 +70,11 @@ fun BuildFeatures.triggerOnPullRequestPush() {
     pullRequests {
         vcsRootExtId = VersionedSettingsBranch.fromDslContext().vcsRootId()
         provider = github {
-//            filterTargetBranch = VersionedSettingsBranch.fromDslContext().branchName
-            filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER_OR_COLLABORATOR
+            filterSourceBranch = "+:refs/pull/*"
+            filterTargetBranch = VersionedSettingsBranch.fromDslContext().branchName
+//            filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER_OR_COLLABORATOR
             authType = token {
-                token = "%github.bot-teamcity.token%"
+                token = "%github.bot-gradle.token%"
             }
         }
     }
