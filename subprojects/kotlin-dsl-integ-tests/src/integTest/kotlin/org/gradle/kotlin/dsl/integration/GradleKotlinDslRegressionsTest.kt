@@ -57,6 +57,8 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
     @ToBeImplemented
     fun `kotlin ir backend issue kt-55068`() {
 
+        assumeNonEmbeddedGradleExecuter()
+
         withDefaultSettingsIn("buildSrc")
         withBuildScriptIn("buildSrc", """
             plugins { `kotlin-dsl` }
@@ -88,6 +90,8 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
     @Issue("https://youtrack.jetbrains.com/issue/KT-55065")
     @ToBeImplemented
     fun `kotlin ir backend issue kt-55065`() {
+
+        assumeNonEmbeddedGradleExecuter()
 
         withDefaultSettingsIn("buildSrc")
         withBuildScriptIn("buildSrc", """
