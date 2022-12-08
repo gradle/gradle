@@ -155,6 +155,11 @@ Use the `reportsDirectory` property instead.
 The deprecated `legacyShowSinglePathToDependnecy` property of the `DependencyInsightReportTask` task type has been removed.
 Use the `showSinglePathToDependency` property instead.
 
+==== Report API Cleanup
+
+The deprecated `destination`, and `enabled` properties of the `Report` type have been removed.
+Use the `outputLocation` and `required` properties instead.
+
 
 === Potential breaking changes
 
