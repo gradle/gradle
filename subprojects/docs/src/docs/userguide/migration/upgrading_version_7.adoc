@@ -214,6 +214,11 @@ Use the `destinationDirectory` property instead.
 The deprecated `getVariant` method of the `ResolvedComponentResult` interface has been removed.
 Use the `getVariants` method instead.
 
+==== Code quality plugins API Cleanup
+
+The deprecated `antBuilder` property of the `Checkstyle`, `CodeNarc` and `Pmd` task types has been removed.
+Use the `Project` type's `ant` property instead.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
