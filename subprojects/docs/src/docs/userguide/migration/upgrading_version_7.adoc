@@ -203,6 +203,12 @@ The deprecated `testSourceDirs` and `testResourceDirs` properties of the `IdeaMo
 This affects the `org.gradle.plugins.ide.idea.model.IdeaModule` type, not the `org.gradle.tooling.model.idea.IdeaModule` type.
 Use the `testSources` and `testResources` properties instead.
 
+==== AbstractCompile API Deprecations
+
+The previously deprecated `destinationDir` property of the `AbstractCompile` remains deprecated, and will now emit a deprecation warning upon use.
+It is now scheduled for removal in Gradle 9.0.
+Use the `destinationDirectory` property instead.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
