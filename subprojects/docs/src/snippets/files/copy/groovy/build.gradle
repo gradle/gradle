@@ -14,13 +14,18 @@ tasks.register('copyReport2', Copy) {
 }
 // end::copy-single-file-example-without-file-method[]
 
-tasks.register('myReportTask') {
-    ext.outputFile = file("$buildDir/reports/my-report.pdf")
+abstract class MyReportTask extends DefaultTask {
+    @OutputFile
+    abstract RegularFileProperty getOutputFile()
 
-    outputs.files outputFile
-    doLast {
-        outputFile.touch()
+    @TaskAction
+    def createFile() {
+        outputFile.get().asFile.text = "Report contents"
     }
+}
+
+tasks.register('myReportTask', MyReportTask) {
+    outputFile = file("$buildDir/reports/my-report.pdf")
 }
 
 tasks.register('archiveReportsTask') {
@@ -148,6 +153,12 @@ tasks.register('anotherCopyTask', Copy) {
 }
 // end::copy-task-2[]
 
+tasks.named('anotherCopyTask') {
+    // The task uses many sources that produce overlapping outputs.
+    // This isn't a part of any snippet, but is necessary to make the build work.
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 def getDestDir() {
     file('some-dir')
 }
@@ -173,7 +184,7 @@ tasks.register('copyMethodWithExplicitDependencies') {
         .withPathSensitivity(PathSensitivity.RELATIVE)
     outputs.dir('some-dir') // up-to-date check for outputs
         .withPropertyName("outputDir")
-    doLast{
+    doLast {
         copy {
             // Copy the output of copyTask
             from copyTask
@@ -189,13 +200,13 @@ configurations { runtime }
 tasks.register('rename', Copy) {
     from 'src/main/webapp'
     into layout.buildDirectory.dir('explodedWar')
+    // Use a regular expression to map the file name
+    rename '(.+)-staging(.+)', '$1$2'
+    rename(/(.+)-staging(.+)/, '$1$2')
     // Use a closure to convert all file names to upper case
     rename { String fileName ->
         fileName.toUpperCase()
     }
-    // Use a regular expression to map the file name
-    rename '(.+)-staging-(.+)', '$1$2'
-    rename(/(.+)-staging-(.+)/, '$1$2')
 }
 // end::rename-files[]
 
@@ -208,7 +219,6 @@ tasks.register('filter', Copy) {
     into layout.buildDirectory.dir('explodedWar')
     // Substitute property tokens in files
     expand(copyright: '2009', version: '2.3.1')
-    expand(project.properties)
     // Use some of the filters provided by Ant
     filter(FixCrLfFilter)
     filter(ReplaceTokens, tokens: [copyright: '2009', version: '2.3.1'])

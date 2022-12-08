@@ -37,7 +37,7 @@ public class InstantiatingBuildLoader implements BuildLoader {
 
     private void createProjects(GradleInternal gradle, DefaultProjectDescriptor rootProjectDescriptor) {
         ClassLoaderScope baseProjectClassLoaderScope = gradle.baseProjectClassLoaderScope();
-        ClassLoaderScope rootProjectClassLoaderScope = baseProjectClassLoaderScope.createChild("root-project[" + gradle.getIdentityPath() + "]");
+        ClassLoaderScope rootProjectClassLoaderScope = baseProjectClassLoaderScope.createChild("root-project[" + gradle.getIdentityPath() + "]", null);
 
         ProjectState projectState = gradle.getOwner().getProjects().getProject(rootProjectDescriptor.path());
         projectState.createMutableModel(rootProjectClassLoaderScope, baseProjectClassLoaderScope);
@@ -49,7 +49,7 @@ public class InstantiatingBuildLoader implements BuildLoader {
 
     private void createChildProjectsRecursively(BuildState owner, DefaultProjectDescriptor parentProjectDescriptor, ClassLoaderScope parentProjectClassLoaderScope, ClassLoaderScope baseProjectClassLoaderScope) {
         for (DefaultProjectDescriptor childProjectDescriptor : parentProjectDescriptor.children()) {
-            ClassLoaderScope childProjectClassLoaderScope = parentProjectClassLoaderScope.createChild("project-" + childProjectDescriptor.getName());
+            ClassLoaderScope childProjectClassLoaderScope = parentProjectClassLoaderScope.createChild("project-" + childProjectDescriptor.getName(), null);
             ProjectState projectState = owner.getProjects().getProject(childProjectDescriptor.path());
             projectState.createMutableModel(childProjectClassLoaderScope, baseProjectClassLoaderScope);
             createChildProjectsRecursively(owner, childProjectDescriptor, childProjectClassLoaderScope, baseProjectClassLoaderScope);

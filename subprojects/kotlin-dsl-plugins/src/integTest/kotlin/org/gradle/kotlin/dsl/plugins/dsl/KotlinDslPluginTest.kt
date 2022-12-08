@@ -1,6 +1,5 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.integtests.fixtures.jvm.JavaClassUtil
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
@@ -284,47 +283,6 @@ class KotlinDslPluginTest : AbstractPluginTest() {
                 output,
                 not(containsString(samConversionForKotlinFunctions))
             )
-        }
-    }
-
-    @Test
-    fun `can use a different jvmTarget to compile kotlin-dsl plugins`() {
-
-        assumeJava11()
-
-        withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
-
-        withDefaultSettingsIn("buildSrc")
-        withKotlinDslPluginIn("buildSrc").appendText(
-            """
-                kotlinDslPluginOptions {
-                    jvmTarget.set("11")
-                }
-
-                dependencies {
-                    implementation(files("utils.jar"))
-                }
-            """.trimIndent()
-        )
-
-        withFile(
-            "buildSrc/src/main/kotlin/some.gradle.kts",
-            """
-                import org.gradle.integtests.fixtures.jvm.JavaClassUtil
-
-                println("Java Class Major Version = ${'$'}{JavaClassUtil.getClassMajorVersion(this::class.java)}")
-            """.trimIndent()
-        )
-        withBuildScript(
-            """
-            plugins {
-                id("some")
-            }
-            """.trimIndent()
-        )
-
-        build("help").apply {
-            assertThat(output, containsString("Java Class Major Version = 55"))
         }
     }
 

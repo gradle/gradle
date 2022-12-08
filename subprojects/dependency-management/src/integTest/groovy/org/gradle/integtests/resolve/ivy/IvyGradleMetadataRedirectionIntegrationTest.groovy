@@ -86,7 +86,7 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:main:1.0') {
-                    variant('api', ['org.gradle.status': 'integration', 'org.gradle.usage': 'java-api', 'org.gradle.compile-view':'java-internal', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('api', ['org.gradle.status': 'integration', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     edge('org:foo:{prefer 1.9}', 'org:foo:1.9')
                 }
             }

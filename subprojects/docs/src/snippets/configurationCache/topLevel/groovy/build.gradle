@@ -1,0 +1,29 @@
+// tag::not-supported[]
+// tag::workaround[]
+def dir = file('data')
+
+// end::workaround[]
+def listFiles(File dir) {
+    dir.listFiles({ file -> file.isFile() } as FileFilter).name.sort()
+}
+
+tasks.register('listFiles') {
+    doLast {
+        println listFiles(dir)
+    }
+}
+// end::not-supported[]
+
+// tag::workaround[]
+class Files {
+    static def listFiles(File dir) {
+        dir.listFiles({ file -> file.isFile() } as FileFilter).name.sort()
+    }
+}
+
+tasks.register('listFilesFixed') {
+    doLast {
+        println Files.listFiles(dir)
+    }
+}
+// end::workaround[]

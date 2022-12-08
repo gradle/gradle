@@ -107,7 +107,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     def "cleans up when cleanup action is required with access #accessType"() {
         def access = newAccess(accessType)
         when:
-        access.close()
+        access.cleanup()
 
         then:
         _ * lock.state
@@ -117,6 +117,59 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
 
         where:
         accessType << [Exclusive, Shared, OnDemand, None]
+    }
+
+    def "cleans up on close when clean up has not already occurred"() {
+        def access = newAccess(OnDemand)
+
+        when:
+        access.open()
+        access.close()
+
+        then:
+        1 * cleanupAction.requiresCleanup() >> true
+        1 * cleanupAction.cleanup()
+        0 * _
+    }
+
+    def "does not clean up on close when clean up has already occurred"() {
+        def access = newAccess(OnDemand)
+
+        when:
+        access.open()
+        access.cleanup()
+
+        then:
+        1 * cleanupAction.requiresCleanup() >> true
+        1 * cleanupAction.cleanup()
+        0 * _
+
+        when:
+        access.close()
+
+        then:
+        1 * cleanupAction.requiresCleanup() >> true
+        0 * _
+    }
+
+    def "can explicitly clean up multiple times"() {
+        def access = newAccess(OnDemand)
+
+        when:
+        access.cleanup()
+
+        then:
+        1 * cleanupAction.requiresCleanup() >> true
+        1 * cleanupAction.cleanup()
+        0 * _
+
+        when:
+        access.cleanup()
+
+        then:
+        1 * cleanupAction.requiresCleanup() >> true
+        1 * cleanupAction.cleanup()
+        0 * _
     }
 
     def "initializes cache on open when lock mode is shared by upgrading lock"() {
@@ -626,7 +679,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.open()
 
         when:
-        access.close()
+        access.cleanup()
 
         then:
         1 * cleanupAction.requiresCleanup() >> true

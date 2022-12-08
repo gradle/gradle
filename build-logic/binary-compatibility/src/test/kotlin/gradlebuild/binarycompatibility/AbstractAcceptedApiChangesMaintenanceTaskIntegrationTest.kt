@@ -18,6 +18,7 @@ package gradlebuild.binarycompatibility
 
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.util.internal.TextUtil
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.io.TempDir
@@ -45,13 +46,13 @@ abstract class AbstractAcceptedApiChangesMaintenanceTaskIntegrationTest {
                     val verifyAcceptedApiChangesOrdering = tasks.register<gradlebuild.binarycompatibility.AlphabeticalAcceptedApiChangesTask>("verifyAcceptedApiChangesOrdering") {
                         group = "verification"
                         description = "Ensures the accepted api changes file is kept alphabetically ordered to make merging changes to it easier"
-                        apiChangesFile.set(layout.projectDirectory.file("${acceptedApiChangesFile.absolutePath}"))
+                        apiChangesFile.set(layout.projectDirectory.file("${ TextUtil.normaliseFileSeparators(acceptedApiChangesFile.absolutePath) }"))
                     }
 
                     val sortAcceptedApiChanges = tasks.register<gradlebuild.binarycompatibility.SortAcceptedApiChangesTask>("sortAcceptedApiChanges") {
                         group = "verification"
                         description = "Sort the accepted api changes file alphabetically"
-                        apiChangesFile.set(layout.projectDirectory.file("${acceptedApiChangesFile.absolutePath}"))
+                        apiChangesFile.set(layout.projectDirectory.file("${ TextUtil.normaliseFileSeparators(acceptedApiChangesFile.absolutePath) }"))
                     }
                 """.trimIndent()
             )

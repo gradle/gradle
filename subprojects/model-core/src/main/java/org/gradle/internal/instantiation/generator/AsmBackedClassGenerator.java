@@ -944,6 +944,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 return;
             }
 
+            // DefaultProject has its own implementation of GroovyObject's methods, and we want to keep those implementations.
+            // TODO: introduce a better way to communicate this for classes that don't need generated dynamic-object methods?
+            if (type.getName().equals("org.gradle.api.internal.project.DefaultProject")) {
+                return;
+            }
+
             // GENERATE public Object getProperty(String name) { return getAsDynamicObject().getProperty(name); }
             addGetter("getProperty", OBJECT_TYPE, RETURN_OBJECT_FROM_STRING, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 // GENERATE getAsDynamicObject().getProperty(name);

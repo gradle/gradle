@@ -30,8 +30,8 @@ Compile tasks may use `javac` as their compiler, test and exec tasks may use the
 A build can globally define what toolchain it targets by stating the Java Language version it needs and optionally the vendor:
 
 ====
-include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=toolchain]"]
 include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin/",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=toolchain]"]
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=toolchain]"]
 ====
 
 Executing the build (e.g. using `gradle check`) will now handle several things for you and others running your build:
@@ -39,7 +39,7 @@ Executing the build (e.g. using `gradle check`) will now handle several things f
 1. Setup all compile, test and javadoc tasks to use the defined toolchain which may be different than the one Gradle itself uses
 2. Gradle detects <<#sec:auto_detection,locally installed JVMs>>
 3. Gradle chooses a JRE/JDK matching the requirements of the build (in this case a JVM supporting Java 11)
-4. If no matching JVM is found, it will automatically download a matching JDK from https://adoptopenjdk.net/[AdoptOpenJDK]
+4. If no matching JVM is found, it will automatically download a matching JDK based on the <<#sub:download_repositories,toolchain download repositories>> configured.
 
 [NOTE]
 ====
@@ -56,18 +56,19 @@ link:{javadocPath}/org/gradle/jvm/toolchain/JvmVendorSpec.html[`JvmVendorSpec`] 
 The advantage is that Gradle can handle any inconsistencies across JDK versions in how exactly the JVM encodes the vendor information.
 
 ====
-include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-known-vendor]"]
 include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-known-vendor]"]
+include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-known-vendor]"]
 ====
 
 If the vendor you want to target is not a known vendor, you can still restrict the toolchain to those matching the `java.vendor` system property of the available toolchains.
 
-The following snippet uses filtering to include a subset of available toolchains. This example only includes toolchains whose `java.vendor` property contains the given match string.
+The following snippet uses filtering to include a subset of available toolchains.
+This example only includes toolchains whose `java.vendor` property contains the given match string.
 The matching is done in a case-insensitive manner.
 
 ====
-include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-vendor]"]
 include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-matching-vendor]"]
+include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-vendor]"]
 ====
 
 === Selecting toolchains by their virtual machine implementation
@@ -84,8 +85,8 @@ For example, to use an https://www.eclipse.org/openj9/[IBM Semeru] JVM, distribu
 you can specify the filter as shown in the example below.
 
 ====
-include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-implementation]"]
 include::sample[dir="snippets/java/toolchain-filters/kotlin/",files="build.gradle.kts[tags=toolchain-matching-implementation]"]
+include::sample[dir="snippets/java/toolchain-filters/groovy/",files="build.gradle[tags=toolchain-matching-implementation]"]
 ====
 
 [NOTE]
@@ -121,15 +122,15 @@ In the example below, we configure all java compilation tasks to use JDK8.
 Additionally, we introduce a new `Test` task that is going to run our unit tests but using a JDK 14.
 
 ====
-include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="list/build.gradle[tags=customToolchain]"]
 include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin",files="list/build.gradle.kts[tags=customToolchain]"]
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="list/build.gradle[tags=customToolchain]"]
 ====
 
 In addition, in the `application` subproject, we add another Java execution task to run our application with JDK 14.
 
 ====
-include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="application/build.gradle[tags=customExec]"]
 include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin",files="application/build.gradle.kts[tags=customExec]"]
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="application/build.gradle[tags=customExec]"]
 ====
 
 Depending on the task, a JRE might be enough while for other tasks (e.g. compilation), a JDK is required.
@@ -152,22 +153,22 @@ While you will not be able to wire a toolchain tool directly, they all have meta
 For example, you can configure the `java` executable for a task as follows:
 
 ====
-include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-executable]"]
 include::sample[dir="snippets/java/toolchain-config-task/kotlin/",files="build.gradle.kts[tags=java-executable]"]
+include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-executable]"]
 ====
 
 Another example, you can configure the _Java Home_ for a task as follows:
 
 ====
-include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-home]"]
 include::sample[dir="snippets/java/toolchain-config-task/kotlin/",files="build.gradle.kts[tags=java-home]"]
+include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-home]"]
 ====
 
 Yet another example, you can configure the Java _compiler_ executable for a task as follows:
 
 ====
-include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-compiler]"]
 include::sample[dir="snippets/java/toolchain-config-task/kotlin/",files="build.gradle.kts[tags=java-compiler]"]
+include::sample[dir="snippets/java/toolchain-config-task/groovy/",files="build.gradle[tags=java-compiler]"]
 ====
 
 [WARNING]
@@ -203,10 +204,8 @@ In order to disable auto-detection, you can use the `org.gradle.java.installatio
 [[sec:provisioning]]
 == Auto-Provisioning
 
-If Gradle can't find a locally available toolchain that matches the requirements of the build, it can automatically download one.
-By default, Gradle downloads an Adoptium or AdoptOpenJDK that matches the current operating system and architecture.
-Gradle installs these JDKs in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>.
-For further details see the <<#sub:download_repositories,Toolchain Download Repositories>> section below.
+If Gradle can't find a locally available toolchain that matches the requirements of the build, it can automatically download one (as long as a toolchain download repository has been configured; for detail, see <<#sub:download_repositories,relevant section>>).
+Gradle installs the downloaded JDKs in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>.
 
 [NOTE]
 ====
@@ -214,65 +213,38 @@ Gradle only downloads JDK versions for GA releases.
 There is no support for downloading early access versions.
 ====
 
-Once installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>, a provisioned JDK becomes one of the JDKs visible to <<#sec:auto_detection,auto-detection>>
-and can be used by any subsequent builds, just like any other JDK installed on the system.
+Once installed in the <<directory_layout.adoc#dir:gradle_user_home,Gradle User Home directory>>, a provisioned JDK becomes one of the JDKs visible to <<#sec:auto_detection,auto-detection>> and can be used by any subsequent builds, just like any other JDK installed on the system.
+
 Since auto-provisioning only kicks in when auto-detection fails to find a matching JDK, auto-provisioning can only download new JDKs and is in no way involved in updating any of the already installed ones.
 None of the auto-provisioned JDKs will ever be revisited and automatically updated by auto-provisioning, even if there is a newer minor version available for them.
-
-[[sub:adoptium_and_adopt_open_jdk]]
-=== Default toolchain resolvers
-
-Gradle uses the public https://api.adoptium.net/[Adoptium] and https://api.adoptopenjdk.net/[AdoptOpenJDK] APIs
-by default to determine and download a matching JDK.
-Gradle first attempts to download a JDK from Adoptium. If Adoptium does not provide a matching JDK, Gradle attempts to download from AdoptOpenJDK.
-
-[WARNING]
-====
-Due to changes in AdoptOpenJDK and the migration to https://adoptium.net/[Eclipse Adoptium], the endpoint now serves JDKs from https://adoptium.net/[Eclipse Adoptium] or https://developer.ibm.com/languages/java/semeru-runtimes/[IBM Semeru] and no longer builds from AdoptOpenJDK.
-Using `JvmVendorSpec.ADOPTOPENJDK` and having it resolved through auto-provisioning results in a deprecation warning.
-====
-
-In case you want to use another server that is compatible with v3 of the AdoptOpenJDK API, you can point Gradle to use a different host.
-For that you use the Gradle property as in the example below:
-
-----
-org.gradle.jvm.toolchain.install.adoptopenjdk.baseUri=https://api.company.net/
-----
-
-You can also override the Adoptium API host with `org.gradle.jvm.toolchain.install.adoptium.baseUri`.
-
-[WARNING]
-====
-Only secure protocols like `https` are accepted.
-This is required to make sure no one can tamper with the download in flight.
-====
 
 [[sub:download_repositories]]
 === Toolchain Download Repositories
 
-Starting in Gradle 7.6, you can configure arbitrary toolchain repositories.
-For details on writing plugins for toolchain provisioning, consult the <<toolchain_plugins.adoc#toolchain_plugins,Toolchain Resolver Plugins>> page.
+Toolchain download repository definitions are added to a build by applying specific settings plugins.
+For details on writing such plugins, consult the <<toolchain_plugins.adoc#toolchain_plugins,Toolchain Resolver Plugins>> page.
 
-[IMPORTANT]
-====
-When you configure a toolchain repository, Gradle no longer uses the built-in default Adoptium and OpenJDK toolchain respositories.
-====
+One example of a toolchain resolver plugin is the https://github.com/gradle/disco-toolchains[Disco Toolchains Plugin], based on the https://github.com/foojayio/discoapi[foojay Disco API].
 
-Consider two toolchain resolver plugins:
+Beyond applying toolchain resolver plugins, the toolchain download resolvers provided by them also need to be configured.
+Let's illustrate with an example.
+Consider two toolchain resolver plugins applied by the build:
 
-* One contains a resolver named `AzulResolver`, which downloads toolchains from Azul.
-* The other contains a resolver named `AdoptiumResolver`, which duplicates the built-in AdoptiumJDK toolchain repository by downloading toolchains from AdoptiumJDK.
+* One is the Disco plugin mentioned above, which downloads toolchains via the `DiscoToolchainResolver` it provides.
+* The other contains a resolver named `AdoptiumResolver`, which duplicates the legacy toolchain resolver from past Gradle versions.
 
 The following example uses these toolchain resolvers in a build via the `toolchainManagement` block in the settings file:
 
 ====
-include::sample[dir="snippets/java/toolchain-management/groovy/",files="settings.gradle[tags=toolchain-management]"]
 include::sample[dir="snippets/java/toolchain-management/kotlin/",files="settings.gradle.kts[tags=toolchain-management]"]
+include::sample[dir="snippets/java/toolchain-management/groovy/",files="settings.gradle[tags=toolchain-management]"]
 ====
 <1> In the `toolchainManagement` block, the `jvm` block contains configuration for Java toolchains.
-<2> The `javaRepositories` block defines named Java toolchain repository configurations. Use the `resolverClass` property to link these configurations to plugins.
-<3> You can configure toolchain repositories with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options>> used for dependency management.
-<4> Toolchain declaration order matters. Gradle downloads from the first repository that provides a match, starting with the first repository in the list.
+<2> The `javaRepositories` block defines named Java toolchain repository configurations.
+Use the `resolverClass` property to link these configurations to plugins.
+<3> Toolchain declaration order matters.
+Gradle downloads from the first repository that provides a match, starting with the first repository in the list.
+<4> You can configure toolchain repositories with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options>> used for dependency management.
 
 [WARNING]
 ====
@@ -398,7 +370,8 @@ between installations of the same type, from the same vendor and with the same v
 
 All these rules are applied as multilevel sorting criteria, *in the order shown*.
 Let's illustrate with an example.
-A toolchain specification requests Java version 17. Gradle detects the following matching installations:
+A toolchain specification requests Java version 17.
+Gradle detects the following matching installations:
 
 * Oracle JRE v17.0.0
 * Oracle JDK v17.0.1
@@ -406,7 +379,8 @@ A toolchain specification requests Java version 17. Gradle detects the following
 * Microsoft JRE 17.0.1
 * Microsoft JDK 17.0.1
 
-Assume that Gradle runs on a major Java version other than 17. Otherwise, that installation would have priority.
+Assume that Gradle runs on a major Java version other than 17.
+Otherwise, that installation would have priority.
 
 When we apply the above rules to sort this set we will end up with following ordering:
 
@@ -431,8 +405,8 @@ By injecting the `JavaToolchainService` in the plugin or task, it is also possib
 The example below showcases how to use the default toolchain as convention while allowing users to individually configure the toolchain per task.
 
 ====
-include::sample[dir="snippets/java/toolchain-task/groovy/",files="build.gradle"]
 include::sample[dir="snippets/java/toolchain-task/kotlin/",files="build.gradle.kts"]
+include::sample[dir="snippets/java/toolchain-task/groovy/",files="build.gradle"]
 ====
 
 [NOTE]

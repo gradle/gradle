@@ -73,7 +73,7 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     Path getIdentityPath();
 
     /**
-     * Returns a path for this project within its containing build. These are not unique within a build tree.
+     * Returns a path for this project within its containing build. These are not unique within a build tree. Use instead {@link #getIdentityPath()} to uniquely this project.
      */
     Path getProjectPath();
 
@@ -86,6 +86,11 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
      * Returns the identifier of the default component produced by this project.
      */
     ProjectComponentIdentifier getComponentIdentifier();
+
+    /**
+     * Is the mutable model for this project available?
+     */
+    boolean isCreated();
 
     /**
      * Creates the mutable model for this project.

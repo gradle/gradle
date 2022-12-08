@@ -54,7 +54,7 @@ fun beginClass(
     interfaces: List<InternalName>? = null
 ): ClassWriter = ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES).apply {
     visit(
-        Opcodes.V1_8,
+        GradleJvmVersion.minimalAsmClassVersion,
         modifiers,
         name.value,
         null,
@@ -149,6 +149,12 @@ fun MethodVisitor.loadByteArray(byteArray: ByteArray) {
 
 
 internal
+fun MethodVisitor.ICONST_0() {
+    visitInsn(Opcodes.ICONST_0)
+}
+
+
+internal
 fun MethodVisitor.NEW(type: InternalName) {
     visitTypeInsn(Opcodes.NEW, type)
 }
@@ -217,6 +223,12 @@ fun MethodVisitor.BASTORE() {
 internal
 fun MethodVisitor.DUP() {
     visitInsn(Opcodes.DUP)
+}
+
+
+internal
+fun MethodVisitor.POP() {
+    visitInsn(Opcodes.POP)
 }
 
 
