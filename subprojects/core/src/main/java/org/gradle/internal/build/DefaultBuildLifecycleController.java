@@ -117,7 +117,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
     }
 
     @Override
-    public void resetState() {
+    public void resetLifecycle() {
         state.restart(State.Configure, () -> gradle.resetState());
     }
 
