@@ -420,6 +420,13 @@ In Gradle 8.0, `java-base` handles this configuration.
 No changes are required for projects that already apply the
 `java-base` plugin directly or indirectly through the `java`, `application`, `java-library`, or other JVM ecosystem plugins.
 
+==== Upload Task should not be used
+
+The `Upload` task remains deprecated and is now scheduled for removal in Gradle 9.0.
+Although this type remains, it is no longer functional and will throw an exception upon running.
+It is preserved solely to avoid breaking plugins.
+Use the tasks in the `maven-publish` or `ivy-publish` plugins instead.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
