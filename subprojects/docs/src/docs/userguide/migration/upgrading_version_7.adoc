@@ -203,6 +203,11 @@ Instead, obtain a `WorkQueue` via the `noIsolation()`. `classLoaderIsolation()`,
 The deprecated `with(ComponentSelector)` method of the `DependencySubstitution` type's inner `Substitution` type's has been removed.
 Use the `using(ComponentSelector)` method instead.
 
+==== AbstractArchiveTask API Cleanup
+
+The deprecated `appendix`, `archiveName`, `archivePath`, `baseName`, `classifier`, `desintationDir`, `extension` and `version` properties of the `AbstractArchiveTask` task type have been removed.
+Use the `archiveAppendix`, `archiveFileName` , `archiveFile`, `archiveBaseName`, `archiveClassifier`, `destinationDirectory`, `archiveExtension` and `archiveVersion` properties instead.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
