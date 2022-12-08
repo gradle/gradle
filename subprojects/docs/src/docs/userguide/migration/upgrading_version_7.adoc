@@ -140,6 +140,11 @@ Use the `access` property along with the `GroovydocAccess#PRIVATE` constant inst
 The `mainClassName` property of the `JavaApplication` interface has been removed.
 Use the `mainClass` property instead.
 
+==== DefaultDomainObjectSet API Cleanup
+
+The deprecated `DefaultDomainObjectSet(Class)` constructor has been removed.
+This was an internal API, but may have been used by plugins.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
