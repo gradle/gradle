@@ -58,6 +58,11 @@ Usage of invalid Java toolchain specifications is no longer supported.
 Related build errors can be avoided by making sure that language version is set on all toolchain specifications.
 See <<toolchains#sec:configuring_toolchain_specifications,user manual>> for more information.
 
+==== Using automatic toolchain downloading without having a repository configured
+
+Automatic toolchain downloading without explicitly providing repositories to use is no longer supported.
+See <<toolchains#sub:download_repositories,user manual>> for more information.
+
 ==== Changing test framework after setting test framework options is now an error
 
 When configuring the built-in test task for Java, Groovy, and Scala projects, Gradle no longer allows you to
@@ -86,7 +91,7 @@ test {
 }
 ```
 
-=== Removed APIs
+=== Removed APIs and features
 
 ==== Legacy ArtifactTransform API
 
@@ -102,6 +107,11 @@ The legacy `IncrementalTaskInputs` API has been removed. For more information, s
 The legacy `AntlrSourceVirtualDirectory` API has been removed.
 This change affects the `antlr` plugin.
 In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
+
+==== `--no-rebuild` command line option
+
+The `--no-rebuild` command line option and its short variant `-a` have been removed.
+They were used to tell Gradle not to rebuild project dependencies and could lead to wrong results.
 
 === Potential breaking changes
 
@@ -269,6 +279,61 @@ eclipse {
 Previously, you had to explicitly configure PMD to ignore default rules with `ruleSets = []`.
 In the Gradle 8.0, setting `ruleSetConfig` or `ruleSetFiles` to a non-empty value implicitly ignores default rules.
 
+==== Changing test framework after setting test framework options is now an error
+
+When configuring the built-in test task for Java, Groovy, and Scala projects, Gradle no longer allows you to
+change the test framework used by the `Test` task after configuring options. This was deprecated since it silently
+discarded configuration in some cases.
+
+The following code example now produces an error:
+```
+test {
+   options {
+   }
+
+   useJUnitPlatform()
+}
+```
+Instead, you can:
+
+- set the test framework before configuring options
+- migrate to the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>>
+```
+test {
+   // select test framework before configuring options
+   useJUnitPlatform()
+   options {
+   }
+}
+```
+
+==== Report `getOutputLocation` return type changed from Provider to Property
+
+The `outputLocation` property of the link:{groovyDslPath}/org.gradle.api.reporting.Report.html#org.gradle.api.reporting.Report[Report] now returns a value of type `Property<? extends FileSystemLocation>`.  Previously, `outputLocation` returned a value of type `Provider<? extends FileSystemLocation>`.
+
+This change makes the Report API more internally consistent, and allows for more idiomatic configuration of reporting tasks.
+
+The former, now `@Deprecated` usage:
+
+```groovy
+tasks.named('test') {
+    reports.junitXml.setDestination(layout.buildDirectory.file('reports/my-report-old').get().asFile) // DEPRECATED
+}
+
+```
+
+can be replaced with:
+
+```groovy
+tasks.named('test') {
+    reports.junitXml.outputLocation = layout.buildDirectory.dir('reports/my-report')
+}
+```
+
+
+Many built-in and custom reports, such as those used by JUnit, implement this interface.
+Plugins compiled against an earlier version of Gradle containing the previous method signature may need to be recompiled to be used with newer versions of Gradle containing the new signature.
+
 ==== Removed external plugin validation plugin
 
 The incubating plugin `ExternalPluginValidationPlugin` has been removed.
@@ -278,12 +343,41 @@ Use the link:java_gradle_plugin.html[`java-gradle-plugin`]'s `validatePlugins` t
 
 Gradle changes the compression library used for creating archives from an Ant based one to https://commons.apache.org/proper/commons-compress/[Apache Commons Compress™]. As a consequence archives created from the same content, are unlikely to end up identical byte-by-byte to their older versions, created with the old library.
 
+[[kotlin_1_7_22]]
+==== Upgrade to Kotlin 1.7.22
+
+The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.7.22[Kotlin 1.7.22].
+For more information, see the release notes for Kotlin https://github.com/JetBrains/kotlin/releases/tag/v1.7.20[1.7.20] and https://github.com/JetBrains/kotlin/releases/tag/v1.7.21[1.7.21].
+
+[[kotlin_language_1_5]]
+==== Updated the Kotlin DSL to Kotlin API Level 1.5
+
+Previously, the Kotlin DSL used Kotlin API level 1.4.
+Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.5.
+This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0.
+
+For information about breaking and nonbreaking changes in this upgrade, see the following links to the Kotlin documentation:
+
+* Kotlin 1.5 link:https://kotlinlang.org/docs/whatsnew15.html#language-features[language]
+* Kotlin 1.5 link:https://kotlinlang.org/docs/whatsnew17.html#standard-library[stdlib]
+
+==== Java Base Plugin now sets Jar, War, and Ear destination directory defaults
+
+Previously, the `base` plugin configured the
+link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:destinationDirectory[destinationDirectory] of
+link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar], link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War], and
+link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] tasks to the directory specified by
+link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html#org.gradle.api.plugins.BasePluginExtension:libsDirectory[BasePluginExtension#getLibsDirectory].
+In Gradle 8.0, `java-base` handles this configuration.
+No changes are required for projects that already apply the
+`java-base` plugin directly or indirectly through the `java`, `application`, `java-library`, or other JVM ecosystem plugins.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
 === Updates to Attribute Disambiguation Rules related methods
 
-The `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/javadoc/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
+The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
 
 [[strict-kotlin-dsl-precompiled-scripts-accessors]]
 === Strict Kotlin DSL precompiled script plugins accessors generation
@@ -728,7 +822,7 @@ If you are using TestNG, versions prior to `5.14.6` perform illegal reflection. 
 
 The <<checkstyle_plugin.adoc#checkstyle_plugin,Checkstyle plugin>> now uses the Gradle worker API to run Checkstyle as an external worker process. Multiple Checkstyle tasks may now run in parallel within a project.
 
-Some projects will need to increase the amount of memory available to Checkstyle to avoid out of memory errors. You can <<checkstyle_plugin.adoc#sec:checkstyle_customize_memory,increase the maximum memory for the Checkstyle process>> by setting the `maxHeapSize` for the Checkstyle task. By default, the process will start with a maximum heap size of 512MB. 
+Some projects will need to increase the amount of memory available to Checkstyle to avoid out of memory errors. You can <<checkstyle_plugin.adoc#sec:checkstyle_customize_memory,increase the maximum memory for the Checkstyle process>> by setting the `maxHeapSize` for the Checkstyle task. By default, the process will start with a maximum heap size of 512MB.
 
 We also recommend to update Checkstyle to version 9.3 or later.
 
@@ -752,7 +846,7 @@ In version 7.5 and above, Gradle consistently sets the current working directory
 Java has the concept of a path separator which is used to separate individual paths in a list of paths, for example in a classpath string.
 The individual paths must not contain the path separator.
 Consequently, using
-`@link:{javadocPath}/javadoc/org/gradle/api/file/FileCollection.html#getAsPath--[FileCollection.getAsPath()]` for files with paths that contain a path separator has been deprecated, and it will be an error in Gradle 8.0 and later.
+`@link:{javadocPath}/org/gradle/api/file/FileCollection.html#getAsPath--[FileCollection.getAsPath()]` for files with paths that contain a path separator has been deprecated, and it will be an error in Gradle 8.0 and later.
 Using a file collection with paths which contain a path separator may lead to incorrect builds, since Gradle doesn't find the files as inputs, or even to build failures when the path containing the path separator is illegal on the operating system.
 
 [[dependencyinsight_singlepath]]
@@ -829,7 +923,7 @@ This way, Gradle is able to apply optimizations like up-to-date checks instead o
 [[unique_attribute_sets]]
 ==== Unique attribute sets
 
-The set of link:{javadocPath}/org/gradle/api/attribute/Attribute.html[Attribute]s associated with a _consumable_ configuration within a project, must be unique across all other configurations within that project which share the same set of link:{javadocPath}/org/gradle/api/capabilities/Capability.html[Capability]s.  This will be checked at the end of configuring variant configurations, as they are locked against further mutation.
+The set of link:{javadocPath}/org/gradle/api/attributes/Attribute.html[Attribute]s associated with a _consumable_ configuration within a project, must be unique across all other configurations within that project which share the same set of link:{javadocPath}/org/gradle/api/capabilities/Capability.html[Capability]s.  This will be checked at the end of configuring variant configurations, as they are locked against further mutation.
 
 If the set of attributes is shared across configurations, consider adding an additional attribute to one of the variants for the sole purpose of disambiguation.
 
@@ -1223,7 +1317,7 @@ Existing clients should migrate to the <<publishing_maven.adoc#publishing_maven,
 The concept of conventions is outdated and superseded by extensions. To reflect this in the Gradle API, the following elements are now deprecated:
 
 - link:{javadocPath}/org/gradle/api/Project.html#getConvention--[Project.html#getConvention()]
-- link:{javadocPath}/org/gradle/api/internal/HasConvention.html[HasConvention]
+- `org.gradle.api.internal.HasConvention` (deprecated)
 
 The internal usages of conventions have been also cleaned up (see the deprecated items below).
 
@@ -1343,7 +1437,7 @@ link:{javadocPath}/org/gradle/plugins/ear/EarPluginConvention.html[EarPluginConv
 The following source set interfaces are now deprecated and scheduled for removal in Gradle 8.0:
 
 - link:{javadocPath}/org/gradle/api/tasks/GroovySourceSet.html[GroovySourceSet]
-- link:{javadocPath}/org/gradle/api/plugins/antlr/AntlrSourceVirtualDirectory.html[AntlrSourceVirtualDirectory]
+- `org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory` (removed)
 - link:{javadocPath}/org/gradle/api/tasks/ScalaSourceSet.html[ScalaSourceSet]
 
 Clients should configure the sources with their plugin-specific configuration:

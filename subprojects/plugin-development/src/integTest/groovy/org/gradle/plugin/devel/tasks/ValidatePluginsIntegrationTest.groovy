@@ -32,7 +32,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
     }
 
-    String iterableSymbol = '*'
+    String iterableSymbol = '.*'
 
     @Override
     String getNameSymbolFor(String name) {

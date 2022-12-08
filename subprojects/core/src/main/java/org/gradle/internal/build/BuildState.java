@@ -110,7 +110,7 @@ public interface BuildState {
     <T> T withToolingModels(Function<? super BuildToolingModelController, T> action);
 
     /**
-     * Restarts the lifecycle for this build, discarding all present state.
+     * Restarts the lifecycle for this build, discarding all present model state.
      */
-    void resetState();
+    void resetLifecycle();
 }

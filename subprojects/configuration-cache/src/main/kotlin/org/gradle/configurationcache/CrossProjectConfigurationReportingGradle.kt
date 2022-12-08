@@ -45,7 +45,6 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.Path
 import java.io.File
 import java.util.Objects
@@ -320,9 +319,6 @@ class CrossProjectConfigurationReportingGradle private constructor(
 
     override fun getServices(): ServiceRegistry =
         delegate.services
-
-    override fun getServiceRegistryFactory(): ServiceRegistryFactory =
-        delegate.serviceRegistryFactory
 
     override fun setClassLoaderScope(classLoaderScope: Supplier<out ClassLoaderScope>) {
         delegate.setClassLoaderScope(classLoaderScope)

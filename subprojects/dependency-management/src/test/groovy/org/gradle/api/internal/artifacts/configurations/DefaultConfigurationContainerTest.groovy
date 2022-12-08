@@ -35,7 +35,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -59,7 +58,6 @@ class DefaultConfigurationContainerTest extends Specification {
     private DependencySubstitutionRules globalSubstitutionRules = Mock(DependencySubstitutionRules)
     private VcsMappingsStore vcsMappingsInternal = Mock(VcsMappingsStore)
     private BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
-    private TaskResolver taskResolver = Mock(TaskResolver)
     private DependencyLockingProvider lockingProvider = Mock(DependencyLockingProvider)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
     private DocumentationRegistry documentationRegistry = Mock(DocumentationRegistry)
@@ -89,7 +87,6 @@ class DefaultConfigurationContainerTest extends Specification {
         new PublishArtifactNotationParserFactory(
                 instantiator,
                 metaDataProvider,
-                taskResolver,
                 TestFiles.resolver(),
                 TestFiles.taskDependencyFactory(),
         ),

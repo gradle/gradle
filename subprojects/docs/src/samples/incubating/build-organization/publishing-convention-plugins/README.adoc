@@ -21,23 +21,6 @@ The use case can be modelled by layering three separate plugins:
 [.multi-language-sample]
 =====
 .Build logic layout
-[source, groovy]
-----
-├── convention-plugins
-│   ├── build.gradle
-│   ├── settings.gradle
-│   ├── src
-│   │   ├── main
-│   │   │   └── groovy
-│   │   │       ├── com.myorg.java-conventions.gradle
-│   │   │       ├── com.myorg.library-conventions.gradle
-│   │   │       └── com.myorg.service-conventions.gradle
-...
-----
-=====
-[.multi-language-sample]
-=====
-.Build logic layout
 [source, kotlin]
 ----
 ├── convention-plugins
@@ -49,6 +32,23 @@ The use case can be modelled by layering three separate plugins:
 │   │   │       ├── com.myorg.java-conventions.gradle.kts
 │   │   │       ├── com.myorg.library-conventions.gradle.kts
 │   │   │       └── com.myorg.service-conventions.gradle.kts
+...
+----
+=====
+[.multi-language-sample]
+=====
+.Build logic layout
+[source, groovy]
+----
+├── convention-plugins
+│   ├── build.gradle
+│   ├── settings.gradle
+│   ├── src
+│   │   ├── main
+│   │   │   └── groovy
+│   │   │       ├── com.myorg.java-conventions.gradle
+│   │   │       ├── com.myorg.library-conventions.gradle
+│   │   │       └── com.myorg.service-conventions.gradle
 ...
 ----
 =====
@@ -69,18 +69,18 @@ In this sample, convention plugins are implemented as link:{userManualPath}/cust
 this is the simplest way to start out as you can use one of Gradle's DSLs directly to implement the build logic, just as if the plugin was
 a regular build script.
 
-[.multi-language-text.lang-groovy]
-In order for precompiled script plugins to be discovered, the `convention-plugins` project needs to apply the `groovy-gradle-plugin` plugin
-in its `build.gradle` file:
-
 [.multi-language-text.lang-kotlin]
 In order for precompiled script plugins to be discovered, the `convention-plugins` project needs to apply the `kotlin-dsl` plugin
 in its `build.gradle.kts` file:
 
+[.multi-language-text.lang-groovy]
+In order for precompiled script plugins to be discovered, the `convention-plugins` project needs to apply the `groovy-gradle-plugin` plugin
+in its `build.gradle` file:
+
 .Enabling precompiled script plugins
 ====
-include::sample[dir="groovy",files="convention-plugins/build.gradle[tags=apply]"]
 include::sample[dir="kotlin",files="convention-plugins/build.gradle.kts[tags=apply]"]
+include::sample[dir="groovy",files="convention-plugins/build.gradle[tags=apply]"]
 ====
 
 == Publishing convention plugins
@@ -95,8 +95,8 @@ You can find information about how to publish to a remote repository in the link
 
 .Publishing configuration
 ====
-include::sample[dir="groovy",files="convention-plugins/build.gradle[tags=publish]"]
 include::sample[dir="kotlin",files="convention-plugins/build.gradle.kts[tags=publish]"]
+include::sample[dir="groovy",files="convention-plugins/build.gradle[tags=publish]"]
 ====
 
 The plugins can be published using:
@@ -107,29 +107,6 @@ The plugins can be published using:
 
 In order to consume them in another project, configure the plugins repository in the settings file and apply the plugin:
 ====
-[.multi-language-sample]
-=====
-.settings.gradle
-[source, groovy]
-----
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven {
-            // replace the path with the actual path to the repository
-            url = uri('<path-to>/convention-plugins/build/repo')
-        }
-    }
-}
-----
-.build.gradle
-[source, groovy]
-----
-plugins {
-    id 'com.myorg.service-conventions' version '1.0'
-}
-----
-=====
 [.multi-language-sample]
 =====
 .settings.gradle.kts
@@ -153,6 +130,29 @@ plugins {
 }
 ----
 =====
+[.multi-language-sample]
+=====
+.settings.gradle
+[source, groovy]
+----
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven {
+            // replace the path with the actual path to the repository
+            url = uri('<path-to>/convention-plugins/build/repo')
+        }
+    }
+}
+----
+.build.gradle
+[source, groovy]
+----
+plugins {
+    id 'com.myorg.service-conventions' version '1.0'
+}
+----
+=====
 ====
 
 == Things to note
@@ -163,8 +163,8 @@ The `com.myorg.java-conventions` plugin uses the SpotBugs plugin to perform stat
 
 SpotBugs is an external plugin - external plugins link:{userManualPath}/custom_plugins.html#applying_external_plugins_in_precompiled_script_plugins[need to be added as implementation dependencies] before they can be applied in a convention plugin:
 ====
-include::sample[dir="groovy",files="convention-plugins/build.gradle[tags=repositories-and-dependencies]"]
 include::sample[dir="kotlin",files="convention-plugins/build.gradle.kts[tags=repositories-and-dependencies]"]
+include::sample[dir="groovy",files="convention-plugins/build.gradle[tags=repositories-and-dependencies]"]
 ====
 
 * The dependency artifact coordinates (GAV) for a plugin can be different from the plugin id.
@@ -173,8 +173,8 @@ include::sample[dir="kotlin",files="convention-plugins/build.gradle.kts[tags=rep
 
 Once the dependency is added, the external plugin can be applied in a convention plugin by id:
 ====
-include::sample[dir="groovy",files="convention-plugins/src/main/groovy/com.myorg.java-conventions.gradle[tags=apply-external-plugin]"]
 include::sample[dir="kotlin",files="convention-plugins/src/main/kotlin/com.myorg.java-conventions.gradle.kts[tags=apply-external-plugin]"]
+include::sample[dir="groovy",files="convention-plugins/src/main/groovy/com.myorg.java-conventions.gradle[tags=apply-external-plugin]"]
 ====
 
 === Applying other convention plugins
@@ -183,8 +183,8 @@ Convention plugins can apply other convention plugins.
 
 The `com.myorg.library-conventions` and `com.myorg.service-conventions` plugins both apply the `com.myorg.java-conventions` plugin:
 ====
-include::sample[dir="groovy",files="convention-plugins/src/main/groovy/com.myorg.library-conventions.gradle[tags=plugins];convention-plugins/src/main/groovy/com.myorg.service-conventions.gradle[tags=plugins]"]
 include::sample[dir="kotlin",files="convention-plugins/src/main/kotlin/com.myorg.library-conventions.gradle.kts[tags=plugins];convention-plugins/src/main/kotlin/com.myorg.service-conventions.gradle.kts[tags=plugins]"]
+include::sample[dir="groovy",files="convention-plugins/src/main/groovy/com.myorg.library-conventions.gradle[tags=plugins];convention-plugins/src/main/groovy/com.myorg.service-conventions.gradle[tags=plugins]"]
 ====
 
 === Using classes from the main source set
@@ -193,8 +193,8 @@ Convention plugins can use classes defined in the main source set of the plugins
 
 In this sample, `com.myorg.service-conventions` plugin uses a custom task class from `src/main/java` to configure service README checks:
 ====
-include::sample[dir="groovy",files="convention-plugins/src/main/groovy/com.myorg.service-conventions.gradle[tags=use-java-class]"]
 include::sample[dir="kotlin",files="convention-plugins/src/main/kotlin/com.myorg.service-conventions.gradle.kts[tags=use-java-class]"]
+include::sample[dir="groovy",files="convention-plugins/src/main/groovy/com.myorg.service-conventions.gradle[tags=use-java-class]"]
 ====
 
 For more details on authoring custom Gradle plugins, consult the link:{userManualPath}/custom_plugins.html[user manual].

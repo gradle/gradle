@@ -28,6 +28,7 @@ import static com.tngtech.archunit.lang.conditions.ArchConditions.beProtected;
 import static com.tngtech.archunit.lang.conditions.ArchConditions.bePublic;
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.codeUnits;
+import static org.gradle.architecture.test.ArchUnitFixture.annotatedMaybeInSupertypeWith;
 import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
 
 @AnalyzeClasses(packages = "org.gradle")
@@ -41,9 +42,9 @@ public class ForExternalUseTest {
 
     @ArchTest
     public static final ArchRule members_for_external_use_are_not_used_internally =
-        codeUnits().that().areAnnotatedWith(ForExternalUse.class)
-            .should().onlyBeCalled().byCodeUnitsThat(
-                are(annotatedWith(ForExternalUse.class)
-                    .or(annotatedWith(AllowUsingApiForExternalUse.class)))
-            );
+        codeUnits().that(are(annotatedMaybeInSupertypeWith(ForExternalUse.class)))
+            .should().onlyBeCalled().byCodeUnitsThat(are(
+                annotatedMaybeInSupertypeWith(ForExternalUse.class)
+                    .or(annotatedWith(AllowUsingApiForExternalUse.class))
+            ));
 }

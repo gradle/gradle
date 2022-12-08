@@ -1,3 +1,4 @@
+import gradlebuild.capitalize
 import gradlebuild.incubation.tasks.IncubatingApiAggregateReportTask
 
 plugins {

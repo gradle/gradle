@@ -162,7 +162,6 @@ public abstract class JavaEcosystemSupport {
 
     private static void configureView(AttributesSchema attributesSchema, final ObjectFactory objectFactory) {
         AttributeMatchingStrategy<CompileView> viewSchema = attributesSchema.attribute(CompileView.VIEW_ATTRIBUTE);
-        viewSchema.getCompatibilityRules().add(CompileViewCompatibilityRules.class);
         viewSchema.getDisambiguationRules().add(CompileViewDisambiguationRules.class, actionConfiguration -> {
             actionConfiguration.params(objectFactory.named(CompileView.class, CompileView.JAVA_API));
             actionConfiguration.params(objectFactory.named(CompileView.class, CompileView.JAVA_INTERNAL));
@@ -195,26 +194,6 @@ public abstract class JavaEcosystemSupport {
             } else if (candidateValues.contains(consumerValue)) {
                 // Use what they requested, if available
                 details.closestMatch(consumerValue);
-            }
-        }
-    }
-
-    @VisibleForTesting
-    static class CompileViewCompatibilityRules implements AttributeCompatibilityRule<CompileView>, ReusableAction {
-
-        @Override
-        public void execute(CompatibilityCheckDetails<CompileView> details) {
-            CompileView consumerValue = details.getConsumerValue();
-            CompileView producerValue = details.getProducerValue();
-            if (consumerValue == null) {
-                // consumer didn't express any preferences, everything fits
-                details.compatible();
-                return;
-            }
-            // The API view is a subset of the internal view, so the internal view can fulfill
-            // a request for the API.
-            if (CompileView.JAVA_API.equals(consumerValue.getName()) && CompileView.JAVA_INTERNAL.equals(producerValue.getName())) {
-                details.compatible();
             }
         }
     }

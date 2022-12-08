@@ -345,7 +345,7 @@ fun compilationClassPathForScriptPluginOf(
 ): Pair<ScriptHandlerInternal, ClassPath> {
 
     val scriptSource = textResourceScriptSource(resourceDescription, scriptFile, project.serviceOf())
-    val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}")
+    val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}", null)
     val scriptHandler = scriptHandlerFactory.create(scriptSource, scriptScope)
 
     kotlinScriptFactoryOf(project).evaluate(

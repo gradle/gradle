@@ -82,6 +82,11 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     }
 
     @Override
+    public BuildDefinition getBuildDefinition() {
+        return buildDefinition;
+    }
+
+    @Override
     public Path getIdentityPath() {
         return identityPath;
     }
