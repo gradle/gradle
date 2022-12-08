@@ -224,6 +224,11 @@ Use the `Project` type's `ant` property instead.
 The deprecated public fields `JAVA_API_CLASSES`, `JAVA_API_JARS`, `JAVA_RUNTIME_CLASSES`, `JAVA_RUNTIME_JARS` and `JAVA_RUNTIME_RESOURCES` of the `Usage` type have been removed.
 The values are available in the **internal** `JavaEcosystemSupport` class for compatibility with previously published modules, but should **not** be used for any new publishing.
 
+==== ExternalDependency API Cleanup
+
+The deprecated `setForce(boolean)` method of the `ExternalDependency` interface has been removed.
+Use the `version(Action)` method to configure strict versions instead.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
