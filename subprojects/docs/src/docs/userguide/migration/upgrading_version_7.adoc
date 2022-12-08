@@ -219,6 +219,11 @@ Use the `getVariants` method instead.
 The deprecated `antBuilder` property of the `Checkstyle`, `CodeNarc` and `Pmd` task types has been removed.
 Use the `Project` type's `ant` property instead.
 
+==== Usage API Cleanup
+
+The deprecated public fields `JAVA_API_CLASSES`, `JAVA_API_JARS`, `JAVA_RUNTIME_CLASSES`, `JAVA_RUNTIME_JARS` and `JAVA_RUNTIME_RESOURCES` of the `Usage` type have been removed.
+The values are available in the **internal** `JavaEcosystemSupport` class for compatibility with previously published modules, but should **not** be used for any new publishing.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
