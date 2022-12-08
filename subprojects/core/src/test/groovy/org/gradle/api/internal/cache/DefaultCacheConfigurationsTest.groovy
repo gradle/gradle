@@ -182,6 +182,6 @@ class DefaultCacheConfigurationsTest extends Specification {
     }
 
     void assertCannotConfigureErrorIsThrown(Exception e, String name) {
-        assert e.message == String.format(CANNOT_CONFIGURE_MESSAGE, name)
+        assert e.message.contains(String.format(CANNOT_CONFIGURE_MESSAGE, name))
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.api.internal.cache;
 import org.gradle.api.Action;
 import org.gradle.api.cache.CacheResourceConfiguration;
 import org.gradle.api.cache.Cleanup;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -40,6 +41,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private static final String SNAPSHOT_WRAPPERS = "snapshotWrappers";
     private static final String DOWNLOADED_RESOURCES = "downloadedResources";
     private static final String CREATED_RESOURCES = "createdResources";
+    private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
     private CacheResourceConfigurationInternal releasedWrappersConfiguration;
     private CacheResourceConfigurationInternal snapshotWrappersConfiguration;
@@ -221,7 +223,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         }
 
         private IllegalStateException lockedError() {
-            return new IllegalStateException("You can only configure the property '" + getDisplayName() + "' in an init script, preferably stored in the init.d directory inside the Gradle user home directory. See ");
+            return new IllegalStateException("You can only configure the property '" + getDisplayName() + "' in an init script, preferably stored in the init.d directory inside the Gradle user home directory. See " + DOCUMENTATION_REGISTRY.getDocumentationFor("directory_layout", "dir:gradle_user_home:configure_cache_cleanup") + " for more information.");
         }
 
         private void onlyIfMutable(Runnable runnable) {
