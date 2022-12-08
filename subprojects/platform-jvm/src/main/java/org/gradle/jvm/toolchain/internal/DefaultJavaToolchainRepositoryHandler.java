@@ -95,4 +95,9 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
     public List<JavaToolchainRepository> repositories() {
         return Collections.unmodifiableList(repositories);
     }
+
+    @Override
+    public int size() {
+        return repositories.size();
+    }
 }
