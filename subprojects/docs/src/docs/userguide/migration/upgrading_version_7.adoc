@@ -137,13 +137,18 @@ Use the `access` property along with the `GroovydocAccess#PRIVATE` constant inst
 
 ==== JavaApplication API Cleanup
 
-The `mainClassName` property of the `JavaApplication` interface has been removed.
+The deprecated `mainClassName` property of the `JavaApplication` interface has been removed.
 Use the `mainClass` property instead.
 
 ==== DefaultDomainObjectSet API Cleanup
 
 The deprecated `DefaultDomainObjectSet(Class)` constructor has been removed.
 This was an internal API, but may have been used by plugins.
+
+==== JacocoPluginExtension API Cleanup
+
+The deprecated `reportsDir` property of the `JacocoPluginExtension` has been removed.
+Use the `reportsDirectory` property instead.
 
 === Potential breaking changes
 
