@@ -490,10 +490,16 @@ Use the tasks in the `maven-publish` or `ivy-publish` plugins instead.
 Adding a Configuration as a dependency in the `dependencies` DSL block, or programmatically using the `DependencyHandler` classes' `doAdd(Configuration, Object, Closure)` method, is no longer allowed and will fail with an exception.
 You can extend configurations using the `extendsFrom(Configuration)` method on `Configuration` instead to replicate many of the results of this behavior.
 
-==== AntlrPlugin now creates a non-consumable configuration
+==== Deprecated for consumption configurations are now non-consumable
 
-The `antlr` configuration created by the `AntlrPlugin` was never meant to be consumed.  It was deprecated for consumption and is now no longer consumable.
-Attempting to consume it will now result in an error.
+The following configurations were never meant to be consumed:
+
+ - The `antlr` configuration created by the `AntlrPlugin`
+ - The `zinc` configuration created by the `ScalaBasePlugin`
+ - The `providedCompile` and `providedRuntime` configurations created by the `WarPlugin`
+
+These configurations were deprecated for consumption and are now no longer consumable.
+Attempting to consume them will result in an error.
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
