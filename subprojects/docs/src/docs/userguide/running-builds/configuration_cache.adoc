@@ -348,7 +348,7 @@ link:{gradle-issues}13483[[.red]#✖#]:: <<xcode_plugin.adoc#xcode_plugin,Xcode>
 a|
 [horizontal]
 link:{gradle-issues}13455[[.green]#✓#]:: <<base_plugin.adoc#base_plugin,Base>>
-link:{gradle-issues}13456[[.yellow]#⚠#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
+link:{gradle-issues}13456[[.green]#✓#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
 link:{gradle-issues}13470[[.red]#✖#]:: <<signing_plugin.adoc#signing_plugin,Signing>>
 link:{gradle-issues}13471[[.green]#✓#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Java Plugin Development>>
 link:{gradle-issues}23029[[.green]#✓#]:: <<custom_plugins.adoc#sec:precompiled_plugins,Groovy DSL Plugin Development>>
