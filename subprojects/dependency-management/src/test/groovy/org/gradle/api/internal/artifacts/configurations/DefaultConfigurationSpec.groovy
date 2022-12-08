@@ -63,6 +63,7 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.internal.Factories
+import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -100,7 +101,7 @@ class DefaultConfigurationSpec extends Specification {
     def calculatedValueContainerFactory = Mock(CalculatedValueContainerFactory)
 
     def setup() {
-        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
+        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener, Stub(Dispatch)) }
         _ * resolver.getRepositories() >> []
         _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
@@ -854,13 +855,13 @@ class DefaultConfigurationSpec extends Specification {
         def config = conf("conf")
 
         expect:
-        config.dependencyResolutionListeners.isEmpty()
+        config.dependencyResolutionListeners.size() == 1 // the listener that forwards to listener manager
 
         when:
         def copy = config.copy()
 
         then:
-        copy.dependencyResolutionListeners.isEmpty()
+        copy.dependencyResolutionListeners.size() == 1
     }
 
     private prepareConfigurationForCopyTest() {
