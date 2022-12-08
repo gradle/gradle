@@ -175,6 +175,11 @@ Use the `mainClass` property instead.
 The deprecated `execResult` getter property of the `AbstractExecTask` task type has been removed.
 Use the `executionResult` getter property instead.
 
+==== AbstractTestTask API Cleanup
+
+The deprecated `binResultsDir` property of the `AbstractTestTask` task type has been removed.
+Use the `binaryResultsDirectory` property instead.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
