@@ -150,6 +150,12 @@ This was an internal API, but may have been used by plugins.
 The deprecated `reportsDir` property of the `JacocoPluginExtension` has been removed.
 Use the `reportsDirectory` property instead.
 
+==== DependencyInsightReportTask API Cleanup
+
+The deprecated `legacyShowSinglePathToDependnecy` property of the `DependencyInsightReportTask` task type has been removed.
+Use the `showSinglePathToDependency` property instead.
+
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
