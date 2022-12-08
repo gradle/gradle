@@ -209,6 +209,11 @@ The previously deprecated `destinationDir` property of the `AbstractCompile` rem
 It is now scheduled for removal in Gradle 9.0.
 Use the `destinationDirectory` property instead.
 
+==== ResolvedComponentResult API Cleanup
+
+The deprecated `getVariant` method of the `ResolvedComponentResult` interface has been removed.
+Use the `getVariants` method instead.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
