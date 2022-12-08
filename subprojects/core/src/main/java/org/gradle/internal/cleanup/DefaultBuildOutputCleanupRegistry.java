@@ -93,4 +93,10 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
         }
         return resolvedPaths;
     }
+
+    @Override
+    public void resetLifecycle() {
+        resolvedPaths = null;
+        outputs.clear();
+    }
 }

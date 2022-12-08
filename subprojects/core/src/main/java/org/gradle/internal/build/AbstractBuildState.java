@@ -25,6 +25,7 @@ import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
@@ -78,6 +79,7 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
         workGraphController.get().resetState();
         buildLifecycleController.get().resetLifecycle();
         buildLifecycleController.get().getGradle().getServices().get(BuildServiceRegistryInternal.class).discardAll();
+        buildLifecycleController.get().getGradle().getServices().get(BuildOutputCleanupRegistry.class).resetLifecycle();
         for (ProjectRegistry<?> projectRegistry : buildLifecycleController.get().getGradle().getServices().getAll(ProjectRegistry.class)) {
             projectRegistry.discardAll();
         }
