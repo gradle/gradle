@@ -27,16 +27,17 @@ import org.gradle.internal.reflect.annotations.TestNested
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import java.util.function.Function
 import java.util.function.Supplier
 
 class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnotationHandlingSupport {
 
     def "type walker should correctly visit empty type"() {
         given:
-        def visitor = new TestNodeMetadataVisitor()
+        def visitor = new TestStaticMetadataVisitor()
 
         when:
-        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyEmptyTask), visitor)
+        TypeMetadataWalker.typeWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyEmptyTask), visitor)
 
         then:
         visitor.all == ["null::MyEmptyTask"]
@@ -45,7 +46,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
     def "instance walker should correctly visit instance with null values"() {
         given:
         def myTask = new MyTask()
-        def visitor = new TestNodeMetadataVisitor()
+        def visitor = new TestInstanceMetadataVisitor()
 
         when:
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(myTask, visitor)
@@ -56,7 +57,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
 
     def "type walker should visit all nested nodes and properties"() {
         when:
-        def visitor = new TestNodeMetadataVisitor()
+        def visitor = new TestStaticMetadataVisitor()
         TypeMetadataWalker.typeWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyTask), visitor)
 
         then:
@@ -97,7 +98,7 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         myTask.nestedListOfLists = [[nestedType]]
         myTask.nestedNamedList = [namedType]
         myTask.nestedProperty = TestUtil.propertyFactory().property(NestedType).value(nestedType)
-        def visitor = new TestNodeMetadataVisitor()
+        def visitor = new TestInstanceMetadataVisitor()
 
         when:
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(myTask, visitor)
@@ -106,30 +107,30 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         visitor.roots == ["null::$myTask"] as List<String>
         visitor.nested == [
             "nested::$nestedType",
+            "nestedList.\$0::$nestedType",
             "nestedList.\$1::$nestedType",
-            "nestedList.\$2::$nestedType",
-            "nestedListOfLists.\$1.\$1::$nestedType",
+            "nestedListOfLists.\$0.\$0::$nestedType",
             "nestedMap.key1::$nestedType",
             "nestedMap.key2::$nestedType",
-            "nestedNamedList.\$1::$namedType",
+            "nestedNamedList.namedType\$0::$namedType",
             "nestedProperty::$nestedType"
         ] as List<String>
         visitor.leaves == [
             "inputProperty::Property[first-property]",
             "nested.inputProperty::Property[second-property]",
+            "nestedList.\$0.inputProperty::Property[second-property]",
             "nestedList.\$1.inputProperty::Property[second-property]",
-            "nestedList.\$2.inputProperty::Property[second-property]",
-            "nestedListOfLists.\$1.\$1.inputProperty::Property[second-property]",
+            "nestedListOfLists.\$0.\$0.inputProperty::Property[second-property]",
             "nestedMap.key1.inputProperty::Property[second-property]",
             "nestedMap.key2.inputProperty::Property[second-property]",
-            "nestedNamedList.\$1.inputProperty::Property[third-property]",
+            "nestedNamedList.namedType\$0.inputProperty::Property[third-property]",
             "nestedProperty.inputProperty::Property[second-property]"
         ]
     }
 
     def "type walker should handle types with nested cycles"() {
         when:
-        def visitor = new TestNodeMetadataVisitor()
+        def visitor = new TestStaticMetadataVisitor()
         TypeMetadataWalker.typeWalker(typeMetadataStore, TestNested.class).walk(TypeToken.of(MyCycleTask), visitor)
 
         then:
@@ -143,11 +144,11 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         ]
     }
 
-    def "instance walker should throw exception with nested cycles for '#propertyWithCycle' property"() {
+    def "instance walker should throw exception when detecting nested cycles for '#propertyWithCycle' property"() {
         given:
         def instance = new MyCycleTask()
         instance[propertyWithCycle] = propertyValue
-        def visitor = new TestNodeMetadataVisitor()
+        def visitor = new TestInstanceMetadataVisitor()
 
         when:
         TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
@@ -160,16 +161,137 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
         propertyWithCycle   | propertyValue                                                                                   | expectedCycle
         'nested'            | CycleFirstNode.newInitializedCycle()                                                            | "'nested' and 'nested.secondNested.thirdNested.fourthNested'"
         'nestedProperty'    | TestUtil.propertyFactory().property(CycleFirstNode).value(CycleFirstNode.newInitializedCycle()) | "'nestedProperty' and 'nestedProperty.secondNested.thirdNested.fourthNested'"
-        'nestedList'        | [CycleFirstNode.newInitializedCycle()]                                                          | "'nestedList.\$1' and 'nestedList.\$1.secondNested.thirdNested.fourthNested'"
+        'nestedList'        | [CycleFirstNode.newInitializedCycle()]                                                          | "'nestedList.\$0' and 'nestedList.\$0.secondNested.thirdNested.fourthNested'"
         'nestedMap'         | ['key1': CycleFirstNode.newInitializedCycle()]                                                  | "'nestedMap.key1' and 'nestedMap.key1.secondNested.thirdNested.fourthNested'"
-        'nestedListOfLists' | [[CycleFirstNode.newInitializedCycle()]]                                                        | "'nestedListOfLists.\$1.\$1' and 'nestedListOfLists.\$1.\$1.secondNested.thirdNested.fourthNested'"
+        'nestedListOfLists' | [[CycleFirstNode.newInitializedCycle()]]                                                        | "'nestedListOfLists.\$0.\$0' and 'nestedListOfLists.\$0.\$0.secondNested.thirdNested.fourthNested'"
+    }
+
+    def "instance walker should throw exception when nested cycles for root and '#propertyWithCycle' property"() {
+        given:
+        def instance = new MyCycleTask()
+        instance[propertyWithCycle] = (propertyValueFunction as Function<MyCycleTask, Object>).apply(instance)
+        def visitor = new TestInstanceMetadataVisitor()
+
+        when:
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
+
+        then:
+        def exception = thrown(IllegalStateException)
+        exception.message == "Cycles between nested beans are not allowed. Cycle detected between: $expectedCycle."
+
+        where:
+        propertyWithCycle   | propertyValueFunction                                                                                                           | expectedCycle
+        'nested'            | { MyCycleTask root -> CycleFirstNode.newInitializedRootCycle(root) }                                                            | "'<root>' and 'nested.secondNested.thirdNested.rootNested'"
+        'nestedProperty'    | { MyCycleTask root -> TestUtil.propertyFactory().property(CycleFirstNode).value(CycleFirstNode.newInitializedRootCycle(root)) } | "'<root>' and 'nestedProperty.secondNested.thirdNested.rootNested'"
+        'nestedList'        | { MyCycleTask root -> [CycleFirstNode.newInitializedRootCycle(root)] }                                                          | "'<root>' and 'nestedList.\$0.secondNested.thirdNested.rootNested'"
+        'nestedMap'         | { MyCycleTask root -> ['key1': CycleFirstNode.newInitializedRootCycle(root)] }                                                  | "'<root>' and 'nestedMap.key1.secondNested.thirdNested.rootNested'"
+        'nestedListOfLists' | { MyCycleTask root -> [[CycleFirstNode.newInitializedRootCycle(root)]] }                                                        | "'<root>' and 'nestedListOfLists.\$0.\$0.secondNested.thirdNested.rootNested'"
+    }
+
+    def "instance walker should visit nested properties unpack errors for #propertyType"() {
+        given:
+        Supplier<Object> propertyValue = propertyValueSupplier as Supplier<Object>
+        def instance = new Object() {
+            @TestNested
+            Object getNested() {
+                return propertyValue.get()
+            }
+        }
+        Map<String, Throwable> errors = [:]
+        def visitor = new TestInstanceMetadataVisitor() {
+            @Override
+            void visitNestedUnpackingError(String qualifiedName, Exception e) {
+                errors[qualifiedName] = e
+            }
+        }
+
+        when:
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
+
+        then:
+        errors['nested'] instanceof RuntimeException
+        errors['nested'].message == "Boom for $propertyType"
+
+        where:
+        propertyType          | propertyValueSupplier
+        "plain Java property" | { throw new RuntimeException("Boom for plain Java property") }
+        "Provider property"   | { TestUtil.providerFactory().provider { throw new RuntimeException("Boom for Provider property") } }
+    }
+
+    def "instance walker should not allow null for nested #descriptionSuffix"() {
+        given:
+        def propertyValue = value
+        def instance = new Object() {
+            @TestNested
+            Object getNested() {
+                return propertyValue
+            }
+        }
+        def visitor = new TestInstanceMetadataVisitor()
+
+        when:
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
+
+        then:
+        def exception = thrown(exceptionType)
+        exception.message == exceptionMessage
+
+        where:
+        descriptionSuffix         | value                                                                   | exceptionType         | exceptionMessage
+        "map values"              | ["key1": "Hello", "key2": null]                                         | IllegalStateException | "Null value is not allowed for the nested collection property 'nested.key2'"
+        "map keys"                | ["key1": "Hello", (null): "Hello"]                                      | NullPointerException  | "Null keys in nested map 'nested' are not allowed."
+        "iterable values"         | ["hello", null]                                                         | IllegalStateException | "Null value is not allowed for the nested collection property 'nested.\$1'"
+        "map provider value"      | ["key1": "Hello", "key2": TestUtil.providerFactory().provider { null }] | IllegalStateException | "Null value is not allowed for the nested collection property 'nested.key2'"
+        "iterable provider value" | ["hello", TestUtil.providerFactory().provider { null }]                 | IllegalStateException | "Null value is not allowed for the nested collection property 'nested.\$1'"
+    }
+
+    def "instance walker should allow visiting missing nested values for #propertyType"() {
+        given:
+        def propertyValue = value
+        def instance = new Object() {
+            @TestNested
+            Object getNested() {
+                return propertyValue
+            }
+        }
+        def missing = []
+        def visitor = new TestInstanceMetadataVisitor() {
+            @Override
+            void visitMissingNested(String qualifiedName, PropertyMetadata propertyMetadata) {
+                missing.add(qualifiedName)
+            }
+        }
+
+        when:
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
+
+        then:
+        missing == ["nested"]
+
+        where:
+        propertyType          | value
+        "plain Java property" | null
+        "Provider property"   | TestUtil.providerFactory().provider { null }
     }
 
     static String normalizeToString(String toString) {
         return toString.replace("$AbstractTypeMetadataWalkerTest.class.name\$", "")
     }
 
-    static class TestNodeMetadataVisitor<T> implements TypeMetadataWalker.TypeMetadataVisitor<T> {
+    static class TestStaticMetadataVisitor extends TestNodeMetadataVisitor<TypeToken<?>> implements TypeMetadataWalker.StaticMetadataVisitor {
+    }
+
+    static class TestInstanceMetadataVisitor extends TestNodeMetadataVisitor<Object> implements TypeMetadataWalker.InstanceMetadataVisitor {
+        @Override
+        void visitMissingNested(String qualifiedName, PropertyMetadata propertyMetadata) {
+        }
+
+        @Override
+        void visitNestedUnpackingError(String qualifiedName, Exception e) {
+        }
+    }
+
+    static abstract class TestNodeMetadataVisitor<T> implements TypeMetadataWalker.TypeMetadataVisitor<T> {
         private List<CollectedNode> all = []
         private List<CollectedNode> roots = []
         private List<CollectedNode> nested = []
@@ -286,6 +408,17 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
             cycleThirdNode.input = cycleFirstNode
             return cycleFirstNode
         }
+
+        static CycleFirstNode newInitializedRootCycle(MyCycleTask root) {
+            def cycleFirstNode = new CycleFirstNode()
+            def cycleSecondNode = new CycleSecondNode()
+            def cycleThirdNode = new CycleThirdNode()
+            cycleFirstNode.secondNested = cycleSecondNode
+            cycleSecondNode.thirdNested = cycleThirdNode
+            cycleThirdNode.rootNested = root
+            cycleThirdNode.input = cycleFirstNode
+            return cycleFirstNode
+        }
     }
 
     static class CycleSecondNode implements WithNormalizedToString {
@@ -296,6 +429,8 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
     static class CycleThirdNode implements WithNormalizedToString {
         @TestNested
         CycleFirstNode fourthNested
+        @TestNested
+        MyCycleTask rootNested
         @Long
         CycleFirstNode input
     }
