@@ -135,6 +135,11 @@ Supply a `FileResolver` to the overloaded version of this method instead.
 The deprecated `isIncludePrivate` property of the `Groovydoc` task type has been removed.
 Use the `access` property along with the `GroovydocAccess#PRIVATE` constant instead.
 
+==== JavaApplication API Cleanup
+
+The `mainClassName` property of the `JavaApplication` interface has been removed.
+Use the `mainClass` property instead.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
