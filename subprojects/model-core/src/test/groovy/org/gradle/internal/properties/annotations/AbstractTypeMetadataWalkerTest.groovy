@@ -238,11 +238,11 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
 
         where:
         descriptionSuffix         | value                                                                   | exceptionType         | exceptionMessage
-        "map values"              | ["key1": "Hello", "key2": null]                                         | IllegalStateException | "Null value is not allowed for a nested collection property 'nested.key2'"
+        "map values"              | ["key1": "Hello", "key2": null]                                         | IllegalStateException | "Null value is not allowed for the nested collection property 'nested.key2'"
         "map keys"                | ["key1": "Hello", (null): "Hello"]                                      | NullPointerException  | "Null keys in nested map 'nested' are not allowed."
-        "iterable values"         | ["hello", null]                                                         | IllegalStateException | "Null value is not allowed for a nested collection property 'nested.\$1'"
-        "map provider value"      | ["key1": "Hello", "key2": TestUtil.providerFactory().provider { null }] | IllegalStateException | "Null value is not allowed for a nested collection property 'nested.key2'"
-        "iterable provider value" | ["hello", TestUtil.providerFactory().provider { null }]                 | IllegalStateException | "Null value is not allowed for a nested collection property 'nested.\$1'"
+        "iterable values"         | ["hello", null]                                                         | IllegalStateException | "Null value is not allowed for the nested collection property 'nested.\$1'"
+        "map provider value"      | ["key1": "Hello", "key2": TestUtil.providerFactory().provider { null }] | IllegalStateException | "Null value is not allowed for the nested collection property 'nested.key2'"
+        "iterable provider value" | ["hello", TestUtil.providerFactory().provider { null }]                 | IllegalStateException | "Null value is not allowed for the nested collection property 'nested.\$1'"
     }
 
     def "instance walker should allow visiting missing nested values for #propertyType"() {

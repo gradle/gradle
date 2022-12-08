@@ -213,7 +213,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         }
 
         private static String getNullNestedCollectionValueExceptionMessage(String qualifiedName) {
-            return String.format("Null value is not allowed for a nested collection property '%s'", qualifiedName);
+            return String.format("Null value is not allowed for the nested collection property '%s'", qualifiedName);
         }
     }
 
