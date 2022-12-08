@@ -250,10 +250,4 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             return rootGradle.getServices().get(BuildInvocationScopeId.class);
         }
     }
-
-    @Override
-    public void close() {
-        super.close();
-    }
-
 }
