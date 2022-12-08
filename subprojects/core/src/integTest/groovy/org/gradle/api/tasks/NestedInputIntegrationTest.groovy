@@ -603,7 +603,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
         expect:
         fails 'myTask'
-        failure.assertHasCause('Null value is not allowed for a nested collection property \'beans.$1\'')
+        failure.assertHasCause('Null value is not allowed for the nested collection property \'beans.$1\'')
 
         where:
         description | elementValue
