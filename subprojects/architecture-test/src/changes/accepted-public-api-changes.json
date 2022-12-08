@@ -426,7 +426,7 @@
         },
         {
             "type": "org.gradle.api.plugins.JvmEcosystemPlugin",
-            "member": "Class org.gradle.api.plugins.JvmEcosystemPlugin",
+            "member": "Class org.gradle.api.plugins.JvmEcosysteAccmPlugin",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
             "changes": [
                 "Class is now abstract"
@@ -1545,6 +1545,14 @@
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
             "changes": [
                 "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler",
+            "member": "Method org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler.repositories()",
+            "acceptation": "method addition backported to 7.6.1",
+            "changes": [
+                "Method added to interface"
             ]
         },
         {

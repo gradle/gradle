@@ -39,6 +39,8 @@ public interface JavaToolchainRepositoryHandler {
     /**
      * Returns a list of repositories that have been added so far. The list order
      * reflects the order in which the repositories have been declared.
+     *
+     * @since 7.6.1
      */
     List<JavaToolchainRepository> repositories();
 
