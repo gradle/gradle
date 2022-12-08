@@ -113,17 +113,6 @@ In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension 
 The `--no-rebuild` command line option and its short variant `-a` have been removed.
 They were used to tell Gradle not to rebuild project dependencies and could lead to wrong results.
 
-==== TestReport API Cleanup
-
-The deprecated `destinationDir` property of the `TestReport` task type has been removed.
-Use the `destinationDirectory` property instead.
-
-The deprecated `testResultsDirs` property of the `TestReport` task type has been removed.
-Use the `testResults` property instead.
-
-The deprecated `reportOn(Object...)` method of the `TestReport` task type has been removed.
-Add items to the `testReports` property using `from(Object...)` instead.
-
 ==== JvmPluginsHelper
 
 A deprecated `configureDocumentationVariantWithArtifact` method of the `JvmPluginsHelper` class which did not require a `FileResolver` has been removed.
