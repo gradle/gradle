@@ -160,6 +160,10 @@ Use the `showSinglePathToDependency` property instead.
 The deprecated `destination`, and `enabled` properties of the `Report` type have been removed.
 Use the `outputLocation` and `required` properties instead.
 
+==== JacocoMerge Task Removed
+
+The deprecated `JacocoMerge` task type has been removed.
+The same functionality is also available on the `JacocoReport` task.
 
 === Potential breaking changes
 
@@ -1265,11 +1269,6 @@ Gradle emits a deprecation warning when a property in a task, extension or other
 To fix this, the plugin that configures the convention mapping for the task, extension or domain object needs to be changed to use the Provider API only.
 
 [[jacoco_merge]]
-==== JacocoMerge task type is deprecated
-
-The `JacocoMerge` task was used for merging coverage reports from different subprojects into a single report.
-The same functionality is also available on the `JacocoReport` task.
-Because of the duplication, `JacocoMerge` is now deprecated and scheduled for removal in Gradle 8.0.
 
 [[configuring_custom_build_layout]]
 ==== Setting custom build layout
