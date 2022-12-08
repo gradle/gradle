@@ -44,4 +44,11 @@ public interface JavaToolchainRepositoryHandler {
      */
     List<JavaToolchainRepository> repositories();
 
+    /**
+     * Returns the count of the repositories added so far.
+     *
+     * @since 7.6.1
+     */
+    int size();
+
 }
