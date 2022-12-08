@@ -63,8 +63,8 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             Tar,
             War,
             JavaCompile,
-            GroovyCompile,
-            ScalaCompile,
+            // GroovyCompile,
+            // ScalaCompile,
             Test,
             CodeNarc,
             Checkstyle,
@@ -102,7 +102,7 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             taskClasses.remove(JavaCompile)
         }
 
-        Map<String, String> subclasses = taskClasses.collectEntries { ["custom" + it.name.replace(".", "_"), it.name] }
+        Map<String, String> subclasses = taskClasses.collectEntries { ["custom_" + it.name.replace(".", "_"), it.name] }
         def apiDepConf = "implementation"
         if (previous.version < GradleVersion.version("7.0-rc-1")) {
             apiDepConf = "compile"
