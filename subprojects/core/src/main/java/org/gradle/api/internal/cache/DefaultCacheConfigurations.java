@@ -43,11 +43,11 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private static final String CREATED_RESOURCES = "createdResources";
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 
-    private CacheResourceConfigurationInternal releasedWrappersConfiguration;
-    private CacheResourceConfigurationInternal snapshotWrappersConfiguration;
-    private CacheResourceConfigurationInternal downloadedResourcesConfiguration;
-    private CacheResourceConfigurationInternal createdResourcesConfiguration;
-    private UnlockableProperty<Cleanup> cleanup;
+    private final CacheResourceConfigurationInternal releasedWrappersConfiguration;
+    private final CacheResourceConfigurationInternal snapshotWrappersConfiguration;
+    private final CacheResourceConfigurationInternal downloadedResourcesConfiguration;
+    private final CacheResourceConfigurationInternal createdResourcesConfiguration;
+    private final UnlockableProperty<Cleanup> cleanup;
 
     @Inject
     public DefaultCacheConfigurations(ObjectFactory objectFactory, PropertyHost propertyHost) {
@@ -76,11 +76,6 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
-    public void setReleasedWrappers(CacheResourceConfigurationInternal releasedWrappers) {
-        this.releasedWrappersConfiguration = releasedWrappers;
-    }
-
-    @Override
     public void snapshotWrappers(Action<? super CacheResourceConfiguration> cacheConfiguration) {
         cacheConfiguration.execute(snapshotWrappersConfiguration);
     }
@@ -88,11 +83,6 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     @Override
     public CacheResourceConfigurationInternal getSnapshotWrappers() {
         return snapshotWrappersConfiguration;
-    }
-
-    @Override
-    public void setSnapshotWrappers(CacheResourceConfigurationInternal snapshotWrappers) {
-        this.snapshotWrappersConfiguration = snapshotWrappers;
     }
 
     @Override
@@ -106,11 +96,6 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
-    public void setDownloadedResources(CacheResourceConfigurationInternal downloadedResources) {
-        this.downloadedResourcesConfiguration = downloadedResources;
-    }
-
-    @Override
     public void createdResources(Action<? super CacheResourceConfiguration> cacheConfiguration) {
         cacheConfiguration.execute(createdResourcesConfiguration);
     }
@@ -121,18 +106,8 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
-    public void setCreatedResources(CacheResourceConfigurationInternal createdResources) {
-        this.createdResourcesConfiguration = createdResources;
-    }
-
-    @Override
     public UnlockableProperty<Cleanup> getCleanup() {
         return cleanup;
-    }
-
-    @Override
-    public void setCleanup(UnlockableProperty<Cleanup> cleanup) {
-        this.cleanup = cleanup;
     }
 
     @Override

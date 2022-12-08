@@ -40,12 +40,6 @@ public interface CacheConfigurationsInternal extends CacheConfigurations {
     @Override
     UnlockableProperty<Cleanup> getCleanup();
 
-    void setReleasedWrappers(CacheResourceConfigurationInternal releasedWrappers);
-    void setSnapshotWrappers(CacheResourceConfigurationInternal snapshotWrappers);
-    void setDownloadedResources(CacheResourceConfigurationInternal downloadedResources);
-    void setCreatedResources(CacheResourceConfigurationInternal createdResources);
-    void setCleanup(UnlockableProperty<Cleanup> cleanup);
-
     void withMutableValues(Runnable runnable);
 
     Provider<CleanupFrequency> getCleanupFrequency();

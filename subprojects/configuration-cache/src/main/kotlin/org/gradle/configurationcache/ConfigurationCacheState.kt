@@ -17,14 +17,12 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.artifacts.component.BuildIdentifier
-import org.gradle.api.cache.Cleanup
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.cache.CacheConfigurationsInternal.UnlockableProperty
-import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
@@ -546,10 +544,10 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultWriteContext.writeCacheConfigurations(gradle: GradleInternal) {
         gradle.settings.caches.let { cacheConfigurations ->
-            write(cacheConfigurations.releasedWrappers)
-            write(cacheConfigurations.snapshotWrappers)
-            write(cacheConfigurations.downloadedResources)
-            write(cacheConfigurations.createdResources)
+            write(cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan)
+            write(cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan)
+            write(cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan)
+            write(cacheConfigurations.createdResources.removeUnusedEntriesOlderThan)
             write(cacheConfigurations.cleanup)
         }
     }
@@ -557,12 +555,19 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultReadContext.readCacheConfigurations(gradle: GradleInternal) {
         gradle.settings.caches.let { cacheConfigurations ->
-            cacheConfigurations.releasedWrappers = read() as CacheResourceConfigurationInternal?
-            cacheConfigurations.snapshotWrappers = read() as CacheResourceConfigurationInternal?
-            cacheConfigurations.downloadedResources = read() as CacheResourceConfigurationInternal?
-            cacheConfigurations.createdResources = read() as CacheResourceConfigurationInternal?
-            cacheConfigurations.cleanup = readNonNull<UnlockableProperty<Cleanup>>()
+            readAndSetUnlockableProperty(cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan)
+            readAndSetUnlockableProperty(cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan)
+            readAndSetUnlockableProperty(cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan)
+            readAndSetUnlockableProperty(cacheConfigurations.createdResources.removeUnusedEntriesOlderThan)
+            readAndSetUnlockableProperty(cacheConfigurations.cleanup)
         }
+    }
+
+    private
+    suspend fun <T : Any> DefaultReadContext.readAndSetUnlockableProperty(property: UnlockableProperty<T>) {
+        property.unlock()
+        property.value(readNonNull<Provider<T>>())
+        property.lock()
     }
 
     private
