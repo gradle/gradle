@@ -13,8 +13,8 @@ In a real project, your build would point to a private repository for your organ
 The published project has some sample Java code to be compiled and distributed as a Java library.
 Gradle build file registers a publication to a Maven repository using provided credentials:
 ====
-include::sample[dir="groovy",files="build.gradle[tags=publication]"]
 include::sample[dir="kotlin",files="build.gradle.kts[tags=publication]"]
+include::sample[dir="groovy",files="build.gradle[tags=publication]"]
 ====
 
 Credentials will be required by the build only if the task requiring them is to be executed - in this case the task publishing to the secure repository.

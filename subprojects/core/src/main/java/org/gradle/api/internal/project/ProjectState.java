@@ -88,6 +88,11 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     ProjectComponentIdentifier getComponentIdentifier();
 
     /**
+     * Is the mutable model for this project available?
+     */
+    boolean isCreated();
+
+    /**
      * Creates the mutable model for this project.
      */
     void createMutableModel(ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope);

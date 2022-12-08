@@ -37,6 +37,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.scala.internal.GenerateScaladoc;
 import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.internal.GUtil;
 import org.gradle.workers.WorkQueue;
@@ -66,24 +67,10 @@ public abstract class ScalaDoc extends SourceTask {
     public ScalaDoc() {
         ObjectFactory objectFactory = getObjectFactory();
         this.maxMemory = objectFactory.property(String.class);
-        this.javaLauncher = objectFactory.property(JavaLauncher.class);
+        JavaToolchainService javaToolchainService = getJavaToolchainService();
+        this.javaLauncher = objectFactory.property(JavaLauncher.class).convention(javaToolchainService.launcherFor(it -> {}));
         this.compilationOutputs = objectFactory.fileCollection();
         this.scalaDocOptions = objectFactory.newInstance(ScalaDocOptions.class);
-    }
-
-    @Inject
-    protected IsolatedAntBuilder getAntBuilder() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    public WorkerExecutor getWorkerExecutor() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    public ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
     }
 
     /**
@@ -203,11 +190,10 @@ public abstract class ScalaDoc extends SourceTask {
     }
 
     /**
-     * Optional JavaLauncher for toolchain support
+     * A JavaLauncher used to run the Scaladoc tool.
      * @since 7.2
      */
     @Nested
-    @Optional
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }
@@ -226,9 +212,7 @@ public abstract class ScalaDoc extends SourceTask {
                 forkOptions.setMaxHeapSize(getMaxMemory().get());
             }
 
-            if(javaLauncher.isPresent()) {
-                forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-            }
+            forkOptions.setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
         });
         queue.submit(GenerateScaladoc.class, parameters -> {
             @Nullable
@@ -287,4 +271,15 @@ public abstract class ScalaDoc extends SourceTask {
         return new File(getTemporaryDir(), "scaladoc.options");
     }
 
+    @Inject
+    protected abstract ObjectFactory getObjectFactory();
+
+    @Inject
+    protected abstract IsolatedAntBuilder getAntBuilder();
+
+    @Inject
+    protected abstract WorkerExecutor getWorkerExecutor();
+
+    @Inject
+    protected abstract JavaToolchainService getJavaToolchainService();
 }

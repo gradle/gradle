@@ -21,6 +21,7 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
 import org.gradle.configurationcache.serialization.ClassLoaderRole
 import org.gradle.configurationcache.serialization.ScopeLookup
 import org.gradle.initialization.ClassLoaderScopeId
+import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener
@@ -78,7 +79,7 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
         }
     }
 
-    override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId) {
+    override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId, origin: ClassLoaderScopeOrigin?) {
         synchronized(lock) {
             if (scopeSpecs.containsKey(childId)) {
                 // scope is being reused
@@ -96,7 +97,7 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
                 lookupParent
             }
 
-            val child = ClassLoaderScopeSpec(parent, childId.name)
+            val child = ClassLoaderScopeSpec(parent, childId.name, origin)
             scopeSpecs[childId] = child
         }
     }
@@ -123,7 +124,8 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
 internal
 class ClassLoaderScopeSpec(
     val parent: ClassLoaderScopeSpec?,
-    val name: String
+    val name: String,
+    val origin: ClassLoaderScopeOrigin?
 ) {
     var localClassPath: ClassPath = ClassPath.EMPTY
     var localImplementationHash: HashCode? = null

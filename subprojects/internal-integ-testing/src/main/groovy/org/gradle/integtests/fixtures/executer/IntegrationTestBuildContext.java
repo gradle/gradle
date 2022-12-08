@@ -39,6 +39,10 @@ public class IntegrationTestBuildContext {
         return file("integTest.samplesdir", null);
     }
 
+    public TestFile getCommitDistributionsDir() {
+        return file("integTest.commitDistributionsDir", null);
+    }
+
     @Nullable
     public TestFile getNormalizedBinDistribution() {
         return optionalFile("integTest.normalizedDistribution");
@@ -106,7 +110,7 @@ public class IntegrationTestBuildContext {
         }
 
         if (CommitDistribution.isCommitDistribution(version)) {
-            return new CommitDistribution(version, getGradleUserHomeDir().getParentFile().file("commit-distributions"));
+            return new CommitDistribution(version, getCommitDistributionsDir());
         }
         return new ReleasedGradleDistribution(version, previousVersionDir.file(version));
     }

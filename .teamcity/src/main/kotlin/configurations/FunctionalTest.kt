@@ -49,6 +49,7 @@ class FunctionalTest(
     parallelizationMethod: ParallelizationMethod = ParallelizationMethod.None,
     subprojects: List<String> = listOf(),
     extraParameters: String = "",
+    maxParallelForks: String = "%maxParallelForks%",
     extraBuildSteps: BuildSteps.() -> Unit = {},
     preBuildSteps: BuildSteps.() -> Unit = {}
 ) : BaseGradleBuildType(stage = stage, init = {
@@ -80,6 +81,7 @@ class FunctionalTest(
         arch = testCoverage.arch,
         extraParameters = assembledExtraParameters,
         timeout = testCoverage.testType.timeout,
+        maxParallelForks = testCoverage.testType.maxParallelForks.toString(),
         extraSteps = extraBuildSteps,
         preSteps = preBuildSteps
     )

@@ -44,7 +44,9 @@ import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
+import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.decodePreservingSharedIdentity
+import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
 import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
 import org.gradle.configurationcache.serialization.logPropertyProblem
 import org.gradle.configurationcache.serialization.readClassOf
@@ -272,14 +274,20 @@ class PropertyCodec(
 ) : Codec<DefaultProperty<*>> {
 
     override suspend fun WriteContext.encode(value: DefaultProperty<*>) {
-        writeClass(value.type as Class<*>)
-        providerCodec.run { encodeProvider(value.provider) }
+        encodePreservingIdentityOf(value) {
+            writeClass(value.type as Class<*>)
+            providerCodec.run { encodeProvider(value.provider) }
+        }
     }
 
     override suspend fun ReadContext.decode(): DefaultProperty<*> {
-        val type: Class<Any> = readClass().uncheckedCast()
-        val provider = providerCodec.run { decodeProvider() }
-        return propertyFactory.property(type).provider(provider)
+        return decodePreservingIdentity { id ->
+            val type: Class<Any> = readClass().uncheckedCast()
+            val provider = providerCodec.run { decodeProvider() }
+            val property = propertyFactory.property(type).provider(provider)
+            isolate.identities.putInstance(id, property)
+            property
+        }
     }
 }
 

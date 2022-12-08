@@ -438,12 +438,12 @@
     "name": "kotlin-dsl-integ-tests",
     "unitTests": false,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "dirName": "kotlin-dsl-plugins",
     "name": "kotlin-dsl-plugins",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },

@@ -36,6 +36,7 @@ public class RuntimeBeanNodeFactory {
         return new RootRuntimeBeanNode(bean, metadataStore.getTypeMetadata(bean.getClass()));
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public RuntimeBeanNode<?> create(RuntimeBeanNode parentNode, String propertyName, Object bean) {
         parentNode.checkCycles(propertyName, bean);
         TypeMetadata typeMetadata = metadataStore.getTypeMetadata(bean.getClass());

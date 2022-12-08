@@ -87,9 +87,10 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
 
         task resolve {
             inputs.files(configurations.conf)
-            outputs.file("out.txt")
+            def outFile = file("out.txt")
+            outputs.file(outFile)
             doLast {
-               file("out.txt") << 'Hello'
+               outFile << 'Hello'
             }
         }
 
@@ -147,8 +148,9 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
         }
 
         task resolve {
+            def files = configurations.conf
             doLast {
-                 configurations.conf.resolve()
+                 files*.name
             }
         }
         """

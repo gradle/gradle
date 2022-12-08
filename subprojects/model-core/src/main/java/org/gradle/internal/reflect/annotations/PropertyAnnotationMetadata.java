@@ -23,7 +23,7 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 
 public interface PropertyAnnotationMetadata extends Comparable<PropertyAnnotationMetadata> {
-    Method getMethod();
+    Method getGetter();
 
     String getPropertyName();
 
