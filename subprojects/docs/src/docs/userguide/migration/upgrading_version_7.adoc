@@ -180,6 +180,11 @@ Use the `executionResult` getter property instead.
 The deprecated `binResultsDir` property of the `AbstractTestTask` task type has been removed.
 Use the `binaryResultsDirectory` property instead.
 
+==== SourceDirectorySet API Cleanup
+
+The deprecated `outputDir` property of the `SourceDirectorySet` type has been removed.
+Use the `destinationDirectory` property instead.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
