@@ -197,6 +197,12 @@ Use the `using(ComponentSelector)` method instead.
 The deprecated `appendix`, `archiveName`, `archivePath`, `baseName`, `classifier`, `desintationDir`, `extension` and `version` properties of the `AbstractArchiveTask` task type have been removed.
 Use the `archiveAppendix`, `archiveFileName` , `archiveFile`, `archiveBaseName`, `archiveClassifier`, `destinationDirectory`, `archiveExtension` and `archiveVersion` properties instead.
 
+==== IdeaModule API Cleanup
+
+The deprecated `testSourceDirs` and `testResourceDirs` properties of the `IdeaModule` type have been removed.
+This affects the `org.gradle.plugins.ide.idea.model.IdeaModule` type, not the `org.gradle.tooling.model.idea.IdeaModule` type.
+Use the `testSources` and `testResources` properties instead.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
