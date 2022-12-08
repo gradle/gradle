@@ -165,6 +165,11 @@ Use the `outputLocation` and `required` properties instead.
 The deprecated `JacocoMerge` task type has been removed.
 The same functionality is also available on the `JacocoReport` task.
 
+==== JavaExec API Cleanup
+
+The deprecated `main` property of the `JavaExec` task type has been removed.
+Use the `mainClass` property instead.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
