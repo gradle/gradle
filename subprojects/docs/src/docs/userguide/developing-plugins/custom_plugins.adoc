@@ -43,8 +43,8 @@ The following sample contains a greeting plugin, which adds a `hello` task to th
 
 .A custom plugin
 ====
-include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="build.gradle[]"]
 ====
 
 .Output of **`gradle -q hello`**
@@ -71,8 +71,8 @@ Let's add a simple extension object to the project. Here we add a `greeting` ext
 
 .A custom plugin extension
 ====
-include::sample[dir="snippets/customPlugins/customPluginWithConvention/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/customPlugins/customPluginWithConvention/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/customPlugins/customPluginWithConvention/groovy",files="build.gradle[]"]
 ====
 
 .Output of **`gradle -q hello`**
@@ -89,8 +89,8 @@ The following example shows you how this works.
 
 .A custom plugin with configuration block
 ====
-include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/groovy",files="build.gradle[]"]
 ====
 
 .Output of **`gradle -q hello`**
@@ -99,14 +99,14 @@ include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/k
 include::{snippetsPath}/customPlugins/customPluginWithAdvancedConvention/tests/customPluginWithAdvancedConvention.out[]
 ----
 
-[.multi-language-text.lang-groovy]
-In this example, several settings can be grouped together within the `greeting` closure. The name of the closure block in the build script (`greeting`) needs to match the extension object name.
-Then, when the closure is executed, the fields on the extension object will be mapped to the variables within the closure based on the standard Groovy closure delegate feature.
-
 [.multi-language-text.lang-kotlin]
 In this example, several settings can be grouped together within the `configure<GreetingPluginExtension>` block.
 The type used on the `configure` function in the build script (`GreetingPluginExtension`) needs to match the extension type.
 Then, when the block is executed, the receiver of the block is the extension.
+
+[.multi-language-text.lang-groovy]
+In this example, several settings can be grouped together within the `greeting` closure. The name of the closure block in the build script (`greeting`) needs to match the extension object name.
+Then, when the closure is executed, the fields on the extension object will be mapped to the variables within the closure based on the standard Groovy closure delegate feature.
 
 In this way, using an extension object _extends_ the Gradle DSL to add a project property and DSL block for the plugin.
 And because an extension object is simply a regular object, you can provide your own DSL nested inside the plugin block by adding properties and methods to the extension object.
@@ -124,8 +124,8 @@ By this, the actual location will only be resolved when the file is needed and c
 
 .Evaluating file properties lazily
 ====
-include::sample[dir="snippets/tasks/customTaskWithFileProperty/groovy",files="build.gradle[tags=all]"]
 include::sample[dir="snippets/tasks/customTaskWithFileProperty/kotlin",files="build.gradle.kts[tags=all]"]
+include::sample[dir="snippets/tasks/customTaskWithFileProperty/groovy",files="build.gradle[tags=all]"]
 ====
 
 .Output of **`gradle -q sayGreeting`**
@@ -158,8 +158,8 @@ Here is a simple build script for the project.
 
 .A build for a custom plugin
 ====
-include::sample[dir="snippets/plugins/customPlugin/groovy/java-gradle-plugin",files="build.gradle[tags=use-and-configure-plugin]"]
 include::sample[dir="snippets/plugins/customPlugin/kotlin/java-gradle-plugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/groovy/java-gradle-plugin",files="build.gradle[tags=use-and-configure-plugin]"]
 ====
 
 [[sec:creating_a_plugin_id]]
@@ -203,8 +203,8 @@ The following example shows how you might do this when the plugin has been publi
 
 .Using a custom plugin in another project
 ====
-include::sample[dir="snippets/plugins/customPlugin/groovy/consumer",files="settings.gradle[tags=use-plugin];build.gradle[tags=use-plugin]"]
 include::sample[dir="snippets/plugins/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-plugin];build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/groovy/consumer",files="settings.gradle[tags=use-plugin];build.gradle[tags=use-plugin]"]
 ====
 
 ==== Note for plugins published without `java-gradle-plugin`
@@ -213,8 +213,8 @@ In this case, the recommended way to resolve the plugin in another project is to
 
 .Resolution strategy for plugins without Plugin Marker Artifact
 ====
-include::sample[dir="snippets/plugins/customPlugin/groovy/consumer",files="settings.gradle[tags=use-legacy-plugin]"]
 include::sample[dir="snippets/plugins/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-legacy-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/groovy/consumer",files="settings.gradle[tags=use-legacy-plugin]"]
 ====
 
 [[sec:precompiled_plugins]]
@@ -244,17 +244,14 @@ Groovy DSL precompiled script plugins are available starting with Gradle 6.4.
 Groovy DSL precompiled script plugins can be applied in projects that use Gradle 5.0 and later.
 ====
 
-[.multi-language-text.lang-groovy]
-To apply a precompiled script plugin, you need to know its ID which is derived from the plugin script's
-filename (minus the `.gradle` extension).
-
 [.multi-language-text.lang-kotlin]
 To apply a precompiled script plugin, you need to know its ID which is derived from the plugin script's
 filename (minus the `.gradle.kts` extension) and its (optional) package declaration.
 
+
 [.multi-language-text.lang-groovy]
-For example, the script `src/main/groovy/java-library-convention.gradle` would have a plugin ID of `java-library-convention`.
-Likewise, `src/main/groovy/my.java-library-convention.gradle` would result in a plugin ID of `my.java-library-convention`.
+To apply a precompiled script plugin, you need to know its ID which is derived from the plugin script's
+filename (minus the `.gradle` extension).
 
 [.multi-language-text.lang-kotlin]
 For example, the script `src/main/kotlin/java-library-convention.gradle.kts` would have a plugin ID of
@@ -262,36 +259,40 @@ For example, the script `src/main/kotlin/java-library-convention.gradle.kts` wou
 Likewise, `src/main/kotlin/my/java-library-convention.gradle.kts` would result in a plugin ID of
 `my.java-library-convention` as long as it has a package declaration of `my`.
 
-To demonstrate how you can implement and use a precompiled script plugin, let's walk through an example based on a `buildSrc` project.
-
 [.multi-language-text.lang-groovy]
-First, you need a `buildSrc/build.gradle` file that applies the `groovy-gradle-plugin` plugin:
+For example, the script `src/main/groovy/java-library-convention.gradle` would have a plugin ID of `java-library-convention`.
+Likewise, `src/main/groovy/my.java-library-convention.gradle` would result in a plugin ID of `my.java-library-convention`.
+
+To demonstrate how you can implement and use a precompiled script plugin, let's walk through an example based on a `buildSrc` project.
 
 [.multi-language-text.lang-kotlin]
 First, you need a `buildSrc/build.gradle.kts` file that applies the `kotlin-dsl` plugin:
 
+[.multi-language-text.lang-groovy]
+First, you need a `buildSrc/build.gradle` file that applies the `groovy-gradle-plugin` plugin:
+
 .Enabling precompiled script plugins
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/groovy",files="buildSrc/build.gradle[tags=apply]"]
 include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/kotlin",files="buildSrc/build.gradle.kts[tags=apply]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/groovy",files="buildSrc/build.gradle[tags=apply]"]
 ====
-
-[.multi-language-text.lang-groovy]
-We recommend that you also create a `buildSrc/settings.gradle` file, which you may leave empty.
 
 [.multi-language-text.lang-kotlin]
 We recommend that you also create a `buildSrc/settings.gradle.kts` file, which you may leave empty.
 
 [.multi-language-text.lang-groovy]
-Next, create a new `java-library-convention.gradle` file in the `buildSrc/src/main/groovy` directory and set its contents to the following:
+We recommend that you also create a `buildSrc/settings.gradle` file, which you may leave empty.
 
 [.multi-language-text.lang-kotlin]
 Next, create a new `java-library-convention.gradle.kts` file in the `buildSrc/src/main/kotlin` directory and set its contents to the following:
 
+[.multi-language-text.lang-groovy]
+Next, create a new `java-library-convention.gradle` file in the `buildSrc/src/main/groovy` directory and set its contents to the following:
+
 .Creating a simple script plugin
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/groovy",files="buildSrc/src/main/groovy/java-library-convention.gradle[]"]
 include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/kotlin",files="buildSrc/src/main/kotlin/java-library-convention.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/groovy",files="buildSrc/src/main/groovy/java-library-convention.gradle[]"]
 ====
 
 This script plugin simply applies the Java Library and Checkstyle Plugins and configures them.
@@ -301,22 +302,22 @@ Finally, apply the script plugin to the root project as follows:
 
 .Applying the precompiled script plugin to the main project
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/groovy",files="build.gradle[]"]
 ====
 
 === Applying external plugins in precompiled script plugins
 In order to apply an external plugin in a precompiled script plugin,
 it has to be added to the plugin project's implementation classpath in the plugin's build file.
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/build.gradle[]"]
 include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/build.gradle[]"]
 ====
 
 It can then be applied in the precompiled script plugin.
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
 include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/src/main/kotlin/my-plugin.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
 ====
 
 The plugin version in this case is defined in the dependency declaration.

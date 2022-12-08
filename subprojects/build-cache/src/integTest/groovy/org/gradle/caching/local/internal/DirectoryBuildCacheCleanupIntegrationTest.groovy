@@ -100,10 +100,10 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         assertCacheWasCleanedUpSince(lastCleanupCheck)
     }
 
-    def "cleans up entries even if gradle user home cache cleanup is disabled"() {
+    def "cleans up entries even if gradle user home cache cleanup is disabled via #method"() {
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
-        disableCacheCleanup()
+        disableCacheCleanup(method)
         run() // Make sure cache directory is initialized
         run '--stop' // ensure daemon does not cache file access times in memory
         def lastCleanupCheck = gcFile().makeOlder().lastModified()
@@ -128,6 +128,9 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         newTrashFile.assertIsFile()
         oldTrashFile.assertDoesNotExist()
         assertCacheWasCleanedUpSince(lastCleanupCheck)
+
+        where:
+        method << CleanupMethod.values()
     }
 
     def "cleans up entries even if created resource cache cleanup is configured later than the default"() {

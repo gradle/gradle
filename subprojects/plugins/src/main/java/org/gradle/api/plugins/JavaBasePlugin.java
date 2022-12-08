@@ -56,6 +56,7 @@ import org.gradle.api.tasks.javadoc.internal.JavadocExecutableUtils;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Cast;
+import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
@@ -133,6 +134,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         configureTest(project, javaPluginExtension);
         configureBuildNeeded(project);
         configureBuildDependents(project);
+        configureArchiveDefaults(project);
     }
 
     private DefaultJavaPluginExtension addExtensions(final ProjectInternal project) {
@@ -316,9 +318,10 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             return JavaVersion.toVersion(javaCompile.getJavaCompiler().get().getMetadata().getLanguageVersion().toString());
         } else if (compile instanceof GroovyCompile) {
             GroovyCompile groovyCompile = (GroovyCompile) compile;
-            if (groovyCompile.getJavaLauncher().isPresent()) {
-                return JavaVersion.toVersion(groovyCompile.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
+            if (rawConvention != null) {
+                return rawConvention;
             }
+            return JavaVersion.toVersion(groovyCompile.getJavaLauncher().get().getMetadata().getLanguageVersion().toString());
         }
 
         return javaVersionSupplier.get();
@@ -348,6 +351,15 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
             buildTask.setGroup(BasePlugin.BUILD_GROUP);
             buildTask.dependsOn(BUILD_TASK_NAME);
+        });
+    }
+
+    private void configureArchiveDefaults(Project project) {
+        // TODO: Gradle 8.1+: Deprecate `getLibsDirectory` in BasePluginExtension and move it to `JavaPluginExtension`
+        BasePluginExtension basePluginExtension = project.getExtensions().getByType(BasePluginExtension.class);
+
+        project.getTasks().withType(Jar.class).configureEach(task -> {
+            task.getDestinationDirectory().convention(basePluginExtension.getLibsDirectory());
         });
     }
 

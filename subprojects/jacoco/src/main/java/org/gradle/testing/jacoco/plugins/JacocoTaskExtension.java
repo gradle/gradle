@@ -306,7 +306,7 @@ public abstract class JacocoTaskExtension {
         StringBuilder builder = new StringBuilder();
         ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDir());
         builder.append("-javaagent:");
-        builder.append(RelativePathUtil.relativePath(task.getWorkingDir(), agent.getJar()));
+        builder.append(agent.getJar().getAbsolutePath());
         builder.append('=');
         argument.append("destfile", getDestinationFile());
         argument.append("append", true);

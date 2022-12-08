@@ -466,12 +466,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
-    @Inject
-    public ServiceRegistryFactory getServiceRegistryFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
         return new DefaultObjectConfigurationAction(
             getFileResolver(),

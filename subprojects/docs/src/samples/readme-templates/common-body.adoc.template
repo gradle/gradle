@@ -72,26 +72,6 @@ BUILD SUCCESSFUL
 
 The `init` task generates the new project with the following structure:
 
-[source.multi-language-sample,groovy]
-----
-├── gradle // <1>
-│   └── wrapper
-│       ├── gradle-wrapper.jar
-│       └── gradle-wrapper.properties
-├── gradlew // <2>
-├── gradlew.bat // <2>
-├── settings.gradle // <3>
-└── ${subprojectName.raw}
-    ├── build.gradle // <4>
-    └── src
-        ├── main
-        │   └── ${languageLC.raw} // <5>
-${sourceFileTree.raw}
-        └── test
-            └── ${languageLC.raw} // <6>
-${testSourceFileTree.raw}
-----
-
 [source.multi-language-sample,kotlin]
 ----
 ├── gradle // <1>
@@ -103,6 +83,26 @@ ${testSourceFileTree.raw}
 ├── settings.gradle.kts // <3>
 └── ${subprojectName.raw}
     ├── build.gradle.kts // <4>
+    └── src
+        ├── main
+        │   └── ${languageLC.raw} // <5>
+${sourceFileTree.raw}
+        └── test
+            └── ${languageLC.raw} // <6>
+${testSourceFileTree.raw}
+----
+
+[source.multi-language-sample,groovy]
+----
+├── gradle // <1>
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew // <2>
+├── gradlew.bat // <2>
+├── settings.gradle // <3>
+└── ${subprojectName.raw}
+    ├── build.gradle // <4>
     └── src
         ├── main
         │   └── ${languageLC.raw} // <5>
@@ -126,8 +126,8 @@ You now have the project setup to build a ${language.raw} ${componentType.raw}.
 The `settings.gradle(.kts)` file has two interesting lines:
 
 ====
-include::sample[dir="groovy",files="settings.gradle[]"]
 include::sample[dir="kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="groovy",files="settings.gradle[]"]
 ====
 - `rootProject.name` assigns a name to the build, which overrides the default behavior of naming the build after the directory it's in.
   It's recommended to set a fixed name as the folder might change if the project is shared - e.g. as root of a Git repository.
@@ -138,8 +138,8 @@ Our build contains one subproject called `${subprojectName.raw}` that represents
 It is configured in the `${subprojectName.raw}/build.gradle(.kts)` file:
 
 ====
-include::sample[dir="groovy",files="${subprojectName.raw}/build.gradle[]"]
 include::sample[dir="kotlin",files="${subprojectName.raw}/build.gradle.kts[]"]
+include::sample[dir="groovy",files="${subprojectName.raw}/build.gradle[]"]
 ====
 ${buildFileComments.raw}
 

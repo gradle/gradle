@@ -105,8 +105,8 @@ class LocalFileDependencyBackedArtifactSetCodec(
             // Do not write this if it will not be used
             // TODO - simplify extracting the mappings
             // TODO - deduplicate this data, as the mapping is project scoped and almost always the same across all projects of a given type
-            val matchingOnArtifactFormat = value.selector.requestedAttributes.keySet().contains(ARTIFACT_TYPE_ATTRIBUTE)
-            writeBoolean(matchingOnArtifactFormat)
+            val artifactType = value.selector.requestedAttributes.getAttribute(ARTIFACT_TYPE_ATTRIBUTE)
+            writeBoolean(artifactType != null)
             val mappings = mutableMapOf<ImmutableAttributes, MappingSpec>()
             value.artifactTypeRegistry.visitArtifactTypes { sourceAttributes ->
                 val recordingSet = RecordingVariantSet(value.dependencyMetadata.files, sourceAttributes)
@@ -118,6 +118,10 @@ class LocalFileDependencyBackedArtifactSetCodec(
                 } else {
                     mappings[sourceAttributes] = IdentityMapping
                 }
+            }
+            if (artifactType != null) {
+                val requestedArtifactType = attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, artifactType)
+                mappings[requestedArtifactType] = IdentityMapping
             }
             write(mappings)
         }
@@ -248,7 +252,7 @@ class TransformMapping(private val targetAttributes: ImmutableAttributes, privat
         throw UnsupportedOperationException()
     }
 
-    override fun getSourceVariant(): VariantDefinition? {
+    override fun getPrevious(): VariantDefinition? {
         throw UnsupportedOperationException()
     }
 }
@@ -279,6 +283,7 @@ class FixedVariantSelector(
                     variant.artifacts
                 }
             }
+
             is IdentityMapping -> variant.artifacts
             is TransformMapping -> factory.asTransformed(variant, spec, EmptyDependenciesResolverFactory(fileCollectionFactory), transformedVariantFactory)
         }

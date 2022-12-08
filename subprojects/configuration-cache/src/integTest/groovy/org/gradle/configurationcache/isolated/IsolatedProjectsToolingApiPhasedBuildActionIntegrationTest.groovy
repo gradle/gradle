@@ -125,7 +125,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         when:
         executer.withArguments(ENABLE_CLI)
         def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
-            // Empty list means "run tasks defined by build logic or default task"
+            // Empty list means "run tasks defined by build logic or default tasks"
             forTasks([])
         }
 

@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":model-core"))
     implementation(project(":platform-jvm"))
+    implementation(project(":platform-base"))
     implementation(project(":plugins"))
 
     implementation(libs.groovy)

@@ -198,13 +198,13 @@ fun BuildStep.skipConditionally(buildType: BuildType? = null) {
     }
 }
 
-fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true): List<String> =
+fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true, maxParallelForks: String = "%maxParallelForks%"): List<String> =
     listOf(
         // We pass the 'maxParallelForks' setting as 'workers.max' to limit the maximum number of executers even
         // if multiple test tasks run in parallel. We also pass it to the Gradle build as a maximum (maxParallelForks)
         // for each test task, such that we are independent of whatever default value is defined in the build itself.
-        "-Dorg.gradle.workers.max=%maxParallelForks%",
-        "-PmaxParallelForks=%maxParallelForks%",
+        "-Dorg.gradle.workers.max=$maxParallelForks",
+        "-PmaxParallelForks=$maxParallelForks",
         pluginPortalUrlOverride,
         "-s",
         "--no-configuration-cache",

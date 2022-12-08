@@ -85,11 +85,11 @@ public class ProjectBuilderImpl {
         DefaultProjectDescriptor parentDescriptor = descriptorRegistry.getProject(parentProject.getPath());
 
         projectDir = (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name);
+        // Descriptor is added to registry as a side effect
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(parentDescriptor, name, projectDir, descriptorRegistry, parentProject.getServices().get(FileResolver.class));
-        descriptorRegistry.addProject(projectDescriptor);
 
         ProjectState projectState = parentProject.getServices().get(ProjectStateRegistry.class).registerProject(parentProject.getServices().get(BuildState.class), projectDescriptor);
-        projectState.createMutableModel(parentProject.getClassLoaderScope().createChild("project-" + name), parentProject.getBaseClassLoaderScope());
+        projectState.createMutableModel(parentProject.getClassLoaderScope().createChild("project-" + name, null), parentProject.getBaseClassLoaderScope());
         ProjectInternal project = projectState.getMutableModel();
 
         // Lock the project, these won't ever be released as ProjectBuilder has no lifecycle
@@ -129,11 +129,11 @@ public class ProjectBuilderImpl {
         gradle.setIncludedBuilds(Collections.emptyList());
 
         ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
+        // Registers project as a side effect
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, projectDescriptorRegistry, buildServices.get(FileResolver.class));
-        projectDescriptorRegistry.addProject(projectDescriptor);
 
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
-        ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
+        ClassLoaderScope rootProjectScope = baseScope.createChild("root-project", null);
 
         ProjectStateRegistry projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
         ProjectState projectState = projectStateRegistry.registerProject(build, projectDescriptor);

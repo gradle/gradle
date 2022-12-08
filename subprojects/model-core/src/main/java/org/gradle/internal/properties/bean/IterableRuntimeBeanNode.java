@@ -24,7 +24,7 @@ import javax.annotation.Nullable;
 import java.util.Queue;
 
 class IterableRuntimeBeanNode extends RuntimeBeanNode<Iterable<?>> {
-    public IterableRuntimeBeanNode(RuntimeBeanNode<?> parentNode, String propertyName, Iterable<?> iterable) {
+    public IterableRuntimeBeanNode(RuntimeBeanNode<Iterable<?>> parentNode, String propertyName, Iterable<?> iterable) {
         super(parentNode, propertyName, iterable);
     }
 
