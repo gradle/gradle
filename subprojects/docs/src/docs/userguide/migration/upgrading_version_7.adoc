@@ -229,6 +229,12 @@ The values are available in the **internal** `JavaEcosystemSupport` class for co
 The deprecated `setForce(boolean)` method of the `ExternalDependency` interface has been removed.
 Use the `version(Action)` method to configure strict versions instead.
 
+==== Build-scan method removed from Kotlin DSL
+
+The deprecated `build-scan` plugin application method has been removed from the Kotlin DSL.
+Use the `gradle-enterprise` method instead.
+
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
