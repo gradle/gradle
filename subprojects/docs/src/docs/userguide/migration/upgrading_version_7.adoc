@@ -459,6 +459,11 @@ Although this type remains, it is no longer functional and will throw an excepti
 It is preserved solely to avoid breaking plugins.
 Use the tasks in the `maven-publish` or `ivy-publish` plugins instead.
 
+==== Configurations no longer allowed as Dependencies
+
+Adding a Configuration as a dependency in the `dependencies` DSL block, or programmatically using the `DependencyHandler` classes' `doAdd(Configuration, Object, Closure)` method, is no longer allowed and will fail with an exception.
+You can extend configurations using the `extendsFrom(Configuration)` method on `Configuration` instead to replicate many of the results of this behavior.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
