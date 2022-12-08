@@ -198,6 +198,8 @@ Use the `library(String, String, String)` or `plugin(String, String)` methods in
 The deprecated `submit(Class, Action)` method of the `WorkerExecutor` interface has been removed.
 Instead, obtain a `WorkQueue` via the `noIsolation()`. `classLoaderIsolation()`, `processIsolation()`, methods and use the `submit(Class, Action)` method on the `WorkQueue` instead.
 
+
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
@@ -468,6 +470,11 @@ Use the tasks in the `maven-publish` or `ivy-publish` plugins instead.
 
 Adding a Configuration as a dependency in the `dependencies` DSL block, or programmatically using the `DependencyHandler` classes' `doAdd(Configuration, Object, Closure)` method, is no longer allowed and will fail with an exception.
 You can extend configurations using the `extendsFrom(Configuration)` method on `Configuration` instead to replicate many of the results of this behavior.
+
+==== AntlrPlugin now creates a non-consumable configuration
+
+The `antlr` configuration created by the `AntlrPlugin` was never meant to be consumed.  It was deprecated for consumption and is now no longer consumable.
+Attempting to consume it will now result in an error.
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
