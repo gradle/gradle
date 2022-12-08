@@ -67,7 +67,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     private final String cacheDisplayName;
     private final File baseDir;
-    private final CacheCleanupAction cleanupAction;
+    private final CacheCleanupExecutor cleanupAction;
     private final ExecutorFactory executorFactory;
     private final FileAccess fileAccess;
     private final Map<String, IndexedCacheEntry<?, ?>> caches = new HashMap<String, IndexedCacheEntry<?, ?>>();
@@ -87,7 +87,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private int cacheClosedCount;
     private boolean alreadyCleaned;
 
-    public DefaultCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupAction cleanupAction, ExecutorFactory executorFactory) {
+    public DefaultCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupExecutor cleanupAction, ExecutorFactory executorFactory) {
         this.cacheDisplayName = cacheDisplayName;
         this.baseDir = baseDir;
         this.cleanupAction = cleanupAction;
@@ -146,7 +146,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     @Override
     public void cleanup() {
-        if (cleanupAction != null && cleanupAction.requiresCleanup()) {
+        if (cleanupAction != null) {
             if (cacheAccessWorker != null) {
                 cacheAccessWorker.flush();
             }
@@ -184,7 +184,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
                 // If cleanup is required, but has not already been invoked (e.g. at the end of the build session)
                 // perform cleanup on close.
-                if (cleanupAction != null && cleanupAction.requiresCleanup() && !alreadyCleaned) {
+                if (cleanupAction != null && !alreadyCleaned) {
                     doCleanup();
                 }
 

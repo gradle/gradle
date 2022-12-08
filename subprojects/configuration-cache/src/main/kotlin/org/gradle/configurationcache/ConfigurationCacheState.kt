@@ -17,13 +17,13 @@
 package org.gradle.configurationcache
 
 import org.gradle.api.artifacts.component.BuildIdentifier
-import org.gradle.api.cache.CacheResourceConfiguration
 import org.gradle.api.cache.Cleanup
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
+import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
@@ -557,10 +557,10 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultReadContext.readCacheConfigurations(gradle: GradleInternal) {
         gradle.settings.caches.let { cacheConfigurations ->
-            cacheConfigurations.releasedWrappers = read() as CacheResourceConfiguration?
-            cacheConfigurations.snapshotWrappers = read() as CacheResourceConfiguration?
-            cacheConfigurations.downloadedResources = read() as CacheResourceConfiguration?
-            cacheConfigurations.createdResources = read() as CacheResourceConfiguration?
+            cacheConfigurations.releasedWrappers = read() as CacheResourceConfigurationInternal?
+            cacheConfigurations.snapshotWrappers = read() as CacheResourceConfigurationInternal?
+            cacheConfigurations.downloadedResources = read() as CacheResourceConfigurationInternal?
+            cacheConfigurations.createdResources = read() as CacheResourceConfigurationInternal?
             cacheConfigurations.cleanup = readNonNull<Property<Cleanup>>()
         }
     }
