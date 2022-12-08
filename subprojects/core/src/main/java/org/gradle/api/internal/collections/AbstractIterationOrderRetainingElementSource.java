@@ -61,12 +61,18 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     @Override
     public boolean isEmpty() {
-        return inserted.isEmpty();
+        for (Element<T> element : inserted) {
+            if (element.size() != 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
     public boolean constantTimeIsEmpty() {
-        return inserted.isEmpty();
+        // We can't determine empty state in constant time.
+        return false;
     }
 
     @Override
