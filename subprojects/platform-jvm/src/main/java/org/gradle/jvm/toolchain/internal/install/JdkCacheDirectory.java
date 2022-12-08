@@ -118,32 +118,101 @@ public class JdkCacheDirectory {
      * Unpacks and installs the given JDK archive. Returns a file pointing to the java home directory.
      */
     public File provisionFromArchive(JavaToolchainSpec spec, File jdkArchive, URI uri) {
-        final File unpackFolder = unpack(jdkArchive);
-        File markedLocation = markedLocation(unpackFolder);
-        markAsReady(markedLocation);
+        final File[] unpackFolder = new File[1];
+        final File[] installFolder = new File[1];
+        try {
+            unpackFolder[0] = unpack(jdkArchive);
+
+            //put the marker file in the unpack folder from where it will get in its proper place
+            //when the contents are copied to the installation folder
+            File markedLocation = markLocationInsideFolder(unpackFolder[0]);
+
+            //probe unpacked installation for its metadata
+            JvmInstallationMetadata metadata = getMetadata(markedLocation);
+
+            validateMetadataMatchesSpec(spec, uri, metadata);
+
+            String installFolderName = getInstallFolderName(metadata);
+            installFolder[0] = new File(jdkDirectory, installFolderName);
+
+            //make sure the install folder is empty
+            checkInstallFolderForLeftoverContent(installFolder[0], uri, spec, metadata);
+            operations.delete(installFolder[0]);
+
+            //copy content of unpack folder to install folder, including the marker file
+            operations.copy(copySpec -> {
+                copySpec.from(unpackFolder[0]);
+                copySpec.into(installFolder[0]);
+            });
+
+            LOGGER.info("Installed toolchain from {} into {}", uri, installFolder[0]);
+            return getJavaHome(markedLocation(installFolder[0]));
+        } catch (Throwable t) {
+            // provisioning failed, clean up leftovers
+            if (installFolder[0] != null) {
+                operations.delete(installFolder[0]);
+            }
+            throw t;
+        } finally {
+            // clean up temporary unpack folder, regardless if provisioning succeeded or not
+            if (unpackFolder[0] != null) {
+                operations.delete(unpackFolder[0]);
+            }
+        }
+    }
+
+    private void checkInstallFolderForLeftoverContent(File installFolder, URI uri, JavaToolchainSpec spec, JvmInstallationMetadata metadata) {
+        if (!installFolder.exists()) {
+            return; //install folder doesn't even exist
+        }
+
+        File[] filesInInstallFolder = installFolder.listFiles();
+        if (filesInInstallFolder == null || filesInInstallFolder.length == 0) {
+            return; //no files in install folder
+        }
+
+        File markerLocation = markedLocation(installFolder);
+        if (!isMarkedLocation(markerLocation)) {
+            return; //no marker found
+        }
+
+        String leftoverMetadata;
+        try {
+            leftoverMetadata = getMetadata(markerLocation).toString();
+        } catch (Exception e) {
+            LOGGER.debug("Failed determining metadata of installation leftover", e);
+            leftoverMetadata = "Could not be determined due to: " + e.getMessage();
+        }
+        LOGGER.warn("While provisioning Java toolchain from '{}' to satisfy spec '{}' (with metadata '{}'), " +
+                "leftover content (with metadata '{}') was found in the install folder '{}'. " +
+                "The existing installation will be replaced by the new download.",
+                uri, spec, metadata, leftoverMetadata, installFolder);
+    }
+
+    private JvmInstallationMetadata getMetadata(File markedLocation) {
         File javaHome = getJavaHome(markedLocation);
 
         JvmInstallationMetadata metadata = detector.getMetadata(new InstallationLocation(javaHome, "provisioned toolchain"));
         if (!metadata.isValidInstallation()) {
-            throw new GradleException("Provisioned toolchain '" + javaHome + "' could not be probed.");
+            throw new GradleException("Provisioned toolchain '" + javaHome + "' could not be probed: " + metadata.getErrorMessage(), metadata.getErrorCause());
         }
+
+        return metadata;
+    }
+
+    private File markLocationInsideFolder(File unpackedInstallationFolder) {
+        File markedLocation = markedLocation(unpackedInstallationFolder);
+        markAsReady(markedLocation);
+        return markedLocation;
+    }
+
+    private static void validateMetadataMatchesSpec(JavaToolchainSpec spec, URI uri, JvmInstallationMetadata metadata) {
         if (!new JavaToolchainMatcher(spec).test(metadata)) {
             throw new GradleException("Toolchain provisioned from '" + uri + "' doesn't satisfy the specification: " + spec.getDisplayName() + ".");
         }
-
-        File installFolder = new File(jdkDirectory, toDirectoryName(metadata));
-        operations.copy(copySpec -> {
-            copySpec.from(unpackFolder);
-            copySpec.into(installFolder);
-        });
-        operations.delete(unpackFolder);
-
-        LOGGER.info("Installed toolchain from {} into {}", uri, installFolder);
-
-        return getJavaHome(markedLocation(installFolder));
     }
 
-    private static String toDirectoryName(JvmInstallationMetadata metadata) {
+    private static String getInstallFolderName(JvmInstallationMetadata metadata) {
         String vendor = metadata.getJvmVendor();
         if (vendor == null || vendor.isEmpty()) {
             vendor = metadata.getVendor().getRawVendor();
