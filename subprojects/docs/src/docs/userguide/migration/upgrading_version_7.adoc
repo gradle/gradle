@@ -170,6 +170,11 @@ The same functionality is also available on the `JacocoReport` task.
 The deprecated `main` property of the `JavaExec` task type has been removed.
 Use the `mainClass` property instead.
 
+==== AbstractExecTask API Cleanup
+
+The deprecated `execResult` getter property of the `AbstractExecTask` task type has been removed.
+Use the `executionResult` getter property instead.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
