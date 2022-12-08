@@ -185,6 +185,14 @@ Use the `binaryResultsDirectory` property instead.
 The deprecated `outputDir` property of the `SourceDirectorySet` type has been removed.
 Use the `destinationDirectory` property instead.
 
+==== VersionCatalog API Cleanup
+
+The deprecated `findDependency(String)` method and `dependencyAliases` property of the `VersionCatalog` type have been removed.
+Use the `findLibrary(String)` method and `libraryAliases` property instead.
+
+The deprecated `alias(String)` method of the `VersionCatalogBuilder` type has been removed.
+Use the `library(String, String, String)` or `plugin(String, String)` methods instead.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
