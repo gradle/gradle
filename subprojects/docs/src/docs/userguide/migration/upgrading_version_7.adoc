@@ -193,6 +193,11 @@ Use the `findLibrary(String)` method and `libraryAliases` property instead.
 The deprecated `alias(String)` method of the `VersionCatalogBuilder` type has been removed.
 Use the `library(String, String, String)` or `plugin(String, String)` methods instead.
 
+==== WorkerExecutor API Cleanup
+
+The deprecated `submit(Class, Action)` method of the `WorkerExecutor` interface has been removed.
+Instead, obtain a `WorkQueue` via the `noIsolation()`. `classLoaderIsolation()`, `processIsolation()`, methods and use the `submit(Class, Action)` method on the `WorkQueue` instead.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
