@@ -130,6 +130,11 @@ A deprecated `configureDocumentationVariantWithArtifact` method of the `JvmPlugi
 This was an internal API, but may have been accessed by plugins.
 Supply a `FileResolver` to the overloaded version of this method instead.
 
+==== Groovydoc API Cleanup
+
+The deprecated `isIncludePrivate` property of the `Groovydoc` task type has been removed.
+Use the `access` property along with the `GroovydocAccess#PRIVATE` constant instead.
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
