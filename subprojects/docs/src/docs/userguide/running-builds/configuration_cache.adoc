@@ -30,7 +30,7 @@ This feature is currently *_incubating_* and not enabled by default. This featur
 
 - The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress.
 - Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>.
-- IDE imports and syncs do not use the configuration cache.
+- IDE imports and syncs do not yet use the configuration cache.
 ====
 
 [[config_cache:intro:how_does_it_work]]
@@ -48,9 +48,9 @@ The first time you run a particular set of tasks, there will be no entry in the 
 4. Run the builds scripts for the build, applying any requested project plugins.
 5. Calculate the task graph for the requested tasks, running any deferred configuration actions.
 
-Following the configuration phase, Gradle writes the state of the task graph to the configuration cache, taking a snapshot for later Gradle invocations.
-The execution phase then runs as normal.
-This means you will not see any build performance improvement the first time you run a particular set of tasks.
+Following the configuration phase, Gradle writes a snapshot of the task graph to a new configuration cache entry, for later Gradle invocations.
+Gradle then loads the task graph from the configuration cache, so that it can apply optimizations to the tasks, and then runs the execution phase as normal.
+Generally, you will not see any build performance improvement the first time you run a particular set of tasks.
 
 When you subsequently run Gradle with this same set of tasks, for example by running `gradlew check` again, Gradle will load the tasks and their configuration directly from the configuration cache and skip the configuration phase entirely.
 Before using a configuration cache entry, Gradle checks that none of the "build configuration inputs", such as build scripts, for the entry have changed.
@@ -65,7 +65,7 @@ Build configuration inputs include:
 - Gradle properties used during the configuration phase
 - Environment variables used during the configuration phase
 - Configuration files accessed using value suppliers such as providers
-- `buildSrc` inputs, including build configuration inputs  and source files.
+- `buildSrc` and plugin included build inputs, including build configuration inputs and source files.
 
 Gradle uses its own optimized serialization mechanism and format to store the configuration cache entries.
 It automatically serializes the state of arbitrary object graphs.
@@ -78,8 +78,9 @@ As a fallback and to provide some aid in migrating existing tasks, some semantic
 
 Apart from skipping the configuration phase, the configuration cache provides some additional performance improvements:
 
-- All tasks run in parallel by default.
+- All tasks run in parallel by default, subject to dependency constraints.
 - Dependency resolution is cached.
+- Configuration state and dependency resolution state is discarded from heap after writing the task graph. This reduces the peak heap usage required for a given set of tasks.
 
 [[config_cache:in_action]]
 === Configuration caching in action
