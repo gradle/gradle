@@ -46,7 +46,7 @@ For older Gradle versions, please see the table below which Java version is supp
 
 [[kotlin]]
 == Kotlin
-Gradle is tested with Kotlin 1.6.10 through 1.7.22.
+Gradle is tested with Kotlin 1.6.10 through 1.8.0. Beta and RC versions may or may not work.
 
 Gradle plugins written in Kotlin target Kotlin 1.5 for compatibility with Gradle and Kotlin DSL build scripts, even though the embedded Kotlin runtime is Kotlin 1.7.
 
