@@ -23,13 +23,18 @@ import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
+import org.gradle.util.IntegTestPreconditions
 import org.gradle.util.Requires
 import spock.lang.Issue
 
 @NonCrossVersion
 class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerIntegrationTest {
     @NoDebug
-    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6", "1.7") })
+    @Requires([
+        IntegTestPreconditions.Java5HomeAvailable,
+        IntegTestPreconditions.Java6HomeAvailable,
+        IntegTestPreconditions.Java7HomeAvailable
+    ])
     def "fails when build is configured to use Java 7 or earlier"() {
         given:
         testDirectory.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
@@ -51,7 +56,7 @@ class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerInteg
 
     @Issue("https://github.com/gradle/gradle/issues/13957")
     @NoDebug
-    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.8") })
+    @Requires(IntegTestPreconditions.Java8HomeAvailable)
     def "supports failing builds on older Java versions"() {
         given:
         testDirectory.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)

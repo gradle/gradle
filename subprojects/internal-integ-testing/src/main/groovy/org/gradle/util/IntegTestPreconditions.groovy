@@ -32,7 +32,30 @@ class IntegTestPreconditions extends BaseTestPreconditions {
     static final class IsEmbeddedExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return GradleContextualExecuter.
+            return GradleContextualExecuter.embedded
+        }
+    }
+
+    static final class IsConfigCache implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return GradleContextualExecuter.isNotConfigCache()
+        }
+    }
+
+    static final class GradleBuildJvmSpecAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return GradleBuildJvmSpec.available
+        }
+    }
+
+    static class Java5HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(5)
+            )
         }
     }
 

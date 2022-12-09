@@ -24,11 +24,9 @@ import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.util.Requires
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.IgnoreIf
-
-import static org.gradle.util.TestPrecondition.JDK11_OR_EARLIER
-import static org.gradle.util.TestPrecondition.ONLINE
 
 @NonCrossVersion
 @NoDebug
@@ -87,7 +85,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
         dsl << ['groovy', 'kotlin']
     }
 
-    @Requires([ONLINE, JDK11_OR_EARLIER])
+    @Requires([UnitTestPreconditions.Online, UnitTestPreconditions.Jdk11OrEarlier])
     // Uses Gradle 5.0 which does not support Java versions >11
     @UsesSample("testKit/gradleVersion")
     def gradleVersion() {
