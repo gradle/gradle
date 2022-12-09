@@ -116,6 +116,8 @@ public class GarbageCollectorMonitoringStrategy {
         List<String> garbageCollectors = CollectionUtils.collect(ManagementFactory.getGarbageCollectorMXBeans(), MemoryManagerMXBean::getName);
         GarbageCollectorMonitoringStrategy gcStrategy = CollectionUtils.findFirst(STRATEGIES, strategy -> garbageCollectors.contains(strategy.getGarbageCollectorName()));
 
+        // TODO: These messages we print below are not actionable. Ideally, we would instruct the user to file an issue
+        // noting the GC parameters they are using so that we can add that GC to our STRATEGIES.
         if (gcStrategy == null) {
             LOGGER.info("Unable to determine a garbage collection monitoring strategy for {}", Jvm.current());
             return GarbageCollectorMonitoringStrategy.UNKNOWN;

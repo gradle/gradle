@@ -21,6 +21,7 @@ import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import org.slf4j.Logger
 import spock.lang.Specification
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE
@@ -154,6 +155,62 @@ class HealthExpirationStrategyTest extends Specification {
         then:
         result.status == IMMEDIATE_EXPIRE
         result.reason == "since the JVM garbage collector is thrashing and after running out of JVM Metaspace"
+    }
+
+    def "logs are not spammed if checkExpiration is called multiple times while an unhealthy condition persists"() {
+        given:
+        Logger logger = Mock(Logger)
+        DaemonHealthStats stats = Mock(DaemonHealthStats)
+        stats.getNonHeapStats() >> belowThreshold
+        def underTest = new HealthExpirationStrategy(stats, strategy, logger)
+
+        // If there is no unhealthy condition, we expect no logging.
+        when:
+        stats.getHeapStats() >> belowThreshold
+        underTest.checkExpiration()
+
+        then:
+        0 * logger.warn(_)
+
+        // After encountering the unhealthy condition for the first time, we log.
+        when:
+        stats.getHeapStats() >> aboveHeapThreshold
+        underTest.checkExpiration()
+
+        then:
+        1 * logger.warn({ it.startsWith("The Daemon will expire after the build") })
+
+        // Once encountered again, we expect no log.
+        when:
+        stats.getHeapStats() >> aboveHeapThreshold
+        underTest.checkExpiration()
+
+        then:
+        0 * logger.warn(_)
+
+        // When we encounter a more severe condition, we log again.
+        when:
+        stats.getHeapStats() >> aboveThrashingThreshold
+        underTest.checkExpiration()
+
+        then:
+        1 * logger.warn({ it.startsWith("The Daemon will expire immediately") })
+
+        // Encountering the more severe condition again does not log.
+        when:
+        stats.getHeapStats() >> aboveThrashingThreshold
+        underTest.checkExpiration()
+
+        then:
+        0 * logger.warn(_)
+
+        // And if we go back to a less severe condition, we do not log
+        when:
+        stats.getHeapStats() >> aboveHeapThreshold
+        underTest.checkExpiration()
+
+        then:
+        0 * logger.warn(_)
     }
 
     def "knows when heap space is exhausted (#rateThreshold <= #rate, #usageThreshold <= #usage)"(double rateThreshold, int usageThreshold, double rate, int usage, boolean unhealthy) {
