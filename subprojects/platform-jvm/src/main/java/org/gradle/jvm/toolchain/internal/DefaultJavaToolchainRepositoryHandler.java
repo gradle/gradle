@@ -32,12 +32,13 @@ import org.gradle.jvm.toolchain.JavaToolchainRepository;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler;
 
 import javax.inject.Inject;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
-public class DefaultJavaToolchainRepositoryHandler extends DefaultNamedDomainObjectList<JavaToolchainRepository>
-        implements JavaToolchainRepositoryHandler {
+public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepositoryHandler {
 
-    private final JavaToolchainResolverRegistryInternal registry;
+    private final DefaultNamedDomainObjectList<JavaToolchainRepository> repositories;
 
     private final Instantiator instantiator;
 
@@ -49,14 +50,17 @@ public class DefaultJavaToolchainRepositoryHandler extends DefaultNamedDomainObj
 
     @Inject
     public DefaultJavaToolchainRepositoryHandler(
-            JavaToolchainResolverRegistryInternal registry,
             Instantiator instantiator,
             ObjectFactory objectFactory,
             ProviderFactory providerFactory,
             AuthenticationSchemeRegistry authenticationSchemeRegistry
     ) {
-        super(JavaToolchainRepository.class, instantiator, new RepositoryNamer(), CollectionCallbackActionDecorator.NOOP);
-        this.registry = registry;
+        this.repositories = new DefaultNamedDomainObjectList<JavaToolchainRepository>(JavaToolchainRepository.class, instantiator, new RepositoryNamer(), CollectionCallbackActionDecorator.NOOP) {
+            @Override
+            public String getTypeDisplayName() {
+                return "repository";
+            }
+        };
         this.instantiator = instantiator;
         this.objectFactory = objectFactory;
         this.providerFactory = providerFactory;
@@ -81,14 +85,19 @@ public class DefaultJavaToolchainRepositoryHandler extends DefaultNamedDomainObj
         DefaultJavaToolchainRepository repository = objectFactory.newInstance(DefaultJavaToolchainRepository.class, name, authenticationContainer, authenticationSupporter, providerFactory);
         configureAction.execute(repository);
 
-        boolean isNew = registry.getRepositories().add(repository);
+        boolean isNew = repositories.add(repository);
         if (!isNew) {
             throw new GradleException("Duplicate configuration for repository '" + name + "'.");
         }
     }
 
     @Override
-    public String getTypeDisplayName() {
-        return "repository";
+    public List<JavaToolchainRepository> repositories() {
+        return Collections.unmodifiableList(repositories);
+    }
+
+    @Override
+    public int size() {
+        return repositories.size();
     }
 }
