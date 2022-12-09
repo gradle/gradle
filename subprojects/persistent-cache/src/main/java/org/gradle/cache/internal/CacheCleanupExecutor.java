@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.cache;
+package org.gradle.cache.internal;
 
-/**
- * Specifies the details of cache cleanup, including the action to be performed and the frequency at which cache cleanup should occur.
- */
-public interface CacheCleanup {
+public interface CacheCleanupExecutor {
     /**
-     * Returns the action to perform on cleanup.
+     * Executes the action to clean up the cache, should be called while holding the lock.
      */
-    CleanupAction getCleanupAction();
-
-    /**
-     * Returns the frequency at which cache cleanup can occur.  Possible values are only once a day, every time, or never.
-     */
-    CleanupFrequency getCleanupFrequency();
+    void cleanup();
 }

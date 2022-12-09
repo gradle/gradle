@@ -1644,7 +1644,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         outputDir2.assertExists()
     }
 
-    def "does not cleans up cache when retention is configured greater than the default"() {
+    def "does not clean up cache when retention is configured greater than the default"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform()
         ["lib1", "lib2"].each { name ->

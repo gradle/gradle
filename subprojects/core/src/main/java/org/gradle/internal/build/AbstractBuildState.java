@@ -18,12 +18,14 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.buildtree.BuildTreeState;
+import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
@@ -72,11 +74,15 @@ public abstract class AbstractBuildState implements BuildState, Closeable {
     }
 
     @Override
-    public void resetState() {
-        projectStateRegistry.get().resetState(this);
+    public void resetLifecycle() {
+        projectStateRegistry.get().discardProjectsFor(this);
         workGraphController.get().resetState();
-        buildLifecycleController.get().resetState();
+        buildLifecycleController.get().resetLifecycle();
         buildLifecycleController.get().getGradle().getServices().get(BuildServiceRegistryInternal.class).discardAll();
+        buildLifecycleController.get().getGradle().getServices().get(BuildOutputCleanupRegistry.class).resetLifecycle();
+        for (ProjectRegistry<?> projectRegistry : buildLifecycleController.get().getGradle().getServices().getAll(ProjectRegistry.class)) {
+            projectRegistry.discardAll();
+        }
     }
 
     @Override

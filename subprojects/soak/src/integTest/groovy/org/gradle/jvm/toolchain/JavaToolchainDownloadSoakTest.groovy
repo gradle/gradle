@@ -46,14 +46,13 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         executer.requireOwnGradleUserHomeDir()
         executer
-            .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
     }
 
     def "can download missing jdk automatically"() {
         when:
         result = executer
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+                .withTasks("compileJava")
                 .run()
 
         then:
@@ -72,7 +71,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         when:
         result = executer
-               .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+               .withTasks("compileJava")
                .run()
 
         then:
