@@ -143,10 +143,10 @@ public class TestFiles {
     }
 
     public static FileOperations fileOperations(File basedDir) {
-        return fileOperations(basedDir, null);
+        return fileOperations(basedDir, new DefaultTemporaryFileProvider(() -> new File(basedDir, "tmp")));
     }
 
-    public static FileOperations fileOperations(File basedDir, @Nullable TemporaryFileProvider temporaryFileProvider) {
+    public static FileOperations fileOperations(File basedDir, TemporaryFileProvider temporaryFileProvider) {
         FileResolver fileResolver = resolver(basedDir);
         FileSystem fileSystem = fileSystem();
 
