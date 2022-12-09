@@ -26,9 +26,14 @@ import org.gradle.cache.internal.DefaultDecompressionCache;
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
 import org.gradle.cache.internal.scopes.DefaultProjectScopedCache;
 import org.gradle.cache.scopes.ProjectScopedCache;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.util.GradleVersion;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * A factory that can be used to create {@link DecompressionCache} instances for a particular project.
@@ -38,9 +43,10 @@ import java.io.File;
  * a subdirectory of) until it is actually needed.  We need a named factory type
  * to create a service which can be injected.
  */
-public class ProjectScopedDecompressionCacheFactory implements DecompressionCacheFactory {
+public class ProjectScopedDecompressionCacheFactory implements DecompressionCacheFactory, Stoppable, Closeable {
     private final ProjectLayout projectLayout;
     private final CacheFactory cacheFactory;
+    private final Set<DefaultDecompressionCache> createdCaches = new HashSet<>();
 
     public ProjectScopedDecompressionCacheFactory(ProjectLayout projectLayout, CacheFactory cacheFactory) {
         this.projectLayout = projectLayout;
@@ -48,14 +54,31 @@ public class ProjectScopedDecompressionCacheFactory implements DecompressionCach
     }
 
     @Override
-    public DecompressionCache create() {
+    public DefaultDecompressionCache create() {
         File cacheDir = projectLevelCacheDir();
         CacheRepository cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(cacheDir, GradleVersion.current()), cacheFactory);
         ProjectScopedCache scopedCache = new DefaultProjectScopedCache(cacheDir, cacheRepository);
-        return new DefaultDecompressionCache(scopedCache);
+
+        DefaultDecompressionCache cache = new DefaultDecompressionCache(scopedCache);
+        createdCaches.add(cache);
+        return cache;
     }
 
     private File projectLevelCacheDir() {
         return projectLayout.getBuildDirectory().file(".cache").get().getAsFile();
+    }
+
+    @Override
+    public void close() throws IOException {
+        createdCaches.forEach(DefaultDecompressionCache::close);
+    }
+
+    @Override
+    public void stop() {
+        try {
+            close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
