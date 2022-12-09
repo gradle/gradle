@@ -1097,7 +1097,7 @@ include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/in
 
 In other words, as long as you add values and files to formal task inputs and outputs during the configuration phase, they will be treated as such regardless from where in the build you add them.
 
-If we want to support tasks as arguments as well and treat their outputs as the inputs, we can use the `project.layout.files()` method like so:
+If we want to support tasks as arguments as well and treat their outputs as the inputs, we can use the `TaskProvider` directly like so:
 
 .Declaring a method to add a task as an input
 ====
@@ -1118,7 +1118,7 @@ include::{snippetsPath}/tasks/incrementalBuild-incrementalBuildAdvanced/tests/in
 ====
 
 This technique can make your custom task easier to use and result in cleaner build files.
-As an added benefit, our use of `getProject().getLayout().files()` means that our custom method can set up an inferred task dependency.
+As an added benefit, our use of `TaskProvider` means that our custom method can set up an inferred task dependency.
 
 One last thing to note: if you are developing a task that takes collections of source files as inputs, like this example, consider using the built-in link:{groovyDslPath}/org.gradle.api.tasks.SourceTask.html[SourceTask]. It will save you having to implement some of the plumbing that we put into `ProcessTemplates`.
 
