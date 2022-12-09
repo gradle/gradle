@@ -81,14 +81,15 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
 
     private void walkChildren(T node, TypeMetadata typeMetadata, @Nullable String parentQualifiedName, V visitor, Map<T, String> nestedNodesOnPath) {
         typeMetadata.getPropertiesMetadata().forEach(propertyMetadata -> {
-            String childQualifiedName = getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName());
             if (propertyMetadata.getPropertyType() == nestedAnnotation) {
-                walkNestedChild(node, childQualifiedName, propertyMetadata, visitor, child -> walkNested(child, childQualifiedName, propertyMetadata, visitor, nestedNodesOnPath, false));
+                walkNestedChild(node, getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName()), propertyMetadata, visitor, child -> walkNested(child, getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName()), propertyMetadata, visitor, nestedNodesOnPath, false));
             } else {
-                visitor.visitLeaf(node, childQualifiedName, propertyMetadata);
+                walkLeaf(node, parentQualifiedName, visitor, propertyMetadata);
             }
         });
     }
+
+    abstract protected void walkLeaf(T node, @Nullable String parentQualifiedName, V visitor, PropertyMetadata propertyMetadata);
 
     abstract protected void onNestedNodeCycle(@Nullable String firstOccurrenceQualifiedName, String secondOccurrenceQualifiedName);
 
@@ -201,6 +202,11 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
             }
         }
 
+        @Override
+        protected void walkLeaf(Object node, @Nullable String parentQualifiedName, InstanceMetadataVisitor visitor, PropertyMetadata propertyMetadata) {
+            visitor.visitLeaf(node, getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName()), propertyMetadata);
+        }
+
         @SuppressWarnings("unchecked")
         private static TypeToken<?> unpackType(TypeToken<?> type) {
             while (Provider.class.isAssignableFrom(type.getRawType())) {
@@ -264,6 +270,10 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         @Override
         protected void walkNestedChild(TypeToken<?> parent, String childQualifiedName, PropertyMetadata propertyMetadata, StaticMetadataVisitor visitor, Consumer<TypeToken<?>> handler) {
             handler.accept(getChild(parent, propertyMetadata));
+        }
+
+        @Override
+        protected void walkLeaf(TypeToken<?> node, @Nullable String parentQualifiedName, StaticMetadataVisitor visitor, PropertyMetadata propertyMetadata) {
         }
 
         @Override

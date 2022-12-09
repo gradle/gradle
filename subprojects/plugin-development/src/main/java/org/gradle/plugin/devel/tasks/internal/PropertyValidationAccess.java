@@ -101,10 +101,6 @@ public class PropertyValidationAccess {
             public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, TypeToken<?> value) {
                 typeMetadata.visitValidationFailures(qualifiedName, validationContext);
             }
-
-            @Override
-            public void visitLeaf(TypeToken<?> parent, String qualifiedName, PropertyMetadata propertyMetadata) {
-            }
         });
     }
 
