@@ -56,7 +56,8 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
         and:
         daemons.daemon.log.contains(DAEMON_WILL_STOP_MESSAGE)
         output.contains("""The Daemon will expire after the build after running out of JVM heap space.
-The build memory settings are likely not configured or are configured to an insufficient value.
+The project memory settings are likely not configured or are configured to an insufficient value.
+The daemon will restart for the next build, which may increase subsequent build times.
 These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.
 The currently configured max heap space is '512 MiB' and the configured max metaspace is 'unknown'.
 For more information on how to set these values, visit the user guide at ${MEMORY_URL}
@@ -86,7 +87,8 @@ To disable this warning, set 'org.gradle.daemon.performance.disable-logging=true
         daemons.daemon.log.contains(DAEMON_STOPPING_IMMEDIATELY_MESSAGE)
         // We do not check the regular build output since sometimes it is not written before the daemon is killed.
         daemons.daemon.log.contains("""The Daemon will expire immediately since the JVM garbage collector is thrashing.
-The build memory settings are likely not configured or are configured to an insufficient value.
+The project memory settings are likely not configured or are configured to an insufficient value.
+The memory settings for this project must be adjusted to avoid this failure.
 These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.
 The currently configured max heap space is '512 MiB' and the configured max metaspace is 'unknown'.
 For more information on how to set these values, visit the user guide at ${MEMORY_URL}
@@ -121,7 +123,8 @@ To disable this warning, set 'org.gradle.daemon.performance.disable-logging=true
         and:
         daemons.daemon.log.contains(DAEMON_WILL_STOP_MESSAGE)
         output.contains("""The Daemon will expire after the build after running out of JVM heap space.
-The build memory settings are likely not configured or are configured to an insufficient value.
+The project memory settings are likely not configured or are configured to an insufficient value.
+The daemon will restart for the next build, which may increase subsequent build times.
 These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.
 The currently configured max heap space is '512 MiB' and the configured max metaspace is 'unknown'.
 For more information on how to set these values, visit the user guide at ${MEMORY_URL}
@@ -141,7 +144,8 @@ To disable this warning, set 'org.gradle.daemon.performance.disable-logging=true
         and:
         daemons.daemon.log.contains(DAEMON_WILL_STOP_MESSAGE)
         output.contains("""The Daemon will expire after the build after running out of JVM Metaspace.
-The build memory settings are likely not configured or are configured to an insufficient value.
+The project memory settings are likely not configured or are configured to an insufficient value.
+The daemon will restart for the next build, which may increase subsequent build times.
 These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.
 The currently configured max heap space is 'unknown' and the configured max metaspace is '512 MiB'.
 For more information on how to set these values, visit the user guide at ${MEMORY_URL}

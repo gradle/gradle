@@ -30,15 +30,13 @@ public class LogAndCheckHealth implements DaemonCommandAction {
 
     public static final String HEALTH_MESSAGE_PROPERTY = "org.gradle.daemon.performance.logging";
 
-    private static final Logger LOGGER = Logging.getLogger(LogAndCheckHealth.class);
-
     private final DaemonHealthStats stats;
     private final DaemonHealthCheck healthCheck;
     private final DaemonRunningStats runningStats;
     private final Logger logger;
 
     public LogAndCheckHealth(DaemonHealthStats stats, DaemonHealthCheck healthCheck, DaemonRunningStats runningStats) {
-        this(stats, healthCheck, runningStats, LOGGER);
+        this(stats, healthCheck, runningStats, Logging.getLogger(LogAndCheckHealth.class));
     }
 
     @VisibleForTesting
@@ -57,10 +55,10 @@ public class LogAndCheckHealth implements DaemonCommandAction {
         }
 
         if (Boolean.getBoolean(LogAndCheckHealth.HEALTH_MESSAGE_PROPERTY)) {
-            logger.lifecycle(getLogMessage());
+            logger.lifecycle(getStartBuildMessage());
         } else {
             // The default.
-            logger.info(getLogMessage());
+            logger.info(getStartBuildMessage());
         }
 
         execution.proceed();
@@ -70,7 +68,7 @@ public class LogAndCheckHealth implements DaemonCommandAction {
         healthCheck.executeHealthCheck();
     }
 
-    private String getLogMessage() {
+    private String getStartBuildMessage() {
         int nextBuildNum = runningStats.getBuildCount() + 1;
         if (nextBuildNum == 1) {
             return String.format("Starting build in new daemon [memory: %s]", NumberUtil.formatBytes(Runtime.getRuntime().maxMemory()));

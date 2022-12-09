@@ -168,7 +168,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
                 i++;
             } else if (line.contains(HealthExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
                 // Remove the "The Daemon will expire" message
-                i+=6;
+                i+=7;
             } else if (line.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY)) {
                 // Remove the deprecations message: "Deprecated Gradle features...", "Use '--warning-mode all'...", "See https://docs.gradle.org...", and additional newline
                 i+=4;

@@ -18,17 +18,19 @@ package org.gradle.launcher.daemon.server.health;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.internal.util.NumberUtil;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE;
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE;
@@ -61,20 +63,34 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
      */
     public static final String EXPIRE_DAEMON_MESSAGE = "The Daemon will expire ";
 
-    private static final Logger LOGGER = Logging.getLogger(HealthExpirationStrategy.class);
+    /**
+     * Used to determine if a status of a given severity has already been logged.
+     * We use this to ensure we don't print the same warning multiple times to the user
+     * if {@link #checkExpiration()} is called multiple times while an unhealthy
+     * memory condition persists.
+     */
+    private DaemonExpirationStatus mostSevereStatus = DO_NOT_EXPIRE;
+    private final Lock statusLock = new ReentrantLock();
 
-    public final DaemonHealthStats stats;
-    public final GarbageCollectorMonitoringStrategy strategy;
+    private final DaemonHealthStats stats;
+    private final GarbageCollectorMonitoringStrategy strategy;
+    private final Logger logger;
+    private final boolean enabled;
 
     public HealthExpirationStrategy(DaemonHealthStats stats, GarbageCollectorMonitoringStrategy strategy) {
+        this(stats, strategy, LoggerFactory.getLogger(HealthExpirationStrategy.class));
+    }
+
+    HealthExpirationStrategy(DaemonHealthStats stats, GarbageCollectorMonitoringStrategy strategy, Logger logger) {
         this.stats = stats;
         this.strategy = strategy;
+        this.logger = logger;
+        this.enabled = Boolean.parseBoolean(System.getProperty(ENABLE_PERFORMANCE_MONITORING, "true"));
     }
 
     @Override
     public DaemonExpirationResult checkExpiration() {
-        String enabledValue = System.getProperty(ENABLE_PERFORMANCE_MONITORING, "true");
-        if (!Boolean.parseBoolean(enabledValue)) {
+        if (!enabled) {
             return DaemonExpirationResult.NOT_TRIGGERED;
         }
 
@@ -106,25 +122,47 @@ public class HealthExpirationStrategy implements DaemonExpirationStrategy {
             return DaemonExpirationResult.NOT_TRIGGERED;
         }
 
+        // We've encountered an unhealthy condition. Log if necessary.
+
         String reason = Joiner.on(" and ").join(reasons);
-        if (!Boolean.getBoolean(DISABLE_PERFORMANCE_LOGGING)) {
+        if (shouldPrintLog(expirationStatus)) {
 
             String when = expirationStatus == GRACEFUL_EXPIRE ? "after the build" : "immediately";
+            String extraInfo = expirationStatus == GRACEFUL_EXPIRE
+                ? "The daemon will restart for the next build, which may increase subsequent build times"
+                : "The memory settings for this project must be adjusted to avoid this failure";
+
             String maxHeap = heapStats.isValid() ? NumberUtil.formatBytes(heapStats.getMaxSizeInBytes()) : "unknown";
             String maxMetaspace = nonHeapStats.isValid() ? NumberUtil.formatBytes(nonHeapStats.getMaxSizeInBytes()) : "unknown";
             String url = new DocumentationRegistry().getDocumentationFor("build_environment", "configuring_jvm_memory");
 
-            LOGGER.warn(EXPIRE_DAEMON_MESSAGE + when + " " + reason + ".\n"
-                + "The build memory settings are likely not configured or are configured to an insufficient value.\n"
+            logger.warn(EXPIRE_DAEMON_MESSAGE + when + " " + reason + ".\n"
+                + "The project memory settings are likely not configured or are configured to an insufficient value.\n"
+                + extraInfo + ".\n"
                 + "These settings can be adjusted by setting 'org.gradle.jvmargs' in 'gradle.properties'.\n"
                 + "The currently configured max heap space is '" + maxHeap + "' and the configured max metaspace is '" + maxMetaspace + "'.\n"
                 + "For more information on how to set these values, visit the user guide at " + url + "\n"
                 + "To disable this warning, set '" + DISABLE_PERFORMANCE_LOGGING + "=true'.");
         }
 
-        LOGGER.debug("Daemon health: {}", stats.getHealthInfo());
+        logger.debug("Daemon health: {}", stats.getHealthInfo());
 
         return new DaemonExpirationResult(expirationStatus, reason);
+    }
+
+    private boolean shouldPrintLog(DaemonExpirationStatus newStatus) {
+        if (Boolean.getBoolean(DISABLE_PERFORMANCE_LOGGING)) {
+            return false;
+        }
+
+        try {
+            statusLock.lock();
+            DaemonExpirationStatus previous = mostSevereStatus;
+            mostSevereStatus = highestPriorityOf(previous, newStatus);
+            return previous != mostSevereStatus;
+        } finally {
+            statusLock.unlock();
+        }
     }
 
 }
