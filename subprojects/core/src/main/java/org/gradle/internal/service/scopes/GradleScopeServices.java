@@ -28,7 +28,6 @@ import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.plugins.PluginTarget;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
@@ -64,12 +63,10 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
-import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
-import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
@@ -77,7 +74,6 @@ import org.gradle.internal.execution.TaskExecutionTracker;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
@@ -94,9 +90,6 @@ import java.util.List;
  */
 @SuppressWarnings("deprecation")
 public class GradleScopeServices extends DefaultServiceRegistry {
-
-    private final CompositeStoppable registries = new CompositeStoppable();
-
     public GradleScopeServices(final ServiceRegistry parent) {
         super(parent);
         register(registration -> {
@@ -181,21 +174,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
-        final Factory<LoggingManagerInternal> loggingManagerInternalFactory = getFactory(LoggingManagerInternal.class);
-        return new ServiceRegistryFactory() {
-            @Override
-            public ServiceRegistry createFor(Object domainObject) {
-                if (domainObject instanceof ProjectInternal) {
-                    ProjectScopeServices projectScopeServices = new ProjectScopeServices(services, (ProjectInternal) domainObject, loggingManagerInternalFactory);
-                    registries.add(projectScopeServices);
-                    return projectScopeServices;
-                }
-                throw new UnsupportedOperationException();
-            }
-        };
-    }
-
     PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
         return parentRegistry.createChild(get(GradleInternal.class).getClassLoaderScope());
     }
@@ -272,11 +250,4 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             return rootGradle.getServices().get(BuildInvocationScopeId.class);
         }
     }
-
-    @Override
-    public void close() {
-        registries.stop();
-        super.close();
-    }
-
 }

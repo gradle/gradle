@@ -66,7 +66,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             }
             nodesByPath.clear();
         }
-        taskNodeFactory.clear();
+        taskNodeFactory.resetState();
     }
 
     @Override

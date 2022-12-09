@@ -95,6 +95,7 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-minify/gro
 <2> All JAR files are not minified
 <3> Request `minified=true` on all resolvable configurations
 <4> Add the dependencies which will be transformed
+<5> Add task that requires the transformed artifacts
 
 You can now see what happens when we run the `resolveRuntimeClasspath` task which resolves the `runtimeClasspath` configuration.
 Observe that Gradle transforms the project dependency before the `resolveRuntimeClasspath` task starts.

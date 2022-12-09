@@ -17,27 +17,27 @@
 package org.gradle.api.internal.cache;
 
 import org.gradle.api.provider.Provider;
-import org.gradle.cache.CacheCleanup;
+import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupFrequency;
 
-import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
-public class DefaultCacheCleanup implements CacheCleanup {
+public class DefaultCacheCleanupStrategy implements CacheCleanupStrategy {
     private final CleanupAction cleanupAction;
-    private final Provider<CleanupFrequency> cleanupFrequency;
+    private final Supplier<CleanupFrequency> cleanupFrequency;
 
-    private DefaultCacheCleanup(CleanupAction cleanupAction, @Nullable Provider<CleanupFrequency> cleanupFrequency) {
+    private DefaultCacheCleanupStrategy(CleanupAction cleanupAction, Supplier<CleanupFrequency> cleanupFrequency) {
         this.cleanupAction = cleanupAction;
         this.cleanupFrequency = cleanupFrequency;
     }
 
-    public static DefaultCacheCleanup from(CleanupAction cleanupAction, Provider<CleanupFrequency> cleanupFrequency) {
-        return new DefaultCacheCleanup(cleanupAction, cleanupFrequency);
+    public static DefaultCacheCleanupStrategy from(CleanupAction cleanupAction, Provider<CleanupFrequency> cleanupFrequency) {
+        return new DefaultCacheCleanupStrategy(cleanupAction, cleanupFrequency::get);
     }
 
-    public static DefaultCacheCleanup from(CleanupAction cleanupAction) {
-        return new DefaultCacheCleanup(cleanupAction, null);
+    public static DefaultCacheCleanupStrategy from(CleanupAction cleanupAction) {
+        return new DefaultCacheCleanupStrategy(cleanupAction, () -> CleanupFrequency.DAILY);
     }
 
     @Override
@@ -47,6 +47,6 @@ public class DefaultCacheCleanup implements CacheCleanup {
 
     @Override
     public CleanupFrequency getCleanupFrequency() {
-        return cleanupFrequency != null ? cleanupFrequency.get() : CleanupFrequency.DAILY;
+        return cleanupFrequency.get();
     }
 }
