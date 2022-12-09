@@ -19,6 +19,7 @@ package org.gradle.internal.properties.annotations;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.provider.Provider;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.function.Supplier;
 
@@ -77,7 +78,8 @@ public interface TypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMetadata
     interface StaticMetadataVisitor extends TypeMetadataVisitor<TypeToken<?>> {}
 
     interface InstanceMetadataVisitor extends TypeMetadataVisitor<Object> {
-        void visitMissingNested(String qualifiedName, PropertyMetadata propertyMetadata);
+        @Override
+        void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable Object value);
         void visitNestedUnpackingError(String qualifiedName, Exception e);
     }
 }

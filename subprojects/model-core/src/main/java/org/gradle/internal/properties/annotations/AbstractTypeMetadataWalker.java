@@ -104,9 +104,13 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
 
     abstract protected void walkNestedChild(T parent, String childQualifiedName, PropertyMetadata propertyMetadata, V visitor, Consumer<T> handler);
 
+    abstract protected @Nullable T getChild(T parent, PropertyMetadata property);
+
     abstract protected Class<?> resolveType(T type);
 
-    abstract protected @Nullable T getChild(T parent, PropertyMetadata property);
+    protected TypeMetadata getTypeMetadata(Class<?> type) {
+        return typeMetadataStore.getTypeMetadata(type);
+    }
 
     private static String getQualifiedName(@Nullable String parentPropertyName, String childPropertyName) {
         return parentPropertyName == null
@@ -114,7 +118,13 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
             : parentPropertyName + "." + childPropertyName;
     }
 
+    private static <T> TypeToken<?> extractNestedType(TypeToken<T> beanType, Class<? super T> parameterizedSuperClass, int typeParameterIndex) {
+        ParameterizedType type = (ParameterizedType) beanType.getSupertype(parameterizedSuperClass).getType();
+        return TypeToken.of(type.getActualTypeArguments()[typeParameterIndex]);
+    }
+
     static class InstanceTypeMetadataWalker extends AbstractTypeMetadataWalker<Object, InstanceMetadataVisitor> implements InstanceMetadataWalker {
+
         public InstanceTypeMetadataWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
             super(typeMetadataStore, nestedAnnotation, IdentityHashMap::new);
         }
@@ -131,18 +141,14 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
 
         @Override
         protected void walkNestedProvider(Object node, String qualifiedName, PropertyMetadata propertyMetadata, InstanceMetadataVisitor visitor, boolean isElementOfCollection, Consumer<Object> handler) {
-            walkNestedChildIfPresentOrElse(
+            walkNestedChildIfPresent(
                 () -> ((Provider<?>) node).getOrNull(),
                 qualifiedName,
+                propertyMetadata,
                 visitor,
-                handler,
-                () -> {
-                    if (isElementOfCollection) {
-                        throw new IllegalStateException(getNullNestedCollectionValueExceptionMessage(qualifiedName));
-                    } else {
-                        visitor.visitMissingNested(qualifiedName, propertyMetadata);
-                    }
-                });
+                isElementOfCollection,
+                handler
+            );
         }
 
         @SuppressWarnings("unchecked")
@@ -169,15 +175,18 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
 
         @Override
         protected void walkNestedChild(Object parent, String childQualifiedName, PropertyMetadata propertyMetadata, InstanceMetadataVisitor visitor, Consumer<Object> handler) {
-            walkNestedChildIfPresentOrElse(
+            boolean isElementOfCollection = false;
+            walkNestedChildIfPresent(
                 () -> getChild(parent, propertyMetadata),
                 childQualifiedName,
+                propertyMetadata,
                 visitor,
-                handler,
-                () -> visitor.visitMissingNested(childQualifiedName, propertyMetadata));
+                isElementOfCollection,
+                handler
+            );
         }
 
-        private static void walkNestedChildIfPresentOrElse(Supplier<Object> unpacker, String qualifiedName, InstanceMetadataVisitor visitor, Consumer<Object> handler, Runnable missingHandler) {
+        private void walkNestedChildIfPresent(Supplier<Object> unpacker, String qualifiedName, PropertyMetadata propertyMetadata, InstanceMetadataVisitor visitor, boolean isElementOfCollection, Consumer<Object> handler) {
             Object value;
             try {
                 value = unpacker.get();
@@ -187,9 +196,22 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
             }
             if (value != null) {
                 handler.accept(value);
+            } else if (isElementOfCollection) {
+                throw new IllegalStateException(getNullNestedCollectionValueExceptionMessage(qualifiedName));
             } else {
-                missingHandler.run();
+                TypeToken<?> getterType = TypeToken.of(propertyMetadata.getGetterMethod().getGenericReturnType());
+                TypeMetadata typeMetadata = extractNestedTypeFromGetter(getterType);
+                visitor.visitNested(typeMetadata, qualifiedName, propertyMetadata, null);
             }
+        }
+
+        @SuppressWarnings("unchecked")
+        private TypeMetadata extractNestedTypeFromGetter(TypeToken<?> typeToken) {
+            if (!Provider.class.isAssignableFrom(typeToken.getRawType())) {
+                return getTypeMetadata(typeToken.getRawType());
+            }
+            TypeToken<?> nestedToken = extractNestedType((TypeToken<Provider<?>>) typeToken, Provider.class, 0);
+            return extractNestedTypeFromGetter(nestedToken);
         }
 
         @Override
@@ -267,11 +289,6 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
             return Named.class.isAssignableFrom(nestedType.getRawType())
                 ? "<name>"
                 : "*";
-        }
-
-        private static <T> TypeToken<?> extractNestedType(TypeToken<T> beanType, Class<? super T> parameterizedSuperClass, int typeParameterIndex) {
-            ParameterizedType type = (ParameterizedType) beanType.getSupertype(parameterizedSuperClass).getType();
-            return TypeToken.of(type.getActualTypeArguments()[typeParameterIndex]);
         }
     }
 }
