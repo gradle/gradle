@@ -427,11 +427,11 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
         and:
         def kotlinVersionNumber = VersionNumber.parse(kotlinPluginVersion)
-        def isKotlin_1_6 = kotlinVersionNumber.baseVersion < VersionNumber.parse("1.7.0")
-        def isKotlin_1_8 = kotlinVersionNumber.baseVersion >= VersionNumber.parse("1.8.0")
+        def isKotlin1dot6 = kotlinVersionNumber.baseVersion < VersionNumber.parse("1.7.0")
+        def isKotlin1dot8 = kotlinVersionNumber.baseVersion >= VersionNumber.parse("1.8.0")
 
         when:
-        if (isKotlin_1_6) {
+        if (isKotlin1dot6) {
             executer.expectDocumentedDeprecationWarning(
                 "The AbstractCompile.destinationDir property has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
@@ -445,7 +445,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         then:
         executedAndNotSkipped(":compileKotlin", ":test")
         println(eventsOnCompile)
-        if (isKotlin_1_8) {
+        if (isKotlin1dot8) {
             // Kotlin 1.8 uses both launcher and compiler
             assertToolchainUsages(eventsOnCompile, jdkMetadata, "JavaLauncher", "JavaCompiler")
         } else {
@@ -462,7 +462,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         eventsOnTest = toolchainEvents(":test")
 
         then:
-        if (isKotlin_1_6 && Jvm.current().javaVersion.java8 && GradleContextualExecuter.configCache) {
+        if (isKotlin1dot6 && Jvm.current().javaVersion.java8 && GradleContextualExecuter.configCache) {
             // For Kotlin 1.6 the compilation is not up-to-date with configuration caching when running on Java 8
             executedAndNotSkipped(":compileKotlin")
         } else {
