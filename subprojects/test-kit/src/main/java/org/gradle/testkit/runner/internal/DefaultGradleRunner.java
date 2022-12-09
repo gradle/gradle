@@ -276,6 +276,12 @@ public class DefaultGradleRunner extends GradleRunner {
         });
     }
 
+    @Override
+    public BuildResult run() {
+        return run(gradleExecutionResult -> {
+        });
+    }
+
     String createDiagnosticsMessage(String trailingMessage, GradleExecutionResult gradleExecutionResult) {
         String lineBreak = SystemProperties.getInstance().getLineSeparator();
         StringBuilder message = new StringBuilder();
