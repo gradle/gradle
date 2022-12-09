@@ -69,15 +69,12 @@ public class DefaultPropertyWalker implements PropertyWalker {
             }
 
             @Override
-            public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, Object value) {
+            public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable Object value) {
                 typeMetadata.visitValidationFailures(qualifiedName, validationContext);
-                ImplementationValue implementation = implementationResolver.resolveImplementation(value);
-                visitor.visitInputProperty(qualifiedName, new ImplementationPropertyValue(implementation), false);
-            }
-
-            @Override
-            public void visitMissingNested(String qualifiedName, PropertyMetadata propertyMetadata) {
-                if (!propertyMetadata.isAnnotationPresent(Optional.class)) {
+                if (value != null) {
+                    ImplementationValue implementation = implementationResolver.resolveImplementation(value);
+                    visitor.visitInputProperty(qualifiedName, new ImplementationPropertyValue(implementation), false);
+                } else if (!propertyMetadata.isAnnotationPresent(Optional.class)) {
                     visitor.visitInputProperty(qualifiedName, PropertyValue.ABSENT, false);
                 }
             }
