@@ -87,7 +87,7 @@ class XCTestConventionPluginTest extends Specification {
         project.xctest.testedComponent.orNull == project.application
     }
 
-    @Requires(UnitTestPreconditions.MacOsX)
+    @Requires(UnitTestPreconditions.MacOs)
     def "registers a test bundle for the test suite on macOS"() {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
@@ -127,7 +127,7 @@ class XCTestConventionPluginTest extends Specification {
         project.xctest.testBinary.get() == binaries.first()
     }
 
-    @Requires(UnitTestPreconditions.MacOsX)
+    @Requires(UnitTestPreconditions.MacOs)
     def "adds compile, link and install tasks on macOS"() {
         given:
         def src = projectDir.file("src/test/swift/test.swift").createFile()

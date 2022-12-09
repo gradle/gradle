@@ -319,7 +319,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         "x86_64" | ["-m64"]  | ["-m64"]
     }
 
-    @Requires(UnitTestPreconditions.MacOsX)
+    @Requires(UnitTestPreconditions.MacOs)
     def "supplies args for supported architecture for macOS platforms"() {
         def action = Mock(Action)
 

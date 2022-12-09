@@ -48,7 +48,7 @@ class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompil
             "  'Pre-compiled headers are used' satisfied"
     }
 
-    @Requires(UnitTestPreconditions.MacOsX)
+    @Requires(UnitTestPreconditions.MacOs)
     @ToBeFixedForConfigurationCache
     def "can compile and link C++ code with precompiled headers using standard macOS framework" () {
         given:

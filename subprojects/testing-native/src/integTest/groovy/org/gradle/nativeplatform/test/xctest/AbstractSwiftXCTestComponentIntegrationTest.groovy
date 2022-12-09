@@ -51,7 +51,7 @@ abstract class AbstractSwiftXCTestComponentIntegrationTest extends AbstractSwift
         outputContains("'${componentName}' component in project ':' does not target this operating system.")
     }
 
-    @Requires(UnitTestPreconditions.MacOsX)
+    @Requires(UnitTestPreconditions.MacOs)
     @ToBeFixedForConfigurationCache
     def "does not compile and link LinuxMain.swift on macOS"() {
         given:

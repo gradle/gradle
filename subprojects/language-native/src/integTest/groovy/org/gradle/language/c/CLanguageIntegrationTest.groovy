@@ -250,7 +250,7 @@ model {
         }
     }
 
-    @Requires(UnitTestPreconditions.MacOsX)
+    @Requires(UnitTestPreconditions.MacOs)
     @ToBeFixedForConfigurationCache
     def "can compile and link C code using standard macOS framework"() {
         given:

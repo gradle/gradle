@@ -60,7 +60,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
         notThrown UnsupportedOperationException
     }
 
-    @Requires(UnitTestPreconditions.MacOsX)
+    @Requires(UnitTestPreconditions.MacOs)
     def "gets OS total memory on a MacOS system"() {
         when:
         new DefaultOsMemoryInfo().getOsSnapshot().getTotalPhysicalMemory()
@@ -69,7 +69,7 @@ class DefaultOsMemoryInfoIntegrationTest extends Specification {
         notThrown UnsupportedOperationException
     }
 
-    @Requires(UnitTestPreconditions.MacOsX)
+    @Requires(UnitTestPreconditions.MacOs)
     def "gets OS free memory on a MacOS system"() {
         when:
         new DefaultOsMemoryInfo().getOsSnapshot().getFreePhysicalMemory()
