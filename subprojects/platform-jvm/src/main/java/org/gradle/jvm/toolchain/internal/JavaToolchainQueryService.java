@@ -25,6 +25,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
@@ -36,6 +38,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
+@ServiceScope(Scopes.Project.class)
 public class JavaToolchainQueryService {
 
     private final JavaInstallationRegistry registry;
@@ -121,30 +124,42 @@ public class JavaToolchainQueryService {
         if (spec instanceof CurrentJvmToolchainSpec) {
             return asToolchain(new InstallationLocation(Jvm.current().getJavaHome(), "current JVM"), spec).get();
         }
+
         if (spec instanceof SpecificInstallationToolchainSpec) {
             return asToolchain(new InstallationLocation(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation"), spec).get();
         }
 
-        return registry.listInstallations().stream()
-            .map(javaHome -> asToolchain(javaHome, spec))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .filter(new JavaToolchainMatcher(spec))
-            .min(new JavaToolchainComparator())
-            .orElseGet(() -> downloadToolchain(spec));
+        Optional<JavaToolchain> detectedToolchain = registry.listInstallations().stream()
+                .map(javaHome -> asToolchain(javaHome, spec))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(new JavaToolchainMatcher(spec))
+                .min(new JavaToolchainComparator());
+
+        if (detectedToolchain.isPresent()) {
+            return detectedToolchain.get();
+        }
+
+        InstallationLocation downloadedInstallation = downloadToolchain(spec);
+        JavaToolchain downloadedToolchain = asToolchainOrThrow(downloadedInstallation, spec);
+        registry.addInstallation(downloadedInstallation);
+        return downloadedToolchain;
     }
 
-    private JavaToolchain downloadToolchain(JavaToolchainSpec spec) {
+    private InstallationLocation downloadToolchain(JavaToolchainSpec spec) {
         final Optional<File> installation = installService.tryInstall(spec);
         if (!installation.isPresent()) {
             throw new NoToolchainAvailableException(spec, detectEnabled.getOrElse(true), downloadEnabled.getOrElse(true));
         }
 
-        Optional<JavaToolchain> toolchain = asToolchain(new InstallationLocation(installation.get(), "provisioned toolchain"), spec);
-        if (!toolchain.isPresent()) {
-            throw new GradleException("Provisioned toolchain '" + installation.get() + "' could not be probed.");
-        }
+        return new InstallationLocation(installation.get(), "provisioned toolchain");
+    }
 
+    private JavaToolchain asToolchainOrThrow(InstallationLocation javaHome, JavaToolchainSpec spec) {
+        Optional<JavaToolchain> toolchain = asToolchain(javaHome, spec);
+        if (!toolchain.isPresent()) {
+            throw new GradleException("Toolchain installation '" + javaHome.getLocation() + "' could not be probed.");
+        }
         return toolchain.get();
     }
 

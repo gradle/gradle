@@ -37,14 +37,13 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         executer.requireOwnGradleUserHomeDir()
         executer
-            .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
     }
 
     def "can download missing jdk automatically"() {
         when:
         result = executer
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+                .withTasks("compileJava")
                 .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
                         "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
                         "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
@@ -67,7 +66,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         when:
         result = executer
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+                .withTasks("compileJava")
                 .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
                         "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
                         "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
