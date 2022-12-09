@@ -40,7 +40,6 @@ import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Class for easy access to property validation from the validator task.
@@ -104,7 +103,7 @@ public class PropertyValidationAccess {
             }
 
             @Override
-            public void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<TypeToken<?>> value) {
+            public void visitLeaf(TypeToken<?> parent, String qualifiedName, PropertyMetadata propertyMetadata) {
             }
         });
     }

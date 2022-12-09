@@ -21,7 +21,6 @@ import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-import java.util.function.Supplier;
 
 /***
  * A generalized type metadata walker for traversing annotated types and instances using their {@link TypeMetadata}.
@@ -72,7 +71,7 @@ public interface TypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMetadata
 
         void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, T value);
 
-        void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<T> value);
+        void visitLeaf(T parent, String qualifiedName, PropertyMetadata propertyMetadata);
     }
 
     interface StaticMetadataVisitor extends TypeMetadataVisitor<TypeToken<?>> {}
