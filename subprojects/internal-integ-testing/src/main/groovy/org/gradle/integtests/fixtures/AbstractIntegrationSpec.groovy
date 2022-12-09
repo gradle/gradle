@@ -158,16 +158,24 @@ abstract class AbstractIntegrationSpec extends Specification {
         testDirectory.file(getDefaultBuildFileName())
     }
 
+    void buildFile(@GroovyBuildScriptLanguage String script) {
+        groovyFile(buildFile, script)
+    }
+
+    void settingsFile(@GroovyBuildScriptLanguage String script) {
+        groovyFile(settingsFile, script)
+    }
+
     /**
      * Provides best-effort groovy script syntax highlighting.
      * The highlighting is imperfect since {@link GroovyBuildScriptLanguage} uses stub methods to create a simulated script target environment.
      */
-    void buildFile(@GroovyBuildScriptLanguage String script) {
-        buildFile << script
+    void groovyFile(TestFile targetBuildFile, @GroovyBuildScriptLanguage String script) {
+        targetBuildFile << script
     }
 
-    void settingsFile(@GroovyBuildScriptLanguage String script) {
-        settingsFile << script
+    String groovyScript(@GroovyBuildScriptLanguage String script) {
+        script
     }
 
     TestFile getBuildKotlinFile() {

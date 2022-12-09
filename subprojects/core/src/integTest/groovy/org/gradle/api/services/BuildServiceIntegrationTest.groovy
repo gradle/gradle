@@ -41,6 +41,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -760,6 +761,72 @@ service: closed with value 12
 
         then:
         result.assertNotOutput("service:")
+    }
+
+    @ToBeImplemented
+    @Issue("https://github.com/gradle/gradle/issues/17559")
+    def "service provided by a plugin can be shared by subprojects with different classloaders"() {
+        settingsFile """
+        pluginManagement {
+            includeBuild 'plugin1'
+            includeBuild 'plugin2'
+        }
+        include 'subproject1'
+        include 'subproject2'
+        """
+        // plugin 1 declares a service
+        groovyFile(file("plugin1/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
+        groovyFile(file("plugin1/src/main/groovy/my.plugin1.gradle"), """
+            import org.gradle.api.services.BuildService
+            import org.gradle.api.services.BuildServiceParameters
+            abstract class MyService implements BuildService<BuildServiceParameters.None> {
+                String hello(String message) {
+                    "Hello, \$message"
+                }
+            }
+
+            def myService = gradle.sharedServices.registerIfAbsent("test", MyService) {}
+
+            project.task('hello') {
+                def projectName = project.name
+                doLast {
+                    assert MyService == myService.type
+                    println(myService.get().hello(projectName))
+                }
+            }
+        """)
+        // plugin 2
+        groovyFile(file("plugin2/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
+        groovyFile(file("plugin2/src/main/groovy/my.plugin2.gradle"), "/* no code needed */")
+        // subproject1 and subproject2 apply different sets of plugins, so get different classloaders
+        groovyFile(file("subproject1/build.gradle"), """
+        plugins {
+            id 'my.plugin1'
+            id 'my.plugin2'
+        }
+        """)
+        groovyFile(file("subproject2/build.gradle"), """
+        plugins {
+            // must include the plugin contributing the build service,
+            // and must be a different sorted set than the other project
+            // or else both subprojects are built with the same classloader
+            id 'my.plugin2'
+            id 'my.plugin1'
+        }
+        """)
+
+        when:
+        succeeds(":subproject1:hello")
+
+        then:
+        outputContains("Hello, subproject1")
+
+        when:
+        fails(":subproject2:hello")
+
+        then:
+        failureDescriptionContains("Execution failed for task ':subproject2:hello'.")
+        failureCauseContains("assert MyService == myService.type")
     }
 
     def "plugin applied to multiple projects can register a shared service"() {
