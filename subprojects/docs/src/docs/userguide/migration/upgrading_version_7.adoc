@@ -185,7 +185,7 @@ Use the `library(String, String, String)` or `plugin(String, String)` methods in
 ==== WorkerExecutor API Cleanup
 
 The deprecated `submit(Class, Action)` method of the `WorkerExecutor` interface has been removed.
-Instead, obtain a `WorkQueue` via the `noIsolation()`. `classLoaderIsolation()`, `processIsolation()`, methods and use the `submit(Class, Action)` method on the `WorkQueue` instead.
+Instead, obtain a `WorkQueue` via the `noIsolation()`, `classLoaderIsolation()`, and `processIsolation()`, methods and use the `submit(Class, Action)` method on the `WorkQueue` instead.
 
 ==== DependencySubstitution API Cleanup
 
