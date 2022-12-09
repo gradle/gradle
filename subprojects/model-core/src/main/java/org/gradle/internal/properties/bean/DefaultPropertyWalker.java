@@ -84,8 +84,8 @@ public class DefaultPropertyWalker implements PropertyWalker {
             }
 
             @Override
-            public void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<Object> value) {
-                PropertyValue cachedValue = new CachedPropertyValue(value, propertyMetadata.getDeclaredType().getRawType());
+            public void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata) {
+                PropertyValue cachedValue = new CachedPropertyValue(() -> propertyMetadata.getPropertyValue(parent), propertyMetadata.getDeclaredType().getRawType());
                 PropertyAnnotationHandler handler = handlers.get(propertyMetadata.getPropertyType());
                 if (handler == null) {
                     throw new IllegalStateException("Property handler should not be null for: " + propertyMetadata.getPropertyType());

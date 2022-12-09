@@ -85,7 +85,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
             if (propertyMetadata.getPropertyType() == nestedAnnotation) {
                 walkNestedChild(node, childQualifiedName, propertyMetadata, visitor, child -> walkNested(child, childQualifiedName, propertyMetadata, visitor, nestedNodesOnPath, false));
             } else {
-                visitor.visitLeaf(childQualifiedName, propertyMetadata, () -> getChild(node, propertyMetadata));
+                visitor.visitLeaf(node, childQualifiedName, propertyMetadata);
             }
         });
     }
