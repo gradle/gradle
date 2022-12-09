@@ -29,9 +29,7 @@ import org.gradle.util.UnitTestPreconditions
 
 import java.text.SimpleDateFormat
 
-@Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
-    GradleContextualExecuter.isNotConfigCache() && GradleBuildJvmSpec.isAvailable()
-})
+@Requires(UnitTestPreconditions.Jdk9OrLater)
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
     public static final String TEST_BUILD_TIMESTAMP = "-PbuildTimestamp=" + newTimestamp()

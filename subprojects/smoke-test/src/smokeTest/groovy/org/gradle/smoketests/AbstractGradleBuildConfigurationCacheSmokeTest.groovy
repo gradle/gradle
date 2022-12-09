@@ -30,7 +30,7 @@ import org.gradle.util.UnitTestPreconditions
  *
  * gradle/gradle requires Java >=9 and <=11 to build, see {@link AbstractGradleceptionSmokeTest.GradleBuildJvmSpec}.
  */
-@Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
+@Requires(UnitTestPreconditions.Jdk9OrLater, adhoc = {
     GradleContextualExecuter.isNotConfigCache() && GradleBuildJvmSpec.isAvailable()
 })
 abstract class AbstractGradleBuildConfigurationCacheSmokeTest extends AbstractGradleceptionSmokeTest {
