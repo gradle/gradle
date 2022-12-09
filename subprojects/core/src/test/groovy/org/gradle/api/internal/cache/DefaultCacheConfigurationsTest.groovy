@@ -23,8 +23,6 @@ import spock.lang.Specification
 import static org.gradle.internal.time.TimestampSuppliers.daysAgo
 
 class DefaultCacheConfigurationsTest extends Specification {
-    private static final String CANNOT_CONFIGURE_MESSAGE = "You can only configure the property '%s' in an init script, preferably stored in the init.d directory inside the Gradle user home directory."
-
     def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class)
 
     def "cannot modify cache configurations via convenience method unless mutable"() {
@@ -182,6 +180,6 @@ class DefaultCacheConfigurationsTest extends Specification {
     }
 
     void assertCannotConfigureErrorIsThrown(Exception e, String name) {
-        assert e.message.contains(String.format(CANNOT_CONFIGURE_MESSAGE, name))
+        assert e.message.contains(String.format(DefaultCacheConfigurations.ILLEGAL_MODIFICATION_ERROR, name))
     }
 }

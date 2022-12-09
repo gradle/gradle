@@ -29,6 +29,7 @@ import org.gradle.cache.CleanupFrequency;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
@@ -37,11 +38,12 @@ import java.util.function.Supplier;
 import static org.gradle.internal.time.TimestampSuppliers.daysAgo;
 
 abstract public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
+    private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     private static final String RELEASED_WRAPPERS = "releasedWrappers";
     private static final String SNAPSHOT_WRAPPERS = "snapshotWrappers";
     private static final String DOWNLOADED_RESOURCES = "downloadedResources";
     private static final String CREATED_RESOURCES = "createdResources";
-    private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
+    static final String ILLEGAL_MODIFICATION_ERROR = "The property '%s' was modified from an unsafe location (for instance a settings script or plugin).  This property can only be changed in an init script, preferably stored in the init.d directory inside the Gradle user home directory. See " + DOCUMENTATION_REGISTRY.getDocumentationFor("directory_layout", "dir:gradle_user_home:configure_cache_cleanup") + " for more information.";
 
     private final CacheResourceConfigurationInternal releasedWrappersConfiguration;
     private final CacheResourceConfigurationInternal snapshotWrappersConfiguration;
@@ -179,6 +181,9 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         }
     }
 
+    /**
+     * A non-threadsafe implementation of {@link org.gradle.api.internal.cache.CacheConfigurationsInternal.UnlockableProperty}.
+     */
     @NotThreadSafe
     static class DefaultUnlockableProperty<T> extends DefaultProperty<T> implements UnlockableProperty<T> {
         private final String displayName;
@@ -198,7 +203,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         }
 
         private IllegalStateException lockedError() {
-            return new IllegalStateException("You can only configure the property '" + getDisplayName() + "' in an init script, preferably stored in the init.d directory inside the Gradle user home directory. See " + DOCUMENTATION_REGISTRY.getDocumentationFor("directory_layout", "dir:gradle_user_home:configure_cache_cleanup") + " for more information.");
+            return new IllegalStateException(String.format(ILLEGAL_MODIFICATION_ERROR, getDisplayName()));
         }
 
         private void onlyIfMutable(Runnable runnable) {
@@ -210,6 +215,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         }
 
         @Override
+        @Nonnull
         protected DisplayName getDisplayName() {
             if (displayName != null) {
                 return Describables.of(displayName);
