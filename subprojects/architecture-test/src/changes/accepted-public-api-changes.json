@@ -1105,6 +1105,14 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.compile.CompileOptions",
+            "member": "Method org.gradle.api.tasks.compile.CompileOptions.getAnnotationProcessorGeneratedSourcesDirectory()",
+            "acceptation": "Deprecated method has been removed in Gradle 8.0",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.compile.ForkOptions",
             "member": "Class org.gradle.api.tasks.compile.ForkOptions",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
