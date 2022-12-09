@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.scala.ScalaCompilationFixture
 
-@TargetCoverage({ ScalaCoverage.DEFAULT})
+@TargetCoverage({ ScalaCoverage.SCALA_2})
 class ScalaDocMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
 
     String scaladoc = ":${ScalaPlugin.SCALA_DOC_TASK_NAME}"
