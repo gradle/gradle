@@ -141,7 +141,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
 
         @Override
         protected void walkNestedProvider(Object node, String qualifiedName, PropertyMetadata propertyMetadata, InstanceMetadataVisitor visitor, boolean isElementOfCollection, Consumer<Object> handler) {
-            walkNestedChildIfPresent(
+            walkNestedChild(
                 () -> ((Provider<?>) node).getOrNull(),
                 qualifiedName,
                 propertyMetadata,
@@ -176,7 +176,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
         @Override
         protected void walkNestedChild(Object parent, String childQualifiedName, PropertyMetadata propertyMetadata, InstanceMetadataVisitor visitor, Consumer<Object> handler) {
             boolean isElementOfCollection = false;
-            walkNestedChildIfPresent(
+            walkNestedChild(
                 () -> getChild(parent, propertyMetadata),
                 childQualifiedName,
                 propertyMetadata,
@@ -186,7 +186,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
             );
         }
 
-        private void walkNestedChildIfPresent(Supplier<Object> unpacker, String qualifiedName, PropertyMetadata propertyMetadata, InstanceMetadataVisitor visitor, boolean isElementOfCollection, Consumer<Object> handler) {
+        private void walkNestedChild(Supplier<Object> unpacker, String qualifiedName, PropertyMetadata propertyMetadata, InstanceMetadataVisitor visitor, boolean isElementOfCollection, Consumer<Object> handler) {
             Object value;
             try {
                 value = unpacker.get();
@@ -200,18 +200,17 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
                 throw new IllegalStateException(getNullNestedCollectionValueExceptionMessage(qualifiedName));
             } else {
                 TypeToken<?> getterType = TypeToken.of(propertyMetadata.getGetterMethod().getGenericReturnType());
-                TypeMetadata typeMetadata = extractNestedTypeFromGetter(getterType);
+                TypeMetadata typeMetadata = getTypeMetadata(unpackType(getterType));
                 visitor.visitNested(typeMetadata, qualifiedName, propertyMetadata, null);
             }
         }
 
         @SuppressWarnings("unchecked")
-        private TypeMetadata extractNestedTypeFromGetter(TypeToken<?> typeToken) {
-            if (!Provider.class.isAssignableFrom(typeToken.getRawType())) {
-                return getTypeMetadata(typeToken.getRawType());
+        private static Class<?> unpackType(TypeToken<?> type) {
+            while (Provider.class.isAssignableFrom(type.getRawType())) {
+                type = extractNestedType((TypeToken<Provider<?>>) type, Provider.class, 0);
             }
-            TypeToken<?> nestedToken = extractNestedType((TypeToken<Provider<?>>) typeToken, Provider.class, 0);
-            return extractNestedTypeFromGetter(nestedToken);
+            return type.getRawType();
         }
 
         @Override
