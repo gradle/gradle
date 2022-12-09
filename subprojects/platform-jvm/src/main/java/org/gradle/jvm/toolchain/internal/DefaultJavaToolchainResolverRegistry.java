@@ -81,7 +81,7 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
 
     @Override
     public List<RealizedJavaToolchainRepository> requestedRepositories() {
-        if (realizedRepositories.size() != repositoryHandler.repositories().size()) {
+        if (realizedRepositories.size() != repositoryHandler.size()) {
             realizeRepositories();
         }
         return realizedRepositories;
