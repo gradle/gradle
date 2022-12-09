@@ -224,6 +224,14 @@ There are some additional advantages to this new behaviour:
 
 This consistent behavior for cache miss and cache hit builds should help people who are migrating to use the configuration cache, as many more problems can now be discovered on the first (cache miss) build.
 
+#### Improved compatibility with core plugins 
+
+The [`gradle init` command](userguide/build_init_plugin.html) can be used with the configuration cache enabled.
+
+The [ANTLR plugin](userguide/antlr_plugin.html) and [Groovy DSL precompiled scripts](userguide/custom_plugins.html#sec:precompiled_plugins) are now compatible with the configuration cache.
+
+The current status of the configuration cache support for all core Gradle plugins can be found in the [configuration cache documentation](userguide/configuration_cache.html#config_cache:plugins).
+
 ### Plugin Development
 
 #### Enhanced CodeNarc Plugin to automatically detects appropriate version for current Groovy runtime
