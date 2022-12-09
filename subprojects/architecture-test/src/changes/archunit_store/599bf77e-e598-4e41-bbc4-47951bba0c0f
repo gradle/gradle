@@ -9,7 +9,6 @@ Accessors for org.gradle.api.tasks.JavaExec.executable don't use symmetrical @Nu
 Accessors for org.gradle.api.tasks.SourceSetOutput.resourcesDir don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.bundling.War.classpath don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.bundling.Zip.metadataCharset don't use symmetrical @Nullable
-Accessors for org.gradle.api.tasks.compile.CompileOptions.annotationProcessorGeneratedSourcesDirectory don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.javadoc.Javadoc.destinationDir don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.javadoc.Javadoc.maxMemory don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.testing.Test.forkEvery don't use symmetrical @Nullable
