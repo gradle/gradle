@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.util.IntegTestPreconditions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.UnitTestPreconditions
@@ -929,7 +930,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         failureHasCause("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.JDK8_OR_EARLIER.fulfilled })
+    @Requires([UnitTestPreconditions.Jdk8OrEarlier, IntegTestPreconditions.Java7HomeAvailable, IntegTestPreconditions.Java8HomeAvailable ])
     // bootclasspath has been removed in Java 9+
     def "bootclasspath can be set"() {
         def jdk7 = AvailableJavaHomes.getJdk7()

@@ -258,7 +258,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         assert platformActionApplied == 2
     }
 
-    @Requires(UnitTestPreconditions.NotMacOsX)
+    @Requires(UnitTestPreconditions.NotMacOs)
     def "supplies no additional arguments to target native binary for tool chain default"() {
         def action = Mock(Action)
 
@@ -288,7 +288,7 @@ class AbstractGccCompatibleToolChainTest extends Specification {
         ["-m64"]  | ["-m64"]
     }
 
-    @Requires(UnitTestPreconditions.NotMacOsX)
+    @Requires(UnitTestPreconditions.NotMacOs)
     def "supplies args for supported architecture for non-macOS platforms"() {
         def action = Mock(Action)
 

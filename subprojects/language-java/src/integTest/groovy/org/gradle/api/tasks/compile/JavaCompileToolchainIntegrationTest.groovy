@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.util.IntegTestPreconditions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.UnitTestPreconditions
@@ -307,7 +308,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
                 GET_HELP)
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7) != null })
+    @Requires(IntegTestPreconditions.Java7HomeAvailable)
     def "can use toolchains to compile java 1.7 code"() {
         def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7)
         buildFile << """

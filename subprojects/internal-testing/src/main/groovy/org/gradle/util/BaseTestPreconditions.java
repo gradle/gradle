@@ -16,6 +16,9 @@
 
 package org.gradle.util;
 
+/**
+ * Optional utility-oriented base-class for precondition classes.
+ */
 public abstract class BaseTestPreconditions {
 
     public static final class TruePrecondition implements TestPrecondition {

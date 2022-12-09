@@ -23,7 +23,7 @@ import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import org.gradle.util.Requires
 import org.gradle.util.UnitTestPreconditions
 
-@Requires(UnitTestPreconditions.NotMacOsX)
+@Requires(UnitTestPreconditions.NotMacOs)
 class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_LIB_CLASS = "hello.cpp"

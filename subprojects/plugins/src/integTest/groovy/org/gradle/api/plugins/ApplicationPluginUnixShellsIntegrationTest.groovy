@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.UnitTestPreconditions
 
 class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec {
@@ -32,20 +33,44 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    static boolean shellAvailable(String shellCommand) {
-        return TestPrecondition.UNIX_DERIVATIVE.isFulfilled() && locate(shellCommand)
-    }
-
     static File locate(String shellCommand) {
         return [
-                new File("/bin/$shellCommand"),
-                new File("/usr/bin/$shellCommand"),
-                new File("/usr/local/bin/$shellCommand"),
-                new File("/opt/local/bin/$shellCommand")
+            new File("/bin/$shellCommand"),
+            new File("/usr/bin/$shellCommand"),
+            new File("/usr/local/bin/$shellCommand"),
+            new File("/opt/local/bin/$shellCommand")
         ].find { it.exists() }
     }
 
-    @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("bash") })
+    private static class BashAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return locate("bash")
+        }
+    }
+
+    private static class DashAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return locate("bash")
+        }
+    }
+
+    private static class StaticShAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return locate("bash")
+        }
+    }
+
+    private static class ShellcheckAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return locate("bash")
+        }
+    }
+
+    @Requires([UnitTestPreconditions.UnixDerivative, BashAvailable])
     def "can execute generated Unix start script in Bash"() {
         given:
         succeeds('installDist')
@@ -57,7 +82,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Hello World!')
     }
 
-    @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("dash") })
+    @Requires([UnitTestPreconditions.UnixDerivative, DashAvailable])
     def "can execute generated Unix start script in Dash"() {
         given:
         succeeds('installDist')
@@ -69,7 +94,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Hello World!')
     }
 
-    @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("static-sh") })
+    @Requires([UnitTestPreconditions.UnixDerivative, StaticShAvailable])
     def "can execute generated Unix start script in BusyBox"() {
         given:
         succeeds('installDist')
@@ -81,7 +106,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Hello World!')
     }
 
-    @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("bash") })
+    @Requires([UnitTestPreconditions.UnixDerivative, BashAvailable])
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script in Bash"() {
         given:
         extendBuildFileWithAppHomeProperty()
@@ -94,7 +119,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains("App Home: ${file('build/install/sample').absolutePath}")
     }
 
-    @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("dash") })
+    @Requires([UnitTestPreconditions.UnixDerivative, DashAvailable])
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script in Dash"() {
         given:
         extendBuildFileWithAppHomeProperty()
@@ -107,7 +132,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains("App Home: ${file('build/install/sample').absolutePath}")
     }
 
-    @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("static-sh") })
+    @Requires([UnitTestPreconditions.UnixDerivative, StaticShAvilable])
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script in BusyBox"() {
         given:
         extendBuildFileWithAppHomeProperty()
@@ -120,7 +145,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains("App Home: ${file('build/install/sample').absolutePath}")
     }
 
-    @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("bash") })
+    @Requires([UnitTestPreconditions.UnixDerivative, BashAvailable])
     def "can pass argument to App with custom start script in Bash"() {
         given:
         succeeds('installDist')
@@ -135,7 +160,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Arg: -DGOO=\'car < caz\'')
     }
 
-    @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("dash") })
+    @Requires([UnitTestPreconditions.UnixDerivative, DashAvailable])
     def "can pass argument to App with custom start script in Dash"() {
         given:
         succeeds('installDist')
@@ -150,7 +175,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Arg: -DGOO=\'car < caz\'')
     }
 
-    @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("static-sh") })
+    @Requires([UnitTestPreconditions.UnixDerivative, StaticShAvailable])
     def "can pass argument to App with custom start script in BusyBox"() {
         given:
         succeeds('installDist')
@@ -165,7 +190,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Arg: -DGOO=\'car < caz\'')
     }
 
-    @Requires(adhoc = { TestPrecondition.JDK9_OR_LATER.fulfilled && ApplicationPluginUnixShellsIntegrationTest.shellAvailable("bash") })
+    @Requires([UnitTestPreconditions.Jdk9OrLater, BashAvailable])
     def "can execute generated Unix start script for Java module in Bash"() {
         given:
         turnSampleProjectIntoModule()
@@ -178,7 +203,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Hello World!')
     }
 
-    @Requires(adhoc = { TestPrecondition.JDK9_OR_LATER.fulfilled && ApplicationPluginUnixShellsIntegrationTest.shellAvailable("dash") })
+    @Requires([UnitTestPreconditions.Jdk9OrLater, DashAvailable])
     def "can execute generated Unix start script for Java module in Dash"() {
         given:
         turnSampleProjectIntoModule()
@@ -191,7 +216,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Hello World!')
     }
 
-    @Requires(adhoc = { TestPrecondition.JDK9_OR_LATER.fulfilled && ApplicationPluginUnixShellsIntegrationTest.shellAvailable("static-sh") })
+    @Requires([UnitTestPreconditions.Jdk9OrLater, StaticShAvailable])
     def "can execute generated Unix start script for Java module in BusyBox"() {
         given:
         turnSampleProjectIntoModule()
@@ -204,7 +229,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains('Hello World!')
     }
 
-    @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("shellcheck") })
+    @Requires(ShellcheckAvailable)
     def "generate start script passes shellcheck"() {
         given:
         succeeds('installDist')

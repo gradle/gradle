@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resource.s3.fixtures
-
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-
-import static org.gradle.util.TestPrecondition.JDK9_OR_LATER
-
-class S3IntegrationTestPrecondition {
-
-    static boolean isFulfilled() {
-        JDK9_OR_LATER.fulfilled || !GradleContextualExecuter.embedded
+fun generateFor(version: Int) = """
+    public static class Java${version}HomeAvailable implements BasePrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(${version})
+            )
+        }
     }
+""".trimIndent()
 
-}
+(6..24).map {
+    generateFor(it)
+}.joinToString("\n\n")

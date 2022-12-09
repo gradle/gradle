@@ -466,7 +466,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
     }
 
     // macOS can only build 64-bit under 10.14+
-    @Requires(UnitTestPreconditions.NotMacOsX)
+    @Requires(UnitTestPreconditions.NotMacOs)
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
     @ToBeFixedForConfigurationCache
     def "can publish the binaries of an application with multiple target architectures to a Maven repository"() {

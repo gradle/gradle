@@ -20,6 +20,7 @@ package org.gradle.testkit.runner
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
+import org.gradle.util.UnitTestPreconditions
 
 import static org.gradle.integtests.fixtures.RetryConditions.runsOnWindowsAndJava7or8
 
@@ -45,7 +46,11 @@ class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
         true
     }
 
-    @Requires(adhoc = { runsOnWindowsAndJava7or8() })
+    @Requires([
+        UnitTestPreconditions.Windows,
+        UnitTestPreconditions.Jdk7OrLater,
+        UnitTestPreconditions.Jdk8OrEarlier
+    ])
     def "retries if expected socket exception occurs"() {
         given:
         iteration++
@@ -60,7 +65,11 @@ class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
         true
     }
 
-    @Requires(adhoc = { !runsOnWindowsAndJava7or8() })
+    @Requires(not=true, value = [
+        UnitTestPreconditions.Windows,
+        UnitTestPreconditions.Jdk7OrLater,
+        UnitTestPreconditions.Jdk8OrEarlier
+    ])
     def "does not retry on non-windows and non-java environments"() {
         given:
         iteration++
@@ -74,7 +83,11 @@ class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
         ioe.cause?.message == "An existing connection was forcibly closed by the remote host"
     }
 
-    @Requires(adhoc = { runsOnWindowsAndJava7or8() })
+    @Requires([
+        UnitTestPreconditions.Windows,
+        UnitTestPreconditions.Jdk7OrLater,
+        UnitTestPreconditions.Jdk8OrEarlier
+    ])
     def "should fail for unexpected cause on client side"() {
         given:
         iteration++
@@ -88,7 +101,11 @@ class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
         ioe.cause?.message == "A different cause"
     }
 
-    @Requires(adhoc = { runsOnWindowsAndJava7or8() })
+    @Requires([
+        UnitTestPreconditions.Windows,
+        UnitTestPreconditions.Jdk7OrLater,
+        UnitTestPreconditions.Jdk8OrEarlier
+    ])
     def "should fail for unexpected cause on daemon side"() {
         given:
         iteration++
