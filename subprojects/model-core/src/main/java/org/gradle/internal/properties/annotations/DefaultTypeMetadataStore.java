@@ -19,6 +19,7 @@ package org.gradle.internal.properties.annotations;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import com.google.common.reflect.TypeToken;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -32,7 +33,6 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
@@ -256,8 +256,14 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         @Override
-        public Method getGetterMethod() {
-            return annotationMetadata.getGetter();
+        public TypeToken<?> getDeclaredType() {
+            return annotationMetadata.getDeclaredType();
+        }
+
+        @Nullable
+        @Override
+        public Object getPropertyValue(Object object) {
+            return annotationMetadata.getPropertyValue(object);
         }
 
         @Override

@@ -17,15 +17,11 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.reflect.TypeToken;
-import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.UncheckedException;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -199,32 +195,23 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
             } else if (isElementOfCollection) {
                 throw new IllegalStateException(getNullNestedCollectionValueExceptionMessage(qualifiedName));
             } else {
-                TypeToken<?> getterType = TypeToken.of(propertyMetadata.getGetterMethod().getGenericReturnType());
-                TypeMetadata typeMetadata = getTypeMetadata(unpackType(getterType));
+                TypeToken<?> getterType = propertyMetadata.getDeclaredType();
+                TypeMetadata typeMetadata = getTypeMetadata(unpackType(getterType).getRawType());
                 visitor.visitNested(typeMetadata, qualifiedName, propertyMetadata, null);
             }
         }
 
         @SuppressWarnings("unchecked")
-        private static Class<?> unpackType(TypeToken<?> type) {
+        private static TypeToken<?> unpackType(TypeToken<?> type) {
             while (Provider.class.isAssignableFrom(type.getRawType())) {
                 type = extractNestedType((TypeToken<Provider<?>>) type, Provider.class, 0);
             }
-            return type.getRawType();
+            return type;
         }
 
         @Override
         protected @Nullable Object getChild(Object parent, PropertyMetadata property) {
-            Method method = property.getGetterMethod();
-            try {
-                // TODO: Move method.setAccessible(true) to PropertyMetadata
-                method.setAccessible(true);
-                return method.invoke(parent);
-            } catch (InvocationTargetException e) {
-                throw UncheckedException.throwAsUncheckedException(e.getCause());
-            } catch (Exception e) {
-                throw new GradleException(String.format("Could not call %s.%s() on %s", method.getDeclaringClass().getSimpleName(), method.getName(), parent), e);
-            }
+            return property.getPropertyValue(parent);
         }
 
         private static void checkNotNullNestedCollectionValue(@Nullable String parentQualifiedName, String name, @Nullable Object value) {
@@ -281,7 +268,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
 
         @Override
         protected TypeToken<?> getChild(TypeToken<?> parent, PropertyMetadata property) {
-            return TypeToken.of(property.getGetterMethod().getGenericReturnType());
+            return property.getDeclaredType();
         }
 
         private static String determinePropertyName(TypeToken<?> nestedType) {
