@@ -24,10 +24,9 @@ import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.copy.DefaultCopySpec
-import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.resources.DefaultResourceHandler
-import org.gradle.cache.internal.TestCaches
+import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
@@ -37,20 +36,13 @@ import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.TempDir
 
 @UsesNativeServices
 class DefaultFileOperationsTest extends Specification {
-    @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-
-    @TempDir
-    File cacheDir
-
     private final FileResolver resolver = Mock() {
         getPatternSetFactory() >> TestFiles.getPatternSetFactory()
     }
-    private final TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(() -> cacheDir);
+    private final TemporaryFileProvider temporaryFileProvider = Mock()
     private final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private final DefaultDirectoryFileTreeFactory directoryFileTreeFactory = Mock()
     private final StreamHasher streamHasher = Mock()
@@ -58,6 +50,8 @@ class DefaultFileOperationsTest extends Specification {
     private final DefaultResourceHandler.Factory resourceHandlerFactory = Mock()
     private final FileCollectionFactory fileCollectionFactory = Mock()
     private DefaultFileOperations fileOperations = instance()
+    @Rule
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     private DefaultFileOperations instance(FileResolver resolver = resolver) {
         instantiator.newInstance(
@@ -77,7 +71,8 @@ class DefaultFileOperationsTest extends Specification {
             TestFiles.documentationRegistry(),
             TestFiles.taskDependencyFactory(),
             TestUtil.providerFactory(),
-            TestCaches.decompressionCacheFactory(temporaryFileProvider.newTemporaryDirectory("cache"))
+            TestFiles.cacheFactory(),
+            (GradleUserHomeDirProvider)(() -> temporaryFileProvider.newTemporaryDirectory("user-home"))
         )
     }
 
