@@ -224,7 +224,7 @@ There are some additional advantages to this new behaviour:
 
 This consistent behavior for cache miss and cache hit builds should help people who are migrating to use the configuration cache, as many more problems can now be discovered on the first (cache miss) build.
 
-#### Core plugins compatibility updates
+#### Improved compatibility with core plugins 
 
 The [`gradle init` command](userguide/build_init_plugin.html) can be used with the configuration cache enabled.
 
