@@ -208,21 +208,21 @@ For more information, see [Exporting keys](userguide/dependency_verification.htm
 
 #### Consistent task execution for configuration cache hit and configuration cache miss builds
 
-When the configuration cache is enabled and Gradle is able to locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the 
-cache entry and runs them a so called 'isolated' tasks. Isolated tasks are able to run in parallel (subject to dependency constraints).
+When the configuration cache is enabled and Gradle can locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the 
+cache entry and runs them as'isolated' tasks. Isolated tasks are able to run in parallel (subject to dependency constraints).
 
-When Gradle is unable to locate a configuration cache entry to use, it runs the 'configuration' phase to calculate the set of tasks to run and then stores these tasks to a new cache entry.
+When Gradle cannot locate a configuration cache entry to use, it runs the 'configuration' phase to calculate the set of tasks to run and then stores these tasks to a new cache entry.
 In previous versions, Gradle would then run these tasks directly. However, as these tasks are not isolated, they would not run in parallel.
 
-In this release, Gradle now loads the set of tasks from the cache entry after storing them on a cache miss. These tasks are isolated and can run in parallel.
+In this release, Gradle loads the tasks from the cache entry after storing them on a cache miss. These tasks are isolated and can run in parallel.
 
-There are some additional advantages to this new behaviour:
+There are some additional advantages to this new behavior:
 
-- Any problems that happen during deserialization will be reported in the cache miss build, making it easier to spot such problems.
+- Any problems during deserialization will be reported in the cache miss build, making it easier to spot such problems.
 - Tasks have access to the same state in cache miss and cache hit builds.
-- Gradle can release all heap used by the configuration state prior to task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks were able to access it. This reduces the peak heap usage for a given set of tasks. 
+- Gradle can release all heaps used by the configuration state before task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks could access it. This reduces the peak heap usage for a given set of tasks. 
 
-This consistent behavior for cache miss and cache hit builds should help people who are migrating to use the configuration cache, as many more problems can now be discovered on the first (cache miss) build.
+This consistent behavior for cache miss and cache hit builds should help people migrate to the configuration cache, as many more problems can now be discovered on the first (cache miss) build.
 
 ### Plugin Development
 
