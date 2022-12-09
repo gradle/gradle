@@ -17,8 +17,6 @@
 package org.gradle.api.internal.tasks.compile.incremental.transaction
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
-import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.tasks.compile.CompilationFailedException
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec
@@ -45,7 +43,6 @@ class CompileTransactionTest extends Specification {
     File transactionDir
     File stashDir
     JavaCompileSpec spec
-    TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(() -> new File(temporaryFolder, "cache"));
 
     def setup() {
         transactionDir = new File(temporaryFolder, "compileTransaction")
@@ -59,15 +56,15 @@ class CompileTransactionTest extends Specification {
     }
 
     CompileTransaction newCompileTransaction() {
-        return new CompileTransaction(spec, new PatternSet(), Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder, temporaryFileProvider), TestFiles.deleter())
+        return new CompileTransaction(spec, new PatternSet(), Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
     }
 
     CompileTransaction newCompileTransaction(PatternSet classesToDelete) {
-        return new CompileTransaction(spec, classesToDelete, Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder, temporaryFileProvider), TestFiles.deleter())
+        return new CompileTransaction(spec, classesToDelete, Collections.emptyMap(), TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
     }
 
     CompileTransaction newCompileTransaction(PatternSet classesToDelete, Map<GeneratedResource.Location, PatternSet> resourcesToDelete) {
-        return new CompileTransaction(spec, classesToDelete, resourcesToDelete, TestFiles.fileOperations(temporaryFolder, temporaryFileProvider), TestFiles.deleter())
+        return new CompileTransaction(spec, classesToDelete, resourcesToDelete, TestFiles.fileOperations(temporaryFolder), TestFiles.deleter())
     }
 
     def "transaction base directory is cleared before execution"() {
