@@ -25,8 +25,6 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
     private static final int MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES + 1
     private static final int MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES + 1
 
-    private static final String CANNOT_CONFIGURE_MESSAGE = "You can only configure the property '%s' in an init script, preferably stored in the init.d directory inside the Gradle user home directory."
-
     def setup() {
         requireOwnGradleUserHomeDir()
     }
@@ -102,7 +100,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("help")
-        failureCauseContains(String.format(CANNOT_CONFIGURE_MESSAGE, errorProperty))
+        failureCauseContains(String.format(DefaultCacheConfigurations.ILLEGAL_MODIFICATION_ERROR, errorProperty))
 
         where:
         property                                           | errorProperty                  | value
