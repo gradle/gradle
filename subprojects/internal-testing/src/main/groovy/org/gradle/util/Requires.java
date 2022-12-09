@@ -28,5 +28,16 @@ import java.lang.annotation.Target;
 @Inherited
 @ExtensionAnnotation(TestPreconditionExtension.class)
 public @interface Requires {
+
+    /**
+     * The list of preconditions, which will be checked by {@link TestPreconditionExtension}
+     */
     Class<TestPrecondition>[] value();
+
+    /**
+     * Controls if you require the predicate <b>NOT</b> to be satisfied.
+     *
+     * @return true if the conjunction of the predicates should be negated. Default is  {@code false}
+     */
+    boolean not() default false;
 }

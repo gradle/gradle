@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.plugins.signing
 
+import org.gradle.util.BaseTestPreconditions
+import org.gradle.util.TestPrecondition
 
-import org.gradle.util.Requires
+class SigningTestPreconditions extends BaseTestPreconditions {
 
-@Requires(SigningTestPreconditions.GpgAvailable)
-class SigningTasksWithGpgCmdIntegrationSpec extends SigningTasksIntegrationSpec {
-    SignMethod getSignMethod() {
-        return SignMethod.GPG_CMD
+    static final class GpgAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return GpgCmdFixture.getAvailableGpg() != null
+        }
     }
+
 }

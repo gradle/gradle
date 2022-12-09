@@ -107,7 +107,7 @@ class XCTestConventionPluginTest extends Specification {
         project.xctest.testBinary.get() == binaries.first()
     }
 
-    @Requires(UnitTestPreconditions.NotMacOsX)
+    @Requires(UnitTestPreconditions.NotMacOs)
     def "registers a test executable for the test suite"() {
         when:
         project.pluginManager.apply(XCTestConventionPlugin)
@@ -159,7 +159,7 @@ class XCTestConventionPluginTest extends Specification {
         test.workingDirectory.get().asFile == projectDir.file("build/install/test")
     }
 
-    @Requires(UnitTestPreconditions.NotMacOsX)
+    @Requires(UnitTestPreconditions.NotMacOs)
     def "adds compile, link and install tasks"() {
         given:
         def src = projectDir.file("src/test/swift/test.swift").createFile()

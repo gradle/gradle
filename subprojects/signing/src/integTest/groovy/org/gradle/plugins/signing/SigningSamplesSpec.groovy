@@ -51,7 +51,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample('signing/gnupg-signatory')
-    @Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
+    @Requires(SigningTestPreconditions.GpgAvailable)
     def "use gnupg signatory with dsl #dsl"() {
         setup:
         def projectDir = sample.dir.file(dsl)

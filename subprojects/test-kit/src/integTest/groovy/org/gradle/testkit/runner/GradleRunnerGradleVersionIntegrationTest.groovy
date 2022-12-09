@@ -30,7 +30,11 @@ import spock.lang.Shared
 import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleasedGradleVersion
 
 @NonCrossVersion
-@Requires(value = TestPrecondition.ONLINE, adhoc = { BaseGradleRunnerIntegrationTest.findLowestMajorGradleVersion() != null })
+// FIXME:
+@Requires([
+    UnitTestPreconditions.Online,
+    TestKitPreconditions.LowestMajorGradleIsAvailable
+])
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, count = 2)
 class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrationTest {
     @Shared
@@ -70,10 +74,10 @@ class GradleRunnerGradleVersionIntegrationTest extends BaseGradleRunnerIntegrati
         killDaemons(version)
 
         where:
-        type         | version                         | configurer
-        "embedded"   | buildContext.version.version    | { if (!GradleContextualExecuter.embedded) { it.withGradleInstallation(buildContext.gradleHomeDir) } }
-        "locator"    | lowestMajorGradleVersion | { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version(lowestMajorGradleVersion))) }
-        "production" | lowestMajorGradleVersion | { it.withGradleVersion(lowestMajorGradleVersion) }
+        type         | version                      | configurer
+        "embedded"   | buildContext.version.version | { if (!GradleContextualExecuter.embedded) { it.withGradleInstallation(buildContext.gradleHomeDir) } }
+        "locator"    | lowestMajorGradleVersion     | { it.withGradleDistribution(locator.getDistributionFor(GradleVersion.version(lowestMajorGradleVersion))) }
+        "production" | lowestMajorGradleVersion     | { it.withGradleVersion(lowestMajorGradleVersion) }
     }
 
     def "distributions are not stored in the test kit dir"() {

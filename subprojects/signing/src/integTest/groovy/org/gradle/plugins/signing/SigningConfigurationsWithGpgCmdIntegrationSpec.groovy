@@ -19,7 +19,7 @@ package org.gradle.plugins.signing
 import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider
 import org.gradle.util.Requires
 
-@Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
+@Requires(SigningTestPreconditions.GpgAvailable)
 class SigningConfigurationsWithGpgCmdIntegrationSpec extends SigningConfigurationsIntegrationSpec {
     SignMethod getSignMethod() {
         return SignMethod.GPG_CMD

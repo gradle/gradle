@@ -16,6 +16,8 @@
 
 package org.gradle.util
 
+import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 class IntegTestPreconditions extends BaseTestPreconditions {
@@ -24,6 +26,184 @@ class IntegTestPreconditions extends BaseTestPreconditions {
         @Override
         boolean isSatisfied() throws Exception {
             return GradleContextualExecuter.longLivingProcess
+        }
+    }
+
+    static final class IsEmbeddedExecutor implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return GradleContextualExecuter.
+        }
+    }
+
+    static class Java6HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(6)
+            )
+        }
+    }
+
+    static class Java7HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(7)
+            )
+        }
+    }
+
+    static class Java8HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(8)
+            )
+        }
+    }
+
+    static class Java9HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(9)
+            )
+        }
+    }
+
+    static class Java10HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(10)
+            )
+        }
+    }
+
+    static class Java11HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(11)
+            )
+        }
+    }
+
+    static class Java12HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(12)
+            )
+        }
+    }
+
+    static class Java13HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(13)
+            )
+        }
+    }
+
+    static class Java14HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(14)
+            )
+        }
+    }
+
+    static class Java15HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(15)
+            )
+        }
+    }
+
+    static class Java16HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(16)
+            )
+        }
+    }
+
+    static class Java17HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(17)
+            )
+        }
+    }
+
+    static class Java18HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(18)
+            )
+        }
+    }
+
+    static class Java19HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(19)
+            )
+        }
+    }
+
+    static class Java20HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(20)
+            )
+        }
+    }
+
+    static class Java21HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(21)
+            )
+        }
+    }
+
+    static class Java22HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(22)
+            )
+        }
+    }
+
+    static class Java23HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(23)
+            )
+        }
+    }
+
+    static class Java24HomeAvailable implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getJdk(
+                JavaVersion.toVersion(24)
+            )
         }
     }
 
