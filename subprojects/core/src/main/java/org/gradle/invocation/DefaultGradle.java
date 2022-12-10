@@ -189,6 +189,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         classLoaderScope = null;
         baseProjectClassLoaderScope = null;
         rootProject = null;
+        defaultProject = null;
         projectsLoaded = false;
         includedBuilds = null;
         rootProjectActions.clear();
