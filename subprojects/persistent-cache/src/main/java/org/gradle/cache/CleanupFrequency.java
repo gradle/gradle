@@ -30,9 +30,13 @@ public enum CleanupFrequency {
     DAILY() {
         @Override
         public boolean requiresCleanup(long lastCleanupTimestamp) {
-            long duration = System.currentTimeMillis() - lastCleanupTimestamp;
-            long timeInHours = TimeUnit.MILLISECONDS.toHours(duration);
-            return timeInHours >= 24;
+            if (lastCleanupTimestamp == NEVER_CLEANED) {
+                return true;
+            } else {
+                long duration = System.currentTimeMillis() - lastCleanupTimestamp;
+                long timeInHours = TimeUnit.MILLISECONDS.toHours(duration);
+                return timeInHours >= 24;
+            }
         }
     },
     /**
@@ -58,6 +62,8 @@ public enum CleanupFrequency {
             return false;
         }
     };
+
+    public static final long NEVER_CLEANED = 0;
 
     public abstract boolean requiresCleanup(long lastCleanupTimestamp);
     public boolean shouldCleanupOnEndOfSession() {

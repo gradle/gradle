@@ -118,7 +118,7 @@ trait GradleUserHomeCleanupFixture implements VersionSpecificCacheCleanupFixture
         new File(initDir, "cache-settings.gradle") << """
             beforeSettings { settings ->
                 settings.caches {
-                    ${resources}.removeUnusedEntriesAfterDays = ${days}
+                    ${resources} { removeUnusedEntriesAfterDays = ${days} }
                 }
             }
         """

@@ -251,4 +251,8 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     }
 
     // endregion
+
+    override fun resetState() {
+        throw UnsupportedOperationException()
+    }
 }

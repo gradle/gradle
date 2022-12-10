@@ -189,9 +189,12 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         classLoaderScope = null;
         baseProjectClassLoaderScope = null;
         rootProject = null;
-        rootProjectActions.clear();
         projectsLoaded = false;
         includedBuilds = null;
+        rootProjectActions.clear();
+        buildListenerBroadcast.removeAll();
+        projectEvaluationListenerBroadcast.removeAll();
+        getTaskGraph().resetState();
     }
 
     @Override
@@ -463,12 +466,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     public ServiceRegistry getServices() {
         return services;
-    }
-
-    @Override
-    @Inject
-    public ServiceRegistryFactory getServiceRegistryFactory() {
-        throw new UnsupportedOperationException();
     }
 
     @Override
