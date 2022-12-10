@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.schema;
 
-import org.gradle.api.tasks.LocalState;
+import org.gradle.api.tasks.Destroys;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
 
@@ -26,7 +26,7 @@ public class DestroysPropertySchemaExtractor extends AbstractPropertySchemaExtra
     public static final DestroysPropertySchemaExtractor DESTROYS = new DestroysPropertySchemaExtractor();
 
     private DestroysPropertySchemaExtractor() {
-        super(LocalState.class);
+        super(Destroys.class);
     }
 
     @Override
