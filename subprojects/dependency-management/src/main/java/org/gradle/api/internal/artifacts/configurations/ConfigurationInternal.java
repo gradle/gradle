@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -88,7 +89,16 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     boolean isCanBeMutated();
 
+    /**
+     * Lock the configuration, with the option to be lenient on some failures
+     * <p>
+     * The idea behind the leniency is to allow report tasks  to still print information
+     */
     void preventFromFurtherMutation();
+
+    void preventFromFurtherMutation(boolean lenient);
+
+    List<? extends GradleException> getLenientErrors();
 
     /**
      * Reports whether this configuration uses {@link org.gradle.api.Incubating Incubating} attributes types, such as {@link org.gradle.api.attributes.Category#VERIFICATION}.

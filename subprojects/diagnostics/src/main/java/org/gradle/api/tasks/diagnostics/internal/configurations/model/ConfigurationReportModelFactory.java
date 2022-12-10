@@ -78,7 +78,7 @@ public final class ConfigurationReportModelFactory {
 
     private ReportConfiguration convertConfiguration(ConfigurationInternal configuration, Project project, FileResolver fileResolver, List<ReportConfiguration> extendedConfigurations) {
         // Important to lock the config prior to extracting the attributes, as some attributes, such as TargetJvmVersion, are actually added by this locking process
-        configuration.preventFromFurtherMutation();
+        configuration.preventFromFurtherMutation(true);
 
         final List<ReportAttribute> attributes = configuration.getAttributes().keySet().stream()
             .map(a -> convertAttributeInContainer(a, configuration.getAttributes(), project.getDependencies().getAttributesSchema()))
@@ -117,7 +117,8 @@ public final class ConfigurationReportModelFactory {
             type = null;
         }
 
-        return new ReportConfiguration(configuration.getName(), configuration.getDescription(), type, attributes, capabilities, artifacts, variants, extendedConfigurations);
+        return new ReportConfiguration(configuration.getName(), configuration.getDescription(), type, new ArrayList<>(configuration.getLenientErrors()),
+            attributes, capabilities, artifacts, variants, extendedConfigurations);
     }
 
     private ReportArtifact convertPublishArtifact(PublishArtifact publishArtifact, FileResolver fileResolver) {

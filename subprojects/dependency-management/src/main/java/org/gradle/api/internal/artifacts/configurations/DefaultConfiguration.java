@@ -24,6 +24,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -67,6 +68,7 @@ import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.Module;
+import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
@@ -115,6 +117,7 @@ import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
+import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -138,6 +141,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -147,8 +151,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -249,6 +253,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private String consistentResolutionReason;
     private ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
+    private List<GradleException> lenientErrors;
 
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
@@ -1101,6 +1106,19 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void preventFromFurtherMutation() {
+        preventFromFurtherMutation(false);
+    }
+
+    @Override
+    public List<? extends GradleException> getLenientErrors() {
+        if (lenientErrors == null) {
+            return Collections.emptyList();
+        }
+        return lenientErrors;
+    }
+
+    @Override
+    public void preventFromFurtherMutation(boolean lenient) {
         // TODO This should use the same `MutationValidator` infrastructure that we use for other mutation types
         if (canBeMutated) {
             if (beforeLocking != null) {
@@ -1116,31 +1134,43 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             // We will only check unique attributes if this configuration is consumable, not resolvable, and has attributes itself
             if (mustHaveUniqueAttributes(this) && !this.getAttributes().isEmpty()) {
-                ensureUniqueAttributes();
+                ensureUniqueAttributes(lenient);
             }
         }
     }
 
-    private void ensureUniqueAttributes() {
+    private void ensureUniqueAttributes(boolean lenient) {
         final Set<? extends ConfigurationInternal> all = (configurationsProvider != null) ? configurationsProvider.getAll() : null;
         if (all != null) {
             final Collection<? extends Capability> allCapabilities = allCapabilitiesIncludingDefault(this);
 
-            final Consumer<ConfigurationInternal> warnIfDuplicate = otherConfiguration -> {
-                if (hasSameCapabilitiesAs(allCapabilities, otherConfiguration) && hasSameAttributesAs(otherConfiguration)) {
-                    DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but " + getDisplayName() + " and " + otherConfiguration.getDisplayName() + " contain identical attribute sets.")
-                        .withAdvice("Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details.")
-                        .willBecomeAnErrorInGradle8()
-                        .withUpgradeGuideSection(7, "unique_attribute_sets")
-                        .nagUser();
-                }
-            };
-
-            all.stream()
+            final Predicate<ConfigurationInternal> isDuplicate = otherConfiguration -> hasSameCapabilitiesAs(allCapabilities, otherConfiguration) && hasSameAttributesAs(otherConfiguration);
+            List<String> collisions = all.stream()
                 .filter(c -> c != this)
                 .filter(this::mustHaveUniqueAttributes)
                 .filter(c -> !c.isCanBeMutated())
-                .forEach(warnIfDuplicate);
+                .filter(isDuplicate)
+                .map(ResolveContext::getDisplayName)
+                .collect(Collectors.toList());
+            if (!collisions.isEmpty()) {
+                DocumentedFailure.Builder builder = DocumentedFailure.builder();
+                String advice = "Consider adding an additional attribute to one of the configurations to disambiguate them.";
+                if (!lenient) {
+                    advice += "  Run the 'outgoingVariants' task for more details.";
+                }
+                GradleException gradleException = builder.withSummary("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but " + getDisplayName() + " and " + collisions + " contain identical attribute sets.")
+                    .withAdvice(advice)
+                    .withUserManual("upgrading_version_7", "unique_attribute_sets")
+                    .build();
+                if (lenient) {
+                    if (lenientErrors == null) {
+                        lenientErrors = new ArrayList<>();
+                    }
+                    lenientErrors.add(gradleException);
+                } else {
+                    throw gradleException;
+                }
+            }
         }
     }
 
