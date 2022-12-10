@@ -33,7 +33,7 @@ class CalculatedValueContainerCodec(
 ) : Codec<CalculatedValueContainer<Any, ValueCalculator<Any>>> {
     override suspend fun WriteContext.encode(value: CalculatedValueContainer<Any, ValueCalculator<Any>>) {
         encodePreservingSharedIdentityOf(value) {
-            val result = value.orNull
+            val result: Any? = value.orNull
             if (result != null) {
                 writeBoolean(true)
                 write(result)
