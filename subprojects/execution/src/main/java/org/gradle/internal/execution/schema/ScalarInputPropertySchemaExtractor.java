@@ -22,10 +22,10 @@ import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
 
 import java.util.function.Supplier;
 
-public class InputPropertySchemaExtractor extends AbstractPropertySchemaExtractor<WorkInstanceSchema.Builder<?>> {
-    public static final InputPropertySchemaExtractor INPUT = new InputPropertySchemaExtractor();
+public class ScalarInputPropertySchemaExtractor extends AbstractPropertySchemaExtractor<WorkInstanceSchema.Builder<?>> {
+    public static final ScalarInputPropertySchemaExtractor INPUT = new ScalarInputPropertySchemaExtractor();
 
-    private InputPropertySchemaExtractor() {
+    private ScalarInputPropertySchemaExtractor() {
         super(Input.class);
     }
 
