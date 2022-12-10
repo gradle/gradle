@@ -123,7 +123,7 @@ trait TestAnnotationHandlingSupport {
         }
 
         @Override
-        void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+        void visitPropertyValue(Annotation propertyAnnotation, String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
             // NO OP
         }
 

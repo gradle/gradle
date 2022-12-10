@@ -59,7 +59,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+    public void visitPropertyValue(Annotation propertyAnnotation, String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
         visitor.visitInputFileProperty(
             propertyName,
             propertyMetadata.isAnnotationPresent(Optional.class),

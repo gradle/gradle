@@ -79,7 +79,7 @@ public class DefaultInstanceSchemaExtractor<T, S extends InstanceSchema, B exten
 
         @Override
         public void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata) {
-            Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
+            Class<? extends Annotation> propertyType = propertyMetadata.getPropertyAnnotation().annotationType();
             PropertySchemaExtractor<? super B> propertySchemaExtractor = propertyExtractors.get(propertyType);
             if (propertySchemaExtractor == null) {
                 throw new IllegalStateException("Property type not recognized: @" + propertyType.getSimpleName());

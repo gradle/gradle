@@ -121,16 +121,17 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         LineEndingSensitivity dependenciesLineEndingSensitivity = LineEndingSensitivity.DEFAULT;
         for (PropertyMetadata propertyMetadata : actionMetadata.getPropertiesMetadata()) {
             // Should ask the annotation handler to figure this out instead
-            Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
+            Annotation propertyAnnotation = propertyMetadata.getPropertyAnnotation();
+            Class<? extends Annotation> propertyType = propertyAnnotation.annotationType();
             NormalizerCollectingVisitor visitor = new NormalizerCollectingVisitor();
             if (propertyType.equals(InputArtifact.class)) {
-                propertyMetadata.getHandler().visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor);
+                propertyMetadata.getHandler().visitPropertyValue(propertyAnnotation, propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor);
                 inputArtifactNormalizer = visitor.normalizer;
                 artifactDirectorySensitivity = visitor.directorySensitivity;
                 artifactLineEndingSensitivity = visitor.lineEndingSensitivity;
                 DefaultTransformer.validateInputFileNormalizer(propertyMetadata.getPropertyName(), inputArtifactNormalizer, cacheable, validationContext);
             } else if (propertyType.equals(InputArtifactDependencies.class)) {
-                propertyMetadata.getHandler().visitPropertyValue(propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor);
+                propertyMetadata.getHandler().visitPropertyValue(propertyAnnotation, propertyMetadata.getPropertyName(), PropertyValue.ABSENT, propertyMetadata, visitor);
                 dependenciesNormalizer = visitor.normalizer;
                 dependenciesDirectorySensitivity = visitor.directorySensitivity;
                 dependenciesLineEndingSensitivity = visitor.lineEndingSensitivity;

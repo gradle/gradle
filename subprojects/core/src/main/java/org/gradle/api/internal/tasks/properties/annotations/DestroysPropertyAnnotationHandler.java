@@ -23,6 +23,8 @@ import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.annotations.AbstractPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
+import java.lang.annotation.Annotation;
+
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 
 public class DestroysPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
@@ -36,7 +38,7 @@ public class DestroysPropertyAnnotationHandler extends AbstractPropertyAnnotatio
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+    public void visitPropertyValue(Annotation propertyAnnotation, String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
         visitor.visitDestroyableProperty(value);
     }
 }

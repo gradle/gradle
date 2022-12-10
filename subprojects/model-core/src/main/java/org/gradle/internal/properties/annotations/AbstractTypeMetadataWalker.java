@@ -81,7 +81,7 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
 
     private void walkChildren(T node, TypeMetadata typeMetadata, @Nullable String parentQualifiedName, V visitor, Map<T, String> nestedNodesOnPath) {
         typeMetadata.getPropertiesMetadata().forEach(propertyMetadata -> {
-            if (propertyMetadata.getPropertyType() == nestedAnnotation) {
+            if (propertyMetadata.getPropertyAnnotation().annotationType() == nestedAnnotation) {
                 walkNestedChild(node, getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName()), propertyMetadata, visitor, child -> walkNested(child, getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName()), propertyMetadata, visitor, nestedNodesOnPath, false));
             } else {
                 walkLeaf(node, parentQualifiedName, visitor, propertyMetadata);

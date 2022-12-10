@@ -31,6 +31,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.model.internal.type.ModelType;
 
 import java.io.File;
+import java.lang.annotation.Annotation;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
 import static org.gradle.internal.reflect.validation.Severity.ERROR;
@@ -46,7 +47,7 @@ public class InputPropertyAnnotationHandler extends AbstractInputPropertyAnnotat
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+    public void visitPropertyValue(Annotation propertyAnnotation, String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
         visitor.visitInputProperty(propertyName, value, propertyMetadata.isAnnotationPresent(Optional.class));
     }
 

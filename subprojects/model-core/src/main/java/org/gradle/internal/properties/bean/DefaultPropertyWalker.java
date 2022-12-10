@@ -86,11 +86,13 @@ public class DefaultPropertyWalker implements PropertyWalker {
             @Override
             public void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata) {
                 PropertyValue cachedValue = new CachedPropertyValue(() -> propertyMetadata.getPropertyValue(parent), propertyMetadata.getDeclaredType().getRawType());
-                PropertyAnnotationHandler handler = handlers.get(propertyMetadata.getPropertyType());
+                Annotation propertyAnnotation = propertyMetadata.getPropertyAnnotation();
+                Class<? extends Annotation> propertyType = propertyAnnotation.annotationType();
+                PropertyAnnotationHandler handler = handlers.get(propertyType);
                 if (handler == null) {
-                    throw new IllegalStateException("Property handler should not be null for: " + propertyMetadata.getPropertyType());
+                    throw new IllegalStateException("Missing property handler for: @" + propertyType.getSimpleName());
                 }
-                handler.visitPropertyValue(qualifiedName, cachedValue, propertyMetadata, visitor);
+                handler.visitPropertyValue(propertyAnnotation, qualifiedName, cachedValue, propertyMetadata, visitor);
             }
         });
     }

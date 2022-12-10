@@ -25,6 +25,8 @@ import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.Severity;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
+import java.lang.annotation.Annotation;
+
 class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public ValidationProblemPropertyAnnotationHandler() {
         super(ValidationProblem.class, Kind.OTHER, ImmutableSet.of());
@@ -36,7 +38,7 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+    public void visitPropertyValue(Annotation propertyAnnotation, String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
     }
 
     @Override

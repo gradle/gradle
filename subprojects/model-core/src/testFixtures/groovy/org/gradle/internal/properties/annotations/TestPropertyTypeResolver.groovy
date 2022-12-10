@@ -26,7 +26,7 @@ class TestPropertyTypeResolver implements PropertyTypeResolver {
 
     @Nullable
     @Override
-    Class<? extends Annotation> resolveAnnotationType(Map<AnnotationCategory, Annotation> propertyAnnotations) {
-        propertyAnnotations.get(AnnotationCategory.TYPE)?.annotationType()
+    Annotation resolveTypeAnnotation(Map<AnnotationCategory, Annotation> propertyAnnotations) {
+        propertyAnnotations.get(AnnotationCategory.TYPE)
     }
 }

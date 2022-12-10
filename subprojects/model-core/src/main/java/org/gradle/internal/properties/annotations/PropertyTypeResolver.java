@@ -27,5 +27,5 @@ import java.util.Map;
  */
 public interface PropertyTypeResolver {
     @Nullable
-    Class<? extends Annotation> resolveAnnotationType(Map<AnnotationCategory, Annotation> propertyAnnotations);
+    Annotation resolveTypeAnnotation(Map<AnnotationCategory, Annotation> propertyAnnotations);
 }

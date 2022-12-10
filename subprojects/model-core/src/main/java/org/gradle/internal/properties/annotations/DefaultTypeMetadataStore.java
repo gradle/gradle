@@ -98,8 +98,8 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         ImmutableSet.Builder<PropertyMetadata> effectiveProperties = ImmutableSet.builderWithExpectedSize(annotationMetadata.getPropertiesAnnotationMetadata().size());
         for (PropertyAnnotationMetadata propertyAnnotationMetadata : annotationMetadata.getPropertiesAnnotationMetadata()) {
             Map<AnnotationCategory, Annotation> propertyAnnotations = propertyAnnotationMetadata.getAnnotations();
-            Class<? extends Annotation> propertyType = propertyTypeResolver.resolveAnnotationType(propertyAnnotations);
-            if (propertyType == null) {
+            Annotation propertyAnnotation = propertyTypeResolver.resolveTypeAnnotation(propertyAnnotations);
+            if (propertyAnnotation == null) {
                 validationContext.visitPropertyProblem(problem ->
                     problem.withId(ValidationProblemId.MISSING_ANNOTATION)
                         .forProperty(propertyAnnotationMetadata.getPropertyName())
@@ -113,6 +113,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 continue;
             }
 
+            Class<? extends Annotation> propertyType = propertyAnnotation.annotationType();
             PropertyAnnotationHandler annotationHandler = propertyAnnotationHandlers.get(propertyType);
             if (annotationHandler == null) {
                 validationContext.visitPropertyProblem(problem ->
@@ -159,7 +160,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 }
             }
 
-            PropertyMetadata property = new DefaultPropertyMetadata(propertyType, propertyAnnotationMetadata, annotationHandler);
+            PropertyMetadata property = new DefaultPropertyMetadata(propertyAnnotation, propertyAnnotationMetadata, annotationHandler);
             annotationHandler.validatePropertyMetadata(property, validationContext);
 
             if (annotationHandler.isPropertyRelevant()) {
@@ -208,19 +209,19 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
     private static class DefaultPropertyMetadata implements PropertyMetadata {
 
-        private final Class<? extends Annotation> propertyType;
+        private final Annotation propertyAnnotation;
         private final PropertyAnnotationMetadata annotationMetadata;
         private final PropertyAnnotationHandler handler;
 
-        public DefaultPropertyMetadata(Class<? extends Annotation> propertyType, PropertyAnnotationMetadata annotationMetadata, PropertyAnnotationHandler handler) {
-            this.propertyType = propertyType;
+        public DefaultPropertyMetadata(Annotation propertyAnnotation, PropertyAnnotationMetadata annotationMetadata, PropertyAnnotationHandler handler) {
+            this.propertyAnnotation = propertyAnnotation;
             this.annotationMetadata = annotationMetadata;
             this.handler = handler;
         }
 
         @Override
-        public Class<? extends Annotation> getPropertyType() {
-            return propertyType;
+        public Annotation getPropertyAnnotation() {
+            return propertyAnnotation;
         }
 
         @Override
@@ -238,13 +239,11 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             return annotationMetadata.isAnnotationPresent(annotationType);
         }
 
-        @Nullable
         @Override
         public <T extends Annotation> Optional<T> getAnnotation(Class<T> annotationType) {
             return annotationMetadata.getAnnotation(annotationType);
         }
 
-        @Nullable
         @Override
         public Optional<Annotation> getAnnotationForCategory(AnnotationCategory category) {
             return Optional.ofNullable(annotationMetadata.getAnnotations().get(category));
@@ -268,7 +267,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
         @Override
         public String toString() {
-            return String.format("@%s %s", propertyType.getSimpleName(), getPropertyName());
+            return String.format("@%s %s", propertyAnnotation.annotationType().getSimpleName(), getPropertyName());
         }
     }
 

@@ -48,7 +48,7 @@ public interface PropertyAnnotationHandler {
     /**
      * Visit the value of a property with this annotation attached.
      */
-    void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor);
+    void visitPropertyValue(Annotation propertyAnnotation, String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor);
 
     /**
      * Visits problems associated with the given property, if any.

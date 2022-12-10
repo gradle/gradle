@@ -35,6 +35,6 @@ public class NestedBeanAnnotationHandler extends AbstractPropertyAnnotationHandl
     }
 
     @Override
-    public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
+    public void visitPropertyValue(Annotation propertyAnnotation, String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
     }
 }

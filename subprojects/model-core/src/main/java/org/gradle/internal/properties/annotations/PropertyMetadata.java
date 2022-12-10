@@ -24,7 +24,7 @@ import java.lang.annotation.Annotation;
 import java.util.Optional;
 
 public interface PropertyMetadata {
-    Class<? extends Annotation> getPropertyType();
+    Annotation getPropertyAnnotation();
 
     PropertyAnnotationHandler getHandler();
 

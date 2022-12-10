@@ -122,7 +122,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         propertiesMetadata.size() == 1
         def propertyMetadata = propertiesMetadata.first()
         propertyMetadata.propertyName == 'searchPath'
-        propertyMetadata.propertyType == SearchPath
+        propertyMetadata.propertyAnnotation.annotationType() == SearchPath
         propertyMetadata.handler == annotationHandler
         collectProblems(typeMetadata).empty
     }
@@ -315,8 +315,8 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
 
         then:
         def properties = typeMetadata.propertiesMetadata
-        properties*.propertyName as List == ["classpathInputFiles", "classpathOnly", "inputFilesClasspath"]
-        properties*.propertyType as List == [InputFiles, InputFiles, InputFiles]
+        properties*.propertyName == ["classpathInputFiles", "classpathOnly", "inputFilesClasspath"]
+        properties*.propertyAnnotation*.annotationType() == [InputFiles, InputFiles, InputFiles]
         properties*.getAnnotationForCategory(NORMALIZATION)*.get()*.annotationType() as List == [annotation, annotation, annotation]
         collectProblems(typeMetadata).empty
 
@@ -328,7 +328,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
 
     def "all properties on #workClass are ignored"() {
         when:
-        def typeMetadata = metadataStore.getTypeMetadata(workClass).propertiesMetadata.findAll { it.propertyType == null }
+        def typeMetadata = metadataStore.getTypeMetadata(workClass).propertiesMetadata.findAll { it.propertyAnnotation == null }
         then:
         typeMetadata*.propertyName.empty
 
@@ -425,6 +425,6 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     }
 
     private static boolean isOfType(PropertyMetadata metadata, Class<? extends Annotation> type) {
-        metadata.propertyType == type
+        metadata.propertyAnnotation.annotationType() == type
     }
 }

@@ -28,21 +28,38 @@ import java.lang.annotation.Annotation;
 import java.util.Map;
 
 public class DefaultPropertyTypeResolver implements PropertyTypeResolver {
+
+    private static final Annotation INPUT_FILES;
+
+    static {
+        try {
+            INPUT_FILES = DefaultPropertyTypeResolver.class
+                .getMethod("inputFilesAnnotationHolder")
+                .getAnnotation(InputFiles.class);
+        } catch (NoSuchMethodException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     @Nullable
     @Override
-    public Class<? extends Annotation> resolveAnnotationType(Map<AnnotationCategory, Annotation> propertyAnnotations) {
+    public Annotation resolveTypeAnnotation(Map<AnnotationCategory, Annotation> propertyAnnotations) {
+        Runnable inputFilesAnnotationHolder = DefaultPropertyTypeResolver::inputFilesAnnotationHolder;
         Annotation typeAnnotation = propertyAnnotations.get(AnnotationCategory.TYPE);
         if (typeAnnotation != null) {
-            return typeAnnotation.annotationType();
+            return typeAnnotation;
         } else {
             Annotation normalizationAnnotation = propertyAnnotations.get(ModifierAnnotationCategory.NORMALIZATION);
             if (normalizationAnnotation != null) {
                 Class<? extends Annotation> normalizationType = normalizationAnnotation.annotationType();
                 if (normalizationType.equals(Classpath.class) || normalizationType.equals(CompileClasspath.class)) {
-                    return InputFiles.class;
+                    return INPUT_FILES;
                 }
             }
         }
         return null;
     }
+
+    @InputFiles
+    public static void inputFilesAnnotationHolder() {}
 }
