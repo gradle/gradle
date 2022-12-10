@@ -38,7 +38,7 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
     }
 
     @MapConstructor
-    class TypeWithSimpleProperties {
+    static class TypeWithSimpleProperties {
         @Short
         @Tint("blue")
         String name
@@ -58,15 +58,13 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
     }
 
     @MapConstructor
-    class TypeWithNestedProperties {
+    static class TypeWithNestedProperties {
         @TestNested
         TypeWithSimpleProperties nested
     }
 
     def "can extract nested properties"() {
-        def thing = new TypeWithNestedProperties(
-            nested: new TypeWithSimpleProperties(name: "lajos", longName: "Nagy Lajos")
-        )
+        def thing = instanceWithNested()
         when:
         def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
 
@@ -77,9 +75,7 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
     }
 
     def "schema equals itself"() {
-        def thing = new TypeWithNestedProperties(
-            nested: new TypeWithSimpleProperties(name: "lajos", longName: "Nagy Lajos")
-        )
+        def thing = instanceWithNested()
 
         when:
         def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
@@ -90,9 +86,7 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
     }
 
     def "schema equals re-extracted schema"() {
-        def thing = new TypeWithNestedProperties(
-            nested: new TypeWithSimpleProperties(name: "lajos", longName: "Nagy Lajos")
-        )
+        def thing = instanceWithNested()
 
         when:
         def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
@@ -104,12 +98,8 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
     }
 
     def "schema differs for different instances"() {
-        def thing = new TypeWithNestedProperties(
-            nested: new TypeWithSimpleProperties(name: "lajos", longName: "Nagy Lajos")
-        )
-        def otherThing = new TypeWithNestedProperties(
-            nested: new TypeWithSimpleProperties(name: "tibor", longName: "Nagy Lajos")
-        )
+        def thing = instanceWithNested()
+        def otherThing = instanceWithNested()
 
         when:
         def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
@@ -118,6 +108,12 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
         then:
         schema != otherSchema
         0 * _
+    }
+
+    private static TypeWithNestedProperties instanceWithNested() {
+        return new TypeWithNestedProperties(
+            nested: new TypeWithSimpleProperties(name: "lajos", longName: "Nagy Lajos")
+        )
     }
 
     @MapConstructor
