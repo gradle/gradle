@@ -25,7 +25,7 @@ import org.gradle.internal.schema.NestedPropertySchema;
 import java.util.stream.Stream;
 
 public class DefaultTaskInstanceSchema extends AbstractWorkInstanceSchema implements TaskInstanceSchema {
-    private final ImmutableSortedSet<OutputPropertySchema> outputs;
+    private final ImmutableSortedSet<FileOutputPropertySchema> outputs;
     private final ImmutableSortedSet<LocalStatePropertySchema> localState;
     private final ImmutableSortedSet<DestroysPropertySchema> destroys;
 
@@ -33,7 +33,7 @@ public class DefaultTaskInstanceSchema extends AbstractWorkInstanceSchema implem
         ImmutableSortedSet<NestedPropertySchema> nestedProperties,
         ImmutableSortedSet<ScalarInputPropertySchema> inputs,
         ImmutableSortedSet<FileInputPropertySchema> fileInputs,
-        ImmutableSortedSet<OutputPropertySchema> outputs,
+        ImmutableSortedSet<FileOutputPropertySchema> outputs,
         ImmutableSortedSet<LocalStatePropertySchema> localState,
         ImmutableSortedSet<DestroysPropertySchema> destroys
     ) {
@@ -44,7 +44,7 @@ public class DefaultTaskInstanceSchema extends AbstractWorkInstanceSchema implem
     }
 
     @Override
-    public Stream<OutputPropertySchema> getOutputs() {
+    public Stream<FileOutputPropertySchema> getOutputs() {
         return outputs.stream();
     }
 

@@ -19,6 +19,6 @@ package org.gradle.api.internal.tasks.schema;
 import org.gradle.internal.execution.schema.FilePropertySchema;
 import org.gradle.internal.file.TreeType;
 
-public interface OutputPropertySchema extends FilePropertySchema {
+public interface FileOutputPropertySchema extends FilePropertySchema {
     TreeType getOutputType();
 }

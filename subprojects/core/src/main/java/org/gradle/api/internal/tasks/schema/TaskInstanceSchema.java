@@ -25,12 +25,12 @@ import org.gradle.internal.schema.NestedPropertySchema;
 import java.util.stream.Stream;
 
 public interface TaskInstanceSchema extends WorkInstanceSchema {
-    Stream<OutputPropertySchema> getOutputs();
+    Stream<FileOutputPropertySchema> getOutputs();
     Stream<LocalStatePropertySchema> getLocalState();
     Stream<DestroysPropertySchema> getDestroys();
 
     class Builder extends WorkInstanceSchema.Builder<TaskInstanceSchema> {
-        private final ImmutableSortedSet.Builder<OutputPropertySchema> outputs = ImmutableSortedSet.naturalOrder();
+        private final ImmutableSortedSet.Builder<FileOutputPropertySchema> outputs = ImmutableSortedSet.naturalOrder();
         private final ImmutableSortedSet.Builder<LocalStatePropertySchema> localState = ImmutableSortedSet.naturalOrder();
         private final ImmutableSortedSet.Builder<DestroysPropertySchema> destroys = ImmutableSortedSet.naturalOrder();
 
