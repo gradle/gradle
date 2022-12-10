@@ -26,24 +26,30 @@ import java.util.stream.Stream;
 
 public interface TaskInstanceSchema extends WorkInstanceSchema {
     Stream<FileOutputPropertySchema> getOutputs();
-    Stream<LocalStatePropertySchema> getLocalState();
+    Stream<LocalStatePropertySchema> getLocalStates();
     Stream<DestroysPropertySchema> getDestroys();
+    Stream<ServiceReferencePropertySchema> getServiceReferences();
 
     class Builder extends WorkInstanceSchema.Builder<TaskInstanceSchema> {
         private final ImmutableList.Builder<FileOutputPropertySchema> outputs = ImmutableList.builder();
-        private final ImmutableList.Builder<LocalStatePropertySchema> localState = ImmutableList.builder();
+        private final ImmutableList.Builder<LocalStatePropertySchema> localStates = ImmutableList.builder();
         private final ImmutableList.Builder<DestroysPropertySchema> destroys = ImmutableList.builder();
+        private final ImmutableList.Builder<ServiceReferencePropertySchema> serviceReferences = ImmutableList.builder();
 
         public void add(FileOutputPropertySchema property) {
             outputs.add(property);
         }
 
         public void add(LocalStatePropertySchema property) {
-            localState.add(property);
+            localStates.add(property);
         }
 
         public void add(DestroysPropertySchema property) {
             destroys.add(property);
+        }
+
+        public void add(ServiceReferencePropertySchema property) {
+            serviceReferences.add(property);
         }
 
         @Override
@@ -57,8 +63,9 @@ public interface TaskInstanceSchema extends WorkInstanceSchema {
                 scalarInputs,
                 fileInputs,
                 toSortedList(outputs),
-                toSortedList(localState),
-                toSortedList(destroys)
+                toSortedList(localStates),
+                toSortedList(destroys),
+                toSortedList(serviceReferences)
             );
         }
     }

@@ -22,25 +22,29 @@ import org.gradle.internal.execution.schema.FileInputPropertySchema;
 import org.gradle.internal.execution.schema.ScalarInputPropertySchema;
 import org.gradle.internal.schema.NestedPropertySchema;
 
+import javax.annotation.Nullable;
 import java.util.stream.Stream;
 
 public class DefaultTaskInstanceSchema extends AbstractWorkInstanceSchema implements TaskInstanceSchema {
     private final ImmutableList<FileOutputPropertySchema> outputs;
-    private final ImmutableList<LocalStatePropertySchema> localState;
+    private final ImmutableList<LocalStatePropertySchema> localStates;
     private final ImmutableList<DestroysPropertySchema> destroys;
+    private final ImmutableList<ServiceReferencePropertySchema> serviceReferences;
 
     public DefaultTaskInstanceSchema(
         ImmutableList<NestedPropertySchema> nestedProperties,
         ImmutableList<ScalarInputPropertySchema> inputs,
         ImmutableList<FileInputPropertySchema> fileInputs,
         ImmutableList<FileOutputPropertySchema> outputs,
-        ImmutableList<LocalStatePropertySchema> localState,
-        ImmutableList<DestroysPropertySchema> destroys
+        ImmutableList<LocalStatePropertySchema> localStates,
+        ImmutableList<DestroysPropertySchema> destroys,
+        ImmutableList<ServiceReferencePropertySchema> serviceReferences
     ) {
         super(nestedProperties, inputs, fileInputs);
         this.outputs = outputs;
-        this.localState = localState;
+        this.localStates = localStates;
         this.destroys = destroys;
+        this.serviceReferences = serviceReferences;
     }
 
     @Override
@@ -49,8 +53,8 @@ public class DefaultTaskInstanceSchema extends AbstractWorkInstanceSchema implem
     }
 
     @Override
-    public Stream<LocalStatePropertySchema> getLocalState() {
-        return localState.stream();
+    public Stream<LocalStatePropertySchema> getLocalStates() {
+        return localStates.stream();
     }
 
     @Override
@@ -59,7 +63,12 @@ public class DefaultTaskInstanceSchema extends AbstractWorkInstanceSchema implem
     }
 
     @Override
-    public boolean equals(Object o) {
+    public Stream<ServiceReferencePropertySchema> getServiceReferences() {
+        return serviceReferences.stream();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }
@@ -75,18 +84,22 @@ public class DefaultTaskInstanceSchema extends AbstractWorkInstanceSchema implem
         if (!outputs.equals(that.outputs)) {
             return false;
         }
-        if (!localState.equals(that.localState)) {
+        if (!localStates.equals(that.localStates)) {
             return false;
         }
-        return destroys.equals(that.destroys);
+        if (!destroys.equals(that.destroys)) {
+            return false;
+        }
+        return serviceReferences.equals(that.serviceReferences);
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + outputs.hashCode();
-        result = 31 * result + localState.hashCode();
+        result = 31 * result + localStates.hashCode();
         result = 31 * result + destroys.hashCode();
+        result = 31 * result + serviceReferences.hashCode();
         return result;
     }
 }

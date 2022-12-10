@@ -42,6 +42,7 @@ import org.gradle.api.internal.tasks.properties.annotations.UntrackedTaskTypeAnn
 import org.gradle.api.internal.tasks.schema.DestroysPropertySchemaExtractor;
 import org.gradle.api.internal.tasks.schema.FileOutputPropertySchemaExtractor;
 import org.gradle.api.internal.tasks.schema.LocalStatePropertySchemaExtractor;
+import org.gradle.api.internal.tasks.schema.ServiceReferencePropertySchemaExtractor;
 import org.gradle.api.internal.tasks.schema.TaskInstanceSchema;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
@@ -240,7 +241,8 @@ public class ExecutionGlobalServices {
                 FileOutputPropertySchemaExtractor.OUTPUT_DIRECTORY,
                 FileOutputPropertySchemaExtractor.OUTPUT_DIRECTORIES,
                 LocalStatePropertySchemaExtractor.LOCAL_STATE,
-                DestroysPropertySchemaExtractor.DESTROYS
+                DestroysPropertySchemaExtractor.DESTROYS,
+                ServiceReferencePropertySchemaExtractor.SERVICE_REFERENCE
             )
         );
         return new TaskScheme(instantiationScheme, inspectionScheme, instanceSchemaExtractor);
