@@ -36,7 +36,6 @@ import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
 import java.lang.annotation.Annotation;
-import java.util.function.Supplier;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
 
@@ -56,15 +55,15 @@ public class FileInputPropertySchemaExtractor extends AbstractPropertySchemaExtr
     }
 
     @Override
-    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver, WorkInstanceSchema.Builder<?> builder) {
+    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Object parent, WorkInstanceSchema.Builder<?> builder) {
         builder.add(new DefaultFileInputPropertySchema(
             qualifiedName,
             metadata,
+            parent,
             determineNormalizer(metadata),
             determineBehavior(metadata),
             determineDirectorySensitivity(metadata),
-            determineLineEndingSensitivity(metadata),
-            valueResolver
+            determineLineEndingSensitivity(metadata)
         ));
     }
 

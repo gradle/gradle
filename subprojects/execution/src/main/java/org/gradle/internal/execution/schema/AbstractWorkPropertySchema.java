@@ -20,11 +20,9 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.schema.AbstractUnresolvedPropertySchema;
 
-import java.util.function.Supplier;
-
 public class AbstractWorkPropertySchema extends AbstractUnresolvedPropertySchema {
 
-    protected AbstractWorkPropertySchema(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver) {
-        super(qualifiedName, metadata, metadata.isAnnotationPresent(Optional.class), valueResolver);
+    protected AbstractWorkPropertySchema(String qualifiedName, PropertyMetadata metadata, Object parent) {
+        super(qualifiedName, metadata, parent, metadata.isAnnotationPresent(Optional.class));
     }
 }

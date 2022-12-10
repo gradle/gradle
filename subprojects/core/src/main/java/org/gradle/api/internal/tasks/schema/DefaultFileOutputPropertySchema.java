@@ -21,14 +21,12 @@ import org.gradle.internal.execution.schema.AbstractFilePropertySchema;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-import java.util.function.Supplier;
-
 public class DefaultFileOutputPropertySchema extends AbstractFilePropertySchema implements FileOutputPropertySchema {
 
     private final TreeType outputType;
 
-    public DefaultFileOutputPropertySchema(String qualifiedName, PropertyMetadata metadata, TreeType outputType, Supplier<Object> valueResolver) {
-        super(qualifiedName, metadata, OutputNormalizer.INSTANCE, valueResolver);
+    public DefaultFileOutputPropertySchema(String qualifiedName, PropertyMetadata metadata, Object parent, TreeType outputType) {
+        super(qualifiedName, metadata, parent, OutputNormalizer.INSTANCE);
         this.outputType = outputType;
     }
 

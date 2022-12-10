@@ -20,8 +20,6 @@ import org.gradle.api.tasks.Destroys;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
 
-import java.util.function.Supplier;
-
 public class DestroysPropertySchemaExtractor extends AbstractPropertySchemaExtractor<TaskInstanceSchema.Builder> {
     public static final DestroysPropertySchemaExtractor DESTROYS = new DestroysPropertySchemaExtractor();
 
@@ -30,7 +28,7 @@ public class DestroysPropertySchemaExtractor extends AbstractPropertySchemaExtra
     }
 
     @Override
-    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver, TaskInstanceSchema.Builder builder) {
-        builder.add(new DefaultDestroysPropertySchema(qualifiedName, metadata, valueResolver));
+    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Object parent, TaskInstanceSchema.Builder builder) {
+        builder.add(new DefaultDestroysPropertySchema(qualifiedName, metadata, parent));
     }
 }

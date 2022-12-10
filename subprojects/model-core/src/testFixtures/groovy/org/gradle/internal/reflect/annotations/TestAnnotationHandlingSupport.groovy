@@ -128,8 +128,8 @@ trait TestAnnotationHandlingSupport {
         }
 
         @Override
-        void extractProperty(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver, TestInstanceSchema.Builder builder) {
-            builder.add(new TestPropertySchema(annotationType, qualifiedName, metadata, valueResolver))
+        void extractProperty(String qualifiedName, PropertyMetadata metadata, Object parent, TestInstanceSchema.Builder builder) {
+            builder.add(new TestPropertySchema(annotationType, qualifiedName, () -> metadata.getPropertyValue(parent)))
         }
     }
 
@@ -137,8 +137,8 @@ trait TestAnnotationHandlingSupport {
 
         final Class<? extends Annotation> propertyType
 
-        TestPropertySchema(Class<? extends Annotation> propertyType, String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver) {
-            super(qualifiedName, metadata, false, valueResolver)
+        TestPropertySchema(Class<? extends Annotation> propertyType, String qualifiedName, Supplier<Object> valueResolver) {
+            super(qualifiedName, false, valueResolver)
             this.propertyType = propertyType
         }
 

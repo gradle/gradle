@@ -19,19 +19,19 @@ package org.gradle.internal.schema;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
 import javax.annotation.Nullable;
-import java.util.function.Supplier;
 
 public abstract class AbstractUnresolvedPropertySchema extends AbstractPropertySchema {
-    private final Supplier<Object> valueResolver;
 
-    protected AbstractUnresolvedPropertySchema(String qualifiedName, PropertyMetadata metadata, boolean optional, Supplier<Object> valueResolver) {
+    private final Object parent;
+
+    protected AbstractUnresolvedPropertySchema(String qualifiedName, PropertyMetadata metadata, Object parent, boolean optional) {
         super(qualifiedName, metadata, optional);
-        this.valueResolver = valueResolver;
+        this.parent = parent;
     }
 
     @Nullable
     @Override
     public Object getValue() {
-        return valueResolver.get();
+        return getMetadata().getPropertyValue(parent);
     }
 }

@@ -72,25 +72,19 @@ public class DefaultInstanceSchemaExtractor<T, S extends InstanceSchema, B exten
         }
 
         @Override
-        public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, Object value) {
+        public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable Object value) {
             typeMetadata.visitValidationFailures(qualifiedName, validationContext);
             builder.add(new DefaultNestedPropertySchema(qualifiedName, propertyMetadata, isOptional(propertyMetadata), value));
         }
 
         @Override
-        public void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<Object> value) {
+        public void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata) {
             Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
             PropertySchemaExtractor<? super B> propertySchemaExtractor = propertyExtractors.get(propertyType);
             if (propertySchemaExtractor == null) {
                 throw new IllegalStateException("Property type not recognized: @" + propertyType.getSimpleName());
             }
-            propertySchemaExtractor.extractProperty(qualifiedName, propertyMetadata, value, builder);
-        }
-
-        @Override
-        public void visitMissingNested(String qualifiedName, PropertyMetadata propertyMetadata) {
-            // TODO Is this the right way to handle this?
-            builder.add(new DefaultNestedPropertySchema(qualifiedName, propertyMetadata, isOptional(propertyMetadata), null));
+            propertySchemaExtractor.extractProperty(qualifiedName, propertyMetadata, parent, builder);
         }
 
         @Override

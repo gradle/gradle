@@ -25,7 +25,6 @@ import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
 
 import java.lang.annotation.Annotation;
-import java.util.function.Supplier;
 
 public class FileOutputPropertySchemaExtractor extends AbstractPropertySchemaExtractor<TaskInstanceSchema.Builder> {
     public static final FileOutputPropertySchemaExtractor OUTPUT_FILE = new FileOutputPropertySchemaExtractor(OutputFile.class, TreeType.FILE);
@@ -41,7 +40,7 @@ public class FileOutputPropertySchemaExtractor extends AbstractPropertySchemaExt
     }
 
     @Override
-    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver, TaskInstanceSchema.Builder builder) {
-        builder.add(new DefaultFileOutputPropertySchema(qualifiedName, metadata, outputType, valueResolver));
+    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Object parent, TaskInstanceSchema.Builder builder) {
+        builder.add(new DefaultFileOutputPropertySchema(qualifiedName, metadata, parent, outputType));
     }
 }

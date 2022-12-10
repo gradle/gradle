@@ -20,8 +20,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
 
-import java.util.function.Supplier;
-
 public class ScalarInputPropertySchemaExtractor extends AbstractPropertySchemaExtractor<WorkInstanceSchema.Builder<?>> {
     public static final ScalarInputPropertySchemaExtractor INPUT = new ScalarInputPropertySchemaExtractor();
 
@@ -30,7 +28,7 @@ public class ScalarInputPropertySchemaExtractor extends AbstractPropertySchemaEx
     }
 
     @Override
-    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver, WorkInstanceSchema.Builder<?> builder) {
-        builder.add(new DefaultScalarInputPropertySchema(qualifiedName, metadata, valueResolver));
+    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Object parent, WorkInstanceSchema.Builder<?> builder) {
+        builder.add(new DefaultScalarInputPropertySchema(qualifiedName, metadata, parent));
     }
 }

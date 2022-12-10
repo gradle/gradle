@@ -22,8 +22,6 @@ import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-import java.util.function.Supplier;
-
 public class DefaultFileInputPropertySchema extends AbstractFilePropertySchema implements FileInputPropertySchema {
     private final InputBehavior behavior;
     private final DirectorySensitivity directorySensitivity;
@@ -32,13 +30,13 @@ public class DefaultFileInputPropertySchema extends AbstractFilePropertySchema i
     public DefaultFileInputPropertySchema(
         String qualifiedName,
         PropertyMetadata metadata,
+        Object parent,
         FileNormalizer normalizer,
         InputBehavior behavior,
         DirectorySensitivity directorySensitivity,
-        LineEndingSensitivity lineEndingSensitivity,
-        Supplier<Object> valueResolver
+        LineEndingSensitivity lineEndingSensitivity
     ) {
-        super(qualifiedName, metadata, normalizer, valueResolver);
+        super(qualifiedName, metadata, parent, normalizer);
         this.behavior = behavior;
         this.directorySensitivity = directorySensitivity;
         this.lineEndingSensitivity = lineEndingSensitivity;

@@ -20,8 +20,6 @@ import org.gradle.api.tasks.LocalState;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
 
-import java.util.function.Supplier;
-
 public class LocalStatePropertySchemaExtractor extends AbstractPropertySchemaExtractor<TaskInstanceSchema.Builder> {
     public static final LocalStatePropertySchemaExtractor LOCAL_STATE = new LocalStatePropertySchemaExtractor();
 
@@ -30,7 +28,7 @@ public class LocalStatePropertySchemaExtractor extends AbstractPropertySchemaExt
     }
 
     @Override
-    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver, TaskInstanceSchema.Builder builder) {
-        builder.add(new DefaultLocalStatePropertySchema(qualifiedName, metadata, valueResolver));
+    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Object parent, TaskInstanceSchema.Builder builder) {
+        builder.add(new DefaultLocalStatePropertySchema(qualifiedName, metadata, parent));
     }
 }

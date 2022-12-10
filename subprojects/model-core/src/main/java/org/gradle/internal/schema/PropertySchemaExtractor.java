@@ -19,10 +19,9 @@ package org.gradle.internal.schema;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
 import java.lang.annotation.Annotation;
-import java.util.function.Supplier;
 
 public interface PropertySchemaExtractor<B extends InstanceSchema.Builder<?>> {
     Class<? extends Annotation> getAnnotationType();
 
-    void extractProperty(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver, B builder);
+    void extractProperty(String qualifiedName, PropertyMetadata metadata, Object parent, B builder);
 }

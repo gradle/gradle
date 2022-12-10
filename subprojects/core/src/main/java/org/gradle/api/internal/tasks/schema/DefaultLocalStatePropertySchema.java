@@ -20,10 +20,8 @@ import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.execution.schema.AbstractFilePropertySchema;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-import java.util.function.Supplier;
-
 public class DefaultLocalStatePropertySchema extends AbstractFilePropertySchema implements LocalStatePropertySchema {
-    public DefaultLocalStatePropertySchema(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver) {
-        super(qualifiedName, metadata, InputNormalizer.ABSOLUTE_PATH, valueResolver);
+    public DefaultLocalStatePropertySchema(String qualifiedName, PropertyMetadata metadata, Object parent) {
+        super(qualifiedName, metadata, parent, InputNormalizer.ABSOLUTE_PATH);
     }
 }
