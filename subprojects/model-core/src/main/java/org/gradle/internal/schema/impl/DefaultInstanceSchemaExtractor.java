@@ -67,12 +67,12 @@ public class DefaultInstanceSchemaExtractor implements InstanceSchemaExtractor {
         @Override
         public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, Object value) {
             typeMetadata.visitValidationFailures(qualifiedName, validationContext);
-            properties.add(new NestedPropertySchema(qualifiedName, value));
+            properties.add(new NestedPropertySchema(qualifiedName, propertyMetadata, value));
         }
 
         @Override
         public void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<Object> value) {
-            properties.add(new LeafPropertySchema(qualifiedName, value));
+            properties.add(new LeafPropertySchema(qualifiedName, propertyMetadata, value));
         }
 
         @Override
@@ -112,14 +112,21 @@ public class DefaultInstanceSchemaExtractor implements InstanceSchemaExtractor {
 
     private abstract static class AbstractPropertySchema implements PropertySchema {
         private final String qualifiedName;
+        private final PropertyMetadata metadata;
 
-        public AbstractPropertySchema(String qualifiedName) {
+        public AbstractPropertySchema(String qualifiedName, PropertyMetadata metadata) {
             this.qualifiedName = qualifiedName;
+            this.metadata = metadata;
         }
 
         @Override
         public String getQualifiedName() {
             return qualifiedName;
+        }
+
+        @Override
+        public PropertyMetadata getMetadata() {
+            return metadata;
         }
 
         @Override
@@ -131,8 +138,8 @@ public class DefaultInstanceSchemaExtractor implements InstanceSchemaExtractor {
     private static class NestedPropertySchema extends AbstractPropertySchema {
         private final Object value;
 
-        public NestedPropertySchema(String qualifiedName, Object value) {
-            super(qualifiedName);
+        public NestedPropertySchema(String qualifiedName, PropertyMetadata metadata, Object value) {
+            super(qualifiedName, metadata);
             this.value = value;
         }
 
@@ -146,8 +153,8 @@ public class DefaultInstanceSchemaExtractor implements InstanceSchemaExtractor {
     private static class LeafPropertySchema extends AbstractPropertySchema {
         private final Supplier<Object> value;
 
-        public LeafPropertySchema(String qualifiedName, Supplier<Object> value) {
-            super(qualifiedName);
+        public LeafPropertySchema(String qualifiedName, PropertyMetadata metadata, Supplier<Object> value) {
+            super(qualifiedName, metadata);
             this.value = value;
         }
 
