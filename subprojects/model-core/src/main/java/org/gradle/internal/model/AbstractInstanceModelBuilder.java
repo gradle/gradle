@@ -37,12 +37,5 @@ public abstract class AbstractInstanceModelBuilder<V> {
     }
 
     protected void handleProperties(InstanceSchema schema, V visitor) {
-        schema.properties()
-            .forEach(propertySchema -> {
-                PropertyModelBuilder<?, V> propertyBuilder = propertyModelBuilders.get(propertySchema.getMetadata().getPropertyType());
-                if (propertyBuilder != null) {
-                    propertyBuilder.acceptVisitor(propertySchema, visitor);
-                }
-            });
     }
 }

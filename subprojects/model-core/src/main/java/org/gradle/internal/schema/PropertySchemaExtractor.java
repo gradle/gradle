@@ -16,8 +16,13 @@
 
 package org.gradle.internal.schema;
 
-import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-public interface InstanceSchemaExtractor<T, S extends InstanceSchema> {
-    S extractSchema(T instance, TypeValidationContext validationContext);
+import java.lang.annotation.Annotation;
+import java.util.function.Supplier;
+
+public interface PropertySchemaExtractor<B extends InstanceSchema.Builder<?>> {
+    Class<? extends Annotation> getAnnotationType();
+
+    void extractProperty(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver, B builder);
 }

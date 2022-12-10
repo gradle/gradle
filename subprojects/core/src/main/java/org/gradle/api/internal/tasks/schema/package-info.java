@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.schema;
+@NonNullApi
+package org.gradle.api.internal.tasks.schema;
 
-import org.gradle.internal.reflect.validation.TypeValidationContext;
-
-public interface InstanceSchemaExtractor<T, S extends InstanceSchema> {
-    S extractSchema(T instance, TypeValidationContext validationContext);
-}
+import org.gradle.api.NonNullApi;

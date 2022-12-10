@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.schema;
+package org.gradle.internal.execution.schema;
 
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
-public interface PropertySchema extends Comparable<PropertySchema> {
-    /**
-     * The name of the property prefixed with the qualified name of any parent properties, separated by a {code .}.
-     */
-    String getQualifiedName();
+public class AbstractFileInputPropertySchema extends AbstractWorkPropertySchema implements FilePropertySchema {
+    private final FileNormalizer normalizer;
 
-    PropertyMetadata getMetadata();
+    public AbstractFileInputPropertySchema(String qualifiedName, PropertyMetadata metadata, FileNormalizer normalizer, Supplier<Object> valueResolver) {
+        super(qualifiedName, metadata, valueResolver);
+        this.normalizer = normalizer;
+    }
 
-    boolean isOptional();
-
-    @Nullable
-    Object getValue();
+    @Override
+    public FileNormalizer getNormalizer() {
+        return normalizer;
+    }
 }

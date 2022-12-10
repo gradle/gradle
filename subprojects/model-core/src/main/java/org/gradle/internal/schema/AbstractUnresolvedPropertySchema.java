@@ -16,8 +16,22 @@
 
 package org.gradle.internal.schema;
 
-import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-public interface InstanceSchemaExtractor<T, S extends InstanceSchema> {
-    S extractSchema(T instance, TypeValidationContext validationContext);
+import javax.annotation.Nullable;
+import java.util.function.Supplier;
+
+public abstract class AbstractUnresolvedPropertySchema extends AbstractPropertySchema {
+    private final Supplier<Object> valueResolver;
+
+    protected AbstractUnresolvedPropertySchema(String qualifiedName, PropertyMetadata metadata, boolean optional, Supplier<Object> valueResolver) {
+        super(qualifiedName, metadata, optional);
+        this.valueResolver = valueResolver;
+    }
+
+    @Nullable
+    @Override
+    public Object getValue() {
+        return valueResolver.get();
+    }
 }

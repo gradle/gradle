@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.schema;
+package org.gradle.internal.execution.schema;
 
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-import javax.annotation.Nullable;
+public class InputDirectoryPropertySchemaExtractor extends AbstractInputFilePropertySchemaExtractor {
+    public InputDirectoryPropertySchemaExtractor() {
+        super(InputDirectory.class);
+    }
 
-public interface PropertySchema extends Comparable<PropertySchema> {
-    /**
-     * The name of the property prefixed with the qualified name of any parent properties, separated by a {code .}.
-     */
-    String getQualifiedName();
-
-    PropertyMetadata getMetadata();
-
-    boolean isOptional();
-
-    @Nullable
-    Object getValue();
+    @Override
+    protected DirectorySensitivity determineDirectorySensitivity(PropertyMetadata propertyMetadata) {
+        // Being an input directory implies ignoring of empty directories.
+        return DirectorySensitivity.IGNORE_DIRECTORIES;
+    }
 }

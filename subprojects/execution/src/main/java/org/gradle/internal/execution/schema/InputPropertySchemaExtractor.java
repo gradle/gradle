@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.schema;
+package org.gradle.internal.execution.schema;
 
+import org.gradle.api.tasks.Input;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
 
-import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
-public interface PropertySchema extends Comparable<PropertySchema> {
-    /**
-     * The name of the property prefixed with the qualified name of any parent properties, separated by a {code .}.
-     */
-    String getQualifiedName();
+public class InputPropertySchemaExtractor extends AbstractPropertySchemaExtractor<WorkInstanceSchema.Builder<?>> {
+    public InputPropertySchemaExtractor() {
+        super(Input.class);
+    }
 
-    PropertyMetadata getMetadata();
-
-    boolean isOptional();
-
-    @Nullable
-    Object getValue();
+    @Override
+    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver, WorkInstanceSchema.Builder<?> builder) {
+        builder.add(new DefaultScalarInputPropertySchema(qualifiedName, metadata, valueResolver));
+    }
 }

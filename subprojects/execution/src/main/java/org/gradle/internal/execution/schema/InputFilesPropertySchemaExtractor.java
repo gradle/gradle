@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.schema;
+package org.gradle.internal.execution.schema;
 
-import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.api.tasks.InputFiles;
 
-public interface InstanceSchemaExtractor<T, S extends InstanceSchema> {
-    S extractSchema(T instance, TypeValidationContext validationContext);
+public class InputFilesPropertySchemaExtractor extends AbstractInputFilePropertySchemaExtractor {
+    public InputFilesPropertySchemaExtractor() {
+        super(InputFiles.class);
+    }
 }

@@ -16,8 +16,5 @@
 
 package org.gradle.internal.schema;
 
-import org.gradle.internal.reflect.validation.TypeValidationContext;
-
-public interface InstanceSchemaExtractor<T, S extends InstanceSchema> {
-    S extractSchema(T instance, TypeValidationContext validationContext);
+public interface NestedPropertySchema extends PropertySchema {
 }

@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.schema;
+package org.gradle.internal.execution.schema;
 
-import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.properties.InputBehavior;
 
-public interface InstanceSchemaExtractor<T, S extends InstanceSchema> {
-    S extractSchema(T instance, TypeValidationContext validationContext);
+public interface FileInputPropertySchema extends InputPropertySchema, FilePropertySchema {
+    InputBehavior getBehavior();
+
+    DirectorySensitivity getDirectorySensitivity();
+
+    LineEndingSensitivity getLineEndingSensitivity();
 }

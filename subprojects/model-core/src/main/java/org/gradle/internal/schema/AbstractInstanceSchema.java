@@ -13,7 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@NonNullApi
-package org.gradle.internal.schema.impl;
 
-import org.gradle.api.NonNullApi;
+package org.gradle.internal.schema;
+
+import com.google.common.collect.ImmutableSortedSet;
+
+import java.util.stream.Stream;
+
+public abstract class AbstractInstanceSchema implements InstanceSchema {
+    private final ImmutableSortedSet<NestedPropertySchema> nestedProperties;
+
+    public AbstractInstanceSchema(ImmutableSortedSet<NestedPropertySchema> nestedProperties) {
+        this.nestedProperties = nestedProperties;
+    }
+
+    @Override
+    public Stream<NestedPropertySchema> nestedProperties() {
+        return nestedProperties.stream();
+    }
+}

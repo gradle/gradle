@@ -16,8 +16,17 @@
 
 package org.gradle.internal.schema;
 
-import org.gradle.internal.reflect.validation.TypeValidationContext;
+import java.lang.annotation.Annotation;
 
-public interface InstanceSchemaExtractor<T, S extends InstanceSchema> {
-    S extractSchema(T instance, TypeValidationContext validationContext);
+public abstract class AbstractPropertySchemaExtractor<B extends InstanceSchema.Builder<?>> implements PropertySchemaExtractor<B> {
+    private final Class<? extends Annotation> annotationType;
+
+    public AbstractPropertySchemaExtractor(Class<? extends Annotation> annotationType) {
+        this.annotationType = annotationType;
+    }
+
+    @Override
+    public Class<? extends Annotation> getAnnotationType() {
+        return annotationType;
+    }
 }

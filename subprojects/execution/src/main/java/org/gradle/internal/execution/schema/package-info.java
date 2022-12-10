@@ -13,11 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.internal.execution.schema;
 
-package org.gradle.internal.schema;
-
-import org.gradle.internal.reflect.validation.TypeValidationContext;
-
-public interface InstanceSchemaExtractor<T, S extends InstanceSchema> {
-    S extractSchema(T instance, TypeValidationContext validationContext);
-}
+import org.gradle.api.NonNullApi;

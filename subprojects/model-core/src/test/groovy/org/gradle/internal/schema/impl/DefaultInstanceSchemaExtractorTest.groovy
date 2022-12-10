@@ -28,14 +28,12 @@ import spock.lang.Specification
 
 class DefaultInstanceSchemaExtractorTest extends Specification implements TestAnnotationHandlingSupport {
 
-    def schemaExtractor = new DefaultInstanceSchemaExtractor(typeMetadataStore, TestNested)
-
     def "can extract empty schema"() {
         when:
-        def schema = schemaExtractor.extractSchema(new Object(), Mock(TypeValidationContext))
+        def schema = instanceSchemaExtractor.extractSchema(new Object(), Mock(TypeValidationContext))
 
         then:
-        schema.properties().collect().empty
+        schema.testProperties().collect().empty
         0 * _
     }
 
@@ -52,10 +50,10 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
     def "can extract simple properties"() {
         def thing = new TypeWithSimpleProperties(name: "lajos", longName: "Nagy Lajos")
         when:
-        def schema = schemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
+        def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
 
         then:
-        schema.properties()*.qualifiedName ==~ ["name", "longName"]
+        schema.testProperties()*.qualifiedName ==~ ["name", "longName"]
         0 * _
     }
 
@@ -70,10 +68,11 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
             nested: new TypeWithSimpleProperties(name: "lajos", longName: "Nagy Lajos")
         )
         when:
-        def schema = schemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
+        def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
 
         then:
-        schema.properties()*.qualifiedName ==~ ["nested", "nested.name", "nested.longName"]
+        schema.nestedProperties()*.qualifiedName ==~ ["nested"]
+        schema.testProperties()*.qualifiedName ==~ ["nested.name", "nested.longName"]
         0 * _
     }
 
@@ -94,7 +93,7 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
         )
         def validationContext = Mock(TypeValidationContext)
         when:
-        def schema = schemaExtractor.extractSchema(thing, validationContext)
+        def schema = instanceSchemaExtractor.extractSchema(thing, validationContext)
 
         then:
         // TODO Check this more precisely
@@ -102,6 +101,7 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
         1 * validationContext.visitPropertyProblem(_)
 
         then:
-        schema.properties()*.qualifiedName ==~ ["nested"]
+        schema.nestedProperties()*.qualifiedName ==~ ["nested"]
+        schema.testProperties()*.qualifiedName ==~ []
     }
 }

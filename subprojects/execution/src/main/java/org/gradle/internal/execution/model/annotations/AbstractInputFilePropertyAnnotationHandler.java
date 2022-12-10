@@ -39,6 +39,7 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
@@ -59,7 +60,21 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
-        FileNormalizer normalizer = propertyMetadata.getAnnotationForCategory(NORMALIZATION)
+        visitor.visitInputFileProperty(
+            propertyName,
+            propertyMetadata.isAnnotationPresent(Optional.class),
+            determineBehavior(propertyMetadata),
+            determineDirectorySensitivity(propertyMetadata),
+            determineLineEndingSensitivity(propertyMetadata),
+            determineNormalizer(propertyMetadata),
+            value,
+            filePropertyType
+        );
+    }
+
+    @Nullable
+    private static FileNormalizer determineNormalizer(PropertyMetadata propertyMetadata) {
+        return propertyMetadata.getAnnotationForCategory(NORMALIZATION)
             .map(fileNormalization -> {
                 if (fileNormalization instanceof PathSensitive) {
                     PathSensitivity pathSensitivity = ((PathSensitive) fileNormalization).value();
@@ -73,16 +88,6 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
                 }
             })
             .orElse(null);
-        visitor.visitInputFileProperty(
-            propertyName,
-            propertyMetadata.isAnnotationPresent(Optional.class),
-            determineBehavior(propertyMetadata),
-            determineDirectorySensitivity(propertyMetadata),
-            determineLineEndingSensitivity(propertyMetadata),
-            normalizer,
-            value,
-            filePropertyType
-        );
     }
 
     private static InputBehavior determineBehavior(PropertyMetadata propertyMetadata) {

@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect.annotations
 
 import com.google.common.collect.ImmutableSet
+import com.google.common.collect.ImmutableSortedSet
 import groovy.transform.Generated
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.properties.PropertyValue
@@ -28,6 +29,13 @@ import org.gradle.internal.properties.annotations.TypeAnnotationHandler
 import org.gradle.internal.properties.annotations.TypeMetadataStore
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.reflect.validation.TypeValidationContext
+import org.gradle.internal.schema.AbstractInstanceSchema
+import org.gradle.internal.schema.AbstractUnresolvedPropertySchema
+import org.gradle.internal.schema.DefaultInstanceSchemaExtractor
+import org.gradle.internal.schema.InstanceSchema
+import org.gradle.internal.schema.InstanceSchemaExtractor
+import org.gradle.internal.schema.NestedPropertySchema
+import org.gradle.internal.schema.PropertySchemaExtractor
 
 import java.lang.annotation.Annotation
 import java.lang.annotation.ElementType
@@ -35,6 +43,8 @@ import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 import java.lang.reflect.Method
+import java.util.function.Supplier
+import java.util.stream.Stream
 
 import static org.gradle.internal.properties.annotations.PropertyAnnotationHandler.Kind.INPUT
 import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE
@@ -62,17 +72,27 @@ trait TestAnnotationHandlingSupport {
         TestCrossBuildInMemoryCacheFactory.instance()
     )
 
+    def propertyHandlers = [
+        new TestPropertyAnnotationHandler(TestNested, INPUT, [ItDepends]),
+        new TestPropertyAnnotationHandler(Long, INPUT, [ItDepends, Tint]),
+        new TestPropertyAnnotationHandler(Short, INPUT, [Tint]),
+    ]
+
     TypeMetadataStore typeMetadataStore = new DefaultTypeMetadataStore(
         [new ThisIsAThingTypeAnnotationHandler()],
-        [
-            new SimplePropertyAnnotationHandler(TestNested, INPUT, [ItDepends]),
-            new SimplePropertyAnnotationHandler(Long, INPUT, [ItDepends, Tint]),
-            new SimplePropertyAnnotationHandler(Short, INPUT, [Tint]),
-        ],
+        propertyHandlers,
         [ItDepends, Tint],
         typeAnnotationMetadataStore,
         { annotations -> annotations.get(TYPE)?.annotationType() },
         TestCrossBuildInMemoryCacheFactory.instance()
+    )
+
+    InstanceSchemaExtractor<Object, TestInstanceSchema> instanceSchemaExtractor = new DefaultInstanceSchemaExtractor(
+        typeMetadataStore,
+        TestNested,
+        TestOptional,
+        { instance -> new TestInstanceSchema.Builder() },
+        propertyHandlers
     )
 
     private static class ThisIsAThingTypeAnnotationHandler implements TypeAnnotationHandler {
@@ -91,9 +111,9 @@ trait TestAnnotationHandlingSupport {
         }
     }
 
-    private static class SimplePropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
+    private static class TestPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler implements PropertySchemaExtractor<TestInstanceSchema.Builder> {
 
-        SimplePropertyAnnotationHandler(Class<? extends Annotation> annotationType, Kind kind, Collection<Class<? extends Annotation>> allowedModifiers) {
+        TestPropertyAnnotationHandler(Class<? extends Annotation> annotationType, Kind kind, Collection<Class<? extends Annotation>> allowedModifiers) {
             super(annotationType, kind, ImmutableSet.copyOf(allowedModifiers))
         }
 
@@ -105,6 +125,103 @@ trait TestAnnotationHandlingSupport {
         @Override
         void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
             // NO OP
+        }
+
+        @Override
+        void extractProperty(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver, TestInstanceSchema.Builder builder) {
+            builder.add(new TestPropertySchema(annotationType, qualifiedName, metadata, valueResolver))
+        }
+    }
+
+    static class TestPropertySchema extends AbstractUnresolvedPropertySchema {
+
+        final Class<? extends Annotation> propertyType
+
+        TestPropertySchema(Class<? extends Annotation> propertyType, String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver) {
+            super(qualifiedName, metadata, false, valueResolver)
+            this.propertyType = propertyType
+        }
+
+        boolean equals(o) {
+            if (this.is(o)) {
+                return true
+            }
+            if (o == null || getClass() != o.class) {
+                return false
+            }
+            if (!super.equals(o)) {
+                return false
+            }
+
+            TestPropertySchema that = (TestPropertySchema) o
+
+            if (propertyType != that.propertyType) {
+                return false
+            }
+
+            return true
+        }
+
+        int hashCode() {
+            int result = super.hashCode()
+            result = 31 * result + propertyType.hashCode()
+            return result
+        }
+    }
+
+    static class TestInstanceSchema extends AbstractInstanceSchema {
+
+        private final ImmutableSortedSet<TestPropertySchema> testProperties
+
+        TestInstanceSchema(
+            ImmutableSortedSet<NestedPropertySchema> nestedProperties,
+            ImmutableSortedSet<TestPropertySchema> testProperties) {
+            super(nestedProperties)
+            this.testProperties = testProperties
+        }
+
+        Stream<TestPropertySchema> testProperties() {
+            return testProperties.stream()
+        }
+
+        boolean equals(o) {
+            if (this.is(o)) {
+                return true
+            }
+            if (o == null || getClass() != o.class) {
+                return false
+            }
+            if (!super.equals(o)) {
+                return false
+            }
+
+            TestInstanceSchema that = (TestInstanceSchema) o
+
+            if (testProperties != that.testProperties) {
+                return false
+            }
+
+            return true
+        }
+
+        int hashCode() {
+            int result = super.hashCode()
+            result = 31 * result + testProperties.hashCode()
+            return result
+        }
+
+        private static class Builder extends InstanceSchema.Builder<TestInstanceSchema> {
+
+            private final ImmutableSortedSet.Builder<TestPropertySchema> testProperties = ImmutableSortedSet.naturalOrder()
+
+            void add(TestPropertySchema property) {
+                testProperties.add(property)
+            }
+
+            @Override
+            protected TestInstanceSchema build(ImmutableSortedSet<NestedPropertySchema> nestedPropertySchemas) {
+                return new TestInstanceSchema(nestedPropertySchemas, testProperties.build())
+            }
         }
     }
 }
@@ -123,6 +240,11 @@ trait TestAnnotationHandlingSupport {
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.FIELD])
 @interface TestNested {
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target([ElementType.METHOD, ElementType.FIELD])
+@interface TestOptional {
 }
 
 @Retention(RetentionPolicy.RUNTIME)

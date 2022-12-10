@@ -16,13 +16,24 @@
 
 package org.gradle.internal.schema;
 
-import org.gradle.internal.properties.annotations.TypeMetadata;
+import com.google.common.collect.ImmutableSortedSet;
 
 import java.util.stream.Stream;
 
 public interface InstanceSchema {
-    // TODO Do we need to expose this?
-    TypeMetadata getTypeMetadata();
+    Stream<NestedPropertySchema> nestedProperties();
 
-    Stream<PropertySchema> properties();
+    abstract class Builder<S extends InstanceSchema> {
+        private final ImmutableSortedSet.Builder<NestedPropertySchema> nestedPropertySchemas = ImmutableSortedSet.naturalOrder();
+
+        public void add(NestedPropertySchema property) {
+            nestedPropertySchemas.add(property);
+        }
+
+        public S build() {
+            return build(nestedPropertySchemas.build());
+        }
+
+        protected abstract S build(ImmutableSortedSet<NestedPropertySchema> nestedPropertySchemas);
+    }
 }

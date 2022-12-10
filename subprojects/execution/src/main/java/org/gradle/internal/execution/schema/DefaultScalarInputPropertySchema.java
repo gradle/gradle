@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.schema;
+package org.gradle.internal.execution.schema;
 
-import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-public interface InstanceSchemaExtractor<T, S extends InstanceSchema> {
-    S extractSchema(T instance, TypeValidationContext validationContext);
+import java.util.function.Supplier;
+
+public class DefaultScalarInputPropertySchema extends AbstractWorkPropertySchema implements ScalarInputPropertySchema {
+    public DefaultScalarInputPropertySchema(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver) {
+        super(qualifiedName, metadata, valueResolver);
+    }
 }
