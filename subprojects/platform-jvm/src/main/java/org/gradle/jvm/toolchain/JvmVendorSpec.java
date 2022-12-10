@@ -54,9 +54,10 @@ public abstract class JvmVendorSpec {
      * A constant for using <a href="https://developer.ibm.com/languages/java/semeru-runtimes/">IBM Semeru Runtimes</a> as the JVM vendor.
      *
      * @since 7.4
+     * @deprecated All IBM runtimes are Semeru runtimes, so no point in having two separate vendor definitions. IBM should be used instead.
      */
-    @Incubating
-    public static final JvmVendorSpec IBM_SEMERU = matching(KnownJvmVendor.IBM_SEMERU);
+    @Deprecated
+    public static final JvmVendorSpec IBM_SEMERU = IBM;
 
     /**
      * A constant for using <a href="https://www.microsoft.com/openjdk">Microsoft OpenJDK</a> as the JVM vendor.

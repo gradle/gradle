@@ -116,7 +116,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         !download.isPresent()
 
         where:
-        vendor << [JvmVendorSpec.AMAZON, JvmVendorSpec.IBM]
+        vendor << [JvmVendorSpec.AMAZON]
     }
 
     def "can provide matching vendor spec using #vendor"() {
@@ -136,7 +136,7 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
         download.get().getUri() == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk")
 
         where:
-        vendor << [JvmVendorSpec.ADOPTOPENJDK, JvmVendorSpec.matching("adoptopenjdk"), DefaultJvmVendorSpec.any()]
+        vendor << [JvmVendorSpec.ADOPTOPENJDK, JvmVendorSpec.IBM, JvmVendorSpec.matching("adoptopenjdk"), DefaultJvmVendorSpec.any()]
     }
 
     def "can provide j9 impl if requested"() {

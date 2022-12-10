@@ -157,13 +157,13 @@ class JavaToolchainQueryServiceTest extends Specification {
         when:
         def filter = new DefaultToolchainSpec(TestUtil.objectFactory())
         filter.languageVersion.set(JavaLanguageVersion.of(8))
-        filter.vendor.set(JvmVendorSpec.IBM_SEMERU)
+        filter.vendor.set(JvmVendorSpec.IBM)
         def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
         toolchain.isPresent()
-        toolchain.get().metadata.vendor.knownVendor == JvmVendor.KnownJvmVendor.IBM_SEMERU
-        toolchain.get().vendor == "IBM Semeru Runtimes"
+        toolchain.get().metadata.vendor.knownVendor == JvmVendor.KnownJvmVendor.IBM
+        toolchain.get().vendor == "IBM"
     }
 
     def "ignores invalid toolchains when finding a matching one"() {
