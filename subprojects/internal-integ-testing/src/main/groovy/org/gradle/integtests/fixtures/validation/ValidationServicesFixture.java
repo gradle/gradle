@@ -17,9 +17,14 @@ package org.gradle.integtests.fixtures.validation;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.properties.schema.InstanceSchema;
+import org.gradle.internal.properties.schema.PropertySchemaExtractor;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ExecutionGlobalServices;
+
+import java.lang.annotation.Annotation;
 
 public class ValidationServicesFixture {
 
@@ -32,6 +37,19 @@ public class ValidationServicesFixture {
 
             PropertyAnnotationHandler createValidationProblemAnnotationHandler() {
                 return new ValidationProblemPropertyAnnotationHandler();
+            }
+
+            PropertySchemaExtractor<InstanceSchema.Builder<?>> createValidationProblemSchemaExtractor() {
+                return new PropertySchemaExtractor<InstanceSchema.Builder<?>>() {
+                    @Override
+                    public Class<? extends Annotation> getAnnotationType() {
+                        return ValidationProblem.class;
+                    }
+
+                    @Override
+                    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Object parent, InstanceSchema.Builder<?> builder) {
+                    }
+                };
             }
         });
         return registry;

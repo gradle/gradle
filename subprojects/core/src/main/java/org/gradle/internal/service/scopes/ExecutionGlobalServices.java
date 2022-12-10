@@ -71,6 +71,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.DefaultTaskExecutionTracker;
 import org.gradle.internal.execution.TaskExecutionTracker;
@@ -94,7 +95,9 @@ import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.properties.schema.DefaultInstanceSchemaExtractor;
+import org.gradle.internal.properties.schema.InstanceSchema;
 import org.gradle.internal.properties.schema.InstanceSchemaExtractor;
+import org.gradle.internal.properties.schema.PropertySchemaExtractor;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore;
 import org.gradle.internal.scripts.ScriptOrigin;
@@ -192,7 +195,13 @@ public class ExecutionGlobalServices {
         return new InspectionSchemeFactory(typeHandlers, propertyHandlers, typeAnnotationMetadataStore, cacheFactory);
     }
 
-    TaskScheme createTaskScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory, AnnotationHandlerRegistar annotationRegistry) {
+    TaskScheme createTaskScheme(
+        InspectionSchemeFactory inspectionSchemeFactory,
+        InstantiatorFactory instantiatorFactory,
+        AnnotationHandlerRegistar annotationRegistry,
+        // TODO Make it possible to inject collections of generified services
+        @SuppressWarnings("rawtypes") List<PropertySchemaExtractor> injectedPropertySchemaExtractors
+    ) {
         InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
         ImmutableSet.Builder<Class<? extends Annotation>> allPropertyTypes = ImmutableSet.builder();
         allPropertyTypes.addAll(ImmutableSet.of(
@@ -232,19 +241,20 @@ public class ExecutionGlobalServices {
             Nested.class,
             Optional.class,
             TaskInstanceSchema.Builder::new,
-            ImmutableList.of(
-                ScalarInputPropertySchemaExtractor.INPUT,
-                FileInputPropertySchemaExtractor.INPUT_FILE,
-                FileInputPropertySchemaExtractor.INPUT_FILES,
-                FileInputPropertySchemaExtractor.INPUT_DIRECTORY,
-                FileOutputPropertySchemaExtractor.OUTPUT_FILE,
-                FileOutputPropertySchemaExtractor.OUTPUT_FILES,
-                FileOutputPropertySchemaExtractor.OUTPUT_DIRECTORY,
-                FileOutputPropertySchemaExtractor.OUTPUT_DIRECTORIES,
-                LocalStatePropertySchemaExtractor.LOCAL_STATE,
-                DestroysPropertySchemaExtractor.DESTROYS,
-                ServiceReferencePropertySchemaExtractor.SERVICE_REFERENCE
-            )
+            ImmutableList.<PropertySchemaExtractor<? super TaskInstanceSchema.Builder>>builder()
+                .addAll(Cast.<Iterable<PropertySchemaExtractor<InstanceSchema.Builder<?>>>>uncheckedCast(injectedPropertySchemaExtractors))
+                .add(ScalarInputPropertySchemaExtractor.INPUT)
+                .add(FileInputPropertySchemaExtractor.INPUT_FILE)
+                .add(FileInputPropertySchemaExtractor.INPUT_FILES)
+                .add(FileInputPropertySchemaExtractor.INPUT_DIRECTORY)
+                .add(FileOutputPropertySchemaExtractor.OUTPUT_FILE)
+                .add(FileOutputPropertySchemaExtractor.OUTPUT_FILES)
+                .add(FileOutputPropertySchemaExtractor.OUTPUT_DIRECTORY)
+                .add(FileOutputPropertySchemaExtractor.OUTPUT_DIRECTORIES)
+                .add(LocalStatePropertySchemaExtractor.LOCAL_STATE)
+                .add(DestroysPropertySchemaExtractor.DESTROYS)
+                .add(ServiceReferencePropertySchemaExtractor.SERVICE_REFERENCE)
+                .build()
         );
         return new TaskScheme(instantiationScheme, inspectionScheme, instanceSchemaExtractor);
     }
