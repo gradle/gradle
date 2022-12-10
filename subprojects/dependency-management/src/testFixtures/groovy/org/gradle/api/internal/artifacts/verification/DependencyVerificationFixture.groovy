@@ -76,7 +76,7 @@ class DependencyVerificationFixture {
         withVerifier {
             def actualIgnored = configuration.ignoredKeys
             def expected = ignoredKeys as Set
-            assert actualIgnored == expected
+            assert actualIgnored == (expected as Set<IgnoredKey>)
         }
     }
 

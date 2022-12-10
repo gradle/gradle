@@ -20,6 +20,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import org.apache.commons.lang.ObjectUtils;
+import org.gradle.api.CircularReferenceException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
@@ -29,15 +30,21 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.CompositeResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ParallelResolveArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
+import org.gradle.internal.graph.DirectedGraphRenderer;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
+import java.io.StringWriter;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+
+import static java.lang.String.format;
 
 public class DefaultResolvedDependency implements ResolvedDependency, DependencyGraphNodeResult {
     private final Set<DefaultResolvedDependency> children = new LinkedHashSet<>();
@@ -51,7 +58,7 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
     private Set<ResolvedArtifact> allModuleArtifactsCache;
 
     public DefaultResolvedDependency(ResolvedConfigurationIdentifier resolvedConfigurationIdentifier, BuildOperationExecutor buildOperationProcessor) {
-        this.name = String.format("%s:%s:%s", resolvedConfigurationIdentifier.getModuleGroup(), resolvedConfigurationIdentifier.getModuleName(), resolvedConfigurationIdentifier.getModuleVersion());
+        this.name = format("%s:%s:%s", resolvedConfigurationIdentifier.getModuleGroup(), resolvedConfigurationIdentifier.getModuleName(), resolvedConfigurationIdentifier.getModuleVersion());
         this.resolvedConfigId = resolvedConfigurationIdentifier;
         this.buildOperationProcessor = buildOperationProcessor;
         this.moduleArtifacts = new LinkedHashSet<>();
@@ -112,11 +119,52 @@ public class DefaultResolvedDependency implements ResolvedDependency, Dependency
         if (allModuleArtifactsCache == null) {
             Set<ResolvedArtifact> allArtifacts = new LinkedHashSet<>(getModuleArtifacts());
             for (ResolvedDependency childResolvedDependency : getChildren()) {
+                if (checkOrderingCycle(childResolvedDependency)) {
+                    onOrderingCycle(childResolvedDependency);
+                }
                 allArtifacts.addAll(childResolvedDependency.getAllModuleArtifacts());
             }
             allModuleArtifactsCache = allArtifacts;
         }
         return allModuleArtifactsCache;
+    }
+
+    private boolean checkOrderingCycle(ResolvedDependency resolvedDependency) {
+        Set<ResolvedDependency> parentDependencies = resolvedDependency.getParents();
+        if (parentDependencies.isEmpty()) {
+            return false;
+        }
+
+        Set<ResolvedDependency> childDependencies = resolvedDependency.getChildren();
+        if (parentDependencies.isEmpty()) {
+            return false;
+        }
+
+        return !Collections.disjoint(parentDependencies, childDependencies);
+    }
+
+    private void onOrderingCycle(ResolvedDependency resolvedDependency) {
+        StringWriter cycleString = renderOrderingCycle(resolvedDependency);
+        throw new CircularReferenceException(format("Circular dependency between the following tasks:%n%s", cycleString));
+    }
+
+    private StringWriter renderOrderingCycle(ResolvedDependency resolvedDependency) {
+        DirectedGraphRenderer<String> graphRenderer = new DirectedGraphRenderer<>(
+            (it, output) -> output.withStyle(StyledTextOutput.Style.Identifier).text(it),
+            (it, values, cycleDependencies) -> {
+                for (ResolvedDependency parentDependency : resolvedDependency.getParents()) {
+                    Set<ResolvedDependency> childDependencies = resolvedDependency.getChildren();
+                    for (ResolvedDependency childDependency : childDependencies) {
+                        if (childDependency.getName().equals(parentDependency.getName())) {
+                            cycleDependencies.add(parentDependency.getName());
+                        }
+                    }
+                }
+            });
+
+        StringWriter writer = new StringWriter();
+        graphRenderer.renderTo(resolvedDependency.getName(), writer);
+        return writer;
     }
 
     @Override
