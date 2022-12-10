@@ -16,16 +16,12 @@
 
 package org.gradle.internal.schema;
 
-import org.gradle.internal.properties.annotations.PropertyMetadata;
-
 abstract class AbstractPropertySchema implements PropertySchema {
     private final String qualifiedName;
-    private final PropertyMetadata metadata;
     private final boolean optional;
 
-    public AbstractPropertySchema(String qualifiedName, PropertyMetadata metadata, boolean optional) {
+    public AbstractPropertySchema(String qualifiedName, boolean optional) {
         this.qualifiedName = qualifiedName;
-        this.metadata = metadata;
         this.optional = optional;
     }
 
@@ -37,11 +33,6 @@ abstract class AbstractPropertySchema implements PropertySchema {
     @Override
     public boolean isOptional() {
         return optional;
-    }
-
-    @Override
-    public PropertyMetadata getMetadata() {
-        return metadata;
     }
 
     @Override
@@ -58,16 +49,12 @@ abstract class AbstractPropertySchema implements PropertySchema {
         if (optional != that.optional) {
             return false;
         }
-        if (!qualifiedName.equals(that.qualifiedName)) {
-            return false;
-        }
-        return metadata.equals(that.metadata);
+        return qualifiedName.equals(that.qualifiedName);
     }
 
     @Override
     public int hashCode() {
         int result = qualifiedName.hashCode();
-        result = 31 * result + metadata.hashCode();
         result = 31 * result + (optional ? 1 : 0);
         return result;
     }

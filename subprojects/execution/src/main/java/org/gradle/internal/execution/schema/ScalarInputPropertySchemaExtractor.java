@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.schema;
 
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
 
@@ -29,6 +30,6 @@ public class ScalarInputPropertySchemaExtractor extends AbstractPropertySchemaEx
 
     @Override
     public void extractProperty(String qualifiedName, PropertyMetadata metadata, Object parent, WorkInstanceSchema.Builder<?> builder) {
-        builder.add(new DefaultScalarInputPropertySchema(qualifiedName, metadata, parent));
+        builder.add(new DefaultScalarInputPropertySchema(qualifiedName, metadata.isAnnotationPresent(Optional.class), () -> metadata.getPropertyValue(parent)));
     }
 }

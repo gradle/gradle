@@ -18,10 +18,11 @@ package org.gradle.api.internal.tasks.schema;
 
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.execution.schema.AbstractFilePropertySchema;
-import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-public class DefaultDestroysPropertySchema extends AbstractFilePropertySchema implements LocalStatePropertySchema {
-    public DefaultDestroysPropertySchema(String qualifiedName, PropertyMetadata metadata, Object parent) {
-        super(qualifiedName, metadata, parent, InputNormalizer.ABSOLUTE_PATH);
+import java.util.function.Supplier;
+
+public class DefaultDestroysPropertySchema extends AbstractFilePropertySchema implements DestroysPropertySchema {
+    public DefaultDestroysPropertySchema(String qualifiedName, boolean optional, Supplier<Object> valueResolver) {
+        super(qualifiedName, optional, InputNormalizer.ABSOLUTE_PATH, valueResolver);
     }
 }

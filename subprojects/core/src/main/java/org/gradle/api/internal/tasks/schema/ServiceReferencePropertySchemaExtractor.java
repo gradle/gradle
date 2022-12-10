@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.tasks.schema;
 
+import com.google.common.base.Strings;
 import org.gradle.api.services.ServiceReference;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
 
@@ -29,6 +31,7 @@ public class ServiceReferencePropertySchemaExtractor extends AbstractPropertySch
 
     @Override
     public void extractProperty(String qualifiedName, PropertyMetadata metadata, Object parent, TaskInstanceSchema.Builder builder) {
-        builder.add(new DefaultServiceReferencePropertySchema(qualifiedName, metadata, parent));
+        String serviceName = Strings.emptyToNull(((ServiceReference) metadata.getPropertyAnnotation()).value());
+        builder.add(new DefaultServiceReferencePropertySchema(qualifiedName, metadata.isAnnotationPresent(Optional.class),  serviceName, () -> metadata.getPropertyValue(parent)));
     }
 }

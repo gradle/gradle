@@ -16,20 +16,46 @@
 
 package org.gradle.api.internal.tasks.schema;
 
-import org.gradle.api.services.ServiceReference;
 import org.gradle.internal.execution.schema.AbstractWorkPropertySchema;
-import org.gradle.internal.properties.annotations.PropertyMetadata;
+
+import javax.annotation.Nullable;
+import java.util.Objects;
+import java.util.function.Supplier;
 
 public class DefaultServiceReferencePropertySchema extends AbstractWorkPropertySchema implements ServiceReferencePropertySchema {
-    public DefaultServiceReferencePropertySchema(String qualifiedName, PropertyMetadata metadata, Object parent) {
-        super(qualifiedName, metadata, parent);
+    private final String serviceName;
+
+    public DefaultServiceReferencePropertySchema(String qualifiedName, boolean optional, @Nullable String serviceName, Supplier<Object> valueResolver) {
+        super(qualifiedName, optional, valueResolver);
+        this.serviceName = serviceName;
     }
 
     @Override
     public String getServiceName() {
-        String serviceName = ((ServiceReference) getMetadata().getPropertyAnnotation()).value();
-        return serviceName.isEmpty()
-            ? null
-            : serviceName;
+        return serviceName;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        DefaultServiceReferencePropertySchema that = (DefaultServiceReferencePropertySchema) o;
+
+        return Objects.equals(serviceName, that.serviceName);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
+        return result;
     }
 }

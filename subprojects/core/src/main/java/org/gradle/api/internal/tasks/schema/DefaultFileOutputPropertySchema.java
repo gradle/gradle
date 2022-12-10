@@ -19,14 +19,16 @@ package org.gradle.api.internal.tasks.schema;
 import org.gradle.internal.execution.model.OutputNormalizer;
 import org.gradle.internal.execution.schema.AbstractFilePropertySchema;
 import org.gradle.internal.file.TreeType;
-import org.gradle.internal.properties.annotations.PropertyMetadata;
+
+import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 public class DefaultFileOutputPropertySchema extends AbstractFilePropertySchema implements FileOutputPropertySchema {
 
     private final TreeType outputType;
 
-    public DefaultFileOutputPropertySchema(String qualifiedName, PropertyMetadata metadata, Object parent, TreeType outputType) {
-        super(qualifiedName, metadata, parent, OutputNormalizer.INSTANCE);
+    public DefaultFileOutputPropertySchema(String qualifiedName, boolean optional, TreeType outputType, Supplier<Object> valueResolver) {
+        super(qualifiedName, optional, OutputNormalizer.INSTANCE, valueResolver);
         this.outputType = outputType;
     }
 
@@ -36,7 +38,7 @@ public class DefaultFileOutputPropertySchema extends AbstractFilePropertySchema 
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }

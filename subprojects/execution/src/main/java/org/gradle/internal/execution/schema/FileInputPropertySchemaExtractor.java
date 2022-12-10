@@ -22,6 +22,7 @@ import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -58,12 +59,12 @@ public class FileInputPropertySchemaExtractor extends AbstractPropertySchemaExtr
     public void extractProperty(String qualifiedName, PropertyMetadata metadata, Object parent, WorkInstanceSchema.Builder<?> builder) {
         builder.add(new DefaultFileInputPropertySchema(
             qualifiedName,
-            metadata,
-            parent,
+            metadata.isAnnotationPresent(Optional.class),
             determineNormalizer(metadata),
             determineBehavior(metadata),
             determineDirectorySensitivity(metadata),
-            determineLineEndingSensitivity(metadata)
+            determineLineEndingSensitivity(metadata),
+            () -> metadata.getPropertyValue(parent)
         ));
     }
 

@@ -74,7 +74,7 @@ public class DefaultInstanceSchemaExtractor<T, S extends InstanceSchema, B exten
         @Override
         public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable Object value) {
             typeMetadata.visitValidationFailures(qualifiedName, validationContext);
-            builder.add(new DefaultNestedPropertySchema(qualifiedName, propertyMetadata, isOptional(propertyMetadata), value));
+            builder.add(new DefaultNestedPropertySchema(qualifiedName, isOptional(propertyMetadata), value));
         }
 
         @Override
@@ -101,8 +101,8 @@ public class DefaultInstanceSchemaExtractor<T, S extends InstanceSchema, B exten
     private static class DefaultNestedPropertySchema extends AbstractPropertySchema implements NestedPropertySchema {
         private final Object value;
 
-        public DefaultNestedPropertySchema(String qualifiedName, PropertyMetadata metadata, boolean optional, @Nullable Object value) {
-            super(qualifiedName, metadata, optional);
+        public DefaultNestedPropertySchema(String qualifiedName, boolean optional, @Nullable Object value) {
+            super(qualifiedName, optional);
             this.value = value;
         }
 
@@ -113,7 +113,7 @@ public class DefaultInstanceSchemaExtractor<T, S extends InstanceSchema, B exten
         }
 
         @Override
-        public boolean equals(Object o) {
+        public boolean equals(@Nullable Object o) {
             if (this == o) {
                 return true;
             }

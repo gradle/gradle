@@ -17,13 +17,14 @@
 package org.gradle.internal.execution.schema;
 
 import org.gradle.internal.fingerprint.FileNormalizer;
-import org.gradle.internal.properties.annotations.PropertyMetadata;
+
+import java.util.function.Supplier;
 
 public class AbstractFilePropertySchema extends AbstractWorkPropertySchema implements FilePropertySchema {
     private final FileNormalizer normalizer;
 
-    public AbstractFilePropertySchema(String qualifiedName, PropertyMetadata metadata, Object parent, FileNormalizer normalizer) {
-        super(qualifiedName, metadata, parent);
+    public AbstractFilePropertySchema(String qualifiedName, boolean optional, FileNormalizer normalizer, Supplier<Object> valueResolver) {
+        super(qualifiedName, optional, valueResolver);
         this.normalizer = normalizer;
     }
 

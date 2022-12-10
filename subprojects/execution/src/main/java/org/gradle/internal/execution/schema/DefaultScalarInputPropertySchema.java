@@ -16,10 +16,10 @@
 
 package org.gradle.internal.execution.schema;
 
-import org.gradle.internal.properties.annotations.PropertyMetadata;
+import java.util.function.Supplier;
 
 public class DefaultScalarInputPropertySchema extends AbstractWorkPropertySchema implements ScalarInputPropertySchema {
-    public DefaultScalarInputPropertySchema(String qualifiedName, PropertyMetadata metadata, Object parent) {
-        super(qualifiedName, metadata, parent);
+    public DefaultScalarInputPropertySchema(String qualifiedName, boolean optional, Supplier<Object> valueResolver) {
+        super(qualifiedName, optional, valueResolver);
     }
 }

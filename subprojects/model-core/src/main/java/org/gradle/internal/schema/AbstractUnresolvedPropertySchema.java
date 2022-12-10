@@ -16,47 +16,21 @@
 
 package org.gradle.internal.schema;
 
-import org.gradle.internal.properties.annotations.PropertyMetadata;
-
 import javax.annotation.Nullable;
+import java.util.function.Supplier;
 
 public abstract class AbstractUnresolvedPropertySchema extends AbstractPropertySchema {
 
-    private final Object parent;
+    private final Supplier<Object> valueResolver;
 
-    protected AbstractUnresolvedPropertySchema(String qualifiedName, PropertyMetadata metadata, Object parent, boolean optional) {
-        super(qualifiedName, metadata, optional);
-        this.parent = parent;
+    protected AbstractUnresolvedPropertySchema(String qualifiedName, boolean optional, Supplier<Object> valueResolver) {
+        super(qualifiedName, optional);
+        this.valueResolver = valueResolver;
     }
 
     @Nullable
     @Override
     public Object getValue() {
-        return getMetadata().getPropertyValue(parent);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        AbstractUnresolvedPropertySchema that = (AbstractUnresolvedPropertySchema) o;
-
-        // We want to keep track of the same instance
-        return parent == that.parent;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + parent.hashCode();
-        return result;
+        return valueResolver.get();
     }
 }

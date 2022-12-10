@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.schema;
 
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectories;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
@@ -41,6 +42,6 @@ public class FileOutputPropertySchemaExtractor extends AbstractPropertySchemaExt
 
     @Override
     public void extractProperty(String qualifiedName, PropertyMetadata metadata, Object parent, TaskInstanceSchema.Builder builder) {
-        builder.add(new DefaultFileOutputPropertySchema(qualifiedName, metadata, parent, outputType));
+        builder.add(new DefaultFileOutputPropertySchema(qualifiedName, metadata.isAnnotationPresent(Optional.class), outputType, () -> metadata.getPropertyValue(parent)));
     }
 }
