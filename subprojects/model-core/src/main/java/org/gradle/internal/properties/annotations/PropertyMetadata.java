@@ -24,6 +24,10 @@ import java.lang.annotation.Annotation;
 import java.util.Optional;
 
 public interface PropertyMetadata {
+    Class<? extends Annotation> getPropertyType();
+
+    PropertyAnnotationHandler getHandler();
+
     String getPropertyName();
 
     boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
@@ -33,8 +37,6 @@ public interface PropertyMetadata {
     Optional<Annotation> getAnnotationForCategory(AnnotationCategory category);
 
     boolean hasAnnotationForCategory(AnnotationCategory category);
-
-    Class<? extends Annotation> getPropertyType();
 
     TypeToken<?> getDeclaredType();
 

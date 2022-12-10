@@ -159,14 +159,14 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 }
             }
 
-            PropertyMetadata property = new DefaultPropertyMetadata(propertyType, propertyAnnotationMetadata);
+            PropertyMetadata property = new DefaultPropertyMetadata(propertyType, propertyAnnotationMetadata, annotationHandler);
             annotationHandler.validatePropertyMetadata(property, validationContext);
 
             if (annotationHandler.isPropertyRelevant()) {
                 effectiveProperties.add(property);
             }
         }
-        return new DefaultTypeMetadata(effectiveProperties.build(), validationContext, propertyAnnotationHandlers);
+        return new DefaultTypeMetadata(effectiveProperties.build(), validationContext);
     }
 
     private static String toListOfAnnotations(ImmutableSet<Class<? extends Annotation>> classes) {
@@ -180,16 +180,13 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private static class DefaultTypeMetadata implements TypeMetadata {
         private final ImmutableSet<PropertyMetadata> propertiesMetadata;
         private final ReplayingTypeValidationContext validationProblems;
-        private final ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> annotationHandlers;
 
         DefaultTypeMetadata(
             ImmutableSet<PropertyMetadata> propertiesMetadata,
-            ReplayingTypeValidationContext validationProblems,
-            ImmutableMap<Class<? extends Annotation>, ? extends PropertyAnnotationHandler> annotationHandlers
+            ReplayingTypeValidationContext validationProblems
         ) {
             this.propertiesMetadata = propertiesMetadata;
             this.validationProblems = validationProblems;
-            this.annotationHandlers = annotationHandlers;
         }
 
         @Override
@@ -207,20 +204,28 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             return !propertiesMetadata.isEmpty();
         }
 
-        @Override
-        public PropertyAnnotationHandler getAnnotationHandlerFor(PropertyMetadata propertyMetadata) {
-            return annotationHandlers.get(propertyMetadata.getPropertyType());
-        }
     }
 
     private static class DefaultPropertyMetadata implements PropertyMetadata {
 
         private final Class<? extends Annotation> propertyType;
         private final PropertyAnnotationMetadata annotationMetadata;
+        private final PropertyAnnotationHandler handler;
 
-        public DefaultPropertyMetadata(Class<? extends Annotation> propertyType, PropertyAnnotationMetadata annotationMetadata) {
+        public DefaultPropertyMetadata(Class<? extends Annotation> propertyType, PropertyAnnotationMetadata annotationMetadata, PropertyAnnotationHandler handler) {
             this.propertyType = propertyType;
             this.annotationMetadata = annotationMetadata;
+            this.handler = handler;
+        }
+
+        @Override
+        public Class<? extends Annotation> getPropertyType() {
+            return propertyType;
+        }
+
+        @Override
+        public PropertyAnnotationHandler getHandler() {
+            return handler;
         }
 
         @Override
@@ -248,11 +253,6 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         @Override
         public boolean hasAnnotationForCategory(AnnotationCategory category) {
             return annotationMetadata.getAnnotations().get(category) != null;
-        }
-
-        @Override
-        public Class<? extends Annotation> getPropertyType() {
-            return propertyType;
         }
 
         @Override

@@ -70,11 +70,11 @@ class InspectionSchemeFactoryTest extends Specification {
         validationContext.problems.isEmpty()
 
         when:
-        def properties = metadata.propertiesMetadata.groupBy { it.propertyName }
+        def properties = metadata.propertiesMetadata.collectEntries { [it.propertyName, it] }
 
         then:
-        metadata.getAnnotationHandlerFor(properties.prop1) == handler1
-        metadata.getAnnotationHandlerFor(properties.prop2) == handler2
+        properties.prop1.handler == handler1
+        properties.prop2.handler == handler2
     }
 
     def "annotation can be used for property annotation and injection annotations"() {
@@ -96,15 +96,15 @@ class InspectionSchemeFactoryTest extends Specification {
         validationContext.problems.isEmpty()
 
         when:
-        def properties = metadata.propertiesMetadata.groupBy { it.propertyName }
+        def properties = metadata.propertiesMetadata.collectEntries { [it.propertyName, it] }
 
         then:
-        metadata.getAnnotationHandlerFor(properties.prop1) == handler1
-        metadata.getAnnotationHandlerFor(properties.prop2) == handler2
+        properties.prop1.handler == handler1
+        properties.prop2.handler == handler2
     }
 
     def handler(Class<?> annotation) {
-        def handler = Stub(PropertyAnnotationHandler)
+        def handler = Stub(name: annotation.simpleName, type: PropertyAnnotationHandler)
         _ * handler.propertyRelevant >> true
         _ * handler.annotationType >> annotation
         return handler

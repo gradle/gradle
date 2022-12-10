@@ -30,6 +30,4 @@ public interface TypeMetadata {
     Set<PropertyMetadata> getPropertiesMetadata();
 
     boolean hasAnnotatedProperties();
-
-    PropertyAnnotationHandler getAnnotationHandlerFor(PropertyMetadata propertyMetadata);
 }

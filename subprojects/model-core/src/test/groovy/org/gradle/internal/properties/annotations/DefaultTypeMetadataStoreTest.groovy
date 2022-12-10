@@ -123,7 +123,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         def propertyMetadata = propertiesMetadata.first()
         propertyMetadata.propertyName == 'searchPath'
         propertyMetadata.propertyType == SearchPath
-        typeMetadata.getAnnotationHandlerFor(propertyMetadata) == annotationHandler
+        propertyMetadata.handler == annotationHandler
         collectProblems(typeMetadata).empty
     }
 
