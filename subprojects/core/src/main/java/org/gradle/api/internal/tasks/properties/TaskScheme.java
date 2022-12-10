@@ -17,16 +17,20 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.schema.TaskInstanceSchema;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
+import org.gradle.internal.schema.InstanceSchemaExtractor;
 
 public class TaskScheme implements TypeScheme {
     private final InstantiationScheme instantiationScheme;
     private final InspectionScheme inspectionScheme;
+    private final InstanceSchemaExtractor<Task, TaskInstanceSchema> instanceSchemaExtractor;
 
-    public TaskScheme(InstantiationScheme instantiationScheme, InspectionScheme inspectionScheme) {
+    public TaskScheme(InstantiationScheme instantiationScheme, InspectionScheme inspectionScheme, InstanceSchemaExtractor<Task, TaskInstanceSchema> instanceSchemaExtractor) {
         this.instantiationScheme = instantiationScheme;
         this.inspectionScheme = inspectionScheme;
+        this.instanceSchemaExtractor = instanceSchemaExtractor;
     }
 
     @Override
@@ -45,5 +49,9 @@ public class TaskScheme implements TypeScheme {
 
     public InspectionScheme getInspectionScheme() {
         return inspectionScheme;
+    }
+
+    public InstanceSchemaExtractor<Task, TaskInstanceSchema> getInstanceSchemaExtractor() {
+        return instanceSchemaExtractor;
     }
 }

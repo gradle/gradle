@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import groovy.lang.GroovyObject;
 import groovy.transform.Generated;
 import org.gradle.api.Describable;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
@@ -38,6 +39,10 @@ import org.gradle.api.internal.tasks.properties.annotations.OutputDirectoryPrope
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilePropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.OutputFilesPropertyAnnotationHandler;
 import org.gradle.api.internal.tasks.properties.annotations.UntrackedTaskTypeAnnotationHandler;
+import org.gradle.api.internal.tasks.schema.DestroysPropertySchemaExtractor;
+import org.gradle.api.internal.tasks.schema.FileOutputPropertySchemaExtractor;
+import org.gradle.api.internal.tasks.schema.LocalStatePropertySchemaExtractor;
+import org.gradle.api.internal.tasks.schema.TaskInstanceSchema;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.services.ServiceReference;
@@ -75,6 +80,8 @@ import org.gradle.internal.execution.model.annotations.InputFilesPropertyAnnotat
 import org.gradle.internal.execution.model.annotations.InputPropertyAnnotationHandler;
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.execution.model.annotations.ServiceReferencePropertyAnnotationHandler;
+import org.gradle.internal.execution.schema.FileInputPropertySchemaExtractor;
+import org.gradle.internal.execution.schema.ScalarInputPropertySchemaExtractor;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
@@ -86,6 +93,8 @@ import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore;
+import org.gradle.internal.schema.DefaultInstanceSchemaExtractor;
+import org.gradle.internal.schema.InstanceSchemaExtractor;
 import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
@@ -216,7 +225,25 @@ public class ExecutionGlobalServices {
                 NormalizeLineEndings.class
             ),
             instantiationScheme);
-        return new TaskScheme(instantiationScheme, inspectionScheme);
+        InstanceSchemaExtractor<Task, TaskInstanceSchema> instanceSchemaExtractor = new DefaultInstanceSchemaExtractor<Task, TaskInstanceSchema, TaskInstanceSchema.Builder>(
+            inspectionScheme.getMetadataStore(),
+            Nested.class,
+            Optional.class,
+            TaskInstanceSchema.Builder::new,
+            ImmutableList.of(
+                ScalarInputPropertySchemaExtractor.INPUT,
+                FileInputPropertySchemaExtractor.INPUT_FILE,
+                FileInputPropertySchemaExtractor.INPUT_FILES,
+                FileInputPropertySchemaExtractor.INPUT_DIRECTORY,
+                FileOutputPropertySchemaExtractor.OUTPUT_FILE,
+                FileOutputPropertySchemaExtractor.OUTPUT_FILES,
+                FileOutputPropertySchemaExtractor.OUTPUT_DIRECTORY,
+                FileOutputPropertySchemaExtractor.OUTPUT_DIRECTORIES,
+                LocalStatePropertySchemaExtractor.LOCAL_STATE,
+                DestroysPropertySchemaExtractor.DESTROYS
+            )
+        );
+        return new TaskScheme(instantiationScheme, inspectionScheme, instanceSchemaExtractor);
     }
 
     PropertyWalker createPropertyWalker(TaskScheme taskScheme) {
