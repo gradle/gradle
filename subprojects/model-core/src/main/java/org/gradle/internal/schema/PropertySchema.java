@@ -16,8 +16,6 @@
 
 package org.gradle.internal.schema;
 
-import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
-
 import javax.annotation.Nullable;
 
 public interface PropertySchema extends Comparable<PropertySchema> {
@@ -25,8 +23,6 @@ public interface PropertySchema extends Comparable<PropertySchema> {
      * The name of the property prefixed with the qualified name of any parent properties, separated by a {code .}.
      */
     String getQualifiedName();
-
-    PropertyAnnotationMetadata getMetadata();
 
     @Nullable
     Object getValue();
