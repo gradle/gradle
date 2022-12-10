@@ -21,7 +21,9 @@ import org.gradle.internal.reflect.annotations.Long
 import org.gradle.internal.reflect.annotations.Short
 import org.gradle.internal.reflect.annotations.TestAnnotationHandlingSupport
 import org.gradle.internal.reflect.annotations.TestNested
+import org.gradle.internal.reflect.annotations.ThisIsAThing
 import org.gradle.internal.reflect.annotations.Tint
+import org.gradle.internal.reflect.validation.TypeValidationContext
 import spock.lang.Specification
 
 class DefaultInstanceSchemaExtractorTest extends Specification implements TestAnnotationHandlingSupport {
@@ -30,15 +32,17 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
 
     def "can extract empty schema"() {
         when:
-        def schema = schemaExtractor.extractSchema(new Object())
+        def schema = schemaExtractor.extractSchema(new Object(), Mock(TypeValidationContext))
 
         then:
-        schema.properties().collect() ==~ []
+        schema.properties().collect().empty
+        0 * _
     }
 
     @MapConstructor
     class TypeWithSimpleProperties {
-        @Short @Tint("blue")
+        @Short
+        @Tint("blue")
         String name
 
         @Long
@@ -46,12 +50,13 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
     }
 
     def "can extract simple properties"() {
-        def thing = new TypeWithSimpleProperties(name: "lajos", longName: "Kovács Lajos")
+        def thing = new TypeWithSimpleProperties(name: "lajos", longName: "Nagy Lajos")
         when:
-        def schema = schemaExtractor.extractSchema(thing)
+        def schema = schemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
 
         then:
-        schema.properties().map { it.qualifiedName }.collect() ==~ ["name", "longName"]
+        schema.properties()*.qualifiedName ==~ ["name", "longName"]
+        0 * _
     }
 
     @MapConstructor
@@ -62,12 +67,41 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
 
     def "can extract nested properties"() {
         def thing = new TypeWithNestedProperties(
-            nested: new TypeWithSimpleProperties(name: "lajos", longName: "Kovács Lajos")
+            nested: new TypeWithSimpleProperties(name: "lajos", longName: "Nagy Lajos")
         )
         when:
-        def schema = schemaExtractor.extractSchema(thing)
+        def schema = schemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
 
         then:
-        schema.properties().map { it.qualifiedName }.collect() ==~ ["nested", "nested.name", "nested.longName"]
+        schema.properties()*.qualifiedName ==~ ["nested", "nested.name", "nested.longName"]
+        0 * _
+    }
+
+    @MapConstructor
+    @ThisIsAThing(invalid = true)
+    class InvalidTypeWithUnannotatedNestedProperties {
+        @TestNested
+        TypeWithUnannotatedProperty nested
+    }
+
+    class TypeWithUnannotatedProperty {
+        String name
+    }
+
+    def "detects validation errors"() {
+        def thing = new InvalidTypeWithUnannotatedNestedProperties(
+            nested: new TypeWithUnannotatedProperty()
+        )
+        def validationContext = Mock(TypeValidationContext)
+        when:
+        def schema = schemaExtractor.extractSchema(thing, validationContext)
+
+        then:
+        // TODO Check this more precisely
+        1 * validationContext.visitTypeProblem(_)
+        1 * validationContext.visitPropertyProblem(_)
+
+        then:
+        schema.properties()*.qualifiedName ==~ ["nested"]
     }
 }

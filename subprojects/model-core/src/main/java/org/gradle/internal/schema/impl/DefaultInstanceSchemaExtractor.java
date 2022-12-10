@@ -21,6 +21,7 @@ import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.properties.annotations.TypeMetadataWalker;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.schema.InstanceSchema;
 import org.gradle.internal.schema.InstanceSchemaExtractor;
 import org.gradle.internal.schema.PropertySchema;
@@ -42,9 +43,9 @@ public class DefaultInstanceSchemaExtractor implements InstanceSchemaExtractor {
     }
 
     @Override
-    public InstanceSchema extractSchema(Object instance) {
+    public InstanceSchema extractSchema(Object instance, TypeValidationContext validationContext) {
         TypeMetadata instanceMetadata = typeMetadataStore.getTypeMetadata(instance.getClass());
-        PropertySchemaCollectorVisitor visitor = new PropertySchemaCollectorVisitor();
+        PropertySchemaCollectorVisitor visitor = new PropertySchemaCollectorVisitor(validationContext);
         walker.walk(instance, visitor);
         ImmutableSortedSet<PropertySchema> properties = visitor.getProperties();
         return new DefaultInstanceSchema(instanceMetadata, properties);
@@ -52,14 +53,20 @@ public class DefaultInstanceSchemaExtractor implements InstanceSchemaExtractor {
 
     private static class PropertySchemaCollectorVisitor implements TypeMetadataWalker.InstanceMetadataVisitor {
         private final ImmutableSortedSet.Builder<PropertySchema> properties = ImmutableSortedSet.naturalOrder();
+        private final TypeValidationContext validationContext;
+
+        public PropertySchemaCollectorVisitor(TypeValidationContext validationContext) {
+            this.validationContext = validationContext;
+        }
 
         @Override
         public void visitRoot(TypeMetadata typeMetadata, Object value) {
-
+            typeMetadata.visitValidationFailures(null, validationContext);
         }
 
         @Override
         public void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, Object value) {
+            typeMetadata.visitValidationFailures(qualifiedName, validationContext);
             properties.add(new NestedPropertySchema(qualifiedName, value));
         }
 
