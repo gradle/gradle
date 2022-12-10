@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Cast;
 import org.gradle.util.Path;
@@ -27,7 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultProjectPublicationRegistry implements ProjectPublicationRegistry {
+public class DefaultProjectPublicationRegistry implements ProjectPublicationRegistry, HoldsProjectState {
     private final SetMultimap<Path, Reference<?>> publicationsByProject = LinkedHashMultimap.create();
 
     @Override
@@ -69,6 +70,11 @@ public class DefaultProjectPublicationRegistry implements ProjectPublicationRegi
         synchronized (publicationsByProject) {
             publicationsByProject.put(project.getIdentityPath(), new ReferenceImpl(publication, project));
         }
+    }
+
+    @Override
+    public void discardAll() {
+        publicationsByProject.clear();
     }
 
     private static class ReferenceImpl implements Reference<ProjectPublication> {
