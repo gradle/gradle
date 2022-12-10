@@ -517,6 +517,13 @@ The following configurations were never meant to be consumed:
 These configurations were deprecated for consumption and are now no longer consumable.
 Attempting to consume them will result in an error.
 
+==== Identical consumable configurations are now an error
+
+If a project has multiple consumable configurations that share the same attributes and capabilities declaration, the build will fail when publishing or resolving as a dependency that project.
+This was <<#unique_attribute_sets,previously deprecated>>.
+
+The <<variant_model.adoc#outgoing_variants_report,`outgoingVariants` report>> will warn about this for impacted configurations.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
@@ -1068,7 +1075,8 @@ This way, Gradle is able to apply optimizations like up-to-date checks instead o
 [[unique_attribute_sets]]
 ==== Unique attribute sets
 
-The set of link:{javadocPath}/org/gradle/api/attributes/Attribute.html[Attribute]s associated with a _consumable_ configuration within a project, must be unique across all other configurations within that project which share the same set of link:{javadocPath}/org/gradle/api/capabilities/Capability.html[Capability]s.  This will be checked at the end of configuring variant configurations, as they are locked against further mutation.
+The set of link:{javadocPath}/org/gradle/api/attributes/Attribute.html[Attribute]s associated with a _consumable_ configuration within a project, must be unique across all other configurations within that project which share the same set of link:{javadocPath}/org/gradle/api/capabilities/Capability.html[Capability]s.
+This will be checked at the end of configuring variant configurations, as they are locked against further mutation.
 
 If the set of attributes is shared across configurations, consider adding an additional attribute to one of the variants for the sole purpose of disambiguation.
 
