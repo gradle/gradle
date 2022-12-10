@@ -37,7 +37,7 @@ public class AbstractWorkInstanceSchema extends AbstractInstanceSchema implement
     }
 
     @Override
-    public Stream<ScalarInputPropertySchema> getInputs() {
+    public Stream<ScalarInputPropertySchema> getScalarInputs() {
         return inputs.stream();
     }
 

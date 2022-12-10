@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 
 public interface WorkInstanceSchema extends InstanceSchema {
 
-    Stream<ScalarInputPropertySchema> getInputs();
+    Stream<ScalarInputPropertySchema> getScalarInputs();
 
     Stream<FileInputPropertySchema> getFileInputs();
 
