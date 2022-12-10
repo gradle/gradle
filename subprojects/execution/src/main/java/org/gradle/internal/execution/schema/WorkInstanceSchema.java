@@ -17,8 +17,8 @@
 package org.gradle.internal.execution.schema;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.schema.InstanceSchema;
-import org.gradle.internal.schema.NestedPropertySchema;
+import org.gradle.internal.properties.schema.InstanceSchema;
+import org.gradle.internal.properties.schema.NestedPropertySchema;
 
 import java.util.stream.Stream;
 

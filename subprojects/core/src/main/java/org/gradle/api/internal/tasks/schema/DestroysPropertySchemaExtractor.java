@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.schema;
 import org.gradle.api.tasks.Destroys;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
-import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
+import org.gradle.internal.properties.schema.AbstractPropertySchemaExtractor;
 
 public class DestroysPropertySchemaExtractor extends AbstractPropertySchemaExtractor<TaskInstanceSchema.Builder> {
     public static final DestroysPropertySchemaExtractor DESTROYS = new DestroysPropertySchemaExtractor();

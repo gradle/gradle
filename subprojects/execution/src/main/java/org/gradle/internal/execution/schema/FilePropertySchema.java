@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.schema;
 
 import org.gradle.internal.fingerprint.FileNormalizer;
-import org.gradle.internal.schema.PropertySchema;
+import org.gradle.internal.properties.schema.PropertySchema;
 
 public interface FilePropertySchema extends PropertySchema {
     FileNormalizer getNormalizer();

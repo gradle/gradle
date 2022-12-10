@@ -23,7 +23,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.OutputFiles;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
-import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
+import org.gradle.internal.properties.schema.AbstractPropertySchemaExtractor;
 
 import java.lang.annotation.Annotation;
 

@@ -20,7 +20,7 @@ import com.google.common.base.Strings;
 import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
-import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
+import org.gradle.internal.properties.schema.AbstractPropertySchemaExtractor;
 
 public class ServiceReferencePropertySchemaExtractor extends AbstractPropertySchemaExtractor<TaskInstanceSchema.Builder> {
     public static final ServiceReferencePropertySchemaExtractor SERVICE_REFERENCE = new ServiceReferencePropertySchemaExtractor();

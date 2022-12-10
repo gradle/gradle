@@ -14,14 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.model;
-
-import org.gradle.internal.properties.schema.PropertySchema;
+package org.gradle.internal.properties.schema;
 
 import java.lang.annotation.Annotation;
 
-public interface PropertyModelBuilder<A extends Annotation, V> {
-    Class<A> getHandledPropertyType();
+public abstract class AbstractPropertySchemaExtractor<B extends InstanceSchema.Builder<?>> implements PropertySchemaExtractor<B> {
+    private final Class<? extends Annotation> annotationType;
 
-    void acceptVisitor(PropertySchema schema, V visitor);
+    public AbstractPropertySchemaExtractor(Class<? extends Annotation> annotationType) {
+        this.annotationType = annotationType;
+    }
+
+    @Override
+    public Class<? extends Annotation> getAnnotationType() {
+        return annotationType;
+    }
+
+    @Override
+    public String toString() {
+        return annotationType.getSimpleName();
+    }
 }

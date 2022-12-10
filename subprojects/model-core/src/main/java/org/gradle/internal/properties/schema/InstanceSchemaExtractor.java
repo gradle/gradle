@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.schema;
+package org.gradle.internal.properties.schema;
 
-import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
-import java.lang.annotation.Annotation;
-
-public interface PropertySchemaExtractor<B extends InstanceSchema.Builder<?>> {
-    Class<? extends Annotation> getAnnotationType();
-
-    void extractProperty(String qualifiedName, PropertyMetadata metadata, Object parent, B builder);
+public interface InstanceSchemaExtractor<T, S extends InstanceSchema> {
+    S extractSchema(T instance, TypeValidationContext validationContext);
 }

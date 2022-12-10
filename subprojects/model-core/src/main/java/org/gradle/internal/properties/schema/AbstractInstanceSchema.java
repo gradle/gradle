@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.schema;
+package org.gradle.internal.properties.schema;
 
 import com.google.common.collect.ImmutableList;
 

@@ -29,8 +29,8 @@ import org.gradle.api.internal.tasks.schema.TaskInstanceSchema;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.properties.schema.InstanceSchemaExtractor;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.internal.schema.InstanceSchemaExtractor;
 
 import java.io.StringWriter;
 import java.util.ArrayDeque;

@@ -16,6 +16,7 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.GroovyObject;
 import groovy.transform.Generated;
@@ -92,10 +93,10 @@ import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.PropertyAnnotationHandler;
 import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.properties.bean.PropertyWalker;
+import org.gradle.internal.properties.schema.DefaultInstanceSchemaExtractor;
+import org.gradle.internal.properties.schema.InstanceSchemaExtractor;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore;
-import org.gradle.internal.schema.DefaultInstanceSchemaExtractor;
-import org.gradle.internal.schema.InstanceSchemaExtractor;
 import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;

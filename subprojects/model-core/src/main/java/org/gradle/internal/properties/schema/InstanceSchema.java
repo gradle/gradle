@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.schema;
+package org.gradle.internal.properties.schema;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -39,7 +39,7 @@ public interface InstanceSchema {
         protected abstract S build(ImmutableList<NestedPropertySchema> nestedPropertySchemas);
 
         protected static <P extends PropertySchema> ImmutableList<P> toSortedList(ImmutableCollection.Builder<P> builder) {
-            // A sorted list is better here becuase it does not use the comparator for equals()
+            // A sorted list is better here because it does not use the comparator for equals()
             return ImmutableList.sortedCopyOf(Comparator.comparing(PropertySchema::getQualifiedName), builder.build());
         }
     }

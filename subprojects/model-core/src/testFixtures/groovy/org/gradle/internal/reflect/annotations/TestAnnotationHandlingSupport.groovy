@@ -28,15 +28,15 @@ import org.gradle.internal.properties.annotations.PropertyMetadata
 import org.gradle.internal.properties.annotations.TestPropertyTypeResolver
 import org.gradle.internal.properties.annotations.TypeAnnotationHandler
 import org.gradle.internal.properties.annotations.TypeMetadataStore
+import org.gradle.internal.properties.schema.AbstractInstanceSchema
+import org.gradle.internal.properties.schema.AbstractUnresolvedPropertySchema
+import org.gradle.internal.properties.schema.DefaultInstanceSchemaExtractor
+import org.gradle.internal.properties.schema.InstanceSchema
+import org.gradle.internal.properties.schema.InstanceSchemaExtractor
+import org.gradle.internal.properties.schema.NestedPropertySchema
+import org.gradle.internal.properties.schema.PropertySchemaExtractor
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.reflect.validation.TypeValidationContext
-import org.gradle.internal.schema.AbstractInstanceSchema
-import org.gradle.internal.schema.AbstractUnresolvedPropertySchema
-import org.gradle.internal.schema.DefaultInstanceSchemaExtractor
-import org.gradle.internal.schema.InstanceSchema
-import org.gradle.internal.schema.InstanceSchemaExtractor
-import org.gradle.internal.schema.NestedPropertySchema
-import org.gradle.internal.schema.PropertySchemaExtractor
 
 import java.lang.annotation.Annotation
 import java.lang.annotation.ElementType

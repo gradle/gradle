@@ -19,7 +19,7 @@ package org.gradle.internal.execution.schema;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
-import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
+import org.gradle.internal.properties.schema.AbstractPropertySchemaExtractor;
 
 public class ScalarInputPropertySchemaExtractor extends AbstractPropertySchemaExtractor<WorkInstanceSchema.Builder<?>> {
     public static final ScalarInputPropertySchemaExtractor INPUT = new ScalarInputPropertySchemaExtractor();

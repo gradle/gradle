@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.execution.schema.AbstractWorkInstanceSchema;
 import org.gradle.internal.execution.schema.FileInputPropertySchema;
 import org.gradle.internal.execution.schema.ScalarInputPropertySchema;
-import org.gradle.internal.schema.NestedPropertySchema;
+import org.gradle.internal.properties.schema.NestedPropertySchema;
 
 import javax.annotation.Nullable;
 import java.util.stream.Stream;

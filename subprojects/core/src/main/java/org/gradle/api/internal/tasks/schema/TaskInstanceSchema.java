@@ -34,7 +34,7 @@ import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.OutputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.schema.NestedPropertySchema;
+import org.gradle.internal.properties.schema.NestedPropertySchema;
 
 import javax.annotation.Nullable;
 import java.util.stream.Stream;

@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.schema;
+package org.gradle.internal.properties.schema;
 
-import javax.annotation.Nullable;
-import java.util.function.Supplier;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-public abstract class AbstractUnresolvedPropertySchema extends AbstractPropertySchema {
+import java.lang.annotation.Annotation;
 
-    private final Supplier<Object> valueResolver;
+public interface PropertySchemaExtractor<B extends InstanceSchema.Builder<?>> {
+    Class<? extends Annotation> getAnnotationType();
 
-    protected AbstractUnresolvedPropertySchema(String qualifiedName, boolean optional, Supplier<Object> valueResolver) {
-        super(qualifiedName, optional);
-        this.valueResolver = valueResolver;
-    }
-
-    @Nullable
-    @Override
-    public Object getValue() {
-        return valueResolver.get();
-    }
+    void extractProperty(String qualifiedName, PropertyMetadata metadata, Object parent, B builder);
 }

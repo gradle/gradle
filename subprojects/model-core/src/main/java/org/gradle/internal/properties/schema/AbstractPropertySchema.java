@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.schema;
+package org.gradle.internal.properties.schema;
 
-abstract class AbstractPropertySchema implements PropertySchema {
+public abstract class AbstractPropertySchema implements PropertySchema {
     private final String qualifiedName;
     private final boolean optional;
 

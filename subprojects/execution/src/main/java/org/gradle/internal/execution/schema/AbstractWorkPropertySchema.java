@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.schema;
 
-import org.gradle.internal.schema.AbstractUnresolvedPropertySchema;
+import org.gradle.internal.properties.schema.AbstractUnresolvedPropertySchema;
 
 import java.util.function.Supplier;
 

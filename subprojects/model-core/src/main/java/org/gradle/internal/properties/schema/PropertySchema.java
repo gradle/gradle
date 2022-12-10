@@ -13,7 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@NonNullApi
-package org.gradle.internal.schema;
 
-import org.gradle.api.NonNullApi;
+package org.gradle.internal.properties.schema;
+
+import javax.annotation.Nullable;
+
+public interface PropertySchema {
+    /**
+     * The name of the property prefixed with the qualified name of any parent properties, separated by a {code .}.
+     */
+    String getQualifiedName();
+
+    boolean isOptional();
+
+    @Nullable
+    Object getValue();
+}

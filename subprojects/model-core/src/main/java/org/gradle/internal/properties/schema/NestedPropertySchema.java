@@ -14,18 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.schema;
+package org.gradle.internal.properties.schema;
 
-import javax.annotation.Nullable;
-
-public interface PropertySchema {
-    /**
-     * The name of the property prefixed with the qualified name of any parent properties, separated by a {code .}.
-     */
-    String getQualifiedName();
-
-    boolean isOptional();
-
-    @Nullable
-    Object getValue();
+public interface NestedPropertySchema extends PropertySchema {
 }
