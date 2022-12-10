@@ -26,7 +26,7 @@ java {
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
-        vendor.set(JvmVendorSpec.IBM_SEMERU)
+        vendor.set(JvmVendorSpec.IBM)
         implementation.set(JvmImplementation.J9)
     }
 }

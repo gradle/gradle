@@ -241,14 +241,14 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
-    def 'toolchain download of Semeru forces openj9'() {
+    def 'toolchain download of IBM forces openj9'() {
         buildFile << """
             apply plugin: "java"
 
             java {
                 toolchain {
                     languageVersion = JavaLanguageVersion.of(99)
-                    vendor = JvmVendorSpec.IBM_SEMERU
+                    vendor = JvmVendorSpec.IBM
                 }
             }
         """
@@ -274,7 +274,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=IBM_SEMERU, implementation=vendor-specific}) from 'https://example.com/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/openj9/normal/adoptopenjdk'.")
+            .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=IBM, implementation=vendor-specific}) from 'https://example.com/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/openj9/normal/adoptopenjdk'.")
             .assertHasCause("Could not read 'https://example.com/v3/binary/latest/99/ga/${os()}/${architecture()}/jdk/openj9/normal/adoptopenjdk' as it does not exist.")
     }
 

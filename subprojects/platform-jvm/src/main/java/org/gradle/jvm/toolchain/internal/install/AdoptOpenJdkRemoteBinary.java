@@ -77,7 +77,7 @@ public class AdoptOpenJdkRemoteBinary {
             return true;
         }
 
-        return vendorSpec.test(JvmVendor.KnownJvmVendor.IBM_SEMERU.asJvmVendor());
+        return vendorSpec.test(JvmVendor.KnownJvmVendor.IBM.asJvmVendor());
     }
 
     private URI constructUri(JavaToolchainSpec spec, BuildPlatform platform) {
@@ -171,7 +171,7 @@ public class AdoptOpenJdkRemoteBinary {
 
     private static boolean isJ9RequestedViaVendor(JavaToolchainSpec spec) {
         DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
-        return vendorSpec != DefaultJvmVendorSpec.any() && vendorSpec.test(JvmVendor.KnownJvmVendor.IBM_SEMERU.asJvmVendor());
+        return vendorSpec != DefaultJvmVendorSpec.any() && vendorSpec.test(JvmVendor.KnownJvmVendor.IBM.asJvmVendor());
     }
 
 }
