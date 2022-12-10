@@ -20,12 +20,12 @@ import com.google.common.collect.ImmutableSet;
 import groovy.lang.GroovyObject;
 import groovy.transform.Generated;
 import org.gradle.api.Describable;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -226,7 +226,7 @@ public class ExecutionGlobalServices {
                 NormalizeLineEndings.class
             ),
             instantiationScheme);
-        InstanceSchemaExtractor<Task, TaskInstanceSchema> instanceSchemaExtractor = new DefaultInstanceSchemaExtractor<Task, TaskInstanceSchema, TaskInstanceSchema.Builder>(
+        InstanceSchemaExtractor<TaskInternal, TaskInstanceSchema> instanceSchemaExtractor = new DefaultInstanceSchemaExtractor<TaskInternal, TaskInstanceSchema, TaskInstanceSchema.Builder>(
             inspectionScheme.getMetadataStore(),
             Nested.class,
             Optional.class,

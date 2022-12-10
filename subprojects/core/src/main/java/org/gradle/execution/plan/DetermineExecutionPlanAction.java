@@ -24,16 +24,13 @@ import org.gradle.api.CircularReferenceException;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
-import org.gradle.api.internal.tasks.TaskLocalStateInternal;
+import org.gradle.api.internal.tasks.properties.TaskScheme;
+import org.gradle.api.internal.tasks.schema.TaskInstanceSchema;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.properties.OutputFilePropertyType;
-import org.gradle.internal.properties.PropertyValue;
-import org.gradle.internal.properties.PropertyVisitor;
-import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
+import org.gradle.internal.schema.InstanceSchemaExtractor;
 
 import java.io.StringWriter;
 import java.util.ArrayDeque;
@@ -285,7 +282,7 @@ class DetermineExecutionPlanAction {
         }
     }
 
-    private void onOrderingCycle(Node successor, Node currentNode) {
+    private static void onOrderingCycle(Node successor, Node currentNode) {
         List<Set<Node>> cycles = findCycles(successor);
         if (cycles.isEmpty()) {
             // TODO: This isn't correct. This means that we've detected a cycle while determining the execution plan, but the graph walker did not find one.
@@ -296,7 +293,7 @@ class DetermineExecutionPlanAction {
         throw new CircularReferenceException(format("Circular dependency between the following tasks:%n%s", cycleString));
     }
 
-    private List<Set<Node>> findCycles(Node successor) {
+    private static List<Set<Node>> findCycles(Node successor) {
         CachingDirectedGraphWalker<Node, Void> graphWalker = new CachingDirectedGraphWalker<>((node, values, connectedNodes) -> {
             node.getHardSuccessors().forEach(connectedNodes::add);
         });
@@ -304,7 +301,7 @@ class DetermineExecutionPlanAction {
         return graphWalker.findCycles();
     }
 
-    private StringWriter renderOrderingCycle(Set<Node> nodes) {
+    private static StringWriter renderOrderingCycle(Set<Node> nodes) {
         List<Node> cycle = sortedListOf(nodes);
 
         DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>(
@@ -333,71 +330,19 @@ class DetermineExecutionPlanAction {
         }
 
         LocalTaskNode taskNode = (LocalTaskNode) node;
-        TaskClassifier taskClassifier = classifyTask(taskNode);
+        TaskInternal task = taskNode.getTask();
+        TaskInstanceSchema schema = instanceSchemaExtractorFor(task).extractSchema(task, TypeValidationContext.NOOP);
 
-        if (taskClassifier.isDestroyer()) {
+        if (schema.getDestroys().findAny().isPresent()) {
             ordinalNodeAccess.addDestroyerNode(ordinal, taskNode, scheduleBuilder::add);
-        } else if (taskClassifier.isProducer()) {
+        } else if (schema.getOutputs().findAny().isPresent()
+            || schema.getLocalStates().findAny().isPresent()) {
             ordinalNodeAccess.addProducerNode(ordinal, taskNode, scheduleBuilder::add);
         }
     }
 
-    /**
-     * Walk the properties of the task to determine if it is a destroyer or a producer (or neither).
-     */
-    private TaskClassifier classifyTask(LocalTaskNode taskNode) {
-        TaskClassifier taskClassifier = new TaskClassifier();
-        TaskInternal task = taskNode.getTask();
-
-        PropertyWalker propertyWalker = propertyWalkerOf(task);
-        propertyWalker.visitProperties(task, TypeValidationContext.NOOP, taskClassifier);
-        task.getOutputs().visitRegisteredProperties(taskClassifier);
-        if (taskClassifier.isDestroyer()) {
-            // avoid walking further properties after discovering the task is destroyer
-            return taskClassifier;
-        }
-
-        ((TaskDestroyablesInternal) task.getDestroyables()).visitRegisteredProperties(taskClassifier);
-        if (taskClassifier.isDestroyer()) {
-            // avoid walking further properties after discovering the task is destroyer
-            return taskClassifier;
-        }
-
-        ((TaskLocalStateInternal) task.getLocalState()).visitRegisteredProperties(taskClassifier);
-
-        return taskClassifier;
-    }
-
-    private PropertyWalker propertyWalkerOf(TaskInternal task) {
-        return ((ProjectInternal) task.getProject()).getServices().get(PropertyWalker.class);
-    }
-
-    private static class TaskClassifier implements PropertyVisitor {
-        private boolean isProducer;
-        private boolean isDestroyer;
-
-        @Override
-        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-            isProducer = true;
-        }
-
-        @Override
-        public void visitDestroyableProperty(Object value) {
-            isDestroyer = true;
-        }
-
-        @Override
-        public void visitLocalStateProperty(Object value) {
-            isProducer = true;
-        }
-
-        public boolean isProducer() {
-            return isProducer;
-        }
-
-        public boolean isDestroyer() {
-            return isDestroyer;
-        }
+    private static InstanceSchemaExtractor<TaskInternal, TaskInstanceSchema> instanceSchemaExtractorFor(TaskInternal task) {
+        return ((ProjectInternal) task.getProject()).getServices().get(TaskScheme.class).getInstanceSchemaExtractor();
     }
 
     private static class NodeInVisitingSegment {

@@ -27,12 +27,11 @@ import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class DefaultInstanceSchemaExtractor<T, S extends InstanceSchema, B extends InstanceSchema.Builder<? extends S>> implements InstanceSchemaExtractor<T, S> {
 
     private final TypeMetadataWalker.InstanceMetadataWalker walker;
-    private final Supplier<? extends B> builderFactory;
+    private final Function<? super T, ? extends B> builderFactory;
     private final Class<? extends Annotation> optionalAnnotation;
     private final ImmutableMap<Class<? extends Annotation>, ? extends PropertySchemaExtractor<? super B>> propertyExtractors;
 
@@ -40,7 +39,7 @@ public class DefaultInstanceSchemaExtractor<T, S extends InstanceSchema, B exten
         TypeMetadataStore typeMetadataStore,
         Class<? extends Annotation> nestedAnnotation,
         Class<? extends Annotation> optionalAnnotation,
-        Supplier<? extends B> builderFactory,
+        Function<? super T, ? extends B> builderFactory,
         Collection<? extends PropertySchemaExtractor<? super B>> propertyExtractors
     ) {
         this.builderFactory = builderFactory;
@@ -51,8 +50,8 @@ public class DefaultInstanceSchemaExtractor<T, S extends InstanceSchema, B exten
     }
 
     @Override
-    public S extractSchema(Object instance, TypeValidationContext validationContext) {
-        B builder = builderFactory.get();
+    public S extractSchema(T instance, TypeValidationContext validationContext) {
+        B builder = builderFactory.apply(instance);
         walker.walk(instance, new PropertySchemaCollectingVisitor(builder, validationContext));
         return builder.build();
     }
