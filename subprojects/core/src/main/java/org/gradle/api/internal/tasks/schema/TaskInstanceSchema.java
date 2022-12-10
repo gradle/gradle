@@ -34,6 +34,18 @@ public interface TaskInstanceSchema extends WorkInstanceSchema {
         private final ImmutableSortedSet.Builder<LocalStatePropertySchema> localState = ImmutableSortedSet.naturalOrder();
         private final ImmutableSortedSet.Builder<DestroysPropertySchema> destroys = ImmutableSortedSet.naturalOrder();
 
+        public void add(FileOutputPropertySchema property) {
+            outputs.add(property);
+        }
+
+        public void add(LocalStatePropertySchema property) {
+            localState.add(property);
+        }
+
+        public void add(DestroysPropertySchema property) {
+            destroys.add(property);
+        }
+
         @Override
         protected TaskInstanceSchema build(
             ImmutableSortedSet<NestedPropertySchema> nestedProperties,

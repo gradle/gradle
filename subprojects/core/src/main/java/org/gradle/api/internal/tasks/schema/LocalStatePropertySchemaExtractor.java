@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.schema;
+package org.gradle.api.internal.tasks.schema;
 
-import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.LocalState;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
 
 import java.util.function.Supplier;
 
-public class InputPropertySchemaExtractor extends AbstractPropertySchemaExtractor<WorkInstanceSchema.Builder<?>> {
-    public static final InputPropertySchemaExtractor INPUT = new InputPropertySchemaExtractor();
+public class LocalStatePropertySchemaExtractor extends AbstractPropertySchemaExtractor<TaskInstanceSchema.Builder> {
+    public static final LocalStatePropertySchemaExtractor LOCAL_STATE = new LocalStatePropertySchemaExtractor();
 
-    private InputPropertySchemaExtractor() {
-        super(Input.class);
+    private LocalStatePropertySchemaExtractor() {
+        super(LocalState.class);
     }
 
     @Override
-    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver, WorkInstanceSchema.Builder<?> builder) {
-        builder.add(new DefaultScalarInputPropertySchema(qualifiedName, metadata, valueResolver));
+    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver, TaskInstanceSchema.Builder builder) {
+        builder.add(new DefaultLocalStatePropertySchema(qualifiedName, metadata, valueResolver));
     }
 }

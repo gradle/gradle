@@ -24,7 +24,7 @@ import org.gradle.internal.properties.annotations.PropertyMetadata;
 
 import java.util.function.Supplier;
 
-public class DefaultFileInputPropertySchema extends AbstractFileInputPropertySchema implements FileInputPropertySchema {
+public class DefaultFileInputPropertySchema extends AbstractFilePropertySchema implements FileInputPropertySchema {
     private final InputBehavior behavior;
     private final DirectorySensitivity directorySensitivity;
     private final LineEndingSensitivity lineEndingSensitivity;

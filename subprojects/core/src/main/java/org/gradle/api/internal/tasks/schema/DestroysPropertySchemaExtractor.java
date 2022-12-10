@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.schema;
+package org.gradle.api.internal.tasks.schema;
 
-import org.gradle.internal.fingerprint.FileNormalizer;
+import org.gradle.api.tasks.LocalState;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
 
 import java.util.function.Supplier;
 
-public class AbstractFileInputPropertySchema extends AbstractWorkPropertySchema implements FilePropertySchema {
-    private final FileNormalizer normalizer;
+public class DestroysPropertySchemaExtractor extends AbstractPropertySchemaExtractor<TaskInstanceSchema.Builder> {
+    public static final DestroysPropertySchemaExtractor DESTROYS = new DestroysPropertySchemaExtractor();
 
-    public AbstractFileInputPropertySchema(String qualifiedName, PropertyMetadata metadata, FileNormalizer normalizer, Supplier<Object> valueResolver) {
-        super(qualifiedName, metadata, valueResolver);
-        this.normalizer = normalizer;
+    private DestroysPropertySchemaExtractor() {
+        super(LocalState.class);
     }
 
     @Override
-    public FileNormalizer getNormalizer() {
-        return normalizer;
+    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver, TaskInstanceSchema.Builder builder) {
+        builder.add(new DefaultDestroysPropertySchema(qualifiedName, metadata, valueResolver));
     }
 }

@@ -19,6 +19,9 @@ package org.gradle.internal.execution.schema;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -37,8 +40,18 @@ import java.util.function.Supplier;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
 
-public abstract class AbstractInputFilePropertySchemaExtractor extends AbstractPropertySchemaExtractor<WorkInstanceSchema.Builder<?>> {
-    protected AbstractInputFilePropertySchemaExtractor(Class<? extends Annotation> annotationType) {
+public class FileInputPropertySchemaExtractor extends AbstractPropertySchemaExtractor<WorkInstanceSchema.Builder<?>> {
+    public static final FileInputPropertySchemaExtractor INPUT_FILE = new FileInputPropertySchemaExtractor(InputFile.class);
+    public static final FileInputPropertySchemaExtractor INPUT_FILES = new FileInputPropertySchemaExtractor(InputFiles.class);
+    public static final FileInputPropertySchemaExtractor INPUT_DIRECTORY = new FileInputPropertySchemaExtractor(InputDirectory.class) {
+        @Override
+        protected DirectorySensitivity determineDirectorySensitivity(PropertyMetadata propertyMetadata) {
+            // Being an input directory implies ignoring of empty directories.
+            return DirectorySensitivity.IGNORE_DIRECTORIES;
+        }
+    };
+
+    private FileInputPropertySchemaExtractor(Class<? extends Annotation> annotationType) {
         super(annotationType);
     }
 
@@ -94,4 +107,5 @@ public abstract class AbstractInputFilePropertySchemaExtractor extends AbstractP
             ? LineEndingSensitivity.NORMALIZE_LINE_ENDINGS
             : LineEndingSensitivity.DEFAULT;
     }
+
 }

@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.schema;
+package org.gradle.api.internal.tasks.schema;
 
-import org.gradle.api.tasks.InputDirectory;
-import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.execution.model.InputNormalizer;
+import org.gradle.internal.execution.schema.AbstractFilePropertySchema;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-public class InputDirectoryPropertySchemaExtractor extends AbstractInputFilePropertySchemaExtractor {
-    public InputDirectoryPropertySchemaExtractor() {
-        super(InputDirectory.class);
-    }
+import java.util.function.Supplier;
 
-    @Override
-    protected DirectorySensitivity determineDirectorySensitivity(PropertyMetadata propertyMetadata) {
-        // Being an input directory implies ignoring of empty directories.
-        return DirectorySensitivity.IGNORE_DIRECTORIES;
+public class DefaultDestroysPropertySchema extends AbstractFilePropertySchema implements LocalStatePropertySchema {
+    public DefaultDestroysPropertySchema(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver) {
+        super(qualifiedName, metadata, InputNormalizer.ABSOLUTE_PATH, valueResolver);
     }
 }

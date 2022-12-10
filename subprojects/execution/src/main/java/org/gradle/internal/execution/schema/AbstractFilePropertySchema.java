@@ -16,10 +16,21 @@
 
 package org.gradle.internal.execution.schema;
 
-import org.gradle.api.tasks.InputFiles;
+import org.gradle.internal.fingerprint.FileNormalizer;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-public class InputFilesPropertySchemaExtractor extends AbstractInputFilePropertySchemaExtractor {
-    public InputFilesPropertySchemaExtractor() {
-        super(InputFiles.class);
+import java.util.function.Supplier;
+
+public class AbstractFilePropertySchema extends AbstractWorkPropertySchema implements FilePropertySchema {
+    private final FileNormalizer normalizer;
+
+    public AbstractFilePropertySchema(String qualifiedName, PropertyMetadata metadata, FileNormalizer normalizer, Supplier<Object> valueResolver) {
+        super(qualifiedName, metadata, valueResolver);
+        this.normalizer = normalizer;
+    }
+
+    @Override
+    public FileNormalizer getNormalizer() {
+        return normalizer;
     }
 }

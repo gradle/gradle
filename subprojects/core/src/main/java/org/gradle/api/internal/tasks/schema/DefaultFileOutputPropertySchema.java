@@ -14,23 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.schema;
+package org.gradle.api.internal.tasks.schema;
 
-import org.gradle.api.tasks.Input;
+import org.gradle.internal.execution.model.OutputNormalizer;
+import org.gradle.internal.execution.schema.AbstractFilePropertySchema;
+import org.gradle.internal.file.TreeType;
 import org.gradle.internal.properties.annotations.PropertyMetadata;
-import org.gradle.internal.schema.AbstractPropertySchemaExtractor;
 
 import java.util.function.Supplier;
 
-public class InputPropertySchemaExtractor extends AbstractPropertySchemaExtractor<WorkInstanceSchema.Builder<?>> {
-    public static final InputPropertySchemaExtractor INPUT = new InputPropertySchemaExtractor();
+public class DefaultFileOutputPropertySchema extends AbstractFilePropertySchema implements FileOutputPropertySchema {
 
-    private InputPropertySchemaExtractor() {
-        super(Input.class);
+    private final TreeType outputType;
+
+    public DefaultFileOutputPropertySchema(String qualifiedName, PropertyMetadata metadata, TreeType outputType, Supplier<Object> valueResolver) {
+        super(qualifiedName, metadata, OutputNormalizer.INSTANCE, valueResolver);
+        this.outputType = outputType;
     }
 
     @Override
-    public void extractProperty(String qualifiedName, PropertyMetadata metadata, Supplier<Object> valueResolver, WorkInstanceSchema.Builder<?> builder) {
-        builder.add(new DefaultScalarInputPropertySchema(qualifiedName, metadata, valueResolver));
+    public TreeType getOutputType() {
+        return outputType;
     }
 }
