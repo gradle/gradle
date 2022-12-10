@@ -29,4 +29,9 @@ public abstract class AbstractPropertySchemaExtractor<B extends InstanceSchema.B
     public Class<? extends Annotation> getAnnotationType() {
         return annotationType;
     }
+
+    @Override
+    public String toString() {
+        return annotationType.getSimpleName();
+    }
 }
