@@ -44,6 +44,6 @@ class DefaultInstanceSchemaExtractorTest extends Specification {
         def schema = schemaExtractor.extractSchema(new Object())
 
         then:
-        schema.typeMetadata.propertiesAnnotationMetadata
+        schema.typeMetadata.propertiesAnnotationMetadata.isEmpty()
     }
 }
