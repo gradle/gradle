@@ -47,6 +47,8 @@ import org.gradle.api.internal.tasks.TaskRequiredServices;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener;
+import org.gradle.api.internal.tasks.properties.TaskScheme;
+import org.gradle.api.internal.tasks.schema.TaskInstanceSchema;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
@@ -76,6 +78,7 @@ import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
 import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.properties.bean.PropertyWalker;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.scripts.ScriptOriginUtil;
 import org.gradle.internal.service.ServiceRegistry;
@@ -160,6 +163,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskRequiredServices taskRequiredServices;
     private LoggingManagerInternal loggingManager;
 
+    private TaskInstanceSchema instanceSchema;
+
     protected AbstractTask() {
         this(taskInfo());
     }
@@ -211,6 +216,29 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             return uncheckedCall(factory);
         } finally {
             NEXT_INSTANCE.set(null);
+        }
+    }
+
+    @Override
+    public TaskInstanceSchema getInstanceSchema() {
+        // The expected behavior is that once the schema has been queried, no changes should happen to it.
+        // However, currently it is entirely possible both to change `@Nested` property instances, and
+        // to register new input/output etc. properties via the runtime API.
+        // These changes result in the schema being altered, so we first check if this has happened.
+        // When there are no changes, then we retain the old schema object to preserve (potentially finalized)
+        // object instances.
+
+        // TODO Do we need some thread safety here?
+        TaskInstanceSchema oldSchema = instanceSchema;
+        TaskInstanceSchema newSchema = services.get(TaskScheme.class).getInstanceSchemaExtractor()
+            .extractSchema(this, TypeValidationContext.NOOP);
+
+        if (!newSchema.equals(oldSchema)) {
+            // TODO Warn that schema has changed, deprecate behavior
+            instanceSchema = newSchema;
+            return newSchema;
+        } else {
+            return oldSchema;
         }
     }
 

@@ -30,7 +30,6 @@ import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.properties.schema.InstanceSchemaExtractor;
-import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.io.StringWriter;
 import java.util.ArrayDeque;
@@ -331,7 +330,7 @@ class DetermineExecutionPlanAction {
 
         LocalTaskNode taskNode = (LocalTaskNode) node;
         TaskInternal task = taskNode.getTask();
-        TaskInstanceSchema schema = instanceSchemaExtractorFor(task).extractSchema(task, TypeValidationContext.NOOP);
+        TaskInstanceSchema schema = task.getInstanceSchema();
 
         if (!schema.getDestroys().isEmpty()) {
             ordinalNodeAccess.addDestroyerNode(ordinal, taskNode, scheduleBuilder::add);

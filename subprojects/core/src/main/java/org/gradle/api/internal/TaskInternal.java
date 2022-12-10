@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskRequiredServices;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
+import org.gradle.api.internal.tasks.schema.TaskInstanceSchema;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
@@ -35,6 +36,9 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 public interface TaskInternal extends Task, Configurable<Task> {
+
+    @Internal
+    TaskInstanceSchema getInstanceSchema();
 
     /**
      * A more efficient version of {@link #getActions()}, which circumvents the
