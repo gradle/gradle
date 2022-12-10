@@ -22,10 +22,9 @@ class DaemonHealthLoggingIntegrationTest extends DaemonIntegrationSpec {
 
     def "health information is present in build log"() {
         when:
-        executer.withBuildJvmOpts("-Dorg.gradle.daemon.performance.logging=true")
-        def r = executer.noExtraLogging().run()
+        def result = succeeds("help", "--info")
 
         then:
-        r.output ==~ /(?s).*Starting build in new daemon \[memory: [0-9].*/
+        result.output ==~ /(?s).*Starting build in new daemon \[memory: [0-9].*/
     }
 }
