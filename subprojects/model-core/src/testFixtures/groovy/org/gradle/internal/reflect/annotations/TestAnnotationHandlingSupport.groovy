@@ -38,6 +38,7 @@ import org.gradle.internal.properties.schema.PropertySchemaExtractor
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.reflect.validation.TypeValidationContext
 
+import javax.annotation.Nullable
 import java.lang.annotation.Annotation
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention
@@ -45,7 +46,6 @@ import java.lang.annotation.RetentionPolicy
 import java.lang.annotation.Target
 import java.lang.reflect.Method
 import java.util.function.Supplier
-import java.util.stream.Stream
 
 import static org.gradle.internal.properties.annotations.PropertyAnnotationHandler.Kind.INPUT
 import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE
@@ -143,7 +143,8 @@ trait TestAnnotationHandlingSupport {
             this.propertyType = propertyType
         }
 
-        boolean equals(o) {
+        @Override
+        boolean equals(@Nullable Object o) {
             if (this.is(o)) {
                 return true
             }
@@ -163,6 +164,7 @@ trait TestAnnotationHandlingSupport {
             return true
         }
 
+        @Override
         int hashCode() {
             int result = super.hashCode()
             result = 31 * result + propertyType.hashCode()
@@ -172,7 +174,7 @@ trait TestAnnotationHandlingSupport {
 
     static class TestInstanceSchema extends AbstractInstanceSchema {
 
-        private final ImmutableList<TestPropertySchema> testProperties
+        final ImmutableList<TestPropertySchema> testProperties
 
         TestInstanceSchema(
             ImmutableList<NestedPropertySchema> nestedProperties,
@@ -181,11 +183,8 @@ trait TestAnnotationHandlingSupport {
             this.testProperties = testProperties
         }
 
-        Stream<TestPropertySchema> testProperties() {
-            return testProperties.stream()
-        }
-
-        boolean equals(o) {
+        @Override
+        boolean equals(@Nullable Object o) {
             if (this.is(o)) {
                 return true
             }

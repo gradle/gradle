@@ -33,7 +33,7 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
         def schema = instanceSchemaExtractor.extractSchema(new Object(), Mock(TypeValidationContext))
 
         then:
-        schema.testProperties().collect().empty
+        schema.testProperties.empty
         0 * _
     }
 
@@ -53,7 +53,7 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
         def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
 
         then:
-        schema.testProperties()*.qualifiedName ==~ ["name", "longName"]
+        schema.testProperties*.qualifiedName ==~ ["name", "longName"]
         0 * _
     }
 
@@ -69,8 +69,8 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
         def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
 
         then:
-        schema.nestedProperties()*.qualifiedName ==~ ["nested"]
-        schema.testProperties()*.qualifiedName ==~ ["nested.name", "nested.longName"]
+        schema.nestedProperties*.qualifiedName ==~ ["nested"]
+        schema.testProperties*.qualifiedName ==~ ["nested.name", "nested.longName"]
         0 * _
     }
 
@@ -141,7 +141,7 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
         1 * validationContext.visitPropertyProblem(_)
 
         then:
-        schema.nestedProperties()*.qualifiedName ==~ ["nested"]
-        schema.testProperties()*.qualifiedName ==~ []
+        schema.nestedProperties*.qualifiedName ==~ ["nested"]
+        schema.testProperties*.qualifiedName ==~ []
     }
 }

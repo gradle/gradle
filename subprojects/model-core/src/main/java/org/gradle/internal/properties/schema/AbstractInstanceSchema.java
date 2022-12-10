@@ -16,9 +16,8 @@
 
 package org.gradle.internal.properties.schema;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
-
-import java.util.stream.Stream;
 
 public abstract class AbstractInstanceSchema implements InstanceSchema {
     private final ImmutableList<NestedPropertySchema> nestedProperties;
@@ -28,8 +27,8 @@ public abstract class AbstractInstanceSchema implements InstanceSchema {
     }
 
     @Override
-    public Stream<NestedPropertySchema> nestedProperties() {
-        return nestedProperties.stream();
+    public ImmutableCollection<NestedPropertySchema> getNestedProperties() {
+        return nestedProperties;
     }
 
     @Override

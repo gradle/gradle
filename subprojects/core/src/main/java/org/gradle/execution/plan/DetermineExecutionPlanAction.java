@@ -333,10 +333,10 @@ class DetermineExecutionPlanAction {
         TaskInternal task = taskNode.getTask();
         TaskInstanceSchema schema = instanceSchemaExtractorFor(task).extractSchema(task, TypeValidationContext.NOOP);
 
-        if (schema.getDestroys().findAny().isPresent()) {
+        if (!schema.getDestroys().isEmpty()) {
             ordinalNodeAccess.addDestroyerNode(ordinal, taskNode, scheduleBuilder::add);
-        } else if (schema.getOutputs().findAny().isPresent()
-            || schema.getLocalStates().findAny().isPresent()) {
+        } else if (!schema.getOutputs().isEmpty()
+            || !schema.getLocalStates().isEmpty()) {
             ordinalNodeAccess.addProducerNode(ordinal, taskNode, scheduleBuilder::add);
         }
     }

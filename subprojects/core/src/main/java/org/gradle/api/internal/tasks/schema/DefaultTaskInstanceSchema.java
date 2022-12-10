@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.schema;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.execution.schema.AbstractWorkInstanceSchema;
 import org.gradle.internal.execution.schema.FileInputPropertySchema;
@@ -23,7 +24,6 @@ import org.gradle.internal.execution.schema.ScalarInputPropertySchema;
 import org.gradle.internal.properties.schema.NestedPropertySchema;
 
 import javax.annotation.Nullable;
-import java.util.stream.Stream;
 
 public class DefaultTaskInstanceSchema extends AbstractWorkInstanceSchema implements TaskInstanceSchema {
     private final ImmutableList<FileOutputPropertySchema> outputs;
@@ -48,23 +48,23 @@ public class DefaultTaskInstanceSchema extends AbstractWorkInstanceSchema implem
     }
 
     @Override
-    public Stream<FileOutputPropertySchema> getOutputs() {
-        return outputs.stream();
+    public ImmutableCollection<FileOutputPropertySchema> getOutputs() {
+        return outputs;
     }
 
     @Override
-    public Stream<LocalStatePropertySchema> getLocalStates() {
-        return localStates.stream();
+    public ImmutableCollection<LocalStatePropertySchema> getLocalStates() {
+        return localStates;
     }
 
     @Override
-    public Stream<DestroysPropertySchema> getDestroys() {
-        return destroys.stream();
+    public ImmutableCollection<DestroysPropertySchema> getDestroys() {
+        return destroys;
     }
 
     @Override
-    public Stream<ServiceReferencePropertySchema> getServiceReferences() {
-        return serviceReferences.stream();
+    public ImmutableCollection<ServiceReferencePropertySchema> getServiceReferences() {
+        return serviceReferences;
     }
 
     @Override

@@ -16,11 +16,10 @@
 
 package org.gradle.internal.execution.schema;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.properties.schema.AbstractInstanceSchema;
 import org.gradle.internal.properties.schema.NestedPropertySchema;
-
-import java.util.stream.Stream;
 
 public class AbstractWorkInstanceSchema extends AbstractInstanceSchema implements WorkInstanceSchema {
     private final ImmutableList<ScalarInputPropertySchema> inputs;
@@ -37,13 +36,13 @@ public class AbstractWorkInstanceSchema extends AbstractInstanceSchema implement
     }
 
     @Override
-    public Stream<ScalarInputPropertySchema> getScalarInputs() {
-        return inputs.stream();
+    public ImmutableCollection<ScalarInputPropertySchema> getScalarInputs() {
+        return inputs;
     }
 
     @Override
-    public Stream<FileInputPropertySchema> getFileInputs() {
-        return fileInputs.stream();
+    public ImmutableCollection<FileInputPropertySchema> getFileInputs() {
+        return fileInputs;
     }
 
     @Override

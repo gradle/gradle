@@ -16,17 +16,16 @@
 
 package org.gradle.internal.execution.schema;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.properties.schema.InstanceSchema;
 import org.gradle.internal.properties.schema.NestedPropertySchema;
 
-import java.util.stream.Stream;
-
 public interface WorkInstanceSchema extends InstanceSchema {
 
-    Stream<ScalarInputPropertySchema> getScalarInputs();
+    ImmutableCollection<ScalarInputPropertySchema> getScalarInputs();
 
-    Stream<FileInputPropertySchema> getFileInputs();
+    ImmutableCollection<FileInputPropertySchema> getFileInputs();
 
     abstract class Builder<S extends WorkInstanceSchema> extends InstanceSchema.Builder<S> {
         private final ImmutableList.Builder<ScalarInputPropertySchema> scalarInputs = ImmutableList.builder();

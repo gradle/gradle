@@ -20,10 +20,9 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 
 import java.util.Comparator;
-import java.util.stream.Stream;
 
 public interface InstanceSchema {
-    Stream<NestedPropertySchema> nestedProperties();
+    ImmutableCollection<NestedPropertySchema> getNestedProperties();
 
     abstract class Builder<S extends InstanceSchema> {
         private final ImmutableList.Builder<NestedPropertySchema> nestedPropertySchemas = ImmutableList.builder();

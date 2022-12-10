@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.schema;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
@@ -37,16 +38,15 @@ import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.schema.NestedPropertySchema;
 
 import javax.annotation.Nullable;
-import java.util.stream.Stream;
 
 public interface TaskInstanceSchema extends WorkInstanceSchema {
-    Stream<FileOutputPropertySchema> getOutputs();
+    ImmutableCollection<FileOutputPropertySchema> getOutputs();
 
-    Stream<LocalStatePropertySchema> getLocalStates();
+    ImmutableCollection<LocalStatePropertySchema> getLocalStates();
 
-    Stream<DestroysPropertySchema> getDestroys();
+    ImmutableCollection<DestroysPropertySchema> getDestroys();
 
-    Stream<ServiceReferencePropertySchema> getServiceReferences();
+    ImmutableCollection<ServiceReferencePropertySchema> getServiceReferences();
 
     class Builder extends WorkInstanceSchema.Builder<TaskInstanceSchema> {
         private final ImmutableList.Builder<FileOutputPropertySchema> outputs = ImmutableList.builder();
