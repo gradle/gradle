@@ -76,6 +76,50 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
         0 * _
     }
 
+    def "schema equals itself"() {
+        def thing = new TypeWithNestedProperties(
+            nested: new TypeWithSimpleProperties(name: "lajos", longName: "Nagy Lajos")
+        )
+
+        when:
+        def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
+
+        then:
+        schema == schema
+        0 * _
+    }
+
+    def "schema equals re-extracted schema"() {
+        def thing = new TypeWithNestedProperties(
+            nested: new TypeWithSimpleProperties(name: "lajos", longName: "Nagy Lajos")
+        )
+
+        when:
+        def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
+        def reExtractedSchema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
+
+        then:
+        schema == reExtractedSchema
+        0 * _
+    }
+
+    def "schema differs for different instances"() {
+        def thing = new TypeWithNestedProperties(
+            nested: new TypeWithSimpleProperties(name: "lajos", longName: "Nagy Lajos")
+        )
+        def otherThing = new TypeWithNestedProperties(
+            nested: new TypeWithSimpleProperties(name: "tibor", longName: "Nagy Lajos")
+        )
+
+        when:
+        def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
+        def otherSchema = instanceSchemaExtractor.extractSchema(otherThing, Mock(TypeValidationContext))
+
+        then:
+        schema != otherSchema
+        0 * _
+    }
+
     @MapConstructor
     @ThisIsAThing(invalid = true)
     class InvalidTypeWithUnannotatedNestedProperties {

@@ -34,4 +34,29 @@ public abstract class AbstractUnresolvedPropertySchema extends AbstractPropertyS
     public Object getValue() {
         return getMetadata().getPropertyValue(parent);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        AbstractUnresolvedPropertySchema that = (AbstractUnresolvedPropertySchema) o;
+
+        // We want to keep track of the same instance
+        return parent == that.parent;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + parent.hashCode();
+        return result;
+    }
 }

@@ -16,24 +16,31 @@
 
 package org.gradle.internal.schema;
 
-import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 
+import java.util.Comparator;
 import java.util.stream.Stream;
 
 public interface InstanceSchema {
     Stream<NestedPropertySchema> nestedProperties();
 
     abstract class Builder<S extends InstanceSchema> {
-        private final ImmutableSortedSet.Builder<NestedPropertySchema> nestedPropertySchemas = ImmutableSortedSet.naturalOrder();
+        private final ImmutableList.Builder<NestedPropertySchema> nestedPropertySchemas = ImmutableList.builder();
 
         public void add(NestedPropertySchema property) {
             nestedPropertySchemas.add(property);
         }
 
         public S build() {
-            return build(nestedPropertySchemas.build());
+            return build(toSortedList(nestedPropertySchemas));
         }
 
-        protected abstract S build(ImmutableSortedSet<NestedPropertySchema> nestedPropertySchemas);
+        protected abstract S build(ImmutableList<NestedPropertySchema> nestedPropertySchemas);
+
+        protected static <P extends PropertySchema> ImmutableList<P> toSortedList(ImmutableCollection.Builder<P> builder) {
+            // A sorted list is better here becuase it does not use the comparator for equals()
+            return ImmutableList.sortedCopyOf(Comparator.comparing(PropertySchema::getQualifiedName), builder.build());
+        }
     }
 }

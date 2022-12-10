@@ -34,4 +34,28 @@ public class DefaultFileOutputPropertySchema extends AbstractFilePropertySchema 
     public TreeType getOutputType() {
         return outputType;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        DefaultFileOutputPropertySchema that = (DefaultFileOutputPropertySchema) o;
+
+        return outputType == that.outputType;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + outputType.hashCode();
+        return result;
+    }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.schema;
 
-import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.execution.schema.FileInputPropertySchema;
 import org.gradle.internal.execution.schema.ScalarInputPropertySchema;
 import org.gradle.internal.execution.schema.WorkInstanceSchema;
@@ -30,9 +30,9 @@ public interface TaskInstanceSchema extends WorkInstanceSchema {
     Stream<DestroysPropertySchema> getDestroys();
 
     class Builder extends WorkInstanceSchema.Builder<TaskInstanceSchema> {
-        private final ImmutableSortedSet.Builder<FileOutputPropertySchema> outputs = ImmutableSortedSet.naturalOrder();
-        private final ImmutableSortedSet.Builder<LocalStatePropertySchema> localState = ImmutableSortedSet.naturalOrder();
-        private final ImmutableSortedSet.Builder<DestroysPropertySchema> destroys = ImmutableSortedSet.naturalOrder();
+        private final ImmutableList.Builder<FileOutputPropertySchema> outputs = ImmutableList.builder();
+        private final ImmutableList.Builder<LocalStatePropertySchema> localState = ImmutableList.builder();
+        private final ImmutableList.Builder<DestroysPropertySchema> destroys = ImmutableList.builder();
 
         public void add(FileOutputPropertySchema property) {
             outputs.add(property);
@@ -48,17 +48,17 @@ public interface TaskInstanceSchema extends WorkInstanceSchema {
 
         @Override
         protected TaskInstanceSchema build(
-            ImmutableSortedSet<NestedPropertySchema> nestedProperties,
-            ImmutableSortedSet<ScalarInputPropertySchema> scalarInputs,
-            ImmutableSortedSet<FileInputPropertySchema> fileInputs
+            ImmutableList<NestedPropertySchema> nestedProperties,
+            ImmutableList<ScalarInputPropertySchema> scalarInputs,
+            ImmutableList<FileInputPropertySchema> fileInputs
         ) {
             return new DefaultTaskInstanceSchema(
                 nestedProperties,
                 scalarInputs,
                 fileInputs,
-                outputs.build(),
-                localState.build(),
-                destroys.build()
+                toSortedList(outputs),
+                toSortedList(localState),
+                toSortedList(destroys)
             );
         }
     }

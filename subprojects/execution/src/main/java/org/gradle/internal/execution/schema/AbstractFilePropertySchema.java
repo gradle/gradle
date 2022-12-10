@@ -31,4 +31,28 @@ public class AbstractFilePropertySchema extends AbstractWorkPropertySchema imple
     public FileNormalizer getNormalizer() {
         return normalizer;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        AbstractFilePropertySchema that = (AbstractFilePropertySchema) o;
+
+        return normalizer.equals(that.normalizer);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + normalizer.hashCode();
+        return result;
+    }
 }

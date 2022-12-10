@@ -16,19 +16,38 @@
 
 package org.gradle.internal.schema;
 
-import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.ImmutableList;
 
 import java.util.stream.Stream;
 
 public abstract class AbstractInstanceSchema implements InstanceSchema {
-    private final ImmutableSortedSet<NestedPropertySchema> nestedProperties;
+    private final ImmutableList<NestedPropertySchema> nestedProperties;
 
-    public AbstractInstanceSchema(ImmutableSortedSet<NestedPropertySchema> nestedProperties) {
+    public AbstractInstanceSchema(ImmutableList<NestedPropertySchema> nestedProperties) {
         this.nestedProperties = nestedProperties;
     }
 
     @Override
     public Stream<NestedPropertySchema> nestedProperties() {
         return nestedProperties.stream();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        AbstractInstanceSchema that = (AbstractInstanceSchema) o;
+
+        return nestedProperties.equals(that.nestedProperties);
+    }
+
+    @Override
+    public int hashCode() {
+        return nestedProperties.hashCode();
     }
 }

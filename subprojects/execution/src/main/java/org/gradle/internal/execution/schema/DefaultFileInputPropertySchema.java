@@ -56,4 +56,36 @@ public class DefaultFileInputPropertySchema extends AbstractFilePropertySchema i
     public LineEndingSensitivity getLineEndingSensitivity() {
         return lineEndingSensitivity;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        DefaultFileInputPropertySchema that = (DefaultFileInputPropertySchema) o;
+
+        if (behavior != that.behavior) {
+            return false;
+        }
+        if (directorySensitivity != that.directorySensitivity) {
+            return false;
+        }
+        return lineEndingSensitivity == that.lineEndingSensitivity;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + behavior.hashCode();
+        result = 31 * result + directorySensitivity.hashCode();
+        result = 31 * result + lineEndingSensitivity.hashCode();
+        return result;
+    }
 }

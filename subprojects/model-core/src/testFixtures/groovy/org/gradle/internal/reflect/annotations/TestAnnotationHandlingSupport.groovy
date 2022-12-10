@@ -16,8 +16,8 @@
 
 package org.gradle.internal.reflect.annotations
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
-import com.google.common.collect.ImmutableSortedSet
 import groovy.transform.Generated
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.properties.PropertyValue
@@ -171,11 +171,11 @@ trait TestAnnotationHandlingSupport {
 
     static class TestInstanceSchema extends AbstractInstanceSchema {
 
-        private final ImmutableSortedSet<TestPropertySchema> testProperties
+        private final ImmutableList<TestPropertySchema> testProperties
 
         TestInstanceSchema(
-            ImmutableSortedSet<NestedPropertySchema> nestedProperties,
-            ImmutableSortedSet<TestPropertySchema> testProperties) {
+            ImmutableList<NestedPropertySchema> nestedProperties,
+            ImmutableList<TestPropertySchema> testProperties) {
             super(nestedProperties)
             this.testProperties = testProperties
         }
@@ -212,15 +212,18 @@ trait TestAnnotationHandlingSupport {
 
         private static class Builder extends InstanceSchema.Builder<TestInstanceSchema> {
 
-            private final ImmutableSortedSet.Builder<TestPropertySchema> testProperties = ImmutableSortedSet.naturalOrder()
+            private final ImmutableList.Builder<TestPropertySchema> testProperties = ImmutableList.builder()
 
             void add(TestPropertySchema property) {
                 testProperties.add(property)
             }
 
             @Override
-            protected TestInstanceSchema build(ImmutableSortedSet<NestedPropertySchema> nestedPropertySchemas) {
-                return new TestInstanceSchema(nestedPropertySchemas, testProperties.build())
+            protected TestInstanceSchema build(ImmutableList<NestedPropertySchema> nestedPropertySchemas) {
+                return new TestInstanceSchema(
+                    nestedPropertySchemas,
+                    toSortedList(testProperties)
+                )
             }
         }
     }

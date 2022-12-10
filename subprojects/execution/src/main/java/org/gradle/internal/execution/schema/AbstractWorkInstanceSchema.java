@@ -16,20 +16,20 @@
 
 package org.gradle.internal.execution.schema;
 
-import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.schema.AbstractInstanceSchema;
 import org.gradle.internal.schema.NestedPropertySchema;
 
 import java.util.stream.Stream;
 
 public class AbstractWorkInstanceSchema extends AbstractInstanceSchema implements WorkInstanceSchema {
-    private final ImmutableSortedSet<ScalarInputPropertySchema> inputs;
-    private final ImmutableSortedSet<FileInputPropertySchema> fileInputs;
+    private final ImmutableList<ScalarInputPropertySchema> inputs;
+    private final ImmutableList<FileInputPropertySchema> fileInputs;
 
     public AbstractWorkInstanceSchema(
-        ImmutableSortedSet<NestedPropertySchema> nestedProperties,
-        ImmutableSortedSet<ScalarInputPropertySchema> inputs,
-        ImmutableSortedSet<FileInputPropertySchema> fileInputs
+        ImmutableList<NestedPropertySchema> nestedProperties,
+        ImmutableList<ScalarInputPropertySchema> inputs,
+        ImmutableList<FileInputPropertySchema> fileInputs
     ) {
         super(nestedProperties);
         this.inputs = inputs;
@@ -44,5 +44,33 @@ public class AbstractWorkInstanceSchema extends AbstractInstanceSchema implement
     @Override
     public Stream<FileInputPropertySchema> getFileInputs() {
         return fileInputs.stream();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        AbstractWorkInstanceSchema that = (AbstractWorkInstanceSchema) o;
+
+        if (!inputs.equals(that.inputs)) {
+            return false;
+        }
+        return fileInputs.equals(that.fileInputs);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + inputs.hashCode();
+        result = 31 * result + fileInputs.hashCode();
+        return result;
     }
 }

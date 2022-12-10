@@ -20,7 +20,7 @@ import org.gradle.internal.properties.annotations.PropertyMetadata;
 
 import javax.annotation.Nullable;
 
-public interface PropertySchema extends Comparable<PropertySchema> {
+public interface PropertySchema {
     /**
      * The name of the property prefixed with the qualified name of any parent properties, separated by a {code .}.
      */

@@ -111,5 +111,30 @@ public class DefaultInstanceSchemaExtractor<T, S extends InstanceSchema, B exten
         public Object getValue() {
             return value;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            if (!super.equals(o)) {
+                return false;
+            }
+
+            DefaultNestedPropertySchema that = (DefaultNestedPropertySchema) o;
+
+            // We want to keep track of the same instance
+            return value == that.value;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = super.hashCode();
+            result = 31 * result + (value != null ? value.hashCode() : 0);
+            return result;
+        }
     }
 }

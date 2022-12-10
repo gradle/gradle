@@ -18,8 +18,6 @@ package org.gradle.internal.schema;
 
 import org.gradle.internal.properties.annotations.PropertyMetadata;
 
-import javax.annotation.Nonnull;
-
 abstract class AbstractPropertySchema implements PropertySchema {
     private final String qualifiedName;
     private final PropertyMetadata metadata;
@@ -47,7 +45,30 @@ abstract class AbstractPropertySchema implements PropertySchema {
     }
 
     @Override
-    public int compareTo(@Nonnull PropertySchema o) {
-        return qualifiedName.compareTo(o.getQualifiedName());
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        AbstractPropertySchema that = (AbstractPropertySchema) o;
+
+        if (optional != that.optional) {
+            return false;
+        }
+        if (!qualifiedName.equals(that.qualifiedName)) {
+            return false;
+        }
+        return metadata.equals(that.metadata);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = qualifiedName.hashCode();
+        result = 31 * result + metadata.hashCode();
+        result = 31 * result + (optional ? 1 : 0);
+        return result;
     }
 }
