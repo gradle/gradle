@@ -492,7 +492,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         ScriptPluginFactory scriptPluginFactory,
         ScriptHandlerFactory scriptHandlerFactory,
         Instantiator instantiator,
-        ServiceRegistryFactory serviceRegistryFactory,
         GradleProperties gradleProperties,
         BuildOperationExecutor buildOperationExecutor,
         TextFileResourceLoader textFileResourceLoader
@@ -504,7 +503,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                         scriptPluginFactory,
                         new SettingsFactory(
                             instantiator,
-                            serviceRegistryFactory,
+                            this,
                             scriptHandlerFactory
                         ),
                         gradleProperties,
