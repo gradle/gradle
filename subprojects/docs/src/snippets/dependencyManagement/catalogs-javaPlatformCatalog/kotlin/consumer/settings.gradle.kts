@@ -26,27 +26,27 @@ dependencyResolutionManagement {
 }
 
 if (providers.systemProperty("create1").getOrNull() != null) {
-    // tag::consume_catalog[]
-    dependencyResolutionManagement {
-        versionCatalogs {
-            create("libs") {
-                from("com.mycompany:catalog:1.0")
-            }
+// tag::consume_catalog[]
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("libs") {
+            from("com.mycompany:catalog:1.0")
         }
     }
-    // end::consume_catalog[]
+}
+// end::consume_catalog[]
 }
 
 if (providers.systemProperty("create2").getOrNull() != null) {
-    // tag::overwrite_version[]
-    dependencyResolutionManagement {
-        versionCatalogs {
-            create("amendedLibs") {
-                from("com.mycompany:catalog:1.0")
-                // overwrite the "groovy" version declared in the imported catalog
-                version("groovy", "3.0.6")
-            }
+// tag::overwrite_version[]
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("amendedLibs") {
+            from("com.mycompany:catalog:1.0")
+            // overwrite the "groovy" version declared in the imported catalog
+            version("groovy", "3.0.6")
         }
     }
-    // end::overwrite_version[]
+}
+// end::overwrite_version[]
 }
