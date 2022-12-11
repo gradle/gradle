@@ -41,6 +41,7 @@ import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.initialization.SettingsState
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
@@ -302,8 +303,8 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun getSettings(): SettingsInternal =
         delegate.settings
 
-    override fun setSettings(settings: SettingsInternal) {
-        delegate.settings = settings
+    override fun attachSettings(settings: SettingsState?) {
+        delegate.attachSettings(settings)
     }
 
     override fun setDefaultProject(defaultProject: ProjectInternal) {
