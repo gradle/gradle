@@ -96,9 +96,7 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      */
     void preventFromFurtherMutation();
 
-    void preventFromFurtherMutation(boolean lenient);
-
-    List<? extends GradleException> getLenientErrors();
+    List<? extends GradleException> preventFromFurtherMutation(boolean lenient);
 
     /**
      * Reports whether this configuration uses {@link org.gradle.api.Incubating Incubating} attributes types, such as {@link org.gradle.api.attributes.Category#VERIFICATION}.

@@ -253,7 +253,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private String consistentResolutionReason;
     private ExtraExecutionGraphDependenciesResolverFactory dependenciesResolverFactory;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
-    private List<GradleException> lenientErrors;
 
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
@@ -1110,17 +1109,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public List<? extends GradleException> getLenientErrors() {
-        if (lenientErrors == null) {
-            return Collections.emptyList();
-        }
-        return lenientErrors;
-    }
-
-    @Override
-    public void preventFromFurtherMutation(boolean lenient) {
+    public List<? extends GradleException> preventFromFurtherMutation(boolean lenient) {
         // TODO This should use the same `MutationValidator` infrastructure that we use for other mutation types
         if (canBeMutated) {
+            List<GradleException> lenientErrors = new ArrayList<>();
+
             if (beforeLocking != null) {
                 beforeLocking.execute(this);
                 beforeLocking = null;
@@ -1134,12 +1127,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             // We will only check unique attributes if this configuration is consumable, not resolvable, and has attributes itself
             if (mustHaveUniqueAttributes(this) && !this.getAttributes().isEmpty()) {
-                ensureUniqueAttributes(lenient);
+                ensureUniqueAttributes(lenient, lenientErrors);
             }
+
+            return lenientErrors;
         }
+        return Collections.emptyList();
     }
 
-    private void ensureUniqueAttributes(boolean lenient) {
+    private void ensureUniqueAttributes(boolean lenient, List<GradleException> lenientErrors) {
         final Set<? extends ConfigurationInternal> all = (configurationsProvider != null) ? configurationsProvider.getAll() : null;
         if (all != null) {
             final Collection<? extends Capability> allCapabilities = allCapabilitiesIncludingDefault(this);
@@ -1163,9 +1159,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     .withUserManual("upgrading_version_7", "unique_attribute_sets")
                     .build();
                 if (lenient) {
-                    if (lenientErrors == null) {
-                        lenientErrors = new ArrayList<>();
-                    }
                     lenientErrors.add(gradleException);
                 } else {
                     throw gradleException;
