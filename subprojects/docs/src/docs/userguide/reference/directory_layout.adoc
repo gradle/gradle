@@ -22,7 +22,7 @@ The following two sections describe what is stored in each of them and how trans
 [[dir:gradle_user_home]]
 == Gradle user home directory
 
-The Gradle user home directory (`$USER_HOME/.gradle` by default) is used to store global configuration properties and initialization scripts as well as caches and log files.
+The Gradle user home directory (`<home directory of the current user>/.gradle` by default) is used to store global configuration properties and initialization scripts as well as caches and log files.
 It is roughly structured as follows:
 
 [listing]
