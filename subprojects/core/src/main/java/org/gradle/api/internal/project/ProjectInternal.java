@@ -225,7 +225,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
      */
     DetachedResolver newDetachedResolver();
 
-
     /**
      * Returns the property that stored {@link Project#getStatus()}.
      * <p>

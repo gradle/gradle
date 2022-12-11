@@ -35,4 +35,6 @@ public interface FileResolver extends RelativeFilePathResolver, PathToFileResolv
 
     @Override
     FileResolver newResolver(File baseDir);
+
+    void setBaseDir(Object path);
 }

@@ -19,7 +19,7 @@ package org.gradle.api.internal.file;
 import java.io.File;
 
 public class BaseDirFileResolver extends AbstractBaseDirFileResolver {
-    private final File baseDir;
+    private File baseDir;
 
     /**
      * Do not create instances of this type. Use {@link FileLookup} instead.
@@ -32,5 +32,10 @@ public class BaseDirFileResolver extends AbstractBaseDirFileResolver {
     @Override
     protected File getBaseDir() {
         return baseDir;
+    }
+
+    @Override
+    public void setBaseDir(Object path) {
+        this.baseDir = resolve(path);
     }
 }

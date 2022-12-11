@@ -172,9 +172,9 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     private final ScriptSource buildScriptSource;
 
-    private final File projectDir;
+    private File projectDir;
 
-    private final File buildFile;
+    private File buildFile;
 
     @Nullable
     private final ProjectInternal parent;
@@ -1464,6 +1464,11 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             preparedForRuleBasedPlugins = true;
             ruleBasedPluginListenerBroadcast.getSource().prepareForRuleBasedPlugins(this);
         }
+    }
+
+    @Override
+    public void setDirectory(String projectDirectory) {
+        this.projectDir = this.buildFile = fileResolver.resolve(projectDirectory);
     }
 
     @Inject

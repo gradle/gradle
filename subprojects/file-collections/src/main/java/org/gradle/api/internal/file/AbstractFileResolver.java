@@ -137,4 +137,8 @@ public abstract class AbstractFileResolver implements FileResolver {
         }
     }
 
+    @Override
+    public void setBaseDir(Object path) {
+        // default do nothing, and subclass processing logic if needed
+    }
 }

@@ -1788,4 +1788,12 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @since 4.8
      */
     DependencyLockingHandler getDependencyLocking();
+
+    /**
+     * set the project root dir
+     *
+     * @since 8.1
+     */
+    @Incubating
+    void setDirectory(String projectDirectory);
 }

@@ -849,6 +849,10 @@ class ProblemReportingCrossProjectModelAccess(
             shouldNotBeUsed()
         }
 
+        override fun setDirectory(projectDirectory: String) {
+            shouldNotBeUsed()
+        }
+
         override fun getFileOperations(): FileOperations {
             shouldNotBeUsed()
         }

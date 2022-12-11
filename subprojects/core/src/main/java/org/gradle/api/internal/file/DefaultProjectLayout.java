@@ -37,7 +37,7 @@ import org.gradle.internal.Factory;
 import java.io.File;
 
 public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
-    private final Directory projectDir;
+    private Directory projectDir;
     private final DirectoryProperty buildDir;
     private final FileResolver fileResolver;
     private final TaskDependencyFactory taskDependencyFactory;
@@ -107,5 +107,6 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
      */
     public void setBuildDirectory(Object value) {
         buildDir.set(fileResolver.resolve(value));
+        projectDir = fileFactory.dir(fileResolver.resolve(value));
     }
 }

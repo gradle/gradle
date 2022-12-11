@@ -74,4 +74,8 @@ open class PrecompiledProjectScript(
         override fun apply(apply: Boolean) = this
         override fun version(version: String?) = this
     }
+
+    override fun setDirectory(projectDirectory: String) {
+        // do nothing
+    }
 }

@@ -18,7 +18,11 @@ package org.gradle.buildinit.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.Incubating;
+import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
+import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
@@ -53,12 +57,13 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class InitBuild extends DefaultTask {
-    private final Directory projectDir = getProject().getLayout().getProjectDirectory();
+    private Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
     private String dsl;
     private final Property<Boolean> useIncubatingAPIs = getProject().getObjects().property(Boolean.class);
     private String testFramework;
+    private String projectDirectory;
     private String projectName;
     private String packageName;
     private final Property<InsecureProtocolOption> insecureProtocol = getProject().getObjects().property(InsecureProtocolOption.class);
@@ -119,6 +124,18 @@ public abstract class InitBuild extends DefaultTask {
     @Option(option = "incubating", description = "Allow the generated build to use new features and APIs")
     public Property<Boolean> getUseIncubating() {
         return useIncubatingAPIs;
+    }
+
+    /**
+     * The directory of the generated project, defaults to the path of the directory the project is generated in.
+     *
+     * This property can be set via command-line option '--project-directory'.
+     * @since 8.1
+     */
+    @Input
+    @Incubating
+    public String getProjectDirectory() {
+        return this.projectDirectory == null ? projectDir.getAsFile().getAbsolutePath() : projectDirectory;
     }
 
     /**
@@ -345,6 +362,35 @@ public abstract class InitBuild extends DefaultTask {
     @OptionValues("test-framework")
     public List<String> getAvailableTestFrameworks() {
         return BuildInitTestFramework.listSupported();
+    }
+
+    /**
+     * Set the project directory.
+     *
+     * @since 8.1
+     */
+    @Option(option = "project-directory", description = "Set the project directory.")
+    @Incubating
+    public void setProjectDirectory(String projectDirectory) {
+        this.projectDirectory = projectDirectory;
+        setProjectRootDir(projectDirectory);
+    }
+
+    /**
+     * set the root path of the new project to '--project-directory' value
+     */
+    private void setProjectRootDir(String projectDirectory) {
+        Project project = getProject();
+
+        project.absoluteProjectPath(projectDirectory);
+        project.setBuildDir(projectDirectory);
+        project.setDirectory(projectDirectory);
+
+        this.projectDir = project.getLayout().getProjectDirectory();
+
+        FileOperations fileOperations = getServices().get(FileOperations.class);
+        FileResolver fileResolver = fileOperations.getFileResolver();
+        fileResolver.setBaseDir(projectDirectory);
     }
 
     /**
