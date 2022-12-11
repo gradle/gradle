@@ -973,7 +973,7 @@ We also recommend to update Checkstyle to version 9.3 or later.
 
 ==== Missing files specified with relative paths when running Checkstyle
 
-Gradle 7.5 consistently sets the current working directory for the Checkstyle task to `GRADLE_USER_HOME/workers`.
+Gradle 7.5 consistently sets the current working directory for the Checkstyle task to `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/workers`.
 This may cause problems with custom Checkstyle tasks or Checkstyle configuration files that assume a different directory for relative paths.
 
 Previously, Gradle selected the current working directory based on the directory where you ran Gradle. If you ran Gradle in:
@@ -981,7 +981,7 @@ Previously, Gradle selected the current working directory based on the directory
 - the root directory of a project: Gradle uses the root directory as the current working directory.
 - a nested directory of a project: Gradle uses the root directory of the subproject as the current working directory.
 
-In version 7.5 and above, Gradle consistently sets the current working directory for the Checkstyle task to `GRADLE_USER_HOME/workers`.
+In version 7.5 and above, Gradle consistently sets the current working directory for the Checkstyle task to `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/workers`.
 
 === Deprecations
 
