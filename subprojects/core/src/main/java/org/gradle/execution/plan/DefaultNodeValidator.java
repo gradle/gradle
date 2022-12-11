@@ -51,7 +51,7 @@ public class DefaultNodeValidator implements NodeValidator {
         Class<?> taskType = GeneratedSubclasses.unpackType(node.getTask());
         // We don't know whether the task is cacheable or not, so we ignore cacheability problems for scheduling
         TypeValidationContext typeValidationContext = validationContext.forType(taskType, false);
-        node.getTaskProperties().validateType(typeValidationContext);
+        node.getSchema().validate(typeValidationContext);
         return validationContext;
     }
 

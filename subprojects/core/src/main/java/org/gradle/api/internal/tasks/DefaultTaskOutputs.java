@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.execution.SelfDescribingSpec;
+import org.gradle.api.internal.tasks.model.TaskOutputModel;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilesCollector;
 import org.gradle.api.internal.tasks.properties.OutputUnpacker;
@@ -61,6 +62,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final FilePropertyContainer<TaskOutputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInternal task;
     private final TaskMutator taskMutator;
+    private final TaskModelHolder<TaskOutputModel> modelHolder;
 
     public DefaultTaskOutputs(final TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory) {
         this.task = task;
@@ -68,6 +70,13 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         this.allOutputFiles = new TaskOutputUnionFileCollection(taskDependencyFactory, task);
         this.propertyWalker = propertyWalker;
         this.fileCollectionFactory = fileCollectionFactory;
+        // TODO We probably need something more subtle to resolve file collections here
+        this.modelHolder = new TaskModelHolder<>(task, new TaskOutputModel.Extractor(value -> value == null ? null : fileCollectionFactory.resolving(value)));
+    }
+
+    @Override
+    public TaskOutputModel getModel() {
+        return modelHolder.getModel();
     }
 
     @Override

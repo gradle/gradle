@@ -34,6 +34,7 @@ public class LocalTaskNodeExecutor implements NodeExecutor {
             MissingTaskDependencyDetector missingTaskDependencyDetector = context.getService(MissingTaskDependencyDetector.class);
             TaskExecutionContext ctx = new DefaultTaskExecutionContext(
                 localTaskNode,
+                localTaskNode.getSchema(),
                 localTaskNode.getTaskProperties(),
                 localTaskNode.getValidationContext(),
                 typeValidationContext -> missingTaskDependencyDetector.detectMissingDependencies(localTaskNode, typeValidationContext)

@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
+import org.gradle.api.internal.tasks.schema.TaskInstanceSchema;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -27,14 +28,22 @@ import java.util.Optional;
 public class DefaultTaskExecutionContext implements TaskExecutionContext {
 
     private final LocalTaskNode localTaskNode;
+    private final TaskInstanceSchema schema;
     private final TaskProperties properties;
     private final WorkValidationContext validationContext;
     private final ValidationAction validationAction;
     private TaskExecutionMode taskExecutionMode;
     private BuildOperationContext snapshotTaskInputsBuildOperationContext;
 
-    public DefaultTaskExecutionContext(LocalTaskNode localTaskNode, TaskProperties taskProperties, WorkValidationContext validationContext, ValidationAction validationAction) {
+    public DefaultTaskExecutionContext(
+        LocalTaskNode localTaskNode,
+        TaskInstanceSchema schema,
+        TaskProperties taskProperties,
+        WorkValidationContext validationContext,
+        ValidationAction validationAction
+    ) {
         this.localTaskNode = localTaskNode;
+        this.schema = schema;
         this.properties = taskProperties;
         this.validationContext = validationContext;
         this.validationAction = validationAction;
@@ -63,6 +72,11 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     @Override
     public void setTaskExecutionMode(TaskExecutionMode taskExecutionMode) {
         this.taskExecutionMode = taskExecutionMode;
+    }
+
+    @Override
+    public TaskInstanceSchema getSchema() {
+        return schema;
     }
 
     @Override

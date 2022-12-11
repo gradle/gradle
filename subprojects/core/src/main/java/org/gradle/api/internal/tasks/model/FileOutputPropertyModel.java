@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.model;
+package org.gradle.api.internal.tasks.model;
 
-import org.gradle.internal.properties.schema.InstanceSchema;
+import org.gradle.internal.file.TreeType;
+import org.gradle.internal.model.PropertyModel;
 
-public interface InstanceModel {
-    abstract class AbstractInstanceModel<S extends InstanceSchema> implements InstanceModel {
-        protected final S schema;
+import java.io.File;
 
-        protected AbstractInstanceModel(S schema) {
-            this.schema = schema;
-        }
-    }
+public interface FileOutputPropertyModel extends PropertyModel<File> {
+    TreeType getOutputType();
 }

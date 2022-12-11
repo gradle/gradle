@@ -18,10 +18,13 @@ package org.gradle.api.internal;
 
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
+import org.gradle.api.internal.tasks.model.TaskInputModel;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.internal.properties.PropertyVisitor;
 
 public interface TaskInputsInternal extends TaskInputs, TaskDependencyContainer {
+
+    TaskInputModel getModel();
 
     /**
      * Calls the corresponding visitor methods for all inputs added via the runtime API.

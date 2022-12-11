@@ -16,14 +16,33 @@
 
 package org.gradle.internal.model;
 
-import org.gradle.internal.properties.schema.InstanceSchema;
+import org.gradle.internal.properties.schema.PropertySchema;
 
-public interface InstanceModel {
-    abstract class AbstractInstanceModel<S extends InstanceSchema> implements InstanceModel {
-        protected final S schema;
+import javax.annotation.Nullable;
 
-        protected AbstractInstanceModel(S schema) {
-            this.schema = schema;
-        }
+public abstract class AbstractPropertyModel<T, P extends PropertySchema> implements PropertyModel<T> {
+
+    protected final P schema;
+    private final T value;
+
+    public AbstractPropertyModel(P schema, @Nullable T value) {
+        this.schema = schema;
+        this.value = value;
+    }
+
+    @Override
+    public String getQualifiedName() {
+        return schema.getQualifiedName();
+    }
+
+    @Override
+    public boolean isOptional() {
+        return schema.isOptional();
+    }
+
+    @Nullable
+    @Override
+    public T getValue() {
+        return value;
     }
 }

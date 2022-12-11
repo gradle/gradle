@@ -21,11 +21,13 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.model.TaskOutputModel;
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
-import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
+import org.gradle.api.internal.tasks.schema.TaskInstanceSchema;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.execution.WorkValidationContext;
+import org.gradle.internal.model.PropertyModel;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
@@ -33,6 +35,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -50,6 +53,8 @@ public class LocalTaskNode extends TaskNode {
     private boolean isolated;
     private List<? extends ResourceLock> resourceLocks;
     private TaskProperties taskProperties;
+    private TaskOutputModel outputModel;
+    private TaskInstanceSchema schema;
 
     public LocalTaskNode(TaskInternal task, WorkValidationContext workValidationContext, Function<LocalTaskNode, ResolveMutationsNode> resolveNodeFactory) {
         this.task = task;
@@ -102,6 +107,14 @@ public class LocalTaskNode extends TaskNode {
     @Override
     public boolean isPublicNode() {
         return true;
+    }
+
+    public TaskOutputModel getOutputModel() {
+        return outputModel;
+    }
+
+    public TaskInstanceSchema getSchema() {
+        return schema;
     }
 
     public TaskProperties getTaskProperties() {
@@ -164,13 +177,10 @@ public class LocalTaskNode extends TaskNode {
         return task.getIdentityPath().toString();
     }
 
-    private void addOutputFilesToMutations(Set<OutputFilePropertySpec> outputFilePropertySpecs) {
+    private void addOutputFilesToMutations(File outputLocation) {
         final MutationInfo mutations = getMutationInfo();
-        outputFilePropertySpecs.forEach(spec -> {
-            File outputLocation = spec.getOutputFile();
-            mutations.outputPaths.add(outputLocation.getAbsolutePath());
-            mutations.hasOutputs = true;
-        });
+        mutations.outputPaths.add(outputLocation.getAbsolutePath());
+        mutations.hasOutputs = true;
     }
 
     private void addLocalStateFilesToMutations(FileCollection localStateFiles) {
@@ -229,12 +239,23 @@ public class LocalTaskNode extends TaskNode {
         PropertyWalker propertyWalker = serviceRegistry.get(PropertyWalker.class);
         try {
             taskProperties = DefaultTaskProperties.resolve(propertyWalker, fileCollectionFactory, task);
+            outputModel = task.getOutputs().getModel();
+            schema = outputModel.getSchema();
 
-            addOutputFilesToMutations(taskProperties.getOutputFileProperties());
-            addLocalStateFilesToMutations(taskProperties.getLocalStateFiles());
-            addDestroyablesToMutations(taskProperties.getDestroyableFiles());
+            outputModel.getOutputs().stream()
+                .map(PropertyModel::getValue)
+                .filter(Objects::nonNull)
+                .forEach(this::addOutputFilesToMutations);
+            outputModel.getLocalStates().stream()
+                .map(PropertyModel::getValue)
+                .filter(Objects::nonNull)
+                .forEach(this::addLocalStateFilesToMutations);
+            outputModel.getDestroys().stream()
+                .map(PropertyModel::getValue)
+                .filter(Objects::nonNull)
+                .forEach(this::addDestroyablesToMutations);
 
-            mutations.hasFileInputs = !taskProperties.getInputFileProperties().isEmpty();
+            mutations.hasFileInputs = !schema.getFileInputs().isEmpty();
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
         }

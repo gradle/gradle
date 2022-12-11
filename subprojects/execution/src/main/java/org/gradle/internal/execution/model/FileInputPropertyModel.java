@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.model;
+package org.gradle.internal.execution.model;
 
-import org.gradle.internal.properties.schema.InstanceSchema;
+import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.properties.InputBehavior;
 
-public interface InstanceModel {
-    abstract class AbstractInstanceModel<S extends InstanceSchema> implements InstanceModel {
-        protected final S schema;
+public interface FileInputPropertyModel extends FilePropertyModel {
+    InputBehavior getBehavior();
 
-        protected AbstractInstanceModel(S schema) {
-            this.schema = schema;
-        }
-    }
+    DirectorySensitivity getDirectorySensitivity();
+
+    LineEndingSensitivity getLineEndingNormalization();
 }

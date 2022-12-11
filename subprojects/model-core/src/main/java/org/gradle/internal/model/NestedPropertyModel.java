@@ -16,14 +16,5 @@
 
 package org.gradle.internal.model;
 
-import org.gradle.internal.properties.schema.InstanceSchema;
-
-public interface InstanceModel {
-    abstract class AbstractInstanceModel<S extends InstanceSchema> implements InstanceModel {
-        protected final S schema;
-
-        protected AbstractInstanceModel(S schema) {
-            this.schema = schema;
-        }
-    }
+public interface NestedPropertyModel extends PropertyModel<Object> {
 }

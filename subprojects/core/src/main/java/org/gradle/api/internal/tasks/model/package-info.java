@@ -14,16 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.model;
+@NonNullApi
+package org.gradle.api.internal.tasks.model;
 
-import org.gradle.internal.fingerprint.DirectorySensitivity;
-import org.gradle.internal.fingerprint.LineEndingSensitivity;
-import org.gradle.internal.properties.InputBehavior;
-
-public interface InputFilePropertyModel extends FilePropertyModel {
-    InputBehavior getBehavior();
-
-    DirectorySensitivity getDirectorySensitivity();
-
-    LineEndingSensitivity getLineEndingNormalization();
-}
+import org.gradle.api.NonNullApi;

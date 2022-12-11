@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.api.internal.tasks.model;
 
-import org.gradle.api.NonNullApi;
-import org.gradle.internal.execution.model.InputModel;
+import org.gradle.internal.model.PropertyModel;
 
-/**
- * A view of the inputs of a task.
- *
- * Once created, the view is immutable and registering additional or changing existing task properties will not be detected.
- */
-@NonNullApi
-public interface TaskInputModel extends InputModel {
+// TODO What is the value type here?
+public interface ServiceReferencePropertyModel extends PropertyModel<Object> {
 }

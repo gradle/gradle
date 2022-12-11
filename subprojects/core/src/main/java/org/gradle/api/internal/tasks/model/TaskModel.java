@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.model;
+package org.gradle.api.internal.tasks.model;
 
-import org.gradle.internal.model.PropertyModel;
+import org.gradle.api.internal.tasks.schema.TaskInstanceSchema;
 
-public interface InputPropertyModel extends PropertyModel<Object> {
+public interface TaskModel {
+    TaskInstanceSchema getSchema();
+
+    interface Extractor<M extends TaskModel> {
+        M extract(TaskInstanceSchema schema);
+    }
 }

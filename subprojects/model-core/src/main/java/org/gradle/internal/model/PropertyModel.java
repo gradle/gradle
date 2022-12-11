@@ -18,8 +18,10 @@ package org.gradle.internal.model;
 
 import javax.annotation.Nullable;
 
-public interface PropertyModel<T> extends Comparable<PropertyModel<?>> {
+public interface PropertyModel<T> {
     String getQualifiedName();
+
+    boolean isOptional();
 
     @Nullable
     T getValue();

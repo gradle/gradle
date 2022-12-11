@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
+import org.gradle.api.internal.tasks.schema.TaskInstanceSchema;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -36,6 +37,8 @@ public interface TaskExecutionContext {
     ValidationAction getValidationAction();
 
     void setTaskExecutionMode(TaskExecutionMode taskExecutionMode);
+
+    TaskInstanceSchema getSchema();
 
     TaskProperties getTaskProperties();
 

@@ -18,6 +18,9 @@ package org.gradle.internal.execution.model;
 
 import org.gradle.api.file.FileCollection;
 
+import javax.annotation.Nullable;
+
 public interface FileCollectionResolver {
-    FileCollection resolveFileCollection(Object value);
+    @Nullable
+    FileCollection resolveFileCollection(@Nullable Object value);
 }

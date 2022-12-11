@@ -25,6 +25,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.tasks.model.TaskInputModel;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
@@ -61,6 +62,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final List<TaskInputPropertyRegistration> registeredProperties = Lists.newArrayList();
     private final FilePropertyContainer<TaskInputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInputs deprecatedThis;
+    private final TaskModelHolder<TaskInputModel> modelHolder;
 
     public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory) {
         this.task = task;
@@ -71,6 +73,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         this.allInputFiles = new TaskInputUnionFileCollection(taskDisplayName, "input", false, task, propertyWalker, taskDependencyFactory, fileCollectionFactory);
         this.allSourceFiles = new TaskInputUnionFileCollection(taskDisplayName, "source", true, task, propertyWalker, taskDependencyFactory, fileCollectionFactory);
         this.deprecatedThis = new TaskInputsDeprecationSupport();
+        // TODO We probably need something more subtle to resolve file collections here
+        this.modelHolder = new TaskModelHolder<>(task, new TaskInputModel.Extractor(value -> value == null ? null : fileCollectionFactory.resolving(value)));
+    }
+
+    @Override
+    public TaskInputModel getModel() {
+        return modelHolder.getModel();
     }
 
     @Override
