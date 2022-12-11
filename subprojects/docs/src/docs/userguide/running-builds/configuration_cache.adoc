@@ -1005,7 +1005,7 @@ When running builds using <<test_kit#test_kit, TestKit>>, the configuration cach
 [[config_cache:not_yet_implemented:fine_grained_tracking_of_gradle_properties]]
 === Fine-grained tracking of Gradle properties as build configuration inputs
 
-Currently, all external sources of Gradle properties (`gradle.properties` in project directories and in the `GRADLE_USER_HOME`, environment variables and system properties that set properties, and properties specified with
+Currently, all external sources of Gradle properties (`gradle.properties` in project directories and in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`, environment variables and system properties that set properties, and properties specified with
 command-line flags) are considered build configuration inputs regardless of what properties are actually used at configuration time. These sources, however, are not included in the configuration cache report.
 
 [[config_cache:not_yet_implemented:java_serialization]]
