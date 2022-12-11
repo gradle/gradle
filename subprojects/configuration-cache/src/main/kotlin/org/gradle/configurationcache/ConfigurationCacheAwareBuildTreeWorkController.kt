@@ -34,7 +34,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
     private val cache: BuildTreeConfigurationCache,
     private val buildRegistry: BuildStateRegistry,
     private val eventListenerRegistry: BuildEventListenerRegistryInternal,
-    private val startParameter: ConfigurationCacheStartParameter
+    private val startParameter: ConfigurationCacheStartParameter,
 ) : BuildTreeWorkController {
 
     override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?): ExecutionResult<Void> {
@@ -53,6 +53,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
             return executionResult
         }
 
+        cache.finalizeCacheEntry()
         eventListenerRegistry.unsubscribeAll()
         buildRegistry.resetStateForAllBuilds()
 
