@@ -78,7 +78,6 @@ import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
 import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.properties.bean.PropertyWalker;
-import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.scripts.ScriptOriginUtil;
 import org.gradle.internal.service.ServiceRegistry;
@@ -231,7 +230,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         // TODO Do we need some thread safety here?
         TaskInstanceSchema oldSchema = instanceSchema;
         TaskInstanceSchema newSchema = services.get(TaskScheme.class).getInstanceSchemaExtractor()
-            .extractSchema(this, TypeValidationContext.NOOP);
+            .extractSchema(this);
 
         if (!newSchema.equals(oldSchema)) {
             // TODO Warn that schema has changed, deprecate behavior

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.properties.schema.InstanceSchema;
 import org.gradle.internal.properties.schema.NestedPropertySchema;
+import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 
 public interface WorkInstanceSchema extends InstanceSchema {
 
@@ -40,8 +41,9 @@ public interface WorkInstanceSchema extends InstanceSchema {
         }
 
         @Override
-        protected S build(ImmutableList<NestedPropertySchema> nestedPropertySchemas) {
+        protected S build(ReplayingTypeValidationContext validationProblems, ImmutableList<NestedPropertySchema> nestedPropertySchemas) {
             return build(
+                validationProblems,
                 nestedPropertySchemas,
                 toSortedList(scalarInputs),
                 toSortedList(fileInputs)
@@ -49,6 +51,7 @@ public interface WorkInstanceSchema extends InstanceSchema {
         }
 
         protected abstract S build(
+            ReplayingTypeValidationContext validationProblems,
             ImmutableList<NestedPropertySchema> nestedPropertySchemas,
             ImmutableList<ScalarInputPropertySchema> scalarInputs,
             ImmutableList<FileInputPropertySchema> fileInputs

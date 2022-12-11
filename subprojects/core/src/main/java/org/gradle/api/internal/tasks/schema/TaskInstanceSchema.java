@@ -36,6 +36,7 @@ import org.gradle.internal.properties.OutputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.schema.NestedPropertySchema;
+import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 
 import javax.annotation.Nullable;
 
@@ -139,11 +140,13 @@ public interface TaskInstanceSchema extends WorkInstanceSchema {
 
         @Override
         protected TaskInstanceSchema build(
+            ReplayingTypeValidationContext validationProblems,
             ImmutableList<NestedPropertySchema> nestedProperties,
             ImmutableList<ScalarInputPropertySchema> scalarInputs,
             ImmutableList<FileInputPropertySchema> fileInputs
         ) {
             return new DefaultTaskInstanceSchema(
+                validationProblems,
                 nestedProperties,
                 scalarInputs,
                 fileInputs,

@@ -18,10 +18,17 @@ package org.gradle.internal.properties.schema;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import java.util.Comparator;
 
 public interface InstanceSchema {
+    /**
+     * Replay validation problems encountered during the extraction of the schema.
+     */
+    void validate(TypeValidationContext validationContext);
+
     ImmutableCollection<NestedPropertySchema> getNestedProperties();
 
     abstract class Builder<S extends InstanceSchema> {
@@ -31,11 +38,11 @@ public interface InstanceSchema {
             nestedPropertySchemas.add(property);
         }
 
-        public S build() {
-            return build(toSortedList(nestedPropertySchemas));
+        public S build(ReplayingTypeValidationContext validationProblems) {
+            return build(validationProblems, toSortedList(nestedPropertySchemas));
         }
 
-        protected abstract S build(ImmutableList<NestedPropertySchema> nestedPropertySchemas);
+        protected abstract S build(ReplayingTypeValidationContext validationProblems, ImmutableList<NestedPropertySchema> nestedPropertySchemas);
 
         protected static <P extends PropertySchema> ImmutableList<P> toSortedList(ImmutableCollection.Builder<P> builder) {
             // A sorted list is better here because it does not use the comparator for equals()

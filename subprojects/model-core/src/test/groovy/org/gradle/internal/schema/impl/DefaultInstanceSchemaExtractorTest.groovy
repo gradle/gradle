@@ -30,7 +30,7 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
 
     def "can extract empty schema"() {
         when:
-        def schema = instanceSchemaExtractor.extractSchema(new Object(), Mock(TypeValidationContext))
+        def schema = instanceSchemaExtractor.extractSchema(new Object())
 
         then:
         schema.testProperties.empty
@@ -50,7 +50,7 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
     def "can extract simple properties"() {
         def thing = new TypeWithSimpleProperties(name: "lajos", longName: "Nagy Lajos")
         when:
-        def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
+        def schema = instanceSchemaExtractor.extractSchema(thing)
 
         then:
         schema.testProperties*.qualifiedName ==~ ["name", "longName"]
@@ -66,7 +66,7 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
     def "can extract nested properties"() {
         def thing = instanceWithNested()
         when:
-        def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
+        def schema = instanceSchemaExtractor.extractSchema(thing)
 
         then:
         schema.nestedProperties*.qualifiedName ==~ ["nested"]
@@ -78,7 +78,7 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
         def thing = instanceWithNested()
 
         when:
-        def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
+        def schema = instanceSchemaExtractor.extractSchema(thing)
 
         then:
         schema == schema
@@ -89,8 +89,8 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
         def thing = instanceWithNested()
 
         when:
-        def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
-        def reExtractedSchema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
+        def schema = instanceSchemaExtractor.extractSchema(thing)
+        def reExtractedSchema = instanceSchemaExtractor.extractSchema(thing)
 
         then:
         schema == reExtractedSchema
@@ -102,8 +102,8 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
         def otherThing = instanceWithNested()
 
         when:
-        def schema = instanceSchemaExtractor.extractSchema(thing, Mock(TypeValidationContext))
-        def otherSchema = instanceSchemaExtractor.extractSchema(otherThing, Mock(TypeValidationContext))
+        def schema = instanceSchemaExtractor.extractSchema(thing)
+        def otherSchema = instanceSchemaExtractor.extractSchema(otherThing)
 
         then:
         schema != otherSchema
@@ -132,8 +132,10 @@ class DefaultInstanceSchemaExtractorTest extends Specification implements TestAn
             nested: new TypeWithUnannotatedProperty()
         )
         def validationContext = Mock(TypeValidationContext)
+        def schema = instanceSchemaExtractor.extractSchema(thing)
+
         when:
-        def schema = instanceSchemaExtractor.extractSchema(thing, validationContext)
+        schema.validate(validationContext)
 
         then:
         // TODO Check this more precisely

@@ -18,12 +18,21 @@ package org.gradle.internal.properties.schema;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
+import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 public abstract class AbstractInstanceSchema implements InstanceSchema {
+    private final ReplayingTypeValidationContext validationProblems;
     private final ImmutableList<NestedPropertySchema> nestedProperties;
 
-    public AbstractInstanceSchema(ImmutableList<NestedPropertySchema> nestedProperties) {
+    public AbstractInstanceSchema(ReplayingTypeValidationContext validationProblems, ImmutableList<NestedPropertySchema> nestedProperties) {
+        this.validationProblems = validationProblems;
         this.nestedProperties = nestedProperties;
+    }
+
+    @Override
+    public void validate(TypeValidationContext validationContext) {
+        validationProblems.replay(null, validationContext);
     }
 
     @Override

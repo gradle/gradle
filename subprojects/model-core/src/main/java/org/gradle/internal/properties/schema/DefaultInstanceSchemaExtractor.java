@@ -21,6 +21,7 @@ import org.gradle.internal.properties.annotations.PropertyMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.properties.annotations.TypeMetadataStore;
 import org.gradle.internal.properties.annotations.TypeMetadataWalker;
+import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 import javax.annotation.Nullable;
@@ -50,10 +51,11 @@ public class DefaultInstanceSchemaExtractor<T, S extends InstanceSchema, B exten
     }
 
     @Override
-    public S extractSchema(T instance, TypeValidationContext validationContext) {
+    public S extractSchema(T instance) {
         B builder = builderFactory.apply(instance);
+        ReplayingTypeValidationContext validationContext = new ReplayingTypeValidationContext();
         walker.walk(instance, new PropertySchemaCollectingVisitor(builder, validationContext));
-        return builder.build();
+        return builder.build(validationContext);
     }
 
     private class PropertySchemaCollectingVisitor implements TypeMetadataWalker.InstanceMetadataVisitor {

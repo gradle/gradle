@@ -22,6 +22,7 @@ import org.gradle.internal.execution.schema.AbstractWorkInstanceSchema;
 import org.gradle.internal.execution.schema.FileInputPropertySchema;
 import org.gradle.internal.execution.schema.ScalarInputPropertySchema;
 import org.gradle.internal.properties.schema.NestedPropertySchema;
+import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 
 import javax.annotation.Nullable;
 
@@ -32,6 +33,7 @@ public class DefaultTaskInstanceSchema extends AbstractWorkInstanceSchema implem
     private final ImmutableList<ServiceReferencePropertySchema> serviceReferences;
 
     public DefaultTaskInstanceSchema(
+        ReplayingTypeValidationContext validationProblems,
         ImmutableList<NestedPropertySchema> nestedProperties,
         ImmutableList<ScalarInputPropertySchema> inputs,
         ImmutableList<FileInputPropertySchema> fileInputs,
@@ -40,7 +42,7 @@ public class DefaultTaskInstanceSchema extends AbstractWorkInstanceSchema implem
         ImmutableList<DestroysPropertySchema> destroys,
         ImmutableList<ServiceReferencePropertySchema> serviceReferences
     ) {
-        super(nestedProperties, inputs, fileInputs);
+        super(validationProblems, nestedProperties, inputs, fileInputs);
         this.outputs = outputs;
         this.localStates = localStates;
         this.destroys = destroys;

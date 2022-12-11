@@ -20,17 +20,19 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.properties.schema.AbstractInstanceSchema;
 import org.gradle.internal.properties.schema.NestedPropertySchema;
+import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 
 public class AbstractWorkInstanceSchema extends AbstractInstanceSchema implements WorkInstanceSchema {
     private final ImmutableList<ScalarInputPropertySchema> inputs;
     private final ImmutableList<FileInputPropertySchema> fileInputs;
 
     public AbstractWorkInstanceSchema(
+        ReplayingTypeValidationContext validationProblems,
         ImmutableList<NestedPropertySchema> nestedProperties,
         ImmutableList<ScalarInputPropertySchema> inputs,
         ImmutableList<FileInputPropertySchema> fileInputs
     ) {
-        super(nestedProperties);
+        super(validationProblems, nestedProperties);
         this.inputs = inputs;
         this.fileInputs = fileInputs;
     }

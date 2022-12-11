@@ -16,8 +16,6 @@
 
 package org.gradle.internal.properties.schema;
 
-import org.gradle.internal.reflect.validation.TypeValidationContext;
-
 public interface InstanceSchemaExtractor<T, S extends InstanceSchema> {
-    S extractSchema(T instance, TypeValidationContext validationContext);
+    S extractSchema(T instance);
 }

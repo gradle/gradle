@@ -36,6 +36,7 @@ import org.gradle.internal.properties.schema.InstanceSchemaExtractor
 import org.gradle.internal.properties.schema.NestedPropertySchema
 import org.gradle.internal.properties.schema.PropertySchemaExtractor
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
+import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext
 import org.gradle.internal.reflect.validation.TypeValidationContext
 
 import javax.annotation.Nullable
@@ -177,9 +178,10 @@ trait TestAnnotationHandlingSupport {
         final ImmutableList<TestPropertySchema> testProperties
 
         TestInstanceSchema(
+            ReplayingTypeValidationContext validationProblems,
             ImmutableList<NestedPropertySchema> nestedProperties,
             ImmutableList<TestPropertySchema> testProperties) {
-            super(nestedProperties)
+            super(validationProblems, nestedProperties)
             this.testProperties = testProperties
         }
 
@@ -219,8 +221,12 @@ trait TestAnnotationHandlingSupport {
             }
 
             @Override
-            protected TestInstanceSchema build(ImmutableList<NestedPropertySchema> nestedPropertySchemas) {
+            protected TestInstanceSchema build(
+                ReplayingTypeValidationContext validationProblems,
+                ImmutableList<NestedPropertySchema> nestedPropertySchemas
+            ) {
                 return new TestInstanceSchema(
+                    validationProblems,
                     nestedPropertySchemas,
                     toSortedList(testProperties)
                 )
