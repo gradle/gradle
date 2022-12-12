@@ -76,14 +76,19 @@ public class DefaultDaemonStarter implements DaemonStarter {
         ModuleRegistry registry = new DefaultModuleRegistry(gradleInstallation);
         ClassPath classpath;
         List<File> searchClassPath;
+        ClassPath agentClasspath;
         if (gradleInstallation == null) {
             // When not running from a Gradle distro, need runtime impl for launcher plus the search path to look for other modules
             classpath = registry.getModule("gradle-launcher").getAllRequiredModulesClasspath();
             searchClassPath = registry.getAdditionalClassPath().getAsFiles();
+            // TODO(mlopatkin) This disables agent-based instrumentation when starting the daemon from e.g. embedded Gradle runner.
+            //  There should be a backup plan to find the agent jar, e.g. load it from the resources.
+            agentClasspath = ClassPath.EMPTY;
         } else {
             // When running from a Gradle distro, only need launcher jar. The daemon can find everything from there.
             classpath = registry.getModule("gradle-launcher").getImplementationClasspath();
             searchClassPath = Collections.emptyList();
+            agentClasspath = registry.getModule("gradle-instrumentation-agent").getImplementationClasspath();
         }
         if (classpath.isEmpty()) {
             throw new IllegalStateException("Unable to construct a bootstrap classpath when starting the daemon");
@@ -103,6 +108,10 @@ public class DefaultDaemonStarter implements DaemonStarter {
         if (Boolean.getBoolean("org.gradle.daemon.debug")) {
             daemonArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
         }
+        for (File agentJar : agentClasspath.getAsFiles()) {
+            daemonArgs.add("-javaagent:" + agentJar);
+        }
+
         LOGGER.debug("Using daemon args: {}", daemonArgs);
 
         daemonArgs.add(GradleDaemon.class.getName());

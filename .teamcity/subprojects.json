@@ -350,6 +350,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "instrumentation-agent",
+    "name": "instrumentation-agent",
+    "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "integ-test",
     "name": "integ-test",
     "unitTests": false,
