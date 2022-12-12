@@ -340,10 +340,6 @@ class DetermineExecutionPlanAction {
         }
     }
 
-    private static InstanceSchemaExtractor<TaskInternal, TaskInstanceSchema> instanceSchemaExtractorFor(TaskInternal task) {
-        return ((ProjectInternal) task.getProject()).getServices().get(TaskScheme.class).getInstanceSchemaExtractor();
-    }
-
     private static class NodeInVisitingSegment {
         private final Node node;
         private final int visitingSegment;
