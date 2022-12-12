@@ -132,7 +132,7 @@ Note that this doesn't apply to precompiled script plugins, see below.
 Previously, the compilation of [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) used the JVM target as configured on `kotlinDslPluginOptions.jvmTarget`.
 Starting with Gradle 8.0, it now uses the configured Java Toolchain, or Java 8 if none is configured.
 
-See the [`kotlin-dsl` plugin manual](userguide/kotlin_dsl.adoc#TODO) for more information on how to configure the Java Toolchain for precompiled script plugins. 
+See the [`kotlin-dsl` plugin manual](userguide/kotlin_dsl.adoc#sec:kotlin-dsl_plugin) for more information on how to configure the Java Toolchain for precompiled script plugins. 
 
 ##### Improved Script compilation performance 
 
