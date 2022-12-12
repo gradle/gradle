@@ -28,6 +28,7 @@ import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
+import org.gradle.initialization.SettingsState
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildState
@@ -39,7 +40,9 @@ import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.resource.TextFileResourceLoader
-import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.ServiceRegistryFactory
+import org.gradle.internal.service.scopes.SettingsScopeServices
 import org.gradle.util.Path
 import java.io.File
 
@@ -100,7 +103,7 @@ class ConfigurationCacheHost internal constructor(
         init {
             require(gradle.owner is CompositeBuildParticipantBuildState)
             gradle.run {
-                settings = createSettings()
+                attachSettings(createSettings())
                 setBaseProjectClassLoaderScope(coreScope)
             }
         }
@@ -167,7 +170,7 @@ class ConfigurationCacheHost internal constructor(
         }
 
         private
-        fun createSettings(): SettingsInternal {
+        fun createSettings(): SettingsState {
             val baseClassLoaderScope = gradle.classLoaderScope
             val classLoaderScope = baseClassLoaderScope.createChild("settings", null)
             val settingsSource = if (settingsFile == null) {
@@ -175,9 +178,16 @@ class ConfigurationCacheHost internal constructor(
             } else {
                 TextResourceScriptSource(service<TextFileResourceLoader>().loadFile("settings file", settingsFile))
             }
-            return service<Instantiator>().newInstance(
+            lateinit var services: SettingsScopeServices
+            val serviceRegistryFactory = object : ServiceRegistryFactory {
+                override fun createFor(domainObject: Any): ServiceRegistry {
+                    services = SettingsScopeServices(service<ServiceRegistry>(), domainObject as SettingsInternal)
+                    return services
+                }
+            }
+            val settings = service<Instantiator>().newInstance(
                 DefaultSettings::class.java,
-                service<BuildScopeServiceRegistryFactory>(),
+                serviceRegistryFactory,
                 gradle,
                 classLoaderScope,
                 baseClassLoaderScope,
@@ -186,6 +196,7 @@ class ConfigurationCacheHost internal constructor(
                 settingsSource,
                 gradle.startParameter
             )
+            return SettingsState(settings, services)
         }
 
         private

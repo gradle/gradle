@@ -54,19 +54,23 @@ public class DefaultSettingsLoader implements SettingsLoader {
     }
 
     @Override
-    public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
+    public SettingsState findAndLoadSettings(GradleInternal gradle) {
         StartParameter startParameter = gradle.getStartParameter();
 
         SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
 
-        SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter, settingsLocation, gradle.getClassLoaderScope());
+        SettingsState state = findSettingsAndLoadIfAppropriate(gradle, startParameter, settingsLocation, gradle.getClassLoaderScope());
+        SettingsInternal settings = state.getSettings();
         ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter, settings);
         if (useEmptySettings(spec, settings, startParameter)) {
-            settings = createEmptySettings(gradle, startParameter, settings.getClassLoaderScope());
+            // Discard the loaded settings and replace with an empty one
+            state.close();
+            state = createEmptySettings(gradle, startParameter, settings.getClassLoaderScope());
+            settings = state.getSettings();
         }
 
         setDefaultProject(spec, settings);
-        return settings;
+        return state;
     }
 
     private boolean useEmptySettings(ProjectSpec spec, SettingsInternal loadedSettings, StartParameter startParameter) {
@@ -100,22 +104,22 @@ public class DefaultSettingsLoader implements SettingsLoader {
     }
 
     @SuppressWarnings("deprecation") // StartParameter.setSettingsFile() and StartParameter.getBuildFile()
-    private SettingsInternal createEmptySettings(GradleInternal gradle, StartParameter startParameter, ClassLoaderScope classLoaderScope) {
+    private SettingsState createEmptySettings(GradleInternal gradle, StartParameter startParameter, ClassLoaderScope classLoaderScope) {
         StartParameterInternal noSearchParameter = (StartParameterInternal) startParameter.newInstance();
         noSearchParameter.setSettingsFile(null);
         noSearchParameter.useEmptySettings();
         noSearchParameter.doNotSearchUpwards();
         BuildLayout layout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(noSearchParameter));
-        SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, layout, classLoaderScope);
+        SettingsState state = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, layout, classLoaderScope);
 
         // Set explicit build file, if required
         @SuppressWarnings("deprecation")
         File customBuildFile = noSearchParameter.getBuildFile();
         if (customBuildFile != null) {
-            ProjectDescriptor rootProject = settings.getRootProject();
+            ProjectDescriptor rootProject = state.getSettings().getRootProject();
             rootProject.setBuildFileName(noSearchParameter.getBuildFile().getName());
         }
-        return settings;
+        return state;
     }
 
     private void setDefaultProject(ProjectSpec spec, SettingsInternal settings) {
@@ -127,15 +131,15 @@ public class DefaultSettingsLoader implements SettingsLoader {
      * startParameter, or if the startParameter explicitly specifies a settings script.  If the settings file is not
      * loaded (executed), then a null is returned.
      */
-    private SettingsInternal findSettingsAndLoadIfAppropriate(
+    private SettingsState findSettingsAndLoadIfAppropriate(
         GradleInternal gradle,
         StartParameter startParameter,
         SettingsLocation settingsLocation,
         ClassLoaderScope classLoaderScope
     ) {
-        SettingsInternal settings = settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter);
-        validate(settings);
-        return settings;
+        SettingsState state = settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter);
+        validate(state.getSettings());
+        return state;
     }
 
     private void validate(SettingsInternal settings) {

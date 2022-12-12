@@ -30,51 +30,29 @@ class DaemonHealthStatsTest extends Specification {
     def runningStats = Stub(DaemonRunningStats)
     def healthStats = new DaemonHealthStats(runningStats, gcInfo, gcMonitor)
 
-    def "consumes first build"() {
-        when:
-        runningStats.getBuildCount() >> 0
-
-        then:
-        healthStats.healthInfo ==~ /Starting build in new daemon \[memory: [0-9].*/
-    }
-
-    def "consumes subsequent builds"() {
+    def "includes garbage collection data when present"() {
         when:
         gcInfo.getCollectionTime() >> 25
-        gcMonitor.getHeapStats() >> {
-            new GarbageCollectionStats(1.0, 103, 1024, 5)
-        }
-        gcMonitor.getNonHeapStats() >> {
-            new GarbageCollectionStats(0, 1024, 2048, 5)
-        }
-        runningStats.getBuildCount() >> 1
+        gcMonitor.getHeapStats() >> new GarbageCollectionStats(1.0, 103, 1024, 5)
+        gcMonitor.getNonHeapStats() >> new GarbageCollectionStats(0, 1024, 2048, 5)
         runningStats.getPrettyUpTime() >> "3 mins"
         runningStats.getAllBuildsTime() >> 1000
 
         then:
-        healthStats.healthInfo.startsWith("Starting 2nd build in daemon [uptime: 3 mins, performance: 98%,")
-        // Subsequent builds can also report on GC rate and memory usage
-        healthStats.healthInfo.contains(" GC rate:")
-        healthStats.healthInfo.contains(" heap usage:")
-        healthStats.healthInfo.contains(" non-heap usage:")
+        healthStats.healthInfo == "[uptime: 3 mins, performance: 98%, GC rate: 1.00/s, heap usage: 10% of 1 KiB, non-heap usage: 50% of 2 KiB]"
     }
 
     def "handles no garbage collection data"() {
         when:
         gcInfo.getCollectionTime() >> 25
-        runningStats.getBuildCount() >> 1
         runningStats.getPrettyUpTime() >> "3 mins"
         runningStats.getAllBuildsTime() >> 1000
 
-        gcMonitor.getHeapStats() >> {
-            GarbageCollectionStats.noData()
-        }
-        gcMonitor.getNonHeapStats() >> {
-            GarbageCollectionStats.noData()
-        }
+        gcMonitor.getHeapStats() >> GarbageCollectionStats.noData()
+        gcMonitor.getNonHeapStats() >> GarbageCollectionStats.noData()
 
         then:
-        healthStats.healthInfo == "Starting 2nd build in daemon [uptime: 3 mins, performance: 98%]"
+        healthStats.healthInfo == "[uptime: 3 mins, performance: 98%]"
     }
 
 }

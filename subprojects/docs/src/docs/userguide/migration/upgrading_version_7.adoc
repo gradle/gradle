@@ -113,6 +113,128 @@ In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension 
 The `--no-rebuild` command line option and its short variant `-a` have been removed.
 They were used to tell Gradle not to rebuild project dependencies and could lead to wrong results.
 
+==== JvmPluginsHelper
+
+A deprecated `configureDocumentationVariantWithArtifact` method of the `JvmPluginsHelper` class which did not require a `FileResolver` has been removed.
+This was an internal API, but may have been accessed by plugins.
+Supply a `FileResolver` to the overloaded version of this method instead.
+
+==== Groovydoc API Cleanup
+
+The deprecated `isIncludePrivate` property of the `Groovydoc` task type has been removed.
+Use the `access` property along with the `GroovydocAccess#PRIVATE` constant instead.
+
+==== JavaApplication API Cleanup
+
+The deprecated `mainClassName` property of the `JavaApplication` interface has been removed.
+Use the `mainClass` property instead.
+
+==== DefaultDomainObjectSet API Cleanup
+
+The deprecated `DefaultDomainObjectSet(Class)` constructor has been removed.
+This was an internal API, but may have been used by plugins.
+
+==== JacocoPluginExtension API Cleanup
+
+The deprecated `reportsDir` property of the `JacocoPluginExtension` has been removed.
+Use the `reportsDirectory` property instead.
+
+==== DependencyInsightReportTask API Cleanup
+
+The deprecated `legacyShowSinglePathToDependnecy` property of the `DependencyInsightReportTask` task type has been removed.
+Use the `showSinglePathToDependency` property instead.
+
+==== Report API Cleanup
+
+The deprecated `destination`, and `enabled` properties of the `Report` type have been removed.
+Use the `outputLocation` and `required` properties instead.
+
+==== JacocoMerge Task Removed
+
+The deprecated `JacocoMerge` task type has been removed.
+The same functionality is also available on the `JacocoReport` task.
+
+==== JavaExec API Cleanup
+
+The deprecated `main` property of the `JavaExec` task type has been removed.
+Use the `mainClass` property instead.
+
+==== AbstractExecTask API Cleanup
+
+The deprecated `execResult` getter property of the `AbstractExecTask` task type has been removed.
+Use the `executionResult` getter property instead.
+
+==== AbstractTestTask API Cleanup
+
+The deprecated `binResultsDir` property of the `AbstractTestTask` task type has been removed.
+Use the `binaryResultsDirectory` property instead.
+
+==== SourceDirectorySet API Cleanup
+
+The deprecated `outputDir` property of the `SourceDirectorySet` type has been removed.
+Use the `destinationDirectory` property instead.
+
+==== VersionCatalog API Cleanup
+
+The deprecated `findDependency(String)` method and `dependencyAliases` property of the `VersionCatalog` type have been removed.
+Use the `findLibrary(String)` method and `libraryAliases` property instead.
+
+The deprecated `alias(String)` method of the `VersionCatalogBuilder` type has been removed.
+Use the `library(String, String, String)` or `plugin(String, String)` methods instead.
+
+==== WorkerExecutor API Cleanup
+
+The deprecated `submit(Class, Action)` method of the `WorkerExecutor` interface has been removed.
+Instead, obtain a `WorkQueue` via the `noIsolation()`, `classLoaderIsolation()`, and `processIsolation()`, methods and use the `submit(Class, Action)` method on the `WorkQueue` instead.
+
+==== DependencySubstitution API Cleanup
+
+The deprecated `with(ComponentSelector)` method of the `DependencySubstitution` type's inner `Substitution` type's has been removed.
+Use the `using(ComponentSelector)` method instead.
+
+==== AbstractArchiveTask API Cleanup
+
+The deprecated `appendix`, `archiveName`, `archivePath`, `baseName`, `classifier`, `desintationDir`, `extension` and `version` properties of the `AbstractArchiveTask` task type have been removed.
+Use the `archiveAppendix`, `archiveFileName` , `archiveFile`, `archiveBaseName`, `archiveClassifier`, `destinationDirectory`, `archiveExtension` and `archiveVersion` properties instead.
+
+==== IdeaModule API Cleanup
+
+The deprecated `testSourceDirs` and `testResourceDirs` properties of the `IdeaModule` type have been removed.
+This affects the `org.gradle.plugins.ide.idea.model.IdeaModule` type, not the `org.gradle.tooling.model.idea.IdeaModule` type.
+Use the `testSources` and `testResources` properties instead.
+
+==== AbstractCompile API Deprecations
+
+The previously deprecated `destinationDir` property of the `AbstractCompile` remains deprecated, and will now emit a deprecation warning upon use.
+It is now scheduled for removal in Gradle 9.0.
+Use the `destinationDirectory` property instead.
+
+==== ResolvedComponentResult API Cleanup
+
+The deprecated `getVariant` method of the `ResolvedComponentResult` interface has been removed.
+Use the `getVariants` method instead.
+
+==== Code quality plugins API Cleanup
+
+The deprecated `antBuilder` property of the `Checkstyle`, `CodeNarc` and `Pmd` task types has been removed.
+Use the `Project` type's `ant` property instead.
+
+==== Usage API Cleanup
+
+The deprecated public fields `JAVA_API_CLASSES`, `JAVA_API_JARS`, `JAVA_RUNTIME_CLASSES`, `JAVA_RUNTIME_JARS` and `JAVA_RUNTIME_RESOURCES` of the `Usage` type have been removed.
+The values are available in the **internal** `JavaEcosystemSupport` class for compatibility with previously published modules, but should **not** be used for any new publishing.
+
+==== ExternalDependency API Cleanup
+
+The deprecated `setForce(boolean)` method of the `ExternalDependency` interface has been removed.
+Use the `version(Action)` method to configure strict versions instead.
+
+==== Build-scan method removed from Kotlin DSL
+
+The deprecated `build-scan` plugin application method has been removed from the Kotlin DSL.
+Use the `gradle-enterprise` method instead.
+
+
 === Potential breaking changes
 
 ==== Plugins, tasks and extension classes are now abstract
@@ -371,6 +493,29 @@ link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html#org.gradle.
 In Gradle 8.0, `java-base` handles this configuration.
 No changes are required for projects that already apply the
 `java-base` plugin directly or indirectly through the `java`, `application`, `java-library`, or other JVM ecosystem plugins.
+
+==== Upload Task should not be used
+
+The `Upload` task remains deprecated and is now scheduled for removal in Gradle 9.0.
+Although this type remains, it is no longer functional and will throw an exception upon running.
+It is preserved solely to avoid breaking plugins.
+Use the tasks in the `maven-publish` or `ivy-publish` plugins instead.
+
+==== Configurations no longer allowed as Dependencies
+
+Adding a Configuration as a dependency in the `dependencies` DSL block, or programmatically using the `DependencyHandler` classes' `doAdd(Configuration, Object, Closure)` method, is no longer allowed and will fail with an exception.
+To replicate many aspects of this behavior, extend configurations using the `extendsFrom(Configuration)` method on `Configuration` instead.
+
+==== Deprecated for consumption configurations are now non-consumable
+
+The following configurations were never meant to be consumed:
+
+ - The `antlr` configuration created by the `AntlrPlugin`
+ - The `zinc` configuration created by the `ScalaBasePlugin`
+ - The `providedCompile` and `providedRuntime` configurations created by the `WarPlugin`
+
+These configurations were deprecated for consumption and are now no longer consumable.
+Attempting to consume them will result in an error.
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
@@ -828,7 +973,7 @@ We also recommend to update Checkstyle to version 9.3 or later.
 
 ==== Missing files specified with relative paths when running Checkstyle
 
-Gradle 7.5 consistently sets the current working directory for the Checkstyle task to `GRADLE_USER_HOME/workers`.
+Gradle 7.5 consistently sets the current working directory for the Checkstyle task to `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/workers`.
 This may cause problems with custom Checkstyle tasks or Checkstyle configuration files that assume a different directory for relative paths.
 
 Previously, Gradle selected the current working directory based on the directory where you ran Gradle. If you ran Gradle in:
@@ -836,7 +981,7 @@ Previously, Gradle selected the current working directory based on the directory
 - the root directory of a project: Gradle uses the root directory as the current working directory.
 - a nested directory of a project: Gradle uses the root directory of the subproject as the current working directory.
 
-In version 7.5 and above, Gradle consistently sets the current working directory for the Checkstyle task to `GRADLE_USER_HOME/workers`.
+In version 7.5 and above, Gradle consistently sets the current working directory for the Checkstyle task to `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/workers`.
 
 === Deprecations
 
@@ -1210,11 +1355,6 @@ Gradle emits a deprecation warning when a property in a task, extension or other
 To fix this, the plugin that configures the convention mapping for the task, extension or domain object needs to be changed to use the Provider API only.
 
 [[jacoco_merge]]
-==== JacocoMerge task type is deprecated
-
-The `JacocoMerge` task was used for merging coverage reports from different subprojects into a single report.
-The same functionality is also available on the `JacocoReport` task.
-Because of the duplication, `JacocoMerge` is now deprecated and scheduled for removal in Gradle 8.0.
 
 [[configuring_custom_build_layout]]
 ==== Setting custom build layout

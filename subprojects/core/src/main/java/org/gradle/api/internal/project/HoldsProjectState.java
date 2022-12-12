@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health;
+package org.gradle.api.internal.project;
 
-import org.gradle.api.logging.Logger;
-
-public class HealthLogger {
-
-    static final String HEALTH_MESSAGE_PROPERTY = "org.gradle.daemon.performance.logging";
-
-    public void logHealth(DaemonHealthStats stats, Logger logger) {
-        if (Boolean.getBoolean(HEALTH_MESSAGE_PROPERTY)) {
-            logger.lifecycle(stats.getHealthInfo());
-        } else {
-            //the default
-            logger.info(stats.getHealthInfo());
-        }
-    }
+/**
+ * A service can implement this interface to indicate that it holds mutable project scoped state that should be discarded when
+ * projects are discarded.
+ */
+public interface HoldsProjectState {
+    /**
+     * Discards any project state.
+     */
+    void discardAll();
 }

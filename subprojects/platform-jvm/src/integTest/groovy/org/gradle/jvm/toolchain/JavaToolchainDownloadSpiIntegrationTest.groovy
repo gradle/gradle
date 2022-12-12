@@ -296,7 +296,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 }
             }
             
-            println(\"\"\"Explicitly requested toolchains: \${toolchainManagement.jvm.getJavaRepositories().collect { it.getName() }}.\"\"\")
+            println(\"\"\"Explicitly requested toolchains: \${toolchainManagement.jvm.getJavaRepositories().repositories().collect { it.getName() }}.\"\"\")
         """
 
         buildFile << """
@@ -382,13 +382,13 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
         SystemInfo systemInfo = NativeServices.getInstance().get(SystemInfo.class)
         switch (systemInfo.architecture) {
             case SystemInfo.Architecture.i386:
-                return "x32";
+                return "x32"
             case SystemInfo.Architecture.amd64:
-                return "x64";
+                return "x64"
             case SystemInfo.Architecture.aarch64:
-                return "aarch64";
+                return "aarch64"
             default:
-                return "unknown";
+                return "unknown"
         }
     }
 

@@ -16,20 +16,20 @@
 
 package org.gradle.launcher.daemon.server.exec
 
+import org.gradle.api.logging.Logger
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution
 import org.gradle.launcher.daemon.server.health.DaemonHealthCheck
 import org.gradle.launcher.daemon.server.health.DaemonHealthStats
-import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
-import org.gradle.launcher.daemon.server.health.HealthLogger
+import org.gradle.launcher.daemon.server.stats.DaemonRunningStats
 import spock.lang.Specification
 
 class LogAndCheckHealthTest extends Specification {
     def exec = Mock(DaemonCommandExecution)
     def stats = Mock(DaemonHealthStats)
-    def status = Mock(DaemonMemoryStatus)
-    def logger = Mock(HealthLogger)
     def healthCheck = Mock(DaemonHealthCheck)
-    def tracker = new LogAndCheckHealth(stats, healthCheck, logger)
+    def runningStats = Mock(DaemonRunningStats)
+    def logger = Mock(Logger)
+    def tracker = new LogAndCheckHealth(stats, healthCheck, runningStats, logger)
 
     def "does not track single use daemon"() {
         when:
@@ -41,11 +41,28 @@ class LogAndCheckHealthTest extends Specification {
         0 * _
     }
 
-    def "executes health check"() {
+    def "executes health check on first build"() {
+        given:
+        runningStats.getBuildCount() >> 0
+
         when:
         tracker.execute(exec)
 
         then:
         1 * healthCheck.executeHealthCheck()
+        1 * logger.info({ it ==~ /Starting build in new daemon \[memory: \d.*]/ })
+    }
+
+    def "executes health check on subsequent builds"() {
+        given:
+        runningStats.getBuildCount() >> 1
+
+        when:
+        tracker.execute(exec)
+
+        then:
+        1 * healthCheck.executeHealthCheck()
+        1 * stats.healthInfo >> "[health info]"
+        1 * logger.info("Starting 2nd build in daemon [health info]")
     }
 }

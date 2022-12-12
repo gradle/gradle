@@ -57,7 +57,6 @@ import org.gradle.launcher.daemon.server.exec.StartBuildOrRespondWithBusy;
 import org.gradle.launcher.daemon.server.exec.WatchForDisconnection;
 import org.gradle.launcher.daemon.server.health.DaemonHealthCheck;
 import org.gradle.launcher.daemon.server.health.DaemonHealthStats;
-import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus;
 import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy;
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectorMonitoringStrategy;
 import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo;
@@ -107,10 +106,6 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new File(get(DaemonDir.class).getVersionedDir(), fileName);
     }
 
-    protected DaemonMemoryStatus createDaemonMemoryStatus(DaemonHealthStats healthStats, GarbageCollectorMonitoringStrategy strategy) {
-        return new DaemonMemoryStatus(healthStats, strategy.getHeapUsageThreshold(), strategy.getGcRateThreshold(), strategy.getNonHeapUsageThreshold(), strategy.getThrashingThreshold());
-    }
-
     protected DaemonHealthCheck createDaemonHealthCheck(ListenerManager listenerManager, HealthExpirationStrategy healthExpirationStrategy) {
         return new DaemonHealthCheck(healthExpirationStrategy, listenerManager);
     }
@@ -127,8 +122,8 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new MasterExpirationStrategy(daemon, configuration, healthExpirationStrategy, listenerManager);
     }
 
-    protected HealthExpirationStrategy createHealthExpirationStrategy(DaemonMemoryStatus memoryStatus) {
-        return new HealthExpirationStrategy(memoryStatus);
+    protected HealthExpirationStrategy createHealthExpirationStrategy(DaemonHealthStats stats, GarbageCollectorMonitoringStrategy strategy) {
+        return new HealthExpirationStrategy(stats, strategy);
     }
 
     protected DaemonHealthStats createDaemonHealthStats(DaemonRunningStats runningStats, GarbageCollectorMonitoringStrategy strategy, ExecutorFactory executorFactory) {
@@ -151,7 +146,7 @@ public class DaemonServices extends DefaultServiceRegistry {
             new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
             new EstablishBuildEnvironment(processEnvironment),
             new LogToClient(loggingManager, daemonDiagnostics), // from this point down, logging is sent back to the client
-            new LogAndCheckHealth(healthStats, healthCheck),
+            new LogAndCheckHealth(healthStats, healthCheck, runningStats),
             new ForwardClientInput(),
             new RequestStopIfSingleUsedDaemon(),
             new ResetDeprecationLogger(),

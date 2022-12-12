@@ -299,12 +299,12 @@ h| Packaging and distribution
 
 a|
 [horizontal]
-link:{gradle-issues}13455[[.green]#✓#]:: <<java_plugin.adoc#java_plugin,Java>>
-link:{gradle-issues}13455[[.green]#✓#]:: <<java_library_plugin.adoc#java_library_plugin,Java Library>>
-link:{gradle-issues}13455[[.green]#✓#]:: <<java_platform_plugin.adoc#java_platform_plugin,Java Platform>>
+link:{gradle-issues}13457[[.green]#✓#]:: <<java_plugin.adoc#java_plugin,Java>>
+link:{gradle-issues}13458[[.green]#✓#]:: <<java_library_plugin.adoc#java_library_plugin,Java Library>>
+link:{gradle-issues}13459[[.green]#✓#]:: <<java_platform_plugin.adoc#java_platform_plugin,Java Platform>>
 link:{gradle-issues}13460[[.green]#✓#]:: <<groovy_plugin.adoc#groovy_plugin,Groovy>>
 link:{gradle-issues}13461[[.green]#✓#]:: <<scala_plugin.adoc#scala_plugin,Scala>>
-link:{gradle-issues}13462[[.yellow]#⚠#]:: <<antlr_plugin.adoc#antlr_plugin,ANTLR>>
+link:{gradle-issues}13462[[.green]#✓#]:: <<antlr_plugin.adoc#antlr_plugin,ANTLR>>
 
 a|
 [horizontal]
@@ -317,13 +317,13 @@ link:{gradle-issues}13488[[.red]#✖#]:: <<xctest_plugin.adoc#xctest_plugin,XCTe
 
 a|
 [horizontal]
-link:{gradle-issues}13455[[.green]#✓#]:: <<application_plugin.adoc#application_plugin,Application>>
-link:{gradle-issues}13455[[.green]#✓#]:: <<war_plugin.adoc#war_plugin,WAR>>
-link:{gradle-issues}13455[[.green]#✓#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
-link:{gradle-issues}13468[[.yellow]#⚠#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
+link:{gradle-issues}13463[[.green]#✓#]:: <<application_plugin.adoc#application_plugin,Application>>
+link:{gradle-issues}13466[[.green]#✓#]:: <<war_plugin.adoc#war_plugin,WAR>>
+link:{gradle-issues}13467[[.red]#✖#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
+link:{gradle-issues}13468[[.green]#✓#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
 link:{gradle-issues}13469[[.red]#✖#]:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
-link:{gradle-issues}13455[[.green]#✓#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
-link:{gradle-issues}13455[[.green]#✓#]:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
+link:{gradle-issues}13464[[.green]#✓#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
+link:{gradle-issues}13465[[.green]#✓#]:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
 
 h| Code analysis
 h| IDE project files generation
@@ -348,10 +348,10 @@ link:{gradle-issues}13483[[.red]#✖#]:: <<xcode_plugin.adoc#xcode_plugin,Xcode>
 a|
 [horizontal]
 link:{gradle-issues}13455[[.green]#✓#]:: <<base_plugin.adoc#base_plugin,Base>>
-link:{gradle-issues}13466[[.yellow]#⚠#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
+link:{gradle-issues}13456[[.green]#✓#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
 link:{gradle-issues}13470[[.red]#✖#]:: <<signing_plugin.adoc#signing_plugin,Signing>>
-link:{gradle-issues}13455[[.green]#✓#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Java Plugin Development>>
-link:{gradle-issues}13472[[.red]#✖#]:: <<custom_plugins.adoc#sec:precompiled_plugins,Groovy DSL Plugin Development>>
+link:{gradle-issues}13471[[.green]#✓#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Java Plugin Development>>
+link:{gradle-issues}23029[[.green]#✓#]:: <<custom_plugins.adoc#sec:precompiled_plugins,Groovy DSL Plugin Development>>
 link:{gradle-issues}13472[[.green]#✓#]:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
 link:{gradle-issues}13473[[.red]#✖#]:: <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
 
@@ -1005,7 +1005,7 @@ When running builds using <<test_kit#test_kit, TestKit>>, the configuration cach
 [[config_cache:not_yet_implemented:fine_grained_tracking_of_gradle_properties]]
 === Fine-grained tracking of Gradle properties as build configuration inputs
 
-Currently, all external sources of Gradle properties (`gradle.properties` in project directories and in the `GRADLE_USER_HOME`, environment variables and system properties that set properties, and properties specified with
+Currently, all external sources of Gradle properties (`gradle.properties` in project directories and in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`, environment variables and system properties that set properties, and properties specified with
 command-line flags) are considered build configuration inputs regardless of what properties are actually used at configuration time. These sources, however, are not included in the configuration cache report.
 
 [[config_cache:not_yet_implemented:java_serialization]]
