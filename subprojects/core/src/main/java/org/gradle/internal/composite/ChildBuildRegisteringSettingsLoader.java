@@ -17,9 +17,9 @@
 package org.gradle.internal.composite;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.SettingsLoader;
+import org.gradle.initialization.SettingsState;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -44,11 +44,11 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
     }
 
     @Override
-    public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
-        SettingsInternal settings = delegate.findAndLoadSettings(gradle);
+    public SettingsState findAndLoadSettings(GradleInternal gradle) {
+        SettingsState state = delegate.findAndLoadSettings(gradle);
 
         // Add included builds defined in settings
-        List<IncludedBuildSpec> includedBuilds = settings.getIncludedBuilds();
+        List<IncludedBuildSpec> includedBuilds = state.getSettings().getIncludedBuilds();
         if (!includedBuilds.isEmpty()) {
             Set<IncludedBuildInternal> children = new LinkedHashSet<>(includedBuilds.size());
             RootBuildState rootBuild = buildRegistry.getRootBuild();
@@ -68,7 +68,7 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
             gradle.setIncludedBuilds(Collections.emptyList());
         }
 
-        return settings;
+        return state;
     }
 
 }

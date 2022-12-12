@@ -29,6 +29,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.EmptySchema;
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
@@ -40,7 +41,7 @@ import org.gradle.internal.model.ModelContainer;
 
 import javax.inject.Inject;
 
-public class DefaultRootComponentMetadataBuilder implements RootComponentMetadataBuilder {
+public class DefaultRootComponentMetadataBuilder implements RootComponentMetadataBuilder, HoldsProjectState {
     private final DependencyMetaDataProvider metadataProvider;
     private final ComponentIdentifierFactory componentIdentifierFactory;
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
@@ -131,6 +132,11 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         return holder;
     }
 
+    @Override
+    public void discardAll() {
+        holder.discard();
+    }
+
     private static class MetadataHolder implements MutationValidator {
         private DefaultLocalComponentMetadata cachedValue;
 
@@ -149,6 +155,10 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
                 cachedValue = null;
             }
             return null;
+        }
+
+        public void discard() {
+            cachedValue = null;
         }
     }
 
