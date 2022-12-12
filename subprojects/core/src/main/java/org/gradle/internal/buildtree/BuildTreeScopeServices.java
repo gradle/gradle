@@ -17,7 +17,7 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.cache.BuildTreeScopedDecompressionCacheFactory;
+import org.gradle.api.internal.cache.DefaultDecompressionCacheFactory;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -100,6 +100,6 @@ public class BuildTreeScopeServices {
     }
 
     protected DecompressionCacheFactory createDecompressionCacheFactory(BuildTreeScopedCache cacheFactory) {
-        return new BuildTreeScopedDecompressionCacheFactory(cacheFactory);
+        return new DefaultDecompressionCacheFactory(cacheFactory);
     }
 }

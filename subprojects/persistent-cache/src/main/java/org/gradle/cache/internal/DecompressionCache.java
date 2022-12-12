@@ -18,12 +18,13 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.CacheAccess;
 
+import java.io.Closeable;
 import java.io.File;
 
 /**
  * A cache that can be used to store decompressed data extracted from archive files like zip and tars.
  */
-public interface DecompressionCache extends CacheAccess {
+public interface DecompressionCache extends CacheAccess, Closeable {
     /**
      * Returns the root directory used by this cache to store decompressed files.
      * @return the root directory
