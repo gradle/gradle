@@ -18,7 +18,7 @@ package org.gradle.configurationcache
 
 class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def "restores task fields whose value is a serializable #kind Java lambda"() {
+    def "restores task fields whose value is a #kind Java lambda"() {
         given:
         file("buildSrc/src/main/java/my/LambdaTask.java").tap {
             parentFile.mkdirs()
@@ -30,28 +30,41 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
 
                 public class LambdaTask extends DefaultTask {
 
+                    // Test with serializable lambdas that should work as-is, as well as non-serializable lambdas which should
+                    // be forced to become serializable by the instrumentation:
+                    public interface NonSerializableSupplier<T> {
+                        T get();
+                    }
                     public interface SerializableSupplier<T> extends java.io.Serializable {
                         T get();
                     }
 
-                    private SerializableSupplier<Integer> supplier;
+                    private SerializableSupplier<Integer> serializableSupplier;
+                    private NonSerializableSupplier<Integer> nonSerializableSupplier;
 
-                    public void setSupplier(SerializableSupplier<Integer> supplier) {
-                        this.supplier = supplier;
+                    public void setSerializableSupplier(SerializableSupplier<Integer> supplier) {
+                        this.serializableSupplier = supplier;
+                    }
+
+                    public void setNonSerializableSupplier(NonSerializableSupplier<Integer> supplier) {
+                        this.nonSerializableSupplier = supplier;
                     }
 
                     public void setNonInstanceCapturingLambda() {
                         final int i = getName().length();
-                        setSupplier(() -> i);
+                        setSerializableSupplier(() -> i);
+                        setNonSerializableSupplier(() -> i);
                     }
 
                     public void setInstanceCapturingLambda() {
-                        setSupplier(() -> getName().length());
+                        setSerializableSupplier(() -> getName().length());
+                        setNonSerializableSupplier(() -> getName().length());
                     }
 
                     @TaskAction
                     void printValue() {
-                        System.out.println("this.supplier.get() -> " + this.supplier.get());
+                        System.out.println("this.serializableSupplier.get() -> " + this.serializableSupplier.get());
+                        System.out.println("this.nonSerializableSupplier.get() -> " + this.nonSerializableSupplier.get());
                     }
                 }
             """
@@ -68,7 +81,7 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
         configurationCacheRun "ok"
 
         then:
-        outputContains("this.supplier.get() -> 2")
+        outputContains("this.serializableSupplier.get() -> 2\nthis.nonSerializableSupplier.get() -> 2")
 
         where:
         kind                     | expression
