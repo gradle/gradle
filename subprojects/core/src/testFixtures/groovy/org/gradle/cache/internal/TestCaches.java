@@ -93,6 +93,11 @@ public abstract class TestCaches {
         public File getBaseDir() {
             return delegate.getBaseDir();
         }
+
+        @Override
+        public void close() {
+            delegate.close();
+        }
     }
 
     private static final class TestInMemoryScopedCache implements ScopedCache {

@@ -20,12 +20,9 @@ import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.internal.DefaultDecompressionCache;
 import org.gradle.cache.scopes.ScopedCache;
-import org.gradle.internal.concurrent.Stoppable;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Abstract base class for implementing factories that can be used to create {@link DecompressionCache}s.
@@ -34,29 +31,27 @@ import java.util.Set;
  * itself closed or stopped.  This allows the caches to be closed when the owning scope containing the
  * service instance of the factory implementation is closed.
  */
-/* package */ abstract class AbstractManagedDecompressionCacheFactory implements DecompressionCacheFactory, Stoppable, Closeable {
-    private final Set<DefaultDecompressionCache> createdCaches = new HashSet<>();
+public class DefaultDecompressionCacheFactory implements DecompressionCacheFactory, Closeable {
 
-    protected abstract ScopedCache getScopedCache();
+    private final ScopedCache scopedCache;
+    private DecompressionCache cache;
+
+    public DefaultDecompressionCacheFactory(ScopedCache scopedCache) {
+        this.scopedCache = scopedCache;
+    }
 
     @Override
-    public DefaultDecompressionCache create() {
-        DefaultDecompressionCache cache = new DefaultDecompressionCache(getScopedCache());
-        createdCaches.add(cache);
+    public synchronized DecompressionCache create() {
+        if (cache == null) {
+            cache = new DefaultDecompressionCache(scopedCache);
+        }
         return cache;
     }
 
     @Override
     public void close() throws IOException {
-        createdCaches.forEach(DefaultDecompressionCache::close);
-    }
-
-    @Override
-    public void stop() {
-        try {
-            close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (cache != null) {
+            cache.close();
         }
     }
 }
