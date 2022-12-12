@@ -19,10 +19,11 @@ package org.gradle.integtests.resource.s3.ivy
 import org.gradle.api.publish.ivy.AbstractIvyPublishIntegTest
 import org.gradle.integtests.resource.s3.fixtures.S3IntegrationTestPrecondition
 import org.gradle.integtests.resource.s3.fixtures.S3Server
+import org.gradle.util.Requires
+import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
-import spock.lang.Requires
 
-@Requires({ S3IntegrationTestPrecondition.fulfilled })
+@Requires(UnitTestPreconditions.Jdk9OrLater)
 class IvyPublishS3IntegrationTest extends AbstractIvyPublishIntegTest {
     @Rule
     public S3Server server = new S3Server(temporaryFolder)

@@ -21,10 +21,12 @@ import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.Requires
+import org.gradle.util.UnitTestPreconditions
 
 import static org.gradle.integtests.fixtures.RetryConditions.runsOnWindowsAndJava7or8
 
-@LeaksFileHandles //With older 2.x Gradle versions -> Unable to delete file: native-platform.dll
+@LeaksFileHandles
+//With older 2.x Gradle versions -> Unable to delete file: native-platform.dll
 class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecification {
 
     def setup() {
@@ -71,7 +73,11 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         ioe.cause?.message == "Timeout waiting to connect to the Gradle daemon.\n more infos"
     }
 
-    @Requires(adhoc = { runsOnWindowsAndJava7or8() })
+    @Requires([
+        UnitTestPreconditions.Windows,
+        UnitTestPreconditions.Jdk7OrLater,
+        UnitTestPreconditions.Jdk8OrEarlier
+    ])
     def "retries if expected exception occurs"() {
         given:
         iteration++
@@ -86,8 +92,11 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         true
     }
 
-    @Requires(adhoc = { !runsOnWindowsAndJava7or8() })
-    def "does not retry on non-windows and non-java7 environments"() {
+    @Requires([
+        UnitTestPreconditions.Windows,
+        UnitTestPreconditions.Jdk7OrLater,
+        UnitTestPreconditions.Jdk8OrEarlier
+    ])    def "does not retry on non-windows and non-java7 environments"() {
         given:
         iteration++
 
@@ -100,7 +109,11 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         ioe.cause?.message == "An existing connection was forcibly closed by the remote host"
     }
 
-    @Requires(adhoc = { runsOnWindowsAndJava7or8() })
+    @Requires([
+        UnitTestPreconditions.Windows,
+        UnitTestPreconditions.Jdk7OrLater,
+        UnitTestPreconditions.Jdk8OrEarlier
+    ])
     def "should fail for unexpected cause on client side"() {
         given:
         iteration++
@@ -114,7 +127,11 @@ class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecificati
         ioe.cause?.message == "A different cause"
     }
 
-    @Requires(adhoc = { runsOnWindowsAndJava7or8() })
+    @Requires([
+        UnitTestPreconditions.Windows,
+        UnitTestPreconditions.Jdk7OrLater,
+        UnitTestPreconditions.Jdk8OrEarlier
+    ])
     def "should fail for unexpected cause on daemon side"() {
         given:
         iteration++
