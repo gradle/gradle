@@ -23,8 +23,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
-import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.ArgumentsSplitter;
+import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,12 +32,13 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+
+import static java.util.Collections.unmodifiableList;
 
 public class JvmOptions {
     private static final String XMS_PREFIX = "-Xms";
@@ -73,7 +74,7 @@ public class JvmOptions {
 
     private final JavaDebugOptions debugOptions;
 
-    protected final Map<String, Object> immutableSystemProperties = new TreeMap<String, Object>();
+    protected final Map<String, Object> immutableSystemProperties = new TreeMap<>();
 
     public JvmOptions(FileCollectionFactory fileCollectionFactory, JavaDebugOptions debugOptions) {
         this.debugOptions = debugOptions;
@@ -92,14 +93,14 @@ public class JvmOptions {
      * @return all jvm args including system properties
      */
     public List<String> getAllJvmArgs() {
-        List<String> args = new LinkedList<String>();
+        List<String> args = new ArrayList<>();
         formatSystemProperties(getMutableSystemProperties(), args);
 
         // We have to add these after the system properties so they can override any system properties
         // (identical properties later in the command line override earlier ones)
         args.addAll(getAllImmutableJvmArgs());
 
-        return args;
+        return unmodifiableList(args);
     }
 
     protected void formatSystemProperties(Map<String, ?> properties, List<String> args) {
@@ -118,17 +119,17 @@ public class JvmOptions {
      * The result is a subset of options returned by {@link #getAllJvmArgs()}
      */
     public List<String> getAllImmutableJvmArgs() {
-        List<String> args = new ArrayList<String>(getJvmArgs());
+        List<String> args = new ArrayList<>(getJvmArgs());
         args.addAll(getManagedJvmArgs());
-        return args;
+        return unmodifiableList(args);
     }
 
     /**
      * @return the list of jvm args we manage explicitly, for example, max heaps size or file encoding.
      * The result is a subset of options returned by {@link #getAllImmutableJvmArgs()}
      */
-    public List<String> getManagedJvmArgs() {
-        List<String> args = new ArrayList<String>();
+    protected List<String> getManagedJvmArgs() {
+        List<String> args = new ArrayList<>();
         if (minHeapSize != null) {
             args.add(XMS_PREFIX + minHeapSize);
         }
@@ -173,11 +174,11 @@ public class JvmOptions {
     }
 
     public List<String> getJvmArgs() {
-        List<String> args = new ArrayList<String>();
+        List<String> args = new ArrayList<>();
         for (Object extraJvmArg : extraJvmArgs) {
             args.add(extraJvmArg.toString());
         }
-        return args;
+        return unmodifiableList(args);
     }
 
     public void setJvmArgs(Iterable<?> arguments) {

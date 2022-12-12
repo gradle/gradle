@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.Collections.unmodifiableList;
+
 public class DaemonJvmOptions extends JvmOptions {
 
     public static final String SSL_KEYSTORE_KEY = "javax.net.ssl.keyStore";
@@ -51,7 +53,7 @@ public class DaemonJvmOptions extends JvmOptions {
 
     private void handleDaemonImmutableProperties(Map<String, Object> systemProperties) {
         for (Map.Entry<String, ?> entry : systemProperties.entrySet()) {
-            if(IMMUTABLE_DAEMON_SYSTEM_PROPERTIES.contains(entry.getKey())){
+            if (IMMUTABLE_DAEMON_SYSTEM_PROPERTIES.contains(entry.getKey())) {
                 immutableSystemProperties.put(entry.getKey(), entry.getValue());
             }
         }
@@ -76,10 +78,10 @@ public class DaemonJvmOptions extends JvmOptions {
     }
 
     public List<String> getAllSingleUseImmutableJvmArgs() {
-        List<String> immutableDaemonParameters = new ArrayList<String>();
+        List<String> immutableDaemonParameters = new ArrayList<>();
         formatSystemProperties(getImmutableDaemonProperties(), immutableDaemonParameters);
-        final List<String> jvmArgs = getAllImmutableJvmArgs();
+        List<String> jvmArgs = new ArrayList<>(getAllImmutableJvmArgs());
         jvmArgs.removeAll(immutableDaemonParameters);
-        return jvmArgs;
+        return unmodifiableList(jvmArgs);
     }
 }
