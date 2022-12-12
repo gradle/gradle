@@ -177,7 +177,7 @@ fun IntegrationTest.addDebugProperties() {
 }
 
 
-fun DistributionTest.setSystemPropertiesOfTestJVM(defaultVersions: String = "default") {
+fun DistributionTest.setSystemPropertiesOfTestJVM(defaultVersions: String) {
     // use -PtestVersions=all or -PtestVersions=1.2,1.3…
     val integTestVersionsSysProp = "org.gradle.integtest.versions"
     if (project.hasProperty("testVersions")) {

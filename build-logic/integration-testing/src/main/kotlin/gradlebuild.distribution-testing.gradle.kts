@@ -39,7 +39,7 @@ tasks.withType<DistributionTest>().configureEach {
     shouldRunAfter("test")
 
     setJvmArgsOfTestJvm()
-    setSystemPropertiesOfTestJVM()
+    setSystemPropertiesOfTestJVM("default")
     configureGradleTestEnvironment()
     addSetUpAndTearDownActions()
 }
