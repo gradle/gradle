@@ -62,7 +62,7 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
     private RegisteredBuildServiceProvider<T, BuildServiceParameters> resolve() {
         if (resolvedProvider == null) {
             BuildServiceRegistry buildServiceRegistry = internalServices.get(BuildServiceRegistry.class);
-            BuildServiceRegistration<?, ?> registration = ((BuildServiceRegistryInternal) buildServiceRegistry).findByName(serviceName);
+            BuildServiceRegistration<?, ?> registration = ((BuildServiceRegistryInternal) buildServiceRegistry).findRegistration(this.getType(), this.getName());
             if (registration == null) {
                 return null;
             }

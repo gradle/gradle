@@ -17,6 +17,7 @@
 package org.gradle.api.services.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
@@ -25,6 +26,7 @@ import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.project.HoldsProjectState;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
@@ -51,6 +53,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
@@ -109,8 +112,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     @Override
     public SharedResource forService(BuildServiceProvider<?, ?> service) {
-        String serviceName = service.getName();
-        DefaultServiceRegistration<?, ?> registration = uncheckedCast(findByName(serviceName));
+        DefaultServiceRegistration<?, ?> registration = findRegistration(service.getType(), service.getName());
         if (registration == null) {
             // no corresponding service registered
             return null;
@@ -121,16 +123,41 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             int maxUsages = registration.getMaxParallelUsages().getOrElse(-1);
 
             if (maxUsages > 0) {
-                leaseRegistry.registerSharedResource(serviceName, maxUsages);
+                leaseRegistry.registerSharedResource(registration.getName(), maxUsages);
             }
-            return new ServiceBackedSharedResource(serviceName, maxUsages, leaseRegistry);
+            return new ServiceBackedSharedResource(registration.getName(), maxUsages, leaseRegistry);
         });
+    }
+
+    @Override
+    public DefaultServiceRegistration<?, ?> findRegistration(Class<?> type, String name) {
+        return uncheckedCast(!name.isEmpty() ?
+            findByName(name) :
+            findByType(type)
+        );
     }
 
     @Override
     @Nullable
     public BuildServiceRegistration<?, ?> findByName(String name) {
         return withRegistrations(registrations -> registrations.findByName(name));
+    }
+
+    @Nullable
+    @Override
+    public BuildServiceRegistration<?, ?> findByType(Class<?> type) {
+        Set<BuildServiceRegistration<?, ?>> results = withRegistrations(registrations ->
+            ImmutableSet.<BuildServiceRegistration<?, ?>>builder().addAll(
+                registrations.matching(it -> type.isAssignableFrom(getProvidedType(it.getService())))
+            ).build()
+        );
+        if (results.size() > 1) {
+            String names = results.stream()
+                .map(it -> it.getName() + ": " + getProvidedType(it.getService()).getTypeName())
+                .collect(Collectors.joining(", "));
+            throw new IllegalArgumentException(String.format("Cannot resolve service by type for type '%s' when there are two or more instances. Please also provide a service name. Instances found: %s.", type.getTypeName(), names));
+        }
+        return results.stream().findFirst().orElse(null);
     }
 
     @Override
@@ -160,6 +187,10 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         return withRegistrations(registrations -> {
             BuildServiceRegistration<?, ?> existing = registrations.findByName(name);
             if (existing != null) {
+                Class existingType = getProvidedType(existing.getService());
+                if (!implementationType.isAssignableFrom(existingType)) {
+                    throw new IllegalArgumentException(String.format("Service '%s' has already been registered with type '%s', cannot register another with type '%s'.", name, existingType.getTypeName(), implementationType.getTypeName()));
+                }
                 // TODO - assert same type
                 // TODO - assert same parameters
                 return uncheckedNonnullCast(existing.getService());
@@ -282,6 +313,10 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             this.registrations.addAll(preserved);
             return null;
         });
+    }
+
+    private static <T> Class<T> getProvidedType(Provider<T> provider) {
+        return ((ProviderInternal<T>) provider).getType();
     }
 
     private static class ServiceBackedSharedResource implements SharedResource {

@@ -28,7 +28,6 @@ import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.bean.PropertyWalker;
 
 import javax.annotation.Nullable;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -61,7 +60,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
 
     @Override
     public boolean isServiceRequired(Provider<? extends BuildService<?>> toCheck) {
-        return getElements().stream().anyMatch(it -> BuildServiceProvider.isSameService(it, toCheck));
+        return getElements().stream().anyMatch(it -> BuildServiceProvider.isSameService(toCheck, it));
     }
 
     /**
