@@ -69,6 +69,9 @@ public class GarbageCollectionStats {
         return new GarbageCollectionStats(0, 0, -1, 0);
     }
 
+    /**
+     * @return a rate in unit 'GC events per second'
+     */
     private static double calculateRate(Collection<GarbageCollectionEvent> events) {
         if (events.size() < 2) {
             // not enough data points
@@ -109,7 +112,11 @@ public class GarbageCollectionStats {
         return maxSizeInBytes;
     }
 
+    public long getEventCount() {
+        return eventCount;
+    }
+
     public boolean isValid() {
-        return eventCount >= 5 && maxSizeInBytes > 0;
+        return maxSizeInBytes > 0;
     }
 }

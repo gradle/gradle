@@ -19,13 +19,11 @@ package org.gradle.integtests.resolve.catalog
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.resolve.PluginDslSupport
 import spock.lang.Issue
 
 class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport, VersionCatalogErrorMessages {
 
-    @UnsupportedWithConfigurationCache(because = "the test uses an extension directly in the task body")
     def "dependencies declared in settings trigger the creation of an extension (notation=#notation)"() {
         settingsFile << """
             dependencyResolutionManagement {
@@ -41,9 +39,9 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             apply plugin: 'java-library'
 
             tasks.register("verifyExtension") {
+                def lib = libs.foo
+                assert lib instanceof Provider
                 doLast {
-                    def lib = libs.foo
-                    assert lib instanceof Provider
                     def dep = lib.get()
                     assert dep instanceof MinimalExternalModuleDependency
                     assert dep.module.group == 'org.gradle.test'
@@ -900,7 +898,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("com.acme:included:1.0", "project :included", "com.acme:included:zloubi") {
+                edge("com.acme:included:1.0", ":included", "com.acme:included:zloubi") {
                     compositeSubstitute()
                     configuration = "runtimeElements"
                     module('org.gradle.test:other:1.1')
@@ -1691,9 +1689,11 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
 
         buildFile """
             tasks.register("dumpVersions") {
+                def first = libs.versions.my.asProvider()
+                def second = libs.versions.my.bottom
                 doLast {
-                    println "First: \${libs.versions.my.asProvider().get()}"
-                    println "Second: \${libs.versions.my.bottom.get()}"
+                    println "First: \${first.get()}"
+                    println "Second: \${second.get()}"
                 }
             }
         """
@@ -1720,9 +1720,11 @@ Second: 1.1"""
 
         buildFile """
             tasks.register("dumpVersions") {
+                def first = libs.versions.my.middle.asProvider()
+                def second = libs.versions.my.middle.bottom
                 doLast {
-                    println "First: \${libs.versions.my.middle.asProvider().get()}"
-                    println "Second: \${libs.versions.my.middle.bottom.get()}"
+                    println "First: \${first.get()}"
+                    println "Second: \${second.get()}"
                 }
             }
         """
@@ -1749,9 +1751,11 @@ Second: 1.1"""
 
         buildFile """
             tasks.register("dumpVersions") {
+                def first = libs.versions.my.asProvider()
+                def second = libs.versions.my.middle.bottom
                 doLast {
-                    println "First: \${libs.versions.my.asProvider().get()}"
-                    println "Second: \${libs.versions.my.middle.bottom.get()}"
+                    println "First: \${first.get()}"
+                    println "Second: \${second.get()}"
                 }
             }
         """

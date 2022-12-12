@@ -86,7 +86,7 @@ project(':child2') {
         resolve.expectGraph {
             root(':child1', 'testproject:child1:') {
                 module('org.test:maven:1.0') {
-                    edge('org.test:replaced:1.0', 'project :child2', 'testproject:child2:') {
+                    edge('org.test:replaced:1.0', ':child2', 'testproject:child2:') {
                         noArtifacts()
                         selectedByRule()
                         module('org.test:dont-ignore-me:1.0')
@@ -129,7 +129,7 @@ project(':child2') {
         resolve.expectGraph {
             root(':child1', 'testproject:child1:') {
                 module('org.test:maven:1.0') {
-                    edge('org.test:replaced:1.0', 'project :child2', 'testproject:child2:') {
+                    edge('org.test:replaced:1.0', ':child2', 'testproject:child2:') {
                         selectedByRule()
                         module('org.test:m1:1.0')
                         module('org.test:m2:1.0')
@@ -179,7 +179,7 @@ project(':child2') {
             root(':child1', 'testproject:child1:') {
                 module('org.test:maven:1.0') {
                     configuration = 'compile'
-                    edge('org.test:replaced:1.0', 'project :child2', 'testproject:child2:') {
+                    edge('org.test:replaced:1.0', ':child2', 'testproject:child2:') {
                         selectedByRule()
                         noArtifacts()
                         module('org.test:dont-ignore-me:1.0')
@@ -224,7 +224,7 @@ project(':child2') {
             root(':child1', 'testproject:child1:') {
                 module('org.test:maven:1.0') {
                     configuration = 'compile'
-                    edge('org.test:replaced:1.0', 'project :child2', 'testproject:child2:') {
+                    edge('org.test:replaced:1.0', ':child2', 'testproject:child2:') {
                         selectedByRule()
                         module('org.test:m1:1.0')
                         module('org.test:m2:1.0')

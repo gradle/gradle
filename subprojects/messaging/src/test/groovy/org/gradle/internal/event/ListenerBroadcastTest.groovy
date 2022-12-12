@@ -136,6 +136,19 @@ class ListenerBroadcastTest extends Specification {
         0 * visitor._
     }
 
+    def 'listener is not used after all listeners removed'() {
+        given:
+        def listener = Mock(TestListener)
+        broadcast.add(listener)
+        broadcast.removeAll()
+
+        when:
+        broadcast.source.event1("param")
+
+        then:
+        0 * _._
+    }
+
     def 'can use dispatch to receive notifications'() {
         given:
         Dispatch<MethodInvocation> dispatch1 = Mock()
@@ -312,6 +325,52 @@ class ListenerBroadcastTest extends Specification {
 
         ListenerNotificationException exception = thrown()
         exception.causes == [failure1, failure2]
+    }
+
+    def 'can query the number of registered listeners'() {
+        TestListener listener1 = Mock()
+        TestListener listener2 = Mock()
+        TestListener listener3 = Mock()
+
+        expect:
+        broadcast.empty
+        broadcast.size() == 0
+
+        when:
+        broadcast.add(listener1)
+
+        then:
+        !broadcast.empty
+        broadcast.size() == 1
+
+        when:
+        broadcast.add(listener2)
+        broadcast.add(listener3)
+
+        then:
+        !broadcast.empty
+        broadcast.size() == 3
+
+        when:
+        broadcast.remove(listener1)
+
+        then:
+        !broadcast.empty
+        broadcast.size() == 2
+
+        when:
+        broadcast.remove(listener2)
+
+        then:
+        !broadcast.empty
+        broadcast.size() == 1
+
+        when:
+        broadcast.remove(listener3)
+
+        then:
+        broadcast.empty
+        broadcast.size() == 0
     }
 
     interface TestListener {

@@ -17,9 +17,11 @@
 package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
+import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.internal.CleanupActionDecorator;
-import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheVersionMapping;
@@ -51,9 +53,9 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
 
     private final UsedGradleVersions usedGradleVersions;
     private final CleanupActionDecorator cleanupActionDecorator;
-    private final CacheConfigurations cacheConfigurations;
+    private final CacheConfigurationsInternal cacheConfigurations;
 
-    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CleanupActionDecorator cleanupActionDecorator, CacheConfigurations cacheConfigurations) {
+    public DefaultClasspathTransformerCacheFactory(UsedGradleVersions usedGradleVersions, CleanupActionDecorator cleanupActionDecorator, CacheConfigurationsInternal cacheConfigurations) {
         this.usedGradleVersions = usedGradleVersions;
         this.cleanupActionDecorator = cleanupActionDecorator;
         this.cacheConfigurations = cacheConfigurations;
@@ -66,8 +68,15 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
             .withDisplayName(CACHE_NAME)
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
-            .withCleanup(cleanupActionDecorator.decorate(createCleanupAction(fileAccessTimeJournal)))
+            .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal))
             .open();
+    }
+
+    private CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal) {
+        return DefaultCacheCleanupStrategy.from(
+            cleanupActionDecorator.decorate(createCleanupAction(fileAccessTimeJournal)),
+            cacheConfigurations.getCleanupFrequency()
+        );
     }
 
     private CompositeCleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal) {
@@ -77,7 +86,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
                 new LeastRecentlyUsedCacheCleanup(
                     new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP),
                     fileAccessTimeJournal,
-                    () -> cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesAfterDays().get()
+                    cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesOlderThanAsSupplier()
                 )
             ).build();
     }

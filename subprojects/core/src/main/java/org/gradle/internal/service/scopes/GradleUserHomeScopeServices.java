@@ -116,7 +116,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         }
     }
 
-    GradleUserHomeCacheCleanupActionDecorator createCacheCleanupEnablement(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
+    GradleUserHomeCacheCleanupActionDecorator createCacheCleanupDecorator(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
         return new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeDirProvider);
     }
 
@@ -232,6 +232,6 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     }
 
     protected CacheConfigurationsInternal createCachesConfiguration(ObjectFactory objectFactory) {
-        return new DefaultCacheConfigurations(objectFactory);
+        return objectFactory.newInstance(DefaultCacheConfigurations.class, objectFactory);
     }
 }

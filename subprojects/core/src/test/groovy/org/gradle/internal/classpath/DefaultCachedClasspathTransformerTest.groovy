@@ -17,7 +17,7 @@
 package org.gradle.internal.classpath
 
 import org.gradle.api.Action
-import org.gradle.api.cache.CacheConfigurations
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.internal.CleanupActionDecorator
@@ -55,7 +55,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         withDisplayName(_) >> { cacheBuilder }
         withCrossVersionCache(_) >> { cacheBuilder }
         withLockOptions(_) >> { cacheBuilder }
-        withCleanup(_) >> { cacheBuilder }
+        withCleanupStrategy(_) >> { cacheBuilder }
     }
     def cacheRepository = Stub(GlobalScopedCache) {
         crossVersionCache(_) >> cacheBuilder
@@ -63,7 +63,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
     def usedGradleVersions = Stub(UsedGradleVersions)
     def cleanupActionDecorator = Stub(CleanupActionDecorator)
-    def cacheConfigurations = Stub(CacheConfigurations)
+    def cacheConfigurations = Stub(CacheConfigurationsInternal)
     def cacheFactory = new DefaultClasspathTransformerCacheFactory(usedGradleVersions, cleanupActionDecorator, cacheConfigurations)
     def classpathWalker = new ClasspathWalker(TestFiles.fileSystem())
     def classpathBuilder = new ClasspathBuilder(TestFiles.tmpDirTemporaryFileProvider(testDirectoryProvider.root))

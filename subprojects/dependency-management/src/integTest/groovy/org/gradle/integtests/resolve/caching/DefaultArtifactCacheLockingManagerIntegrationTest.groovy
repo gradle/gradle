@@ -172,14 +172,52 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         findFiles(cacheDir, 'files-*/*').isEmpty()
     }
 
-    def "does not clean up resources and files when cache cleanup is disabled"() {
+    def "always cleans up resources and files not recently used from caches when configured"() {
+        given:
+        buildscriptWithDependency(snapshotModule)
+        withDownloadedResourcesRetentionInDays(HALF_DEFAULT_MAX_AGE_IN_DAYS)
+        alwaysCleanupCaches()
+
+        when:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        succeeds 'resolve'
+
+        then:
+        def resource = findFile(cacheDir, 'resources-*/**/maven-metadata.xml')
+        def files = findFiles(cacheDir, "files-*/**/*")
+        files.size() == 2
+        journal.assertExists()
+
+        when:
+        run '--stop' // ensure daemon does not cache file access times in memory
+
+        and:
+        writeLastFileAccessTimeToJournal(resource.parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+        writeLastFileAccessTimeToJournal(files[0].parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+        writeLastFileAccessTimeToJournal(files[1].parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+
+        and:
+        executer.withTasks('help').start().waitForFinish()
+
+        then:
+        resource.assertDoesNotExist()
+        files[0].assertDoesNotExist()
+        files[1].assertDoesNotExist()
+
+        and: // deletes empty parent directories
+        findFiles(cacheDir, 'resources-*/*').isEmpty()
+        findFiles(cacheDir, 'files-*/*').isEmpty()
+    }
+
+    def "does not clean up resources and files when cache cleanup is disabled via #method"() {
         given:
         buildscriptWithDependency(snapshotModule)
 
         when:
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
-        disableCacheCleanup()
+        disableCacheCleanup(method)
         succeeds 'resolve'
 
         then:
@@ -205,9 +243,12 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         resource.assertExists()
         files[0].assertExists()
         files[1].assertExists()
+
+        where:
+        method << CleanupMethod.values()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
     def "downloads deleted files again when they are referenced"() {
         given:
         buildscriptWithDependency(snapshotModule)
@@ -228,7 +269,6 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         jarFile.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "marks artifacts as recently used when accessed"() {
         given:
         buildscriptWithDependency(snapshotModule)
@@ -247,7 +287,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         journal.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
     def "redownloads deleted HTTP script plugin resources"() {
         given:
         def uuid = UUID.randomUUID()
@@ -278,7 +318,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         resource.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
     def "redownloads deleted uri backed text resources"() {
         given:
         def uuid = UUID.randomUUID()
@@ -310,7 +350,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         resource.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
     def "redownloads deleted artifacts for artifact query"() {
         given:
         def module = mavenHttpRepo.module('org.example', 'example', '1.0')
@@ -405,8 +445,9 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
                 custom group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}'
             }
             task resolve {
+                def files = configurations.custom
                 doLast {
-                    configurations.custom.incoming.files.each { println it }
+                    files*.name
                 }
             }
         """

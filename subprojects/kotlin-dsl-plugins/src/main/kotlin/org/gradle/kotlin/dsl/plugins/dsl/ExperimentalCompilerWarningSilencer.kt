@@ -21,21 +21,31 @@ import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 
 
 internal
-class ExperimentalCompilerWarningSilencer(private val warningsToSilence: List<String>) : ContextAwareTaskLogger.MessageRewriter {
+class ExperimentalCompilerWarningSilencer(
+
+    private
+    val warningsToSilence: List<String>
+
+) : ContextAwareTaskLogger.MessageRewriter {
+
+    private
+    val rewrittenLevels = listOf(LogLevel.WARN, LogLevel.ERROR)
 
     private
     val unsafeCompilerArgumentsWarningHeader = "This build uses unsafe internal compiler arguments:"
 
-    override fun rewrite(logLevel: LogLevel, message: String): String? {
-        return if (containsWarningsToBeSilenced(logLevel, message)) {
-            rewriteMessage(message)
-        } else {
-            message
-        }
-    }
+    override fun rewrite(logLevel: LogLevel, message: String): String? =
+        if (logLevel in rewrittenLevels) rewriteMessage(message)
+        else message
 
     private
-    fun rewriteMessage(message: String): String? {
+    fun rewriteMessage(message: String) =
+        if (message.contains(unsafeCompilerArgumentsWarningHeader)) rewriteUnsafeCompilerArgumentsWarning(message)
+        else if (message.containsSilencedWarning()) null
+        else message
+
+    private
+    fun rewriteUnsafeCompilerArgumentsWarning(message: String): String? {
         var rewrittenMessage = message
         for (warning in warningsToSilence) {
             rewrittenMessage = rewrittenMessage.replace("$warning\n", "")
@@ -47,13 +57,6 @@ class ExperimentalCompilerWarningSilencer(private val warningsToSilence: List<St
     }
 
     private
-    fun containsWarningsToBeSilenced(logLevel: LogLevel, message: String): Boolean {
-        if (logLevel != LogLevel.WARN && logLevel != LogLevel.ERROR) {
-            return false
-        }
-        if (!message.contains(unsafeCompilerArgumentsWarningHeader)) {
-            return false
-        }
-        return true
-    }
+    fun String.containsSilencedWarning() =
+        warningsToSilence.any { contains(it) }
 }
