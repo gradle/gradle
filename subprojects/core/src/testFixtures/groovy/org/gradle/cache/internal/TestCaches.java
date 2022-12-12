@@ -17,7 +17,9 @@
 package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.LockOptions;
@@ -134,7 +136,7 @@ public abstract class TestCaches {
         private String displayName = "Test In Memory Cache";
         private LockOptions lockOptions = mode(OnDemand);
         private Action<? super PersistentCache> initializer = Actions.doNothing();
-        private CleanupAction cleanup = CleanupAction.NO_OP;
+        private CacheCleanupStrategy cacheCleanupStrategy = DefaultCacheCleanupStrategy.from(CleanupAction.NO_OP);
 
         private TestInMemoryCacheBuilder(File cacheDir) {
             this.cacheDir = cacheDir;
@@ -171,14 +173,14 @@ public abstract class TestCaches {
         }
 
         @Override
-        public CacheBuilder withCleanup(CleanupAction cleanup) {
-            this.cleanup = cleanup;
+        public CacheBuilder withCleanupStrategy(CacheCleanupStrategy cacheCleanupStrategy) {
+            this.cacheCleanupStrategy = cacheCleanupStrategy;
             return this;
         }
 
         @Override
         public PersistentCache open() throws CacheOpenException {
-            return cacheFactory.open(cacheDir, displayName, properties, lockTarget, lockOptions, initializer, cleanup);
+            return cacheFactory.open(cacheDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanupStrategy);
         }
     }
 }
