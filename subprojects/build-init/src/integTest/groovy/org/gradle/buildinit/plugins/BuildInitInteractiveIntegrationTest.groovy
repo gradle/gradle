@@ -29,6 +29,9 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     String basicType = "1: basic"
     String projectNamePrompt = "Project name (default: some-thing)"
     String convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
+    String initTaskInterruptedExceptionMessage = "The init task was interrupted during execution. We will not generate the gradle project structure."
+    String initTaskExecutionFailedMessage = "Execution failed for task ':init'."
+    String wrapperTaskSkippedMessage = "Task :wrapper SKIPPED"
 
     @Override
     String subprojectName() { 'app' }
@@ -165,6 +168,24 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
         dslFixtureFor(BuildInitDsl.KOTLIN).assertGradleFilesGenerated()
     }
 
+    def "does not modify current directory when a user exits prematurely"() {
+        when:
+        executer.withForceInteractive(true)
+        executer.withStdinPipe()
+        executer.withTasks("init")
+        def handle = executer.start()
+
+        // Exit the task by closing the input.
+        handle.stdinPipe.close()
+        def result = handle.waitForFailure()
+
+        then:
+        result.assertHasDescription(initTaskExecutionFailedMessage)
+        result.assertHasCause(initTaskInterruptedExceptionMessage)
+        result.outputContains(wrapperTaskSkippedMessage)
+        rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesNotGenerated()
+    }
+
     def "prompts user when run from an interactive session and pom.xml present"() {
         when:
         pom()
@@ -179,12 +200,20 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
             assert handle.standardOutput.contains(convertMavenBuildPrompt)
         }
         handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
+        // Select 'Groovy'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(dslPrompt)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
+
+        // Select 'no'
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains(incubatingPrompt)
+        }
+        handle.stdinPipe.write(TextUtil.platformLineSeparator.bytes)
         handle.stdinPipe.close()
         handle.waitForFinish()
-
-        !handle.standardOutput.contains(projectTypePrompt)
-        !handle.standardOutput.contains(dslPrompt)
-        !handle.standardOutput.contains(projectNamePrompt)
 
         then:
         rootProjectDslFixtureFor(BuildInitDsl.GROOVY).assertGradleFilesGenerated()

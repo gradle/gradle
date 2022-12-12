@@ -118,6 +118,11 @@ public class DefaultUserInputHandler implements UserInputHandler {
         });
     }
 
+    @Override
+    public boolean interrupted() {
+        return this.userInputReader.foundEOF();
+    }
+
     private <T> T prompt(String prompt, final T defaultValue, final Transformer<T, String> parser) {
         T result = prompt(prompt, new Transformer<T, String>() {
             @Override

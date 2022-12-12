@@ -55,4 +55,9 @@ public interface UserInputHandler {
      * @return The answer or the given default if not connected to a user console.
      */
     String askQuestion(String question, String defaultValue);
+
+    /**
+     * @return true if the user has closed the input stream using CTRL+C.
+     */
+    boolean interrupted();
 }

@@ -50,7 +50,7 @@ The Build Init plugin supports generating various build _types_. These are liste
 The plugin adds the following tasks to the project:
 
 `init` — link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html[InitBuild]::
-_Depends on_: `wrapper`
+_Finalized by_: `wrapper`
 +
 Generates a Gradle build.
 

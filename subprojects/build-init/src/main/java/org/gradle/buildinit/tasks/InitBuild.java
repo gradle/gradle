@@ -296,8 +296,13 @@ public abstract class InitBuild extends DefaultTask {
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
         InitSettings settings = new InitSettings(projectName, useIncubatingAPIs, subprojectNames,
             modularizationOption, dsl, packageName, testFramework, insecureProtocol.get(), projectDir);
-        initDescriptor.generate(settings);
 
+        boolean userInterrupted = inputHandler.interrupted();
+        if (userInterrupted) {
+            throw new GradleException("The init task was interrupted during execution. We will not generate the gradle project structure.");
+        }
+
+        initDescriptor.generate(settings);
         initDescriptor.getFurtherReading(settings).ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
     }
 

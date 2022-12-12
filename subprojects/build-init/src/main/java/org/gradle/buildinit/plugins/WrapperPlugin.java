@@ -18,6 +18,8 @@ package org.gradle.buildinit.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.wrapper.Wrapper;
 
 /**
@@ -33,7 +35,27 @@ public abstract class WrapperPlugin implements Plugin<Project> {
                 wrapper.setGroup("Build Setup");
                 wrapper.setDescription("Generates Gradle wrapper files.");
                 wrapper.getNetworkTimeout().convention(10000);
+
+                Task initTask = project.getTasks().findByName("init");
+                wrapper.onlyIf("The init task did not fail if it was executed", new WrapperOnlyIfSpec(initTask));
             });
+        }
+    }
+
+    private static class WrapperOnlyIfSpec implements Spec<Task> {
+
+        private final Task initTask;
+
+        private WrapperOnlyIfSpec(Task initTask) {
+            this.initTask = initTask;
+        }
+
+        @Override
+        public boolean isSatisfiedBy(Task element) {
+            if (initTask != null && initTask.getState().getExecuted()) {
+                return initTask.getState().getFailure() == null;
+            }
+            return true;
         }
     }
 }

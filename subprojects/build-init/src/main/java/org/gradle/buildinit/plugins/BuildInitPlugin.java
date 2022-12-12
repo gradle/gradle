@@ -57,7 +57,7 @@ public abstract class BuildInitPlugin implements Plugin<Project> {
                     "There is no build script or settings script",
                     new InitBuildOnlyIfSpec(buildFileDetails, settingsFileDetails, initBuild.getLogger())
                 );
-                initBuild.dependsOn(new InitBuildDependsOnCallable(buildFileDetails, settingsFileDetails));
+                initBuild.finalizedBy(new InitBuildDependsOnCallable(buildFileDetails, settingsFileDetails));
 
                 ProjectInternal.DetachedResolver detachedResolver = projectInternal.newDetachedResolver();
                 initBuild.getProjectLayoutRegistry().getBuildConverter().configureClasspath(

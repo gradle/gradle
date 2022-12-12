@@ -19,4 +19,5 @@ package org.gradle.api.internal.tasks.userinput;
 public interface UserInputReader {
 
     String readInput();
+    boolean foundEOF();
 }

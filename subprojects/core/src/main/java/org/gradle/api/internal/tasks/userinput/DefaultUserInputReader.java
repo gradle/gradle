@@ -27,16 +27,17 @@ public class DefaultUserInputReader implements UserInputReader {
     private static final char UNIX_NEW_LINE = '\n';
     private static final char WINDOWS_NEW_LINE = '\r';
     private final Reader br = new InputStreamReader(System.in);
+    private boolean foundEOF = false;
 
     @Override
     public String readInput() {
         StringBuilder out = new StringBuilder();
-
         while (true) {
             try {
                 int c = br.read();
 
                 if (isEOF(c)) {
+                    foundEOF = true;
                     return null;
                 }
 
@@ -54,6 +55,15 @@ public class DefaultUserInputReader implements UserInputReader {
         }
 
         return out.toString();
+    }
+
+    /**
+     * @return true if there is no more data has the end of the steam has been reached.
+     * This will occur if the user has closed the input stream using CTRL+C.
+     */
+    @Override
+    public boolean foundEOF() {
+        return foundEOF;
     }
 
     private boolean isEOF(int c) {
