@@ -96,12 +96,20 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
         }
         BuildServiceProvider thisBuildServiceProvider = (BuildServiceProvider) thisProvider;
         BuildServiceProvider otherBuildServiceProvider = (BuildServiceProvider) anotherProvider;
-        if (!thisBuildServiceProvider.getName().equals(otherBuildServiceProvider.getName())) {
+        String thisName = thisBuildServiceProvider.getName();
+        String otherName = otherBuildServiceProvider.getName();
+        if (!thisName.isEmpty() && !otherName.isEmpty() && !thisName.equals(otherName)) {
             return false;
         }
-        if (thisBuildServiceProvider.getType() != otherBuildServiceProvider.getType()) {
+        if (!isCompatibleServiceType(thisBuildServiceProvider, otherBuildServiceProvider)) {
             return false;
         }
         return thisBuildServiceProvider.getBuildIdentifier().equals(otherBuildServiceProvider.getBuildIdentifier());
+    }
+
+    private static boolean isCompatibleServiceType(BuildServiceProvider thisBuildServiceProvider, BuildServiceProvider otherBuildServiceProvider) {
+        Class<?> otherType = otherBuildServiceProvider.getType();
+        Class<?> thisType = thisBuildServiceProvider.getType();
+        return otherType.isAssignableFrom(Cast.uncheckedCast(thisType));
     }
 }
