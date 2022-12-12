@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CleanupActionDecorator;
-import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.cache.scopes.GlobalScopedCache;
@@ -50,7 +50,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
                                  WritableArtifactCacheLockingParameters params,
                                  DocumentationRegistry documentationRegistry,
                                  CleanupActionDecorator cleanupActionDecorator,
-                                 CacheConfigurations cacheConfigurations
+                                 CacheConfigurationsInternal cacheConfigurations
                                  ) {
         writableCacheMetadata = new DefaultArtifactCacheMetadata(globalScopedCache);
         writableArtifactCacheLockingManager = new LateInitWritableArtifactCacheLockingManager(() -> {

@@ -51,7 +51,7 @@ configurations {
 
 class SavingRule implements ComponentMetadataRule {
     public void execute(ComponentMetadataContext context) {
-        new File(context.details.id.name).text = context.details.changing
+        println "changing=" + context.details.changing
     }
 }
 
@@ -62,8 +62,9 @@ dependencies {
     }
 }
 task resolve {
+    def files = configurations.modules
     doLast {
-        configurations.modules.files
+        files*.name
     }
 }
 """
@@ -72,6 +73,7 @@ task resolve {
         run("resolve")
 
         then:
-        file("moduleB").text == "true"
+        output.count("changing=") == 1
+        outputContains("changing=true")
     }
 }

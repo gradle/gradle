@@ -23,13 +23,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.initialization.SettingsState;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
-import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 
@@ -84,7 +84,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
      * The settings for this build.
      *
      * @return the settings for this build
-     * @throws IllegalStateException when the build is not loaded yet, see {@link #setSettings(SettingsInternal)}
+     * @throws IllegalStateException when the build is not loaded yet, see {@link #attachSettings(SettingsState)}
      */
     SettingsInternal getSettings() throws IllegalStateException;
 
@@ -94,7 +94,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
      *
      * @param settings The settings for this build.
      */
-    void setSettings(SettingsInternal settings);
+    void attachSettings(@Nullable SettingsState settings);
 
     /**
      * Called by the BuildLoader after the default project is determined.  Until the BuildLoader
@@ -119,8 +119,6 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     @UsedByScanPlugin
     ServiceRegistry getServices();
-
-    ServiceRegistryFactory getServiceRegistryFactory();
 
     void setClassLoaderScope(Supplier<? extends ClassLoaderScope> classLoaderScope);
 

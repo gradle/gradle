@@ -28,6 +28,7 @@ import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
+import org.gradle.initialization.SettingsState
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildState
@@ -39,7 +40,9 @@ import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.resource.TextFileResourceLoader
-import org.gradle.internal.service.scopes.BuildScopeServiceRegistryFactory
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.ServiceRegistryFactory
+import org.gradle.internal.service.scopes.SettingsScopeServices
 import org.gradle.util.Path
 import java.io.File
 
@@ -58,8 +61,8 @@ class ConfigurationCacheHost internal constructor(
         }
     }
 
-    override fun createBuild(settingsFile: File?, rootProjectName: String): ConfigurationCacheBuild =
-        DefaultConfigurationCacheBuild(gradle, service(), service(), settingsFile, rootProjectName)
+    override fun createBuild(settingsFile: File?): ConfigurationCacheBuild =
+        DefaultConfigurationCacheBuild(gradle, service(), service(), settingsFile)
 
     override fun <T> service(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
@@ -91,8 +94,7 @@ class ConfigurationCacheHost internal constructor(
         override val gradle: GradleInternal,
         private val fileResolver: PathToFileResolver,
         private val buildStateRegistry: BuildStateRegistry,
-        private val settingsFile: File?,
-        private val rootProjectName: String
+        private val settingsFile: File?
     ) : ConfigurationCacheBuild {
 
         private
@@ -101,26 +103,34 @@ class ConfigurationCacheHost internal constructor(
         init {
             require(gradle.owner is CompositeBuildParticipantBuildState)
             gradle.run {
-                settings = createSettings()
+                attachSettings(createSettings())
                 setBaseProjectClassLoaderScope(coreScope)
-                rootProjectDescriptor().name = rootProjectName
             }
         }
 
-        override fun createProject(projectPath: Path, dir: File, buildDir: File) {
+        override fun registerRootProject(rootProjectName: String, projectDir: File, buildDir: File) {
+            // Root project is registered when the settings are created, just need to adjust its properties
+            val descriptor = rootProjectDescriptor()
+            descriptor.name = rootProjectName
+            descriptor.projectDir = projectDir
+            buildDirs[Path.ROOT] = buildDir
+        }
+
+        override fun registerProject(projectPath: Path, dir: File, buildDir: File) {
             val name = projectPath.name
-            val projectDescriptor = DefaultProjectDescriptor(
+            require(name != null)
+            // Adds the descriptor to the registry as a side effect
+            DefaultProjectDescriptor(
                 getProjectDescriptor(projectPath.parent),
-                name ?: rootProjectName,
+                name,
                 dir,
                 projectDescriptorRegistry,
                 fileResolver
             )
-            projectDescriptorRegistry.addProject(projectDescriptor)
             buildDirs[projectPath] = buildDir
         }
 
-        override fun registerProjects() {
+        override fun createProjects() {
             // Ensure projects are registered for look up e.g. by dependency resolution
             val projectRegistry = service<ProjectStateRegistry>()
             projectRegistry.registerProjects(state, projectDescriptorRegistry)
@@ -155,12 +165,12 @@ class ConfigurationCacheHost internal constructor(
         override fun getProject(path: String): ProjectInternal =
             state.projects.getProject(Path.path(path)).mutableModel
 
-        override fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?, rootProjectName: String): ConfigurationCacheBuild {
-            return DefaultConfigurationCacheBuild(buildStateRegistry.addIncludedBuild(buildDefinition).mutableModel, fileResolver, buildStateRegistry, settingsFile, rootProjectName)
+        override fun addIncludedBuild(buildDefinition: BuildDefinition, settingsFile: File?): ConfigurationCacheBuild {
+            return DefaultConfigurationCacheBuild(buildStateRegistry.addIncludedBuild(buildDefinition).mutableModel, fileResolver, buildStateRegistry, settingsFile)
         }
 
         private
-        fun createSettings(): SettingsInternal {
+        fun createSettings(): SettingsState {
             val baseClassLoaderScope = gradle.classLoaderScope
             val classLoaderScope = baseClassLoaderScope.createChild("settings", null)
             val settingsSource = if (settingsFile == null) {
@@ -168,9 +178,16 @@ class ConfigurationCacheHost internal constructor(
             } else {
                 TextResourceScriptSource(service<TextFileResourceLoader>().loadFile("settings file", settingsFile))
             }
-            return service<Instantiator>().newInstance(
+            lateinit var services: SettingsScopeServices
+            val serviceRegistryFactory = object : ServiceRegistryFactory {
+                override fun createFor(domainObject: Any): ServiceRegistry {
+                    services = SettingsScopeServices(service<ServiceRegistry>(), domainObject as SettingsInternal)
+                    return services
+                }
+            }
+            val settings = service<Instantiator>().newInstance(
                 DefaultSettings::class.java,
-                service<BuildScopeServiceRegistryFactory>(),
+                serviceRegistryFactory,
                 gradle,
                 classLoaderScope,
                 baseClassLoaderScope,
@@ -179,11 +196,20 @@ class ConfigurationCacheHost internal constructor(
                 settingsSource,
                 gradle.startParameter
             )
+            return SettingsState(settings, services)
         }
 
         private
         fun settingsDir() =
             service<BuildLayout>().settingsDir
+
+        private
+        fun getProjectDescriptor(parentPath: Path?): DefaultProjectDescriptor? =
+            parentPath?.let { projectDescriptorRegistry.getProject(it.path) }
+
+        private
+        val projectDescriptorRegistry
+            get() = (gradle.settings as DefaultSettings).projectDescriptorRegistry
 
         override
         val state: CompositeBuildParticipantBuildState = gradle.owner as CompositeBuildParticipantBuildState
@@ -196,12 +222,4 @@ class ConfigurationCacheHost internal constructor(
     private
     val coreAndPluginsScope: ClassLoaderScope
         get() = classLoaderScopeRegistry.coreAndPluginsScope
-
-    private
-    fun getProjectDescriptor(parentPath: Path?): DefaultProjectDescriptor? =
-        parentPath?.let { projectDescriptorRegistry.getProject(it.path) }
-
-    private
-    val projectDescriptorRegistry
-        get() = (gradle.settings as DefaultSettings).projectDescriptorRegistry
 }

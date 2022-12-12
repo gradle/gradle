@@ -16,13 +16,15 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.Project
 import org.gradle.api.artifacts.component.BuildIdentifier
+import org.gradle.api.cache.Cleanup
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
+import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
@@ -132,11 +134,13 @@ class ConfigurationCacheState(
 
         eventEmitter.emitNowForCurrent(BuildIdentifiedProgressDetails { identityPath })
 
-        val projects = convertProjects(state.projects, state.rootProjectName)
-        eventEmitter.emitNowForCurrent(object : ProjectsIdentifiedProgressDetails {
-            override fun getBuildPath() = identityPath
-            override fun getRootProject() = projects
-        })
+        if (state is BuildWithProjects) {
+            val projects = convertProjects(state.projects, state.rootProjectName)
+            eventEmitter.emitNowForCurrent(object : ProjectsIdentifiedProgressDetails {
+                override fun getBuildPath() = identityPath
+                override fun getRootProject() = projects
+            })
+        }
     }
 
     private
@@ -158,9 +162,9 @@ class ConfigurationCacheState(
     ): BuildStructureOperationProject {
         val childProjects = children.getOrDefault(project.path, emptyList()).map { convertProject(converted, it, rootProjectName, children) }.toSet()
         return converted.computeIfAbsent(project.path) {
-            // Root project name is serialized separately, could perhaps move it to this cached project state
+            // Root project name is serialized separately, could perhaps move it to this cached project state object
             val projectName = project.path.name ?: rootProjectName
-            BuildStructureOperationProject(projectName, project.path.path, project.path.path, project.projectDir.absolutePath, project.buildDir.absolutePath, childProjects)
+            BuildStructureOperationProject(projectName, project.path.path, project.path.path, project.projectDir.absolutePath, project.buildFile.absolutePath, childProjects)
         }
     }
 
@@ -183,7 +187,6 @@ class ConfigurationCacheState(
         val gradle = rootBuild.gradle
         withDebugFrame({ "Gradle" }) {
             write(gradle.settings.settingsScript.resource.file)
-            writeString(gradle.rootProject.name)
             writeBuildTreeScopedState(gradle)
         }
         val buildEventListeners = buildEventListenersOf(gradle)
@@ -194,8 +197,7 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultReadContext.readRootBuild(): List<CachedBuildState> {
         val settingsFile = read() as File?
-        val rootProjectName = readString()
-        val rootBuild = host.createBuild(settingsFile, rootProjectName)
+        val rootBuild = host.createBuild(settingsFile)
         val gradle = rootBuild.gradle
         readBuildTreeState(gradle)
         val builds = readBuildsInTree(rootBuild)
@@ -260,7 +262,6 @@ class ConfigurationCacheState(
         val gradle = state.mutableModel
         withGradleIsolate(gradle, userTypesCodec) {
             write(gradle.settings.settingsScript.resource.file)
-            writeString(gradle.rootProject.name)
             writeBuildDefinition(state.buildDefinition)
         }
         // Encode the build state using the contextualized IO service for the nested build
@@ -274,9 +275,8 @@ class ConfigurationCacheState(
         lateinit var definition: BuildDefinition
         val build = withGradleIsolate(rootBuild.gradle, userTypesCodec) {
             val settingsFile = read() as File?
-            val rootProjectName = readString()
             definition = readIncludedBuildDefinition(rootBuild)
-            rootBuild.addIncludedBuild(definition, settingsFile, rootProjectName)
+            rootBuild.addIncludedBuild(definition, settingsFile)
         }
         // Decode the build state using the contextualized IO service for the build
         return build.gradle.serviceOf<ConfigurationCacheIO>().readIncludedBuildStateFrom(stateFileFor(definition), build)
@@ -286,12 +286,11 @@ class ConfigurationCacheState(
     suspend fun DefaultWriteContext.writeBuildWithNoWork(state: BuildState, rootBuild: VintageGradleBuild) {
         withGradleIsolate(rootBuild.gradle, userTypesCodec) {
             writeString(state.identityPath.path)
-            if (state.isProjectsLoaded) {
+            if (state.isProjectsLoaded && state.projects.rootProject.isCreated) {
                 writeBoolean(true)
                 writeString(state.projects.rootProject.name)
                 writeCollection(state.projects.allProjects) { project ->
-                    val buildDir = if (project.isCreated) project.mutableModel.buildDir else File(project.projectDir, Project.DEFAULT_BUILD_FILE)
-                    write(ProjectWithNoWork(project.projectPath, project.projectDir, buildDir))
+                    write(ProjectWithNoWork(project.projectPath, project.projectDir, project.mutableModel.buildFile))
                 }
             } else {
                 writeBoolean(false)
@@ -309,7 +308,7 @@ class ConfigurationCacheState(
                 val projects = readList() as List<ProjectWithNoWork>
                 BuildWithNoWork(identityPath, rootProjectName, projects)
             } else {
-                BuildWithNoWork(identityPath, identityPath.name!!, emptyList())
+                BuildWithNoProjects(identityPath)
             }
         }
 
@@ -339,7 +338,7 @@ class ConfigurationCacheState(
 
         val projects = readProjects(gradle, build)
 
-        build.registerProjects()
+        build.createProjects()
 
         initProjectProvider(build::getProject)
 
@@ -405,6 +404,9 @@ class ConfigurationCacheState(
             withDebugFrame({ "build cache" }) {
                 writeBuildCacheConfiguration(gradle)
             }
+            withDebugFrame({ "cache configurations" }) {
+                writeCacheConfigurations(gradle)
+            }
         }
     }
 
@@ -417,6 +419,7 @@ class ConfigurationCacheState(
             // build cache configuration, as it may contribute build cache configuration.
             readGradleEnterprisePluginManager(gradle)
             readBuildCacheConfiguration(gradle)
+            readCacheConfigurations(gradle)
         }
     }
 
@@ -541,6 +544,28 @@ class ConfigurationCacheState(
     }
 
     private
+    suspend fun DefaultWriteContext.writeCacheConfigurations(gradle: GradleInternal) {
+        gradle.settings.caches.let { cacheConfigurations ->
+            write(cacheConfigurations.releasedWrappers)
+            write(cacheConfigurations.snapshotWrappers)
+            write(cacheConfigurations.downloadedResources)
+            write(cacheConfigurations.createdResources)
+            write(cacheConfigurations.cleanup)
+        }
+    }
+
+    private
+    suspend fun DefaultReadContext.readCacheConfigurations(gradle: GradleInternal) {
+        gradle.settings.caches.let { cacheConfigurations ->
+            cacheConfigurations.releasedWrappers = read() as CacheResourceConfigurationInternal?
+            cacheConfigurations.snapshotWrappers = read() as CacheResourceConfigurationInternal?
+            cacheConfigurations.downloadedResources = read() as CacheResourceConfigurationInternal?
+            cacheConfigurations.createdResources = read() as CacheResourceConfigurationInternal?
+            cacheConfigurations.cleanup = readNonNull<Property<Cleanup>>()
+        }
+    }
+
+    private
     suspend fun DefaultWriteContext.writeBuildEventListenerSubscriptions(listeners: List<Provider<*>>) {
         writeCollection(listeners) { listener ->
             when (listener) {
@@ -659,17 +684,18 @@ class ConfigurationCacheState(
         val relevantProjects = relevantProjectsRegistry.relevantProjects(nodes)
         return projects.allProjects.map { project ->
             val mutableModel = project.mutableModel
-            mutableModel.layout.buildDirectory.finalizeValue()
             if (relevantProjects.contains(project)) {
-                ProjectWithWork(project.projectPath, mutableModel.projectDir, mutableModel.buildDir, mutableModel.normalization.computeCachedState())
+                mutableModel.layout.buildDirectory.finalizeValue()
+                ProjectWithWork(project.projectPath, mutableModel.projectDir, mutableModel.buildFile, mutableModel.buildDir, mutableModel.normalization.computeCachedState())
             } else {
-                ProjectWithNoWork(project.projectPath, mutableModel.projectDir, mutableModel.buildDir)
+                ProjectWithNoWork(project.projectPath, mutableModel.projectDir, mutableModel.buildFile)
             }
         }
     }
 
     private
     suspend fun WriteContext.writeProjects(gradle: GradleInternal, projects: List<CachedProjectState>) {
+        writeString(gradle.rootProject.name)
         withGradleIsolate(gradle, userTypesCodec) {
             writeCollection(projects)
         }
@@ -678,10 +704,15 @@ class ConfigurationCacheState(
     private
     suspend fun ReadContext.readProjects(gradle: GradleInternal, build: ConfigurationCacheBuild): List<CachedProjectState> {
         withGradleIsolate(gradle, userTypesCodec) {
+            val rootProjectName = readString()
             return readList {
                 val project = readNonNull<CachedProjectState>()
                 if (project is ProjectWithWork) {
-                    build.createProject(project.path, project.projectDir, project.buildDir)
+                    if (project.path == Path.ROOT) {
+                        build.registerRootProject(rootProjectName, project.projectDir, project.buildDir)
+                    } else {
+                        build.registerProject(project.path, project.projectDir, project.buildDir)
+                    }
                 }
                 project
             }

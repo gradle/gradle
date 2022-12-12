@@ -34,6 +34,11 @@ Some plugins will break with this new version of Gradle, for example because the
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
 [[changes_7.0]]
+== Upgrading from 6.9
+
+Nothing to do.
+
+[[changes_6.9]]
 == Upgrading from 6.8
 
 === Changes in the IDE integration

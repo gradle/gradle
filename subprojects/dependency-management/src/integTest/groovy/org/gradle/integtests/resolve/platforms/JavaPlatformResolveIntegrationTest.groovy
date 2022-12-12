@@ -238,9 +238,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
     // this is the case
     def "can enforce a published platform"() {
         def platform = mavenHttpRepo.module("org", "platform", "1.0")
-                .asGradlePlatform()
-                .dependsOn("org", "foo", "1.0")
-                .publish()
+            .asGradlePlatform()
+            .dependsOn("org", "foo", "1.0")
+            .publish()
         def foo10 = mavenHttpRepo.module("org", "foo", "1.0").withModuleMetadata().publish()
         def foo11 = mavenHttpRepo.module("org", "foo", "1.1").withModuleMetadata().publish()
 
@@ -269,9 +269,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 edge("org:platform:{strictly 1.0}", "org:platform:1.0") {
                     configuration = "enforcedApi"
                     variant("enforcedApi", [
-                            'org.gradle.usage': 'java-api',
-                            'org.gradle.category': 'enforced-platform',
-                            'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.category': 'enforced-platform',
+                        'org.gradle.status': 'release',
                     ])
                     module("org:foo:1.0")
                     noArtifacts()
@@ -286,9 +286,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
     @Issue("gradle/gradle#8312")
     def "can resolve a platform with a constraint to determine the platform version"() {
         def platform = mavenHttpRepo.module("org", "platform", "1.0")
-                .hasType("pom")
-                .allowAll()
-                .publish()
+            .hasType("pom")
+            .allowAll()
+            .publish()
 
         when:
         buildFile << """
@@ -308,18 +308,18 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
             root(":", "org.test:test:1.9") {
                 edge("org:platform", "org:platform:1.0") {
                     variant("platform-compile", [
-                            'org.gradle.usage': 'java-api',
-                            'org.gradle.category': 'platform',
-                            'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.category': 'platform',
+                        'org.gradle.status': 'release',
                     ])
                     byConstraint()
                     noArtifacts()
                 }
                 constraint("org:platform:1.0", "org:platform:1.0") {
                     variant("platform-compile", [
-                            'org.gradle.usage': 'java-api',
-                            'org.gradle.category': 'platform',
-                            'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-api',
+                        'org.gradle.category': 'platform',
+                        'org.gradle.status': 'release',
                     ])
                 }
             }
@@ -371,10 +371,10 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                     noArtifacts()
                 }
                 project(":sub", "org.test:sub:1.9") {
-                    variant("apiElements", ['org.gradle.category':'library',
-                                            'org.gradle.dependency.bundling':'external',
+                    variant("apiElements", ['org.gradle.category': 'library',
+                                            'org.gradle.dependency.bundling': 'external',
                                             'org.gradle.jvm.version': JavaVersion.current().majorVersion,
-                                            'org.gradle.usage':'java-api',
+                                            'org.gradle.usage': 'java-api',
                                             'org.gradle.libraryelements': 'jar',
                                             'org.gradle.compile-view': 'java-api'])
                     constraint("org:platform:1.0", "org:platform:1.0") {
@@ -384,18 +384,17 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                             'org.gradle.status': 'release',
                         ])
                     }
-                    artifact(name: 'main', noType: true)
+                    artifact name: 'main', version: '', extension: '', type: 'java-classes-directory'
                 }
             }
         }
-
     }
 
     @Issue("gradle/gradle#8548")
     def "enforced platforms should not have any dependency"() {
         def top = mavenHttpRepo.module("org", "top", "1.0")
-                .dependsOn("org", "leaf", "1.0")
-                .publish()
+            .dependsOn("org", "leaf", "1.0")
+            .publish()
         def leaf = mavenHttpRepo.module("org", "leaf", "1.0").publish()
 
         when:
@@ -414,9 +413,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
             root(":", "org.test:test:1.9") {
                 edge("org:top:{strictly 1.0}", "org:top:1.0") {
                     variant("enforced-platform-compile", [
-                            'org.gradle.category': 'enforced-platform',
-                            'org.gradle.status': 'release',
-                            'org.gradle.usage': 'java-api'])
+                        'org.gradle.category': 'enforced-platform',
+                        'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-api'])
                     noArtifacts()
                 }
             }
@@ -511,10 +510,10 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                     attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
                 }
             }.withVariant("api") {
-                dependsOn("org.test", "platform", "1.9") {
-                    attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
-                }
-            }.publish()
+            dependsOn("org.test", "platform", "1.9") {
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }
+        }.publish()
 
         when:
         buildFile << """

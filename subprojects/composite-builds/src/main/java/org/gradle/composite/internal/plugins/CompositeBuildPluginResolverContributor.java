@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal.plugins;
 
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -33,14 +34,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class CompositeBuildPluginResolverContributor implements PluginResolverContributor {
+public class CompositeBuildPluginResolverContributor implements PluginResolverContributor, HoldsProjectState {
 
     private static final String SOURCE_DESCRIPTION = "Included Builds";
 
-    private final PluginResolver resolver;
+    private final CompositeBuildPluginResolver resolver;
 
     public CompositeBuildPluginResolverContributor(BuildStateRegistry buildRegistry, BuildState consumingBuild, BuildIncluder buildIncluder) {
         this.resolver = new CompositeBuildPluginResolver(buildRegistry, consumingBuild, buildIncluder);
+    }
+
+    @Override
+    public void discardAll() {
+        resolver.discardAll();
     }
 
     @Override
@@ -118,6 +124,10 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
                 }
             }
             return null;
+        }
+
+        public void discardAll() {
+            results.clear();
         }
     }
 }

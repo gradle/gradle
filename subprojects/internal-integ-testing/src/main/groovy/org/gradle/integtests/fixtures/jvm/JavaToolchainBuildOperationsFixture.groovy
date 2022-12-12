@@ -56,9 +56,28 @@ trait JavaToolchainBuildOperationsFixture {
         }
     }
 
+    static void assertToolchainUsages(List<BuildOperationRecord.Progress> events, JvmInstallationMetadata jdkMetadata, String... tools) {
+        assert events.size() > 0
+        def expectedTools = tools.toList().sort()
+        def usedTools = events.collect { it.details.toolName }.unique().sort()
+        assert expectedTools == usedTools
+        events.each { usageEvent ->
+            def usedToolchain = usageEvent.details.toolchain
+            assert usedToolchain == [
+                javaVersion: jdkMetadata.javaVersion,
+                javaVendor: jdkMetadata.vendor.displayName,
+                runtimeName: jdkMetadata.runtimeName,
+                runtimeVersion: jdkMetadata.runtimeVersion,
+                jvmName: jdkMetadata.jvmName,
+                jvmVersion: jdkMetadata.jvmVersion,
+                jvmVendor: jdkMetadata.jvmVendor,
+                architecture: jdkMetadata.architecture,
+            ]
+        }
+    }
+
     static void assertToolchainUsage(String toolName, JvmInstallationMetadata jdkMetadata, BuildOperationRecord.Progress usageEvent) {
         assert usageEvent.details.toolName == toolName
-
         def usedToolchain = usageEvent.details.toolchain
         assert usedToolchain == [
             javaVersion: jdkMetadata.javaVersion,

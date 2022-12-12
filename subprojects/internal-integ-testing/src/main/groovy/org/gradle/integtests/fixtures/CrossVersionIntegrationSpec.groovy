@@ -29,6 +29,9 @@ import spock.lang.Specification
 
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 
+/**
+ * For running these tests against specific versions, see {@link org.gradle.integtests.fixtures.compatibility.AbstractContextualMultiVersionTestInterceptor}
+ */
 @CrossVersionTest
 @Retry(condition = { RetryConditions.onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class CrossVersionIntegrationSpec extends Specification {

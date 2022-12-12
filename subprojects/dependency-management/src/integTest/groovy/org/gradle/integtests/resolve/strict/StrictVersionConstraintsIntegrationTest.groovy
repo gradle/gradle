@@ -488,9 +488,9 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                constraint('org:foo:{strictly 1.0}', 'project :foo', 'org:foo:1.0').byConstraint()
+                constraint('org:foo:{strictly 1.0}', ':foo', 'org:foo:1.0').byConstraint()
                 module('org:bar:1.0') {
-                    edge('org:foo:2.0', 'project :foo', 'org:foo:1.0') {}.byAncestor()
+                    edge('org:foo:2.0', ':foo', 'org:foo:1.0') {}.byAncestor()
                 }
                 project(':foo', 'org:foo:1.0') {
                     configuration = 'default'

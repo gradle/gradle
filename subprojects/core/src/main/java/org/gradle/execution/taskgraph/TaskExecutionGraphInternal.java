@@ -61,4 +61,9 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
      * dependencies from other builds.
      */
     void visitScheduledNodes(Consumer<List<Node>> visitor);
+
+    /**
+     * Resets the lifecycle for this graph.
+     */
+    void resetState();
 }

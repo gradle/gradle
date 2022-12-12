@@ -93,9 +93,9 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
                             break
                         case "classes":
                             // first one is "main" from Java sources
-                            artifact(name: 'main', noType: true)
+                            artifact name: 'main', version: '', extension: '', type: 'java-classes-directory'
                             // second one is "main" from Groovy sources
-                            artifact(name: 'main', noType: true)
+                            artifact name: 'main', version: '', extension: '', type: 'java-classes-directory'
                             break
                     }
                 }
@@ -181,9 +181,9 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
 
                     module('org.codehaus.groovy:groovy:2.5.10')
                     // first one is "main" from Java sources
-                    artifact(name: 'main', noType: true)
+                    artifact name: 'main', version: '', extension: '', type: 'java-classes-directory'
                     // second one is "main" from Groovy sources
-                    artifact(name: 'main', noType: true)
+                    artifact name: 'main', version: '', extension: '', type: 'java-classes-directory'
                 }
             }
         }

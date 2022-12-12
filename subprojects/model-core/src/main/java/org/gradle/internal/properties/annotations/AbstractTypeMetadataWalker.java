@@ -17,7 +17,6 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.reflect.TypeToken;
-import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
 
@@ -44,14 +43,14 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
     }
 
     @Override
-    public void walk(T root, NodeMetadataVisitor<T> visitor) {
+    public void walk(T root, TypeMetadataVisitor<T> visitor) {
         Class<?> nodeType = resolveType(root);
         TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(nodeType);
         visitor.visitRoot(typeMetadata, root);
         walkChildren(root, typeMetadata, null, visitor, nestedNodeToQualifiedNameMapFactory.get());
     }
 
-    private void walk(T node, String qualifiedName, PropertyMetadata propertyMetadata, NodeMetadataVisitor<T> visitor, Map<T, String> nestedNodesWalkedOnPath) {
+    private void walk(T node, String qualifiedName, PropertyMetadata propertyMetadata, TypeMetadataVisitor<T> visitor, Map<T, String> nestedNodesWalkedOnPath) {
         Class<?> nodeType = resolveType(node);
         TypeMetadata typeMetadata = typeMetadataStore.getTypeMetadata(nodeType);
         if (Provider.class.isAssignableFrom(nodeType)) {
@@ -65,7 +64,7 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
         }
     }
 
-    private void walkChildren(T node, TypeMetadata typeMetadata, @Nullable String parentQualifiedName, NodeMetadataVisitor<T> visitor, Map<T, String> nestedNodesOnPath) {
+    private void walkChildren(T node, TypeMetadata typeMetadata, @Nullable String parentQualifiedName, TypeMetadataVisitor<T> visitor, Map<T, String> nestedNodesOnPath) {
         typeMetadata.getPropertiesMetadata().forEach(propertyMetadata -> {
             String childQualifiedName = getQualifiedName(parentQualifiedName, propertyMetadata.getPropertyName());
             if (propertyMetadata.getPropertyType() == nestedAnnotation) {
@@ -77,7 +76,7 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
         });
     }
 
-    private void handleNested(T node, TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, NodeMetadataVisitor<T> visitor, Map<T, String> nestedNodesOnPath) {
+    private void handleNested(T node, TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, TypeMetadataVisitor<T> visitor, Map<T, String> nestedNodesOnPath) {
         String firstOccurrenceQualifiedName = nestedNodesOnPath.putIfAbsent(node, qualifiedName);
         if (firstOccurrenceQualifiedName != null) {
             onNestedNodeCycle(firstOccurrenceQualifiedName, qualifiedName);
@@ -119,7 +118,7 @@ abstract class AbstractTypeMetadataWalker<T> implements TypeMetadataWalker<T> {
 
         @Override
         protected void onNestedNodeCycle(@Nullable String firstOccurrenceQualifiedName, String secondOccurrenceQualifiedName) {
-            throw new GradleException(String.format("Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.", firstOccurrenceQualifiedName, secondOccurrenceQualifiedName));
+            throw new IllegalStateException(String.format("Cycles between nested beans are not allowed. Cycle detected between: '%s' and '%s'.", firstOccurrenceQualifiedName, secondOccurrenceQualifiedName));
         }
 
         @Override

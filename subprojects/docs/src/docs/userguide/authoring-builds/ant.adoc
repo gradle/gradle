@@ -37,8 +37,8 @@ You execute an Ant task by calling a method on the `AntBuilder` instance. You us
 
 .Using an Ant task
 ====
-include::sample[dir="snippets/ant/useAntTask/groovy",files="build.gradle"]
 include::sample[dir="snippets/ant/useAntTask/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/useAntTask/groovy",files="build.gradle"]
 ====
 
 .Output of `gradle hello`
@@ -51,8 +51,8 @@ You pass nested text to an Ant task by passing it as a parameter of the task met
 
 .Passing nested text to an Ant task
 ====
-include::sample[dir="snippets/ant/taskWithNestedText/groovy",files="build.gradle"]
 include::sample[dir="snippets/ant/taskWithNestedText/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/taskWithNestedText/groovy",files="build.gradle"]
 ====
 
 .Output of `gradle hello`
@@ -65,16 +65,16 @@ You pass nested elements to an Ant task inside a closure. Nested elements are de
 
 .Passing nested elements to an Ant task
 ====
-include::sample[dir="snippets/ant/taskWithNestedElements/groovy",files="build.gradle"]
 include::sample[dir="snippets/ant/taskWithNestedElements/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/taskWithNestedElements/groovy",files="build.gradle"]
 ====
 
 You can access Ant types in the same way that you access tasks, using the name of the type as the method name. The method call returns the Ant data type, which you can then use directly in your build script. In the following example, we create an Ant `path` object, then iterate over the contents of it.
 
 .Using an Ant type
 ====
-include::sample[dir="snippets/ant/useAntType/groovy",files="build.gradle"]
 include::sample[dir="snippets/ant/useAntType/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/useAntType/groovy",files="build.gradle"]
 ====
 
 More information about `AntBuilder` can be found in 'Groovy in Action' 8.4 or at the https://groovy-lang.org/scripting-ant.html[Groovy Wiki].
@@ -86,24 +86,24 @@ To make custom tasks available in your build, you can use the `taskdef` (usually
 
 .Using a custom Ant task
 ====
-include::sample[dir="snippets/ant/useExternalAntTask/groovy",files="build.gradle[tags=configure-task]"]
 include::sample[dir="snippets/ant/useExternalAntTask/kotlin",files="build.gradle.kts[tags=configure-task]"]
+include::sample[dir="snippets/ant/useExternalAntTask/groovy",files="build.gradle[tags=configure-task]"]
 ====
 
 You can use Gradle's dependency management to assemble the classpath to use for the custom tasks. To do this, you need to define a custom configuration for the classpath, then add some dependencies to the configuration. This is described in more detail in link:declaring_dependencies.html[Declaring Dependencies].
 
 .Declaring the classpath for a custom Ant task
 ====
-include::sample[dir="snippets/ant/useExternalAntTaskWithConfig/groovy",files="build.gradle[tags=define-classpath]"]
 include::sample[dir="snippets/ant/useExternalAntTaskWithConfig/kotlin",files="build.gradle.kts[tags=define-classpath]"]
+include::sample[dir="snippets/ant/useExternalAntTaskWithConfig/groovy",files="build.gradle[tags=define-classpath]"]
 ====
 
 To use the classpath configuration, use the `asPath` property of the custom configuration.
 
 .Using a custom Ant task and dependency management together
 ====
-include::sample[dir="snippets/ant/useExternalAntTaskWithConfig/groovy",files="build.gradle[tags=use-classpath]"]
 include::sample[dir="snippets/ant/useExternalAntTaskWithConfig/kotlin",files="build.gradle.kts[tags=use-classpath]"]
+include::sample[dir="snippets/ant/useExternalAntTaskWithConfig/groovy",files="build.gradle[tags=use-classpath]"]
 ====
 
 [[sec:import_ant_build]]
@@ -113,8 +113,8 @@ You can use the `ant.importBuild()` method to import an Ant build into your Grad
 
 .Importing an Ant build
 ====
-include::sample[dir="snippets/ant/hello/groovy",files="build.gradle"]
 include::sample[dir="snippets/ant/hello/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/hello/groovy",files="build.gradle"]
 ====
 
 ====
@@ -131,8 +131,8 @@ You can add a task which depends on an Ant target:
 
 .Task that depends on Ant target
 ====
-include::sample[dir="snippets/ant/dependsOnAntTarget/groovy",files="build.gradle"]
 include::sample[dir="snippets/ant/dependsOnAntTarget/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/dependsOnAntTarget/groovy",files="build.gradle"]
 ====
 
 .Output of `gradle intro`
@@ -145,8 +145,8 @@ Or, you can add behaviour to an Ant target:
 
 .Adding behaviour to an Ant target
 ====
-include::sample[dir="snippets/ant/addBehaviourToAntTarget/groovy",files="build.gradle"]
 include::sample[dir="snippets/ant/addBehaviourToAntTarget/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/addBehaviourToAntTarget/groovy",files="build.gradle"]
 ====
 
 .Output of `gradle hello`
@@ -159,8 +159,8 @@ It is also possible for an Ant target to depend on a Gradle task:
 
 .Ant target that depends on Gradle task
 ====
-include::sample[dir="snippets/ant/dependsOnTask/groovy",files="build.gradle"]
 include::sample[dir="snippets/ant/dependsOnTask/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/dependsOnTask/groovy",files="build.gradle"]
 ====
 
 ====
@@ -177,8 +177,8 @@ Sometimes it may be necessary to “rename” the task generated for an Ant targ
 
 .Renaming imported Ant targets
 ====
-include::sample[dir="snippets/ant/renameTask/groovy",files="build.gradle"]
 include::sample[dir="snippets/ant/renameTask/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/renameTask/groovy",files="build.gradle"]
 ====
 
 ====
@@ -200,8 +200,8 @@ There are several ways to set an Ant property, so that the property can be used 
 
 .Setting an Ant property
 ====
-include::sample[dir="snippets/ant/properties/groovy",files="build.gradle[tags=set-property]"]
 include::sample[dir="snippets/ant/properties/kotlin",files="build.gradle.kts[tags=set-property]"]
+include::sample[dir="snippets/ant/properties/groovy",files="build.gradle[tags=set-property]"]
 ====
 
 Many Ant tasks set properties when they execute. There are several ways to get the value of these properties. You can get the property directly from the `AntBuilder` instance. The Ant properties are also available as a Map. Below are some examples.
@@ -212,16 +212,16 @@ include::sample[dir="snippets/ant/properties/groovy",files="build.xml[tags=getpr
 ====
 
 ====
-include::sample[dir="snippets/ant/properties/groovy",files="build.gradle[tags=get-property]"]
 include::sample[dir="snippets/ant/properties/kotlin",files="build.gradle.kts[tags=get-property]"]
+include::sample[dir="snippets/ant/properties/groovy",files="build.gradle[tags=get-property]"]
 ====
 
 There are several ways to set an Ant reference:
 
 .Setting an Ant reference
 ====
-include::sample[dir="snippets/ant/properties/groovy",files="build.gradle[tags=set-reference]"]
 include::sample[dir="snippets/ant/properties/kotlin",files="build.gradle.kts[tags=set-reference]"]
+include::sample[dir="snippets/ant/properties/groovy",files="build.gradle[tags=set-reference]"]
 ====
 
 ====
@@ -236,8 +236,8 @@ include::sample[dir="snippets/ant/properties/groovy",files="build.xml[tags=getre
 ====
 
 ====
-include::sample[dir="snippets/ant/properties/groovy",files="build.gradle[tags=get-reference]"]
 include::sample[dir="snippets/ant/properties/kotlin",files="build.gradle.kts[tags=get-reference]"]
+include::sample[dir="snippets/ant/properties/groovy",files="build.gradle[tags=get-reference]"]
 ====
 
 [[sec:ant_logging]]
@@ -281,8 +281,8 @@ For example, the following changes the mapping such that Ant _INFO_ priority mes
 
 .Fine tuning Ant logging
 ====
-include::sample[dir="snippets/ant/antLogging/groovy",files="build.gradle"]
 include::sample[dir="snippets/ant/antLogging/kotlin",files="build.gradle.kts"]
+include::sample[dir="snippets/ant/antLogging/groovy",files="build.gradle"]
 ====
 
 .Output of `gradle hello`
