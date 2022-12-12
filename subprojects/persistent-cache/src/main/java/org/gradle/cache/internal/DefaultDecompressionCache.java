@@ -20,7 +20,6 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.ScopedCache;
-import org.gradle.internal.Factory;
 
 import java.io.File;
 
@@ -33,7 +32,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
  * are only permitted to one client at a time.  The cache will be a Gradle cross version cache.
  */
 public class DefaultDecompressionCache implements DecompressionCache {
-    private static final String EXPANSION_CACHE_KEY = "compressed-file-expansion";
+    private static final String EXPANSION_CACHE_KEY = "expandedArchives";
     private static final String EXPANSION_CACHE_NAME = "Compressed Files Expansion Cache";
 
     private final PersistentCache cache;
@@ -47,23 +46,8 @@ public class DefaultDecompressionCache implements DecompressionCache {
     }
 
     @Override
-    public <T> T useCache(Factory<? extends T> action) {
-        return cache.useCache(action);
-    }
-
-    @Override
     public void useCache(Runnable action) {
         cache.useCache(action);
-    }
-
-    @Override
-    public <T> T withFileLock(Factory<? extends T> action) {
-        return cache.withFileLock(action);
-    }
-
-    @Override
-    public void withFileLock(Runnable action) {
-        cache.withFileLock(action);
     }
 
     @Override

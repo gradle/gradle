@@ -34,6 +34,7 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.DefaultPropertyFactory;
@@ -44,12 +45,13 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.DecompressionCacheFactory;
+import org.gradle.cache.internal.scopes.DefaultProjectScopedCache;
 import org.gradle.cache.scopes.ProjectScopedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -85,7 +87,6 @@ public class WorkerSharedProjectScopeServices {
             FileResolver fileResolver,
             Instantiator instantiator,
             DirectoryFileTreeFactory directoryFileTreeFactory,
-            StreamHasher streamHasher,
             FileHasher fileHasher,
             DefaultResourceHandler.Factory resourceHandlerFactory,
             FileCollectionFactory fileCollectionFactory,
@@ -147,6 +148,9 @@ public class WorkerSharedProjectScopeServices {
         return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 
+    protected ProjectScopedCache createProjectScopedCache(TemporaryFileProvider temporaryFileProvider, CacheRepository cacheRepository) {
+        return new DefaultProjectScopedCache(temporaryFileProvider.newTemporaryDirectory(".cache"), cacheRepository);
+    }
     protected DecompressionCacheFactory createDecompressionCacheFactory(ProjectScopedCache cacheFactory) {
         return new DefaultDecompressionCacheFactory(cacheFactory);
     }
