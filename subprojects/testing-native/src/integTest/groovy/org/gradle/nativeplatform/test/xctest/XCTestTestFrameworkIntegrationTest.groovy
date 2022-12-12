@@ -28,7 +28,7 @@ import org.gradle.util.UnitTestPreconditions
 
 import static org.junit.Assume.assumeTrue
 
-@Requires(UnitTestPreconditions.NotMacOsXM1)
+@Requires(UnitTestPreconditions.NotMacOsM1)
 class XCTestTestFrameworkIntegrationTest extends AbstractTestFrameworkIntegrationTest {
     def setup() {
         def toolChain = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC)

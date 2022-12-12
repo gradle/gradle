@@ -23,11 +23,10 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.util.Requires
+import org.gradle.util.UnitTestPreconditions
 import spock.lang.IgnoreIf
 
-import static org.gradle.util.TestPrecondition.HAS_DOCKER
-
-@Requires([HAS_DOCKER])
+@Requires(UnitTestPreconditions.HasDocker)
 @IgnoreIf({ GradleContextualExecuter.embedded }) // needs real Gradle distribution to run in container
 class ReadOnlyDependencyCacheWithinContainerTest extends AbstractReadOnlyCacheDependencyResolutionTest {
 

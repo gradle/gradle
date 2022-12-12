@@ -33,7 +33,9 @@ import org.gradle.util.UnitTestPreconditions
  */
 @NativeToolchainTest
 @MultiVersionTestCategory
-@Requires(UnitTestPreconditions.NotMacOs)
+@Requires([
+    UnitTestPreconditions.NotMacOs
+])
 abstract class AbstractInstalledToolChainIntegrationSpec extends AbstractIntegrationSpec implements HostPlatform {
     static AvailableToolChains.InstalledToolChain toolChain
     File initScript

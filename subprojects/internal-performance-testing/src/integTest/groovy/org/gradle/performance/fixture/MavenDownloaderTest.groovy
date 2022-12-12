@@ -28,7 +28,7 @@ import spock.lang.TempDir
 
 import java.nio.file.Files
 
-@Requires([TestPrecondition.ONLINE])
+@Requires(UnitTestPreconditions.Online)
 class MavenDownloaderTest extends Specification {
 
     @TempDir

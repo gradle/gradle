@@ -23,7 +23,10 @@ import org.gradle.util.Requires
 import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 
-@Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_MAC_OS_X])
+@Requires([
+    UnitTestPreconditions.CanInstallExecutable,
+    UnitTestPreconditions.NotMacOs
+])
 class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     @Rule public final Sample visualStudio = sample(temporaryFolder, 'visual-studio')
 
@@ -52,7 +55,7 @@ class NativeIdeSamplesIntegrationTest extends AbstractVisualStudioIntegrationSpe
         libProjectFile.projectXml.PropertyGroup.find({it.'@Label' == 'Custom'}).ProjectDetails[0].text() == "Project is named helloLib"
     }
 
-    @Requires(UnitTestPreconditions.Msbuild)
+    @Requires(UnitTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "build generated visual studio solution"() {
         useMsbuildTool()

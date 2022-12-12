@@ -145,7 +145,7 @@ model {
         mainSolution.assertReferencesProject(projectFile, projectConfigurations)
     }
 
-    @Requires(UnitTestPreconditions.Msbuild)
+    @Requires(UnitTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "can build executable from visual studio"() {
         useMsbuildTool()
@@ -177,7 +177,7 @@ model {
         installation('build/install/main/win32/debug').assertInstalled()
     }
 
-    @Requires(UnitTestPreconditions.Msbuild)
+    @Requires(UnitTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "can build library from visual studio"() {
         useMsbuildTool()
@@ -210,7 +210,7 @@ model {
         debugBinaryDll.assertExists()
     }
 
-    @Requires(UnitTestPreconditions.Msbuild)
+    @Requires(UnitTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "can detect build failure from visual studio"() {
         useMsbuildTool()
@@ -239,7 +239,7 @@ model {
         resultDebug.assertHasErrorOutput("broken.cpp(1): error C2143: syntax error: missing ';' before '!'")
     }
 
-    @Requires(UnitTestPreconditions.Msbuild)
+    @Requires(UnitTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "can clean from visual studio"() {
         useMsbuildTool()

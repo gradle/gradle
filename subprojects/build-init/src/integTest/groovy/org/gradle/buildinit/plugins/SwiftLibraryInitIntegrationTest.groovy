@@ -27,7 +27,7 @@ import org.gradle.util.Requires
 import org.gradle.util.UnitTestPreconditions
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
-@Requires(UnitTestPreconditions.NotMacOsXM1) // M1 Macs need modern Xcode to compile aarch64 binaries
+@Requires(UnitTestPreconditions.NotMacOsM1) // M1 Macs need modern Xcode to compile aarch64 binaries
 class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "Hello.swift"

@@ -34,7 +34,10 @@ abstract class AbstractXcodeCppProjectIntegrationTest extends AbstractXcodeNativ
     @Override
     protected abstract CppSourceElement getComponentUnderTest()
 
-    @Requires([TestPrecondition.XCODE, TestPrecondition.NOT_MAC_OS_X_M1]) // TODO KM: Not sure why error message is different on M1
+    @Requires([
+        UnitTestPreconditions.HasXCode,
+        UnitTestPreconditions.NotMacOsM1
+    ]) // TODO KM: Not sure why error message is different on M1
     @ToBeFixedForConfigurationCache
     def "returns meaningful errors from xcode when component product is unbuildable due to architecture"() {
         useXcodebuildTool()

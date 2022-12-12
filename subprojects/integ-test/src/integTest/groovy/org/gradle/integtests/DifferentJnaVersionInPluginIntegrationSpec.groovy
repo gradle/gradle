@@ -21,7 +21,7 @@ import org.gradle.util.Requires
 import org.gradle.util.UnitTestPreconditions
 
 class DifferentJnaVersionInPluginIntegrationSpec extends AbstractIntegrationSpec {
-    @Requires(UnitTestPreconditions.NotMacOsXM1)
+    @Requires(UnitTestPreconditions.NotMacOsM1)
     def 'can build a plugin with a different jna version'() {
         given:
         buildScript """

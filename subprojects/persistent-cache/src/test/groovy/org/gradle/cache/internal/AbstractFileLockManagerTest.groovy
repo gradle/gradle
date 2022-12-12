@@ -407,7 +407,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         mode << [Shared, Exclusive]
     }
 
-    @Requires(UnitTestPreconditions.NoFileLockOnOpen)
+    @Requires(UnitTestPreconditions.NoMandatoryFileLockOnOpen)
     def "writes lock file with info region while exclusive lock is open"() {
         expect:
         def lock = createLock(Exclusive)
@@ -419,7 +419,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         lock?.close()
     }
 
-    @Requires(UnitTestPreconditions.NoFileLockOnOpen)
+    @Requires(UnitTestPreconditions.NoMandatoryFileLockOnOpen)
     def "writes dirty lock file with info region while updating file"() {
         given:
         writeFile()
@@ -441,7 +441,7 @@ abstract class AbstractFileLockManagerTest extends Specification {
         lock?.close()
     }
 
-    @Requires(UnitTestPreconditions.NoFileLockOnOpen)
+    @Requires(UnitTestPreconditions.NoMandatoryFileLockOnOpen)
     def "long descriptor strings are trimmed when written to information region"() {
         setup:
         def customMetaDataProvider = Mock(ProcessMetaDataProvider)
