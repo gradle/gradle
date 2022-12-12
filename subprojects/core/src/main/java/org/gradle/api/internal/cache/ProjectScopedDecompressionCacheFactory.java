@@ -19,34 +19,31 @@ package org.gradle.api.internal.cache;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheFactory;
-import org.gradle.cache.internal.DecompressionCache;
-import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.internal.DefaultCacheRepository;
-import org.gradle.cache.internal.DefaultDecompressionCache;
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
 import org.gradle.cache.internal.scopes.DefaultProjectScopedCache;
 import org.gradle.cache.scopes.ProjectScopedCache;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.util.GradleVersion;
 
-import java.io.Closeable;
+import javax.annotation.concurrent.GuardedBy;
 import java.io.File;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
- * A factory that can be used to create {@link DecompressionCache} instances for a particular project.
+ * A lazy implementation of {@link AbstractManagedDecompressionCacheFactory} that creates
+ * decompression caches for a project.
  *
- * This type exists so that creation of the caches can be done lazily, avoiding the
- * creation of the cache directory (and, by default, the build directory it will be
- * a subdirectory of) until it is actually needed.  We need a named factory type
+ * This implementation provides for lazy creation of the caches, avoiding the
+ * need to read the cache directory (and, by default, the build directory it will be
+ * a subdirectory of) until we are actually creating a cache.  We need a named factory type
  * to create a service which can be injected.
  */
-public class ProjectScopedDecompressionCacheFactory implements DecompressionCacheFactory, Stoppable, Closeable {
+public final class ProjectScopedDecompressionCacheFactory extends AbstractManagedDecompressionCacheFactory {
     private final ProjectLayout projectLayout;
     private final CacheFactory cacheFactory;
-    private final Set<DefaultDecompressionCache> createdCaches = new HashSet<>();
+
+    private final Object[] lock = new Object[0];
+    @GuardedBy("lock")
+    private volatile ProjectScopedCache scopedCache;
 
     public ProjectScopedDecompressionCacheFactory(ProjectLayout projectLayout, CacheFactory cacheFactory) {
         this.projectLayout = projectLayout;
@@ -54,31 +51,20 @@ public class ProjectScopedDecompressionCacheFactory implements DecompressionCach
     }
 
     @Override
-    public DefaultDecompressionCache create() {
-        File cacheDir = projectLevelCacheDir();
-        CacheRepository cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(cacheDir, GradleVersion.current()), cacheFactory);
-        ProjectScopedCache scopedCache = new DefaultProjectScopedCache(cacheDir, cacheRepository);
-
-        DefaultDecompressionCache cache = new DefaultDecompressionCache(scopedCache);
-        createdCaches.add(cache);
-        return cache;
-    }
-
-    private File projectLevelCacheDir() {
-        return projectLayout.getBuildDirectory().file(".cache").get().getAsFile();
-    }
-
-    @Override
-    public void close() throws IOException {
-        createdCaches.forEach(DefaultDecompressionCache::close);
-    }
-
-    @Override
-    public void stop() {
-        try {
-            close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    protected ProjectScopedCache getScopedCache() {
+        if (scopedCache == null) {
+            synchronized (lock) {
+                if (scopedCache == null) {
+                    File cacheDir = getCacheDir();
+                    CacheRepository cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(cacheDir, GradleVersion.current()), cacheFactory);
+                    scopedCache = new DefaultProjectScopedCache(cacheDir, cacheRepository);
+                }
+            }
         }
+        return scopedCache;
+    }
+
+    private File getCacheDir() {
+        return projectLayout.getBuildDirectory().file(".cache").get().getAsFile();
     }
 }
