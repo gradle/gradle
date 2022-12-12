@@ -38,6 +38,7 @@ import org.gradle.internal.classpath.Instrumented.fileCollectionObserved
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
+import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
@@ -199,6 +200,7 @@ fun Project.enableScriptCompilationOf(
 
         val compilePluginsBlocks by registering(CompilePrecompiledScriptPluginPlugins::class) {
 
+            javaLauncher.set(serviceOf<JavaToolchainService>().launcherFor { })
             jvmTarget.set(jvmTargetProvider)
 
             dependsOn(extractPrecompiledScriptPluginPlugins)

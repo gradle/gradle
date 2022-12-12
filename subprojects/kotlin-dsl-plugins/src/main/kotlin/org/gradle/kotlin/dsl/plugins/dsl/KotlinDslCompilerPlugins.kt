@@ -44,7 +44,9 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
             kotlinDslPluginOptions {
                 tasks.withType<KotlinCompile>().configureEach {
                     it.kotlinOptions {
-                        jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
+                        if (this@kotlinDslPluginOptions.jvmTargetProperty.isPresent) {
+                            jvmTarget = this@kotlinDslPluginOptions.jvmTargetProperty.get()
+                        }
                         apiVersion = "1.5"
                         languageVersion = "1.5"
                         useOldBackend = true
