@@ -36,7 +36,14 @@ class IntegTestPreconditions extends BaseTestPreconditions {
         }
     }
 
-    static final class IsConfigCache implements TestPrecondition {
+    static final class IsConfigCached implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return GradleContextualExecuter.configCache()
+        }
+    }
+
+    static final class NotConfigCached implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
             return GradleContextualExecuter.isNotConfigCache()

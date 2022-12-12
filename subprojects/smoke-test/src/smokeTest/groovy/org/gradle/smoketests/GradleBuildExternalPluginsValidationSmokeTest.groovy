@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.util.IntegTestPreconditions
 import org.gradle.util.Requires
 import org.gradle.util.UnitTestPreconditions
 
@@ -25,9 +26,11 @@ import org.gradle.util.UnitTestPreconditions
  * Smoke test verifying the external plugins.
  *
  */
-@Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
-    GradleContextualExecuter.isNotConfigCache() && GradleBuildJvmSpec.isAvailable()
-})
+@Requires([
+    UnitTestPreconditions.Jdk9OrLater,
+    IntegTestPreconditions.NotConfigCached,
+    IntegTestPreconditions.GradleBuildJvmSpecAvailable
+])
 class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptionSmokeTest implements WithPluginValidation, ValidationMessageChecker {
 
     def setup() {

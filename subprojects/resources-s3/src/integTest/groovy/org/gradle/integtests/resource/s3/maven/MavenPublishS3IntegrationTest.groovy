@@ -20,14 +20,17 @@ import org.gradle.api.credentials.AwsCredentials
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
 import org.gradle.integtests.resource.s3.fixtures.S3Artifact
-import org.gradle.integtests.resource.s3.fixtures.S3IntegrationTestPrecondition
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.gradle.internal.credentials.DefaultAwsCredentials
+import org.gradle.util.IntegTestPreconditions
 import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Requires
 
-@Requires({ S3IntegrationTestPrecondition.fulfilled })
+@Requires([
+    UnitTestPreconditions.Jdk9OrLater,
+    IntegTestPreconditions.IsEmbeddedExecutor
+])
 class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
     @Rule
     public S3Server server = new S3Server(temporaryFolder)
