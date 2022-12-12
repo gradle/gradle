@@ -141,7 +141,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -1109,11 +1108,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public List<? extends GradleException> preventFromFurtherMutation(boolean lenient) {
+    public List<? extends GradleException> preventFromFurtherMutationLenient() {
+        return preventFromFurtherMutation(true);
+    }
+
+    private List<? extends GradleException> preventFromFurtherMutation(boolean lenient) {
         // TODO This should use the same `MutationValidator` infrastructure that we use for other mutation types
         if (canBeMutated) {
-            List<GradleException> lenientErrors = new ArrayList<>();
-
             if (beforeLocking != null) {
                 beforeLocking.execute(this);
                 beforeLocking = null;
@@ -1127,15 +1128,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             // We will only check unique attributes if this configuration is consumable, not resolvable, and has attributes itself
             if (mustHaveUniqueAttributes(this) && !this.getAttributes().isEmpty()) {
-                ensureUniqueAttributes(lenient, lenientErrors);
+                return ensureUniqueAttributes(lenient);
             }
 
-            return lenientErrors;
         }
         return Collections.emptyList();
     }
 
-    private void ensureUniqueAttributes(boolean lenient, List<GradleException> lenientErrors) {
+    private List<? extends GradleException> ensureUniqueAttributes(boolean lenient) {
         final Set<? extends ConfigurationInternal> all = (configurationsProvider != null) ? configurationsProvider.getAll() : null;
         if (all != null) {
             final Collection<? extends Capability> allCapabilities = allCapabilitiesIncludingDefault(this);
@@ -1159,12 +1159,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                     .withUserManual("upgrading_version_7", "unique_attribute_sets")
                     .build();
                 if (lenient) {
-                    lenientErrors.add(gradleException);
+                    return Collections.singletonList(gradleException);
                 } else {
                     throw gradleException;
                 }
             }
         }
+        return Collections.emptyList();
     }
 
     /**

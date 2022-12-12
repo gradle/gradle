@@ -79,7 +79,7 @@ public final class ConfigurationReportModelFactory {
 
     private ReportConfiguration convertConfiguration(ConfigurationInternal configuration, Project project, FileResolver fileResolver, List<ReportConfiguration> extendedConfigurations) {
         // Important to lock the config prior to extracting the attributes, as some attributes, such as TargetJvmVersion, are actually added by this locking process
-        List<? extends GradleException> lenientErrors = configuration.preventFromFurtherMutation(true);
+        List<? extends GradleException> lenientErrors = configuration.preventFromFurtherMutationLenient();
 
         final List<ReportAttribute> attributes = configuration.getAttributes().keySet().stream()
             .map(a -> convertAttributeInContainer(a, configuration.getAttributes(), project.getDependencies().getAttributesSchema()))
