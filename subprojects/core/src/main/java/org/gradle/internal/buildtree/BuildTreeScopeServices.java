@@ -17,13 +17,12 @@
 package org.gradle.internal.buildtree;
 
 import org.gradle.StartParameter;
+import org.gradle.api.internal.cache.BuildTreeScopedDecompressionCacheFactory;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.cache.internal.DecompressionCacheFactory;
-import org.gradle.cache.internal.DefaultDecompressionCache;
 import org.gradle.cache.scopes.BuildTreeScopedCache;
 import org.gradle.execution.DefaultTaskSelector;
 import org.gradle.execution.ProjectConfigurer;
@@ -100,16 +99,7 @@ public class BuildTreeScopeServices {
         return exceptionAnalyser;
     }
 
-    protected DecompressionCache createDecompressionCache(BuildTreeScopedCache cacheFactory) {
-        return new DefaultDecompressionCache(cacheFactory);
-    }
-
     protected DecompressionCacheFactory createDecompressionCacheFactory(BuildTreeScopedCache cacheFactory) {
-        return new DecompressionCacheFactory() {
-            @Override
-            public DecompressionCache create() {
-                return new DefaultDecompressionCache(cacheFactory);
-            }
-        };
+        return new BuildTreeScopedDecompressionCacheFactory(cacheFactory);
     }
 }
