@@ -24,9 +24,6 @@ import org.gradle.jvm.toolchain.JvmImplementation;
 
 import java.util.function.Predicate;
 
-import static org.gradle.jvm.toolchain.JvmVendorSpec.IBM;
-import static org.gradle.jvm.toolchain.JvmVendorSpec.IBM_SEMERU;
-
 public class JavaToolchainMatcher implements Predicate<JavaToolchain> {
 
     private final JavaToolchainSpec spec;
@@ -71,21 +68,12 @@ public class JavaToolchainMatcher implements Predicate<JavaToolchain> {
 
     private static boolean isJ9RequestedViaVendor(JavaToolchainSpec spec) {
         DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
-        return isIbmVendor(vendorSpec);
+        return vendorSpec != DefaultJvmVendorSpec.any() && vendorSpec.test(JvmVendor.KnownJvmVendor.IBM.asJvmVendor());
     }
 
     @SuppressWarnings("unchecked")
     private Predicate<JvmInstallationMetadata> vendorPredicate() {
-        DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
-        if (isIbmVendor(vendorSpec)) {
-            return ((Predicate<JvmInstallationMetadata>) IBM).or((Predicate<JvmInstallationMetadata>) IBM_SEMERU);
-        } else {
-            return vendorSpec;
-        }
-    }
-
-    private static boolean isIbmVendor(DefaultJvmVendorSpec vendorSpec) {
-        return vendorSpec != DefaultJvmVendorSpec.any() && vendorSpec.test(JvmVendor.KnownJvmVendor.IBM.asJvmVendor());
+        return (DefaultJvmVendorSpec) spec.getVendor().get();
     }
 
 }
