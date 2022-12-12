@@ -17,7 +17,10 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.Project
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
+import org.gradle.internal.deprecation.DeprecationLogger.deprecateProperty
 
 import org.gradle.kotlin.dsl.*
 
@@ -27,7 +30,11 @@ import org.gradle.kotlin.dsl.*
  *
  * @see KotlinDslPlugin
  */
-abstract class KotlinDslPluginOptions {
+abstract class KotlinDslPluginOptions internal constructor(objects: ObjectFactory) {
+
+    @Deprecated("Configure a Java Toolchain instead")
+    internal
+    val jvmTargetProperty = objects.property<String>()
 
     /**
      * Kotlin compilation JVM target.
@@ -36,7 +43,92 @@ abstract class KotlinDslPluginOptions {
      *
      * @see [org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions.jvmTarget]
      */
-    abstract val jvmTarget: Property<String>
+    @Deprecated("Configure a Java Toolchain instead")
+    val jvmTarget: Property<String> = DeprecatedProperty(jvmTargetProperty)
+}
+
+
+private
+class DeprecatedProperty(private val delegate: Property<String>) : Property<String> by delegate {
+
+    override fun get(): String {
+        nagUserAboutJvmTarget()
+        return delegate.get()
+    }
+
+    override fun getOrElse(defaultValue: String): String {
+        nagUserAboutJvmTarget()
+        return delegate.getOrElse(defaultValue)
+    }
+
+    override fun getOrNull(): String? {
+        nagUserAboutJvmTarget()
+        return delegate.orNull
+    }
+
+    override fun isPresent(): Boolean {
+        nagUserAboutJvmTarget()
+        return delegate.isPresent
+    }
+
+    override fun set(value: String?) {
+        nagUserAboutJvmTarget()
+        delegate.set(value)
+    }
+
+    override fun set(provider: Provider<out String>) {
+        nagUserAboutJvmTarget()
+        delegate.set(provider)
+    }
+
+    override fun value(value: String?): Property<String> {
+        nagUserAboutJvmTarget()
+        return delegate.value(value)
+    }
+
+    override fun value(provider: Provider<out String>): Property<String> {
+        nagUserAboutJvmTarget()
+        return delegate.value(provider)
+    }
+
+    override fun convention(value: String?): Property<String> {
+        nagUserAboutJvmTarget()
+        return delegate.convention(value)
+    }
+
+    override fun convention(provider: Provider<out String>): Property<String> {
+        nagUserAboutJvmTarget()
+        return delegate.convention(provider)
+    }
+
+    override fun finalizeValue() {
+        nagUserAboutJvmTarget()
+        delegate.finalizeValue()
+    }
+
+    override fun finalizeValueOnRead() {
+        nagUserAboutJvmTarget()
+        delegate.finalizeValueOnRead()
+    }
+
+    override fun disallowChanges() {
+        nagUserAboutJvmTarget()
+        delegate.disallowChanges()
+    }
+
+    override fun disallowUnsafeRead() {
+        nagUserAboutJvmTarget()
+        delegate.disallowUnsafeRead()
+    }
+
+    private
+    fun nagUserAboutJvmTarget() {
+        deprecateProperty(KotlinDslPluginOptions::class.java, "jvmTarget")
+            .withAdvice("Configure a Java Toolchain instead.")
+            .willBeRemovedInGradle9()
+            .withUserManual("kotlin_dsl", "sec:kotlin-dsl_plugin")
+            .nagUser()
+    }
 }
 
 

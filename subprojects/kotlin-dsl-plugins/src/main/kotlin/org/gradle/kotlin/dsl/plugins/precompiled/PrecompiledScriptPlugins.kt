@@ -54,7 +54,7 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
     class Target(override val project: Project) : PrecompiledScriptPluginsSupport.Target {
 
         override val jvmTarget: Provider<JavaVersion> =
-            project.the<KotlinDslPluginOptions>().jvmTarget.map { JavaVersion.toVersion(it) }
+            project.the<KotlinDslPluginOptions>().jvmTargetProperty.map { JavaVersion.toVersion(it) }
 
         override val kotlinSourceDirectorySet: SourceDirectorySet
             get() = project.sourceSets["main"].kotlin
