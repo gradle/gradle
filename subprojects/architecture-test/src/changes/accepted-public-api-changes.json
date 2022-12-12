@@ -977,14 +977,6 @@
             ]
         },
         {
-            "type": "org.gradle.api.tasks.application.CreateStartScripts",
-            "member": "Class org.gradle.api.tasks.application.CreateStartScripts",
-            "acceptation": "making this class abstract makes it easier to remove boilerplate",
-            "changes": [
-                "Class is now abstract"
-            ]
-        },
-        {
             "type": "org.gradle.api.tasks.bundling.AbstractArchiveTask",
             "member": "Method org.gradle.api.tasks.bundling.AbstractArchiveTask.getAppendix()",
             "acceptation": "Deprecated method removed",
@@ -1545,6 +1537,22 @@
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
             "changes": [
                 "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.getMainClassName()",
+            "acceptation": "Test removal",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
+            "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.setMainClassName(java.lang.String)",
+            "acceptation": "Test removal",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {
