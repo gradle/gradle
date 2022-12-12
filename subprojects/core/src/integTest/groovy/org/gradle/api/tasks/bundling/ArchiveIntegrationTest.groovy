@@ -26,6 +26,7 @@ import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.util.GradleVersion
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.IgnoreIf
@@ -1257,6 +1258,192 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         handle1?.abort()
         handle2?.abort()
         server.stop()
+    }
+
+    def "can operate on 2 different tar files in the same project using file operations: #foSource"() {
+        given: "2 archive files"
+        createTar('test1.tar') {
+            subdir1 {
+                file ('file.txt').text = 'original text 1'
+            }
+            subdir2 {
+                file('file2.txt').text = 'original text 2'
+                file ('file3.txt').text =  'original text 3'
+            }
+        }
+        createTar('test2.tar') {
+            subdir1 {
+                file ('file.txt').text = 'original text 1' // Same name in same dir
+            }
+            subdir3 {
+                file('file3.txt').text = 'original text 3' // Same name in same different nested dir
+                file ('file4.txt').text =  'original text 4'
+            }
+        }
+
+        and: "where a build edits each archive differently via a visitor"
+        file('build.gradle') << """
+            ${defineUpdateTask('tar', foSource)}
+            ${defineVerifyTask('tar', foSource)}
+
+            def theArchive1 = rootProject.file('test1.tar')
+            def theArchive2 = rootProject.file('test2.tar')
+
+            tasks.register('update1', UpdateTask) {
+                archive = theArchive1
+                replacementText = 'modification 1'
+            }
+
+            tasks.register('verify1', VerifyTask) {
+                dependsOn tasks.named('update1')
+                archive = theArchive1
+                beginsWith = 'modification 1'
+            }
+
+            tasks.register('update2', UpdateTask) {
+                archive = theArchive2
+                replacementText = 'modification 2'
+            }
+
+            tasks.register('verify2', VerifyTask) {
+                dependsOn tasks.named('update2')
+                archive = theArchive2
+                beginsWith = 'modification 2'
+            }
+        """
+
+        when:
+        run 'verify1', 'verify2'
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(':update1', ':update2', ':verify1', ':verify2')
+
+        where:
+        foSource << [FileOperationsSourceType.INJECT_ARCHIVE_OPS, FileOperationsSourceType.PROJECT_FILE_OPS]
+    }
+
+    def "can operate on 2 different zip files in the same project using file operations: #foSource"() {
+        given: "2 archive files"
+        createZip('test1.zip') {
+            subdir1 {
+                file ('file.txt').text = 'original text 1'
+            }
+            subdir2 {
+                file('file2.txt').text = 'original text 2'
+                file ('file3.txt').text =  'original text 3'
+            }
+        }
+        createZip('test2.zip') {
+            subdir1 {
+                file ('file.txt').text = 'original text 1' // Same name in same dir
+            }
+            subdir3 {
+                file('file3.txt').text = 'original text 3' // Same name in same different nested dir
+                file ('file4.txt').text =  'original text 4'
+            }
+        }
+
+        and: "where a build edits each archive differently via a visitor"
+        file('build.gradle') << """
+            ${defineUpdateTask('zip', foSource)}
+            ${defineVerifyTask('zip', foSource)}
+
+            def theArchive1 = rootProject.file('test1.zip')
+            def theArchive2 = rootProject.file('test2.zip')
+
+            tasks.register('update1', UpdateTask) {
+                archive = theArchive1
+                replacementText = 'modification 1'
+            }
+
+            tasks.register('verify1', VerifyTask) {
+                dependsOn tasks.named('update1')
+                archive = theArchive1
+                beginsWith = 'modification 1'
+            }
+
+            tasks.register('update2', UpdateTask) {
+                archive = theArchive2
+                replacementText = 'modification 2'
+            }
+
+            tasks.register('verify2', VerifyTask) {
+                dependsOn tasks.named('update2')
+                archive = theArchive2
+                beginsWith = 'modification 2'
+            }
+        """
+
+        when:
+        run 'verify1', 'verify2'
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(':update1', ':update2', ':verify1', ':verify2')
+
+        where:
+        foSource << [FileOperationsSourceType.INJECT_ARCHIVE_OPS, FileOperationsSourceType.PROJECT_FILE_OPS]
+    }
+
+    def "when two identical archives have the same hashes and decompression cache entry is reused"() {
+        given: "2 archive files"
+        createTar('test1.tar') {
+            subdir1 {
+                file ('file.txt').text = 'original text 1'
+            }
+            subdir2 {
+                file('file2.txt').text = 'original text 2'
+                file ('file3.txt').text =  'original text 3'
+            }
+        }
+        createTar('test2.tar') {
+            subdir1 {
+                file ('file.txt').text = 'original text 1'
+            }
+            subdir2 {
+                file('file2.txt').text = 'original text 2'
+                file ('file3.txt').text =  'original text 3'
+            }
+        }
+
+        and: "where a build edits each archive differently via a visitor"
+        file('build.gradle') << """
+            ${defineUpdateTask('tar', foSource)}
+            ${defineVerifyTask('tar', foSource)}
+
+            def theArchive1 = rootProject.file('test1.tar')
+            def theArchive2 = rootProject.file('test2.tar')
+
+            tasks.register('update1', UpdateTask) {
+                archive = theArchive1
+                replacementText = 'modification 1'
+            }
+
+            tasks.register('update2', UpdateTask) {
+                archive = theArchive2
+                replacementText = 'modification 2'
+            }
+
+            tasks.register('verify') {
+                dependsOn tasks.named('update1'), tasks.named('update2')
+                doLast {
+                    def cacheDir = project.layout.buildDirectory.dir('.cache/${GradleVersion.current().version}/compressed-file-expansion').get().asFile
+                    cacheDir.list().size() == 2 // There should only be 2 files here, the .lock file and the single unzipped cache entry
+                    cacheDir.list().contains('compressed-file-expansion.lock')
+                    cacheDir.eachFile(groovy.io.FileType.DIRECTORIES) { File f ->
+                        assert f.name.startsWith('tar_')
+                    }
+                }
+            }
+        """
+
+        when:
+        run 'verify'
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(':update1', ':update2', ':verify')
+
+        where:
+        foSource << [FileOperationsSourceType.INJECT_ARCHIVE_OPS, FileOperationsSourceType.PROJECT_FILE_OPS]
     }
 
     private def createTar(String name, Closure cl) {
