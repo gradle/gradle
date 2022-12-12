@@ -32,7 +32,7 @@ public final class ReportConfiguration {
     @Nullable
     private final Type type;
 
-    private List<? extends GradleException> lenientErrors;
+    private final List<? extends GradleException> lenientErrors;
     private final ImmutableList<ReportAttribute> attributes;
     private final ImmutableList<ReportCapability> capabilities;
     private final ImmutableList<ReportArtifact> artifacts;
@@ -49,7 +49,7 @@ public final class ReportConfiguration {
         this.name = name;
         this.description = description;
         this.type = type;
-        this.lenientErrors = lenientErrors;
+        this.lenientErrors = ImmutableList.copyOf(lenientErrors);
         this.attributes = ImmutableList.copyOf(attributes);
         this.capabilities = ImmutableList.copyOf(capabilities);
         this.artifacts = ImmutableList.copyOf(artifacts);
