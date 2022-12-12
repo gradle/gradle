@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.api.internal.project;
 
-import org.gradle.api.internal.GradleInternal;
-
-public interface SettingsLoader {
-    SettingsState findAndLoadSettings(GradleInternal gradle);
+/**
+ * A service can implement this interface to indicate that it holds mutable project scoped state that should be discarded when
+ * projects are discarded.
+ */
+public interface HoldsProjectState {
+    /**
+     * Discards any project state.
+     */
+    void discardAll();
 }
