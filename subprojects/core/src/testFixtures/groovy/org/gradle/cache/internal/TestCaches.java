@@ -26,7 +26,6 @@ import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.ScopedCache;
 import org.gradle.internal.Actions;
-import org.gradle.internal.Factory;
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory;
 
 import javax.annotation.Nullable;
@@ -70,23 +69,8 @@ public abstract class TestCaches {
         }
 
         @Override
-        public <T> T useCache(Factory<? extends T> action) {
-            return delegate.useCache(action);
-        }
-
-        @Override
         public void useCache(Runnable action) {
             delegate.useCache(action);
-        }
-
-        @Override
-        public <T> T withFileLock(Factory<? extends T> action) {
-            return delegate.withFileLock(action);
-        }
-
-        @Override
-        public void withFileLock(Runnable action) {
-            delegate.withFileLock(action);
         }
 
         @Override

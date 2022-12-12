@@ -50,7 +50,6 @@ import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -85,7 +84,7 @@ public class DefaultFileOperations implements FileOperations {
     private final FileCollectionFactory fileCollectionFactory;
     private final TaskDependencyFactory taskDependencyFactory;
     private final ProviderFactory providers;
-    private final Factory<DecompressionCache> decompressionCacheFactory;
+    private final DecompressionCacheFactory decompressionCacheFactory;
 
     public DefaultFileOperations(
         FileResolver fileResolver,
@@ -101,7 +100,7 @@ public class DefaultFileOperations implements FileOperations {
         DocumentationRegistry documentationRegistry,
         TaskDependencyFactory taskDependencyFactory,
         ProviderFactory providers,
-        Factory<DecompressionCache> decompressionCacheFactory
+        DecompressionCacheFactory decompressionCacheFactory
     ) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;

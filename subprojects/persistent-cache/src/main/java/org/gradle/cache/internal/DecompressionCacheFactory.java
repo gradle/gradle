@@ -18,8 +18,13 @@ package org.gradle.cache.internal;
 
 import org.gradle.internal.Factory;
 
+import javax.annotation.Nonnull;
+
 /**
  * A factory for creating {@link DecompressionCache} instances.
  */
 public interface DecompressionCacheFactory extends Factory<DecompressionCache> {
+    @Nonnull
+    @Override
+    DecompressionCache create();
 }
