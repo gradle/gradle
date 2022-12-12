@@ -20,6 +20,7 @@ package org.gradle.java.compile.incremental
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
 abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends AbstractCrossTaskIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
@@ -70,6 +71,40 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         then:
         fails "impl:${language.compileTaskName}"
         result.hasErrorOutput("package a is not visible")
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @Issue("https://github.com/gradle/gradle/issues/23067")
+    def "recompiles incrementally when upstream module-info changes with manual module path"() {
+        source api: ["package a; public class A {}"], impl: ["package b; import a.A; class B extends A {}"]
+        def moduleInfo = file("api/src/main/${language.name}/module-info.${language.name}")
+        moduleInfo.text = """
+            module api {
+                exports a;
+            }
+        """
+        file("impl/src/main/${language.name}/module-info.${language.name}").text = """
+            module impl {
+                requires api;
+            }
+        """
+        file("impl/build.gradle") << """
+            def layout = project.layout
+            tasks.compileJava {
+                modularity.inferModulePath = false
+                options.compilerArgs << "--module-path=\${classpath.join(File.pathSeparator)}"
+                doFirst {
+                    classpath = layout.files()
+                }
+            }
+        """
+        succeeds "impl:${language.compileTaskName}"
+
+        when:
+        source impl: ["package b; import a.A; class B extends A { void hello() {} }"]
+
+        then:
+        succeeds "impl:${language.compileTaskName}"
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
