@@ -170,7 +170,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
     }
 
     @Override
-    public void preventFromFurtherMutation() {
+    public void disableFurtherMutations() {
         this.mutable = false;
         NamedDomainObjectList<ArtifactRepository> repositoryHandler = getRepositories();
         repositoryHandler.whenObjectAdded(this::mutationDisallowed);

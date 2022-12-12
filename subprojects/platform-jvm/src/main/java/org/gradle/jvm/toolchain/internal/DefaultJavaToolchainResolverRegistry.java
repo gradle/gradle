@@ -65,7 +65,7 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
     }
 
     @Override
-    public DefaultJavaToolchainRepositoryHandler getRepositories() {
+    public JavaToolchainRepositoryHandlerInternal getRepositories() {
         return repositoryHandler;
     }
 
