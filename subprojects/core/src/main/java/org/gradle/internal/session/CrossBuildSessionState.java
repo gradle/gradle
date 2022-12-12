@@ -49,7 +49,9 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
+import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.internal.work.WorkerThreadRegistry;
 
 import java.io.Closeable;
 
@@ -144,8 +146,8 @@ public class CrossBuildSessionState implements Closeable {
             return new LoggingBuildOperationProgressBroadcaster(outputEventListenerManager, buildOperationProgressEventEmitter);
         }
 
-        BuildOperationTrace createBuildOperationTrace(BuildOperationListenerManager buildOperationListenerManager) {
-            return new BuildOperationTrace(startParameter, buildOperationListenerManager);
+        BuildOperationTrace createBuildOperationTrace(BuildOperationListenerManager buildOperationListenerManager, WorkerLeaseRegistry workerLeaseRegistry, WorkerThreadRegistry workerThreadRegistry) {
+            return new BuildOperationTrace(startParameter, buildOperationListenerManager, workerLeaseRegistry, workerThreadRegistry);
         }
 
         BuildOperationNotificationBridge createBuildOperationNotificationBridge(BuildOperationListenerManager buildOperationListenerManager, ListenerManager generalListenerManager) {

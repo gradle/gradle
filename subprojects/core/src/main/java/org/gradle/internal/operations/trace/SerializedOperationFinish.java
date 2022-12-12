@@ -30,14 +30,17 @@ class SerializedOperationFinish implements SerializedOperation {
 
     final long endTime;
 
+    final Integer workerLeaseNumber;
+
     final Object result;
     final String resultClassName;
 
     final String failureMsg;
 
-    SerializedOperationFinish(BuildOperationDescriptor descriptor, OperationFinishEvent finishEvent) {
+    SerializedOperationFinish(BuildOperationDescriptor descriptor, OperationFinishEvent finishEvent, Integer workerLeaseNumber) {
         this.id = descriptor.getId().getId();
         this.endTime = finishEvent.getEndTime();
+        this.workerLeaseNumber = workerLeaseNumber;
         this.result = toSerializableModel(finishEvent.getResult());
         this.resultClassName = result == null ? null : finishEvent.getResult().getClass().getName();
         this.failureMsg = finishEvent.getFailure() == null ? null : finishEvent.getFailure().toString();
@@ -46,6 +49,7 @@ class SerializedOperationFinish implements SerializedOperation {
     SerializedOperationFinish(Map<String, ?> map) {
         this.id = ((Integer) map.get("id")).longValue();
         this.endTime = (Long) map.get("endTime");
+        this.workerLeaseNumber = (Integer) map.get("workerLeaseNumber");
         this.result = map.get("result");
         this.resultClassName = (String) map.get("resultClassName");
         this.failureMsg = (String) map.get("failure");
@@ -69,6 +73,9 @@ class SerializedOperationFinish implements SerializedOperation {
         }
 
         map.put("endTime", endTime);
+        if (workerLeaseNumber != null) {
+            map.put("workerLeaseNumber", workerLeaseNumber);
+        }
 
         return map.build();
     }
