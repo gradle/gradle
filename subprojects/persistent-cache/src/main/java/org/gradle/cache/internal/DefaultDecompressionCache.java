@@ -21,7 +21,6 @@ import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.ScopedCache;
 import org.gradle.internal.Factory;
-import org.gradle.internal.concurrent.Stoppable;
 
 import java.io.Closeable;
 import java.io.File;
@@ -34,7 +33,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
  * Will manage access to the cache, so that access to the archive's contents
  * are only permitted to one client at a time.  The cache will be a Gradle cross version cache.
  */
-public class DefaultDecompressionCache implements DecompressionCache, Stoppable, Closeable {
+public class DefaultDecompressionCache implements DecompressionCache, Closeable {
     private static final String EXPANSION_CACHE_KEY = "compressed-file-expansion";
     private static final String EXPANSION_CACHE_NAME = "Compressed Files Expansion Cache";
 
@@ -76,10 +75,5 @@ public class DefaultDecompressionCache implements DecompressionCache, Stoppable,
     @Override
     public void close() {
         cache.close();
-    }
-
-    @Override
-    public void stop() {
-        close();
     }
 }
