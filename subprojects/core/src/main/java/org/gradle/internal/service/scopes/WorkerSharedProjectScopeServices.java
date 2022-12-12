@@ -34,7 +34,6 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.provider.DefaultPropertyFactory;
@@ -84,7 +83,6 @@ public class WorkerSharedProjectScopeServices {
 
     protected DefaultFileOperations createFileOperations(
             FileResolver fileResolver,
-            TemporaryFileProvider temporaryFileProvider,
             Instantiator instantiator,
             DirectoryFileTreeFactory directoryFileTreeFactory,
             StreamHasher streamHasher,
@@ -102,10 +100,8 @@ public class WorkerSharedProjectScopeServices {
     ) {
         return new DefaultFileOperations(
                 fileResolver,
-                temporaryFileProvider,
                 instantiator,
                 directoryFileTreeFactory,
-                streamHasher,
                 fileHasher,
                 resourceHandlerFactory,
                 fileCollectionFactory,

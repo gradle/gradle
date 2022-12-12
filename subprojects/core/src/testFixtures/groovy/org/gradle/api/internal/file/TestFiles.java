@@ -160,10 +160,8 @@ public class TestFiles {
 
         return new DefaultFileOperations(
             fileResolver,
-            temporaryFileProvider,
-            TestUtil.instantiatorFactory().inject(),
+                TestUtil.instantiatorFactory().inject(),
             directoryFileTreeFactory(),
-            streamHasher(),
             fileHasher(),
             resourceHandlerFactory,
             fileCollectionFactory(basedDir),
