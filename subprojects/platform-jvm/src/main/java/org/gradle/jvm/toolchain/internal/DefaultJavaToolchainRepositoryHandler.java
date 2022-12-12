@@ -110,6 +110,10 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
         return Collections.unmodifiableList(copy);
     }
 
+    public List<JavaToolchainRepository> getAsLiveList() {
+        return repositories;
+    }
+
     @Override
     public int size() {
         return repositories.size();
