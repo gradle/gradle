@@ -45,6 +45,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
+import org.gradle.internal.management.ToolchainManagementInternal;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -79,6 +80,8 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<>();
     private final DependencyResolutionManagementInternal dependencyResolutionManagement;
 
+    private final ToolchainManagementInternal toolchainManagement;
+
     public DefaultSettings(
         ServiceRegistryFactory serviceRegistryFactory,
         GradleInternal gradle,
@@ -99,6 +102,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.services = serviceRegistryFactory.createFor(this);
         this.rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
         this.dependencyResolutionManagement = services.get(DependencyResolutionManagementInternal.class);
+        this.toolchainManagement = services.get(ToolchainManagementInternal.class);
     }
 
     @Override
@@ -372,13 +376,14 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    public void dependencyResolutionManagement(Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration) {
-        dependencyResolutionConfiguration.execute(dependencyResolutionManagement);
+    public void preventFromFurtherMutation() {
+        dependencyResolutionManagement.disableFurtherMutations();
+        toolchainManagement.disableFurtherMutations();
     }
 
     @Override
-    public void preventFromFurtherMutation() {
-        dependencyResolutionManagement.preventFromFurtherMutation();
+    public void dependencyResolutionManagement(Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration) {
+        dependencyResolutionConfiguration.execute(dependencyResolutionManagement);
     }
 
     @Override
@@ -389,18 +394,18 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     @Inject
     public ToolchainManagement getToolchainManagement() {
-        throw new UnsupportedOperationException();
+        return toolchainManagement;
+    }
+
+    @Override
+    public void toolchainManagement(Action<? super ToolchainManagement> toolchainManagementConfiguration) {
+        toolchainManagementConfiguration.execute(toolchainManagement);
     }
 
     @Override
     @Inject
     public CacheConfigurationsInternal getCaches() {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void toolchainManagement(Action<? super ToolchainManagement> toolchainManagementConfiguration) {
-        toolchainManagementConfiguration.execute(getToolchainManagement());
     }
 
     @Override

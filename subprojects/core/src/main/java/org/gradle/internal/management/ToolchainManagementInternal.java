@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
+package org.gradle.internal.management;
 
-import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
+import org.gradle.api.toolchain.management.ToolchainManagement;
+import org.gradle.internal.FinalizableValue;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.List;
-
-public interface JavaToolchainResolverRegistryInternal extends JavaToolchainResolverRegistry {
-
-    JavaToolchainRepositoryHandlerInternal getRepositories();
-
-    List<? extends RealizedJavaToolchainRepository> requestedRepositories();
+@ServiceScope(Scopes.Build.class)
+public interface ToolchainManagementInternal extends ToolchainManagement, FinalizableValue {
 }

@@ -1549,6 +1549,14 @@
         },
         {
             "type": "org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler",
+            "member": "Method org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler.remove()",
+            "acceptation": "method addition backport to 7.6.1",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler",
             "member": "Method org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler.repositories()",
             "acceptation": "method addition backport to 7.6.1",
             "changes": [

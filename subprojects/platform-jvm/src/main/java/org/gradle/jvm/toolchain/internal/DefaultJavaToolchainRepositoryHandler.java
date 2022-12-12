@@ -18,6 +18,7 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
@@ -29,14 +30,13 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler;
 
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepositoryHandler {
+public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepositoryHandlerInternal {
 
     private final DefaultNamedDomainObjectList<JavaToolchainRepository> repositories;
 
@@ -47,6 +47,8 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
     private final ProviderFactory providerFactory;
 
     private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
+
+    private boolean mutable = true;
 
     @Inject
     public DefaultJavaToolchainRepositoryHandler(
@@ -76,6 +78,8 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
 
     @Override
     public void repository(String name, Action<? super JavaToolchainRepository> configureAction) {
+        assertMutable();
+
         DefaultAuthenticationContainer authenticationContainer = new DefaultAuthenticationContainer(instantiator, CollectionCallbackActionDecorator.NOOP);
         for (Map.Entry<Class<Authentication>, Class<? extends Authentication>> e : authenticationSchemeRegistry.getRegisteredSchemes().entrySet()) {
             authenticationContainer.registerBinding(e.getKey(), e.getValue());
@@ -100,4 +104,28 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
     public int size() {
         return repositories.size();
     }
+
+    @Override
+    public boolean remove(String name) {
+        assertMutable();
+
+        JavaToolchainRepository repository = repositories.findByName(name);
+        if (repository == null) {
+            return false;
+        }
+
+        return repositories.remove(repository);
+    }
+
+    @Override
+    public void disableFurtherMutations() {
+        this.mutable = false;
+    }
+
+    private void assertMutable() {
+        if (!mutable) {
+            throw new InvalidUserCodeException("Mutation of toolchain repositories declared in settings is only allowed during settings evaluation");
+        }
+    }
+
 }
