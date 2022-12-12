@@ -133,10 +133,14 @@ class AdoptOpenJdkRemoteBinaryTest extends Specification {
 
         then:
         download.isPresent()
-        download.get().getUri() == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/hotspot/normal/adoptopenjdk")
+        download.get().getUri() == URI.create("https://api.adoptopenjdk.net/v3/binary/latest/12/ga/mac/x64/jdk/${implementation}/normal/adoptopenjdk")
 
         where:
-        vendor << [JvmVendorSpec.ADOPTOPENJDK, JvmVendorSpec.IBM, JvmVendorSpec.matching("adoptopenjdk"), DefaultJvmVendorSpec.any()]
+        vendor                                        | implementation
+        JvmVendorSpec.IBM                             | "openj9"
+        JvmVendorSpec.ADOPTOPENJDK                    | "hotspot"
+        JvmVendorSpec.matching("adoptopenjdk")        | "hotspot"
+        DefaultJvmVendorSpec.any()                    | "hotspot"
     }
 
     def "can provide j9 impl if requested"() {
