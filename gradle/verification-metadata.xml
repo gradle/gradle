@@ -1190,14 +1190,14 @@
             <pgp value="ea23db1360d9029481e7f2efecdfea3cb4493b94"/>
          </artifact>
       </component>
-      <component group="org.gradle" name="docs-asciidoctor-extensions" version="0.13.0">
-         <artifact name="docs-asciidoctor-extensions-0.13.0.jar">
-            <sha256 value="3629b1ed0632bb79da3b4895af1bb21583dd254964e7cf4e3a2fe752afa2786f" origin="Artifact is not signed"/>
+      <component group="org.gradle" name="docs-asciidoctor-extensions" version="0.14.0">
+         <artifact name="docs-asciidoctor-extensions-0.14.0.jar">
+            <sha256 value="22dea177f2f656107323c1413636d51191d4499e48715f171e896991958fb46e" origin="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.gradle" name="docs-asciidoctor-extensions-base" version="0.13.0">
-         <artifact name="docs-asciidoctor-extensions-base-0.13.0.jar">
-            <sha256 value="b32046d79508496cd548f5782a642d70c540fb8fd52f339910d5cecd69dfbb56" origin="Artifact is not signed"/>
+      <component group="org.gradle" name="docs-asciidoctor-extensions-base" version="0.14.0">
+         <artifact name="docs-asciidoctor-extensions-base-0.14.0.jar">
+            <sha256 value="9c25334fbdb98673a764f1827305991bf58e776253d0d5f3018775e27581e424" origin="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle" name="gradle-tooling-api" version="5.2.1">
