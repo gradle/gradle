@@ -125,7 +125,14 @@ Starting with Gradle 8.0, it now uses the version of the JVM running the build.
 
 If your team is using e.g. Java 11 to run Gradle, this allows you to use Java 11 libraries and language features in your build scripts.
 
-Note that this doesn't apply to [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) which use the configured `kotlinDslPluginOptions.jvmTarget`.
+Note that this doesn't apply to precompiled script plugins, see below.
+
+##### Precompiled script plugins now use the configured java toolchain
+
+Previously, the compilation of [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) used the JVM target as configured on `kotlinDslPluginOptions.jvmTarget`.
+Starting with Gradle 8.0, it now uses the configured Java Toolchain, or Java 8 if none is configured.
+
+See the [`kotlin-dsl` plugin manual](userguide/kotlin_dsl.adoc#TODO) for more information on how to configure the Java Toolchain for precompiled script plugins. 
 
 ##### Improved Script compilation performance 
 
