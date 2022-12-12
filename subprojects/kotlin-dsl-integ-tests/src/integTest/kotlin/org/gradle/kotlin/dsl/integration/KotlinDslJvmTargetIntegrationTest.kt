@@ -91,9 +91,11 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
         assertThat(build("help").output, containsString(outputFor(JavaVersion.VERSION_11)))
     }
 
-
     @Test
     fun `can use java toolchain to compile precompiled scripts`() {
+
+        // https://github.com/gradle/gradle/issues/23125
+        assumeJava11OrHigher()
 
         val jdk11 = AvailableJavaHomes.getJdk11()
         assumeThat(jdk11, not(nullValue()))
