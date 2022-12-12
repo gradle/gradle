@@ -24,12 +24,11 @@ public class LeaseHolder {
         this.maxWorkerCount = maxWorkerCount;
     }
 
-    public boolean grantLease() {
+    public int grantLease() {
         if (leasesInUse >= maxWorkerCount) {
-            return false;
+            return -1;
         }
-        leasesInUse++;
-        return true;
+        return leasesInUse++;
     }
 
     public void releaseLease() {

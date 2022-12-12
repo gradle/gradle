@@ -198,6 +198,11 @@ class TestWorkerLeaseService implements WorkerLeaseService {
             String getDisplayName() {
                 return null
             }
+
+            @Override
+            int getWorkerLeaseNumber() {
+                return -1
+            }
         }
     }
 }
