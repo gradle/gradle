@@ -211,11 +211,15 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
                 ${target != 'none' ? "targetCompatibility = JavaVersion.toVersion($target)" : ''}
             }
 
-            compileJava.doLast {
-                logger.lifecycle("project.sourceCompatibility = '\${project.java.sourceCompatibility}'")
-                logger.lifecycle("project.targetCompatibility = '\${project.java.targetCompatibility}'")
-                logger.lifecycle("task.sourceCompatibility = '\$sourceCompatibility'")
-                logger.lifecycle("task.targetCompatibility = '\$targetCompatibility'")
+            compileJava {
+                def projectSourceCompat = project.java.sourceCompatibility
+                def projectTargetCompat = project.java.targetCompatibility
+                doLast {
+                    logger.lifecycle("project.sourceCompatibility = '\${projectSourceCompat}'")
+                    logger.lifecycle("project.targetCompatibility = '\${projectTargetCompat}'")
+                    logger.lifecycle("task.sourceCompatibility = '\$sourceCompatibility'")
+                    logger.lifecycle("task.targetCompatibility = '\$targetCompatibility'")
+                }
             }
         """
 
@@ -250,11 +254,15 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
                 }
             }
 
-            compileJava.doLast {
-                logger.lifecycle("project.sourceCompatibility = '\${project.java.sourceCompatibility}'")
-                logger.lifecycle("project.targetCompatibility = '\${project.java.targetCompatibility}'")
-                logger.lifecycle("task.sourceCompatibility = '\$sourceCompatibility'")
-                logger.lifecycle("task.targetCompatibility = '\$targetCompatibility'")
+            compileJava {
+                def projectSourceCompat = project.java.sourceCompatibility
+                def projectTargetCompat = project.java.targetCompatibility
+                doLast {
+                    logger.lifecycle("project.sourceCompatibility = '\${projectSourceCompat}'")
+                    logger.lifecycle("project.targetCompatibility = '\${projectTargetCompat}'")
+                    logger.lifecycle("task.sourceCompatibility = '\$sourceCompatibility'")
+                    logger.lifecycle("task.targetCompatibility = '\$targetCompatibility'")
+                }
             }
         """
 
@@ -286,11 +294,15 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
                 targetCompatibility = null
             }
 
-            compileJava.doLast {
-                logger.lifecycle("project.sourceCompatibility = '\${project.java.sourceCompatibility}'")
-                logger.lifecycle("project.targetCompatibility = '\${project.java.targetCompatibility}'")
-                logger.lifecycle("task.sourceCompatibility = '\$sourceCompatibility'")
-                logger.lifecycle("task.targetCompatibility = '\$targetCompatibility'")
+            compileJava {
+                def projectSourceCompat = project.java.sourceCompatibility
+                def projectTargetCompat = project.java.targetCompatibility
+                doLast {
+                    logger.lifecycle("project.sourceCompatibility = '\${projectSourceCompat}'")
+                    logger.lifecycle("project.targetCompatibility = '\${projectTargetCompat}'")
+                    logger.lifecycle("task.sourceCompatibility = '\$sourceCompatibility'")
+                    logger.lifecycle("task.targetCompatibility = '\$targetCompatibility'")
+                }
             }
         """
 
