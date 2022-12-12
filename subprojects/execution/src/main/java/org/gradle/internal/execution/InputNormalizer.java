@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.execution.model;
+package org.gradle.internal.execution;
 
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.schema;
 
-import org.gradle.internal.execution.model.InputNormalizer;
+import org.gradle.internal.execution.InputNormalizer;
 import org.gradle.internal.execution.schema.AbstractFilePropertySchema;
 
 import java.util.function.Supplier;

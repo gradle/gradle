@@ -21,7 +21,7 @@ import org.gradle.api.internal.changedetection.state.AbiExtractingClasspathResou
 import org.gradle.api.internal.changedetection.state.CachingResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.internal.execution.FileCollectionSnapshotter;
-import org.gradle.internal.execution.model.InputNormalizer;
+import org.gradle.internal.execution.InputNormalizer;
 import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter;

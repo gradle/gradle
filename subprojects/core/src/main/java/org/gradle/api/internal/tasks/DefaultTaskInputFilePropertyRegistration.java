@@ -22,7 +22,7 @@ import org.gradle.api.tasks.CompileClasspathNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.execution.model.InputNormalizer;
+import org.gradle.internal.execution.InputNormalizer;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;

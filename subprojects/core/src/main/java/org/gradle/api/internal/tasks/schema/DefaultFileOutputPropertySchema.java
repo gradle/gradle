@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.schema;
 
-import org.gradle.internal.execution.model.OutputNormalizer;
+import org.gradle.internal.execution.OutputNormalizer;
 import org.gradle.internal.execution.schema.AbstractFilePropertySchema;
 import org.gradle.internal.file.TreeType;
 

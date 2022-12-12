@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
-import org.gradle.internal.execution.model.InputNormalizer;
+import org.gradle.internal.execution.InputNormalizer;
 import org.gradle.internal.execution.schema.DefaultFileInputPropertySchema;
 import org.gradle.internal.execution.schema.DefaultScalarInputPropertySchema;
 import org.gradle.internal.execution.schema.FileInputPropertySchema;

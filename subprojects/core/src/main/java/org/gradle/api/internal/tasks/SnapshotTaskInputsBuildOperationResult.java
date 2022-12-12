@@ -29,7 +29,7 @@ import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.InputExecutionState;
-import org.gradle.internal.execution.model.InputNormalizer;
+import org.gradle.internal.execution.InputNormalizer;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep;
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep;
 import org.gradle.internal.file.FileType;

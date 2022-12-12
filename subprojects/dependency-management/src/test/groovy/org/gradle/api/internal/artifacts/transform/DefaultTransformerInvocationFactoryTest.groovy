@@ -49,7 +49,7 @@ import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegi
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.FingerprinterRegistration
-import org.gradle.internal.execution.model.InputNormalizer
+import org.gradle.internal.execution.InputNormalizer
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.execution.timeout.TimeoutHandler
 import org.gradle.internal.fingerprint.DirectorySensitivity

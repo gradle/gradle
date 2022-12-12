@@ -21,7 +21,6 @@ import groovy.transform.CompileStatic
 import groovy.transform.Immutable
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.execution.history.ExecutionHistoryStore
-import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.execution.workspace.WorkspaceProvider
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
