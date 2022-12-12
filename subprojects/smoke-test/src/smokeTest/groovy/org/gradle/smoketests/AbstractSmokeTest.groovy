@@ -95,7 +95,7 @@ abstract class AbstractSmokeTest extends Specification {
         static springDependencyManagement = "1.0.14.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "2.7.3"
+        static springBoot = "3.0.0"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "30.0.2"

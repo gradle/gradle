@@ -16,13 +16,15 @@
 
 package org.gradle.smoketests
 
-import org.gradle.internal.reflect.validation.Severity
+
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@Requires(TestPrecondition.JDK17_OR_LATER)
 class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
     def 'spring boot plugin'() {
@@ -40,7 +42,7 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
                 implementation 'org.springframework.boot:spring-boot-starter'
                 testImplementation 'org.springframework.boot:spring-boot-starter-test'
             }
-            
+
             tasks.named('test') {
                 useJUnitPlatform()
             }
@@ -48,10 +50,10 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
 
         file('src/main/java/example/Application.java') << """
             package example;
-            
+
             import org.springframework.boot.SpringApplication;
             import org.springframework.boot.autoconfigure.SpringBootApplication;
-            
+
             @SpringBootApplication
             public class Application {
                 public static void main(String[] args) {
@@ -61,10 +63,10 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         """.stripIndent()
         file("src/test/java/example/ApplicationTest.java") << """
             package example;
-            
+
             import org.junit.jupiter.api.Test;
             import org.springframework.boot.test.context.SpringBootTest;
-            
+
             @SpringBootTest
             class ApplicationTest {
                 @Test
@@ -92,23 +94,5 @@ class SpringBootPluginSmokeTest extends AbstractPluginValidatingSmokeTest implem
         [
             'org.springframework.boot': Versions.of(TestedVersions.springBoot)
         ]
-    }
-
-    @Override
-    void configureValidation(String pluginId, String version) {
-        Map<String, Severity> messages = [:]
-
-        validatePlugins {
-            onPlugin(pluginId) {
-                messages[incorrectUseOfInputAnnotation {
-                    type'org.springframework.boot.gradle.tasks.bundling.BootBuildImage'
-                    property 'archiveFile'
-                    propertyType 'RegularFileProperty'
-                    includeLink()
-                }] = ERROR
-
-                failsWith messages
-            }
-        }
     }
 }
