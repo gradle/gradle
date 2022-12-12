@@ -19,6 +19,7 @@ package org.gradle.internal.resources;
 public class DefaultLease extends AbstractTrackedResourceLock {
     private final LeaseHolder parent;
     private Thread ownerThread;
+    private int workerLeaseNumber = -1;
 
     public DefaultLease(String displayName, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner, LeaseHolder parent) {
         super(displayName, coordinationService, owner);
@@ -37,10 +38,15 @@ public class DefaultLease extends AbstractTrackedResourceLock {
 
     @Override
     protected boolean acquireLock() {
-        if (parent.grantLease()) {
+        workerLeaseNumber = parent.grantLease();
+        if (workerLeaseNumber >= 0) {
             ownerThread = Thread.currentThread();
         }
         return ownerThread != null;
+    }
+
+    public int getWorkerLeaseNumber() {
+        return workerLeaseNumber;
     }
 
     @Override

@@ -37,6 +37,7 @@ public final class BuildOperationRecord {
     public final String displayName;
     public final long startTime;
     public final long endTime;
+    public final Integer workerLeaseNumber;
     public final Map<String, ?> details;
     private final String detailsClassName;
     public final Map<String, ?> result;
@@ -52,6 +53,7 @@ public final class BuildOperationRecord {
         String displayName,
         long startTime,
         long endTime,
+        Integer workerLeaseNumber,
         Map<String, ?> details,
         String detailsClassName,
         Map<String, ?> result,
@@ -65,6 +67,7 @@ public final class BuildOperationRecord {
         this.displayName = displayName;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.workerLeaseNumber = workerLeaseNumber;
         this.details = details == null ? null : new StrictMap<String, Object>(details);
         this.detailsClassName = detailsClassName;
         this.result = result == null ? null : new StrictMap<String, Object>(result);
@@ -86,6 +89,9 @@ public final class BuildOperationRecord {
 
         map.put("startTime", startTime);
         map.put("endTime", endTime);
+        if (workerLeaseNumber != null) {
+            map.put("workerLeaseNumber", workerLeaseNumber);
+        }
         map.put("duration", endTime - startTime);
 
         if (details != null) {

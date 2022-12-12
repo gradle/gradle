@@ -41,6 +41,7 @@ public interface WorkerLeaseRegistry {
     WorkerLease newWorkerLease();
 
     interface WorkerLease extends ResourceLock {
+        int getWorkerLeaseNumber();
     }
 
     interface WorkerLeaseCompletion {
