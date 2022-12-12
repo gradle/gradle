@@ -296,7 +296,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 }
             }
             
-            println(\"\"\"Explicitly requested toolchains: \${toolchainManagement.jvm.getJavaRepositories().repositories().collect { it.getName() }}.\"\"\")
+            println(\"\"\"Explicitly requested toolchains: \${toolchainManagement.jvm.getJavaRepositories().getAsList().collect { it.getName() }}.\"\"\")
         """
 
         buildFile << """
@@ -346,7 +346,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
             
             toolchainManagement.jvm.javaRepositories.remove('useless2')
             
-            println(\"\"\"Explicitly requested toolchains: \${toolchainManagement.jvm.getJavaRepositories().repositories().collect { it.getName() }}.\"\"\")
+            println(\"\"\"Explicitly requested toolchains: \${toolchainManagement.jvm.getJavaRepositories().getAsList().collect { it.getName() }}.\"\"\")
         """
 
         buildFile << """
