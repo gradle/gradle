@@ -33,7 +33,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.TempDir
 
-class JvmToolchainMatcherTest extends Specification {
+class JavaToolchainMatcherTest extends Specification {
 
     @TempDir
     File temporaryFolder
