@@ -32,7 +32,7 @@ public @interface Requires {
     /**
      * The list of preconditions, which will be checked by {@link TestPreconditionExtension}
      */
-    Class<TestPrecondition>[] value();
+    Class<? extends TestPrecondition>[] value();
 
     /**
      * Controls if you require the predicate <b>NOT</b> to be satisfied.
@@ -40,4 +40,6 @@ public @interface Requires {
      * @return true if the conjunction of the predicates should be negated. Default is  {@code false}
      */
     boolean not() default false;
+
+    String reason() default "";
 }

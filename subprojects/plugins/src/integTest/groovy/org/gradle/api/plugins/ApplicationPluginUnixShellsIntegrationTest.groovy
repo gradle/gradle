@@ -132,7 +132,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         outputContains("App Home: ${file('build/install/sample').absolutePath}")
     }
 
-    @Requires([UnitTestPreconditions.UnixDerivative, StaticShAvilable])
+    @Requires([UnitTestPreconditions.UnixDerivative, StaticShAvailable])
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script in BusyBox"() {
         given:
         extendBuildFileWithAppHomeProperty()

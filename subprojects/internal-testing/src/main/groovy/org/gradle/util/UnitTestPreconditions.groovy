@@ -34,7 +34,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class NoSymlinks implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return doSatisfies { Symlinks }
+            return notSatisfies { Symlinks }
         }
     }
 
@@ -66,17 +66,17 @@ class UnitTestPreconditions extends BaseTestPreconditions {
         }
     }
 
-    static final class NoFileLockOnOpen implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return doSatisfies { MacOs } || doSatisfies { Linux }
-        }
-    }
-
-    static final class FileLockOnOpen implements TestPrecondition {
+    static final class MandatoryFileLockOnOpen implements TestPrecondition {
         @Override
         boolean isSatisfied() {
             return OperatingSystem.current().isWindows()
+        }
+    }
+
+    static final class NoMandatoryFileLockOnOpen implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return notSatisfies { MandatoryFileLockOnOpen }
         }
     }
 
@@ -90,7 +90,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class NotWindows implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return !OperatingSystem.current().isWindows()
+            return notSatisfies { Windows }
         }
     }
 
@@ -104,7 +104,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class NotMacOs implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            !OperatingSystem.current().macOsX
+            return notSatisfies { MacOs }
         }
     }
 
@@ -112,6 +112,13 @@ class UnitTestPreconditions extends BaseTestPreconditions {
         @Override
         boolean isSatisfied() {
             return OperatingSystem.current().isMacOsX() && OperatingSystem.current().toString().contains("aarch64")
+        }
+    }
+
+    static final class NotMacOsM1 implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return notSatisfies { MacOsM1 }
         }
     }
 

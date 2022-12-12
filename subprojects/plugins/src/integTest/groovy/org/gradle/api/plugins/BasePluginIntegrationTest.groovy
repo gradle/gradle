@@ -23,7 +23,7 @@ import static org.hamcrest.CoreMatchers.containsString
 
 class BasePluginIntegrationTest extends AbstractIntegrationSpec {
 
-    @Requires(UnitTestPreconditions.MandatoryFileLocking)
+    @Requires(UnitTestPreconditions.MandatoryFileLockOnOpen)
     def "clean failure message indicates file"() {
         given:
         buildFile << """

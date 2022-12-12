@@ -255,7 +255,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         mainSolution.assertReferencesProject(dllProjectFile, projectConfigurations)
     }
 
-    @Requires(UnitTestPreconditions.Msbuild)
+    @Requires(UnitTestPreconditions.HasMsBuild)
     def "can build executable from visual studio"() {
         useMsbuildTool()
         def debugBinary = executable("build/install/main/debug/lib/app")
@@ -285,7 +285,7 @@ class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioInteg
         installation('build/install/main/debug').assertInstalled()
     }
 
-    @Requires(UnitTestPreconditions.Msbuild)
+    @Requires(UnitTestPreconditions.HasMsBuild)
     def "can build library from visual studio"() {
         useMsbuildTool()
         def debugBinaryLib = staticLibrary("build/lib/main/debug/static/lib")

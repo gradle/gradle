@@ -292,7 +292,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         greetLibProject.projectConfigurations['debug'].includePath == filePath("src/greetings/headers")
     }
 
-    @Requires(UnitTestPreconditions.Msbuild)
+    @Requires(UnitTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "can build executable that depends on static library in another project from visual studio"() {
         useMsbuildTool()
@@ -337,7 +337,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
         installation('exe/build/install/main/debug').assertInstalled()
     }
 
-    @Requires(UnitTestPreconditions.Msbuild)
+    @Requires(UnitTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "can clean from visual studio with dependencies"() {
         useMsbuildTool()

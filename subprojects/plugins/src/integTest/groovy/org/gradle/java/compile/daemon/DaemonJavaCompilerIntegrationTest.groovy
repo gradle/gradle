@@ -81,7 +81,10 @@ class DaemonJavaCompilerIntegrationTest extends JavaCompilerIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3098")
-    @Requires([TestPrecondition.JDK8_OR_EARLIER, TestPrecondition.JDK_ORACLE])
+    @Requires([
+        UnitTestPreconditions.Jdk8OrEarlier,
+        UnitTestPreconditions.JdkOracle
+    ])
     def "handles -bootclasspath being specified"() {
         def jre = AvailableJavaHomes.getBestJre()
         def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar"

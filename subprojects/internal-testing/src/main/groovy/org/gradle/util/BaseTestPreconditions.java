@@ -35,11 +35,11 @@ public abstract class BaseTestPreconditions {
         }
     }
 
-    static boolean doSatisfies(TestPrecondition precondition) throws Exception {
+    public static boolean doSatisfies(TestPrecondition precondition) throws Exception {
         return precondition.isSatisfied();
     }
 
-    static boolean notSatisfies(TestPrecondition precondition) throws Exception {
+    public static boolean notSatisfies(TestPrecondition precondition) throws Exception {
         return precondition.isSatisfied();
     }
 

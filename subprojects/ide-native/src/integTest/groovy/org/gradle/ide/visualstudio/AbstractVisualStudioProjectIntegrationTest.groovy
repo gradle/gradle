@@ -104,7 +104,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         solutionFile.assertReferencesProject(projectFile, contexts*.asVariantName as Set)
     }
 
-    @Requires(UnitTestPreconditions.Msbuild)
+    @Requires(UnitTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "build generated visual studio solution with multiple target machines"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
@@ -202,7 +202,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         outputContains("'main' component in project ':' is not buildable.");
     }
 
-    @Requires(UnitTestPreconditions.Msbuild)
+    @Requires(UnitTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "returns meaningful errors from visual studio when component product is unbuildable due to operating system"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
@@ -237,7 +237,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         resultProject.assertOutputContains('The project "' + visualStudioProjectName + '" is not selected for building in solution configuration "unbuildable|Win32".')
     }
 
-    @Requires(UnitTestPreconditions.Msbuild)
+    @Requires(UnitTestPreconditions.HasMsBuild)
     @ToBeFixedForConfigurationCache
     def "returns meaningful errors from visual studio when component product is unbuildable due to architecture"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))

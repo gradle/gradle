@@ -447,7 +447,10 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
 
     // JavaFx was removed in JDK 10
     // We don't have Oracle Java 8 on Windows any more
-    @Requires([TestPrecondition.JDK9_OR_EARLIER, TestPrecondition.NOT_WINDOWS])
+    @Requires([
+        UnitTestPreconditions.Jdk9OrEarlier,
+        UnitTestPreconditions.NotWindows
+    ])
     def "compileJavaFx8Code"() {
         Assume.assumeFalse("Setup invalid with toolchains", getClass().name.contains('Toolchain') && !getClass().name.contains('SameToolchain'))
 

@@ -345,7 +345,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         greetLibProject.projectConfigurations['debug'].includePath == filePath("src/main/public", "src/main/headers")
     }
 
-    @Requires(UnitTestPreconditions.Msbuild)
+    @Requires(UnitTestPreconditions.HasMsBuild)
     def "can build executable that depends on static library in another project from visual studio"() {
         useMsbuildTool()
         def app = new CppAppWithLibrary()
@@ -386,7 +386,7 @@ class VisualStudioMultiProjectIntegrationTest extends AbstractVisualStudioIntegr
         installation('exe/build/install/main/debug').assertInstalled()
     }
 
-    @Requires(UnitTestPreconditions.Msbuild)
+    @Requires(UnitTestPreconditions.HasMsBuild)
     def "skip unbuildable static library project when building solution from visual studio"() {
         useMsbuildTool()
         def app = new CppAppWithLibrary()
