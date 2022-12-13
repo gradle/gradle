@@ -49,6 +49,7 @@ abstract class KotlinDslPluginOptions internal constructor(objects: ObjectFactor
         }
 }
 
+
 private
 fun nagUserAboutJvmTarget() {
     DeprecationLogger.deprecateProperty(KotlinDslPluginOptions::class.java, "jvmTarget")
@@ -57,6 +58,7 @@ fun nagUserAboutJvmTarget() {
         .withUserManual("kotlin_dsl", "sec:kotlin-dsl_plugin")
         .nagUser()
 }
+
 
 internal
 fun Project.kotlinDslPluginOptions(action: KotlinDslPluginOptions.() -> Unit) =
