@@ -24,6 +24,7 @@ import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.CleanupFrequency;
 import org.gradle.internal.Describables;
@@ -31,7 +32,6 @@ import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.NotThreadSafe;
 import javax.inject.Inject;
 import java.util.function.Supplier;
 
@@ -43,13 +43,13 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private static final String SNAPSHOT_WRAPPERS = "snapshotWrappers";
     private static final String DOWNLOADED_RESOURCES = "downloadedResources";
     private static final String CREATED_RESOURCES = "createdResources";
-    static final String ILLEGAL_MODIFICATION_ERROR = "The property '%s' was modified from an unsafe location (for instance a settings script or plugin).  This property can only be changed in an init script, preferably stored in the init.d directory inside the Gradle user home directory. See " + DOCUMENTATION_REGISTRY.getDocumentationFor("directory_layout", "dir:gradle_user_home:configure_cache_cleanup") + " for more information.";
+    static final String UNSAFE_MODIFICATION_ERROR = "The property '%s' was modified from an unsafe location (for instance a settings script or plugin).  This property can only be changed in an init script, preferably stored in the init.d directory inside the Gradle user home directory. See " + DOCUMENTATION_REGISTRY.getDocumentationFor("directory_layout", "dir:gradle_user_home:configure_cache_cleanup") + " for more information.";
 
     private final CacheResourceConfigurationInternal releasedWrappersConfiguration;
     private final CacheResourceConfigurationInternal snapshotWrappersConfiguration;
     private final CacheResourceConfigurationInternal downloadedResourcesConfiguration;
     private final CacheResourceConfigurationInternal createdResourcesConfiguration;
-    private final UnlockableProperty<Cleanup> cleanup;
+    private final Property<Cleanup> cleanup;
 
     @Inject
     public DefaultCacheConfigurations(ObjectFactory objectFactory, PropertyHost propertyHost) {
@@ -57,8 +57,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         this.snapshotWrappersConfiguration = createResourceConfiguration(objectFactory, SNAPSHOT_WRAPPERS, DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
         this.downloadedResourcesConfiguration = createResourceConfiguration(objectFactory, DOWNLOADED_RESOURCES, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES);
         this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, CREATED_RESOURCES, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
-        this.cleanup = new DefaultUnlockableProperty<>(propertyHost, Cleanup.class, "cleanup").convention(Cleanup.DEFAULT);
-        lockValues();
+        this.cleanup = new ContextualErrorMessageProperty<>(propertyHost, Cleanup.class, "cleanup").convention(Cleanup.DEFAULT);
     }
 
     private static CacheResourceConfigurationInternal createResourceConfiguration(ObjectFactory objectFactory, String name, int defaultDays) {
@@ -108,7 +107,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
-    public UnlockableProperty<Cleanup> getCleanup() {
+    public Property<Cleanup> getCleanup() {
         return cleanup;
     }
 
@@ -118,29 +117,20 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
-    public void withMutableValues(Runnable runnable) {
-        unlockValues();
-        try {
-            runnable.run();
-        } finally {
-            lockValues();
-        }
+    public void synchronize(CacheConfigurationsInternal persistentCacheConfigurations) {
+        persistentCacheConfigurations.getReleasedWrappers().getRemoveUnusedEntriesOlderThan().value(getReleasedWrappers().getRemoveUnusedEntriesOlderThan());
+        persistentCacheConfigurations.getSnapshotWrappers().getRemoveUnusedEntriesOlderThan().value(getSnapshotWrappers().getRemoveUnusedEntriesOlderThan());
+        persistentCacheConfigurations.getDownloadedResources().getRemoveUnusedEntriesOlderThan().value(getDownloadedResources().getRemoveUnusedEntriesOlderThan());
+        persistentCacheConfigurations.getCreatedResources().getRemoveUnusedEntriesOlderThan().value(getCreatedResources().getRemoveUnusedEntriesOlderThan());
+        persistentCacheConfigurations.getCleanup().value(getCleanup());
     }
 
-    private void lockValues() {
-        releasedWrappersConfiguration.getRemoveUnusedEntriesOlderThan().lock();
-        snapshotWrappersConfiguration.getRemoveUnusedEntriesOlderThan().lock();
-        downloadedResourcesConfiguration.getRemoveUnusedEntriesOlderThan().lock();
-        createdResourcesConfiguration.getRemoveUnusedEntriesOlderThan().lock();
-        getCleanup().lock();
-    }
-
-    private void unlockValues() {
-        releasedWrappersConfiguration.getRemoveUnusedEntriesOlderThan().unlock();
-        snapshotWrappersConfiguration.getRemoveUnusedEntriesOlderThan().unlock();
-        downloadedResourcesConfiguration.getRemoveUnusedEntriesOlderThan().unlock();
-        createdResourcesConfiguration.getRemoveUnusedEntriesOlderThan().unlock();
-        getCleanup().unlock();
+    public void finalizeConfigurationValues() {
+        releasedWrappersConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
+        snapshotWrappersConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
+        downloadedResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
+        createdResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
+        getCleanup().finalizeValue();
     }
 
     private static <T> Provider<T> providerFromSupplier(Supplier<T> supplier) {
@@ -149,16 +139,16 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     static abstract class DefaultCacheResourceConfiguration implements CacheResourceConfigurationInternal {
         private final String name;
-        private final UnlockableProperty<Long> removeUnusedEntriesOlderThan;
+        private final Property<Long> removeUnusedEntriesOlderThan;
 
         @Inject
         public DefaultCacheResourceConfiguration(PropertyHost propertyHost, String name) {
             this.name = name;
-            this.removeUnusedEntriesOlderThan = new DefaultUnlockableProperty<>(propertyHost, Long.class, "removeUnusedEntriesOlderThan");
+            this.removeUnusedEntriesOlderThan = new ContextualErrorMessageProperty<>(propertyHost, Long.class, "removeUnusedEntriesOlderThan");
         }
 
         @Override
-        public UnlockableProperty<Long> getRemoveUnusedEntriesOlderThan() {
+        public Property<Long> getRemoveUnusedEntriesOlderThan() {
             return removeUnusedEntriesOlderThan;
         }
 
@@ -182,35 +172,25 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     /**
-     * A non-threadsafe implementation of {@link org.gradle.api.internal.cache.CacheConfigurationsInternal.UnlockableProperty}.
+     * An implementation of {@link Property} that provides a contextualized error if the value is mutated after finalization.
      */
-    @NotThreadSafe
-    static class DefaultUnlockableProperty<T> extends DefaultProperty<T> implements UnlockableProperty<T> {
+    private static class ContextualErrorMessageProperty<T> extends DefaultProperty<T> {
         private final String displayName;
-        private boolean mutable = true;
 
-        public DefaultUnlockableProperty(PropertyHost propertyHost, Class<T> type, String displayName) {
+        public ContextualErrorMessageProperty(PropertyHost propertyHost, Class<T> type, String displayName) {
             super(propertyHost, type);
             this.displayName = displayName;
         }
 
-        public void lock() {
-            mutable = false;
-        }
-
-        public void unlock() {
-            mutable = true;
-        }
-
-        private IllegalStateException lockedError() {
-            return new IllegalStateException(String.format(ILLEGAL_MODIFICATION_ERROR, getDisplayName()));
+        private IllegalStateException alreadyFinalizedError() {
+            return new IllegalStateException(String.format(UNSAFE_MODIFICATION_ERROR, getDisplayName()));
         }
 
         private void onlyIfMutable(Runnable runnable) {
-            if (mutable) {
-                runnable.run();
+            if (isFinalized()) {
+                throw alreadyFinalizedError();
             } else {
-                throw lockedError();
+                runnable.run();
             }
         }
 
@@ -235,25 +215,25 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         }
 
         @Override
-        public DefaultUnlockableProperty<T> value(@Nullable T value) {
+        public ContextualErrorMessageProperty<T> value(@Nullable T value) {
             onlyIfMutable(() -> super.value(value));
             return this;
         }
 
         @Override
-        public DefaultUnlockableProperty<T> value(Provider<? extends T> provider) {
+        public ContextualErrorMessageProperty<T> value(Provider<? extends T> provider) {
             onlyIfMutable(() -> super.value(provider));
             return this;
         }
 
         @Override
-        public DefaultUnlockableProperty<T> convention(@Nullable T value) {
+        public ContextualErrorMessageProperty<T> convention(@Nullable T value) {
             onlyIfMutable(() -> super.convention(value));
             return this;
         }
 
         @Override
-        public DefaultUnlockableProperty<T> convention(Provider<? extends T> provider) {
+        public ContextualErrorMessageProperty<T> convention(Provider<? extends T> provider) {
             onlyIfMutable(() -> super.convention(provider));
             return this;
         }
