@@ -53,7 +53,7 @@ task retrieve(type: Copy) {
         run 'retrieve'
 
         then: "Version 1.1 jar is downloaded"
-        file('build').assertContainsDescendants('projectA-1.1.jar')
+        file('build').assertHasDescendants('projectA-1.1.jar')
 
         when: "Module meta-data is changed (new artifact)"
         module.artifact([name: 'other'])
@@ -76,7 +76,7 @@ task retrieve(type: Copy) {
         run 'retrieve'
 
         then: "We get all artifacts, including the new ones"
-        file('build').assertContainsDescendants('projectA-1.1.jar', 'other-1.1.jar', 'projectB-2.0.jar')
+        file('build').assertHasDescendants('projectA-1.1.jar', 'other-1.1.jar', 'projectB-2.0.jar')
     }
 
     def "can mark a module as changing after first retrieval"() {
@@ -222,7 +222,7 @@ task retrieve(type: Copy) {
 
         then: "Version 1.1 jar is downloaded"
         file('build/reports').maybeDeleteDir() // delete configuration cache report if present
-        file('build').assertContainsDescendants('projectA-1.1.jar')
+        file('build').assertHasDescendants('projectA-1.1.jar')
         def jarFile = file('build/projectA-1.1.jar')
         jarFile.assertIsCopyOf(module.jarFile)
         def snapshot = jarFile.snapshot()
@@ -237,7 +237,7 @@ task retrieve(type: Copy) {
 
         then: "Original module meta-data and artifacts are used"
         file('build/reports').maybeDeleteDir() // delete configuration cache report if present
-        file('build').assertContainsDescendants('projectA-1.1.jar')
+        file('build').assertHasDescendants('projectA-1.1.jar')
         jarFile.assertHasNotChangedSince(snapshot)
 
         when: "Server handles requests"
@@ -257,7 +257,7 @@ task retrieve(type: Copy) {
 
         then: "We get new artifacts based on the new meta-data"
         file('build/reports').maybeDeleteDir() // delete configuration cache report if present
-        file('build').assertContainsDescendants('projectA-1.1.jar', 'other-1.1.jar')
+        file('build').assertHasDescendants('projectA-1.1.jar', 'other-1.1.jar')
         jarFile.assertHasChangedSince(snapshot)
         jarFile.assertIsCopyOf(module.jarFile)
     }
