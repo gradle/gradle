@@ -25,25 +25,27 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * Abstract base class for implementing factories that can be used to create {@link DecompressionCache}s.
+ * Implements a factory to create a {@link DecompressionCache} for a given {@link ScopedCache}.
  *
- * This class manages the caches it creates by keeping track of them, and closing them when this factory is
- * itself closed or stopped.  This allows the caches to be closed when the owning scope containing the
- * service instance of the factory implementation is closed.
+ * This class manages a singleton cache and creates it on demand. Closing this factory will close the cache.
  */
 public class DefaultDecompressionCacheFactory implements DecompressionCacheFactory, Closeable {
 
     private final ScopedCache scopedCache;
-    private DecompressionCache cache;
+    private volatile DecompressionCache cache;
 
     public DefaultDecompressionCacheFactory(ScopedCache scopedCache) {
         this.scopedCache = scopedCache;
     }
 
     @Override
-    public synchronized DecompressionCache create() {
+    public DecompressionCache create() {
         if (cache == null) {
-            cache = new DefaultDecompressionCache(scopedCache);
+            synchronized (this) {
+                if (cache == null) {
+                    cache = new DefaultDecompressionCache(scopedCache);
+                }
+            }
         }
         return cache;
     }
