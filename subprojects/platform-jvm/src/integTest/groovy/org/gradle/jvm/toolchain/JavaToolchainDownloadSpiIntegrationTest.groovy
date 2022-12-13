@@ -195,7 +195,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 .assertHasCause("Duplicate registration for 'UselessToolchainResolver'.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "fails on implementation class collision"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("UselessToolchainResolver", uselessToolchainResolverCode("UselessToolchainResolver"))}            
@@ -277,7 +276,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
         failure.assertHasCause("Duplicate configuration for repository 'useless'.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "list of requested repositories can be queried"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("UselessToolchainResolver1", uselessToolchainResolverCode("UselessToolchainResolver1"))}            
