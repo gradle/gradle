@@ -323,16 +323,16 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 """
             }
             alwaysPasses()
-            if (testedPluginId == 'org.jetbrains.kotlin.js' && version != '1.3.72') {
+            if (testedPluginId == 'org.jetbrains.kotlin.js') {
                 buildFile << """
-                    kotlin { js { browser() } }
+                    kotlin { js(IR) { browser() } }
                 """
             }
             if (testedPluginId == 'org.jetbrains.kotlin.multiplatform') {
                 buildFile << """
                     kotlin {
                         jvm()
-                        js { browser() }
+                        js(IR) { browser() }
                     }
                 """
             }
