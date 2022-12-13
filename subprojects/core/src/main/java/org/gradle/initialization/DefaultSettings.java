@@ -377,8 +377,8 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     public void preventFromFurtherMutation() {
-        dependencyResolutionManagement.disableFurtherMutations();
-        toolchainManagement.disableFurtherMutations();
+        dependencyResolutionManagement.preventFromFurtherMutation();
+        toolchainManagement.preventFromFurtherMutation();
     }
 
     @Override
@@ -392,7 +392,6 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    @Inject
     public ToolchainManagement getToolchainManagement() {
         return toolchainManagement;
     }

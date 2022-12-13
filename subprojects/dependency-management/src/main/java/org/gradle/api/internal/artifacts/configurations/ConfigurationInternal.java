@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenci
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.FinalizableValue;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.util.Path;
 
@@ -36,7 +37,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public interface ConfigurationInternal extends ResolveContext, Configuration, DeprecatableConfiguration, DependencyMetaDataProvider {
+public interface ConfigurationInternal extends ResolveContext, Configuration, DeprecatableConfiguration, DependencyMetaDataProvider, FinalizableValue {
     enum InternalState {
         UNRESOLVED,
         BUILD_DEPENDENCIES_RESOLVED,
@@ -87,8 +88,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     void beforeLocking(Action<? super ConfigurationInternal> action);
 
     boolean isCanBeMutated();
-
-    void preventFromFurtherMutation();
 
     /**
      * Reports whether this configuration uses {@link org.gradle.api.Incubating Incubating} attributes types, such as {@link org.gradle.api.attributes.Category#VERIFICATION}.
