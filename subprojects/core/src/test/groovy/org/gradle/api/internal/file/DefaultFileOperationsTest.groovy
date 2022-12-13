@@ -29,7 +29,6 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.resources.DefaultResourceHandler
 import org.gradle.cache.internal.TestCaches
 import org.gradle.internal.hash.FileHasher
-import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -53,7 +52,6 @@ class DefaultFileOperationsTest extends Specification {
     private final TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(() -> cacheDir);
     private final Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
     private final DefaultDirectoryFileTreeFactory directoryFileTreeFactory = Mock()
-    private final StreamHasher streamHasher = Mock()
     private final FileHasher fileHasher = Mock()
     private final DefaultResourceHandler.Factory resourceHandlerFactory = Mock()
     private final FileCollectionFactory fileCollectionFactory = Mock()
@@ -63,10 +61,8 @@ class DefaultFileOperationsTest extends Specification {
         instantiator.newInstance(
             DefaultFileOperations,
             resolver,
-            temporaryFileProvider,
             instantiator,
             directoryFileTreeFactory,
-            streamHasher,
             fileHasher,
             resourceHandlerFactory,
             fileCollectionFactory,
