@@ -25,8 +25,6 @@ import org.gradle.util.Requires
 import org.gradle.util.UnitTestPreconditions
 import org.opentest4j.TestAbortedException
 
-import static org.gradle.util.TestPrecondition.NOT_MAC_OS_X_M1
-
 @Requires(UnitTestPreconditions.NotMacOsM1)
 class CppToolChainChangesIntegrationTest extends AbstractIntegrationSpec {
 

@@ -21,11 +21,9 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOp
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.IntegTestPreconditions
 import org.gradle.util.Requires
 import org.gradle.util.UnitTestPreconditions
-
 /**
  * Smoke test building gradle/gradle with configuration cache enabled.
  *

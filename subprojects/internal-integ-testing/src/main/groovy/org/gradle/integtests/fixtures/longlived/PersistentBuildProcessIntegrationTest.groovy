@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures.longlived
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.IntegTestPreconditions
 import org.gradle.util.Requires
 

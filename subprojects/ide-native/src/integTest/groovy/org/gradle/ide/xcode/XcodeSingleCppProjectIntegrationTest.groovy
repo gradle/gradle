@@ -24,7 +24,6 @@ import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.UnitTestPreconditions
 
 import static org.gradle.ide.xcode.internal.XcodeUtils.toSpaceSeparatedList
