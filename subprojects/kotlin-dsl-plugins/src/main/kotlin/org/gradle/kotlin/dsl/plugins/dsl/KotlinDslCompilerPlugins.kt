@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.KotlinDslPluginSupport
@@ -44,8 +45,10 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
             kotlinDslPluginOptions {
                 tasks.withType<KotlinCompile>().configureEach {
                     it.kotlinOptions {
-                        if (this@kotlinDslPluginOptions.jvmTargetProperty.isPresent) {
-                            jvmTarget = this@kotlinDslPluginOptions.jvmTargetProperty.get()
+                        DeprecationLogger.whileDisabled {
+                            if (this@kotlinDslPluginOptions.jvmTarget.isPresent) {
+                                jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
+                            }
                         }
                         apiVersion = "1.5"
                         languageVersion = "1.5"
