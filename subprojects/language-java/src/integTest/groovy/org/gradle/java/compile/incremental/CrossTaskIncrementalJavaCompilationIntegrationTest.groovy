@@ -86,15 +86,21 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
                 }
             }
         """
-        source api: ["package a; public class A {}"], impl: ["package b; import a.A; class B extends A {}", "class Unrelated {}"]
+        source api: ["package a; public class A {}"]
         file("api/src/main/${language.name}/module-info.${language.name}").text = """
             module api {
                 exports a;
             }
         """
+        source impl: [
+            "package b; import a.A; public class B extends A {}",
+            "package c; public class Unrelated {}"
+        ]
         file("impl/src/main/${language.name}/module-info.${language.name}").text = """
             module impl {
                 requires api;
+                exports b;
+                exports c;
             }
         """
         succeeds "impl:${language.compileTaskName}"
