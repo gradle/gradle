@@ -24,6 +24,7 @@ import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
+import org.gradle.internal.resource.cached.CachedExternalResourceChecker;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.CachedExternalResourceListener;
 import org.gradle.internal.resource.local.FileResourceRepository;
@@ -50,14 +51,15 @@ public class ResourceConnectorRepositoryTransport extends AbstractRepositoryTran
                                                 ProducerGuard<ExternalResourceName> producerGuard,
                                                 FileResourceRepository fileResourceRepository,
                                                 ChecksumService checksumService,
-                                                CachedExternalResourceListener cachedExternalResourceListener
+                                                CachedExternalResourceListener cachedExternalResourceListener,
+                                                CachedExternalResourceChecker cachedExternalResourceChecker
                                                 ) {
         super(name);
         ProgressLoggingExternalResourceUploader loggingUploader = new ProgressLoggingExternalResourceUploader(connector, buildOperationExecutor);
         ProgressLoggingExternalResourceAccessor loggingAccessor = new ProgressLoggingExternalResourceAccessor(connector, buildOperationExecutor);
         ProgressLoggingExternalResourceLister loggingLister = new ProgressLoggingExternalResourceLister(connector, buildOperationExecutor);
         repository = new DefaultExternalResourceRepository(name, loggingAccessor, loggingUploader, loggingLister);
-        resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, artifactCacheLockingManager, cachePolicy, producerGuard, fileResourceRepository, checksumService, cachedExternalResourceListener);
+        resourceAccessor = new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, artifactCacheLockingManager, cachePolicy, producerGuard, fileResourceRepository, checksumService, cachedExternalResourceListener, cachedExternalResourceChecker);
     }
 
     @Override

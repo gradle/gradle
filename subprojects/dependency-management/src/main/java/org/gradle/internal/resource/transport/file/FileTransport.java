@@ -45,7 +45,7 @@ public class FileTransport extends AbstractRepositoryTransport {
         super(name);
         this.repository = repository;
         ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
-        resourceAccessor = new FileCacheAwareExternalResourceAccessor(new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, artifactCacheLockingManager, cachePolicy, producerGuard, repository, checksumService, cachedExternalResourceListener), listener);
+        resourceAccessor = new FileCacheAwareExternalResourceAccessor(new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, artifactCacheLockingManager, cachePolicy, producerGuard, repository, checksumService, cachedExternalResourceListener, cachedExternalResourceChecker), listener);
     }
 
     @Override

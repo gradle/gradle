@@ -32,14 +32,15 @@ import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceReadResult;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.cached.CachedExternalResource;
+import org.gradle.internal.resource.cached.CachedExternalResourceChecker;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.CachedExternalResourceListener;
+import org.gradle.internal.resource.cached.CachedExternalResourceRemoteMetaData;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
@@ -66,8 +67,9 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
     private final FileResourceRepository fileResourceRepository;
     private final ChecksumService checksumService;
     private final CachedExternalResourceListener listener;
+    private final CachedExternalResourceChecker cachedExternalResourceChecker;
 
-    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository, ChecksumService checksumService, CachedExternalResourceListener listener) {
+    public DefaultCacheAwareExternalResourceAccessor(ExternalResourceRepository delegate, CachedExternalResourceIndex<String> cachedExternalResourceIndex, BuildCommencedTimeProvider timeProvider, TemporaryFileProvider temporaryFileProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceCachePolicy externalResourceCachePolicy, ProducerGuard<ExternalResourceName> producerGuard, FileResourceRepository fileResourceRepository, ChecksumService checksumService, CachedExternalResourceListener listener, CachedExternalResourceChecker cachedExternalResourceChecker) {
         this.delegate = delegate;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
@@ -78,6 +80,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         this.fileResourceRepository = fileResourceRepository;
         this.checksumService = checksumService;
         this.listener = listener;
+        this.cachedExternalResourceChecker = cachedExternalResourceChecker;
     }
 
     @Nullable
@@ -101,32 +104,25 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             // We have a cached version, but it might be out of date, so we tell the upstreams to revalidate too
             final boolean revalidate = true;
 
-            // Get the metadata first to see if it's there
-            final ExternalResourceMetaData remoteMetaData = delegate.resource(location, revalidate).getMetaData();
-            if (remoteMetaData == null) {
+            CachedExternalResourceRemoteMetaData remoteMetaData = cachedExternalResourceChecker.check(location, cached);
+
+            if (remoteMetaData.getMetaData() == null) {
                 return null;
             }
 
             // Is the cached version still current?
-            if (cached != null) {
-                boolean isUnchanged = ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
-                    cached.getExternalResourceMetaData(),
-                    () -> remoteMetaData
-                );
-
-                if (isUnchanged) {
-                    LOGGER.info("Cached resource {} is up-to-date (lastModified: {}).", location, cached.getExternalLastModified());
-                    // Update the cache entry in the index: this resets the age of the cached entry to zero
-                    cachedExternalResourceIndex.store(location.toString(), cached.getCachedFile(), cached.getExternalResourceMetaData());
-                    return fileResourceRepository.resource(cached.getCachedFile(), location.getUri(), cached.getExternalResourceMetaData());
-                }
+            if (cached != null && remoteMetaData.isUpToDate()) {
+                LOGGER.info("Cached resource {} is up-to-date (lastModified: {}).", location, cached.getExternalLastModified());
+                // Update the cache entry in the index: this resets the age of the cached entry to zero
+                cachedExternalResourceIndex.store(location.toString(), cached.getCachedFile(), cached.getExternalResourceMetaData());
+                return fileResourceRepository.resource(cached.getCachedFile(), location.getUri(), cached.getExternalResourceMetaData());
             }
 
             // Either no cached, or it's changed. See if we can find something local with the same checksum
             boolean hasLocalCandidates = additionalCandidates != null && !additionalCandidates.isNone();
             if (hasLocalCandidates) {
                 // The “remote” may have already given us the checksum
-                HashCode remoteChecksum = remoteMetaData.getSha1();
+                HashCode remoteChecksum = remoteMetaData.getMetaData().getSha1();
 
                 if (remoteChecksum == null) {
                     remoteChecksum = getResourceSha1(location, revalidate);
@@ -139,7 +135,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
                         // TODO - should iterate over each candidate until we successfully copy into the cache
                         LocallyAvailableExternalResource resource;
                         try {
-                            resource = copyCandidateToCache(location, fileStore, remoteMetaData, remoteChecksum, local);
+                            resource = copyCandidateToCache(location, fileStore, remoteMetaData.getMetaData(), remoteChecksum, local);
                         } catch (IOException e) {
                             throw new UncheckedIOException(e);
                         }
