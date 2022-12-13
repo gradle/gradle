@@ -29,6 +29,8 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult.InternalAnnotationProcessorResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -38,6 +40,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class JavaCompileTaskSuccessResultPostProcessor implements OperationResultPostProcessor {
 
+    private final static Logger LOGGER = LoggerFactory.getLogger(JavaCompileTaskSuccessResultPostProcessor.class);
+
     private static final Object TASK_MARKER = new Object();
     private final Map<OperationIdentifier, CompileJavaBuildOperationType.Result> results = new ConcurrentHashMap<>();
     private final Map<OperationIdentifier, Object> parentsOfOperationsWithJavaCompileTaskAncestor = new ConcurrentHashMap<>();
@@ -45,19 +49,25 @@ public class JavaCompileTaskSuccessResultPostProcessor implements OperationResul
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         if (buildOperation.getDetails() instanceof ExecuteTaskBuildOperationType.Details) {
+            LOGGER.warn("adding {} to map as task", buildOperation);
             parentsOfOperationsWithJavaCompileTaskAncestor.put(buildOperation.getId(), TASK_MARKER);
         } else if (buildOperation.getParentId() != null && parentsOfOperationsWithJavaCompileTaskAncestor.containsKey(buildOperation.getParentId())) {
+            LOGGER.warn("adding {} to map with parent {}", buildOperation, buildOperation.getParentId());
             parentsOfOperationsWithJavaCompileTaskAncestor.put(buildOperation.getId(), buildOperation.getParentId());
+        } else {
+            LOGGER.warn("not capturing parent {} of build operation {}", buildOperation.getParentId(), buildOperation);
         }
     }
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
         if (finishEvent.getResult() instanceof CompileJavaBuildOperationType.Result) {
+            LOGGER.warn("looking for task parent of {}", buildOperation);
             CompileJavaBuildOperationType.Result result = (CompileJavaBuildOperationType.Result) finishEvent.getResult();
             OperationIdentifier taskBuildOperationId = findTaskOperationId(buildOperation.getParentId());
             results.put(taskBuildOperationId, result);
         }
+        LOGGER.warn("removing {} from map", buildOperation);
         parentsOfOperationsWithJavaCompileTaskAncestor.remove(buildOperation.getId());
     }
 
