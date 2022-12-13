@@ -16,9 +16,20 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveFailureTestFixture
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 class BadPomFileResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    final resolve = new ResolveTestFixture(buildFile, "compile")
+    final failedResolve = new ResolveFailureTestFixture(buildFile, "compile")
+
+    def setup() {
+        settingsFile """
+            rootProject.name = 'test'
+        """
+    }
+
     @Issue("https://issues.gradle.org/browse/GRADLE-1005")
     def "can handle self referencing dependency"() {
         given:
@@ -33,14 +44,19 @@ class BadPomFileResolveIntegrationTest extends AbstractHttpDependencyResolutionT
             dependencies {
                 compile "group:artifact:1.0"
             }
-            task libs { doLast { assert configurations.compile.files.collect {it.name} == ['artifact-1.0.jar'] } }
         """
+        resolve.prepare()
 
         expect:
-        succeeds ":libs"
+        succeeds ":checkDeps"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("group:artifact:1.0")
+            }
+        }
     }
 
-    public void "reports POM that cannot be parsed"() {
+    def "reports POM that cannot be parsed"() {
         given:
         buildFile << """
 repositories {
@@ -52,8 +68,8 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task showBroken { doLast { println configurations.compile.files } }
 """
+        failedResolve.prepare()
 
         and:
         def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
@@ -63,7 +79,8 @@ task showBroken { doLast { println configurations.compile.files } }
         module.pom.expectGet()
 
         then:
-        fails "showBroken"
+        fails "checkDeps"
+        failedResolve.assertFailurePresent(failure)
         failure.assertResolutionFailure(":compile")
             .assertHasCause("Could not parse POM ${module.pom.uri}")
             .assertHasCause("Missing required attribute: groupId")
@@ -81,17 +98,18 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task showBroken { doLast { println configurations.compile.files } }
 """
+        failedResolve.prepare()
 
         and:
         def module = mavenRepo.module('group', 'projectA', '1.2').publish()
         module.pomFile.text = "<project/>"
 
         when:
-        fails "showBroken"
+        fails "checkDeps"
 
         then:
+        failedResolve.assertFailurePresent(failure)
         failure.assertResolutionFailure(":compile")
             .assertHasCause("Could not parse POM ${module.pomFile}")
             .assertHasCause("Missing required attribute: groupId")
@@ -111,17 +129,18 @@ repositories {
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
-task showBroken { doLast { println configurations.compile.files } }
 """
+        failedResolve.prepare()
 
         when:
         child.pom.expectGet()
         parent.pom.expectGetMissing()
 
         and:
-        fails 'showBroken'
+        fails 'checkDeps'
 
         then:
+        failedResolve.assertFailurePresent(failure)
         failure.assertResolutionFailure(':compile')
                 .assertHasCause("Could not parse POM ${child.pom.uri}")
                 .assertHasCause("""Could not find org:parent:1.0.
@@ -144,17 +163,18 @@ repositories {
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
-task showBroken { doLast { println configurations.compile.files } }
 """
+        failedResolve.prepare()
 
         when:
         child.pom.expectGet()
         parent.pom.expectGet()
 
         and:
-        fails 'showBroken'
+        fails 'checkDeps'
 
         then:
+        failedResolve.assertFailurePresent(failure)
         failure.assertResolutionFailure(":compile")
             .assertHasCause("Could not parse POM ${child.pom.uri}")
             .assertHasCause("Could not parse POM ${parent.pom.uri}")
@@ -173,8 +193,8 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task showBroken { doLast { println configurations.compile.files } }
 """
+        failedResolve.prepare()
 
         and:
         def module = mavenHttpRepo.module('group', 'projectA', '1.2').dependsOn("other-groupId", "other-artifactId", "1.0").publish()
@@ -182,9 +202,10 @@ task showBroken { doLast { println configurations.compile.files } }
         module.pomFile.text = module.pomFile.text.replace(elementToReplace, "<!--$elementToReplace-->")
 
         when:
-        fails "showBroken"
+        fails "checkDeps"
 
         then:
+        failedResolve.assertFailurePresent(failure)
         failure.assertResolutionFailure(":compile")
             .assertHasCause("Could not parse POM ${module.pomFile}")
             .assertHasCause("Missing required attribute: dependency $attribute")
@@ -206,12 +227,12 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task resolve { doLast { configurations.compile.resolve() } }
 """
+        resolve.prepare()
 
         and:
-        def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
-        module.pomFile.text = """
+        def projectA = mavenHttpRepo.module('group', 'projectA', '1.2').publish()
+        projectA.pomFile.text = """
 <project>
     <modelVersion>4.0.0</modelVersion>
     <groupId>group</groupId>
@@ -222,10 +243,17 @@ task resolve { doLast { configurations.compile.resolve() } }
 """
 
         when:
-        module.pom.expectGet()
-        module.artifact.expectGet()
+        projectA.pom.expectGet()
+        projectA.artifact.expectGet()
 
         then:
-        succeeds("resolve")
+        succeeds("checkDeps")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("group:projectA:1.2") {
+                    artifact(fileName: "projectA-1.2.jar", type: "\${package.type}")
+                }
+            }
+        }
     }
 }

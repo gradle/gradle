@@ -58,6 +58,11 @@ Usage of invalid Java toolchain specifications is no longer supported.
 Related build errors can be avoided by making sure that language version is set on all toolchain specifications.
 See <<toolchains#sec:configuring_toolchain_specifications,user manual>> for more information.
 
+==== Using automatic toolchain downloading without having a repository configured
+
+Automatic toolchain downloading without explicitly providing repositories to use is no longer supported.
+See <<toolchains#sub:download_repositories,user manual>> for more information.
+
 ==== Changing test framework after setting test framework options is now an error
 
 When configuring the built-in test task for Java, Groovy, and Scala projects, Gradle no longer allows you to
@@ -86,7 +91,7 @@ test {
 }
 ```
 
-=== Removed APIs
+=== Removed APIs and features
 
 ==== Legacy ArtifactTransform API
 
@@ -102,6 +107,133 @@ The legacy `IncrementalTaskInputs` API has been removed. For more information, s
 The legacy `AntlrSourceVirtualDirectory` API has been removed.
 This change affects the `antlr` plugin.
 In Gradle 8.0 and above, use the `AntlrSourceDirectorySet` source set extension instead.
+
+==== `--no-rebuild` command line option
+
+The `--no-rebuild` command line option and its short variant `-a` have been removed.
+They were used to tell Gradle not to rebuild project dependencies and could lead to wrong results.
+
+==== JvmPluginsHelper
+
+A deprecated `configureDocumentationVariantWithArtifact` method of the `JvmPluginsHelper` class which did not require a `FileResolver` has been removed.
+This was an internal API, but may have been accessed by plugins.
+Supply a `FileResolver` to the overloaded version of this method instead.
+
+==== Groovydoc API Cleanup
+
+The deprecated `isIncludePrivate` property of the `Groovydoc` task type has been removed.
+Use the `access` property along with the `GroovydocAccess#PRIVATE` constant instead.
+
+==== JavaApplication API Cleanup
+
+The deprecated `mainClassName` property of the `JavaApplication` interface has been removed.
+Use the `mainClass` property instead.
+
+==== DefaultDomainObjectSet API Cleanup
+
+The deprecated `DefaultDomainObjectSet(Class)` constructor has been removed.
+This was an internal API, but may have been used by plugins.
+
+==== JacocoPluginExtension API Cleanup
+
+The deprecated `reportsDir` property of the `JacocoPluginExtension` has been removed.
+Use the `reportsDirectory` property instead.
+
+==== DependencyInsightReportTask API Cleanup
+
+The deprecated `legacyShowSinglePathToDependnecy` property of the `DependencyInsightReportTask` task type has been removed.
+Use the `showSinglePathToDependency` property instead.
+
+==== Report API Cleanup
+
+The deprecated `destination`, and `enabled` properties of the `Report` type have been removed.
+Use the `outputLocation` and `required` properties instead.
+
+==== JacocoMerge Task Removed
+
+The deprecated `JacocoMerge` task type has been removed.
+The same functionality is also available on the `JacocoReport` task.
+
+==== JavaExec API Cleanup
+
+The deprecated `main` property of the `JavaExec` task type has been removed.
+Use the `mainClass` property instead.
+
+==== AbstractExecTask API Cleanup
+
+The deprecated `execResult` getter property of the `AbstractExecTask` task type has been removed.
+Use the `executionResult` getter property instead.
+
+==== AbstractTestTask API Cleanup
+
+The deprecated `binResultsDir` property of the `AbstractTestTask` task type has been removed.
+Use the `binaryResultsDirectory` property instead.
+
+==== SourceDirectorySet API Cleanup
+
+The deprecated `outputDir` property of the `SourceDirectorySet` type has been removed.
+Use the `destinationDirectory` property instead.
+
+==== VersionCatalog API Cleanup
+
+The deprecated `findDependency(String)` method and `dependencyAliases` property of the `VersionCatalog` type have been removed.
+Use the `findLibrary(String)` method and `libraryAliases` property instead.
+
+The deprecated `alias(String)` method of the `VersionCatalogBuilder` type has been removed.
+Use the `library(String, String, String)` or `plugin(String, String)` methods instead.
+
+==== WorkerExecutor API Cleanup
+
+The deprecated `submit(Class, Action)` method of the `WorkerExecutor` interface has been removed.
+Instead, obtain a `WorkQueue` via the `noIsolation()`, `classLoaderIsolation()`, and `processIsolation()`, methods and use the `submit(Class, Action)` method on the `WorkQueue` instead.
+
+==== DependencySubstitution API Cleanup
+
+The deprecated `with(ComponentSelector)` method of the `DependencySubstitution` type's inner `Substitution` type's has been removed.
+Use the `using(ComponentSelector)` method instead.
+
+==== AbstractArchiveTask API Cleanup
+
+The deprecated `appendix`, `archiveName`, `archivePath`, `baseName`, `classifier`, `desintationDir`, `extension` and `version` properties of the `AbstractArchiveTask` task type have been removed.
+Use the `archiveAppendix`, `archiveFileName` , `archiveFile`, `archiveBaseName`, `archiveClassifier`, `destinationDirectory`, `archiveExtension` and `archiveVersion` properties instead.
+
+==== IdeaModule API Cleanup
+
+The deprecated `testSourceDirs` and `testResourceDirs` properties of the `IdeaModule` type have been removed.
+This affects the `org.gradle.plugins.ide.idea.model.IdeaModule` type, not the `org.gradle.tooling.model.idea.IdeaModule` type.
+Use the `testSources` and `testResources` properties instead.
+
+==== AbstractCompile API Deprecations
+
+The previously deprecated `destinationDir` property of the `AbstractCompile` remains deprecated, and will now emit a deprecation warning upon use.
+It is now scheduled for removal in Gradle 9.0.
+Use the `destinationDirectory` property instead.
+
+==== ResolvedComponentResult API Cleanup
+
+The deprecated `getVariant` method of the `ResolvedComponentResult` interface has been removed.
+Use the `getVariants` method instead.
+
+==== Code quality plugins API Cleanup
+
+The deprecated `antBuilder` property of the `Checkstyle`, `CodeNarc` and `Pmd` task types has been removed.
+Use the `Project` type's `ant` property instead.
+
+==== Usage API Cleanup
+
+The deprecated public fields `JAVA_API_CLASSES`, `JAVA_API_JARS`, `JAVA_RUNTIME_CLASSES`, `JAVA_RUNTIME_JARS` and `JAVA_RUNTIME_RESOURCES` of the `Usage` type have been removed.
+The values are available in the **internal** `JavaEcosystemSupport` class for compatibility with previously published modules, but should **not** be used for any new publishing.
+
+==== ExternalDependency API Cleanup
+
+The deprecated `setForce(boolean)` method of the `ExternalDependency` interface has been removed.
+Use the `version(Action)` method to configure strict versions instead.
+
+==== Build-scan method removed from Kotlin DSL
+
+The deprecated `build-scan` plugin application method has been removed from the Kotlin DSL.
+Use the `gradle-enterprise` method instead.
+
 
 === Potential breaking changes
 
@@ -333,6 +465,58 @@ Use the link:java_gradle_plugin.html[`java-gradle-plugin`]'s `validatePlugins` t
 
 Gradle changes the compression library used for creating archives from an Ant based one to https://commons.apache.org/proper/commons-compress/[Apache Commons Compress™]. As a consequence archives created from the same content, are unlikely to end up identical byte-by-byte to their older versions, created with the old library.
 
+[[kotlin_1_7_22]]
+==== Upgrade to Kotlin 1.7.22
+
+The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.7.22[Kotlin 1.7.22].
+For more information, see the release notes for Kotlin https://github.com/JetBrains/kotlin/releases/tag/v1.7.20[1.7.20] and https://github.com/JetBrains/kotlin/releases/tag/v1.7.21[1.7.21].
+
+[[kotlin_language_1_5]]
+==== Updated the Kotlin DSL to Kotlin API Level 1.5
+
+Previously, the Kotlin DSL used Kotlin API level 1.4.
+Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.5.
+This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0.
+
+For information about breaking and nonbreaking changes in this upgrade, see the following links to the Kotlin documentation:
+
+* Kotlin 1.5 link:https://kotlinlang.org/docs/whatsnew15.html#language-features[language]
+* Kotlin 1.5 link:https://kotlinlang.org/docs/whatsnew17.html#standard-library[stdlib]
+
+==== Java Base Plugin now sets Jar, War, and Ear destination directory defaults
+
+Previously, the `base` plugin configured the
+link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:destinationDirectory[destinationDirectory] of
+link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar], link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War], and
+link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] tasks to the directory specified by
+link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html#org.gradle.api.plugins.BasePluginExtension:libsDirectory[BasePluginExtension#getLibsDirectory].
+In Gradle 8.0, `java-base` handles this configuration.
+No changes are required for projects that already apply the
+`java-base` plugin directly or indirectly through the `java`, `application`, `java-library`, or other JVM ecosystem plugins.
+
+==== Upload Task should not be used
+
+The `Upload` task remains deprecated and is now scheduled for removal in Gradle 9.0.
+Although this type remains, it is no longer functional and will throw an exception upon running.
+It is preserved solely to avoid breaking plugins.
+Use the tasks in the `maven-publish` or `ivy-publish` plugins instead.
+
+==== Configurations no longer allowed as Dependencies
+
+Adding a Configuration as a dependency in the `dependencies` DSL block, or programmatically using the `DependencyHandler` classes' `doAdd(Configuration, Object, Closure)` method, is no longer allowed and will fail with an exception.
+To replicate many aspects of this behavior, extend configurations using the `extendsFrom(Configuration)` method on `Configuration` instead.
+
+==== Deprecated for consumption configurations are now non-consumable
+
+The following configurations were never meant to be consumed:
+
+ - The `antlr` configuration created by the `AntlrPlugin`
+ - The `zinc` configuration created by the `ScalaBasePlugin`
+ - The `providedCompile` and `providedRuntime` configurations created by the `WarPlugin`
+
+These configurations were deprecated for consumption and are now no longer consumable.
+Attempting to consume them will result in an error.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
@@ -529,7 +713,7 @@ These deprecated elements will be removed in a future version of Gradle.
 ==== Deprecated implicit references to outer scope methods in some configuration blocks
 
 Prior to Gradle 7.6, Groovy scripts permitted access to root project configure methods
-within named container configure methods that throw `MissingMethodException`.
+within named container configure methods that throw `MissingMethodException`s.
 Consider the following snippets for examples of this behavior:
 
 Gradle permits access to the top-level `repositories` block from within the `configurations` block
@@ -789,7 +973,7 @@ We also recommend to update Checkstyle to version 9.3 or later.
 
 ==== Missing files specified with relative paths when running Checkstyle
 
-Gradle 7.5 consistently sets the current working directory for the Checkstyle task to `GRADLE_USER_HOME/workers`.
+Gradle 7.5 consistently sets the current working directory for the Checkstyle task to `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/workers`.
 This may cause problems with custom Checkstyle tasks or Checkstyle configuration files that assume a different directory for relative paths.
 
 Previously, Gradle selected the current working directory based on the directory where you ran Gradle. If you ran Gradle in:
@@ -797,7 +981,7 @@ Previously, Gradle selected the current working directory based on the directory
 - the root directory of a project: Gradle uses the root directory as the current working directory.
 - a nested directory of a project: Gradle uses the root directory of the subproject as the current working directory.
 
-In version 7.5 and above, Gradle consistently sets the current working directory for the Checkstyle task to `GRADLE_USER_HOME/workers`.
+In version 7.5 and above, Gradle consistently sets the current working directory for the Checkstyle task to `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/workers`.
 
 === Deprecations
 
@@ -1171,11 +1355,6 @@ Gradle emits a deprecation warning when a property in a task, extension or other
 To fix this, the plugin that configures the convention mapping for the task, extension or domain object needs to be changed to use the Provider API only.
 
 [[jacoco_merge]]
-==== JacocoMerge task type is deprecated
-
-The `JacocoMerge` task was used for merging coverage reports from different subprojects into a single report.
-The same functionality is also available on the `JacocoReport` task.
-Because of the duplication, `JacocoMerge` is now deprecated and scheduled for removal in Gradle 8.0.
 
 [[configuring_custom_build_layout]]
 ==== Setting custom build layout
@@ -1353,7 +1532,7 @@ The following plugin configurations have been deprecated for consumption:
 
 If your use case needs to consume any of the above mentioned configurations in another project, please create a separate consumable
 configuration that extends from the internal ones. For example:
-```kotlin
+```
 plugins {
     id("codenarc")
 }
@@ -1422,46 +1601,3 @@ Gradle 5.3 introduced the interface `TransformAction` for implementing artifact 
 Using the registration method link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(org.gradle.api.Action)[DependencyHandler.registerTransform(Action)] for `ArtifactTransform` has been deprecated.
 Migrate your artifact transform to use `TransformAction` and use link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:registerTransform(java.lang.Class,%20org.gradle.api.Action)[DependencyHandler.registerTransform(Class, Action)] instead.
 See the <<artifact_transforms#sec:abm_artifact_transforms,user manual>> for more information on implementing `TransformAction`.
-
-[[gmm_modification_after_publication_populated]]
-==== Modifying Gradle Module Metadata after a publication has been populated
-
-Altering the link:publishing_gradle_module_metadata.html[GMM] (e.g. changing a component configuration variants) *after* a Maven or Ivy publication has been populated from their components is now deprecated. This feature will be removed in Gradle 9.0.
-
-Eager population of the publication can happen if the following methods are called:
-
-====== Maven
-
-* link:{javadocPath}/org/gradle/api/publish/maven/MavenPublication.html#getArtifacts--[MavenPublication.getArtifacts()]
-
-====== Ivy
-
-* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getArtifacts--[IvyPublication.getArtifacts()]
-* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getConfigurations--[IvyPublication.getConfigurations()]
-* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#configurations(Action)--[IvyPublication.configurations(Action)]
-
-Previously, this code block did not generate warnings, but it created inconsistencies between published artifacts:
-
-```kotlin
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-        }
-        create<IvyPublication>("ivy") {
-            from(components["java"])
-        }
-    }
-}
-
-// These calls eagerly populate the Maven and Ivy publications
-(publishing.publications["maven"] as MavenPublication).artifacts
-(publishing.publications["ivy"] as IvyPublication).artifacts
-
-(components["java"] as DefaultAdhocSoftwareComponent).apply {
-  withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
-  withVariantsFromConfiguration(configurations["runtimeElements"]) { skip() }
-}
-```
-
-In this example, the Maven and Ivy publications will contain the main JAR artifacts for the project, whereas the GMM link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[module file] will omit them.

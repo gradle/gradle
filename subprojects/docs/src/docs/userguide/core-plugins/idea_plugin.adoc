@@ -42,8 +42,8 @@ To use the IDEA plugin, include this in your build script:
 
 .Using the IDEA plugin
 ====
-include::sample[dir="snippets/ide/idea/groovy",files="build.gradle[tags=use-plugin]"]
 include::sample[dir="snippets/ide/idea/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/ide/idea/groovy",files="build.gradle[tags=use-plugin]"]
 ====
 
 The IDEA plugin adds a number of tasks to your project. The `idea` task generates an IDEA module file for the project. When the project is the root project, the `idea` task also generates an IDEA project and workspace. The IDEA project includes modules for each of the projects in the Gradle build.
@@ -178,16 +178,16 @@ A "complete rewrite" causes all existing content to be discarded, thereby losing
 
 .Partial Rewrite for Module
 ====
-include::sample[dir="snippets/ide/idea/groovy",files="build.gradle[tags=module-before-merged]"]
 include::sample[dir="snippets/ide/idea/kotlin",files="build.gradle.kts[tags=module-before-merged]"]
+include::sample[dir="snippets/ide/idea/groovy",files="build.gradle[tags=module-before-merged]"]
 ====
 
 The resulting module file will only contain Gradle-generated dependency entries, but not any other dependency entries that may have been present in the original file. (In the case of dependency entries, this is also the default behavior.) Other sections of the module file will be either left as-is or merged. The same could be done for the module paths in the project file:
 
 .Partial Rewrite for Project
 ====
-include::sample[dir="snippets/ide/idea/groovy",files="build.gradle[tags=project-before-merged]"]
 include::sample[dir="snippets/ide/idea/kotlin",files="build.gradle.kts[tags=project-before-merged]"]
+include::sample[dir="snippets/ide/idea/groovy",files="build.gradle[tags=project-before-merged]"]
 ====
 
 [[sec:idea_modify_domain_objects]]
@@ -197,8 +197,8 @@ The `whenMerged` hook allows you to manipulate the fully populated domain object
 
 .Export Dependencies
 ====
-include::sample[dir="snippets/ide/idea/groovy",files="build.gradle[tags=module-when-merged]"]
 include::sample[dir="snippets/ide/idea/kotlin",files="build.gradle.kts[tags=module-when-merged]"]
+include::sample[dir="snippets/ide/idea/groovy",files="build.gradle[tags=module-when-merged]"]
 ====
 
 [[sec:idea_modify_xml]]
@@ -208,8 +208,8 @@ The `withXml` hook allows you to manipulate the in-memory XML representation jus
 
 .Customizing the XML
 ====
-include::sample[dir="snippets/ide/idea/groovy",files="build.gradle[tags=project-with-xml]"]
 include::sample[dir="snippets/ide/idea/kotlin",files="build.gradle.kts[tags=project-with-xml]"]
+include::sample[dir="snippets/ide/idea/groovy",files="build.gradle[tags=project-with-xml]"]
 ====
 
 [[sec:idea_identify_additional_source_sets]]
@@ -219,8 +219,8 @@ When using this plugin together with the <<java_plugin.adoc#java_plugin,Java plu
 
 .Identifying Additional Test Directories in SourceSets
 ====
-include::sample[dir="snippets/ide/ideaAdditionalTestSources/groovy",files="build.gradle[tags=mark-additional-sourcesets-as-test]"]
 include::sample[dir="snippets/ide/ideaAdditionalTestSources/kotlin",files="build.gradle.kts[tags=mark-additional-sourcesets-as-test]"]
+include::sample[dir="snippets/ide/ideaAdditionalTestSources/groovy",files="build.gradle[tags=mark-additional-sourcesets-as-test]"]
 ====
 
 [NOTE]

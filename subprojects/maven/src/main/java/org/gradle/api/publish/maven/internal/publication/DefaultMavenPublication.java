@@ -300,9 +300,6 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             return;
         }
         MavenPublicationErrorChecker.checkForUnpublishableAttributes(component, documentationRegistry);
-        // Finalize the component to avoid GMM later modification
-        // See issue https://github.com/gradle/gradle/issues/20581
-        component.finalizeValue();
 
         PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE, PUBLICATION_WARNING_FOOTER, "suppressPomMetadataWarningsFor");
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();

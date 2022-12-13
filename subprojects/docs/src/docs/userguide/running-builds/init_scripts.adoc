@@ -40,9 +40,9 @@ One main limitation of init scripts is that they cannot access classes in the `b
 There are several ways to use an init script:
 
 * Specify a file on the command line. The command line option is `-I` or `--init-script` followed by the path to the script. The command line option can appear more than once, each time adding another init script. The build will fail if any of the files specified on the command line does not exist.
-* Put a file called `init.gradle` (or `init.gradle.kts` for Kotlin) in the `__USER_HOME__/.gradle/` directory.
-* Put a file that ends with `.gradle` (or `.init.gradle.kts` for Kotlin) in the `__USER_HOME__/.gradle/init.d/` directory.
-* Put a file that ends with `.gradle` (or `.init.gradle.kts` for Kotlin) in the `__GRADLE_HOME__/init.d/` directory, in the Gradle distribution. This allows you to package up a custom Gradle distribution containing some custom build logic and plugins. You can combine this with the <<gradle_wrapper.adoc#gradle_wrapper,Gradle wrapper>> as a way to make custom logic available to all builds in your enterprise.
+* Put a file called `init.gradle` (or `init.gradle.kts` for Kotlin) in the `__$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>__/` directory.
+* Put a file that ends with `.gradle` (or `.init.gradle.kts` for Kotlin) in the `__$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>__/init.d/` directory.
+* Put a file that ends with `.gradle` (or `.init.gradle.kts` for Kotlin) in the `$<<installation.adoc#sec:linux_macos_users_2,__GRADLE_HOME__>>/init.d/` directory, in the Gradle distribution. This allows you to package a custom Gradle distribution containing custom build logic and plugins. You can combine this with the <<gradle_wrapper.adoc#gradle_wrapper,Gradle wrapper>> as a way to make custom logic available to all builds in your enterprise.
 
 If more than one init script is found they will all be executed, in the order specified above. Scripts in a given directory are executed in alphabetical order. This allows, for example, a tool to specify an init script on the command line and the user to put one in their home directory for defining the environment and both scripts will run when Gradle is executed.
 
@@ -68,19 +68,19 @@ You can use an init script to configure the projects in the build. This works in
 
 .Using init script to perform extra configuration before projects are evaluated
 ====
-include::sample[dir="snippets/initScripts/configurationInjection/groovy",files="build.gradle[];init.gradle[]"]
 include::sample[dir="snippets/initScripts/configurationInjection/kotlin",files="build.gradle.kts[];init.gradle.kts[]"]
+include::sample[dir="snippets/initScripts/configurationInjection/groovy",files="build.gradle[];init.gradle[]"]
 ====
 
 ==== Output when applying the init script
-[source.multi-language-sample,groovy]
-----
-> gradle --init-script init.gradle -q showRepos
-include::{snippetsPath}/initScripts/configurationInjection/tests-common/initScriptConfiguration.out[]
-----
 [source.multi-language-sample,kotlin]
 ----
 > gradle --init-script init.gradle.kts -q showRepos
+include::{snippetsPath}/initScripts/configurationInjection/tests-common/initScriptConfiguration.out[]
+----
+[source.multi-language-sample,groovy]
+----
+> gradle --init-script init.gradle -q showRepos
 include::{snippetsPath}/initScripts/configurationInjection/tests-common/initScriptConfiguration.out[]
 ----
 
@@ -91,8 +91,8 @@ In <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies,External d
 
 .Declaring external dependencies for an init script
 ====
-include::sample[dir="snippets/initScripts/externalDependency/groovy",files="init.gradle[tags=declare-classpath]"]
 include::sample[dir="snippets/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=declare-classpath]"]
+include::sample[dir="snippets/initScripts/externalDependency/groovy",files="init.gradle[tags=declare-classpath]"]
 ====
 
 The closure passed to the `initscript()` method configures a link:{javadocPath}/org/gradle/api/initialization/dsl/ScriptHandler.html[ScriptHandler] instance.
@@ -104,20 +104,20 @@ Having declared the init script classpath, you can use the classes in your init 
 
 .An init script with external dependencies
 ====
-include::sample[dir="snippets/initScripts/externalDependency/groovy",files="init.gradle[tags=all];build.gradle[]"]
 include::sample[dir="snippets/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=all];build.gradle.kts[]"]
+include::sample[dir="snippets/initScripts/externalDependency/groovy",files="init.gradle[tags=all];build.gradle[]"]
 ====
 
 Output when applying the init script
 
-[source.multi-language-sample,groovy]
-----
-> gradle --init-script init.gradle -q doNothing
-include::{snippetsPath}/initScripts/externalDependency/tests-common/externalInitDependency.out[]
-----
 [source.multi-language-sample,kotlin]
 ----
 > gradle --init-script init.gradle.kts -q doNothing
+include::{snippetsPath}/initScripts/externalDependency/tests-common/externalInitDependency.out[]
+----
+[source.multi-language-sample,groovy]
+----
+> gradle --init-script init.gradle -q doNothing
 include::{snippetsPath}/initScripts/externalDependency/tests-common/externalInitDependency.out[]
 ----
 
@@ -128,20 +128,20 @@ Similar to a Gradle build script or a Gradle settings file, plugins can be appli
 
 .Using plugins in init scripts
 ====
-include::sample[dir="snippets/initScripts/plugins/groovy",files="init.gradle[tags=init-script-plugin];build.gradle[tag=show-repos-task]"]
 include::sample[dir="snippets/initScripts/plugins/kotlin",files="init.gradle.kts[tags=init-script-plugin];build.gradle.kts[tag=show-repos-task]"]
+include::sample[dir="snippets/initScripts/plugins/groovy",files="init.gradle[tags=init-script-plugin];build.gradle[tag=show-repos-task]"]
 ====
 
 Output when applying the init script
 
-[source.multi-language-sample,groovy]
-----
-> gradle --init-script init.gradle -q showRepositories
-include::{snippetsPath}/initScripts/plugins/tests-common/usePluginsInInitScripts.out[]
-----
 [source.multi-language-sample,kotlin]
 ----
 > gradle --init-script init.gradle.kts -q showRepositories
+include::{snippetsPath}/initScripts/plugins/tests-common/usePluginsInInitScripts.out[]
+----
+[source.multi-language-sample,groovy]
+----
+> gradle --init-script init.gradle -q showRepositories
 include::{snippetsPath}/initScripts/plugins/tests-common/usePluginsInInitScripts.out[]
 ----
 

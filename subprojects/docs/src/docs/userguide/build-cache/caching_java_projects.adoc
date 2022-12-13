@@ -57,8 +57,8 @@ You need to be careful to declare these additional inputs for your integration t
 For example, declaring the operating system in use by Gradle as an input to a `Test` task called `integTest` would work as follows:
 
 ====
-include::sample[dir="snippets/buildCache/integration-tests/groovy",files="build.gradle[tags=integTest]"]
 include::sample[dir="snippets/buildCache/integration-tests/kotlin",files="build.gradle.kts[tags=integTest]"]
+include::sample[dir="snippets/buildCache/integration-tests/groovy",files="build.gradle[tags=integTest]"]
 ====
 
 === Archives as inputs
@@ -75,16 +75,16 @@ You will probably pass some information from the build environment to your integ
 Passing absolute paths will break <<build_cache_concepts.adoc#relocatability,relocatability>> of the integration test task.
 
 ====
-include::sample[dir="snippets/buildCache/integration-tests/groovy",files="build.gradle[tags=distributionPathInput]"]
 include::sample[dir="snippets/buildCache/integration-tests/kotlin",files="build.gradle.kts[tags=distributionPathInput]"]
+include::sample[dir="snippets/buildCache/integration-tests/groovy",files="build.gradle[tags=distributionPathInput]"]
 ====
 
 Instead of adding the absolute path directly as a system property, it is possible to add an
 annotated link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[CommandLineArgumentProvider] to the `integTest` task:
 
 ====
-include::sample[dir="snippets/buildCache/integration-tests/groovy",files="build.gradle[tags=distributionDirInput]"]
 include::sample[dir="snippets/buildCache/integration-tests/kotlin",files="build.gradle.kts[tags=distributionDirInput]"]
+include::sample[dir="snippets/buildCache/integration-tests/groovy",files="build.gradle[tags=distributionDirInput]"]
 ====
 <1> Create a class implementing link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[`CommandLineArgumentProvider`].
 <2> Declare the inputs and outputs with the corresponding path sensitivity.
@@ -97,8 +97,8 @@ It may be necessary to ignore some system properties as inputs as they do not in
 In order to do so, add a link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[CommandLineArgumentProvider] to the `integTest` task:
 
 ====
-include::sample[dir="snippets/buildCache/integration-tests/groovy",files="build.gradle[tags=ignoreSystemProperties]"]
 include::sample[dir="snippets/buildCache/integration-tests/kotlin",files="build.gradle.kts[tags=ignoreSystemProperties]"]
+include::sample[dir="snippets/buildCache/integration-tests/groovy",files="build.gradle[tags=ignoreSystemProperties]"]
 ====
 <1> `@Internal` means that this property does not influence the output of the integration tests.
 <2> The system properties for the actual test execution.

@@ -131,6 +131,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         outputs.doNotCacheIf(
             "Generated accessors can only be cached in strict mode."
         ) {
+            @Suppress("DEPRECATION")
             !strict.get()
         }
     }
@@ -410,6 +411,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     private
     fun reportProjectSchemaError(plugins: List<PrecompiledScriptPlugin>, error: Throwable) {
+        @Suppress("DEPRECATION")
         if (strict.get()) throw GradleException(failedToGenerateAccessorsFor(plugins), error)
         else logger.warn(failedToGenerateAccessorsFor(plugins), error)
     }
