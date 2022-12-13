@@ -19,9 +19,10 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.tasks.ScalaSourceDirectorySet;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
+import org.gradle.api.tasks.ScalaSourceDirectorySet;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.inject.Inject;
 
@@ -49,6 +50,14 @@ public abstract class DefaultScalaSourceSet implements org.gradle.api.tasks.Scal
 
     @Override
     public ScalaSourceDirectorySet getScala() {
+        emitDeprecationWarning();
+        return getScalaInternal();
+    }
+
+    /**
+     * Same as {@link #getScala()} except it does not emit a deprecation warning.
+     */
+    public ScalaSourceDirectorySet getScalaInternal() {
         return scala;
     }
 
@@ -67,11 +76,22 @@ public abstract class DefaultScalaSourceSet implements org.gradle.api.tasks.Scal
 
     @Override
     public SourceDirectorySet getAllScala() {
+        emitDeprecationWarning();
         return allScala;
     }
 
     @Override
+    @Deprecated
     public TypeOf<?> getPublicType() {
+        emitDeprecationWarning();
         return typeOf(org.gradle.api.tasks.ScalaSourceSet.class);
+    }
+
+    private static void emitDeprecationWarning() {
+        DeprecationLogger.deprecate("Configuring Scala sources via the convention")
+            .withAdvice("Scala sources should be configured via the extension instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "custom_source_set_deprecation")
+            .nagUser();
     }
 }

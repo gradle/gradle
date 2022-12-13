@@ -109,18 +109,17 @@ public class JvmPluginsHelper {
         return apiConfiguration;
     }
 
-    public static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, CompileOptions options, final Project target) {
-        configureForSourceSet(sourceSet, sourceDirectorySet, compile, target);
-        configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, options, target);
-    }
-
-    private static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, final Project target) {
-        compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
-        compile.setSource(sourceSet.getJava());
-
-        ConfigurableFileCollection classpath = compile.getProject().getObjects().fileCollection();
-        classpath.from((Callable<Object>) () -> sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getClassesDirectory())));
-
+    /**
+     * Configures the provided {@code compile} task to compile against the provided {@code sourceSet}'s compile classpath
+     * in addition to the outputs of the java compilation, as specified by {@link SourceSet#getJava()}
+     *
+     * @param compile The task to configure.
+     * @param sourceSet The source set whose output contains the java classes to compile against.
+     * @param objectFactory An {@link ObjectFactory}.
+     */
+    public static void compileAgainstJavaOutputs(AbstractCompile compile, final SourceSet sourceSet, final ObjectFactory objectFactory) {
+        ConfigurableFileCollection classpath = objectFactory.fileCollection();
+        classpath.from((Callable<Object>) () -> sourceSet.getCompileClasspath().plus(objectFactory.fileCollection().from(sourceSet.getJava().getClassesDirectory())));
         compile.getConventionMapping().map("classpath", () -> classpath);
     }
 
