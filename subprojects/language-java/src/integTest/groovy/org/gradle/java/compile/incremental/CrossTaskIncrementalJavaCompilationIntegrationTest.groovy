@@ -75,8 +75,18 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
     @Issue("https://github.com/gradle/gradle/issues/23067")
-    def "recompiles incrementally when upstream module-info changes with manual module path"() {
-        source api: ["package a; public class A {}"], impl: ["package b; import a.A; class B extends A {}"]
+    def "incrementally compilation works with modules with manual module path with #description"() {
+        file("impl/build.gradle") << """
+            def layout = project.layout
+            tasks.compileJava {
+                modularity.inferModulePath = false
+                options.compilerArgs.addAll($modulePathParameter)
+                doFirst {
+                    classpath = layout.files()
+                }
+            }
+        """
+        source api: ["package a; public class A {}"], impl: ["package b; import a.A; class B extends A {}", "class Unrelated {}"]
         def moduleInfo = file("api/src/main/${language.name}/module-info.${language.name}")
         moduleInfo.text = """
             module api {
@@ -88,23 +98,69 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
                 requires api;
             }
         """
+        succeeds "impl:${language.compileTaskName}"
+
+        when:
+        impl.snapshot {
+            source api: ["package a; public class A { void m1() {} }"]
+        }
+
+        then:
+        succeeds "impl:${language.compileTaskName}"
+        impl.recompiledClasses("B", "module-info")
+
+        where:
+        description               | modulePathParameter
+        "--module-path=<modules>" | '["--module-path=\${classpath.join(File.pathSeparator)}"]'
+        "--module-path <modules>" | '["--module-path", "\${classpath.join(File.pathSeparator)}"]'
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "works incrementally for multi-module project with manual module paths"() {
         file("impl/build.gradle") << """
             def layout = project.layout
             tasks.compileJava {
                 modularity.inferModulePath = false
-                options.compilerArgs << "--module-path=\${classpath.join(File.pathSeparator)}"
+                options.compilerArgs << "--module-path=\${classpath.join(File.pathSeparator)}" \
+                    << "--module-source-path=${file("impl/src/main/$languageName").absolutePath}"
                 doFirst {
                     classpath = layout.files()
                 }
             }
         """
+        source api: "package a; public class A {}"
+        def moduleInfo = file("api/src/main/${language.name}/module-info.${language.name}")
+        moduleInfo.text = """
+            module api {
+                exports a;
+            }
+        """
+        file("impl/src/main/${language.name}/my.module.first/b/B.java").text = "package b; import a.A; public class B extends A {}"
+        file("impl/src/main/${language.name}/my.module.first/module-info.${language.name}").text = """
+            module my.module.first {
+                requires api;
+                exports b;
+            }
+        """
+        file("impl/src/main/${language.name}/my.module.second/c/C.java").text = "package c; import b.B; class C extends B {}"
+        file("impl/src/main/${language.name}/my.module.second/module-info.${language.name}").text = """
+            module my.module.second {
+                requires my.module.first;
+            }
+        """
+        file("impl/src/main/${language.name}/my.module.third/d/Unrelated.java").text = "package d; class Unrelated {}"
+        file("impl/src/main/${language.name}/my.module.third/module-info.${language.name}").text = """
+            module my.module.third {
+            }
+        """
         succeeds "impl:${language.compileTaskName}"
 
         when:
-        source impl: ["package b; import a.A; class B extends A { void hello() {} }"]
+        impl.snapshot { source api: "package a; public class A { public void m1() {} }" }
 
         then:
-        succeeds "impl:${language.compileTaskName}"
+        succeeds "impl:${language.compileTaskName}", "--info"
+        impl.recompiledFqn("my.module.first.b.B", "my.module.second.c.C", "my.module.first.module-info", "my.module.second.module-info", "my.module.third.module-info")
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
