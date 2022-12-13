@@ -213,7 +213,7 @@ public class CommandLineParser {
     }
 
     private static String join(Collection<?> things, String separator) {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder builder = new StringBuilder();
         boolean first = true;
 
         if (separator == null) {
@@ -222,12 +222,12 @@ public class CommandLineParser {
 
         for (Object thing : things) {
             if (!first) {
-                buffer.append(separator);
+                builder.append(separator);
             }
-            buffer.append(thing.toString());
+            builder.append(thing.toString());
             first = false;
         }
-        return buffer.toString();
+        return builder.toString();
     }
 
     /**
