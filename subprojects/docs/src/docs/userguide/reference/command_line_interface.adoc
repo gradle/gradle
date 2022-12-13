@@ -141,7 +141,7 @@ $ gradle clean build
 
 However, the intention implied in the command line order is that `clean` should run first, and then `build`.  It would be incorrect to execute `clean` _after_ `build`, even if doing so would cause the build to execute faster, since `clean` would remove what `build` created.  Conversely, if the command line order was `build` followed by `clean`, it would not be correct to execute `clean` before `build`.  Although Gradle will execute the build as quickly as possible, it will also respect the safety of the order of tasks specified on the command line and ensure that `clean` runs before `build` when specified in that order.
 
-Note that command line order safety relies on tasks properly declaring what they create, consume or remove.  See <<more_about_tasks.adoc#sec:up_to_date_checks,up-to-date checks>> for further information.
+Note that command line order safety relies on tasks properly declaring what they create, consume or remove.  See <<incremental_builds.adoc#incremental_builds,up-to-date checks>> for further information.
 
 [[sec:excluding_tasks_from_the_command_line]]
 === Excluding tasks from execution
@@ -161,7 +161,7 @@ You can see that the `test` task is not executed, even though it is a dependency
 [[sec:rerun_tasks]]
 === Forcing tasks to execute
 
-You can force Gradle to execute all tasks ignoring <<more_about_tasks.adoc#sec:up_to_date_checks,up-to-date checks>> using the `--rerun-tasks` option:
+You can force Gradle to execute all tasks ignoring <<incremental_builds.adoc#incremental_builds,up-to-date checks>> using the `--rerun-tasks` option:
 
 ----
 $ gradle test --rerun-tasks
@@ -731,7 +731,7 @@ Similarly, if the input is a <<working_with_files.adoc#filtering_files,filtered 
 [[sec:continuous_build_untracked]]
 ==== Inputs of untracked tasks
 
-Changes to the inputs of <<more_about_tasks.adoc#sec:disable-state-tracking,untracked tasks>> or tasks that have no outputs may not trigger a build.
+Changes to the inputs of <<incremental_builds.adoc#sec:disable-state-tracking,untracked tasks>> or tasks that have no outputs may not trigger a build.
 
 [[sec:continuous_build_project_dir]]
 ==== Changes to files outside of project directories

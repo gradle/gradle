@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[incremenal_builds]]
+[[incremental_builds]]
 = Incremental builds
 
 An important part of any build tool is the ability to avoid doing work that has already been done. Consider the process of compilation. Once your source files have been compiled, there should be no need to recompile them unless something has changed that affects the output, such as the modification of a source file or the removal of an output file. And compilation can take a significant amount of time, so skipping the step when it’s not needed saves a lot of time.
 
-Gradle supports this behavior out of the box through a feature it calls incremental build. You have almost certainly already seen it in action: it’s active nearly every time the `UP-TO-DATE` text appears next to the name of a task when you run a build. Task outcomes are described in <<#sec:task_outcomes,Task outcomes>>.
+Gradle supports this behavior out of the box through a feature it calls incremental build. You have almost certainly already seen it in action: it’s active nearly every time the `UP-TO-DATE` text appears next to the name of a task when you run a build. Task outcomes are described in <<more_about_tasks.adoc#sec:task_outcomes,Task outcomes>>.
 
 How does incremental build work? And what does it take to make use of it in your own tasks? Let’s take a look.
 
@@ -406,7 +406,7 @@ These problems then fail the build or are turned into deprecation warnings when 
 Tasks that have a validation warning are executed without any optimizations.
 Specifically, they never can be:
 
-* <<#sec:up_to_date_checks,up-to-date>>,
+* up-to-date,
 * loaded from or stored in the <<build_cache.adoc#build_cache,build cache>>,
 * executed in parallel with other tasks, even if <<multi_project_configuration_and_execution.adoc#sec:parallel_execution,parallel execution>> is enabled,
 * executed incrementally.
@@ -881,7 +881,7 @@ For files in the `META-INF` directory of jar archives it's not always possible t
 
 Manifest files within `META-INF` are normalized to ignore comments, whitespace and order differences.
 Manifest attribute names are compared case-and-order insensitively.
-Manifest properties files are normalized according to <<more_about_tasks.adoc#sec:property_file_normalization,Properties File Normalization>>.
+Manifest properties files are normalized according to <<#sec:property_file_normalization,Properties File Normalization>>.
 
 .Ignore `META-INF` manifest attributes
 ====
