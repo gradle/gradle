@@ -23,8 +23,6 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.Requires
 import org.gradle.util.UnitTestPreconditions
 
-import static org.gradle.integtests.fixtures.RetryConditions.runsOnWindowsAndJava7or8
-
 @LeaksFileHandles
 //With older 2.x Gradle versions -> Unable to delete file: native-platform.dll
 class CrossVersionToolingApiSpecificationRetryTest extends ToolingApiSpecification {
