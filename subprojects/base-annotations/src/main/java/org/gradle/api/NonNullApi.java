@@ -16,6 +16,8 @@
 
 package org.gradle.api;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.meta.TypeQualifierDefault;
@@ -36,7 +38,7 @@ import java.lang.annotation.Target;
  * @since 4.2
  */
 @Target({ElementType.TYPE, ElementType.PACKAGE})
-@Nonnull
+@NotNull
 @TypeQualifierDefault({ElementType.METHOD, ElementType.PARAMETER})
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
