@@ -533,6 +533,14 @@ The following configurations were never meant to be consumed:
 These configurations were deprecated for consumption and are now no longer consumable.
 Attempting to consume them will result in an error.
 
+==== Toolchain-based tasks for JVM projects
+
+Starting with Gradle 8.0, all core Java tasks that have toolchain support are now using toolchains unconditionally.
+If `JavaBasePlugin` is applied, the convention value for tool properties on the task is defined by the toolchain configured on the `java` extension.
+In case no toolchains are explicitly configured, the toolchain corresponding to the JVM running Gradle is used.
+
+Similarly, tasks from the Groovy and Scala plugins also rely on toolchains to determine on which JVM they are executed.
+
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier
 
