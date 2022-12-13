@@ -25,12 +25,13 @@ import java.io.File;
 public interface DecompressionCache extends Closeable {
     /**
      * Returns the root directory used by this cache to store decompressed files.
+     *
      * @return the root directory
      */
     File getBaseDir();
 
     /**
-     * TODO:
+     * Runs the given action while holding the cache lock.
      */
     void useCache(Runnable action);
 }
