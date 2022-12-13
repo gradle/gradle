@@ -21,6 +21,7 @@ import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.internal.DefaultDecompressionCache;
 import org.gradle.cache.scopes.ScopedCache;
 
+import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
 
@@ -38,6 +39,7 @@ public class DefaultDecompressionCacheFactory implements DecompressionCacheFacto
         this.scopedCache = scopedCache;
     }
 
+    @Nonnull
     @Override
     public DecompressionCache create() {
         if (cache == null) {
