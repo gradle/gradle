@@ -968,7 +968,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
-    def "can visit and edit zip archive differently from two different projects in a multiproject build using file operations: #foSource"() {
+    def "can visit and edit zip archive differently from two different projects in a multiproject build"() {
         given: "an archive in the root of a multiproject build"
         createZip('test.zip') {
             subdir1 {
@@ -983,8 +983,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         and: "where each project edits that same archive differently via a visitor"
         file('project1/build.gradle') << """
-            ${defineUpdateTask('zip', foSource)}
-            ${defineVerifyTask('zip', foSource)}
+            ${defineUpdateTask('zip')}
+            ${defineVerifyTask('zip')}
 
             def theArchive = rootProject.file('test.zip')
 
@@ -1001,8 +1001,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         """
 
         file('project2/build.gradle') << """
-            ${defineUpdateTask('zip', foSource)}
-            ${defineVerifyTask('zip', foSource)}
+            ${defineUpdateTask('zip')}
+            ${defineVerifyTask('zip')}
 
             def theArchive = rootProject.file('test.zip')
 
@@ -1023,13 +1023,10 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTasksExecutedAndNotSkipped(':project1:update', ':project2:update', ':project1:verify', ':project2:verify')
-
-        where:
-        foSource << [FileOperationsSourceType.INJECT_ARCHIVE_OPS, FileOperationsSourceType.PROJECT_FILE_OPS]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22685")
-    def "can visit and edit tar archive differently from two different projects in a multiproject build using file operations: #foSource"() {
+    def "can visit and edit tar archive differently from two different projects in a multiproject build"() {
         given: "an archive in the root of a multiproject build"
         createTar('test.tar') {
             subdir1 {
@@ -1044,8 +1041,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         and: "where each project edits that same archive differently via a visitor"
         file('project1/build.gradle') << """
-            ${defineUpdateTask('tar', foSource)}
-            ${defineVerifyTask('tar', foSource)}
+            ${defineUpdateTask('tar')}
+            ${defineVerifyTask('tar')}
 
             def theArchive = rootProject.file('test.tar')
 
@@ -1062,8 +1059,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         """
 
         file('project2/build.gradle') << """
-            ${defineUpdateTask('tar', foSource)}
-            ${defineVerifyTask('tar', foSource)}
+            ${defineUpdateTask('tar')}
+            ${defineVerifyTask('tar')}
 
             def theArchive = rootProject.file('test.tar')
 
@@ -1084,9 +1081,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTasksExecutedAndNotSkipped(':project1:update', ':project2:update', ':project1:verify', ':project2:verify')
-
-        where:
-        foSource << [FileOperationsSourceType.INJECT_ARCHIVE_OPS, FileOperationsSourceType.PROJECT_FILE_OPS]
     }
 
     @IgnoreIf({ GradleContextualExecuter.embedded })
@@ -1259,7 +1253,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         server.stop()
     }
 
-    def "can operate on 2 different tar files in the same project using file operations: #foSource"() {
+    def "can operate on 2 different tar files in the same project"() {
         given: "2 archive files"
         createTar('test1.tar') {
             subdir1 {
@@ -1282,8 +1276,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         and: "where a build edits each archive differently via a visitor"
         file('build.gradle') << """
-            ${defineUpdateTask('tar', foSource)}
-            ${defineVerifyTask('tar', foSource)}
+            ${defineUpdateTask('tar')}
+            ${defineVerifyTask('tar')}
 
             def theArchive1 = rootProject.file('test1.tar')
             def theArchive2 = rootProject.file('test2.tar')
@@ -1316,12 +1310,9 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTasksExecutedAndNotSkipped(':update1', ':update2', ':verify1', ':verify2')
-
-        where:
-        foSource << [FileOperationsSourceType.INJECT_ARCHIVE_OPS, FileOperationsSourceType.PROJECT_FILE_OPS]
     }
 
-    def "can operate on 2 different zip files in the same project using file operations: #foSource"() {
+    def "can operate on 2 different zip files in the same project"() {
         given: "2 archive files"
         createZip('test1.zip') {
             subdir1 {
@@ -1344,8 +1335,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         and: "where a build edits each archive differently via a visitor"
         file('build.gradle') << """
-            ${defineUpdateTask('zip', foSource)}
-            ${defineVerifyTask('zip', foSource)}
+            ${defineUpdateTask('zip')}
+            ${defineVerifyTask('zip')}
 
             def theArchive1 = rootProject.file('test1.zip')
             def theArchive2 = rootProject.file('test2.zip')
@@ -1378,9 +1369,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTasksExecutedAndNotSkipped(':update1', ':update2', ':verify1', ':verify2')
-
-        where:
-        foSource << [FileOperationsSourceType.INJECT_ARCHIVE_OPS, FileOperationsSourceType.PROJECT_FILE_OPS]
     }
 
     def "when two identical archives have the same hashes and same decompression cache entry is reused"() {
@@ -1406,8 +1394,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         and: "where a build edits each archive differently via a visitor"
         file('build.gradle') << """
-            ${defineUpdateTask('tar', foSource)}
-            ${defineVerifyTask('tar', foSource)}
+            ${defineUpdateTask('tar')}
+            ${defineVerifyTask('tar')}
 
             def theArchive1 = rootProject.file('test1.tar')
             def theArchive2 = rootProject.file('test2.tar')
@@ -1440,9 +1428,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTasksExecutedAndNotSkipped(':update1', ':update2', ':verify')
-
-        where:
-        foSource << [FileOperationsSourceType.INJECT_ARCHIVE_OPS, FileOperationsSourceType.PROJECT_FILE_OPS]
     }
 
     private def createTar(String name, Closure cl) {
@@ -1485,7 +1470,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private String defineUpdateTask(String archiveType, FileOperationsSourceType foSource = FileOperationsSourceType.INJECT_ARCHIVE_OPS) {
+    private String defineUpdateTask(String archiveType) {
         return """
             abstract class UpdateTask extends DefaultTask {
                 @InputFile
@@ -1494,11 +1479,11 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 @Input
                 abstract Property<String> getReplacementText()
 
-                ${foSource.declaration}
+                @Inject abstract ArchiveOperations getArchiveOperations()
 
                 @TaskAction
                 void update() {
-                    FileTree tree = ${foSource.usage}.${archiveType}Tree(archive.asFile.get())
+                    FileTree tree = archiveOperations.${archiveType}Tree(archive.asFile.get())
                     tree.visit(new EditingFileVisitor())
                 }
 
@@ -1515,7 +1500,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private String defineVerifyTask(String archiveType, FileOperationsSourceType foSource = FileOperationsSourceType.INJECT_ARCHIVE_OPS) {
+    private String defineVerifyTask(String archiveType) {
         return """
             abstract class VerifyTask extends DefaultTask {
                 @InputFile
@@ -1524,11 +1509,11 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 @Input
                 abstract Property<String> getBeginsWith()
 
-                ${foSource.declaration}
+                @Inject abstract ArchiveOperations getArchiveOperations()
 
                 @TaskAction
                 void verify() {
-                    FileTree tree = ${foSource.usage}.${archiveType}Tree(archive.asFile.get())
+                    FileTree tree = archiveOperations.${archiveType}Tree(archive.asFile.get())
                     tree.visit(new VerifyingFileVisitor())
                 }
 
@@ -1543,19 +1528,5 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-    }
-
-    private static final enum FileOperationsSourceType {
-        INJECT_ARCHIVE_OPS("@Inject abstract ArchiveOperations getArchiveOperations()", "archiveOperations"),
-        INJECT_FILE_OPS("@Inject abstract org.gradle.api.internal.file.FileOperations getFileOperations()", "fileOperations"),
-        PROJECT_FILE_OPS("private org.gradle.api.internal.file.FileOperations fileOperations = project.fileOperations", "fileOperations")
-
-        private final String declaration
-        private final String usage
-
-        FileOperationsSourceType(String declaration, String usage) {
-            this.declaration = declaration
-            this.usage = usage
-        }
     }
 }
