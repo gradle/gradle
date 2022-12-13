@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.daemon.server.health;
+package org.gradle.cache;
 
-import org.gradle.api.logging.Logger;
+/**
+ * Specifies the details of cache cleanup, including the action to be performed and the frequency at which cache cleanup should occur.
+ */
+public interface CacheCleanupStrategy {
+    /**
+     * Returns the action to perform on cleanup.
+     */
+    CleanupAction getCleanupAction();
 
-public class HealthLogger {
-
-    static final String HEALTH_MESSAGE_PROPERTY = "org.gradle.daemon.performance.logging";
-
-    public void logHealth(DaemonHealthStats stats, Logger logger) {
-        if (Boolean.getBoolean(HEALTH_MESSAGE_PROPERTY)) {
-            logger.lifecycle(stats.getHealthInfo());
-        } else {
-            //the default
-            logger.info(stats.getHealthInfo());
-        }
-    }
+    /**
+     * Returns the frequency at which cache cleanup can occur.  Possible values are only once a day, every time, or never.
+     */
+    CleanupFrequency getCleanupFrequency();
 }

@@ -20,6 +20,7 @@ import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.addSourceSet
 import gradlebuild.integrationtests.configureIde
 import gradlebuild.integrationtests.createTestTask
+import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
 
 plugins {
     java
@@ -50,7 +51,7 @@ fun createQuickFeedbackTasks() {
     testType.executers.forEach { executer ->
         val taskName = "$executer${prefix.capitalize()}Test"
         val testTask = createTestTask(taskName, executer, sourceSet, testType) {
-            this.systemProperties["org.gradle.integtest.versions"] = "latest"
+            this.setSystemPropertiesOfTestJVM("latest")
             this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
 
             // We should always be using JUnitPlatform at this point, so don't call useJUnitPlatform(), else this will

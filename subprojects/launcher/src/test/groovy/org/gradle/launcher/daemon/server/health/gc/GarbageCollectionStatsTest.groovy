@@ -25,6 +25,7 @@ class GarbageCollectionStatsTest extends Specification {
         def heapStats = GarbageCollectionStats.forHeap(heapEvents)
         expect:
         heapStats.valid
+        heapStats.eventCount == 5
         heapStats.gcRate == 3.0d
         heapStats.maxSizeInBytes == 1000
         heapStats.usedPercent == 50
@@ -34,19 +35,21 @@ class GarbageCollectionStatsTest extends Specification {
         def nonHeapStats = GarbageCollectionStats.forNonHeap(nonHeapEvents)
         expect:
         nonHeapStats.valid
+        nonHeapStats.eventCount == 5
         nonHeapStats.gcRate == 0
         nonHeapStats.maxSizeInBytes == 1000
         nonHeapStats.usedPercent == 70
     }
 
-    def "reports invalid when fewer than 5 events are seen"() {
+    def "reports invalid when maximum memory cannot be determined"() {
         expect:
         !stats.valid
-        stats.maxSizeInBytes == 1000
+        stats.maxSizeInBytes == -1
+
         where:
         stats << [
-                GarbageCollectionStats.forHeap(heapEvents.take(3)),
-                GarbageCollectionStats.forNonHeap(nonHeapEvents.take(3))
+                GarbageCollectionStats.forHeap(withoutMaxMemory(heapEvents)),
+                GarbageCollectionStats.forNonHeap(withoutMaxMemory(nonHeapEvents))
         ]
     }
 
@@ -81,5 +84,13 @@ class GarbageCollectionStatsTest extends Specification {
                 new GarbageCollectionEvent(3000, new MemoryUsage(0, 800, 1000, 1000), 0),
                 new GarbageCollectionEvent(4000, new MemoryUsage(0, 900, 1000, 1000), 0)
         ]
+    }
+
+    def withoutMaxMemory(List<GarbageCollectionEvent> events) {
+        return events.collect { new GarbageCollectionEvent(
+            it.timestamp,
+            new MemoryUsage(it.usage.init, it.usage.used, it.usage.committed, -1),
+            it.count
+        ) }
     }
 }

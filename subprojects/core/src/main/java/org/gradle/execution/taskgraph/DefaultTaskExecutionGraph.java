@@ -289,6 +289,15 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         return builder.build();
     }
 
+    @Override
+    public void resetState() {
+        graphListeners.removeAll();
+        taskListeners.removeAll();
+        executionPlan.close();
+        executionPlan = FinalizedExecutionPlan.EMPTY;
+        allTasks = null;
+    }
+
     /**
      * This action wraps the execution of a node into a build operation.
      */

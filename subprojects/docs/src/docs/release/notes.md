@@ -123,11 +123,11 @@ For information about breaking and nonbreaking changes in this upgrade, see the 
 Previously, the compilation of `.gradle.kts` scripts always used Java 8 as the Kotlin JVM target.
 Starting with Gradle 8.0, it now uses the version of the JVM running the build.
 
-If your team is using e.g. Java 11 to run Gradle, this allows you to use Java 11 librairies and language features in your build scripts.
+If your team is using e.g. Java 11 to run Gradle, this allows you to use Java 11 libraries and language features in your build scripts.
 
 Note that this doesn't apply to [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) which use the configured `kotlinDslPluginOptions.jvmTarget`.
 
-##### Imporved Script compilation performance 
+##### Improved Script compilation performance 
 
 This Gradle version introduces an interpreter for [declarative `plugins {}` blocks](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts.
 It allows to avoid calling the Kotlin compiler for declarative `plugins {}` blocks and is enabled by default.
@@ -206,6 +206,32 @@ For more information, see [Exporting keys](userguide/dependency_verification.htm
 
 ### Configuration Cache
 
+#### Consistent task execution for configuration cache hit and configuration cache miss builds
+
+When the configuration cache is enabled and Gradle is able to locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the 
+cache entry and runs them a so called 'isolated' tasks. Isolated tasks are able to run in parallel (subject to dependency constraints).
+
+When Gradle is unable to locate a configuration cache entry to use, it runs the 'configuration' phase to calculate the set of tasks to run and then stores these tasks to a new cache entry.
+In previous versions, Gradle would then run these tasks directly. However, as these tasks are not isolated, they would not run in parallel.
+
+In this release, Gradle now loads the set of tasks from the cache entry after storing them on a cache miss. These tasks are isolated and can run in parallel.
+
+There are some additional advantages to this new behaviour:
+
+- Any problems that happen during deserialization will be reported in the cache miss build, making it easier to spot such problems.
+- Tasks have access to the same state in cache miss and cache hit builds.
+- Gradle can release all heap used by the configuration state prior to task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks were able to access it. This reduces the peak heap usage for a given set of tasks. 
+
+This consistent behavior for cache miss and cache hit builds should help people who are migrating to use the configuration cache, as many more problems can now be discovered on the first (cache miss) build.
+
+#### Improved compatibility with core plugins 
+
+The [`gradle init` command](userguide/build_init_plugin.html) can be used with the configuration cache enabled.
+
+The [ANTLR plugin](userguide/antlr_plugin.html) and [Groovy DSL precompiled scripts](userguide/custom_plugins.html#sec:precompiled_plugins) are now compatible with the configuration cache.
+
+The current status of the configuration cache support for all core Gradle plugins can be found in the [configuration cache documentation](userguide/configuration_cache.html#config_cache:plugins).
+
 ### Plugin Development
 
 #### Enhanced CodeNarc Plugin to automatically detects appropriate version for current Groovy runtime
@@ -225,11 +251,62 @@ In Java projects, these tools will use the same version of Java required by the 
 
 ### IDE Integration
 
+#### Run `buildSrc` tasks
+#### Improvements for `buildSrc`
+#### Improvements for `buildSrc` builds
+This release includes several improvements for [`buildSrc`](userguide/organizing_gradle_projects#sec:build_sources) builds to make them behave similarly to an [included build](userguide/composite_builds#composite_build_intro).
+
+##### Run `buildSrc` tasks directly
+It is now possible to run the tasks of `buildSrc` from the command-line, using the same syntax used for the tasks of included builds.
+For example, you can use `gradle buildSrc:build` to run the `build` task in the `buildSrc` build.
+
+TODO - link to running included build tasks
+
+#### `buildSrc` can include other builds
+The `buildSrc` build can now include other builds by declaring them in `buildSrc/settings.gradle.kts` or `buildSrc/settings.gradle`.
+You can use `pluginsManagement { includeBuild(someDir) }` or `includeBuild(someDir)` in this settings script to make other builds available for `buildSrc`
+
+TODO - link to declaring included builds
+
+#### Tests for `buildSrc` are no longer automatically run
+When Gradle builds the output of `buildSrc` it only runs the tasks that produce that output. It no longer runs the `build` task.
+In particular, this means that the tests of `buildSrc` and its subprojects are not built and executed when they are not needed.
+
+TODO - you can run these tasks from the command-line or edit buildSrc to restore the old behaviour; link to upgrade guide 
+
+#### Init scripts are applied to `buildSrc`
+Init scripts specified on the command-line using `--init-script` are now applied to `buildSrc`, in addition to the main build and all included builds.
+
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
 
 -->
+
+#### Improved Gradle User Home Cache Cleanup
+Previously, cleanup of the caches in Gradle User Home used fixed retention periods (30 days or 7 days depending on the cache).  
+These retention periods can now be configured via the [Settings](dsl/org.gradle.api.initialization.Settings.html) object in an init script in Gradle User Home.
+
+```groovy
+beforeSettings { settings ->
+    settings.caches {
+        downloadedResources.removeUnusedEntriesAfterDays = 45
+    }
+}
+```
+
+Furthermore, it was previously only possible to partially disable cache cleanup via the `org.gradle.cache.cleanup` Gradle property in Gradle User Home.  
+Disabling cache cleanup now affects more caches under Gradle User Home and can also be configured via the [Settings](dsl/org.gradle.api.initialization.Settings.html) object in an init script in Gradle User Home.
+
+```groovy
+beforeSettings { settings ->
+    settings.caches {
+        cleanup = Cleanup.DISABLED
+    }
+}
+```
+
+See [Configuring cleanup of caches and distributions](userguide/directory_layout.html#dir:gradle_user_home:configure_cache_cleanup) for more information.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

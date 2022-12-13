@@ -35,6 +35,7 @@ class DefaultSettingsLoaderTest extends Specification {
 
     def gradle = Mock(GradleInternal)
     def settings = Mock(SettingsInternal)
+    def state = Mock(SettingsState)
     def buildLayout = new BuildLayout(null, FileUtils.canonicalize(new File("someDir")), null, Stub(ScriptFileResolver))
     def buildLayoutFactory = Mock(BuildLayoutFactory)
     def settingsScript = Mock(ScriptSource)
@@ -62,12 +63,13 @@ class DefaultSettingsLoaderTest extends Specification {
         gradle.getIdentityPath() >> Path.ROOT
         buildLayoutFactory.getLayoutFor(_) >> buildLayout
         gradle.getClassLoaderScope() >> classLoaderScope
-        1 * settingsProcessor.process(gradle, buildLayout, classLoaderScope, startParameter) >> settings
+        1 * settingsProcessor.process(gradle, buildLayout, classLoaderScope, startParameter) >> state
+        _ * state.settings >> settings
         1 * settings.settingsScript >> settingsScript
         1 * settingsScript.displayName >> "foo"
 
         then:
-        settingsHandler.findAndLoadSettings(gradle).is(settings)
+        settingsHandler.findAndLoadSettings(gradle) == state
     }
 
 }

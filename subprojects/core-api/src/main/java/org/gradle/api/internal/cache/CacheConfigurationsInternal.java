@@ -17,27 +17,51 @@
 package org.gradle.api.internal.cache;
 
 import org.gradle.api.cache.CacheConfigurations;
-import org.gradle.api.cache.CacheResourceConfiguration;
 import org.gradle.api.cache.Cleanup;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.CleanupFrequency;
-import org.gradle.cache.internal.CleanupActionDecorator;
-import org.gradle.internal.cache.MonitoredCleanupActionDecorator;
 
-public interface CacheConfigurationsInternal extends CacheConfigurations, CleanupActionDecorator, MonitoredCleanupActionDecorator {
+public interface CacheConfigurationsInternal extends CacheConfigurations {
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS = 30;
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS = 7;
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES = 30;
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES = 7;
 
-    void setReleasedWrappers(CacheResourceConfiguration releasedWrappers);
-    void setSnapshotWrappers(CacheResourceConfiguration snapshotWrappers);
-    void setDownloadedResources(CacheResourceConfiguration downloadedResources);
-    void setCreatedResources(CacheResourceConfiguration createdResources);
-    void setCleanup(Property<Cleanup> cleanup);
+    @Override
+    CacheResourceConfigurationInternal getReleasedWrappers();
+    @Override
+    CacheResourceConfigurationInternal getSnapshotWrappers();
+    @Override
+    CacheResourceConfigurationInternal getDownloadedResources();
+    @Override
+    CacheResourceConfigurationInternal getCreatedResources();
 
-    void finalizeConfigurations();
+    @Override
+    UnlockableProperty<Cleanup> getCleanup();
+
+    /**
+     * Execute the provided runnable with all cache configuration properties unlocked and mutable.
+     */
+    void withMutableValues(Runnable runnable);
 
     Provider<CleanupFrequency> getCleanupFrequency();
+
+    /**
+     * Represents a property that can be locked, preventing any changes that mutate the value.
+     * As opposed to finalization, the expectation is that the property may be unlocked
+     * again in the future.  This allows properties that can only be changed during a certain
+     * window of time.
+     */
+    interface UnlockableProperty<T> extends Property<T> {
+        /**
+         * Lock the property, preventing changes that mutate the value.
+         */
+        void lock();
+
+        /**
+         * Unlock the property, allowing changes that mutate the value.
+         */
+        void unlock();
+    }
 }

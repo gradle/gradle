@@ -232,7 +232,7 @@ class DefaultBuildModelControllerServices(
             calculatedValueContainerFactory: CalculatedValueContainerFactory,
             provider: LocalComponentProvider,
             otherBuildProvider: LocalComponentInAnotherBuildProvider
-        ): LocalComponentRegistry {
+        ): DefaultLocalComponentRegistry {
             return DefaultLocalComponentRegistry(currentBuild.buildIdentifier, projectStateRegistry, calculatedValueContainerFactory, provider, otherBuildProvider)
         }
     }

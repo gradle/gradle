@@ -22,7 +22,6 @@ import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginTarget;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
@@ -69,7 +68,6 @@ import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.TaskExecutionTracker;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -93,6 +91,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     public GradleScopeServices(final ServiceRegistry parent) {
         super(parent);
         register(registration -> {
+            registration.add(DefaultBuildOutputCleanupRegistry.class);
             for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
                 pluginServiceRegistry.registerGradleServices(registration);
             }
@@ -231,10 +230,6 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(FileCollectionFactory fileCollectionFactory) {
-        return new DefaultBuildOutputCleanupRegistry(fileCollectionFactory);
-    }
-
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier(GradleInternal gradle) {
         return ConfigurationTargetIdentifier.of(gradle);
     }
@@ -250,10 +245,4 @@ public class GradleScopeServices extends DefaultServiceRegistry {
             return rootGradle.getServices().get(BuildInvocationScopeId.class);
         }
     }
-
-    @Override
-    public void close() {
-        super.close();
-    }
-
 }

@@ -73,7 +73,6 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     )
     def registry = new DefaultIncludedBuildRegistry(
         includedBuildFactory,
-        Stub(IncludedBuildDependencySubstitutionsBuilder),
         listenerManager,
         factory
     )
