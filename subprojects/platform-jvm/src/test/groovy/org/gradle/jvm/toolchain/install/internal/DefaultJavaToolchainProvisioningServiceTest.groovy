@@ -20,6 +20,7 @@ import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.authentication.Authentication
 import org.gradle.cache.FileLock
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resource.ExternalResource
@@ -51,6 +52,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
     def cache = Mock(JdkCacheDirectory)
     def archiveFileLock = Mock(FileLock)
     def buildPlatform = Mock(BuildPlatform)
+    def detector = Mock(JvmMetadataDetector)
 
     def setup() {
         ExternalResourceMetaData downloadResourceMetadata = Mock(ExternalResourceMetaData)
@@ -75,10 +77,10 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         given:
         mockRegistry(Optional.of(DOWNLOAD))
 
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, operationExecutor, buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, operationExecutor, buildPlatform, detector)
 
         when:
-        provisioningService.tryInstall(spec)
+        provisioningService.tryProvision(spec)
 
         then:
         1 * cache.acquireWriteLock(_, _) >> archiveFileLock
@@ -104,10 +106,10 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         given:
         mockRegistry(Optional.of(DOWNLOAD))
         new File(temporaryFolder, ARCHIVE_NAME).createNewFile()
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform, detector)
 
         when:
-        provisioningService.tryInstall(spec)
+        provisioningService.tryProvision(spec)
 
         then:
         0 * downloader.download(_, _, _)
@@ -119,10 +121,10 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         given:
         mockRegistry(Optional.empty())
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform, detector)
 
         when:
-        def result = provisioningService.tryInstall(spec)
+        def result = provisioningService.tryProvision(spec)
 
         then:
         !result.isPresent()
@@ -135,10 +137,10 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         given:
         mockRegistry(Optional.of(DOWNLOAD))
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, new TestBuildOperationExecutor(), buildPlatform, detector)
 
         when:
-        def result = provisioningService.tryInstall(spec)
+        def result = provisioningService.tryProvision(spec)
 
         then:
         !result.isPresent()
@@ -151,10 +153,10 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
 
         given:
         mockRegistry(Optional.of(DOWNLOAD))
-        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, operationExecutor, buildPlatform)
+        def provisioningService = new DefaultJavaToolchainProvisioningService(registry, downloader, cache, providerFactory, operationExecutor, buildPlatform, detector)
 
         when:
-        provisioningService.tryInstall(spec)
+        provisioningService.tryProvision(spec)
 
         then:
         1 * downloader.download(DOWNLOAD.getUri(), new File(temporaryFolder, ARCHIVE_NAME), _)

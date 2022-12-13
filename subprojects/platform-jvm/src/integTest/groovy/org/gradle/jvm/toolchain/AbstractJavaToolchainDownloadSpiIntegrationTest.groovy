@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class AbstractJavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
-    protected static String applyToolchainResolverPlugin(String pluginName = null, String resolverClass, String code) {
+    protected static String applyToolchainResolverPlugin(String resolverClass, String code, String pluginName = null) {
         if (pluginName == null) {
             pluginName = resolverClass + "Plugin"
         }
@@ -28,15 +28,15 @@ class AbstractJavaToolchainDownloadSpiIntegrationTest extends AbstractIntegratio
             public abstract class ${pluginName} implements Plugin<Settings> {
                 @Inject
                 protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
-            
+
                 void apply(Settings settings) {
                     settings.getPlugins().apply("jvm-toolchain-management");
-                
+
                     JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
                     registry.register(${resolverClass}.class);
                 }
             }
-            
+
             ${code}
 
             apply plugin: ${pluginName}

@@ -25,12 +25,29 @@ import java.util.Optional;
 /**
  * Interface that needs to be implemented by Java toolchain provisioning plugins.
  * <p>
- * Plugin implementors have to provide the mapping from the Java toolchain request to a download information.
+ * Plugin implementors have to provide the mapping from the Java toolchain request to resolution information.
+ * <p>
+ * Resolution of local installation is prioritized over resolution of remote archives.
  *
  * @since 7.6
  */
 @Incubating
 public interface JavaToolchainResolver extends BuildService<BuildServiceParameters.None> {
+
+    /**
+     * Returns a {@link JavaToolchainInstallation} if a local Java toolchain installation
+     * matching the provided specification can be provided.
+     *
+     * @param request   information about the toolchain needed and the environment it's
+     *                  needed in
+     * @return          empty Optional if and only if the provided specification can't be
+     *                  matched
+     *
+     * @since 8.1
+     */
+    default Optional<JavaToolchainInstallation> resolveLocal(JavaToolchainRequest request) {
+        return Optional.empty();
+    }
 
     /**
      * Returns a {@link JavaToolchainDownload} if a Java toolchain matching the provided
@@ -41,6 +58,7 @@ public interface JavaToolchainResolver extends BuildService<BuildServiceParamete
      * @return          empty Optional if and only if the provided specification can't be
      *                  matched
      */
-    Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request);
-
+    default Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+        return Optional.empty();
+    }
 }

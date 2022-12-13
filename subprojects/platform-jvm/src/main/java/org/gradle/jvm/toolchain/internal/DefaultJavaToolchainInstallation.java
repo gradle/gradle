@@ -14,15 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal.install;
+package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.JavaToolchainInstallation;
 
-import java.io.File;
-import java.util.Optional;
+import java.nio.file.Path;
 
-public interface JavaToolchainProvisioningService {
+public class DefaultJavaToolchainInstallation implements JavaToolchainInstallation {
 
-    Optional<File> tryProvision(JavaToolchainSpec spec);
+    public static DefaultJavaToolchainInstallation fromJavaHome(Path path) {
+        return new DefaultJavaToolchainInstallation(path);
+    }
 
+    private final Path javaHome;
+
+    private DefaultJavaToolchainInstallation(Path javaHome) {
+        this.javaHome = javaHome;
+    }
+
+    @Override
+    public Path getJavaHome() {
+        return javaHome;
+    }
 }

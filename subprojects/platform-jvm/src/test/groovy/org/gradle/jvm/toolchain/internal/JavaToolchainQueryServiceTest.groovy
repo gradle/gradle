@@ -190,7 +190,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def registry = createInstallationRegistry(["8", "9", "10"])
         def toolchainFactory = newToolchainFactory()
         def provisioningService = Mock(JavaToolchainProvisioningService)
-        provisioningService.tryInstall(_ as JavaToolchainSpec) >> Optional.empty()
+        provisioningService.tryProvision(_ as JavaToolchainSpec) >> Optional.empty()
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, provisioningService, createProviderFactory(), TestUtil.objectFactory())
 
         when:
@@ -339,7 +339,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchainFactory = newToolchainFactory()
         def installed = false
         def provisionService = new JavaToolchainProvisioningService() {
-            Optional<File> tryInstall(JavaToolchainSpec spec) {
+            Optional<File> tryProvision(JavaToolchainSpec spec) {
                 installed = true
                 Optional.of(new File("/path/12"))
             }
@@ -362,7 +362,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchainFactory = newToolchainFactory()
         def installed = false
         def provisionService = new JavaToolchainProvisioningService() {
-            Optional<File> tryInstall(JavaToolchainSpec spec) {
+            Optional<File> tryProvision(JavaToolchainSpec spec) {
                 installed = true
                 Optional.of(new File("/path/12.broken"))
             }
@@ -386,7 +386,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchainFactory = newToolchainFactory()
         int installed = 0
         def provisionService = new JavaToolchainProvisioningService() {
-            Optional<File> tryInstall(JavaToolchainSpec spec) {
+            Optional<File> tryProvision(JavaToolchainSpec spec) {
                 installed++
                 Optional.of(new File("/path/12"))
             }

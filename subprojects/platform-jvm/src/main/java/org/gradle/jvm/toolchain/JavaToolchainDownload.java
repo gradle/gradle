@@ -23,7 +23,7 @@ import java.net.URI;
 
 /**
  * The response provided by a {@link JavaToolchainResolver} to a specific
- * {@link JavaToolchainRequest}.
+ * {@link JavaToolchainRequest} for remote toolchain archive downloads.
  * <p>
  * Contains the download URI from which a Java toolchain matching the request
  * can be downloaded from. The URI must point to either a ZIP or a TAR archive

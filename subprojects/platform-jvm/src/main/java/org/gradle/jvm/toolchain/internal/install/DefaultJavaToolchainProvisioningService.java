@@ -17,13 +17,14 @@
 package org.gradle.jvm.toolchain.internal.install;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.FileLock;
-import org.gradle.jvm.toolchain.JavaToolchainDownload;
-import org.gradle.platform.BuildPlatform;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -31,11 +32,16 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.jvm.toolchain.JavaToolchainDownload;
+import org.gradle.jvm.toolchain.JavaToolchainInstallation;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest;
+import org.gradle.jvm.toolchain.internal.InstallationLocation;
+import org.gradle.jvm.toolchain.internal.JavaToolchainMatcher;
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal;
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository;
+import org.gradle.platform.BuildPlatform;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -67,6 +73,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     private final Provider<Boolean> downloadEnabled;
     private final BuildOperationExecutor buildOperationExecutor;
     private final BuildPlatform buildPlatform;
+    private final JvmMetadataDetector detector;
 
     @Inject
     public DefaultJavaToolchainProvisioningService(
@@ -75,7 +82,8 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             JdkCacheDirectory cacheDirProvider,
             ProviderFactory factory,
             BuildOperationExecutor executor,
-            BuildPlatform buildPlatform
+            BuildPlatform buildPlatform,
+            JvmMetadataDetector detector
     ) {
         this.toolchainResolverRegistry = (JavaToolchainResolverRegistryInternal) toolchainResolverRegistry;
         this.downloader = downloader;
@@ -83,23 +91,51 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).map(Boolean::parseBoolean);
         this.buildOperationExecutor = executor;
         this.buildPlatform = buildPlatform;
+        this.detector = detector;
     }
 
-    public Optional<File> tryInstall(JavaToolchainSpec spec) {
+    @Override
+    public Optional<File> tryProvision(JavaToolchainSpec spec) {
+        DefaultJavaToolchainRequest request = new DefaultJavaToolchainRequest(spec, buildPlatform);
+        List<? extends RealizedJavaToolchainRepository> repositories = toolchainResolverRegistry.requestedRepositories();
+
+        for (RealizedJavaToolchainRepository repository : repositories) {
+            Optional<JavaToolchainInstallation> installation = repository.getResolver().resolveLocal(request);
+            if (installation.isPresent()) {
+                return Optional.of(validateLocalInstallation(installation.get().getJavaHome().toFile(), spec));
+            }
+        }
+
         if (!isAutoDownloadEnabled()) {
             return Optional.empty();
         }
 
-        List<? extends RealizedJavaToolchainRepository> repositories = toolchainResolverRegistry.requestedRepositories();
-        for (RealizedJavaToolchainRepository request : repositories) {
-            Optional<JavaToolchainDownload> download = request.getResolver().resolve(new DefaultJavaToolchainRequest(spec, buildPlatform));
+        for (RealizedJavaToolchainRepository repository : repositories) {
+            Optional<JavaToolchainDownload> download = repository.getResolver().resolve(request);
             if (download.isPresent()) {
-                Collection<Authentication> authentications = request.getAuthentications(download.get().getUri());
+                Collection<Authentication> authentications = repository.getAuthentications(download.get().getUri());
                 return Optional.of(provisionInstallation(spec, download.get().getUri(), authentications));
             }
         }
 
         return Optional.empty();
+    }
+
+    private File validateLocalInstallation(File javaHome, JavaToolchainSpec spec) {
+        if (!javaHome.isDirectory()) {
+            throw new InvalidUserCodeException("Toolchain installation JAVA_HOME must point to a directory: " + javaHome);
+        }
+
+        JvmInstallationMetadata metadata = detector.getMetadata(new InstallationLocation(javaHome, "provisioned toolchain"));
+        if (!metadata.isValidInstallation()) {
+            throw new GradleException("Provisioned toolchain '" + javaHome + "' could not be probed: " + metadata.getErrorMessage(), metadata.getErrorCause());
+        }
+
+        if (!new JavaToolchainMatcher(spec).test(metadata)) {
+            throw new GradleException("Toolchain provisioned from '" + javaHome + "' doesn't satisfy the specification: " + spec.getDisplayName() + ".");
+        }
+
+        return javaHome;
     }
 
     private File provisionInstallation(JavaToolchainSpec spec, URI uri, Collection<Authentication> authentications) {

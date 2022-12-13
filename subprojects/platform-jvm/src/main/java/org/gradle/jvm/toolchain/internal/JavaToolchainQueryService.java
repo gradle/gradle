@@ -53,7 +53,7 @@ public class JavaToolchainQueryService {
 
     private final JavaInstallationRegistry registry;
     private final JavaToolchainFactory toolchainFactory;
-    private final JavaToolchainProvisioningService installService;
+    private final JavaToolchainProvisioningService provisioningService;
     private final Provider<Boolean> detectEnabled;
     private final Provider<Boolean> downloadEnabled;
     // Map values are either `JavaToolchain` or `Exception`
@@ -70,7 +70,7 @@ public class JavaToolchainQueryService {
     ) {
         this.registry = registry;
         this.toolchainFactory = toolchainFactory;
-        this.installService = provisioningService;
+        this.provisioningService = provisioningService;
         this.detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).map(Boolean::parseBoolean);
         this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).map(Boolean::parseBoolean);
         this.matchingToolchains = new ConcurrentHashMap<>();
@@ -146,14 +146,14 @@ public class JavaToolchainQueryService {
             return detectedToolchain.get();
         }
 
-        InstallationLocation downloadedInstallation = downloadToolchain(spec);
-        JavaToolchain downloadedToolchain = asToolchainOrThrow(downloadedInstallation, spec);
-        registry.addInstallation(downloadedInstallation);
-        return downloadedToolchain;
+        InstallationLocation installation = provisionToolchain(spec);
+        JavaToolchain provisionedToolchain = asToolchainOrThrow(installation, spec);
+        registry.addInstallation(installation);
+        return provisionedToolchain;
     }
 
-    private InstallationLocation downloadToolchain(JavaToolchainSpec spec) {
-        final Optional<File> installation = installService.tryInstall(spec);
+    private InstallationLocation provisionToolchain(JavaToolchainSpec spec) {
+        final Optional<File> installation = provisioningService.tryProvision(spec);
         if (!installation.isPresent()) {
             throw new NoToolchainAvailableException(spec, detectEnabled.getOrElse(true), downloadEnabled.getOrElse(true));
         }
