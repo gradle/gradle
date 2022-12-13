@@ -90,12 +90,20 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     boolean isCanBeMutated();
 
     /**
-     * Lock the configuration, with the option to be lenient on some failures
+     * Locks the configuration for mutation
      * <p>
-     * The idea behind the leniency is to allow report tasks  to still print information
+     * Any invalid state at this point will end up throwing an exception.
      */
     void preventFromFurtherMutation();
 
+    /**
+     * Locks the configuration for mutation
+     * <p>
+     * Any invalid state at this point will be added to the returned list of exceptions.
+     * Handling these becomes the responsibility of the caller.
+     *
+     * @return a list of validation failures when not empty
+     */
     List<? extends GradleException> preventFromFurtherMutationLenient();
 
     /**
