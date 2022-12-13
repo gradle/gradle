@@ -149,7 +149,7 @@ public class WorkerSharedProjectScopeServices {
     }
 
     protected ProjectScopedCache createProjectScopedCache(TemporaryFileProvider temporaryFileProvider, CacheRepository cacheRepository) {
-        return new DefaultProjectScopedCache(temporaryFileProvider.newTemporaryDirectory(".cache"), cacheRepository);
+        return new DefaultProjectScopedCache(temporaryFileProvider.newTemporaryFile(".cache"), cacheRepository);
     }
     protected DecompressionCacheFactory createDecompressionCacheFactory(ProjectScopedCache cacheFactory) {
         return new DefaultDecompressionCacheFactory(cacheFactory);

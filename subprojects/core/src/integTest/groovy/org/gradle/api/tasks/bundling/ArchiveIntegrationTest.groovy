@@ -26,7 +26,6 @@ import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.GradleVersion
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.IgnoreIf
@@ -1425,10 +1424,10 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
             tasks.register('verify') {
                 dependsOn tasks.named('update1'), tasks.named('update2')
-                def cacheDir = project.layout.buildDirectory.dir('.cache/${GradleVersion.current().version}/compressed-file-expansion').get().asFile
                 doLast {
-                    cacheDir.list().size() == 2 // There should only be 2 files here, the .lock file and the single unzipped cache entry
-                    cacheDir.list().contains('compressed-file-expansion.lock')
+                    def cacheDir = file("build/tmp/.cache/expanded")
+                    assert cacheDir.list().size() == 2 // There should only be 2 files here, the .lock file and the single unzipped cache entry
+                    assert cacheDir.list().contains('expanded.lock')
                     cacheDir.eachFile(groovy.io.FileType.DIRECTORIES) { File f ->
                         assert f.name.startsWith('tar_')
                     }
@@ -1437,7 +1436,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run 'verify'
+        succeeds 'verify'
 
         then:
         result.assertTasksExecutedAndNotSkipped(':update1', ':update2', ':verify')
