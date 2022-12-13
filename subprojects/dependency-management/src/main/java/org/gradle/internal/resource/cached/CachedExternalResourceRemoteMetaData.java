@@ -18,25 +18,19 @@ package org.gradle.internal.resource.cached;
 
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
-import javax.annotation.Nullable;
-
 public class CachedExternalResourceRemoteMetaData {
-
-    @Nullable
     private final ExternalResourceMetaData externalResourceMetaData;
-
     private final boolean isUpToDate;
 
-    public CachedExternalResourceRemoteMetaData(@Nullable ExternalResourceMetaData externalResourceMetaData, boolean isUpToDate) {
+    public CachedExternalResourceRemoteMetaData(ExternalResourceMetaData externalResourceMetaData, boolean isUpToDate) {
         this.externalResourceMetaData = externalResourceMetaData;
         this.isUpToDate = isUpToDate;
     }
 
     public boolean isUpToDate() {
-        return externalResourceMetaData != null && isUpToDate;
+        return isUpToDate;
     }
 
-    @Nullable
     public ExternalResourceMetaData getMetaData() {
         return externalResourceMetaData;
     }

@@ -24,7 +24,7 @@ class ConfigurationCacheRemoteBuildScriptIntegrationTest extends AbstractConfigu
     @Rule
     HttpServer server = new HttpServer()
 
-    def "report a problem if remote script was applied"() {
+    def "invalidates cache after change in remote build script"() {
         given:
         server.start()
         String scriptName = "remote-script.gradle"
@@ -32,14 +32,12 @@ class ConfigurationCacheRemoteBuildScriptIntegrationTest extends AbstractConfigu
         File scriptFile = file("remote-script.gradle") << """
             println 'loaded remote script'
         """
-        server.expectGet("/$scriptName", scriptFile)
+        server.allowGetOrHead("/$scriptName", scriptFile)
 
         buildFile << """
             apply from: '$scriptUrl'
             task ok
         """
-
-        def configurationCache = newConfigurationCacheFixture()
 
         when:
         configurationCacheRun 'ok'
@@ -52,6 +50,6 @@ class ConfigurationCacheRemoteBuildScriptIntegrationTest extends AbstractConfigu
         configurationCacheRun 'ok'
 
         then:
-        configurationCache.assertStateLoadFailed()
+        outputContains "Calculating task graph as configuration cache cannot be reused because cached external resource $scriptUrl has expired."
     }
 }

@@ -20,6 +20,8 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.resource.cached.CachedExternalResource
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import java.io.File
 import java.net.URI
 
@@ -62,9 +64,9 @@ sealed class ConfigurationCacheFingerprint {
         val value: Any?
     ) : ConfigurationCacheFingerprint()
 
-    data class CachedExternalResource(
-        val displayName: String,
-        val uri: URI
+    data class ExternalResource(
+        val uri: URI,
+        val metaData: ExternalResourceMetaData
     ) : ConfigurationCacheFingerprint()
 
     abstract class ChangingDependencyResolutionValue(

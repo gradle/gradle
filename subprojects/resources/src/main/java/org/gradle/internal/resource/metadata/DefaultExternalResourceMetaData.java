@@ -19,10 +19,11 @@ package org.gradle.internal.resource.metadata;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 import java.net.URI;
 import java.util.Date;
 
-public class DefaultExternalResourceMetaData implements ExternalResourceMetaData {
+public class DefaultExternalResourceMetaData implements ExternalResourceMetaData, Serializable {
     private final URI location;
     private final Date lastModified;
     private final long contentLength;

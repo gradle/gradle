@@ -92,7 +92,6 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
 
             // If we have no caching options, just get the thing directly
             if (cached == null && (additionalCandidates == null || additionalCandidates.isNone())) {
-                listener.cachedExternalResourceObserved(location.getDisplayName(), timeProvider.getCurrentTime());
                 return copyToCache(location, fileStore, delegate.withProgressLogging().resource(location));
             }
 
@@ -104,9 +103,10 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             // We have a cached version, but it might be out of date, so we tell the upstreams to revalidate too
             final boolean revalidate = true;
 
-            CachedExternalResourceRemoteMetaData remoteMetaData = cachedExternalResourceChecker.check(location, cached);
+            ExternalResourceMetaData localMetaData = cached != null ? cached.getExternalResourceMetaData() : null;
+            CachedExternalResourceRemoteMetaData remoteMetaData = cachedExternalResourceChecker.check(location, localMetaData);
 
-            if (remoteMetaData.getMetaData() == null) {
+            if (remoteMetaData == null) {
                 return null;
             }
 
@@ -192,9 +192,9 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         if (downloadAction.metaData == null) {
             return null;
         }
-
         // Move into cache
         try {
+            listener.externalResourceObserved(source, downloadAction.metaData);
             return moveIntoCache(source, downloadAction.destination, fileStore, downloadAction.metaData);
         } finally {
             downloadAction.destination.delete();

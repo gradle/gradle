@@ -17,10 +17,18 @@
 package org.gradle.internal.resource.cached;
 
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.ExternalResourceRepository;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
+@ServiceScope(Scope.Global.class)
 public interface CachedExternalResourceChecker {
 
-    CachedExternalResourceRemoteMetaData check(ExternalResourceName location, @Nullable CachedExternalResource cachedExternalResource);
+    @Nullable
+    CachedExternalResourceRemoteMetaData check(ExternalResourceName externalResourceName, @Nullable ExternalResourceMetaData localMetaData);
+
+    void setExternalResourceRepository(@Nullable ExternalResourceRepository externalResourceRepository);
 }

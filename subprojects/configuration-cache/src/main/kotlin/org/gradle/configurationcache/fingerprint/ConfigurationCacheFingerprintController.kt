@@ -47,6 +47,9 @@ import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.resource.ExternalResourceName
+import org.gradle.internal.resource.cached.CachedExternalResourceChecker
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.vfs.FileSystemAccess
@@ -56,6 +59,7 @@ import org.gradle.util.internal.GFileUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
+import java.net.URI
 import java.nio.file.Files
 
 
@@ -78,16 +82,14 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val userCodeApplicationContext: UserCodeApplicationContext,
     private val taskExecutionTracker: TaskExecutionTracker,
     private val environmentChangeTracker: EnvironmentChangeTracker,
-    private val inputTrackingState: InputTrackingState
+    private val inputTrackingState: InputTrackingState,
+    private val cachedExternalResourceChecker: CachedExternalResourceChecker
 ) : Stoppable {
 
     interface Host {
         val valueSourceProviderFactory: ValueSourceProviderFactory
         val gradleProperties: GradleProperties
     }
-
-    private
-    val externalResourceCachePolicy = DefaultExternalResourceCachePolicy()
 
     private
     val fileCollectionFingerprinter = fingerprinterRegistry.getFingerprinter(DefaultFileNormalizationSpec.from(InputNormalizer.ABSOLUTE_PATH, DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT))
@@ -351,8 +353,8 @@ class ConfigurationCacheFingerprintController internal constructor(
                 obtainedValue.valueSourceParameters
             )
 
-        override fun mustRefreshExternalResource(ageMillis: Long): Boolean =
-            externalResourceCachePolicy.mustRefreshExternalResource(buildStartTime - ageMillis)
+        override fun mustRefreshExternalResource(resourceName: ExternalResourceName, metaData: ExternalResourceMetaData): Boolean =
+            !(cachedExternalResourceChecker.check(resourceName, metaData)?.isUpToDate ?: false)
     }
 
     private

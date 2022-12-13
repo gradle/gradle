@@ -24,33 +24,31 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
 import javax.annotation.Nullable;
 
 public class DefaultCachedExternalResourceChecker implements CachedExternalResourceChecker {
+    @Nullable
+    private ExternalResourceRepository externalResourceRepository;
 
-    private final CachedExternalResourceIndex<String> cachedExternalResourceIndex;
-
-    private final ExternalResourceRepository delegate;
-
-    public DefaultCachedExternalResourceChecker(CachedExternalResourceIndex<String> cachedExternalResourceIndex, ExternalResourceRepository delegate) {
-        this.cachedExternalResourceIndex = cachedExternalResourceIndex;
-        this.delegate = delegate;
+    public DefaultCachedExternalResourceChecker() {
+        this.externalResourceRepository = null;
     }
 
     @Override
-    public CachedExternalResourceRemoteMetaData check(ExternalResourceName location, @Nullable CachedExternalResource cachedExternalResource) {
-        CachedExternalResource cached = cachedExternalResource != null
-            ? cachedExternalResource
-            : cachedExternalResourceIndex.lookup(location.toString());
+    public void setExternalResourceRepository(@Nullable ExternalResourceRepository externalResourceRepository) {
+        this.externalResourceRepository = externalResourceRepository;
+    }
 
-
-        ExternalResourceMetaData remoteMetaData = delegate.resource(location, true).getMetaData();
-
-        if (remoteMetaData == null || cached == null) {
-            return new CachedExternalResourceRemoteMetaData(null, false);
+    @Override
+    public CachedExternalResourceRemoteMetaData check(ExternalResourceName location, @Nullable ExternalResourceMetaData localMetaData) {
+        if (externalResourceRepository == null) {
+            return null;
         }
 
-        boolean isUpToDate = ExternalResourceMetaDataCompare.isDefinitelyUnchanged(
-            cached.getExternalResourceMetaData(),
-            () -> remoteMetaData
-        );
+        ExternalResourceMetaData remoteMetaData = externalResourceRepository.resource(location, true).getMetaData();
+
+        if (remoteMetaData == null) {
+            return null;
+        }
+
+        boolean isUpToDate = ExternalResourceMetaDataCompare.isDefinitelyUnchanged(localMetaData, () -> remoteMetaData);
 
         return new CachedExternalResourceRemoteMetaData(remoteMetaData, isUpToDate);
     }
