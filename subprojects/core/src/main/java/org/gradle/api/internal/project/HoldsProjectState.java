@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.service.scopes.EventScope;
-import org.gradle.internal.service.scopes.Scopes;
+package org.gradle.api.internal.project;
 
-@EventScope(Scopes.Build.class)
-public interface ModelConfigurationListener {
+/**
+ * A service can implement this interface to indicate that it holds mutable project scoped state that should be discarded when
+ * projects are discarded.
+ */
+public interface HoldsProjectState {
     /**
-     * Invoked when the model has been configured successfully. This listener should not do any further configuration.
+     * Discards any project state.
      */
-    void onConfigure(GradleInternal model);
+    void discardAll();
 }

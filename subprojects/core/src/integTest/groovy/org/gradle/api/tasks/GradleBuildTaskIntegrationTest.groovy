@@ -100,7 +100,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
             println "other build file"
         '''
 
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
+        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
 
         when:
         run 'otherBuild'
@@ -151,7 +151,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         run 'otherBuild'
 
         then:
-        result.assertTaskExecuted(":other:buildSrc:assemble")
+        result.assertTaskExecuted(":other:buildSrc:jar")
     }
 
     def "buildSrc can have nested build"() {

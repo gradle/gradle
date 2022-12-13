@@ -24,6 +24,7 @@ import gradlebuild.basics.testSplitOnlyTestGradleVersion
 import gradlebuild.basics.testing.TestType
 import gradlebuild.capitalize
 import gradlebuild.integrationtests.extension.IntegrationTestExtension
+import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.integrationtests.tasks.IntegrationTest
 import gradlebuild.modules.extension.ExternalModulesExtension
 import gradlebuild.testing.services.BuildBucketProvider
@@ -172,6 +173,17 @@ fun IntegrationTest.addDebugProperties() {
     // TODO Move magic property out
     if (project.hasProperty("org.gradle.integtest.launcher.debug")) {
         systemProperties["org.gradle.integtest.launcher.debug"] = "true"
+    }
+}
+
+
+fun DistributionTest.setSystemPropertiesOfTestJVM(defaultVersions: String) {
+    // use -PtestVersions=all or -PtestVersions=1.2,1.3…
+    val integTestVersionsSysProp = "org.gradle.integtest.versions"
+    if (project.hasProperty("testVersions")) {
+        systemProperties[integTestVersionsSysProp] = project.property("testVersions")
+    } else {
+        systemProperties[integTestVersionsSysProp] = defaultVersions
     }
 }
 
