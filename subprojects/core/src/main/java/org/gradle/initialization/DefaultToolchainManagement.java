@@ -23,12 +23,12 @@ import org.gradle.internal.management.ToolchainManagementInternal;
 public abstract class DefaultToolchainManagement implements ToolchainManagementInternal {
 
     @Override
-    public void disableFurtherMutations() {
+    public void preventFromFurtherMutation() {
         ExtensionContainerInternal extensions = (ExtensionContainerInternal) getExtensions();
         extensions.getAsMap().values().stream()
                 .filter(ext -> ext instanceof FinalizableValue)
                 .map(ext -> (FinalizableValue) ext)
-                .forEach(FinalizableValue::disableFurtherMutations);
+                .forEach(FinalizableValue::preventFromFurtherMutation);
     }
 
 }

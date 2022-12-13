@@ -132,7 +132,7 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
     }
 
     @Override
-    public void disableFurtherMutations() {
+    public void preventFromFurtherMutation() {
         this.mutable = false;
     }
 

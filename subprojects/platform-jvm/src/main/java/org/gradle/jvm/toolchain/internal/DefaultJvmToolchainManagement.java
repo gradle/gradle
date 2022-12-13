@@ -43,7 +43,7 @@ public abstract class DefaultJvmToolchainManagement implements JvmToolchainManag
     }
 
     @Override
-    public void disableFurtherMutations() {
-        registry.getRepositories().disableFurtherMutations();
+    public void preventFromFurtherMutation() {
+        registry.getRepositories().preventFromFurtherMutation();
     }
 }
