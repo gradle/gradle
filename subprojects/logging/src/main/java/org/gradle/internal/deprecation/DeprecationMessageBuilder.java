@@ -51,26 +51,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     /**
-     * Output: This is scheduled to be removed in Gradle 8.0.
-     */
-    public WithDeprecationTimeline willBeRemovedInGradle8() {
-        this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(GRADLE8);
-        return new WithDeprecationTimeline(this);
-    }
-
-    /**
      * Output: This will fail with an error in Gradle 8.0.
      */
     public WithDeprecationTimeline willBecomeAnErrorInGradle8() {
         this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(GRADLE8);
-        return new WithDeprecationTimeline(this);
-    }
-
-    /**
-     * Output: This will change in Gradle 8.0.
-     */
-    public WithDeprecationTimeline willChangeInGradle8() {
-        this.deprecationTimeline = DeprecationTimeline.willChangeInVersion(GRADLE8);
         return new WithDeprecationTimeline(this);
     }
 
@@ -240,12 +224,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             super(property);
             this.propertyClass = propertyClass;
             this.property = property;
-        }
-
-        @Override
-        public WithDeprecationTimeline willBeRemovedInGradle8() {
-            setDeprecationTimeline(DeprecationTimeline.willBeRemovedInVersion(GRADLE8));
-            return new WithDeprecationTimeline(this);
         }
 
         @Override
@@ -508,14 +486,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         public DeprecateBehaviour(String behaviour) {
             this.behaviour = behaviour;
-        }
-
-        /**
-         * Output: This behavior is scheduled to be removed in Gradle 8.0.
-         */
-        public WithDeprecationTimeline willBeRemovedInGradle8() {
-            setDeprecationTimeline(DeprecationTimeline.behaviourWillBeRemovedInVersion(GRADLE8));
-            return new WithDeprecationTimeline(this);
         }
 
         /**
