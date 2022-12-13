@@ -57,7 +57,7 @@ tasks {
     val santaTracker by registering(RemoteProject::class) {
         remoteUri.set(santaGitUri)
         // Pinned from branch main
-        ref.set("622fc64b7c39cb84e94174be3df9a54393348b45")
+        ref.set("37a7d12c40f36657a0cb0181979c401c752bd328")
     }
 
     val gradleBuildCurrent by registering(RemoteProject::class) {

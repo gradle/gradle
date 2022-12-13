@@ -16,14 +16,9 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
-import org.gradle.internal.jvm.Jvm
-import org.gradle.util.internal.TextUtil
 
-class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
+class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "can define and build a source set with implementation dependencies"() {
         settingsFile << """
@@ -51,117 +46,5 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec implements J
         succeeds(":test:unitTestClasses")
         file("main/build/classes/java/main").assertHasDescendants("Main.class")
         file("tests/build/classes/java/unitTest").assertHasDescendants("Test.class")
-    }
-
-    def "can configure source and target Java versions"() {
-        def jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_8)
-        buildFile << """
-            apply plugin: 'java-base'
-            java {
-                sourceCompatibility = JavaVersion.VERSION_1_7
-                targetCompatibility = JavaVersion.VERSION_1_8
-            }
-            sourceSets {
-                unitTest { }
-            }
-            compileUnitTestJava {
-                options.fork = true
-                options.forkOptions.javaHome = file("${TextUtil.normaliseFileSeparators(jdk.javaHome.toString())}")
-            }
-            compileUnitTestJava.doFirst {
-                assert sourceCompatibility == "1.7"
-                assert targetCompatibility == "1.8"
-            }
-        """
-        file("src/unitTest/java/Test.java") << """public class Test { }"""
-
-        expect:
-        succeeds("unitTestClasses")
-    }
-
-    def "source compatibility convention is set and used for target compatibility convention"() {
-        def jdk11 = AvailableJavaHomes.getJdk11()
-
-        buildFile << """
-            apply plugin: 'java-base'
-
-            java {
-                ${extensionSource != null ? "sourceCompatibility = JavaVersion.toVersion('$extensionSource')" : ""}
-            }
-
-            sourceSets {
-                customCompile { }
-            }
-
-            compileCustomCompileJava {
-                ${taskSource != null ? "sourceCompatibility = '$taskSource'" : ""}
-                ${taskRelease != null ? "options.release = $taskRelease" : ""}
-                ${taskToolchain != null ? "javaCompiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of($taskToolchain) }" : ""}
-            }
-
-            compileCustomCompileJava.doFirst {
-                assert sourceCompatibility == "${sourceOut}"
-                assert targetCompatibility == "${targetOut}"
-            }
-        """
-
-        file("src/customCompile/java/Test.java") << """public class Test { }"""
-
-        expect:
-        withInstallations(jdk11).succeeds("customCompileClasses")
-
-        where:
-        taskSource | taskRelease | extensionSource | taskToolchain | sourceOut            | targetOut
-        "9"        | "11"        | "11"            | "11"          | "9"                  | "11" // target differs because release is set
-        null       | "9"         | "11"            | "11"          | "9"                  | "9"
-        null       | null        | "9"             | "11"          | "9"                  | "9"
-        null       | null        | null            | "11"          | "11"                 | "11"
-        null       | null        | null            | null          | currentJavaVersion() | currentJavaVersion()
-    }
-
-    def "target compatibility convention is set"() {
-        def jdk11 = AvailableJavaHomes.getJdk11()
-
-        buildFile << """
-            apply plugin: 'java-base'
-
-            java {
-                ${extensionTarget != null ? "targetCompatibility = JavaVersion.toVersion(${extensionTarget})" : ""}
-            }
-
-            sourceSets {
-                customCompile { }
-            }
-
-            compileCustomCompileJava {
-                ${taskTarget != null ? "targetCompatibility = '${taskTarget}'" : ""}
-                ${taskRelease ? "options.release = ${taskRelease}" : ""}
-                ${taskSource ? "sourceCompatibility = '${taskSource}'" : ""}
-                ${taskToolchain != null ? "javaCompiler = javaToolchains.compilerFor { languageVersion = JavaLanguageVersion.of(${taskToolchain}) }" : ""}
-            }
-
-            compileCustomCompileJava.doFirst {
-                assert targetCompatibility == "${targetOut}"
-                assert sourceCompatibility == "${sourceOut}"
-            }
-        """
-
-        file("src/customCompile/java/Test.java") << """public class Test { }"""
-
-        expect:
-        withInstallations(jdk11).succeeds("customCompileClasses")
-
-        where:
-        taskTarget | taskRelease | extensionTarget | taskSource | taskToolchain | targetOut            | sourceOut
-        "9"        | "11"        | "11"            | "11"       | "11"          | "9"                  | "11"
-        null       | "9"         | "11"            | "11"       | "11"          | "9"                  | "11"
-        null       | null        | "9"             | "8"        | "11"          | "9"                  | "8"
-        null       | null        | null            | "9"        | "11"          | "9"                  | "9"
-        null       | null        | null            | null       | "11"          | "11"                 | "11"
-        null       | null        | null            | null       | null          | currentJavaVersion() | currentJavaVersion()
-    }
-
-    private static String currentJavaVersion() {
-        return Jvm.current().javaVersion.toString()
     }
 }

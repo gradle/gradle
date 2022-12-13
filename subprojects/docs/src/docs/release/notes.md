@@ -58,6 +58,31 @@ ADD RELEASE FEATURES ABOVE
 
 -->
 
+#### Improved Gradle User Home Cache Cleanup
+Previously, cleanup of the caches in Gradle User Home used fixed retention periods (30 days or 7 days depending on the cache).  
+These retention periods can now be configured via the [Settings](dsl/org.gradle.api.initialization.Settings.html) object in an init script in Gradle User Home.
+
+```groovy
+beforeSettings { settings ->
+    settings.caches {
+        downloadedResources.removeUnusedEntriesAfterDays = 45
+    }
+}
+```
+
+Furthermore, it was previously only possible to partially disable cache cleanup via the `org.gradle.cache.cleanup` Gradle property in Gradle User Home.  
+Disabling cache cleanup now affects more caches under Gradle User Home and can also be configured via the [Settings](dsl/org.gradle.api.initialization.Settings.html) object in an init script in Gradle User Home.
+
+```groovy
+beforeSettings { settings ->
+    settings.caches {
+        cleanup = Cleanup.DISABLED
+    }
+}
+```
+
+See [Configuring cleanup of caches and distributions](userguide/directory_layout.html#dir:gradle_user_home:configure_cache_cleanup) for more information.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
