@@ -22,6 +22,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.FilterReader;
 import java.util.Map;
@@ -336,7 +337,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     @Override
-    CopySpec rename(Transformer<String, String> renamer);
+    CopySpec rename(Transformer<@Nullable String, String> renamer);
 
     /**
      * {@inheritDoc}
@@ -372,7 +373,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     @Override
-    CopySpec filter(Transformer<String, String> transformer);
+    CopySpec filter(Transformer<@Nullable String, String> transformer);
 
     /**
      * {@inheritDoc}
