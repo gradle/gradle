@@ -471,12 +471,6 @@ class ConfigurationCacheFingerprintWriter(
         }
     }
 
-    override fun onScriptSource(scriptSource: ScriptSource) {
-        scriptSource.resource.location.file?.let {
-            fileObserved(it)
-        }
-    }
-
     fun append(fingerprint: ProjectSpecificFingerprint) {
         // TODO - should add to report as an input
         projectScopedWriter.write(fingerprint)
