@@ -248,20 +248,13 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     @Inject
-    public ProviderFactory getProviders() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    public abstract ProviderFactory getProviders();
 
     @Inject
-    public ProjectDescriptorRegistry getProjectDescriptorRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract ProjectDescriptorRegistry getProjectDescriptorRegistry();
 
     @Inject
-    public TextUriResourceLoader.Factory getTextUriResourceLoaderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract TextUriResourceLoader.Factory getTextUriResourceLoaderFactory();
 
     @Override
     public ProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
@@ -295,25 +288,17 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Inject
-    protected ScriptHandlerFactory getScriptHandlerFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ScriptHandlerFactory getScriptHandlerFactory();
 
     @Inject
-    protected ScriptPluginFactory getScriptPluginFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ScriptPluginFactory getScriptPluginFactory();
 
     @Inject
-    protected FileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileResolver getFileResolver();
 
     @Override
     @Inject
-    public PluginManagerInternal getPluginManager() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract PluginManagerInternal getPluginManager();
 
     @Override
     public void includeBuild(Object rootProject) {
@@ -333,9 +318,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     @Inject
-    public BuildCacheConfigurationInternal getBuildCache() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract BuildCacheConfigurationInternal getBuildCache();
 
     @Override
     public void pluginManagement(Action<? super PluginManagementSpec> rule) {
@@ -345,9 +328,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     @Inject
-    public PluginManagementSpec getPluginManagement() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract PluginManagementSpec getPluginManagement();
 
     @Override
     public void sourceControl(Action<? super SourceControl> configuration) {
@@ -356,9 +337,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     @Inject
-    public SourceControl getSourceControl() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract SourceControl getSourceControl();
 
     @Override
     public void enableFeaturePreview(String name) {
@@ -403,9 +382,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     @Inject
-    public CacheConfigurationsInternal getCaches() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract CacheConfigurationsInternal getCaches();
 
     @Override
     public void caches(Action<? super CacheConfigurations> cachesConfiguration) {
