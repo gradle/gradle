@@ -53,7 +53,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
 
-                consumer {
+                resolver {
                     canBeResolved = true
                     canBeConsumed = false
                     attributes {
@@ -64,11 +64,11 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                consumer(project)
+                resolver(project)
             }
 
             tasks.register('resolveSample', Copy) {
-                from configurations.consumer
+                from configurations.resolver
                 into layout.buildDirectory.dir('sampleContent')
             }
             """.stripIndent()
