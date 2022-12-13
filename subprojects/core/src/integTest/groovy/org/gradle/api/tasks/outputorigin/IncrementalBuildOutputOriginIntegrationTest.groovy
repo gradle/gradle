@@ -142,7 +142,7 @@ class IncrementalBuildOutputOriginIntegrationTest extends AbstractIntegrationSpe
                 outputFile = "w.properties"
                 properties = [v: 1]
             }
-            build.dependsOn "w"
+            jar.dependsOn "w"
         """
 
         when:

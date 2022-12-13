@@ -4,19 +4,9 @@
 > Task :buildSrc:processResources
 > Task :buildSrc:classes
 > Task :buildSrc:jar
-> Task :buildSrc:assemble
-> Task :buildSrc:compileTestJava NO-SOURCE
-> Task :buildSrc:compileTestGroovy NO-SOURCE
-> Task :buildSrc:pluginUnderTestMetadata
-> Task :buildSrc:processTestResources NO-SOURCE
-> Task :buildSrc:testClasses UP-TO-DATE
-> Task :buildSrc:test NO-SOURCE
-> Task :buildSrc:validatePlugins
-> Task :buildSrc:check
-> Task :buildSrc:build
 
 > Task :deploy
 Deploying to URL http://localhost:8080/server
 
 BUILD SUCCESSFUL in 0s
-7 actionable tasks: 7 executed
+5 actionable tasks: 5 executed

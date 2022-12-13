@@ -55,7 +55,7 @@ class DefaultCachedClasspathTransformerTest extends ConcurrentSpec {
         withDisplayName(_) >> { cacheBuilder }
         withCrossVersionCache(_) >> { cacheBuilder }
         withLockOptions(_) >> { cacheBuilder }
-        withCleanup(_) >> { cacheBuilder }
+        withCleanupStrategy(_) >> { cacheBuilder }
     }
     def cacheRepository = Stub(GlobalScopedCache) {
         crossVersionCache(_) >> cacheBuilder

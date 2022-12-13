@@ -17,8 +17,8 @@
 package org.gradle.internal.composite;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.SettingsLoader;
+import org.gradle.initialization.SettingsState;
 import org.gradle.internal.build.BuildStateRegistry;
 
 public class CompositeBuildSettingsLoader implements SettingsLoader {
@@ -31,8 +31,8 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
     }
 
     @Override
-    public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
-        SettingsInternal settings = delegate.findAndLoadSettings(gradle);
+    public SettingsState findAndLoadSettings(GradleInternal gradle) {
+        SettingsState settings = delegate.findAndLoadSettings(gradle);
 
         // Lock-in explicitly included builds
         buildRegistry.finalizeIncludedBuilds();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal;
+package org.gradle.internal.buildtree;
 
-public interface CacheCleanupAction {
-    /**
-     * Determines if this action should run. Called when the cache is closed, holding an exclusive lock.
-     */
-    boolean requiresCleanup();
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-    /**
-     * Executes the action to cleanup the cache. Called only if {@link #requiresCleanup()} returns true, holding an exclusive lock.
-     * The lock is not released between calling {@link #requiresCleanup()} and this method.
-     */
-    void cleanup();
+@ServiceScope(Scopes.BuildTree.class)
+public interface GlobalDependencySubstitutionRegistry {
+    void registerSubstitutionsFor(CompositeBuildParticipantBuildState build);
 }

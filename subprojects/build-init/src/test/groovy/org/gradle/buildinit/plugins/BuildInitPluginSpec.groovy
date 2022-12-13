@@ -16,15 +16,16 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.api.internal.SettingsInternal
+
 import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.wrapper.Wrapper
+import org.gradle.initialization.SettingsState
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
 class BuildInitPluginSpec extends AbstractProjectBuilderSpec {
     def setup() {
-        project.gradle.settings = Stub(SettingsInternal)
+        project.gradle.attachSettings(Stub(SettingsState))
     }
 
     def "applies plugin"() {

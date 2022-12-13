@@ -52,7 +52,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     }
 
     @Override
-    public SettingsInternal process(
+    public SettingsState process(
         GradleInternal gradle,
         SettingsLocation settingsLocation,
         ClassLoaderScope baseClassLoaderScope,
@@ -60,13 +60,13 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
     ) {
         Timer settingsProcessingClock = Time.startTimer();
         TextResourceScriptSource settingsScript = new TextResourceScriptSource(textFileResourceLoader.loadFile("settings file", settingsLocation.getSettingsFile()));
-        SettingsInternal settings = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(), settingsScript, gradleProperties, startParameter, baseClassLoaderScope);
+        SettingsState state = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(), settingsScript, gradleProperties, startParameter, baseClassLoaderScope);
 
-        gradle.getBuildListenerBroadcaster().beforeSettings(settings);
-        settings.getCaches().finalizeConfigurations();
+        SettingsInternal settings = state.getSettings();
+        settings.getCaches().withMutableValues(() -> gradle.getBuildListenerBroadcaster().beforeSettings(settings));
         applySettingsScript(settingsScript, settings);
         LOGGER.debug("Timing: Processing settings took: {}", settingsProcessingClock.getElapsed());
-        return settings;
+        return state;
     }
 
     private void applySettingsScript(TextResourceScriptSource settingsScript, final SettingsInternal settings) {

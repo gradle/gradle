@@ -181,6 +181,15 @@ class DefaultGradleRunnerTest extends Specification {
         t.message == 'Please specify a project directory before executing the build'
     }
 
+    def "throws exception if working directory is not provided when run is requested"() {
+        when:
+        createRunner().run()
+
+        then:
+        def t = thrown(InvalidRunnerConfigurationException)
+        t.message == 'Please specify a project directory before executing the build'
+    }
+
     def "throws exception if working directory is not provided when build and fail is requested"() {
         when:
         createRunner().buildAndFail()

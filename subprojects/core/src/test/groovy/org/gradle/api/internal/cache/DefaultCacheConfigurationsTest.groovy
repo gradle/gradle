@@ -17,56 +17,169 @@
 package org.gradle.api.internal.cache
 
 import org.gradle.api.cache.Cleanup
-import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+import static org.gradle.internal.time.TimestampSuppliers.daysAgo
 
 class DefaultCacheConfigurationsTest extends Specification {
-    def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class, Stub(GradleUserHomeDirProvider))
+    def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class)
 
-    def "cannot modify cache configurations once finalized"() {
+    def "cannot modify cache configurations via convenience method unless mutable"() {
         when:
-        cacheConfigurations.createdResources.removeUnusedEntriesAfterDays.set(2)
-        cacheConfigurations.downloadedResources.removeUnusedEntriesAfterDays.set(2)
-        cacheConfigurations.releasedWrappers.removeUnusedEntriesAfterDays.set(2)
-        cacheConfigurations.snapshotWrappers.removeUnusedEntriesAfterDays.set(2)
-        cacheConfigurations.cleanup.set(Cleanup.DISABLED)
+        cacheConfigurations.withMutableValues {
+            cacheConfigurations.createdResources.setRemoveUnusedEntriesAfterDays(2)
+            cacheConfigurations.downloadedResources.setRemoveUnusedEntriesAfterDays(2)
+            cacheConfigurations.releasedWrappers.setRemoveUnusedEntriesAfterDays(2)
+            cacheConfigurations.snapshotWrappers.setRemoveUnusedEntriesAfterDays(2)
+            cacheConfigurations.cleanup.set(Cleanup.DISABLED)
+        }
 
         then:
         noExceptionThrown()
 
         when:
-        cacheConfigurations.finalizeConfigurations()
+        cacheConfigurations.createdResources.setRemoveUnusedEntriesAfterDays(1)
+
+        then:
+        def e = thrown(IllegalStateException)
+        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+
+        when:
+        cacheConfigurations.downloadedResources.setRemoveUnusedEntriesAfterDays(1)
+
+        then:
+        e = thrown(IllegalStateException)
+        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+
+        when:
+        cacheConfigurations.releasedWrappers.setRemoveUnusedEntriesAfterDays(1)
+
+        then:
+        e = thrown(IllegalStateException)
+        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+
+        when:
+        cacheConfigurations.snapshotWrappers.setRemoveUnusedEntriesAfterDays(1)
+
+        then:
+        e = thrown(IllegalStateException)
+        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+    }
+
+    def "cannot modify cache configurations via property unless mutable (method: #method)"() {
+        long firstValue = 2
+        long secondValue = 1
+
+        when:
+        cacheConfigurations.withMutableValues {
+            cacheConfigurations.createdResources.removeUnusedEntriesOlderThan."${method}"(firstValue)
+            cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan."${method}"(firstValue)
+            cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan."${method}"(firstValue)
+            cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan."${method}"(firstValue)
+            cacheConfigurations.cleanup."${method}"(Cleanup.DISABLED)
+        }
+
+        then:
+        noExceptionThrown()
+
+        when:
+        cacheConfigurations.createdResources.removeUnusedEntriesOlderThan."${method}"(secondValue)
+
+        then:
+        def e = thrown(IllegalStateException)
+        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+
+        when:
+        cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan."${method}"(secondValue)
+
+        then:
+        e = thrown(IllegalStateException)
+        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+
+        when:
+        cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan."${method}"(secondValue)
+
+        then:
+        e = thrown(IllegalStateException)
+        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+
+        when:
+        cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan."${method}"(secondValue)
+
+        then:
+        e = thrown(IllegalStateException)
+        assertCannotConfigureErrorIsThrown(e, "removeUnusedEntriesOlderThan")
+
+        when:
+        cacheConfigurations.cleanup."${method}"(Cleanup.DEFAULT)
+
+        then:
+        e = thrown(IllegalStateException)
+        assertCannotConfigureErrorIsThrown(e, "cleanup")
+
+        where:
+        method << ["set", "value", "convention"]
+    }
+
+    def "suppliers reflect changes in property values"() {
+        when:
+        def createdResources = cacheConfigurations.createdResources.removeUnusedEntriesOlderThanAsSupplier
+        def downloadedResources = cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThanAsSupplier
+        def releasedWrappers = cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThanAsSupplier
+        def snapshotWrappers = cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThanAsSupplier
 
         and:
-        cacheConfigurations.createdResources.removeUnusedEntriesAfterDays.set(1)
+        def twoDaysAgo = daysAgo(2).get()
+        cacheConfigurations.withMutableValues {
+            cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+            cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+            cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+            cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+        }
 
         then:
-        thrown(IllegalStateException)
+        createdResources.get() == twoDaysAgo
+        downloadedResources.get() == twoDaysAgo
+        releasedWrappers.get() == twoDaysAgo
+        snapshotWrappers.get() == twoDaysAgo
+    }
+
+    def "cannot set values in days to less than one"() {
+        when:
+        cacheConfigurations.withMutableValues {
+            cacheConfigurations.createdResources.setRemoveUnusedEntriesAfterDays(0)
+        }
+
+        then:
+        thrown(IllegalArgumentException)
 
         when:
-        cacheConfigurations.downloadedResources.removeUnusedEntriesAfterDays.set(1)
+        cacheConfigurations.withMutableValues {
+            cacheConfigurations.downloadedResources.setRemoveUnusedEntriesAfterDays(0)
+        }
 
         then:
-        thrown(IllegalStateException)
+        thrown(IllegalArgumentException)
 
         when:
-        cacheConfigurations.releasedWrappers.removeUnusedEntriesAfterDays.set(1)
+        cacheConfigurations.withMutableValues {
+            cacheConfigurations.releasedWrappers.setRemoveUnusedEntriesAfterDays(0)
+        }
 
         then:
-        thrown(IllegalStateException)
+        thrown(IllegalArgumentException)
 
         when:
-        cacheConfigurations.snapshotWrappers.removeUnusedEntriesAfterDays.set(1)
+        cacheConfigurations.withMutableValues {
+            cacheConfigurations.snapshotWrappers.setRemoveUnusedEntriesAfterDays(0)
+        }
 
         then:
-        thrown(IllegalStateException)
+        thrown(IllegalArgumentException)
+    }
 
-        when:
-        cacheConfigurations.cleanup.set(Cleanup.DEFAULT)
-
-        then:
-        thrown(IllegalStateException)
+    void assertCannotConfigureErrorIsThrown(Exception e, String name) {
+        assert e.message.contains(String.format(DefaultCacheConfigurations.ILLEGAL_MODIFICATION_ERROR, name))
     }
 }
