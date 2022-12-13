@@ -1,0 +1,16 @@
+plugins {
+    id('java-gradle-plugin')
+}
+
+repositories {
+    mavenCentral()
+}
+
+gradlePlugin {
+    plugins {
+        taskEvents {
+            id = 'org.gradle.sample.taskevents'
+            implementationClass = 'TaskEventsPlugin'
+        }
+    }
+}
