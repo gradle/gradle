@@ -18,9 +18,7 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.UnitTestPreconditions
 import spock.lang.IgnoreIf
-
 /**
  * For forking a daemon process in embedded mode:
  * The command line length is already close to the limit of what Windows can handle.

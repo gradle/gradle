@@ -22,8 +22,6 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.UnitTestPreconditions
 
-import static org.gradle.integtests.fixtures.RetryConditions.runsOnWindowsAndJava7or8
-
 class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
 
     def setup() {

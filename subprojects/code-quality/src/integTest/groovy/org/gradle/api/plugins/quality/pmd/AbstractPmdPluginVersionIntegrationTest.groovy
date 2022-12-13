@@ -19,7 +19,6 @@ package org.gradle.api.plugins.quality.pmd
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.quality.integtest.fixtures.PmdCoverage
-import org.gradle.util.BaseTestPreconditions
 import org.gradle.util.UnitTestPreconditions
 import org.gradle.util.internal.VersionNumber
 
