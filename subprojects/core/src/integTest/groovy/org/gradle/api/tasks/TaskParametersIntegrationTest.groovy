@@ -767,9 +767,9 @@ task someTask(type: SomeTask) {
         })
 
         where:
-        method  | path
-        "dir"   | "output-file.txt"
-        "dirs"  | "output-file.txt"
+        method | path
+        "dir"  | "output-file.txt"
+        "dirs" | "output-file.txt"
     }
 
     @ValidationTestFor(
