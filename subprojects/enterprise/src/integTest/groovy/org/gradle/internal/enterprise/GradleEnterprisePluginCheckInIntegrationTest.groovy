@@ -19,10 +19,12 @@ package org.gradle.internal.enterprise
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
-import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
 import spock.lang.IgnoreIf
 
 import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.MINIMUM_SUPPORTED_PLUGIN_VERSION_FOR_CONFIGURATION_CACHING
+import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE
+import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE
+import static org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE
 
 class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSpec {
 
@@ -66,10 +68,10 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         applyPlugin()
 
         when:
-        succeeds "t", "-D${DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE}=true"
+        succeeds "t", "-D${UNSUPPORTED_TOGGLE}=true"
 
         then:
-        plugin.assertUnsupportedMessage(output, DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE)
+        plugin.assertUnsupportedMessage(output, UNSUPPORTED_TOGGLE_MESSAGE)
     }
 
     def "checkin happens once for build with buildSrc"() {
@@ -93,7 +95,7 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
     @IgnoreIf({ GradleContextualExecuter.configCache })
     def "shows warning message when unsupported Gradle Enterprise plugin version is used with configuration caching enabled"() {
         given:
-        plugin.runtimeVersion = pluginVersion
+        plugin.runtimeVersion = plugin.artifactVersion = pluginVersion
         applyPlugin()
         settingsFile << """
             println "present: " + services.get($GradleEnterprisePluginManager.name).present
@@ -106,7 +108,7 @@ class GradleEnterprisePluginCheckInIntegrationTest extends AbstractIntegrationSp
         output.contains("present: ${applied}")
 
         and:
-        plugin.assertUnsupportedMessage(output, DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE)
+        output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $UNSUPPORTED_PLUGIN_DUE_TO_CONFIGURATION_CACHING_MESSAGE") != applied
 
         where:
         pluginVersion                                    | applied
