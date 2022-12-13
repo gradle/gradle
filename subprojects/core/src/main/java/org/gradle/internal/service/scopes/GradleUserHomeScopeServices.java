@@ -41,6 +41,7 @@ import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.DefaultGlobalCacheLocations;
 import org.gradle.cache.internal.FileContentCacheFactory;
+import org.gradle.cache.internal.GradleUserHomeCacheCleanupActionDecorator;
 import org.gradle.cache.internal.GradleUserHomeCleanupServices;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
@@ -113,6 +114,10 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         for (PluginServiceRegistry plugin : globalServices.getAll(PluginServiceRegistry.class)) {
             plugin.registerGradleUserHomeServices(registration);
         }
+    }
+
+    GradleUserHomeCacheCleanupActionDecorator createCacheCleanupDecorator(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
+        return new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeDirProvider);
     }
 
     CacheRepository createCacheRepository(GlobalCacheDir globalCacheDir, CacheFactory cacheFactory) {
@@ -226,7 +231,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         return new DefaultTimeoutHandler(executorFactory.createScheduled("execution timeouts", 1), currentBuildOperationRef);
     }
 
-    protected CacheConfigurationsInternal createCachesConfiguration(ObjectFactory objectFactory, GradleUserHomeDirProvider gradleUserHomeDirProvider) {
-        return objectFactory.newInstance(DefaultCacheConfigurations.class, objectFactory, gradleUserHomeDirProvider);
+    protected CacheConfigurationsInternal createCachesConfiguration(ObjectFactory objectFactory) {
+        return objectFactory.newInstance(DefaultCacheConfigurations.class, objectFactory);
     }
 }

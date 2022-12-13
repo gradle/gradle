@@ -39,15 +39,6 @@ public class JUnitPlatformTestFramework implements TestFramework {
     private final DefaultTestFilter filter;
     private final boolean useImplementationDependencies;
 
-    // Used by org.gradle.test-retry plugin.
-    // TODO: Update plugin to pass in correct value for useImplementationDependencies when copying the framework
-    // Or better yet, make it so the plugin doesn't need to access internal APIs.
-    @Deprecated
-    @SuppressWarnings("unused")
-    public JUnitPlatformTestFramework(DefaultTestFilter filter) {
-        this(filter, true);
-    }
-
     public JUnitPlatformTestFramework(DefaultTestFilter filter, boolean useImplementationDependencies) {
         this(filter, useImplementationDependencies, new JUnitPlatformOptions());
     }

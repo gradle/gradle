@@ -457,11 +457,15 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:foo:1.0", "org:foo:1.1:runtime").byConflictResolution("between versions 1.1 and 1.0")
-                edge("org:included:1.0", "project :includeBuild", "org:included:1.0") {
+                edge("org:foo:1.0", "org:foo:1.1") {
+                    configuration("runtime")
+                    byConflictResolution("between versions 1.1 and 1.0")
+                }
+                edge("org:included:1.0", ":includeBuild", "org:included:1.0") {
                     noArtifacts()
                     constraint("org:foo:1.1", "org:foo:1.1")
-                }.compositeSubstitute()
+                    compositeSubstitute()
+                }
             }
         }
     }
@@ -705,7 +709,8 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                module("org:bom:1.0:platform-runtime") {
+                module("org:bom:1.0") {
+                    configuration("platform-runtime")
                     constraint("org:constrained:1.1", "org:constrained:1.1")
                     noArtifacts()
                 }
@@ -716,7 +721,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
                     module("org:otherUser:1.0") {
                         module("org:user:1.1")
                     }
-                    module("org:bom:1.0:platform-runtime")
+                    module("org:bom:1.0")
                 }
             }
         }
@@ -828,7 +833,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                edge("org:foo:1.0", "project :foo", "org:foo:1.1") {
+                edge("org:foo:1.0", ":foo", "org:foo:1.1") {
                     configuration = 'default'
                     noArtifacts()
                     project(":bar", "org:bar:1.1") {

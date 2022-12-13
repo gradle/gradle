@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":core-api"))
     implementation(project(":files"))
     implementation(project(":file-temp"))
+    implementation(project(":functional"))
     implementation(project(":native"))
     implementation(project(":persistent-cache"))
     implementation(project(":resources"))

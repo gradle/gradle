@@ -130,9 +130,9 @@ dependencies {                                 // <4>
     implementation("com.google.guava:guava:27.1-jre")
     implementation(project(":producer"))
 }
-// end::artifact-transform-attribute-setup[]
 
-tasks.register<Copy>("resolveRuntimeClasspath") {
+tasks.register<Copy>("resolveRuntimeClasspath") { // <5>
     from(configurations.runtimeClasspath)
     into(layout.buildDirectory.dir("runtimeClasspath"))
 }
+// end::artifact-transform-attribute-setup[]

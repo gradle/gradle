@@ -1333,7 +1333,16 @@
             "member": "Class org.gradle.api.tasks.scala.ScalaCompile",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
             "changes": [
-                "Class is now abstract"
+                "Class is now abstract",
+                "Abstract method has been added to a superclass"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaCompile",
+            "member": "Method org.gradle.api.tasks.scala.ScalaCompile.getVersionParser()",
+            "acceptation": "injected property is not required anymore",
+            "changes": [
+                "Method has been removed"
             ]
         },
         {
@@ -1350,6 +1359,32 @@
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
             "changes": [
                 "Class is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getAntBuilder()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getObjectFactory()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is less accessible",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.scala.ScalaDoc",
+            "member": "Method org.gradle.api.tasks.scala.ScalaDoc.getWorkerExecutor()",
+            "acceptation": "since the class is now abstract, the injected property can also be abstract",
+            "changes": [
+                "Method is less accessible",
+                "Method is now abstract"
             ]
         },
         {
@@ -1513,6 +1548,22 @@
             ]
         },
         {
+            "type": "org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler",
+            "member": "Method org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler.repositories()",
+            "acceptation": "method addition backport to 7.6.1",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler",
+            "member": "Method org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler.size()",
+            "acceptation": "method addition backport to 7.6.1",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.ClientModuleScope",
             "member": "Class org.gradle.kotlin.dsl.ClientModuleScope",
             "acceptation": "Removed deprecated components in Gradle 8.0",
@@ -1534,6 +1585,14 @@
             "acceptation": "Class to be removed, functionality deleted",
             "changes": [
                 "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.setDescription(org.gradle.api.NamedDomainObjectProvider,java.lang.String)",
+            "acceptation": "Old method is now hidden deprecated",
+            "changes": [
+                "Parameter 1 from null accepting to non-null accepting breaking change"
             ]
         },
         {
@@ -1686,6 +1745,30 @@
             "acceptation": "Remove deprecated constructor in Gradle 8.0",
             "changes": [
                 "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getDeleter()",
+            "acceptation": "injected property in abstract class should be abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getObjectFactory()",
+            "acceptation": "injected property in abstract class should be abstract",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.language.scala.tasks.AbstractScalaCompile",
+            "member": "Method org.gradle.language.scala.tasks.AbstractScalaCompile.getProjectLayout()",
+            "acceptation": "injected property in abstract class should be abstract",
+            "changes": [
+                "Method is now abstract"
             ]
         },
         {

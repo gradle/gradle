@@ -340,7 +340,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
-        void resetState() {
+        void resetLifecycle() {
         }
 
         @Override

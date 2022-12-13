@@ -94,19 +94,6 @@ Consider the following code:
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
-----
-def check = tasks.register("check")
-tasks.register("verificationTask") { verificationTask ->
-    // Configure verificationTask
-
-    // Run verificationTask when someone runs check
-    check.get().dependsOn verificationTask
-}
-----
-=====
-[.multi-language-sample]
-=====
 [source,kotlin]
 ----
 val check by tasks.registering
@@ -115,6 +102,19 @@ tasks.register("verificationTask") {
 
     // Run verificationTask when someone runs check
     check.get().dependsOn(this)
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+def check = tasks.register("check")
+tasks.register("verificationTask") { verificationTask ->
+    // Configure verificationTask
+
+    // Run verificationTask when someone runs check
+    check.get().dependsOn verificationTask
 }
 ----
 =====
@@ -128,19 +128,6 @@ The code would become:
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
-----
-def check = tasks.register("check")
-def verificationTask = tasks.register("verificationTask") {
-    // Configure verificationTask
-}
-check.configure {
-    dependsOn verificationTask
-}
-----
-=====
-[.multi-language-sample]
-=====
 [source,kotlin]
 ----
 val check by tasks.registering
@@ -149,6 +136,19 @@ val verificationTask by tasks.registering {
 }
 check {
     dependsOn(verificationTask)
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+def check = tasks.register("check")
+def verificationTask = tasks.register("verificationTask") {
+    // Configure verificationTask
+}
+check.configure {
+    dependsOn verificationTask
 }
 ----
 =====
@@ -291,23 +291,23 @@ There are several ways this premature creation can be avoided:
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
-----
-def someTask = tasks.register("someTask")
-
-task anEagerTask {
-    dependsOn someTask
-}
-----
-=====
-[.multi-language-sample]
-=====
 [source,kotlin]
 ----
 val someTask by tasks.registering
 
 task("anEagerTask") {
     dependsOn(someTask)
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+def someTask = tasks.register("someTask")
+
+task anEagerTask {
+    dependsOn someTask
 }
 ----
 =====
@@ -330,23 +330,23 @@ tasks.register("anEagerTask") {
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
-----
-tasks.register("someTask")
-
-task anEagerTask {
-    dependsOn tasks.named("someTask")
-}
-----
-=====
-[.multi-language-sample]
-=====
 [source,kotlin]
 ----
 tasks.register("someTask")
 
 task("anEagerTask") {
     dependsOn(tasks.named("someTask"))
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+tasks.register("someTask")
+
+task anEagerTask {
+    dependsOn tasks.named("someTask")
 }
 ----
 =====

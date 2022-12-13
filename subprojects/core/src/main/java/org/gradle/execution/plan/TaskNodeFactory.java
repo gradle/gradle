@@ -94,7 +94,8 @@ public class TaskNodeFactory {
         return node;
     }
 
-    public void clear() {
+    public void resetState() {
+        typeOriginInspectorFactory.resetState();
         nodes.clear();
     }
 
@@ -104,6 +105,10 @@ public class TaskNodeFactory {
 
         public ProjectScopedTypeOriginInspector forTask(Task task) {
             return projectToInspector.computeIfAbsent(task.getProject(), ProjectScopedTypeOriginInspector::new);
+        }
+
+        void resetState() {
+            projectToInspector.clear();
         }
 
         @Nullable
