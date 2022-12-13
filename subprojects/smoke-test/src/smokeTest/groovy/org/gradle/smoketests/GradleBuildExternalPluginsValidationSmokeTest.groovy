@@ -16,7 +16,6 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.util.IntegTestPreconditions
 import org.gradle.util.Requires
