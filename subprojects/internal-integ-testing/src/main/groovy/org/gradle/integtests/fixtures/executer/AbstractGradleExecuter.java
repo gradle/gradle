@@ -39,6 +39,7 @@ import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.agents.DefaultAgentStatus;
 import org.gradle.internal.agents.DisabledAgentStatus;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
@@ -102,14 +103,17 @@ import static org.gradle.util.internal.CollectionUtils.join;
 import static org.gradle.util.internal.DefaultGradleVersion.VERSION_OVERRIDE_VAR;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter, ResettableExpectations {
+    private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
+    private static final String LAUNCHER_DEBUG_SYSPROP = "org.gradle.integtest.launcher.debug";
+    private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
+    private static final String ALLOW_INSTRUMENTATION_AGENT_SYSPROP = "org.gradle.integtest.agent.allowed";
 
     protected static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
         .displayName("Global services")
         .parent(newCommandLineProcessLogging())
         .parent(NativeServicesTestFixture.getInstance())
         .parent(ValidationServicesFixture.getServices())
-        // TODO(mlopatkin) if the executor is actually in-process executor, then the agent might be handy.
-        .provider(new GlobalScopeServices(true, new DisabledAgentStatus()))
+        .provider(new GlobalScopeServices(true, isAgentInstrumentationEnabled() ? new DefaultAgentStatus() : new DisabledAgentStatus()))
         .build();
 
     private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
@@ -124,10 +128,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     public static void doNotPropagateSystemProperty(String name) {
         PROPAGATED_SYSTEM_PROPERTIES.remove(name);
     }
-
-    private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
-    private static final String LAUNCHER_DEBUG_SYSPROP = "org.gradle.integtest.launcher.debug";
-    private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
 
     private final Logger logger;
 
@@ -835,6 +835,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             return false;
         }
         return requireDaemon || cliDaemonArgument == DAEMON;
+    }
+
+    protected static boolean isAgentInstrumentationEnabled() {
+        return Boolean.getBoolean(ALLOW_INSTRUMENTATION_AGENT_SYSPROP);
     }
 
     @Override
