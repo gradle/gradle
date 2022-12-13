@@ -1384,7 +1384,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         foSource << [FileOperationsSourceType.INJECT_ARCHIVE_OPS, FileOperationsSourceType.PROJECT_FILE_OPS]
     }
 
-    def "when two identical archives have the same hashes and decompression cache entry is reused"() {
+    def "when two identical archives have the same hashes and same decompression cache entry is reused"() {
         given: "2 archive files"
         createTar('test1.tar') {
             subdir1 {
@@ -1425,8 +1425,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
             tasks.register('verify') {
                 dependsOn tasks.named('update1'), tasks.named('update2')
+                def cacheDir = project.layout.buildDirectory.dir('.cache/${GradleVersion.current().version}/compressed-file-expansion').get().asFile
                 doLast {
-                    def cacheDir = project.layout.buildDirectory.dir('.cache/${GradleVersion.current().version}/compressed-file-expansion').get().asFile
                     cacheDir.list().size() == 2 // There should only be 2 files here, the .lock file and the single unzipped cache entry
                     cacheDir.list().contains('compressed-file-expansion.lock')
                     cacheDir.eachFile(groovy.io.FileType.DIRECTORIES) { File f ->
@@ -1540,39 +1540,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                     @Override
                     void visitFile(FileVisitDetails fileDetails) {
                         assert fileDetails.file.text.startsWith(beginsWith.get())
-                    }
-                }
-            }
-        """
-    }
-
-    private String defineSameContentsTask(String archiveType, FileOperationsSourceType foSource = FileOperationsSourceType.INJECT_ARCHIVE_OPS) {
-        return """
-            abstract class SameContentsTask extends DefaultTask {
-                @InputFile
-                abstract RegularFileProperty getArchive()
-
-                ${foSource.declaration}
-
-                @TaskAction
-                void verify() {
-                    FileTree tree = ${foSource.usage}.${archiveType}Tree(archive.asFile.get())
-                    tree.visit(new VerifyingFileVisitor())
-                }
-
-                private final class VerifyingFileVisitor implements FileVisitor {
-                    private String contents
-
-                    @Override
-                    void visitDir(FileVisitDetails dirDetails) {}
-
-                    @Override
-                    void visitFile(FileVisitDetails fileDetails) {
-                        if (contents == null) {
-                            contents = fileDetails.file.text
-                        } else {
-                            assert fileDetails.file.text == contents
-                        }
                     }
                 }
             }
