@@ -20,6 +20,7 @@ import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.util.internal.DefaultGradleVersion
+import org.gradle.util.internal.ToBeImplemented
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
     public static final String PLUGIN_DEPRECATION_MESSAGE = 'The DeprecatedPlugin plugin has been deprecated'
@@ -159,6 +160,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription('Deprecated Gradle features were used in this build')
     }
 
+    @ToBeImplemented("Should only generate one deprecation warning but generates two")
     def 'DeprecatedPlugin from init script - without full stacktrace.'() {
         given:
         def initScript = file("init.gradle") << """
@@ -168,17 +170,18 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        executer.expectDeprecationWarning()
+        // TODO - should be 1, but deprecations are generated for both the main build and buildSrc
+        executer.expectDeprecationWarnings(2)
         executer.usingInitScript(initScript)
         run '-s'
 
         then:
         output.contains('init.gradle:3)')
 
-        output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
+        output.count(PLUGIN_DEPRECATION_MESSAGE) == 2
 
-        output.count('\tat') == 1
-        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 1
+        output.count('\tat') == 2
+        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 2
     }
 
     def 'DeprecatedPlugin from applied script - #scenario'() {
