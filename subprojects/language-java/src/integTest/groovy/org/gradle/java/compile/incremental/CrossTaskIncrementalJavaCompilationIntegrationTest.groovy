@@ -87,8 +87,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
             }
         """
         source api: ["package a; public class A {}"], impl: ["package b; import a.A; class B extends A {}", "class Unrelated {}"]
-        def moduleInfo = file("api/src/main/${language.name}/module-info.${language.name}")
-        moduleInfo.text = """
+        file("api/src/main/${language.name}/module-info.${language.name}").text = """
             module api {
                 exports a;
             }
@@ -101,9 +100,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         succeeds "impl:${language.compileTaskName}"
 
         when:
-        impl.snapshot {
-            source api: ["package a; public class A { void m1() {} }"]
-        }
+        impl.snapshot { source api: "package a; public class A { void m1() {} }" }
 
         then:
         succeeds "impl:${language.compileTaskName}"
@@ -113,6 +110,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         description               | modulePathParameter
         "--module-path=<modules>" | '["--module-path=\${classpath.join(File.pathSeparator)}"]'
         "--module-path <modules>" | '["--module-path", "\${classpath.join(File.pathSeparator)}"]'
+        "-p <modules>"            | '["-p", "\${classpath.join(File.pathSeparator)}"]'
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
@@ -122,7 +120,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
             tasks.compileJava {
                 modularity.inferModulePath = false
                 options.compilerArgs << "--module-path=\${classpath.join(File.pathSeparator)}" \
-                    << "--module-source-path=${file("impl/src/main/$languageName").absolutePath}"
+                    << "--module-source-path" << file("src/main/$languageName")
                 doFirst {
                     classpath = layout.files()
                 }
@@ -148,9 +146,9 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
                 requires my.module.first;
             }
         """
-        file("impl/src/main/${language.name}/my.module.third/d/Unrelated.java").text = "package d; class Unrelated {}"
-        file("impl/src/main/${language.name}/my.module.third/module-info.${language.name}").text = """
-            module my.module.third {
+        file("impl/src/main/${language.name}/my.module.unrelated/d/Unrelated.java").text = "package d; class Unrelated {}"
+        file("impl/src/main/${language.name}/my.module.unrelated/module-info.${language.name}").text = """
+            module my.module.unrelated {
             }
         """
         succeeds "impl:${language.compileTaskName}"
@@ -159,8 +157,9 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         impl.snapshot { source api: "package a; public class A { public void m1() {} }" }
 
         then:
-        succeeds "impl:${language.compileTaskName}", "--info"
-        impl.recompiledFqn("my.module.first.b.B", "my.module.second.c.C", "my.module.first.module-info", "my.module.second.module-info", "my.module.third.module-info")
+        succeeds "impl:${language.compileTaskName}"
+        // We recompile all module-info.java also for unrelated modules, but we don't recompile unrelated classes
+        impl.recompiledFqn("my.module.first.b.B", "my.module.second.c.C", "my.module.first.module-info", "my.module.second.module-info", "my.module.unrelated.module-info")
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)

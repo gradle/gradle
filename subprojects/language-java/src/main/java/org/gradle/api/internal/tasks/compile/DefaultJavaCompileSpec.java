@@ -17,13 +17,16 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.tasks.compile.CompileOptions;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implements JavaCompileSpec {
     private MinimalJavaCompileOptions compileOptions;
@@ -75,17 +78,23 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     @Override
     public List<File> getModulePath() {
         if (modulePath == null || modulePath.isEmpty()) {
-            int i = compileOptions.getCompilerArgs().indexOf("--module-path");
-            if (i >= 0) {
-                // This is kept for backward compatibility - may be removed in the future
-                String[] modules = compileOptions.getCompilerArgs().get(i + 1).split(File.pathSeparator);
-                modulePath = Lists.newArrayListWithCapacity(modules.length);
-                for (String module : modules) {
-                    modulePath.add(new File(module));
+            // This is kept for backward compatibility - may be removed in the future
+            int i = 0;
+            List<String> modulePaths = new ArrayList<>();
+            for (String arg : compileOptions.getCompilerArgs()) {
+                if ((arg.equals("--module-path") || arg.equals("-p")) && (i + 1) < compileOptions.getCompilerArgs().size()) {
+                    String argValue = compileOptions.getCompilerArgs().get(++i);
+                    String[] modules = argValue.split(File.pathSeparator);
+                    modulePaths.addAll(Arrays.asList(modules));
+                } else if (arg.startsWith("--module-path=")) {
+                    String[] modules = arg.replace("--module-path=", "").split(File.pathSeparator);
+                    modulePaths.addAll(Arrays.asList(modules));
                 }
-            } else if (modulePath == null) {
-                modulePath = ImmutableList.of();
+                i++;
             }
+            modulePath = modulePaths.stream()
+                .map(File::new)
+                .collect(toImmutableList());
         }
         return modulePath;
     }
