@@ -69,19 +69,14 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         outputDoesNotContain onFinishMessage
     }
 
-    def "build service is restored"(String serviceName, boolean finalize, boolean finalizeOnRead, boolean registeredByPlugin) {
+    def "build service is restored"(String serviceName, boolean finalize, boolean finalizeOnRead) {
         given:
         def legacy = serviceName == null
         def propertyAnnotations = legacy ?
-            """
-            @$Internal.name
-        """ :
-            """
-            @$ServiceReference.name("$serviceName")
-            @$Optional.name
-        """
+            """@$Internal.name""" :
+            """@$ServiceReference.name("$serviceName")"""
 
-        withCountingServicePlugin(registeredByPlugin, propertyAnnotations)
+        withCountingServicePlugin(true, propertyAnnotations)
         file('settings.gradle') << """
             pluginManagement {
                 includeBuild 'counting-service-plugin'
@@ -128,25 +123,16 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         outputContains 'Count: 1'
 
         where:
-        serviceName | finalize | finalizeOnRead | registeredByPlugin
-        null        | false    | false          | true
-        null        | true     | false          | true
-        null        | false    | true           | true
-        null        | false    | false          | false
-        null        | true     | false          | false
-        null        | false    | true           | false
-        "counter"    | false    | false          | true
-        "counter"   | true     | false          | true
-        "counter"   | false    | true           | true
-        "counter"   | false    | false          | false
-        "counter"   | true     | false          | false
-        "counter"   | false    | true           | false
-        ""          | false    | false          | true
-        ""          | true     | false          | true
-        ""          | false    | true           | true
-        ""          | false    | false          | false
-        ""          | true     | false          | false
-        ""          | false    | true           | false
+        serviceName | finalize | finalizeOnRead
+        null        | false    | false
+        null        | true     | false
+        null        | false    | true
+        "counter"   | false    | false
+        "counter"   | true     | false
+        "counter"   | false    | true
+        ""          | false    | false
+        ""          | true     | false
+        ""          | false    | true
 
     }
 
