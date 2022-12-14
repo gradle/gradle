@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppable {
@@ -240,7 +241,17 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     private Path assignPath(BuildState owner, String name, File dir) {
-        Path requestedPath = owner.getIdentityPath().append(Path.path(name));
+        // Get the closest ancestor build of the build directory which we are currently adding
+        Optional<Map.Entry<File, IncludedBuildState>> parentBuild = includedBuildsByRootDir.entrySet().stream()
+            .filter(entry -> dir.getAbsolutePath().startsWith(entry.getKey().getAbsolutePath()))
+            .reduce((a, b) -> a.getKey().getAbsolutePath().startsWith(b.getKey().getAbsolutePath())
+                ? a
+                : b
+            );
+        // If there is an ancestor, then we use it to qualify the path of the build we are adding
+        Path requestedPath = parentBuild.map(
+            entry -> entry.getValue().getIdentityPath().append(Path.path(name))
+        ).orElseGet(() -> owner.getIdentityPath().append(Path.path(name)));
         File existingForPath = includedBuildDirectoriesByPath.putIfAbsent(requestedPath, dir);
         if (existingForPath != null) {
             throw new GradleException("Included build " + dir + " has build path " + requestedPath + " which is the same as included build " + existingForPath);
