@@ -17,9 +17,11 @@
 package org.gradle.api.internal.cache;
 
 import org.gradle.api.cache.CacheResourceConfiguration;
-
 import java.util.function.Supplier;
 
 public interface CacheResourceConfigurationInternal extends CacheResourceConfiguration {
     Supplier<Long> getRemoveUnusedEntriesOlderThanAsSupplier();
+
+    @Override
+    CacheConfigurationsInternal.UnlockableProperty<Long> getRemoveUnusedEntriesOlderThan();
 }

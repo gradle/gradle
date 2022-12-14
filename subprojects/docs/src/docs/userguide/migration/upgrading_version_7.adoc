@@ -328,7 +328,7 @@ android.experimental.legacyTransform.forceNonIncremental=true
 
 Previously, `org.gradle.api.AntBuilder` extended the deprecated `groovy.util.AntBuilder` class.  It now extends `groovy.ant.AntBuilder`.
 
-==== PluginDeclaration is not serializable
+==== `PluginDeclaration` is not serializable
 
 `org.gradle.plugin.devel.PluginDeclaration` is not serializable anymore.
 If you need to serialize it, you can convert it into your own, serializable class.
@@ -382,6 +382,22 @@ In precompiled script plugins, type safe Kotlin DSL accessor generation now fail
 Starting in Gradle 7.6, builds could enable this behavior with the `org.gradle.kotlin.dsl.precompiled.accessors.strict` system property. This behavior is now default. The property has been deprecated and its usage should be removed. You can find more information about this property <<upgrading_version_7.adoc#strict-kotlin-dsl-precompiled-scripts-accessors, below>>.
 
 ==== Adding `jst.ejb` with the `eclipse wtp` plugin now removes the `jst.utility` facet
+
+==== Init scripts are applied to `buildSrc` builds
+
+Init script specified using `--init-script` are now applied to `buildSrc` builds. In previous releases these were applied to included builds but not `buildSrc builds.
+This behaviour is now consistent for `buildSrc` and included builds.
+
+==== Gradle no longer runs the `build` task for `buildSrc` builds
+
+TODO - only the `jar` task and its dependencies are run, same as for included builds. Can run `buildSrc` tasks from the command-line, if required. If `buildSrc` contains
+subprojects that are not dependencies of `buildSrc`, these are not automatically built.
+
+==== `buildFinished { }` hook for `buildSrc` runs after all tasks have executed
+
+TODO - hook runs at the same time as for included builds
+
+==== Adding `jst.ejb` with the `eclipse wtp' plugin now removes the `jst.utility` facet
 
 The `eclipse wtp` plugin adds the `jst.utility` facet to java projects.
 Now, adding the `jst.ejb` facet implicitly removes the `jst.utility` facet:
@@ -523,6 +539,14 @@ If a project has multiple consumable configurations that share the same attribut
 This was <<#unique_attribute_sets,previously deprecated>>.
 
 The <<variant_model.adoc#outgoing_variants_report,`outgoingVariants` report>> will warn about this for impacted configurations.
+
+==== Toolchain-based tasks for JVM projects
+
+Starting with Gradle 8.0, all core Java tasks that have toolchain support are now using toolchains unconditionally.
+If `JavaBasePlugin` is applied, the convention value for tool properties on the task is defined by the toolchain configured on the `java` extension.
+In case no toolchains are explicitly configured, the toolchain corresponding to the JVM running Gradle is used.
+
+Similarly, tasks from the Groovy and Scala plugins also rely on toolchains to determine on which JVM they are executed.
 
 [[changes_7.6]]
 == Upgrading from 7.5 and earlier

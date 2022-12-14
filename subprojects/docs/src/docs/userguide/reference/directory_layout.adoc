@@ -62,17 +62,48 @@ It is roughly structured as follows:
 [[dir:gradle_user_home:cache_cleanup]]
 === Cleanup of caches and distributions
 
-From version 4.10 onwards, Gradle automatically cleans its user home directory.
-The cleanup runs in the background when the Gradle daemon is stopped or shuts down.
+Gradle automatically cleans its user home directory.
+By default, the cleanup runs in the background when the Gradle daemon is stopped or shuts down.
 If using `--no-daemon`, it runs in the foreground after the build session with a visual progress indicator.
 
-The following cleanup strategies are applied periodically (at most every 24 hours):
+The following cleanup strategies are applied periodically (by default, once every 24 hours):
 
-- Version-specific caches in `caches/<gradle-version>/` are checked for whether they are still in use.If not, directories for release versions are deleted after 30 days of inactivity, snapshot versions after 7 days of inactivity.
-- Shared caches in `caches/` (e.g. `jars-*`) are checked for whether they are still in use.If there's no Gradle version that still uses them, they are deleted.
-- Files in shared caches used by the current Gradle version in `caches/` (e.g. `jars-3` or `modules-2`) are checked for when they were last accessed.Depending on whether the file can be recreated locally or would have to be downloaded from a remote repository again, it will be deleted after 7 or 30 days of not being accessed, respectively.
-- Gradle distributions in `wrapper/dists/` are checked for whether they are still in use, i.e. whether there's a corresponding version-specific cache directory.Unused distributions are deleted.
+- Version-specific caches in `caches/<gradle-version>/` are checked for whether they are still in use.  If not, directories for release versions are deleted after 30 days of inactivity, snapshot versions after 7 days of inactivity.
+- Shared caches in `caches/` (e.g. `jars-*`) are checked for whether they are still in use.  If there's no Gradle version that still uses them, they are deleted.
+- Files in shared caches used by the current Gradle version in `caches/` (e.g. `jars-3` or `modules-2`) are checked for when they were last accessed.  Depending on whether the file can be recreated locally or would have to be downloaded from a remote repository again, it will be deleted after 7 or 30 days of not being accessed, respectively.
+- Gradle distributions in `wrapper/dists/` are checked for whether they are still in use, i.e. whether there's a corresponding version-specific cache directory.  Unused distributions are deleted.
 
+[[dir:gradle_user_home:configure_cache_cleanup]]
+==== Configuring cleanup of caches and distributions
+
+The retention periods of the various caches can be configured.  Caches are classified into four categories:
+
+- *Released wrapper distributions:* Distributions and related version-specific caches that correspond to released versions (e.g. `4.6.2` or `8.0`).  Default retention for unused versions is 30 days.
+- *Snapshot wrapper distributions:* Distributions and related version-specific caches that correspond to snapshot versions (e.g. `7.6-20221130141522+0000`).  Default retention for unused versions is 7 days.
+- *Downloaded resources:* Shared caches that are downloaded from a remote repository (e.g. cached dependencies).  Default retention for unused resources is 30 days.
+- *Created resources:* Shared caches that are created by Gradle during the course of a build (e.g. artifact transforms).  Default retention for unused resources is 7 days.
+
+The retention period for each category can be configured independently via an init script in Gradle User Home:
+
+.Configuring cache retention
+====
+include::sample[dir="snippets/initScripts/cacheRetention/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
+include::sample[dir="snippets/initScripts/cacheRetention/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
+====
+
+The frequency at which cache cleanup is invoked is also configurable.  There are three possible settings:
+
+- *DEFAULT:* Cleanup is performed periodically in the background (currently once every 24 hours).
+- *DISABLED:* Never cleanup Gradle user home.  This is useful in cases where Gradle user home is ephemeral or it's desirable to delay cleanup until an explicit point in the future.
+- *ALWAYS:* Cleanup is performed at the end of each build session.  This is useful in cases where it's desirable to ensure that cleanup has actually occurred before proceeding.  However, this does perform cache cleanup during the build (rather than in the background) which can be an expensive operation, so this option should only be used when absolutely necessary.
+
+.Disabling cache cleanup
+====
+include::sample[dir="snippets/initScripts/disableCacheCleanup/groovy",files="gradleUserHome/init.d/cache-settings.gradle"]
+include::sample[dir="snippets/initScripts/disableCacheCleanup/kotlin",files="gradleUserHome/init.d/cache-settings.gradle.kts"]
+====
+
+Note that cache cleanup settings can only be configured via init scripts and should be placed under the `init.d` directory in Gradle user home.  This effectively couples the configuration of cache cleanup to the Gradle user home directory those settings apply to and limits the possibility of different conflicting settings from being applied to the same directory.
 
 [[dir:project_root]]
 == Project root directory

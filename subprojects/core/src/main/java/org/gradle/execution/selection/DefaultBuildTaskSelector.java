@@ -40,6 +40,7 @@ import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class DefaultBuildTaskSelector implements BuildTaskSelector {
@@ -103,12 +104,12 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
     }
 
     private ProjectResolutionResult resolveProject(TaskSelector.SelectionContext context, Path path, BuildState targetBuild) {
-        // Just a name -> use default project + select all
+        // Just a name -> use default project + select tasks with matching name in default project and subprojects
         if (!path.isAbsolute() && path.segmentCount() == 1) {
             return new ProjectResolutionResult(targetBuild, targetBuild.getMutableModel().getDefaultProject().getOwner(), true, path.getName());
         }
 
-        // <path>:name -> resolve <path> + select exact
+        // <path>:name -> resolve <path> to a project + select task with matching name in that project
         // when <path> is absolute -> resolve <path> relative to root project
         // when <path> is relative -> resolve <path> relative to default project
 
@@ -134,11 +135,16 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
 
     private ProjectState selectProject(TaskSelector.SelectionContext context, ProjectState project, String childName) {
         Map<String, ProjectState> candidates = new LinkedHashMap<>();
-        if (project.getIdentityPath().equals(Path.ROOT)) {
-            for (IncludedBuildState build : buildRegistry.getIncludedBuilds()) {
-                ProjectState rootProject = build.getProjects().getRootProject();
-                candidates.put(rootProject.getIdentityPath().getName(), rootProject);
-            }
+        if (project.getProjectPath().equals(Path.ROOT)) {
+            // Project is the root of a build, so include the root projects of any builds nested under that build
+            buildRegistry.visitBuilds(build -> {
+                if (build.isImportableBuild() && build.isProjectsLoaded()) {
+                    ProjectState rootProject = build.getProjects().getRootProject();
+                    if (Objects.equals(rootProject.getIdentityPath().getParent(), project.getIdentityPath())) {
+                        candidates.put(rootProject.getIdentityPath().getName(), rootProject);
+                    }
+                }
+            });
         }
         for (ProjectState child : project.getChildProjects()) {
             ProjectState previous = candidates.put(child.getIdentityPath().getName(), child);
