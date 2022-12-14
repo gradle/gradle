@@ -320,7 +320,6 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
         failure.getOutput().contains("Explicitly requested toolchains: [useless3, useless1].")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "created repository can be removed"() {
         settingsFile << """
             ${applyToolchainResolverPlugin("UselessToolchainResolver1", uselessToolchainResolverCode("UselessToolchainResolver1"))}            
