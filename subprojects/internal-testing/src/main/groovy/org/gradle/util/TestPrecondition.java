@@ -28,5 +28,16 @@ package org.gradle.util;
  */
 public interface TestPrecondition {
     boolean isSatisfied() throws Exception;
+
+    static boolean doSatisfies(Class<? extends TestPrecondition> preconditionClass) throws Exception {
+        final TestPrecondition precondition = preconditionClass
+            .getDeclaredConstructor()
+            .newInstance();
+        return precondition.isSatisfied();
+    }
+
+    static boolean notSatisfies(Class<? extends TestPrecondition> preconditionClass) throws Exception {
+        return !doSatisfies(preconditionClass);
+    }
 }
 

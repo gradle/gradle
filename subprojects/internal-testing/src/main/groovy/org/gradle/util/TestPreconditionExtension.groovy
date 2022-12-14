@@ -32,8 +32,8 @@ class TestPreconditionExtension implements IAnnotationDrivenExtension<Requires> 
     }
 
     private static boolean unsatisfied(Requires annotation) {
-        annotation.value().any {
-            it.getDeclaredConstructor().newInstance().satisfied
+        return annotation.value().any {
+            TestPrecondition.notSatisfies(it)
         }
     }
 }
