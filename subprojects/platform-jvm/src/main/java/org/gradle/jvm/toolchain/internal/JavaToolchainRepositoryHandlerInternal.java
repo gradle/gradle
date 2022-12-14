@@ -16,13 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
+import org.gradle.internal.FinalizableValue;
+import org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler;
 
-import java.util.List;
-
-public interface JavaToolchainResolverRegistryInternal extends JavaToolchainResolverRegistry {
-
-    JavaToolchainRepositoryHandlerInternal getRepositories();
-
-    List<? extends RealizedJavaToolchainRepository> requestedRepositories();
+public interface JavaToolchainRepositoryHandlerInternal extends JavaToolchainRepositoryHandler, FinalizableValue {
 }

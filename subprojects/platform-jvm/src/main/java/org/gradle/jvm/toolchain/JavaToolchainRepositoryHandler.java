@@ -18,7 +18,8 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectList;
+
+import java.util.List;
 
 /**
  * {@link org.gradle.api.NamedDomainObjectList} based handler for configuring an
@@ -27,12 +28,36 @@ import org.gradle.api.NamedDomainObjectList;
  * @since 7.6
  */
 @Incubating
-public interface JavaToolchainRepositoryHandler extends NamedDomainObjectList<JavaToolchainRepository> {
+public interface JavaToolchainRepositoryHandler {
 
     /**
      * Utility method for creating a named {@link JavaToolchainRepository} based on
      * a configuration block.
      */
     void repository(String name, Action<? super JavaToolchainRepository> configureAction);
+
+    /**
+     * Returns a list of repositories that have been added so far. The list order
+     * reflects the order in which the repositories have been declared.
+     *
+     * @since 7.6.1
+     */
+    List<JavaToolchainRepository> getAsList();
+
+    /**
+     * Returns the count of the repositories added so far.
+     *
+     * @since 7.6.1
+     */
+    int size();
+
+    /**
+     * Removes the repository with the given name.
+     * <p>
+     * Returns true if a repository with the specified name exists and has been successfully removed, false otherwise.
+     *
+     * @since 7.6.1
+     */
+    boolean remove(String name);
 
 }
