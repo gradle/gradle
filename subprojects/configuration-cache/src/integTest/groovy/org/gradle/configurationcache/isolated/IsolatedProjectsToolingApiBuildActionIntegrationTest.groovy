@@ -88,7 +88,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            modelsReused(":a", ":b")
+            modelsReused(":a", ":b", ":buildSrc")
         }
         outputContains("creating model for root project 'root'")
 
@@ -123,7 +123,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a")
-            modelsReused(":", ":b")
+            modelsReused(":", ":b", ":buildSrc")
         }
         outputContains("creating model for project ':a'")
     }
@@ -299,7 +299,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             projectConfigured(":buildSrc")
             projectsConfigured(":")
             modelsCreated(":a")
-            modelsReused(":", ":b", ":c")
+            modelsReused(":", ":b", ":c", ":buildSrc")
         }
 
         when:
@@ -329,7 +329,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             projectConfigured(":buildSrc")
             projectsConfigured(":")
             modelsCreated(":b")
-            modelsReused(":", ":a", ":c")
+            modelsReused(":", ":a", ":c", ":buildSrc")
         }
     }
 
@@ -397,7 +397,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            modelsReused(":a", ":b")
+            modelsReused(":a", ":b", ":buildSrc")
         }
         outputContains("creating model for root project 'root'")
 
@@ -472,7 +472,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            modelsReused(":a", ":b")
+            modelsReused(":a", ":b", ":buildSrc")
         }
         outputContains("creating model for root project 'root'")
 

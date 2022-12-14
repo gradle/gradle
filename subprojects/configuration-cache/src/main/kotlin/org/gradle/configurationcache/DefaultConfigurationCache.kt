@@ -74,9 +74,9 @@ class DefaultConfigurationCache internal constructor(
 
         val currentBuild: VintageGradleBuild
 
-        fun visitBuilds(visitor: (VintageGradleBuild) -> Unit)
-
         fun createBuild(settingsFile: File?): ConfigurationCacheBuild
+
+        fun visitBuilds(visitor: (VintageGradleBuild) -> Unit)
 
         fun <T> service(serviceType: Class<T>): T
 
