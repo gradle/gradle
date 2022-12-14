@@ -83,9 +83,9 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now
 supports depending on the internal view of the current project at compile-time.
 Previously it was only possible to depend on the current project's API. This allows
-test suites to access project internals that are not declared on
+test suites to access project internals that is not declared on
 the `api` or `compileOnlyApi` configurations. This functionality can be useful when
-testing internal classes that use dependencies which are not exposed as part of a
+testing internal classes that use dependencies that are not exposed as part of a
 project's API, like those declared on the `implementation` and `compileOnly` configurations.
 
 For example, the following snippet uses the new `projectInternalView()` API to define a
@@ -109,7 +109,7 @@ For more information about adding different types of test dependencies, see [JVM
 
 ###  Kotlin DSL
 
-Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assist, refactoring, documentation, and more.
+Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assistance, refactoring, documentation, and more.
 
 #### Updated the Kotlin DSL to Kotlin API Level 1.5
 
@@ -138,7 +138,7 @@ See the [`kotlin-dsl` plugin manual](userguide/kotlin_dsl.adoc#sec:kotlin-dsl_pl
 ##### Improved Script compilation performance
 
 This Gradle version introduces an interpreter for [declarative `plugins {}` blocks](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts.
-It allows to avoid calling the Kotlin compiler for declarative `plugins {}` blocks and is enabled by default.
+It allows avoiding calling the Kotlin compiler for declarative `plugins {}` blocks and is enabled by default.
 
 On a build with declarative `plugins {}` blocks, a Gradle invocation that needs to compile all scripts, the interpreter makes the overall build time around 20% faster.
 As usual, compiled scripts are stored in the build cache and can be reused by other builds.
@@ -217,18 +217,18 @@ For more information, see [Exporting keys](userguide/dependency_verification.htm
 #### Consistent task execution for configuration cache hit and configuration cache miss builds
 
 When the configuration cache is enabled and Gradle is able to locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the
-cache entry and runs them a so called 'isolated' tasks. Isolated tasks are able to run in parallel (subject to dependency constraints).
+cache entry and runs them a so-called 'isolated' tasks. Isolated tasks are able to run in parallel (subject to dependency constraints).
 
 When Gradle is unable to locate a configuration cache entry to use, it runs the 'configuration' phase to calculate the set of tasks to run and then stores these tasks to a new cache entry.
 In previous versions, Gradle would then run these tasks directly. However, as these tasks are not isolated, they would not run in parallel.
 
 In this release, Gradle now loads the set of tasks from the cache entry after storing them on a cache miss. These tasks are isolated and can run in parallel.
 
-There are some additional advantages to this new behaviour:
+There are some additional advantages to this new behavior:
 
 - Any problems that happen during deserialization will be reported in the cache miss build, making it easier to spot such problems.
 - Tasks have access to the same state in cache miss and cache hit builds.
-- Gradle can release all heap used by the configuration state prior to task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks were able to access it. This reduces the peak heap usage for a given set of tasks.
+- Gradle can release all heaps used by the configuration state prior to task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks were able to access it. This reduces the peak heap usage for a given set of tasks. 
 
 This consistent behavior for cache miss and cache hit builds should help people who are migrating to use the configuration cache, as many more problems can now be discovered on the first (cache miss) build.
 
@@ -242,7 +242,7 @@ The current status of the configuration cache support for all core Gradle plugin
 
 ### Plugin Development
 
-#### Enhanced CodeNarc Plugin to automatically detects appropriate version for current Groovy runtime
+#### Enhanced CodeNarc Plugin to automatically detects the appropriate version for the current Groovy runtime
 
 The [CodeNarc](https://codenarc.org/) project now publishes separate versions for use with Groovy 4.
 Gradle still currently ships with Groovy 3.
@@ -253,7 +253,7 @@ You can still explicitly specify a CodeNarc version with the `toolVersion` prope
 
 #### Enhanced PMD and CodeNarc tasks to execute in parallel by default
 
-The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process and therefore their tasks may now run in parallel within one project.
+The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process, and therefore their tasks may now run in parallel within one project.
 
 In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
 
@@ -280,7 +280,7 @@ TODO - link to declaring included builds
 When Gradle builds the output of `buildSrc` it only runs the tasks that produce that output. It no longer runs the `build` task.
 In particular, this means that the tests of `buildSrc` and its subprojects are not built and executed when they are not needed.
 
-TODO - you can run these tasks from the command-line or edit buildSrc to restore the old behaviour; link to upgrade guide
+TODO - you can run these tasks from the command-line or edit buildSrc to restore the old behavior; link to upgrade guide 
 
 #### Init scripts are applied to `buildSrc`
 Init scripts specified on the command-line using `--init-script` are now applied to `buildSrc`, in addition to the main build and all included builds.
