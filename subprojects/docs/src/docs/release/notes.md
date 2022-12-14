@@ -127,7 +127,7 @@ If your team is using e.g. Java 11 to run Gradle, this allows you to use Java 11
 
 Note that this doesn't apply to precompiled script plugins, see below.
 
-##### Precompiled script plugins now use the configured java toolchain
+##### Precompiled script plugins now use the configured Java Toolchain
 
 Previously, the compilation of [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) used the JVM target as configured on `kotlinDslPluginOptions.jvmTarget`.
 Starting with Gradle 8.0, it now uses the configured Java Toolchain, or Java 8 if none is configured.
