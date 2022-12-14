@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -37,8 +39,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-
-import static java.util.Collections.unmodifiableList;
 
 public class JvmOptions {
     private static final String XMS_PREFIX = "-Xms";
@@ -98,9 +98,11 @@ public class JvmOptions {
 
         // We have to add these after the system properties so they can override any system properties
         // (identical properties later in the command line override earlier ones)
-        args.addAll(getAllImmutableJvmArgs());
 
-        return unmodifiableList(args);
+        return ImmutableList.<String>builder()
+            .addAll(args)
+            .addAll(getAllImmutableJvmArgs())
+            .build();
     }
 
     protected void formatSystemProperties(Map<String, ?> properties, List<String> args) {
@@ -119,9 +121,9 @@ public class JvmOptions {
      * The result is a subset of options returned by {@link #getAllJvmArgs()}
      */
     public List<String> getAllImmutableJvmArgs() {
-        List<String> args = new ArrayList<>(getJvmArgs());
-        args.addAll(getManagedJvmArgs());
-        return unmodifiableList(args);
+        return ImmutableList.<String>builder()
+            .addAll(getJvmArgs())
+            .addAll(getManagedJvmArgs()).build();
     }
 
     /**
@@ -174,11 +176,11 @@ public class JvmOptions {
     }
 
     public List<String> getJvmArgs() {
-        List<String> args = new ArrayList<>();
+        Builder<String> args = ImmutableList.builder();
         for (Object extraJvmArg : extraJvmArgs) {
             args.add(extraJvmArg.toString());
         }
-        return unmodifiableList(args);
+        return args.build();
     }
 
     public void setJvmArgs(Iterable<?> arguments) {
