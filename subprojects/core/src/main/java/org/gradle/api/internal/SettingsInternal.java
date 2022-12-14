@@ -25,13 +25,12 @@ import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.internal.FinalizableValue;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.util.List;
 
-public interface SettingsInternal extends Settings, PluginAwareInternal, FinalizableValue {
+public interface SettingsInternal extends Settings, PluginAwareInternal {
 
     String BUILD_SRC = "buildSrc";
 
@@ -69,6 +68,8 @@ public interface SettingsInternal extends Settings, PluginAwareInternal, Finaliz
 
     @Override
     BuildCacheConfigurationInternal getBuildCache();
+
+    void preventFromFurtherMutation();
 
     DependencyResolutionManagementInternal getDependencyResolutionManagement();
 }
