@@ -93,14 +93,16 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
             }
         """
         source impl: [
-            "package b; import a.A; public class B extends A {}",
-            "package c; public class Unrelated {}"
+            "package b; import a.A; import c.C; public class B extends A {}",
+            "package c; public class C {}",
+            "package c.d; public class D {}"
         ]
         file("impl/src/main/${language.name}/module-info.${language.name}").text = """
             module impl {
                 requires api;
                 exports b;
                 exports c;
+                exports c.d;
             }
         """
         succeeds "impl:${language.compileTaskName}"
@@ -109,7 +111,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         impl.snapshot { source api: "package a; public class A { void m1() {} }" }
 
         then:
-        succeeds "impl:${language.compileTaskName}"
+        succeeds "impl:${language.compileTaskName}", "--info"
         impl.recompiledClasses("B", "module-info")
 
         where:
@@ -120,7 +122,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    def "works incrementally for multi-module project with manual module paths"() {
+    def "incremental compilation works for multi-module project with manual module paths"() {
         file("impl/build.gradle") << """
             def layout = project.layout
             tasks.compileJava {
@@ -152,9 +154,10 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
                 requires my.module.first;
             }
         """
-        file("impl/src/main/${language.name}/my.module.unrelated/d/Unrelated.java").text = "package d; class Unrelated {}"
+        file("impl/src/main/${language.name}/my.module.unrelated/unrelated/Unrelated.java").text = "package unrelated; class Unrelated {}"
         file("impl/src/main/${language.name}/my.module.unrelated/module-info.${language.name}").text = """
             module my.module.unrelated {
+                exports unrelated;
             }
         """
         succeeds "impl:${language.compileTaskName}"
