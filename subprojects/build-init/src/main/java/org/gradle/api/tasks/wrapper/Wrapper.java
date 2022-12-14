@@ -33,6 +33,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
+import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
 import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DistributionLocator;
@@ -72,6 +73,7 @@ import java.util.Properties;
 public abstract class Wrapper extends DefaultTask {
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = Install.DEFAULT_DISTRIBUTION_PATH;
 
+
     /**
      * Specifies the Gradle distribution type.
      */
@@ -99,7 +101,7 @@ public abstract class Wrapper extends DefaultTask {
     private PathBase distributionBase = PathBase.GRADLE_USER_HOME;
     private String distributionUrl;
     private String distributionSha256Sum;
-    private GradleVersion gradleVersion;
+    private final GradleVersionResolver gradleVersionResolver = new GradleVersionResolver();
     private DistributionType distributionType = DistributionType.BIN;
     private String archivePath;
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
@@ -111,7 +113,6 @@ public abstract class Wrapper extends DefaultTask {
         jarFile = "gradle/wrapper/gradle-wrapper.jar";
         distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         archivePath = DEFAULT_DISTRIBUTION_PARENT_NAME;
-        gradleVersion = GradleVersion.current();
     }
 
     @Inject
@@ -150,7 +151,7 @@ public abstract class Wrapper extends DefaultTask {
             ? existingProperties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, null)
             : null;
 
-        if (GradleVersion.current() != gradleVersion &&
+        if (!isCurrentVersion() &&
             distributionSha256Sum == null &&
             checksumProperty != null) {
             throw new GradleException("gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. Specify one in the wrapped task configuration or with the --gradle-distribution-sha256-sum task option");
@@ -193,11 +194,15 @@ public abstract class Wrapper extends DefaultTask {
     private String getDistributionSha256Sum(Properties existingProperties) {
         if (distributionSha256Sum != null) {
             return distributionSha256Sum;
-        } else if (GradleVersion.current() == gradleVersion && existingProperties != null) {
+        } else if (isCurrentVersion() && existingProperties != null) {
             return existingProperties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, null);
         } else {
             return null;
         }
+    }
+
+    private boolean isCurrentVersion() {
+        return GradleVersion.current().equals(gradleVersionResolver.getGradleVersion());
     }
 
     /**
@@ -295,7 +300,22 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Input
     public String getGradleVersion() {
-        return gradleVersion.getVersion();
+        return gradleVersionResolver.getGradleVersion().getVersion();
+    }
+
+    /**
+     * Set Wrapper versions resources.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    public void setDefaultWrapperVersionsResources(WrapperVersionsResources wrapperVersionsResources) {
+
+        DefaultWrapperVersionsResources defaultWrapperVersionsResources = (DefaultWrapperVersionsResources) wrapperVersionsResources;
+        gradleVersionResolver.setTextResources(defaultWrapperVersionsResources.getLatest(),
+            defaultWrapperVersionsResources.getReleaseCandidate(),
+            defaultWrapperVersionsResources.getNightly(),
+            defaultWrapperVersionsResources.getReleaseNightly());
     }
 
     /**
@@ -304,7 +324,7 @@ public abstract class Wrapper extends DefaultTask {
      */
     @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper.")
     public void setGradleVersion(String gradleVersion) {
-        this.gradleVersion = GradleVersion.version(gradleVersion);
+        this.gradleVersionResolver.setGradleVersionString(gradleVersion);
     }
 
     /**
@@ -352,8 +372,8 @@ public abstract class Wrapper extends DefaultTask {
     public String getDistributionUrl() {
         if (distributionUrl != null) {
             return distributionUrl;
-        } else if (gradleVersion != null) {
-            return locator.getDistributionFor(gradleVersion, distributionType.name().toLowerCase(Locale.ENGLISH)).toString();
+        } else if (gradleVersionResolver.getGradleVersion() != null) {
+            return locator.getDistributionFor(gradleVersionResolver.getGradleVersion(), distributionType.name().toLowerCase(Locale.ENGLISH)).toString();
         } else {
             return null;
         }

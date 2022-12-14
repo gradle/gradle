@@ -18,7 +18,15 @@ package org.gradle.buildinit.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.wrapper.Wrapper;
+import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
+import org.gradle.util.internal.DistributionLocator;
+
+import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.LATEST;
+import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.NIGHTLY;
+import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.RELEASE_CANDIDATE;
+import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.RELEASE_NIGHTLY;
 
 /**
  * The wrapper plugin.
@@ -26,14 +34,31 @@ import org.gradle.api.tasks.wrapper.Wrapper;
  * @see <a href="https://docs.gradle.org/current/userguide/gradle_wrapper.html">Gradle Wrapper reference</a>
  */
 public abstract class WrapperPlugin implements Plugin<Project> {
+
+    private static String servicesGraldeOrgVersionsOverrideUrlProperty = "org.gradle.internal.services.version.url.override";
+
     @Override
     public void apply(Project project) {
         if (project.getParent() == null) {
+            String versionUrl = getVersionUrl();
+            TextResource latest = project.getResources().getText().fromUri(versionUrl + "/" + LATEST);
+            TextResource releaseCandidate = project.getResources().getText().fromUri(versionUrl + "/" + RELEASE_CANDIDATE);
+            TextResource nightly = project.getResources().getText().fromUri(versionUrl + "/" + NIGHTLY);
+            TextResource releaseNightly = project.getResources().getText().fromUri(versionUrl + "/" + RELEASE_NIGHTLY);
+
             project.getTasks().register("wrapper", Wrapper.class, wrapper -> {
                 wrapper.setGroup("Build Setup");
                 wrapper.setDescription("Generates Gradle wrapper files.");
                 wrapper.getNetworkTimeout().convention(10000);
+                wrapper.setDefaultWrapperVersionsResources(new DefaultWrapperVersionsResources(latest, releaseCandidate, nightly, releaseNightly));
             });
         }
     }
+
+    private static String getVersionUrl() {
+        String baseUrl = System.getProperty(servicesGraldeOrgVersionsOverrideUrlProperty,
+            DistributionLocator.SERVICES_GRADLE_BASE_URL);
+        return baseUrl + "/versions";
+    }
+
 }
