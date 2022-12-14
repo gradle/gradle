@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
 
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.service.scopes.EventScope;
+package org.gradle.internal.buildtree;
+
+import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-@EventScope(Scopes.Build.class)
-public interface ModelConfigurationListener {
-    /**
-     * Invoked when the model has been configured successfully. This listener should not do any further configuration.
-     */
-    void onConfigure(GradleInternal model);
+@ServiceScope(Scopes.BuildTree.class)
+public interface GlobalDependencySubstitutionRegistry {
+    void registerSubstitutionsFor(CompositeBuildParticipantBuildState build);
 }

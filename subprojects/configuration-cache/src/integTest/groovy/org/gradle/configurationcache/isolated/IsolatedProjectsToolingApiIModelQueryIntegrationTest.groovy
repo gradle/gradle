@@ -79,6 +79,7 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
+            modelsReused(":buildSrc")
         }
         outputContains("creating model for root project 'root'")
 

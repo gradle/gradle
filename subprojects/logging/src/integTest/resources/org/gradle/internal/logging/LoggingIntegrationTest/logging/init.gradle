@@ -1,16 +1,19 @@
+def prefix = "init $gradle.identityPath"
 
-println 'init QUIET out'
+println "$prefix QUIET out"
 logging.captureStandardOutput LogLevel.INFO
-println 'init INFO out'
+println "$prefix INFO out"
 
-System.err.println 'init ERROR err'
+System.err.println "$prefix ERROR err"
 logging.captureStandardError LogLevel.INFO
-System.err.println 'init INFO err'
+System.err.println "$prefix INFO err"
 
-logger.lifecycle('init lifecycle log')
-logger.info('init info log')
+logger.lifecycle("$prefix lifecycle log")
+logger.info("$prefix info log")
 
-useLogger(new CustomLogger())
+if (gradle.parent == null) {
+    useLogger(new CustomLogger())
+}
 
 class CustomLogger extends BuildAdapter implements BuildListener, ProjectEvaluationListener, TaskExecutionListener, TaskActionListener {
     def logger = Logging.getLogger('init-script')

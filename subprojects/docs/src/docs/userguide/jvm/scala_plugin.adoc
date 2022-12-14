@@ -16,8 +16,7 @@
 = The Scala Plugin
 
 The Scala plugin extends the <<java_plugin.adoc#java_plugin,Java plugin>> to add support for https://www.scala-lang.org/[Scala] projects.
-It can deal with Scala code, mixed Scala and Java code, and even pure Java code (although we don't necessarily recommend to use it for the latter).
-The plugin supports _joint compilation_, which allows you to freely mix and match Scala and Java code, with dependencies in both directions.
+The plugin also supports _joint compilation_, which allows you to freely mix and match Scala and Java code with dependencies in both directions.
 For example, a Scala class can extend a Java class that in turn extends a Scala class.
 This makes it possible to use the best language for the job, and to rewrite any class in the other language if needed.
 
@@ -60,7 +59,7 @@ Compiles the given source set's Scala source files.
 +
 Generates API documentation for the production Scala source files.
 
-The `ScalaCompile` and `ScalaDoc` tasks can also leverage the <<toolchains.adoc#toolchains,Java toolchain support>>.
+The `ScalaCompile` and `ScalaDoc` tasks support <<toolchains.adoc#toolchains,Java toolchains>> out of the box.
 
 The Scala plugin adds the following dependencies to tasks added by the Java plugin.
 

@@ -22,6 +22,7 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume
+import spock.lang.IgnoreIf
 
 // https://plugins.gradle.org/plugin/com.gradle.enterprise
 class BuildScanPluginSmokeTest extends AbstractSmokeTest {
@@ -82,11 +83,29 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     ]
 
     private static final VersionNumber FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE = VersionNumber.parse("3.4")
+    private static final VersionNumber FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE = VersionNumber.parse("3.12")
 
+    @IgnoreIf({ !GradleContextualExecuter.configCache })
+    def "can use plugin #version with Gradle 8 configuration cache"() {
+        given:
+        def versionNumber = VersionNumber.parse(version)
+        Assume.assumeFalse(versionNumber < FIRST_VERSION_SUPPORTING_GRADLE_8_CONFIGURATION_CACHE)
+
+        when:
+        usePluginVersion version
+
+        then:
+        build().output.contains("Build scan written to")
+
+        where:
+        version << SUPPORTED
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.configCache })
     def "can use plugin #version"() {
         given:
         def versionNumber = VersionNumber.parse(version)
-        Assume.assumeFalse(GradleContextualExecuter.configCache && versionNumber < FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE)
+        Assume.assumeFalse(versionNumber < FIRST_VERSION_SUPPORTING_CONFIGURATION_CACHE)
 
         when:
         usePluginVersion version
@@ -115,10 +134,6 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
     BuildResult build(String... args) {
         scanRunner(args).build()
-    }
-
-    BuildResult buildAndFail(String... args) {
-        scanRunner(args).buildAndFail()
     }
 
     GradleRunner scanRunner(String... args) {

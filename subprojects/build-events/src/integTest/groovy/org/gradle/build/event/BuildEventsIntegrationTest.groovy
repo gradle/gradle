@@ -197,7 +197,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         run("thing")
 
         then:
-        output.count("EVENT:") == 14
+        output.count("EVENT:") == 6
         outputContains("EVENT: finish :buildSrc:processResources SKIPPED")
         outputContains("EVENT: finish :buildSrc:compileJava OK")
         outputContains("EVENT: finish :thing UP-TO-DATE")

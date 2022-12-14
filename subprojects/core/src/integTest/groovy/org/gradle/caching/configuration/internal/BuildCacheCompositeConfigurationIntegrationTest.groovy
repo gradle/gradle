@@ -69,11 +69,11 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
 
         buildFile << customTaskCode("root")
         file("buildSrc/build.gradle") << customTaskCode("buildSrc") << """
-            build.dependsOn customTask
+            jar.dependsOn customTask
         """
         file("i1/build.gradle") << customTaskCode("i1")
         file("i1/buildSrc/build.gradle") << customTaskCode("i1:buildSrc") << """
-            build.dependsOn customTask
+            jar.dependsOn customTask
         """
         file("i2/build.gradle") << customTaskCode("i2")
         if (isNotConfigCache()) { // GradleBuild is not supported with the configuration cache
