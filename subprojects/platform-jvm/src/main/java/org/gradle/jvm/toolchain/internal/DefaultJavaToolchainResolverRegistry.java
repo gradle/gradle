@@ -91,7 +91,7 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
         realizedRepositories.clear();
 
         Set<Class<?>> resolvers = new HashSet<>();
-        for (JavaToolchainRepository repository : repositoryHandler.getAsLiveList()) {
+        for (JavaToolchainRepository repository : repositoryHandler.getAsList()) {
             if (!resolvers.add(repository.getResolverClass().get())) {
                 throw new GradleException("Duplicate configuration for repository implementation '" + repository.getResolverClass().get().getName() + "'.");
             }

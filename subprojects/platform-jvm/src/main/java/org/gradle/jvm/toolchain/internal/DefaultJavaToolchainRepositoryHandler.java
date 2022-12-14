@@ -38,6 +38,7 @@ import org.gradle.jvm.toolchain.JavaToolchainResolver;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -105,13 +106,10 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
     @Override
     public List<JavaToolchainRepository> getAsList() {
         ArrayList<JavaToolchainRepository> copy = repositories.stream()
+                .map(it -> (JavaToolchainRepositoryInternal) it)
                 .map(ImmutableJavaToolchainRepository::new)
                 .collect(Collectors.toCollection(ArrayList::new));
         return Collections.unmodifiableList(copy);
-    }
-
-    public List<JavaToolchainRepository> getAsLiveList() {
-        return repositories;
     }
 
     @Override
@@ -142,12 +140,17 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
         }
     }
 
-    private static class ImmutableJavaToolchainRepository implements JavaToolchainRepository {
+    private static class ImmutableJavaToolchainRepository implements JavaToolchainRepositoryInternal {
 
-        private final JavaToolchainRepository delegate;
+        private final JavaToolchainRepositoryInternal delegate;
 
-        public ImmutableJavaToolchainRepository(JavaToolchainRepository delegate) {
+        public ImmutableJavaToolchainRepository(JavaToolchainRepositoryInternal delegate) {
             this.delegate = delegate;
+        }
+
+        @Override
+        public Collection<Authentication> getConfiguredAuthentication() {
+            return delegate.getConfiguredAuthentication();
         }
 
         @Override
