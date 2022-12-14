@@ -23,7 +23,6 @@ import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.GroovySourceSet;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -52,19 +51,10 @@ public abstract class DefaultGroovySourceSet implements GroovySourceSet, HasPubl
 
     @Override
     public GroovySourceDirectorySet getGroovy() {
-        emitDeprecationWarning();
-        return getGroovyInternal();
-    }
-
-    /**
-     * Same as {@link #getGroovy()} except it does not emit a deprecation warning.
-     */
-    public GroovySourceDirectorySet getGroovyInternal() {
         return groovy;
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public GroovySourceSet groovy(@Nullable Closure configureClosure) {
         configure(configureClosure, getGroovy());
         return this;
@@ -78,22 +68,11 @@ public abstract class DefaultGroovySourceSet implements GroovySourceSet, HasPubl
 
     @Override
     public SourceDirectorySet getAllGroovy() {
-        emitDeprecationWarning();
         return allGroovy;
     }
 
     @Override
-    @Deprecated
     public TypeOf<?> getPublicType() {
-        emitDeprecationWarning();
         return typeOf(GroovySourceSet.class);
-    }
-
-    private static void emitDeprecationWarning() {
-        DeprecationLogger.deprecate("Configuring Groovy sources via the convention")
-            .withAdvice("Groovy sources should be configured via the extension instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "custom_source_set_deprecation")
-            .nagUser();
     }
 }

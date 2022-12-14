@@ -121,7 +121,7 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
     private GroovySourceDirectorySet getGroovySourceDirectorySet(SourceSet sourceSet) {
         final org.gradle.api.internal.tasks.DefaultGroovySourceSet groovySourceSet = getObjectFactory().newInstance(org.gradle.api.internal.tasks.DefaultGroovySourceSet.class, "groovy", ((DefaultSourceSet) sourceSet).getDisplayName(), getObjectFactory());
         new DslObject(sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
-        return groovySourceSet.getGroovyInternal();
+        return groovySourceSet.getGroovy();
     }
 
     private static void configureLibraryElements(SourceSet sourceSet, ConfigurationContainer configurations, ObjectFactory objectFactory) {

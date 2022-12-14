@@ -199,7 +199,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
     private ScalaSourceDirectorySet getScalaSourceDirectorySet(SourceSet sourceSet) {
         org.gradle.api.internal.tasks.DefaultScalaSourceSet scalaSourceSet = getObjectFactory().newInstance(org.gradle.api.internal.tasks.DefaultScalaSourceSet.class, ((DefaultSourceSet) sourceSet).getDisplayName(), getObjectFactory());
         new DslObject(sourceSet).getConvention().getPlugins().put("scala", scalaSourceSet);
-        return scalaSourceSet.getScalaInternal();
+        return scalaSourceSet.getScala();
     }
 
     private static Configuration createIncrementalAnalysisConfigurationFor(ConfigurationContainer configurations, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
