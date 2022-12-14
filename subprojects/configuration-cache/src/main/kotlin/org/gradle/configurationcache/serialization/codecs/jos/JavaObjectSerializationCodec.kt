@@ -23,6 +23,7 @@ import org.gradle.configurationcache.serialization.beans.BeanStateReader
 import org.gradle.configurationcache.serialization.codecs.Decoding
 import org.gradle.configurationcache.serialization.codecs.Encoding
 import org.gradle.configurationcache.serialization.codecs.EncodingProducer
+import org.gradle.configurationcache.serialization.codecs.SerializedLambdaParametersCheckingCodec
 import org.gradle.configurationcache.serialization.decodeBean
 import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.encodeBean
@@ -34,6 +35,7 @@ import org.gradle.configurationcache.serialization.writeEnum
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.Serializable
+import java.lang.invoke.SerializedLambda
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier.isPrivate
 import java.lang.reflect.Modifier.isStatic
@@ -107,6 +109,10 @@ class JavaObjectSerializationCodec(
                     readResolve(decodeBean())
                         .also { putIdentity(id, it) }
                 }
+                Format.SerializedLambda -> {
+                    readResolve(SerializedLambdaParametersCheckingCodec.run { decode() })
+                        .also { putIdentity(id, it) }
+                }
             }
         }
 
@@ -150,8 +156,15 @@ class JavaObjectSerializationCodec(
         override suspend fun WriteContext.encode(value: Any) {
             encodePreservingIdentityOf(value) {
                 val replacement = writeReplace.invoke(value)
-                writeEnum(Format.ReadResolve)
-                encodeBean(replacement)
+                if (replacement is SerializedLambda) {
+                    writeEnum(Format.SerializedLambda)
+                    SerializedLambdaParametersCheckingCodec.run {
+                        encode(replacement)
+                    }
+                } else {
+                    writeEnum(Format.ReadResolve)
+                    encodeBean(replacement)
+                }
             }
         }
     }
@@ -170,7 +183,8 @@ class JavaObjectSerializationCodec(
     enum class Format {
         ReadResolve,
         WriteObject,
-        ReadObject
+        ReadObject,
+        SerializedLambda
     }
 
     private
