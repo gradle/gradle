@@ -81,10 +81,12 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
             // This is kept for backward compatibility - may be removed in the future
             int i = 0;
             List<String> modulePaths = new ArrayList<>();
-            for (String arg : compileOptions.getCompilerArgs()) {
+            // Some arguments can also be a GString, that is why use Object.toString()
+            for (Object argObj : compileOptions.getCompilerArgs()) {
+                String arg = argObj.toString();
                 if ((arg.equals("--module-path") || arg.equals("-p")) && (i + 1) < compileOptions.getCompilerArgs().size()) {
-                    String argValue = compileOptions.getCompilerArgs().get(++i);
-                    String[] modules = argValue.split(File.pathSeparator);
+                    Object argValue = compileOptions.getCompilerArgs().get(++i);
+                    String[] modules = argValue.toString().split(File.pathSeparator);
                     modulePaths.addAll(Arrays.asList(modules));
                 } else if (arg.startsWith("--module-path=")) {
                     String[] modules = arg.replace("--module-path=", "").split(File.pathSeparator);
