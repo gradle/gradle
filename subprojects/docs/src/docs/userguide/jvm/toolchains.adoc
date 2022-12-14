@@ -363,7 +363,6 @@ Sorting is done based on the following rules:
 .. GRAAL_VM
 .. HEWLETT_PACKARD
 .. IBM
-.. IBM_SEMERU
 .. MICROSOFT
 .. ORACLE
 .. SAP
