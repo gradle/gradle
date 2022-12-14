@@ -105,7 +105,7 @@ public class BuildStateFactory {
         buildSrcStartParameter.setCurrentDir(buildSrcDir);
         buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
         buildSrcStartParameter.doNotSearchUpwards();
-        buildSrcStartParameter.setProfile(containingBuildParameters.isProfile());
+        buildSrcStartParameter.setInitScripts(containingBuildParameters.getInitScripts());
         return buildSrcStartParameter;
     }
 }

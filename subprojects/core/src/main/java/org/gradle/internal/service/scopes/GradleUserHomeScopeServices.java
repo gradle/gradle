@@ -34,9 +34,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
-import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
-import org.gradle.cache.internal.DefaultCacheRepository;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache;
 import org.gradle.cache.internal.DefaultGlobalCacheLocations;
@@ -44,7 +42,6 @@ import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.GradleUserHomeCacheCleanupActionDecorator;
 import org.gradle.cache.internal.GradleUserHomeCleanupServices;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping;
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCache;
 import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCache;
@@ -103,7 +100,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     }
 
     public void configure(ServiceRegistration registration) {
-        registration.add(GlobalCacheDir.class);
+        super.configure(registration);
         registration.addProvider(new GradleUserHomeCleanupServices());
         registration.add(ClasspathWalker.class);
         registration.add(ClasspathBuilder.class);
@@ -118,10 +115,6 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
 
     GradleUserHomeCacheCleanupActionDecorator createCacheCleanupDecorator(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
         return new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeDirProvider);
-    }
-
-    CacheRepository createCacheRepository(GlobalCacheDir globalCacheDir, CacheFactory cacheFactory) {
-        return new DefaultCacheRepository(new DefaultCacheScopeMapping(globalCacheDir.getDir(), GradleVersion.current()), cacheFactory);
     }
 
     DefaultGlobalScopedCache createGlobalScopedCache(GlobalCacheDir globalCacheDir, CacheRepository cacheRepository) {

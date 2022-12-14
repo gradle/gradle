@@ -1,12 +1,6 @@
-> Task :buildSrc:pluginUnderTestMetadata
-> Task :buildSrc:compileTestJava NO-SOURCE
-> Task :buildSrc:compileTestGroovy NO-SOURCE
-> Task :buildSrc:processTestResources NO-SOURCE
-> Task :buildSrc:testClasses UP-TO-DATE
-> Task :buildSrc:test NO-SOURCE
-> Task :buildSrc:validatePlugins
-> Task :buildSrc:check
-> Task :buildSrc:build
+> Task :buildSrc:processResources
+> Task :buildSrc:classes
+> Task :buildSrc:jar
 > Task :list:compileJava
 > Task :list:processResources NO-SOURCE
 > Task :list:classes
