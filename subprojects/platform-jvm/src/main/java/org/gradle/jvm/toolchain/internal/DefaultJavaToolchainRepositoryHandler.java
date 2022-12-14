@@ -18,25 +18,33 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Namer;
+import org.gradle.api.artifacts.repositories.AuthenticationContainer;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.api.credentials.Credentials;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultNamedDomainObjectList;
 import org.gradle.api.internal.artifacts.repositories.AuthenticationSupporter;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationContainer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler;
+import org.gradle.jvm.toolchain.JavaToolchainResolver;
 
 import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepositoryHandler {
+public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepositoryHandlerInternal {
 
     private final DefaultNamedDomainObjectList<JavaToolchainRepository> repositories;
 
@@ -47,6 +55,8 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
     private final ProviderFactory providerFactory;
 
     private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
+
+    private boolean mutable = true;
 
     @Inject
     public DefaultJavaToolchainRepositoryHandler(
@@ -76,6 +86,8 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
 
     @Override
     public void repository(String name, Action<? super JavaToolchainRepository> configureAction) {
+        assertMutable();
+
         DefaultAuthenticationContainer authenticationContainer = new DefaultAuthenticationContainer(instantiator, CollectionCallbackActionDecorator.NOOP);
         for (Map.Entry<Class<Authentication>, Class<? extends Authentication>> e : authenticationSchemeRegistry.getRegisteredSchemes().entrySet()) {
             authenticationContainer.registerBinding(e.getKey(), e.getValue());
@@ -92,12 +104,99 @@ public class DefaultJavaToolchainRepositoryHandler implements JavaToolchainRepos
     }
 
     @Override
-    public List<JavaToolchainRepository> repositories() {
-        return Collections.unmodifiableList(repositories);
+    public List<JavaToolchainRepository> getAsList() {
+        ArrayList<JavaToolchainRepository> copy = repositories.stream()
+                .map(it -> (JavaToolchainRepositoryInternal) it)
+                .map(ImmutableJavaToolchainRepository::new)
+                .collect(Collectors.toCollection(ArrayList::new));
+        return Collections.unmodifiableList(copy);
     }
 
     @Override
     public int size() {
         return repositories.size();
     }
+
+    @Override
+    public boolean remove(String name) {
+        assertMutable();
+
+        JavaToolchainRepository repository = repositories.findByName(name);
+        if (repository == null) {
+            return false;
+        }
+
+        return repositories.remove(repository);
+    }
+
+    @Override
+    public void preventFromFurtherMutation() {
+        this.mutable = false;
+    }
+
+    private void assertMutable() {
+        if (!mutable) {
+            throw new InvalidUserCodeException("Mutation of toolchain repositories declared in settings is only allowed during settings evaluation");
+        }
+    }
+
+    private static class ImmutableJavaToolchainRepository implements JavaToolchainRepositoryInternal {
+
+        private final JavaToolchainRepositoryInternal delegate;
+
+        public ImmutableJavaToolchainRepository(JavaToolchainRepositoryInternal delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Collection<Authentication> getConfiguredAuthentication() {
+            return delegate.getConfiguredAuthentication();
+        }
+
+        @Override
+        public PasswordCredentials getCredentials() {
+            return delegate.getCredentials();
+        }
+
+        @Override
+        public <T extends Credentials> T getCredentials(Class<T> credentialsType) {
+            return delegate.getCredentials(credentialsType);
+        }
+
+        @Override
+        public void credentials(Action<? super PasswordCredentials> action) {
+            throw new UnsupportedOperationException("Can't modify repositories through a read-only view");
+        }
+
+        @Override
+        public <T extends Credentials> void credentials(Class<T> credentialsType, Action<? super T> action) {
+            throw new UnsupportedOperationException("Can't modify repositories through a read-only view");
+        }
+
+        @Override
+        public void credentials(Class<? extends Credentials> credentialsType) {
+            throw new UnsupportedOperationException("Can't modify repositories through a read-only view");
+        }
+
+        @Override
+        public void authentication(Action<? super AuthenticationContainer> action) {
+            throw new UnsupportedOperationException("Can't modify repositories through a read-only view");
+        }
+
+        @Override
+        public AuthenticationContainer getAuthentication() {
+            return delegate.getAuthentication();
+        }
+
+        @Override
+        public String getName() {
+            return delegate.getName();
+        }
+
+        @Override
+        public Property<Class<? extends JavaToolchainResolver>> getResolverClass() {
+            return delegate.getResolverClass();
+        }
+    }
+
 }
