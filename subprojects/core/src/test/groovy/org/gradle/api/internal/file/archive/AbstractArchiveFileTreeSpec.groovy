@@ -21,12 +21,17 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.MinimalFileTree
 import org.gradle.api.provider.Provider
+import org.gradle.cache.internal.DecompressionCache
+import org.gradle.cache.internal.TestCaches
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
-class AbstractArchiveFileTreeTest extends Specification {
+/**
+ * Tests core functionality in {@link AbstractArchiveFileTree} using a minimal test implementation.
+ */
+class AbstractArchiveFileTreeSpec extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
@@ -35,7 +40,7 @@ class AbstractArchiveFileTreeTest extends Specification {
         def visitor = Mock(MinimalFileTree.MinimalFileTreeStructureVisitor)
         def backingFile = tmpDir.createFile("thing.bin")
 
-        def fileTree = new TestArchiveFileTree(backingFile: backingFile)
+        def fileTree = new TestArchiveFileTree(TestCaches.decompressionCache(tmpDir.createDir("cache-dir")), backingFile)
 
         when:
         fileTree.visitStructure(visitor, owner)
@@ -48,6 +53,11 @@ class AbstractArchiveFileTreeTest extends Specification {
     static class TestArchiveFileTree extends AbstractArchiveFileTree {
         File backingFile
         final String displayName = "<display>"
+
+        TestArchiveFileTree(DecompressionCache decompressionCache, File backingFile) {
+            super(decompressionCache)
+            this.backingFile = backingFile
+        }
 
         @Override
         DirectoryFileTree getMirror() {

@@ -58,7 +58,7 @@ class TaskDependenciesCrossVersionSpec extends ToolingApiSpecification {
             task b { dependsOn(a) }
             task c { dependsOn(b) }
             task d { dependsOn(b, c) }
-            build.dependsOn(d)
+            jar.dependsOn(d)
         """
 
         when:
