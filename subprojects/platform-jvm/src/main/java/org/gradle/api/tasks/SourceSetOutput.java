@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 
 import javax.annotation.Nullable;
@@ -90,7 +91,7 @@ public interface SourceSetOutput extends FileCollection {
      * @return The classes directories. Never returns null.
      * @since 4.0
      */
-    FileCollection getClassesDirs();
+    ConfigurableFileCollection getClassesDirs();
 
     /**
      * Returns the output directory for resources
