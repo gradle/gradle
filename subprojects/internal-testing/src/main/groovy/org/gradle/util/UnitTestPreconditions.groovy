@@ -21,41 +21,44 @@ import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 import org.testcontainers.DockerClientFactory
 
+import static org.gradle.util.TestPrecondition.doSatisfies
+import static org.gradle.util.TestPrecondition.notSatisfies
+
 @CompileStatic
 class UnitTestPreconditions extends BaseTestPreconditions {
 
     static final class Symlinks implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return doSatisfies{ MacOs } || doSatisfies { Linux }
+            return doSatisfies(MacOs) || doSatisfies(Linux)
         }
     }
 
     static final class NoSymlinks implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfies { Symlinks }
+            return notSatisfies(Symlinks)
         }
     }
 
     static final class CaseInsensitiveFs implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return doSatisfies { MacOs } || doSatisfies { Windows }
+            return notSatisfies(MacOs) || notSatisfies(Windows)
         }
     }
 
     static final class FilePermissions implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return doSatisfies { MacOs } || doSatisfies { Linux }
+            return notSatisfies(MacOs) || notSatisfies(Linux)
         }
     }
 
     static final class NoFilePermissions implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfies { FilePermissions }
+            return notSatisfies(FilePermissions)
         }
     }
 
@@ -76,7 +79,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class NoMandatoryFileLockOnOpen implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfies { MandatoryFileLockOnOpen }
+            return notSatisfies(MandatoryFileLockOnOpen)
         }
     }
 
@@ -90,7 +93,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class NotWindows implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfies { Windows }
+            return notSatisfies(Windows)
         }
     }
 
@@ -104,7 +107,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class NotMacOs implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfies { MacOs }
+            return notSatisfies(MacOs)
         }
     }
 
@@ -118,7 +121,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class NotMacOsM1 implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfies { MacOsM1 }
+            return notSatisfies(MacOsM1)
         }
     }
 
@@ -132,7 +135,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class NotLinux implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfies { Linux }
+            return notSatisfies(Linux)
         }
     }
 
@@ -146,7 +149,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class UnixDerivative implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            doSatisfies { MacOs } || doSatisfies { Linux } || doSatisfies { Unix }
+            notSatisfies(MacOs) || notSatisfies(Linux) || notSatisfies(Unix)
         }
     }
 
@@ -450,7 +453,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class CanInstallExecutable implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return doSatisfies { FilePermissions } || doSatisfies { Windows }
+            return notSatisfies(FilePermissions) || notSatisfies(Windows)
         }
     }
 
@@ -468,7 +471,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
         @Override
         boolean isSatisfied() {
             // Simplistic approach at detecting Xcode by assuming macOS imply Xcode is present
-            return doSatisfies { MacOs }
+            return notSatisfies(MacOs)
         }
     }
 
@@ -476,14 +479,14 @@ class UnitTestPreconditions extends BaseTestPreconditions {
         @Override
         boolean isSatisfied() {
             // Simplistic approach at detecting MSBuild by assuming Windows imply MSBuild is present
-            return doSatisfies { Windows } && !"embedded".equals(System.getProperty("org.gradle.integtest.executer"))
+            return notSatisfies(Windows) && !"embedded".equals(System.getProperty("org.gradle.integtest.executer"))
         }
     }
 
     static final class SupportsTargetingJava6 implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfies { Jdk12OrLater }
+            return notSatisfies(Jdk12OrLater)
         }
     }
 
@@ -491,7 +494,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class HighPerformance implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfies { MacOs }
+            return notSatisfies(MacOs)
         }
     }
 
@@ -512,7 +515,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class NotStableGroovy implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            notSatisfies { StableGroovy }
+            notSatisfies(StableGroovy)
         }
     }
 
