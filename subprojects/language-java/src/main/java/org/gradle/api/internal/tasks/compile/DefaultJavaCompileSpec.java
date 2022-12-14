@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.compile;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.tasks.compile.CompileOptions;
 
@@ -35,6 +34,7 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     private Set<String> classes;
     private List<File> modulePath;
     private List<File> sourceRoots;
+    private boolean isIncrementalCompilationOfJavaModule;
 
     @Override
     public MinimalJavaCompileOptions getCompileOptions() {
@@ -102,6 +102,16 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     @Override
     public void setModulePath(List<File> modulePath) {
         this.modulePath = modulePath;
+    }
+
+    @Override
+    public boolean isIncrementalCompilationOfJavaModule() {
+        return isIncrementalCompilationOfJavaModule;
+    }
+
+    @Override
+    public void setIsIncrementalCompilationOfJavaModule(boolean isIncrementalCompilationOfJavaModule) {
+        this.isIncrementalCompilationOfJavaModule = isIncrementalCompilationOfJavaModule;
     }
 
     @Override

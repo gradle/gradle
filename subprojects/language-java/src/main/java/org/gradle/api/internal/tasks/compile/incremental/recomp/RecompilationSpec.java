@@ -29,6 +29,7 @@ public class RecompilationSpec {
     private final Collection<String> classesToProcess = new LinkedHashSet<>();
     private final Collection<GeneratedResource> resourcesToGenerate = new LinkedHashSet<>();
     private String fullRebuildCause;
+    private boolean isIncrementalCompilationOfJavaModule;
 
     @Override
     public String toString() {
@@ -99,4 +100,11 @@ public class RecompilationSpec {
         fullRebuildCause = description;
     }
 
+    public boolean isIncrementalCompilationOfJavaModule() {
+        return isIncrementalCompilationOfJavaModule;
+    }
+
+    public void setIsIncrementalCompilationOfJavaModule(boolean isIncrementalCompilationOfJavaModule) {
+        this.isIncrementalCompilationOfJavaModule = isIncrementalCompilationOfJavaModule;
+    }
 }

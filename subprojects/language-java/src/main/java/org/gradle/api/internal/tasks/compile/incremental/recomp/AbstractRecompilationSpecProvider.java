@@ -205,13 +205,14 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     private static void addModuleInfoToCompile(RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         Set<String> moduleInfoSources = sourceFileClassNameConverter.getRelativeSourcePaths(MODULE_INFO_CLASS);
         if (!moduleInfoSources.isEmpty()) {
-            // Fixes: https://github.com/gradle/gradle/issues/23067
             // Always recompile module-info.java if present.
             // This solves case for incremental compilation for manual --module-path when not combined with --module-source-path or --source-path,
             // since compiled module-info is not in the output after we change compile outputs in the CompileTransaction.
             // Alternative would be, that we would move/copy the module-info class to transaction outputs and add transaction outputs to classpath.
+            // First part of fix for: https://github.com/gradle/gradle/issues/23067
             spec.addClassToCompile(MODULE_INFO_CLASS);
             spec.addSourcePaths(moduleInfoSources);
+            spec.setIsIncrementalCompilationOfJavaModule(true);
         }
     }
 
@@ -231,6 +232,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
         Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
+        spec.setIsIncrementalCompilationOfJavaModule(recompilationSpec.isIncrementalCompilationOfJavaModule());
         return new CompileTransaction(spec, classesToDelete, resourcesToDelete, fileOperations, deleter);
     }
 
