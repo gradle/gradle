@@ -221,35 +221,39 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             scalaCompile.setSource(scalaSource);
             scalaCompile.getJavaLauncher().convention(getJavaLauncher(project));
 
-            scalaCompile.getAnalysisMappingFile().set(project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".mapping"));
-
-            // cannot compute at task execution time because we need association with source set
-            IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
-            incrementalOptions.getAnalysisFile().set(
-                project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".analysis")
-            );
-
-            incrementalOptions.getClassfileBackupDir().set(
-                project.getLayout().getBuildDirectory().file("tmp/scala/classfileBackup/" + scalaCompile.getName() + ".bak")
-            );
-
-            final Jar jarTask = (Jar) project.getTasks().findByName(sourceSet.getJarTaskName());
-            if (jarTask != null) {
-                incrementalOptions.getPublishedCode().set(jarTask.getArchiveFile());
-            }
-            scalaCompile.getAnalysisFiles().from(incrementalAnalysis.getIncoming().artifactView(viewConfiguration -> {
-                viewConfiguration.lenient(true);
-                viewConfiguration.componentFilter(element -> element instanceof ProjectComponentIdentifier);
-            }).getFiles());
-
-            // See https://github.com/gradle/gradle/issues/14434.  We do this so that the incrementalScalaAnalysisForXXX configuration
-            // is resolved during task graph calculation.  It is not an input, but if we leave it to be resolved during task execution,
-            // it can potentially block trying to resolve project dependencies.
-            scalaCompile.dependsOn(scalaCompile.getAnalysisFiles());
+            configureIncrementalAnalysis(project, sourceSet, incrementalAnalysis, scalaCompile);
         });
         JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, scalaSource, project, compileTask, compileTask.map(AbstractScalaCompile::getOptions));
 
         project.getTasks().named(sourceSet.getClassesTaskName(), task -> task.dependsOn(compileTask));
+    }
+
+    private void configureIncrementalAnalysis(Project project, SourceSet sourceSet, Configuration incrementalAnalysis, ScalaCompile scalaCompile) {
+        scalaCompile.getAnalysisMappingFile().set(project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".mapping"));
+
+        // cannot compute at task execution time because we need association with source set
+        IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
+        incrementalOptions.getAnalysisFile().set(
+            project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".analysis")
+        );
+
+        incrementalOptions.getClassfileBackupDir().set(
+            project.getLayout().getBuildDirectory().file("tmp/scala/classfileBackup/" + scalaCompile.getName() + ".bak")
+        );
+
+        final Jar jarTask = (Jar) project.getTasks().findByName(sourceSet.getJarTaskName());
+        if (jarTask != null) {
+            incrementalOptions.getPublishedCode().set(jarTask.getArchiveFile());
+        }
+        scalaCompile.getAnalysisFiles().from(incrementalAnalysis.getIncoming().artifactView(viewConfiguration -> {
+            viewConfiguration.lenient(true);
+            viewConfiguration.componentFilter(element -> element instanceof ProjectComponentIdentifier);
+        }).getFiles());
+
+        // See https://github.com/gradle/gradle/issues/14434.  We do this so that the incrementalScalaAnalysisForXXX configuration
+        // is resolved during task graph calculation.  It is not an input, but if we leave it to be resolved during task execution,
+        // it can potentially block trying to resolve project dependencies.
+        scalaCompile.dependsOn(scalaCompile.getAnalysisFiles());
     }
 
     private static void configureCompileDefaults(final Project project, final ScalaRuntime scalaRuntime, final DefaultJavaPluginExtension javaExtension) {
