@@ -20,6 +20,7 @@ dependencyResolutionManagement {
     }
 }
 
+include("commons")
 include("code-quality-rules")
 include("gradle-plugin")
 

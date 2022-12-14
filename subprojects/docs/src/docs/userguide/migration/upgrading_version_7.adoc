@@ -520,6 +520,16 @@ For information about breaking and nonbreaking changes in this upgrade, see the 
 * Kotlin 1.5 link:https://kotlinlang.org/docs/whatsnew15.html#language-features[language]
 * Kotlin 1.5 link:https://kotlinlang.org/docs/whatsnew17.html#standard-library[stdlib]
 
+[[kotlin_dsl_plugin_toolchains]]
+==== `kotlinDslPluginOptions.jvmTarget` is deprecated
+
+Previously, you could use `kotlinDslPluginOptions.jvmTarget` to configure which JVM target should be used for compiling code when using the `kotlin-dsl` plugin.
+
+Starting with Gradle 8.0, `kotlinDslPluginOptions.jvmTarget` is deprecated.
+You should <<kotlin_dsl#sec:kotlin-dsl_plugin,configure a Java Toolchain>> instead.
+
+If you already have a Java Toolchain configured and `kotlinDslPluginOptions.jvmTarget` unset then Gradle 8.0 will now use the Java Toolchain as the JVM target instead of the previous default target (1.8).
+
 ==== Java Base Plugin now sets Jar, War, and Ear destination directory defaults
 
 Previously, the `base` plugin configured the
