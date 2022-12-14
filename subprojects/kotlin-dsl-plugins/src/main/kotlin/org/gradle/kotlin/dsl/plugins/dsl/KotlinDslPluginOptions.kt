@@ -55,7 +55,7 @@ fun nagUserAboutJvmTarget() {
     DeprecationLogger.deprecateProperty(KotlinDslPluginOptions::class.java, "jvmTarget")
         .withAdvice("Configure a Java Toolchain instead.")
         .willBeRemovedInGradle9()
-        .withUserManual("kotlin_dsl", "sec:kotlin-dsl_plugin")
+        .withUpgradeGuideSection(7, "kotlin_dsl_plugin_toolchains")
         .nagUser()
 }
 
