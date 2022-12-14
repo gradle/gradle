@@ -214,8 +214,8 @@ For more information, see [Exporting keys](userguide/dependency_verification.htm
 
 #### Consistent task execution for configuration cache hit and configuration cache miss builds
 
-When the configuration cache is enabled and Gradle is able to locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the
-cache entry and runs them a so-called 'isolated' tasks. Isolated tasks are able to run in parallel (subject to dependency constraints).
+When the [configuration cache](userguide/configuration_cache.html) is enabled and Gradle is able to locate a compatible configuration cache entry for the requested tasks, 
+it loads the tasks to run from the cache entry and runs them as so-called 'isolated' tasks. Isolated tasks are able to run in parallel by default, subject to dependency constraints.
 
 When Gradle is unable to locate a configuration cache entry to use, it runs the 'configuration' phase to calculate the set of tasks to run and then stores these tasks to a new cache entry.
 In previous versions, Gradle would then run these tasks directly. However, as these tasks are not isolated, they would not run in parallel.
@@ -226,9 +226,9 @@ There are some additional advantages to this new behavior:
 
 - Any problems that happen during deserialization will be reported in the cache miss build, making it easier to spot such problems.
 - Tasks have access to the same state in cache miss and cache hit builds.
-- Gradle can release all heaps used by the configuration state prior to task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks were able to access it. This reduces the peak heap usage for a given set of tasks. 
+- Gradle can release all memory used by the configuration state prior to task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks were able to access it. This reduces the peak memory usage for a given set of tasks. 
 
-This consistent behavior for cache miss and cache hit builds should help people who are migrating to use the configuration cache, as many more problems can now be discovered on the first (cache miss) build.
+This consistent behavior for cache miss and cache hit builds can help people who are migrating to use the configuration cache, as more problems can now be discovered on the first (cache miss) build.
 
 #### Improved compatibility with core plugins
 
@@ -263,31 +263,31 @@ beforeSettings { settings ->
 
 See [Configuring cleanup of caches and distributions](userguide/directory_layout.html#dir:gradle_user_home:configure_cache_cleanup) for more information.
 
-#### Init scripts are applied to `buildSrc`
-
-Init scripts specified on the command-line using `--init-script` are now applied to `buildSrc`, in addition to the main build and all included builds.
-
-
 #### Improvements for `buildSrc` builds
-This release includes several improvements for [`buildSrc`](userguide/organizing_gradle_projects#sec:build_sources) builds to make them behave similarly to an [included build](userguide/composite_builds#composite_build_intro).
+
+This release includes several improvements for [`buildSrc`](userguide/organizing_gradle_projects.html#sec:build_sources) builds to behave more like [included builds](userguide/composite_builds.html).
 
 ##### Run `buildSrc` tasks directly
-It is now possible to run the tasks of `buildSrc` from the command-line, using the same syntax used for the tasks of included builds.
+It is now possible to run the tasks of a `buildSrc` build from the command-line, using the same syntax used for tasks of included builds.
 For example, you can use `gradle buildSrc:build` to run the `build` task in the `buildSrc` build.
 
-TODO - link to running included build tasks
+For more details see the [user manual](userguide/composite_builds.html#composite_build_executing_tasks)
 
-#### `buildSrc` can include other builds
+##### `buildSrc` can include other builds
 The `buildSrc` build can now include other builds by declaring them in `buildSrc/settings.gradle.kts` or `buildSrc/settings.gradle`.
-You can use `pluginsManagement { includeBuild(someDir) }` or `includeBuild(someDir)` in this settings script to make other builds available for `buildSrc`
+You can use `pluginsManagement { includeBuild(someDir) }` or `includeBuild(someDir)` in this settings script to include other builds in `buildSrc`.
 
-TODO - link to declaring included builds
+For more details see the [user manual](userguide/composite_builds.html)
 
-#### Tests for `buildSrc` are no longer automatically run
+##### Tests for `buildSrc` are no longer automatically run
 When Gradle builds the output of `buildSrc` it only runs the tasks that produce that output. It no longer runs the `build` task.
 In particular, this means that the tests of `buildSrc` and its subprojects are not built and executed when they are not needed.
 
-TODO - you can run these tasks from the command-line or edit buildSrc to restore the old behavior; link to upgrade guide 
+You can run the tests for `buildSrc` in the same way as other project, as described above.
+
+##### Init scripts are applied to `buildSrc`
+
+Init scripts specified on the command-line using `--init-script` are now applied to `buildSrc`, in addition to the main build and all included builds.
 
 
 ### Plugin Development
