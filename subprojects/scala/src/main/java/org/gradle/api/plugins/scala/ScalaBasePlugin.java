@@ -17,14 +17,12 @@ package org.gradle.api.plugins.scala;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import org.codehaus.groovy.runtime.InvokerHelper;
-import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
@@ -32,12 +30,12 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.tasks.DefaultSourceSet;
 import org.gradle.api.internal.tasks.scala.DefaultScalaPluginExtension;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
@@ -46,7 +44,6 @@ import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmEcosystemUtilities;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reporting.ReportingExtension;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.api.tasks.ScalaSourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
@@ -112,8 +109,8 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         Usage incrementalAnalysisUsage = objectFactory.named(Usage.class, "incremental-analysis");
         configureConfigurations(project, incrementalAnalysisUsage, scalaPluginExtension);
 
-        configureCompileDefaults(project, scalaRuntime, (DefaultJavaPluginExtension) extensionOf(project, JavaPluginExtension.class));
-        configureSourceSetDefaults(project, incrementalAnalysisUsage, objectFactory, scalaRuntime);
+        configureCompileDefaults(project, scalaRuntime, (DefaultJavaPluginExtension) javaPluginExtension(project));
+        configureSourceSetDefaults(project, incrementalAnalysisUsage);
         configureScaladoc(project, scalaRuntime);
     }
 
@@ -172,52 +169,58 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
         });
     }
 
-    @SuppressWarnings("deprecation")
-    private void configureSourceSetDefaults(final Project project, final Usage incrementalAnalysisUsage, final ObjectFactory objectFactory, final ScalaRuntime scalaRuntime) {
-        project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets().all(new Action<SourceSet>() {
-            @Override
-            public void execute(final SourceSet sourceSet) {
-                String displayName = (String) InvokerHelper.invokeMethod(sourceSet, "getDisplayName", null);
-                Convention sourceSetConvention = (Convention) InvokerHelper.getProperty(sourceSet, "convention");
-                org.gradle.api.internal.tasks.DefaultScalaSourceSet scalaSourceSet = objectFactory.newInstance(org.gradle.api.internal.tasks.DefaultScalaSourceSet.class, displayName, objectFactory);
-                sourceSetConvention.getPlugins().put("scala", scalaSourceSet);
-                sourceSet.getExtensions().add(ScalaSourceDirectorySet.class, "scala", scalaSourceSet.getScala());
+    private void configureSourceSetDefaults(final Project project, final Usage incrementalAnalysisUsage) {
+        javaPluginExtension(project).getSourceSets().all(sourceSet -> {
 
-                final SourceDirectorySet scalaDirectorySet = scalaSourceSet.getScala();
-                scalaDirectorySet.srcDir(project.file("src/" + sourceSet.getName() + "/scala"));
-                sourceSet.getAllJava().source(scalaDirectorySet);
-                sourceSet.getAllSource().source(scalaDirectorySet);
+            ScalaSourceDirectorySet scalaSource = getScalaSourceDirectorySet(sourceSet);
+            sourceSet.getExtensions().add(ScalaSourceDirectorySet.class, "scala", scalaSource);
+            scalaSource.srcDir(project.file("src/" + sourceSet.getName() + "/scala"));
 
-                // Explicitly capture only a FileCollection in the lambda below for compatibility with configuration-cache.
-                FileCollection scalaSource = scalaDirectorySet;
-                sourceSet.getResources().getFilter().exclude(
-                    spec(element -> scalaSource.contains(element.getFile()))
-                );
+            // Explicitly capture only a FileCollection in the lambda below for compatibility with configuration-cache.
+            final FileCollection scalaSourceFiles = scalaSource;
+            sourceSet.getResources().getFilter().exclude(
+                spec(element -> scalaSourceFiles.contains(element.getFile()))
+            );
+            sourceSet.getAllJava().source(scalaSource);
+            sourceSet.getAllSource().source(scalaSource);
 
-                Configuration classpath = project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName());
-                Configuration incrementalAnalysis = project.getConfigurations().create("incrementalScalaAnalysisFor" + sourceSet.getName());
-                incrementalAnalysis.setVisible(false);
-                incrementalAnalysis.setDescription("Incremental compilation analysis files for " + displayName);
-                incrementalAnalysis.setCanBeResolved(true);
-                incrementalAnalysis.setCanBeConsumed(false);
-                incrementalAnalysis.extendsFrom(classpath);
-                incrementalAnalysis.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
+            Configuration incrementalAnalysis = createIncrementalAnalysisConfigurationFor(project.getConfigurations(), incrementalAnalysisUsage, sourceSet);
 
-                configureScalaCompile(project, sourceSet, incrementalAnalysis, incrementalAnalysisUsage, scalaRuntime);
-            }
-
+            createScalaCompileTask(project, sourceSet, scalaSource, incrementalAnalysis);
         });
     }
 
+    /**
+     * In 9.0, once {@link org.gradle.api.internal.tasks.DefaultScalaSourceSet} is removed, we can update this to only construct the source directory
+     * set instead of the entire source set.
+     */
     @SuppressWarnings("deprecation")
-    private void configureScalaCompile(final Project project, final SourceSet sourceSet, final Configuration incrementalAnalysis, final Usage incrementalAnalysisUsage, final ScalaRuntime scalaRuntime) {
-        final ScalaSourceDirectorySet scalaSourceSet = sourceSet.getExtensions().getByType(ScalaSourceDirectorySet.class);
+    private ScalaSourceDirectorySet getScalaSourceDirectorySet(SourceSet sourceSet) {
+        org.gradle.api.internal.tasks.DefaultScalaSourceSet scalaSourceSet = objectFactory.newInstance(org.gradle.api.internal.tasks.DefaultScalaSourceSet.class, ((DefaultSourceSet) sourceSet).getDisplayName(), objectFactory);
+        new DslObject(sourceSet).getConvention().getPlugins().put("scala", scalaSourceSet);
+        return scalaSourceSet.getScala();
+    }
 
-        final TaskProvider<ScalaCompile> scalaCompileTask = project.getTasks().register(sourceSet.getCompileTaskName("scala"), ScalaCompile.class, scalaCompile -> {
-            JvmPluginsHelper.configureForSourceSet(sourceSet, scalaSourceSet, scalaCompile, scalaCompile.getOptions(), project);
-            scalaCompile.setDescription("Compiles the " + scalaSourceSet + ".");
-            scalaCompile.setSource(scalaSourceSet);
+    private static Configuration createIncrementalAnalysisConfigurationFor(ConfigurationContainer configurations, Usage incrementalAnalysisUsage, SourceSet sourceSet) {
+        Configuration classpath = configurations.getByName(sourceSet.getImplementationConfigurationName());
+        Configuration incrementalAnalysis = configurations.create("incrementalScalaAnalysisFor" + sourceSet.getName());
+        incrementalAnalysis.setVisible(false);
+        incrementalAnalysis.setDescription("Incremental compilation analysis files for " + ((DefaultSourceSet) sourceSet).getDisplayName());
+        incrementalAnalysis.setCanBeResolved(true);
+        incrementalAnalysis.setCanBeConsumed(false);
+        incrementalAnalysis.extendsFrom(classpath);
+        incrementalAnalysis.getAttributes().attribute(USAGE_ATTRIBUTE, incrementalAnalysisUsage);
+        return incrementalAnalysis;
+    }
+
+    private void createScalaCompileTask(final Project project, final SourceSet sourceSet, ScalaSourceDirectorySet scalaSource, final Configuration incrementalAnalysis) {
+        final TaskProvider<ScalaCompile> compileTask = project.getTasks().register(sourceSet.getCompileTaskName("scala"), ScalaCompile.class, scalaCompile -> {
+            JvmPluginsHelper.compileAgainstJavaOutputs(scalaCompile, sourceSet, objectFactory);
+            JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, scalaSource, scalaCompile.getOptions(), project);
+            scalaCompile.setDescription("Compiles the " + scalaSource + ".");
+            scalaCompile.setSource(scalaSource);
             scalaCompile.getJavaLauncher().convention(getJavaLauncher(project));
+
             scalaCompile.getAnalysisMappingFile().set(project.getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".mapping"));
 
             // cannot compute at task execution time because we need association with source set
@@ -236,7 +239,7 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             }
             scalaCompile.getAnalysisFiles().from(incrementalAnalysis.getIncoming().artifactView(viewConfiguration -> {
                 viewConfiguration.lenient(true);
-                viewConfiguration.componentFilter(new IsProjectComponent());
+                viewConfiguration.componentFilter(element -> element instanceof ProjectComponentIdentifier);
             }).getFiles());
 
             // See https://github.com/gradle/gradle/issues/14434.  We do this so that the incrementalScalaAnalysisForXXX configuration
@@ -244,9 +247,9 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
             // it can potentially block trying to resolve project dependencies.
             scalaCompile.dependsOn(scalaCompile.getAnalysisFiles());
         });
-        JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, scalaSourceSet, project, scalaCompileTask, scalaCompileTask.map(AbstractScalaCompile::getOptions));
+        JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, scalaSource, project, compileTask, compileTask.map(AbstractScalaCompile::getOptions));
 
-        project.getTasks().named(sourceSet.getClassesTaskName(), task -> task.dependsOn(scalaCompileTask));
+        project.getTasks().named(sourceSet.getClassesTaskName(), task -> task.dependsOn(compileTask));
     }
 
     private static void configureCompileDefaults(final Project project, final ScalaRuntime scalaRuntime, final DefaultJavaPluginExtension javaExtension) {
@@ -279,17 +282,21 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
 
     private void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {
         project.getTasks().withType(ScalaDoc.class).configureEach(scalaDoc -> {
-            scalaDoc.getConventionMapping().map("destinationDir", (Callable<File>) () -> project.getExtensions().getByType(JavaPluginExtension.class).getDocsDir().dir("scaladoc").get().getAsFile());
-            scalaDoc.getConventionMapping().map("title", (Callable<String>) () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
             scalaDoc.getConventionMapping().map("scalaClasspath", (Callable<FileCollection>) () -> scalaRuntime.inferScalaClasspath(scalaDoc.getClasspath()));
+            scalaDoc.getConventionMapping().map("destinationDir", (Callable<File>) () -> javaPluginExtension(project).getDocsDir().dir("scaladoc").get().getAsFile());
+            scalaDoc.getConventionMapping().map("title", (Callable<String>) () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
             scalaDoc.getJavaLauncher().convention(getJavaLauncher(project));
         });
     }
 
     private static Provider<JavaLauncher> getJavaLauncher(Project project) {
-        final JavaPluginExtension extension = extensionOf(project, JavaPluginExtension.class);
+        final JavaPluginExtension extension = javaPluginExtension(project);
         final JavaToolchainService service = extensionOf(project, JavaToolchainService.class);
         return service.launcherFor(extension.getToolchain());
+    }
+
+    private static JavaPluginExtension javaPluginExtension(Project project) {
+        return extensionOf(project, JavaPluginExtension.class);
     }
 
     private static <T> T extensionOf(ExtensionAware extensionAware, Class<T> type) {
@@ -313,13 +320,6 @@ public abstract class ScalaBasePlugin implements Plugin<Project> {
                     details.closestMatch(javaRuntime);
                 }
             }
-        }
-    }
-
-    private static class IsProjectComponent implements Spec<ComponentIdentifier> {
-        @Override
-        public boolean isSatisfiedBy(ComponentIdentifier element) {
-            return element instanceof ProjectComponentIdentifier;
         }
     }
 }

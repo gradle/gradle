@@ -109,19 +109,18 @@ public class JvmPluginsHelper {
         return apiConfiguration;
     }
 
-    public static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, CompileOptions options, final Project target) {
-        configureForSourceSet(sourceSet, sourceDirectorySet, compile, target);
-        configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, options, target);
-    }
-
-    private static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, final Project target) {
-        compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
-        compile.setSource(sourceSet.getJava());
-
-        ConfigurableFileCollection classpath = compile.getProject().getObjects().fileCollection();
-        classpath.from((Callable<Object>) () -> sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getClassesDirectory())));
-
-        compile.getConventionMapping().map("classpath", () -> classpath);
+    /**
+     * Configures {@code compileTask} to compile against {@code sourceSet}'s compile classpath
+     * in addition to the outputs of the java compilation, as specified by {@link SourceSet#getJava()}
+     *
+     * @param compileTask The task to configure.
+     * @param sourceSet The source set whose output contains the java classes to compile against.
+     * @param objectFactory An {@link ObjectFactory}.
+     */
+    public static void compileAgainstJavaOutputs(AbstractCompile compileTask, final SourceSet sourceSet, final ObjectFactory objectFactory) {
+        ConfigurableFileCollection classpath = objectFactory.fileCollection();
+        classpath.from((Callable<Object>) () -> sourceSet.getCompileClasspath().plus(objectFactory.fileCollection().from(sourceSet.getJava().getClassesDirectory())));
+        compileTask.getConventionMapping().map("classpath", () -> classpath);
     }
 
     public static void configureAnnotationProcessorPath(final SourceSet sourceSet, SourceDirectorySet sourceDirectorySet, CompileOptions options, final Project target) {
