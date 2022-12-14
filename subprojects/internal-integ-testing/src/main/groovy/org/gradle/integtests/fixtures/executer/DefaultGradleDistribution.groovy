@@ -309,6 +309,11 @@ class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
+    boolean isRunsBuildSrcTests() {
+        return isSameOrOlder("7.6")
+    }
+
+    @Override
     <T> T selectOutputWithFailureLogging(T stdout, T stderr) {
         if (isSameOrNewer("4.0") && isSameOrOlder("4.6") || isSameOrNewer("5.1-rc-1")) {
             return stderr;
