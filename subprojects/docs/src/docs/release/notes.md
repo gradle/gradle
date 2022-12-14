@@ -148,7 +148,7 @@ Here is what is supported in declarative `plugins {}` blocks:
 ```kotlin
 plugins {
     id("java-library")                               // <1>
-    id("com.acme.example") version "1.0 apply false" // <2>
+    id("com.acme.example") version "1.0 apply false  // <2>
     kotlin("jvm") version "1.7.21"                   // <3>
 }
 ```
@@ -240,57 +240,6 @@ The [ANTLR plugin](userguide/antlr_plugin.html) and [Groovy DSL precompiled scri
 
 The current status of the configuration cache support for all core Gradle plugins can be found in the [configuration cache documentation](userguide/configuration_cache.html#config_cache:plugins).
 
-### Plugin Development
-
-#### Enhanced CodeNarc Plugin to automatically detects the appropriate version for the current Groovy runtime
-
-The [CodeNarc](https://codenarc.org/) project now publishes separate versions for use with Groovy 4.
-Gradle still currently ships with Groovy 3.
-
-To ensure future compatibility, the [CodeNarcPlugin](userguide/codenarc_plugin.html) now automatically detects the appropriate version of CodeNarc for the current Groovy runtime.
-
-You can still explicitly specify a CodeNarc version with the `toolVersion` property on the [CodeNarcExtension](dsl/org.gradle.api.plugins.quality.CodeNarcExtension.html#org.gradle.api.plugins.quality.CodeNarcExtension).
-
-#### Enhanced PMD and CodeNarc tasks to execute in parallel by default
-
-The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process, and therefore their tasks may now run in parallel within one project.
-
-In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
-
-### IDE Integration
-
-#### Run `buildSrc` tasks
-#### Improvements for `buildSrc`
-#### Improvements for `buildSrc` builds
-This release includes several improvements for [`buildSrc`](userguide/organizing_gradle_projects#sec:build_sources) builds to make them behave similarly to an [included build](userguide/composite_builds#composite_build_intro).
-
-##### Run `buildSrc` tasks directly
-It is now possible to run the tasks of `buildSrc` from the command-line, using the same syntax used for the tasks of included builds.
-For example, you can use `gradle buildSrc:build` to run the `build` task in the `buildSrc` build.
-
-TODO - link to running included build tasks
-
-#### `buildSrc` can include other builds
-The `buildSrc` build can now include other builds by declaring them in `buildSrc/settings.gradle.kts` or `buildSrc/settings.gradle`.
-You can use `pluginsManagement { includeBuild(someDir) }` or `includeBuild(someDir)` in this settings script to make other builds available for `buildSrc`
-
-TODO - link to declaring included builds
-
-#### Tests for `buildSrc` are no longer automatically run
-When Gradle builds the output of `buildSrc` it only runs the tasks that produce that output. It no longer runs the `build` task.
-In particular, this means that the tests of `buildSrc` and its subprojects are not built and executed when they are not needed.
-
-TODO - you can run these tasks from the command-line or edit buildSrc to restore the old behavior; link to upgrade guide 
-
-#### Init scripts are applied to `buildSrc`
-Init scripts specified on the command-line using `--init-script` are now applied to `buildSrc`, in addition to the main build and all included builds.
-
-<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ADD RELEASE FEATURES ABOVE
-==========================================================
-
--->
-
 #### Improved Gradle User Home Cache Cleanup
 Previously, cleanup of the caches in Gradle User Home used fixed retention periods (30 days or 7 days depending on the cache).
 These retention periods can now be configured via the [Settings](dsl/org.gradle.api.initialization.Settings.html) object in an init script in Gradle User Home.
@@ -315,6 +264,63 @@ beforeSettings { settings ->
 ```
 
 See [Configuring cleanup of caches and distributions](userguide/directory_layout.html#dir:gradle_user_home:configure_cache_cleanup) for more information.
+
+#### Init scripts are applied to `buildSrc`
+
+Init scripts specified on the command-line using `--init-script` are now applied to `buildSrc`, in addition to the main build and all included builds.
+
+
+#### Improvements for `buildSrc` builds
+This release includes several improvements for [`buildSrc`](userguide/organizing_gradle_projects#sec:build_sources) builds to make them behave similarly to an [included build](userguide/composite_builds#composite_build_intro).
+
+##### Run `buildSrc` tasks directly
+It is now possible to run the tasks of `buildSrc` from the command-line, using the same syntax used for the tasks of included builds.
+For example, you can use `gradle buildSrc:build` to run the `build` task in the `buildSrc` build.
+
+TODO - link to running included build tasks
+
+#### `buildSrc` can include other builds
+The `buildSrc` build can now include other builds by declaring them in `buildSrc/settings.gradle.kts` or `buildSrc/settings.gradle`.
+You can use `pluginsManagement { includeBuild(someDir) }` or `includeBuild(someDir)` in this settings script to make other builds available for `buildSrc`
+
+TODO - link to declaring included builds
+
+#### Tests for `buildSrc` are no longer automatically run
+When Gradle builds the output of `buildSrc` it only runs the tasks that produce that output. It no longer runs the `build` task.
+In particular, this means that the tests of `buildSrc` and its subprojects are not built and executed when they are not needed.
+
+TODO - you can run these tasks from the command-line or edit buildSrc to restore the old behavior; link to upgrade guide 
+
+
+### Plugin Development
+
+#### Enhanced CodeNarc Plugin to automatically detects the appropriate version for the current Groovy runtime
+
+The [CodeNarc](https://codenarc.org/) project now publishes separate versions for use with Groovy 4.
+Gradle still currently ships with Groovy 3.
+
+To ensure future compatibility, the [CodeNarcPlugin](userguide/codenarc_plugin.html) now automatically detects the appropriate version of CodeNarc for the current Groovy runtime.
+
+You can still explicitly specify a CodeNarc version with the `toolVersion` property on the [CodeNarcExtension](dsl/org.gradle.api.plugins.quality.CodeNarcExtension.html#org.gradle.api.plugins.quality.CodeNarcExtension).
+
+#### Enhanced PMD and CodeNarc tasks to execute in parallel by default
+
+The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process, and therefore their tasks may now run in parallel within one project.
+
+In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
+
+### IDE Integration
+
+
+
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+==========================================================
+
+-->
+
+
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
