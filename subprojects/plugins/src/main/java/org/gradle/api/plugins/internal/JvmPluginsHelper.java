@@ -109,6 +109,18 @@ public class JvmPluginsHelper {
         return apiConfiguration;
     }
 
+    /***
+     * For compatibility with <a href="https://plugins.gradle.org/plugin/io.freefair.aspectj">AspectJ Plugin</a>
+     */
+    @Deprecated
+    public static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, CompileOptions options, final Project target) {
+        compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
+        compile.setSource(sourceSet.getJava());
+
+        compileAgainstJavaOutputs(compile, sourceSet, target.getObjects());
+        configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, options, target);
+    }
+
     /**
      * Configures {@code compileTask} to compile against {@code sourceSet}'s compile classpath
      * in addition to the outputs of the java compilation, as specified by {@link SourceSet#getJava()}
@@ -131,9 +143,9 @@ public class JvmPluginsHelper {
     }
 
     /***
-     * For compatibility with https://plugins.gradle.org/plugin/io.freefair.aspectj
+     * For compatibility with <a href="https://plugins.gradle.org/plugin/io.freefair.aspectj">AspectJ Plugin</a>
      */
-    @SuppressWarnings("unused")
+    @Deprecated
     public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, Provider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
         TaskProvider<? extends AbstractCompile> taskProvider = Cast.uncheckedCast(compileTask);
         configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, taskProvider, options);
