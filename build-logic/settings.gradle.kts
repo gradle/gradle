@@ -15,6 +15,7 @@
  */
 
 pluginManagement {
+    includeBuild("../build-logic-commons")
     repositories {
         gradlePluginPortal()
     }
@@ -40,8 +41,6 @@ dependencyResolutionManagement {
         gradlePluginPortal()
     }
 }
-
-includeBuild("../build-logic-commons")
 
 apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 

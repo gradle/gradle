@@ -16,6 +16,10 @@
 
 rootProject.name = "build-logic-settings"
 
+pluginManagement {
+    includeBuild("../build-logic-commons")
+}
+
 dependencyResolutionManagement {
     repositories {
         gradlePluginPortal()
