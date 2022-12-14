@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -88,6 +89,16 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     void beforeLocking(Action<? super ConfigurationInternal> action);
 
     boolean isCanBeMutated();
+
+    /**
+     * Locks the configuration for mutation
+     * <p>
+     * Any invalid state at this point will be added to the returned list of exceptions.
+     * Handling these becomes the responsibility of the caller.
+     *
+     * @return a list of validation failures when not empty
+     */
+    List<? extends GradleException> preventFromFurtherMutationLenient();
 
     /**
      * Reports whether this configuration uses {@link org.gradle.api.Incubating Incubating} attributes types, such as {@link org.gradle.api.attributes.Category#VERIFICATION}.

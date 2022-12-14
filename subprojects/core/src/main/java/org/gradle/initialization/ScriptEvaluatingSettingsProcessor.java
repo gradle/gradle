@@ -63,8 +63,7 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
         SettingsState state = settingsFactory.createSettings(gradle, settingsLocation.getSettingsDir(), settingsScript, gradleProperties, startParameter, baseClassLoaderScope);
 
         SettingsInternal settings = state.getSettings();
-        gradle.getBuildListenerBroadcaster().beforeSettings(settings);
-        settings.getCaches().finalizeConfigurations();
+        settings.getCaches().withMutableValues(() -> gradle.getBuildListenerBroadcaster().beforeSettings(settings));
         applySettingsScript(settingsScript, settings);
         LOGGER.debug("Timing: Processing settings took: {}", settingsProcessingClock.getElapsed());
         return state;
