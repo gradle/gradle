@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenci
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.FinalizableValue;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.util.Path;
 
@@ -37,7 +38,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public interface ConfigurationInternal extends ResolveContext, Configuration, DeprecatableConfiguration, DependencyMetaDataProvider {
+public interface ConfigurationInternal extends ResolveContext, Configuration, DeprecatableConfiguration, DependencyMetaDataProvider, FinalizableValue {
     enum InternalState {
         UNRESOLVED,
         BUILD_DEPENDENCIES_RESOLVED,
@@ -88,13 +89,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     void beforeLocking(Action<? super ConfigurationInternal> action);
 
     boolean isCanBeMutated();
-
-    /**
-     * Locks the configuration for mutation
-     * <p>
-     * Any invalid state at this point will end up throwing an exception.
-     */
-    void preventFromFurtherMutation();
 
     /**
      * Locks the configuration for mutation
