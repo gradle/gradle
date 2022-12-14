@@ -119,7 +119,7 @@ This change brings all the improvements made to the Kotlin language and standard
 
 For information about breaking and nonbreaking changes in this upgrade, see the [upgrading guide](userguide/upgrading_version_7.html#kotlin_language_1_5).
 
-##### Enhanced script compilation to use the Gradle JVM as Kotlin JVM Target
+#### Enhanced script compilation to use the Gradle JVM as Kotlin JVM Target
 
 Previously, the compilation of `.gradle.kts` scripts always used Java 8 as the Kotlin JVM target.
 Starting with Gradle 8.0, it now uses the version of the JVM running the build.
@@ -135,7 +135,7 @@ Starting with Gradle 8.0, it now uses the configured Java Toolchain, or Java 8 i
 
 See the [`kotlin-dsl` plugin manual](userguide/kotlin_dsl.adoc#sec:kotlin-dsl_plugin) for more information on how to configure the Java Toolchain for precompiled script plugins and the [migration guide](userguide/upgrading_version_7.html#kotlin_dsl_plugin_toolchains) for more information on changed behaviour.
 
-##### Improved Script compilation performance
+#### Improved Script compilation performance 
 
 This Gradle version introduces an interpreter for [declarative `plugins {}` blocks](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts.
 It allows avoiding calling the Kotlin compiler for declarative `plugins {}` blocks and is enabled by default.
@@ -209,8 +209,6 @@ You can now use the `export-keys` flag to export all already trusted keys:
 There is no longer a need to write verification metadata when exporting trusted keys.
 
 For more information, see [Exporting keys](userguide/dependency_verification.html#sec:local-keyring).
-
-### Dependency Management
 
 ### Configuration Cache
 
@@ -308,10 +306,6 @@ You can still explicitly specify a CodeNarc version with the `toolVersion` prope
 The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process, and therefore their tasks may now run in parallel within one project.
 
 In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
-
-### IDE Integration
-
-
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
