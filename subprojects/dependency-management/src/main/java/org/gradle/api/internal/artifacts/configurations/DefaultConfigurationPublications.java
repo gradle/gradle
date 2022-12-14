@@ -37,6 +37,7 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.FinalizableValue;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -46,7 +47,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultConfigurationPublications implements ConfigurationPublications {
+public class DefaultConfigurationPublications implements ConfigurationPublications, FinalizableValue {
     private final DisplayName displayName;
     private final PublishArtifactSet artifacts;
     private final PublishArtifactSetProvider allArtifacts;
@@ -219,7 +220,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         return capabilities == null ? Collections.emptyList() : ImmutableList.copyOf(capabilities);
     }
 
-    void preventFromFurtherMutation() {
+    public void preventFromFurtherMutation() {
         canCreate = false;
         if (variants != null) {
             for (ConfigurationVariant variant : variants) {
