@@ -122,6 +122,44 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "incrementally compilation works with modules with inferred module path"() {
+        file("impl/build.gradle") << """
+            def layout = project.layout
+            tasks.compileJava {
+                modularity.inferModulePath = true
+
+            }
+        """
+        source api: ["package a; public class A {}"]
+        file("api/src/main/${language.name}/module-info.${language.name}").text = """
+            module api {
+                exports a;
+            }
+        """
+        source impl: [
+            "package b; import a.A; import c.C; public class B extends A {}",
+            "package c; public class C {}",
+            "package c.d; public class D {}"
+        ]
+        file("impl/src/main/${language.name}/module-info.${language.name}").text = """
+            module impl {
+                requires api;
+                exports b;
+                exports c;
+                exports c.d;
+            }
+        """
+        succeeds "impl:${language.compileTaskName}"
+
+        when:
+        impl.snapshot { source api: "package a; public class A { void m1() {} }" }
+
+        then:
+        succeeds "impl:${language.compileTaskName}", "--info"
+        impl.recompiledClasses("B", "module-info")
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     def "incremental compilation works for multi-module project with manual module paths"() {
         file("impl/build.gradle") << """
             def layout = project.layout
