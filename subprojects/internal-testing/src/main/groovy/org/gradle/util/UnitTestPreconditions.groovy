@@ -471,7 +471,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
         @Override
         boolean isSatisfied() {
             // Simplistic approach at detecting Xcode by assuming macOS imply Xcode is present
-            return notSatisfies(MacOs)
+            return doSatisfies(MacOs)
         }
     }
 
@@ -479,7 +479,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
         @Override
         boolean isSatisfied() {
             // Simplistic approach at detecting MSBuild by assuming Windows imply MSBuild is present
-            return notSatisfies(Windows) && !"embedded".equals(System.getProperty("org.gradle.integtest.executer"))
+            return doSatisfies(Windows) && !"embedded".equals(System.getProperty("org.gradle.integtest.executer"))
         }
     }
 

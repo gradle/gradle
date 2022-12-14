@@ -35,10 +35,10 @@ import org.gradle.util.UnitTestPreconditions
 
 import static org.junit.Assume.assumeTrue
 
-@Requires([
-        UnitTestPreconditions.HasXCode,
-        UnitTestPreconditions.NotMacOsM1
-    ]) // M1 Macs need modern Xcode to compile aarch64 binaries
+@Requires(value = [
+    UnitTestPreconditions.HasXCode,
+    UnitTestPreconditions.NotMacOsM1
+], reason = "M1 Macs need modern Xcode to compile aarch64 binaries")
 class AbstractXcodeIntegrationSpec extends AbstractIntegrationSpec implements HostPlatform {
     AvailableToolChains.InstalledToolChain toolChain = null
 
