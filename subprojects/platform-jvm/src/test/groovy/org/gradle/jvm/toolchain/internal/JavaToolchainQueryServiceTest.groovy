@@ -287,7 +287,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == "Provisioned toolchain '${File.separator}path${File.separator}12.broken' could not be probed."
+        e.message == "Toolchain installation '${File.separator}path${File.separator}12.broken' could not be probed."
     }
 
     def "provisioned toolchain is cached no re-request"() {
