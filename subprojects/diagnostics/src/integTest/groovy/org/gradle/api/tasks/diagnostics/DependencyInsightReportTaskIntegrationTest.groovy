@@ -19,7 +19,6 @@ package org.gradle.api.tasks.diagnostics
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.locking.LockfileFixture
 
@@ -2075,9 +2074,7 @@ org:leaf3:1.0
 
         then:
         failure.assertHasCause("Resolving dependency configuration 'api' is not allowed as it is defined as 'canBeResolved=false'.")
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertHasFailures(2)
-        }
+        failure.assertHasFailures(1)
 
         when:
         run "dependencyInsight", "--dependency", "foo", "--configuration", "compile"

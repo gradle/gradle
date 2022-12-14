@@ -19,11 +19,10 @@ package org.gradle.api.tasks.compile
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.TextUtil
@@ -276,7 +275,6 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         "executable" | 'options.forkOptions.executable = "<path>"'     | OperatingSystem.current().getExecutableName('/bin/javac')
     }
 
-    @ToBeFixedForConfigurationCache(because = "Creates a second exception")
     def 'fails when requesting not available toolchain'() {
         buildFile << """
             apply plugin: 'java'
@@ -342,7 +340,6 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         classJavaVersion(javaClassFile("Foo.class")) == JavaVersion.toVersion(jdk.javaVersion)
     }
 
-    @ToBeFixedForConfigurationCache(because = "Creates a second exception")
     def "fails if no toolchain has a matching vendor"() {
         def version = Jvm.current().javaVersion.majorVersion
         buildFile << """
