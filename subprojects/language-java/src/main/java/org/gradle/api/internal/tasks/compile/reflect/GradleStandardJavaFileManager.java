@@ -96,13 +96,13 @@ public class GradleStandardJavaFileManager extends ForwardingJavaFileManager<Sta
             }
         }
 
-        if (hasPreviousClassOutput && location == StandardLocation.CLASS_OUTPUT) {
+        if (hasPreviousClassOutput && location.equals(StandardLocation.CLASS_OUTPUT)) {
             // For Java module compilation we list also previous class output as class output.
             // This is needed for incremental compilation after a failure where we change output folders.
             // With that we make sure that all module classes/packages are found by javac.
-            // In case case one of --module-source-path or --source-path is provided, this makes sure, that javac won't automatically recompile
-            // classes that are not in CLASS_OUTPUT, but are in PREVIOUS_CLASS_OUTPUT. And in case when --module-source-path or --source-path are not provided,
-            // this makes sure that javac doesn't error on missing packages that are not in CLASS_OUTPUT, but are in PREVIOUS_CLASS_OUTPUT.
+            // In case one of --module-source-path or --source-path is provided, this makes sure, that javac won't automatically recompile
+            // classes that are not in CLASS_OUTPUT. And in case when --module-source-path or --source-path are not provided,
+            // this makes sure that javac doesn't fail on missing packages or classes that are not in CLASS_OUTPUT.
             // Second and last part of fix for: https://github.com/gradle/gradle/issues/23067
             Iterable<JavaFileObject> previousClassOutput = super.list(GradleLocation.PREVIOUS_CLASS_OUTPUT, packageName, kinds, recurse);
             Iterable<JavaFileObject> classOutput = super.list(location, packageName, kinds, recurse);
