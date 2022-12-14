@@ -28,7 +28,6 @@ import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.RelativePathUtil;
 
 import javax.inject.Inject;
@@ -48,152 +47,126 @@ public abstract class DefaultJavaPluginConvention extends JavaPluginConvention i
     }
 
     @Override
-    @Deprecated
     public TypeOf<?> getPublicType() {
-        emitDeprecationWarning();
         return typeOf(JavaPluginConvention.class);
     }
 
     @Override
     public Object sourceSets(Closure closure) {
-        emitDeprecationWarning();
         return extension.sourceSets(closure);
     }
 
     @Override
     public File getDocsDir() {
-        emitDeprecationWarning();
         return extension.getDocsDir().get().getAsFile();
     }
 
     @Override
     public File getTestResultsDir() {
-        emitDeprecationWarning();
         return extension.getTestResultsDir().get().getAsFile();
     }
 
     @Override
     public File getTestReportDir() {
-        emitDeprecationWarning();
         return extension.getTestReportDir().get().getAsFile();
     }
 
     @Override
     public JavaVersion getSourceCompatibility() {
-        emitDeprecationWarning();
         return extension.getSourceCompatibility();
     }
 
     @Override
     public void setSourceCompatibility(Object value) {
-        emitDeprecationWarning();
         extension.setSourceCompatibility(value);
     }
 
     @Override
     public void setSourceCompatibility(JavaVersion value) {
-        emitDeprecationWarning();
         extension.setSourceCompatibility(value);
     }
 
     @Override
     public JavaVersion getTargetCompatibility() {
-        emitDeprecationWarning();
         return extension.getTargetCompatibility();
     }
 
     @Override
     public void setTargetCompatibility(Object value) {
-        emitDeprecationWarning();
         extension.setTargetCompatibility(value);
     }
 
     @Override
     public void setTargetCompatibility(JavaVersion value) {
-        emitDeprecationWarning();
         extension.setTargetCompatibility(value);
     }
 
     @Override
     public Manifest manifest() {
-        emitDeprecationWarning();
         return extension.manifest();
     }
 
     @Override
     public Manifest manifest(Closure closure) {
-        emitDeprecationWarning();
         return extension.manifest(closure);
     }
 
     @Override
     public Manifest manifest(Action<? super Manifest> action) {
-        emitDeprecationWarning();
         return extension.manifest(action);
     }
 
     @Override
     public String getDocsDirName() {
-        emitDeprecationWarning();
         return relativePath(project.getLayout().getBuildDirectory(), extension.getDocsDir());
     }
 
     @Override
     public void setDocsDirName(String docsDirName) {
-        emitDeprecationWarning();
         extension.getDocsDir().set(project.getLayout().getBuildDirectory().dir(docsDirName));
     }
 
     @Override
     public String getTestResultsDirName() {
-        emitDeprecationWarning();
         return relativePath(project.getLayout().getBuildDirectory(), extension.getTestResultsDir());
     }
 
     @Override
     public void setTestResultsDirName(String testResultsDirName) {
-        emitDeprecationWarning();
         extension.getTestResultsDir().set(project.getLayout().getBuildDirectory().dir(testResultsDirName));
     }
 
     @Override
     public String getTestReportDirName() {
-        emitDeprecationWarning();
         return relativePath(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory(), extension.getTestReportDir());
     }
 
     @Override
     public void setTestReportDirName(String testReportDirName) {
-        emitDeprecationWarning();
         extension.getTestReportDir().set(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(testReportDirName));
     }
 
     @Override
     public SourceSetContainer getSourceSets() {
-        emitDeprecationWarning();
         return extension.getSourceSets();
     }
 
     @Override
     public ProjectInternal getProject() {
-        emitDeprecationWarning();
         return project;
     }
 
     @Override
     public void disableAutoTargetJvm() {
-        emitDeprecationWarning();
         extension.disableAutoTargetJvm();
     }
 
     @Override
     public boolean getAutoTargetJvmDisabled() {
-        emitDeprecationWarning();
         return extension.getAutoTargetJvmDisabled();
     }
 
     File getReportsDir() {
-        emitDeprecationWarning();
         // This became public API by accident as Groovy has access to private methods and we show an example in our docs
         // see subprojects/docs/src/snippets/java/customDirs/groovy/build.gradle
         // and https://docs.gradle.org/current/userguide/java_testing.html#test_reporting
@@ -202,13 +175,5 @@ public abstract class DefaultJavaPluginConvention extends JavaPluginConvention i
 
     private static String relativePath(DirectoryProperty from, DirectoryProperty to) {
         return RelativePathUtil.relativePath(from.get().getAsFile(), to.get().getAsFile());
-    }
-
-    private static void emitDeprecationWarning() {
-        DeprecationLogger.deprecate("Configuring Java defaults via the convention")
-            .withAdvice("Java defaults should be configured via the extension instead.")
-            .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(7, "all_convention_deprecation")
-            .nagUser();
     }
 }
