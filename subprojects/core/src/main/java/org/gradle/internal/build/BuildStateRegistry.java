@@ -49,7 +49,7 @@ public interface BuildStateRegistry {
     RootBuildState getRootBuild() throws IllegalStateException;
 
     /**
-     * Returns all children of the root build.
+     * Returns all included builds.
      */
     Collection<? extends IncludedBuildState> getIncludedBuilds();
 
@@ -66,14 +66,9 @@ public interface BuildStateRegistry {
     /**
      * Notification that the settings have been loaded for the root build.
      *
-     * This shouldn't be on this interface, as this is state for the root build that should be managed internally by the {@link RootBuildState} instance instead. This method is here to allow transition towards that structure.
+     * <p>This shouldn't be on this interface, as this is state for the root build that should be managed internally by the {@link RootBuildState} instance instead. This method is here to allow transition towards that structure.
      */
     void finalizeIncludedBuilds();
-
-    /**
-     * Notification that the root build has just finished configuration.
-     */
-    void afterConfigureRootBuild();
 
     /**
      * Creates an included build. An included build is-a nested build whose projects and outputs are treated as part of the composite build.
@@ -100,21 +95,6 @@ public interface BuildStateRegistry {
      * Visits all registered builds, ordered by {@link BuildState#getIdentityPath()}
      */
     void visitBuilds(Consumer<? super BuildState> visitor);
-
-    /**
-     * Register dependency substitutions for the given build.
-     */
-    void registerSubstitutionsFor(IncludedBuildState build);
-
-    /**
-     * Register dependency substitutions for the root build itself. This way, the projects of the root build can be addressed by coordinates as the projects of all other builds.
-     */
-    void registerSubstitutionsForRootBuild();
-
-    /**
-     * Ensures that this project and any builds it includes are configured and their publications are registered.
-     */
-    void ensureConfigured(IncludedBuildState buildState);
 
     /**
      * Restarts each build in the tree.

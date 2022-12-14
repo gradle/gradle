@@ -61,7 +61,7 @@ public class GradleEnterprisePluginServices extends AbstractPluginServiceRegistr
         registration.add(DefaultGradleEnterprisePluginBackgroundJobExecutors.class);
         registration.add(DefaultGradleEnterprisePluginBuildState.class);
         registration.add(DefaultGradleEnterprisePluginConfig.class);
-        registration.add(DefautGradleEnterprisePluginCheckInService.class);
+        registration.add(DefaultGradleEnterprisePluginCheckInService.class);
         registration.add(DefaultGradleEnterprisePluginRequiredServices.class);
         registration.add(DefaultGradleEnterprisePluginServiceRef.class);
 
