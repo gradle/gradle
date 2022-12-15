@@ -33,7 +33,6 @@ import org.jetbrains.org.objectweb.asm.AnnotationVisitor
 import org.jetbrains.org.objectweb.asm.Attribute
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.ClassReader.SKIP_CODE
-import org.jetbrains.org.objectweb.asm.ClassReader.SKIP_DEBUG
 import org.jetbrains.org.objectweb.asm.ClassReader.SKIP_FRAMES
 import org.jetbrains.org.objectweb.asm.FieldVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes.ACC_ABSTRACT
@@ -134,7 +133,7 @@ class ApiTypeProvider internal constructor(
     private
     fun classNodeFor(classBytesSupplier: () -> ByteArray) = {
         ApiTypeClassNode().also {
-            ClassReader(classBytesSupplier()).accept(it, SKIP_DEBUG or SKIP_CODE or SKIP_FRAMES)
+            ClassReader(classBytesSupplier()).accept(it, SKIP_CODE or SKIP_FRAMES)
         }
     }
 
@@ -260,7 +259,6 @@ class ApiFunction internal constructor(
     private val delegate: MethodNode,
     private val context: ApiTypeProvider.Context
 ) {
-
     val name: String =
         delegate.name
 
@@ -412,7 +410,9 @@ fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, dele
             ApiFunctionParameter(
                 index = idx,
                 isVarargs = idx == parameterTypesBinaryNames.lastIndex && delegate.access.isVarargs,
-                nameSupplier = { names?.get(idx) },
+                nameSupplier = {
+                    names?.get(idx) ?: delegate.parameters?.get(idx)?.name
+                },
                 type = apiTypeUsageFor(parameterTypeName, isNullable, variance, typeArguments)
             )
         }

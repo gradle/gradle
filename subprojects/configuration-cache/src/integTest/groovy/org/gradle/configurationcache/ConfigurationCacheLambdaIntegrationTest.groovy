@@ -16,7 +16,13 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.SourceDirectorySet
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
+
 class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    def fixture = new ConfigurationCacheFixture(this)
 
     def "restores task fields whose value is a #kind Java lambda"() {
         given:
@@ -88,6 +94,72 @@ class ConfigurationCacheLambdaIntegrationTest extends AbstractConfigurationCache
         "instance capturing"     | "setInstanceCapturingLambda()"
         "non-instance capturing" | "setNonInstanceCapturingLambda()"
     }
+
+    def "capturing prohibited types in serializable lambdas is reported as a problem"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaTask.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import java.util.*;
+                import java.util.function.Supplier;
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+                import org.gradle.api.artifacts.Configuration;
+                import org.gradle.api.file.SourceDirectorySet;
+
+                public class LambdaTask extends DefaultTask {
+                    private List<Supplier<String>> suppliers = new ArrayList<>();
+
+                    public void addSupplier(Supplier<String> supplier) {
+                        suppliers.add(supplier);
+                    }
+
+                    public void addSupplierWithConfiguration() {
+                        Configuration c = getProject().getConfigurations().create("test");
+                        addSupplier(() -> "configuration name is " + c.getName());
+                    }
+
+                    public void addSupplierWithSourceDirectorySet() {
+                        SourceDirectorySet s = getProject().getObjects().sourceDirectorySet("test", "test");
+                        addSupplier(() -> "source directory set name is " + s.getName());
+                    }
+
+                    @TaskAction
+                    void printValue() {
+                        for (Supplier<String> supplier : suppliers) {
+                            System.out.println("supplier -> " + supplier.get());
+                        }
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            task ok(type: my.LambdaTask) {
+                addSupplierWithConfiguration()
+                addSupplierWithSourceDirectorySet()
+            }
+        """
+
+        when:
+        configurationCacheFails("ok")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            [Configuration.class, SourceDirectorySet.class].each {
+                serializationProblem(
+                    "Task `:ok` of type `my.LambdaTask`: cannot serialize a lambda that captures or accepts a parameter of type '" +
+                        it.name +
+                        "' as these are not supported with the configuration cache"
+                )
+            }
+        }
+        outputContains("supplier -> configuration name is test")
+        outputContains("supplier -> source directory set name is test")
+    }
+
 
     def "restores task with action and spec that are Java lambdas"() {
         given:
