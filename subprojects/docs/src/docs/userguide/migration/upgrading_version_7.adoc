@@ -237,6 +237,12 @@ Use the `gradle-enterprise` method instead.
 
 === Potential breaking changes
 
+==== `JavaForkOptions` `getJvmArgs()` and `getAllJvmArgs()` return immutable lists
+
+The lists of JVM arguments retrieved from the `JavaForkOptions` interface are now immutable.
+
+Previously, modifications of the returned list were silently ignored.
+
 ==== Plugins, tasks and extension classes are now abstract
 
 Most public classes for plugins, tasks and extensions have been made abstract. This was done to make it easier to remove boilerplate from Gradle's implementation.
