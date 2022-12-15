@@ -298,7 +298,7 @@ service: closed with value 11
         """
     }
 
-    def "can inject shared build service by name when reference is annotated with @ServiceReference('#name') with service type is #registeredServiceType"() {
+    def "can inject shared build service by name when reference is annotated with @ServiceReference('#name') and service type is #registeredServiceType"() {
         given:
         serviceImplementation()
         customTaskUsingServiceViaProperty("@${ServiceReference.name}('$name')")
@@ -876,7 +876,7 @@ service: closed with value 12
 
         then:
         failureDescriptionContains("An exception occurred applying plugin request [id: 'my.plugin1']")
-        failureCauseContains("java.lang.IllegalArgumentException: Service 'test' has already been registered with type 'MyService', cannot register another with type 'MyService'.")
+        failureCauseContains("java.lang.IllegalArgumentException: Service 'test' has already been registered with type 'MyService', cannot register another with type 'MyService' (same name but from a different classloader).")
     }
 
     def "service provided by a plugin can be shared by subprojects with different classloaders when using by-type service references"() {
