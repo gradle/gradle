@@ -70,7 +70,7 @@ public abstract class AbstractTestLogger {
                 // but we nevertheless want to see the class name. We use "." rather than
                 // " > " as a separator to make it clear that the class is not a separate
                 // level. This matters when configuring granularity.
-                names.add(current.getClassName() + "." + current.getName());
+                names.add(current.getClassName() + "." + current.getDisplayName());
             } else {
                 names.add(current.getDisplayName());
             }
