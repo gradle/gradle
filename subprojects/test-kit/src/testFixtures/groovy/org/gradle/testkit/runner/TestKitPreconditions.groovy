@@ -18,10 +18,9 @@ package org.gradle.testkit.runner;
 
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.util.BaseTestPreconditions;
 import org.gradle.util.TestPrecondition;
 
-public class TestKitPreconditions extends BaseTestPreconditions {
+public class TestKitPreconditions {
 
     public static class LowestMajorGradleIsAvailable implements TestPrecondition {
         @Override

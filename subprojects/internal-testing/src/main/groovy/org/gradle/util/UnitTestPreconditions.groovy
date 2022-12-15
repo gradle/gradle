@@ -23,7 +23,7 @@ import org.testcontainers.DockerClientFactory
 import static org.gradle.util.TestPrecondition.doSatisfies
 import static org.gradle.util.TestPrecondition.notSatisfies
 
-class UnitTestPreconditions extends BaseTestPreconditions {
+class UnitTestPreconditions {
 
     static final class Symlinks implements TestPrecondition {
         @Override
