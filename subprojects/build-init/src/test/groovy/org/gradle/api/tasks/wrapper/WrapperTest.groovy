@@ -32,8 +32,8 @@ class WrapperTest extends AbstractTaskTest {
     private static final String RELEASE_CANDIDATE = "7.7-rc-5"
     private static final String NIGHTLY = "8.1-20221207164726+0000"
     private static final String RELEASE_NIGHTLY = "8.0-20221207164726+0000"
+    private static final String TARGET_WRAPPER_FINAL = "gradle/wrapper"
     private Wrapper wrapper
-    private String targetWrapperJarPath = "gradle/wrapper"
     private TestFile expectedTargetWrapperJar
     private File expectedTargetWrapperProperties
 
@@ -48,13 +48,13 @@ class WrapperTest extends AbstractTaskTest {
         def releaseCandidate = createVersionTextResource(RELEASE_CANDIDATE)
         def nightly = createVersionTextResource(NIGHTLY)
         def releaseNightly = createVersionTextResource(RELEASE_NIGHTLY)
-        wrapper.setDefaultWrapperVersionsResources(new DefaultWrapperVersionsResources(latest, releaseCandidate, nightly, releaseNightly))
+        wrapper.setWrapperVersionsResources(new DefaultWrapperVersionsResources(latest, releaseCandidate, nightly, releaseNightly))
         wrapper.setGradleVersion("1.0")
         expectedTargetWrapperJar = new TestFile(getProject().getProjectDir(),
-                targetWrapperJarPath + "/gradle-wrapper.jar")
+                TARGET_WRAPPER_FINAL + "/gradle-wrapper.jar")
         expectedTargetWrapperProperties = new File(getProject().getProjectDir(),
-                targetWrapperJarPath + "/gradle-wrapper.properties")
-        new File(getProject().getProjectDir(), targetWrapperJarPath).mkdirs()
+                TARGET_WRAPPER_FINAL + "/gradle-wrapper.properties")
+        new File(getProject().getProjectDir(), TARGET_WRAPPER_FINAL).mkdirs()
         wrapper.setDistributionPath("somepath")
         wrapper.setDistributionSha256Sum("somehash")
     }
@@ -68,7 +68,7 @@ class WrapperTest extends AbstractTaskTest {
         wrapper = createTask(Wrapper.class)
 
         expect:
-        new File(getProject().getProjectDir(), targetWrapperJarPath + "/gradle-wrapper.jar") == wrapper.getJarFile()
+        new File(getProject().getProjectDir(), TARGET_WRAPPER_FINAL + "/gradle-wrapper.jar") == wrapper.getJarFile()
         new File(getProject().getProjectDir(), "gradlew") == wrapper.getScriptFile()
         new File(getProject().getProjectDir(), "gradlew.bat") == wrapper.getBatchScript()
         GradleVersion.current().getVersion() == wrapper.getGradleVersion()
@@ -102,7 +102,7 @@ class WrapperTest extends AbstractTaskTest {
         getProject().file("build/gradle-wrapper.properties") == wrapper.getPropertiesFile()
     }
 
-    def "downloads for \"#version\" from repository "() {
+    def "downloads for '#version' from repository "() {
         when:
         wrapper.setGradleVersion(version)
 
@@ -110,7 +110,7 @@ class WrapperTest extends AbstractTaskTest {
         "$DistributionLocator.RELEASE_REPOSITORY$snapshot/gradle-$out-bin.zip" == wrapper.getDistributionUrl()
 
         where:
-        version                     | out               | snapshot
+        version                     | out                         | snapshot
         "1.0-milestone-1"           | "1.0-milestone-1"           | ""
         "0.9.1-20101224110000+1100" | "0.9.1-20101224110000+1100" | "-snapshots"
         "0.9.1"                     | "0.9.1"                     | ""

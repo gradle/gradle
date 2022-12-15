@@ -309,8 +309,7 @@ public abstract class Wrapper extends DefaultTask {
      * @since 8.1
      */
     @Incubating
-    public void setDefaultWrapperVersionsResources(WrapperVersionsResources wrapperVersionsResources) {
-
+    public void setWrapperVersionsResources(WrapperVersionsResources wrapperVersionsResources) {
         DefaultWrapperVersionsResources defaultWrapperVersionsResources = (DefaultWrapperVersionsResources) wrapperVersionsResources;
         gradleVersionResolver.setTextResources(defaultWrapperVersionsResources.getLatest(),
             defaultWrapperVersionsResources.getReleaseCandidate(),
