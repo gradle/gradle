@@ -95,7 +95,7 @@ public class CompileTransaction {
     public <T> T execute(Function<WorkResult, T> function) {
         ensureEmptyDirectoriesBeforeExecution();
         StashResult stashResult = stashFilesThatShouldBeDeleted();
-        Map<File, byte[]> backup = backupAllFiles(spec.getDestinationDir());
+        Map<File, byte[]> backup = backupAllFiles();
         try {
             T result = function.apply(stashResult.mapToWorkResult());
             deletePotentiallyEmptyDirectories(stashResult);
@@ -103,6 +103,12 @@ public class CompileTransaction {
         } catch (CompilationFailedException t) {
             if (spec.getCompileOptions().supportsIncrementalCompilationAfterFailure()) {
                 deleteRecursively(spec.getDestinationDir());
+                if (spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory() != null) {
+                    deleteRecursively(spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory());
+                }
+                if (spec.getCompileOptions().getHeaderOutputDirectory() != null) {
+                    deleteRecursively(spec.getCompileOptions().getHeaderOutputDirectory());
+                }
                 rollbackStash(stashResult.stashedFiles);
                 backup.forEach((file, bytes) -> {
                     file.getParentFile().mkdirs();
@@ -119,9 +125,20 @@ public class CompileTransaction {
         }
     }
 
-    private Map<File, byte[]> backupAllFiles(File currentDir) {
+    private Map<File, byte[]> backupAllFiles() {
         Map<File, byte[]> files = new HashMap<>();
-        try (Stream<Path> dirStream = Files.walk(currentDir.toPath())) {
+        backupFiles(spec.getDestinationDir(), files);
+        if (spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory() != null) {
+            backupFiles(spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), files);
+        }
+        if (spec.getCompileOptions().getHeaderOutputDirectory() != null) {
+            backupFiles(spec.getCompileOptions().getHeaderOutputDirectory(), files);
+        }
+        return files;
+    }
+
+    private void backupFiles(File file, Map<File, byte[]> files) {
+        try (Stream<Path> dirStream = Files.walk(file.toPath())) {
             dirStream
                 .filter(path -> !Files.isDirectory(path))
                 .forEach(path -> {
@@ -131,7 +148,6 @@ public class CompileTransaction {
                         throw new RuntimeException(e);
                     }
                 });
-            return files;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
