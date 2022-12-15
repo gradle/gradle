@@ -36,6 +36,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -92,26 +93,51 @@ public class CompileTransaction {
      *    b. In case of a failure restore stashed files back to original destination directories <br>
      */
     public <T> T execute(Function<WorkResult, T> function) {
-        List<StagedOutput> stagedOutputs = collectOutputsToStage();
-        ensureEmptyDirectoriesBeforeExecution(stagedOutputs);
+        ensureEmptyDirectoriesBeforeExecution();
         StashResult stashResult = stashFilesThatShouldBeDeleted();
+        Map<File, byte[]> backup = backupAllFiles(spec.getDestinationDir());
         try {
-            setupSpecOutputs(stagedOutputs);
             T result = function.apply(stashResult.mapToWorkResult());
             deletePotentiallyEmptyDirectories(stashResult);
-            moveCompileOutputToOriginalFolders(stagedOutputs);
             return result;
         } catch (CompilationFailedException t) {
             if (spec.getCompileOptions().supportsIncrementalCompilationAfterFailure()) {
+                deleteRecursively(spec.getDestinationDir());
                 rollbackStash(stashResult.stashedFiles);
+                backup.forEach((file, bytes) -> {
+                    file.getParentFile().mkdirs();
+                    try {
+                        long lastModified = file.lastModified();
+                        Files.write(file.toPath(), bytes);
+                        file.setLastModified(lastModified);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
             }
             throw t;
-        } finally {
-            restoreSpecOutputs(stagedOutputs);
         }
     }
 
-    private void ensureEmptyDirectoriesBeforeExecution(List<StagedOutput> stagedOutputs) {
+    private Map<File, byte[]> backupAllFiles(File currentDir) {
+        Map<File, byte[]> files = new HashMap<>();
+        try (Stream<Path> dirStream = Files.walk(currentDir.toPath())) {
+            dirStream
+                .filter(path -> !Files.isDirectory(path))
+                .forEach(path -> {
+                    try {
+                        files.put(path.toFile(), Files.readAllBytes(path));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            return files;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void ensureEmptyDirectoriesBeforeExecution() {
         try {
             tempDir.mkdirs();
 
@@ -119,10 +145,6 @@ public class CompileTransaction {
             Set<File> ensureEmptyDirectories = new HashSet<>();
             deleter.ensureEmptyDirectory(stashDirectory);
             ensureEmptyDirectories.add(stashDirectory);
-            for (StagedOutput output : stagedOutputs) {
-                ensureEmptyKeepingFolderStructure(output);
-                ensureEmptyDirectories.add(output.stagingDirectory);
-            }
 
             // Delete any other file or directory
             try (Stream<Path> dirStream = Files.list(tempDir.toPath())) {

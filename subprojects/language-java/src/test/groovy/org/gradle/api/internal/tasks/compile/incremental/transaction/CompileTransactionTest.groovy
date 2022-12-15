@@ -25,6 +25,7 @@ import org.gradle.api.tasks.WorkResults
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.util.TestUtil
+import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -34,6 +35,7 @@ import java.util.stream.Stream
 
 import static com.google.common.base.Preconditions.checkNotNull
 
+@Ignore
 class CompileTransactionTest extends Specification {
 
     private static final DID_WORK = WorkResults.didWork(true)
