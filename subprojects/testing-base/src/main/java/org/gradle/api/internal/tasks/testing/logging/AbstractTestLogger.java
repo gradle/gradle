@@ -65,12 +65,12 @@ public abstract class AbstractTestLogger {
         List<String> names = Lists.newArrayList();
         TestDescriptor current = descriptor;
         while (current != null) {
-            if (isAtomicTestWhoseParentIsNotTheTestClass(current)) {
+            if (isAtomicTestWithNoTestClassInAncestorDescriptors(current)) {
                 // This deals with the fact that in TestNG, there are no class-level events,
                 // but we nevertheless want to see the class name. We use "." rather than
                 // " > " as a separator to make it clear that the class is not a separate
                 // level. This matters when configuring granularity.
-                names.add(current.getClassName() + "." + current.getName());
+                names.add(current.getClassName() + "." + current.getDisplayName());
             } else {
                 names.add(current.getDisplayName());
             }
@@ -83,9 +83,19 @@ public abstract class AbstractTestLogger {
         return Joiner.on(" > ").join(displayedNames) + " ";
     }
 
-    private boolean isAtomicTestWhoseParentIsNotTheTestClass(TestDescriptor current) {
-        return !current.isComposite() && current.getClassName() != null && (current.getParent() == null
-                || !current.getClassName().equals(current.getParent().getName()));
+    private boolean isAtomicTestWithNoTestClassInAncestorDescriptors(TestDescriptor current) {
+        boolean isAtomicTestWhoseParentIsNotTheTestClass = !current.isComposite() && current.getClassName() != null &&
+            (current.getParent() == null || !current.getClassName().equals(current.getParent().getName()));
+        if (!isAtomicTestWhoseParentIsNotTheTestClass) {
+            return false;
+        }
+        if (current.getParent() != null) {
+            // If there is a parent, then check that the grandparent has no test class.
+            // There is currently no requirement to check further up the descriptor hierarchy than this.
+            return current.getParent().getParent() == null || current.getParent().getParent().getClassName() == null;
+        }
+        // If there is no parent, then there's no need to check if the grandparent has a test class.
+        return true;
     }
 
     private StyledTextOutput.Style getStyle(TestLogEvent event) {
