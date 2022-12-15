@@ -32,7 +32,8 @@ We would like to thank the following community members for their contributions t
 [Victor Maldonado](https://github.com/vmmaldonadoz),
 [Vinay Potluri](https://github.com/vinaypotluri),
 [Jeff Gaston](https://github.com/mathjeff),
-[David Morris](https://github.com/codefish1).
+[David Morris](https://github.com/codefish1),
+[Cédric Champeau](https://github.com/melix).
 
 ## Upgrade instructions
 
