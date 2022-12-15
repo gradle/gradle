@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.internal.BuildServiceProvider;
@@ -27,7 +29,6 @@ import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.bean.PropertyWalker;
 
 import javax.annotation.Nullable;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -44,11 +45,6 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
      */
     @Nullable
     private Set<Provider<? extends BuildService<?>>> registeredServices;
-    /**
-     * Lazy union between #registeredServices and properties annotated with @ServiceReference.
-     */
-    @Nullable
-    private Set<Provider<? extends BuildService<?>>> requiredServices;
 
     public DefaultTaskRequiredServices(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker) {
         this.task = task;
@@ -58,33 +54,32 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
 
     @Override
     public Set<Provider<? extends BuildService<?>>> getElements() {
-        if (requiredServices == null) {
-            requiredServices = collectRequiredServices();
-        }
-        return requiredServices;
+        ImmutableSet.Builder<Provider<? extends BuildService<?>>> allUsedServices = ImmutableSet.builder();
+        Set<Provider<? extends BuildService<?>>> registeredServices = this.registeredServices != null ? this.registeredServices : emptySet();
+        allUsedServices.addAll(registeredServices);
+        collectRequiredServices(allUsedServices);
+        return allUsedServices.build();
     }
 
     @Override
     public boolean isServiceRequired(Provider<? extends BuildService<?>> toCheck) {
-        return getElements().stream().anyMatch(it -> BuildServiceProvider.isSameService(it, toCheck));
+        return getElements().stream().anyMatch(it -> BuildServiceProvider.isSameService(toCheck, it));
     }
 
     /**
-     * Returns both services declared as referenced (via @ServiceReference) or explicitly as used (via Task#usesService()).
+     * Collects services declared as referenced (via @ServiceReference) into the given set.
      */
-    private Set<Provider<? extends BuildService<?>>> collectRequiredServices() {
-        Set<Provider<? extends BuildService<?>>> registeredServices = this.registeredServices != null ? this.registeredServices : emptySet();
-        Set<Provider<? extends BuildService<?>>> requiredServices = new LinkedHashSet<>(registeredServices);
+    private void collectRequiredServices(ImmutableSet.Builder<Provider<? extends BuildService<?>>> requiredServices) {
         visitServiceReferences(referenceProvider ->
             requiredServices.add(asBuildServiceProvider(referenceProvider))
         );
-        return requiredServices;
     }
 
     private Provider<? extends BuildService<?>> asBuildServiceProvider(Provider<? extends BuildService<?>> referenceProvider) {
         if (referenceProvider instanceof DefaultProperty) {
             DefaultProperty<?> asProperty = Cast.uncheckedNonnullCast(referenceProvider);
-            return Cast.uncheckedNonnullCast(asProperty.getProvider());
+            ProviderInternal<?> provider = asProperty.getProvider();
+            return Cast.uncheckedNonnullCast(provider);
         }
         return referenceProvider;
     }
@@ -102,7 +97,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
     public void registerServiceUsage(Provider<? extends BuildService<?>> service) {
         taskMutator.mutate("Task.usesService(Provider)", () -> {
             if (registeredServices == null) {
-                registeredServices = new HashSet<>();
+                registeredServices = new LinkedHashSet<>();
             }
             // TODO:configuration-cache assert build service is from the same build as the task
             registeredServices.add(service);
