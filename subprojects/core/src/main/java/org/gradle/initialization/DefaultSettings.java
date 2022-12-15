@@ -45,6 +45,7 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
+import org.gradle.internal.management.ToolchainManagementInternal;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -79,6 +80,8 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     private final List<IncludedBuildSpec> includedBuildSpecs = new ArrayList<>();
     private final DependencyResolutionManagementInternal dependencyResolutionManagement;
 
+    private final ToolchainManagementInternal toolchainManagement;
+
     public DefaultSettings(
         ServiceRegistryFactory serviceRegistryFactory,
         GradleInternal gradle,
@@ -99,6 +102,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.services = serviceRegistryFactory.createFor(this);
         this.rootProjectDescriptor = createProjectDescriptor(null, settingsDir.getName(), settingsDir);
         this.dependencyResolutionManagement = services.get(DependencyResolutionManagementInternal.class);
+        this.toolchainManagement = services.get(ToolchainManagementInternal.class);
     }
 
     @Override
@@ -244,20 +248,13 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     @Inject
-    public ProviderFactory getProviders() {
-        // Decoration takes care of the implementation
-        throw new UnsupportedOperationException();
-    }
+    public abstract ProviderFactory getProviders();
 
     @Inject
-    public ProjectDescriptorRegistry getProjectDescriptorRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract ProjectDescriptorRegistry getProjectDescriptorRegistry();
 
     @Inject
-    public TextUriResourceLoader.Factory getTextUriResourceLoaderFactory() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract TextUriResourceLoader.Factory getTextUriResourceLoaderFactory();
 
     @Override
     public ProjectRegistry<DefaultProjectDescriptor> getProjectRegistry() {
@@ -291,25 +288,17 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Inject
-    protected ScriptHandlerFactory getScriptHandlerFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ScriptHandlerFactory getScriptHandlerFactory();
 
     @Inject
-    protected ScriptPluginFactory getScriptPluginFactory() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract ScriptPluginFactory getScriptPluginFactory();
 
     @Inject
-    protected FileResolver getFileResolver() {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract FileResolver getFileResolver();
 
     @Override
     @Inject
-    public PluginManagerInternal getPluginManager() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract PluginManagerInternal getPluginManager();
 
     @Override
     public void includeBuild(Object rootProject) {
@@ -329,9 +318,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     @Inject
-    public BuildCacheConfigurationInternal getBuildCache() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract BuildCacheConfigurationInternal getBuildCache();
 
     @Override
     public void pluginManagement(Action<? super PluginManagementSpec> rule) {
@@ -341,9 +328,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     @Inject
-    public PluginManagementSpec getPluginManagement() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract PluginManagementSpec getPluginManagement();
 
     @Override
     public void sourceControl(Action<? super SourceControl> configuration) {
@@ -352,9 +337,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     @Inject
-    public SourceControl getSourceControl() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract SourceControl getSourceControl();
 
     @Override
     public void enableFeaturePreview(String name) {
@@ -372,13 +355,14 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    public void dependencyResolutionManagement(Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration) {
-        dependencyResolutionConfiguration.execute(dependencyResolutionManagement);
+    public void preventFromFurtherMutation() {
+        dependencyResolutionManagement.preventFromFurtherMutation();
+        toolchainManagement.preventFromFurtherMutation();
     }
 
     @Override
-    public void preventFromFurtherMutation() {
-        dependencyResolutionManagement.preventFromFurtherMutation();
+    public void dependencyResolutionManagement(Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration) {
+        dependencyResolutionConfiguration.execute(dependencyResolutionManagement);
     }
 
     @Override
@@ -387,21 +371,18 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    @Inject
     public ToolchainManagement getToolchainManagement() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Inject
-    public CacheConfigurationsInternal getCaches() {
-        throw new UnsupportedOperationException();
+        return toolchainManagement;
     }
 
     @Override
     public void toolchainManagement(Action<? super ToolchainManagement> toolchainManagementConfiguration) {
-        toolchainManagementConfiguration.execute(getToolchainManagement());
+        toolchainManagementConfiguration.execute(toolchainManagement);
     }
+
+    @Override
+    @Inject
+    public abstract CacheConfigurationsInternal getCaches();
 
     @Override
     public void caches(Action<? super CacheConfigurations> cachesConfiguration) {
