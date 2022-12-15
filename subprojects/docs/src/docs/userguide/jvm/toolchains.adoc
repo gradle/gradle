@@ -259,21 +259,27 @@ For details on writing plugins for toolchain provisioning, consult the <<toolcha
 When you configure a toolchain repository, Gradle no longer uses the built-in default Adoptium and OpenJDK toolchain respositories.
 ====
 
-Consider two toolchain resolver plugins:
+One example of a toolchain resolver plugin is the https://github.com/gradle/disco-toolchains[Disco Toolchains Plugin], based on the https://github.com/foojayio/discoapi[foojay Disco API].
 
-* One contains a resolver named `AzulResolver`, which downloads toolchains from Azul.
-* The other contains a resolver named `AdoptiumResolver`, which duplicates the built-in AdoptiumJDK toolchain repository by downloading toolchains from AdoptiumJDK.
+Beyond applying toolchain resolver plugins, the toolchain download resolvers provided by them also need to be configured.
+Let's illustrate with an example.
+Consider two toolchain resolver plugins applied by the build:
+
+* One is the Disco plugin mentioned above, which downloads toolchains via the `DiscoToolchainResolver` it provides.
+* The other contains a resolver named `AdoptiumResolver`, which duplicates the legacy toolchain resolver from past Gradle versions.
 
 The following example uses these toolchain resolvers in a build via the `toolchainManagement` block in the settings file:
 
 ====
-include::sample[dir="snippets/java/toolchain-management/groovy/",files="settings.gradle[tags=toolchain-management]"]
 include::sample[dir="snippets/java/toolchain-management/kotlin/",files="settings.gradle.kts[tags=toolchain-management]"]
+include::sample[dir="snippets/java/toolchain-management/groovy/",files="settings.gradle[tags=toolchain-management]"]
 ====
 <1> In the `toolchainManagement` block, the `jvm` block contains configuration for Java toolchains.
-<2> The `javaRepositories` block defines named Java toolchain repository configurations. Use the `resolverClass` property to link these configurations to plugins.
-<3> You can configure toolchain repositories with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options>> used for dependency management.
-<4> Toolchain declaration order matters. Gradle downloads from the first repository that provides a match, starting with the first repository in the list.
+<2> The `javaRepositories` block defines named Java toolchain repository configurations.
+Use the `resolverClass` property to link these configurations to plugins.
+<3> Toolchain declaration order matters.
+Gradle downloads from the first repository that provides a match, starting with the first repository in the list.
+<4> You can configure toolchain repositories with the same set of <<declaring_repositories.adoc#sec:authentication_schemes,authentication and authorization options>> used for dependency management.
 
 [WARNING]
 ====
