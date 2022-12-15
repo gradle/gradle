@@ -35,8 +35,8 @@ import static org.hamcrest.MatcherAssert.assertThat
 // wrapperExecuter requires a real distribution
 @IgnoreIf({ GradleContextualExecuter.embedded })
 class WrapperHttpsIntegrationTest extends AbstractWrapperIntegrationSpec {
-    public static final String DEFAULT_USER = "jdoe"
-    public static final String DEFAULT_PASSWORD = "changeit"
+    private static final String DEFAULT_USER = "jdoe"
+    private static final String DEFAULT_PASSWORD = "changeit"
     @Rule
     BlockingHttpsServer server = new BlockingHttpsServer()
     @Rule
