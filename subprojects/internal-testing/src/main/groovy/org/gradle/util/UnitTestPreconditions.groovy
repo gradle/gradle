@@ -16,7 +16,6 @@
 
 package org.gradle.util
 
-import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 import org.testcontainers.DockerClientFactory
@@ -24,7 +23,6 @@ import org.testcontainers.DockerClientFactory
 import static org.gradle.util.TestPrecondition.doSatisfies
 import static org.gradle.util.TestPrecondition.notSatisfies
 
-@CompileStatic
 class UnitTestPreconditions extends BaseTestPreconditions {
 
     static final class Symlinks implements TestPrecondition {
@@ -44,14 +42,14 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class CaseInsensitiveFs implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfies(MacOs) || notSatisfies(Windows)
+            return doSatisfies(MacOs) || doSatisfies(Windows)
         }
     }
 
     static final class FilePermissions implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfies(MacOs) || notSatisfies(Linux)
+            return doSatisfies(MacOs) || doSatisfies(Linux)
         }
     }
 
@@ -69,17 +67,10 @@ class UnitTestPreconditions extends BaseTestPreconditions {
         }
     }
 
-    static final class MandatoryFileLockOnOpen implements TestPrecondition {
-        @Override
-        boolean isSatisfied() {
-            return OperatingSystem.current().isWindows()
-        }
-    }
-
     static final class NoMandatoryFileLockOnOpen implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfies(MandatoryFileLockOnOpen)
+            return doSatisfies(MacOs) || doSatisfies(Linux)
         }
     }
 
@@ -114,7 +105,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class MacOsM1 implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return OperatingSystem.current().isMacOsX() && OperatingSystem.current().toString().contains("aarch64")
+            return doSatisfies(MacOs) && OperatingSystem.current().toString().contains("aarch64")
         }
     }
 
@@ -149,7 +140,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class UnixDerivative implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            notSatisfies(MacOs) || notSatisfies(Linux) || notSatisfies(Unix)
+            doSatisfies(MacOs) || doSatisfies(Linux) || doSatisfies(Unix)
         }
     }
 
@@ -453,17 +444,14 @@ class UnitTestPreconditions extends BaseTestPreconditions {
     static final class CanInstallExecutable implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return notSatisfies(FilePermissions) || notSatisfies(Windows)
+            return doSatisfies(FilePermissions) || doSatisfies(Windows)
         }
     }
 
     static final class SmartTerminalAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return Optional.ofNullable(System.getenv("TERM"))
-                .map(String::toUpperCase)
-                .map("DUMB"::equals)
-                .orElse(false)
+            return System.getenv("TERM")?.toUpperCase() != "DUMB"
         }
     }
 
@@ -479,7 +467,7 @@ class UnitTestPreconditions extends BaseTestPreconditions {
         @Override
         boolean isSatisfied() {
             // Simplistic approach at detecting MSBuild by assuming Windows imply MSBuild is present
-            return doSatisfies(Windows) && !"embedded".equals(System.getProperty("org.gradle.integtest.executer"))
+            return doSatisfies(Windows) && "embedded" != System.getProperty("org.gradle.integtest.executer")
         }
     }
 

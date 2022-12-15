@@ -21,17 +21,31 @@ package org.gradle.util;
  */
 public abstract class BaseTestPreconditions {
 
-    public static final class TruePrecondition implements TestPrecondition {
+    public static final class True implements TestPrecondition {
         @Override
         public boolean isSatisfied() {
             return true;
         }
     }
 
-    public static final class FalsePrecondition implements TestPrecondition {
+    public static final class False implements TestPrecondition {
         @Override
         public boolean isSatisfied() {
             return false;
+        }
+    }
+
+    public static final class Not implements TestPrecondition {
+
+        private final Class<? extends TestPrecondition> basePrecondition;
+
+        public Not(Class<? extends TestPrecondition> basePrecondition) {
+            this.basePrecondition = basePrecondition;
+        }
+
+        @Override
+        public boolean isSatisfied() throws Exception {
+            return TestPrecondition.doSatisfies(basePrecondition);
         }
     }
 

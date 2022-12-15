@@ -134,6 +134,7 @@ class JavaModuleCompileIntegrationTest extends AbstractJavaModuleCompileIntegrat
     def "works with split module path and classpath"() {
         publishJavaLibrary('moda')
 
+
         // Local auto module
         settingsFile << 'include("auto-module")'
         file("auto-module/build.gradle") << """
