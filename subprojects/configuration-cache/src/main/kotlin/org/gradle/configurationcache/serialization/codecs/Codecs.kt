@@ -123,7 +123,6 @@ class Codecs(
         baseTypes()
 
         bind(HASHCODE_SERIALIZER)
-        bind(BrokenValueCodec)
 
         providerTypes(
             propertyFactory,
