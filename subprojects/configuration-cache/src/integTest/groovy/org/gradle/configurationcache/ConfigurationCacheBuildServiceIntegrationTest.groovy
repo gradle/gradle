@@ -133,7 +133,6 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
         ""          | false    | false
         ""          | true     | false
         ""          | false    | true
-
     }
 
     def "missing build service when using @ServiceReference"() {
