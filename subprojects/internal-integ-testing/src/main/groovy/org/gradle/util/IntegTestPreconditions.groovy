@@ -20,7 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
-class IntegTestPreconditions extends BaseTestPreconditions {
+class IntegTestPreconditions {
 
     static final class IsLongLivingProcess implements TestPrecondition {
         @Override

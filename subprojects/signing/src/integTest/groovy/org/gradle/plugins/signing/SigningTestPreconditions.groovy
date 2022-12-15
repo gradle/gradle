@@ -16,10 +16,9 @@
 
 package org.gradle.plugins.signing
 
-import org.gradle.util.BaseTestPreconditions
 import org.gradle.util.TestPrecondition
 
-class SigningTestPreconditions extends BaseTestPreconditions {
+class SigningTestPreconditions {
 
     static final class GpgAvailable implements TestPrecondition {
         @Override
