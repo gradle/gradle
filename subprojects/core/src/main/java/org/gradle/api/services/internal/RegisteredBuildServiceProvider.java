@@ -41,6 +41,7 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     private final IsolatableFactory isolatableFactory;
     private final Listener listener;
     private Try<T> instance;
+    private boolean keepAlive;
 
     public RegisteredBuildServiceProvider(
         BuildIdentifier buildIdentifier,
@@ -90,6 +91,17 @@ public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends
     @Override
     public Class<T> getType() {
         return serviceDetails.getImplementationType();
+    }
+
+    /**
+     * When true, this service should be kept alive until the end of the build.
+     */
+    public boolean isKeepAlive() {
+        return keepAlive;
+    }
+
+    public void keepAlive() {
+        keepAlive = true;
     }
 
     @Override

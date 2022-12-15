@@ -24,11 +24,13 @@ import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceSpec;
+import org.gradle.internal.Cast;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -41,6 +43,7 @@ import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -52,7 +55,7 @@ import java.util.function.Supplier;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
-public class DefaultBuildServicesRegistry implements BuildServiceRegistryInternal {
+public class DefaultBuildServicesRegistry implements BuildServiceRegistryInternal, HoldsProjectState {
 
     private final BuildIdentifier buildIdentifier;
     private final Lock registrationsLock = new ReentrantLock();
@@ -190,7 +193,12 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     @Override
     public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages) {
         return withRegistrations(registrations -> {
-            if (registrations.findByName(name) != null) {
+            DefaultServiceRegistration<?, ?> registration = Cast.uncheckedCast(registrations.findByName(name));
+            if (registration != null) {
+                if (registration.provider.isKeepAlive()) {
+                    // Reuse the service instance
+                    return registration.provider;
+                }
                 throw new IllegalArgumentException(String.format("Service '%s' has already been registered.", name));
             }
             return doRegister(name, uncheckedNonnullCast(implementationType), parameters, maxUsages <= 0 ? null : maxUsages, registrations);
@@ -237,16 +245,28 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     @Override
     public void discardAll() {
+        discardAll(false);
+    }
+
+    private void discardAll(boolean forceAll) {
         withRegistrations(registrations -> {
+            List<DefaultServiceRegistration<?, ?>> preserved = new ArrayList<>();
             try {
                 ExecutionResult.forEach(registrations, registration -> {
-                    ((DefaultServiceRegistration<?, ?>) registration).provider.maybeStop();
+                    DefaultServiceRegistration<?, ?> serviceRegistration = (DefaultServiceRegistration<?, ?>) registration;
+                    // Do not stop services that are to be retained beyond configuration time (e.g. build event listeners)
+                    if (forceAll || !serviceRegistration.provider.isKeepAlive()) {
+                        serviceRegistration.provider.maybeStop();
+                    } else {
+                        preserved.add(serviceRegistration);
+                    }
                 }).rethrow();
             } finally {
                 // Replace the entire container, rather than clear it, to discard all the service instances and because it may contain configuration actions and
                 // other state that can affect the service instances when they are registered again
                 this.registrations = uncheckedCast(collectionFactory.newNamedDomainObjectSet(BuildServiceRegistration.class));
             }
+            this.registrations.addAll(preserved);
             return null;
         });
     }
@@ -331,7 +351,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         @SuppressWarnings("deprecation")
         @Override
         public void buildFinished(BuildResult result) {
-            discardAll();
+            discardAll(true);
         }
     }
 }
