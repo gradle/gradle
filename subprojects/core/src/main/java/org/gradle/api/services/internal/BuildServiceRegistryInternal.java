@@ -43,11 +43,6 @@ public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
     @Nullable
     SharedResource forService(BuildServiceProvider<?, ?> service);
 
-    /**
-     * Discards all registered services.
-     */
-    void discardAll();
-
     @Nullable
     BuildServiceRegistration<?, ?> findByName(String name);
 

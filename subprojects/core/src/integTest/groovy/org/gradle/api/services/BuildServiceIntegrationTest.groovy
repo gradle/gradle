@@ -34,10 +34,7 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
@@ -662,8 +659,7 @@ service: closed with value 12
         outputContains("service: closed with value 12")
     }
 
-    @RequiredFeature(feature = ConfigurationCacheOption.PROPERTY_NAME, value = "false")
-    @UnsupportedWithConfigurationCache
+    @IgnoreIf({ GradleContextualExecuter.configCache })
     def "service can be used at configuration and execution time"() {
         serviceImplementation()
         buildFile << """
@@ -710,8 +706,8 @@ service: closed with value 12
         outputContains("service: closed with value 11")
     }
 
-    @IgnoreIf({ !GradleContextualExecuter.configCache })
-    def "service used at configuration and execution time can be used with configuration cache"() {
+    @IgnoreIf({ GradleContextualExecuter.configCache }) // already covers CC behavior
+    def "service used at configuration is discarded before execution time when used with configuration cache"() {
         serviceImplementation()
         buildFile << """
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
@@ -726,16 +722,19 @@ service: closed with value 12
 
             provider.get().increment()
         """
+        executer.beforeExecute {
+            withArgument("--configuration-cache")
+            withArgument("-Dorg.gradle.configuration-cache.internal.load-after-store=true")
+        }
 
         when:
         run("count")
 
         then:
-        output.count("service:") == 4
-        outputContains("service: created with value = 10")
-        outputContains("service: value is 11")
-        outputContains("service: value is 12")
-        outputContains("service: closed with value 12")
+        output.count("service:") == 6
+        output.count("service: created with value = 10") == 2
+        output.count("service: value is 11") == 2
+        output.count("service: closed with value 11")
 
         when:
         run("count")
