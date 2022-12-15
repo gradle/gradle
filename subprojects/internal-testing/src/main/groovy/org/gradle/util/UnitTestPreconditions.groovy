@@ -67,10 +67,17 @@ class UnitTestPreconditions extends BaseTestPreconditions {
         }
     }
 
+    static final class MandatoryFileLockOnOpen implements TestPrecondition {
+        @Override
+        boolean isSatisfied() {
+            return doSatisfies(Windows)
+        }
+    }
+
     static final class NoMandatoryFileLockOnOpen implements TestPrecondition {
         @Override
         boolean isSatisfied() {
-            return doSatisfies(MacOs) || doSatisfies(Linux)
+            return notSatisfies(MandatoryFileLockOnOpen)
         }
     }
 
