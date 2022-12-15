@@ -1,25 +1,28 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver' version '0.3.0'
+}
+
 import java.util.Optional
 import javax.inject.Inject
 
-apply plugin: AzulPlugin
 apply plugin: AdoptiumPlugin
 
 // tag::toolchain-management[]
 toolchainManagement {
     jvm { // <1>
         javaRepositories {
-            repository('azul') { // <2>
-                resolverClass = AzulResolver
+            repository('foojay') { // <2>
+                resolverClass = org.gradle.toolchains.foojay.FoojayToolchainResolver
+            }
+            repository('adoptium') { // <3>
+                resolverClass = AdoptiumResolver
                 credentials {
                     username "user"
                     password "password"
                 }
                 authentication {
                     digest(BasicAuthentication)
-                } // <3>
-            }
-            repository('adoptium') { // <4>
-                resolverClass = AdoptiumResolver
+                } // <4>
             }
         }
     }
@@ -28,49 +31,22 @@ toolchainManagement {
 
 rootProject.name = 'toolchain-management'
 
-abstract class AzulPlugin extends DummyPlugin {
-
-    AzulPlugin() {
-        super(AzulResolver.class)
-    }
-}
-
-abstract class AdoptiumPlugin extends DummyPlugin {
-
-    AdoptiumPlugin() {
-        super(AdoptiumResolver.class)
-    }
-}
-
-abstract class DummyPlugin implements Plugin<Settings> {
-
-    private final Class<JavaToolchainResolver> resolverClass;
+abstract class AdoptiumPlugin implements Plugin<Settings> {
 
     @Inject
     protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
 
-    DummyPlugin(Class<JavaToolchainResolver> resolverClass) {
-        this.resolverClass = resolverClass
-    }
-
     void apply(Settings settings) {
-        settings.getPlugins().apply("jvm-toolchain-management");
+        settings.getPlugins().apply("jvm-toolchain-management")
 
-        JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
-        registry.register(resolverClass)
-    }
-}
-
-abstract class AzulResolver implements JavaToolchainResolver {
-    @Override
-    Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
-        return Optional.empty();
+        JavaToolchainResolverRegistry registry = getToolchainResolverRegistry()
+        registry.register(AdoptiumResolver.class)
     }
 }
 
 abstract class AdoptiumResolver implements JavaToolchainResolver {
     @Override
     Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
-        return Optional.empty();
+        return Optional.empty()
     }
 }
