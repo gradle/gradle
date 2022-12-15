@@ -80,6 +80,7 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":build-option"))
 
+    implementation(libs.asm)
     implementation(libs.capsule)
     implementation(libs.fastutil)
     implementation(libs.groovy)
