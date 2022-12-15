@@ -16,6 +16,9 @@
 
 plugins {
    `kotlin-dsl`
+    id("gradlebuild.commons")
 }
 
 description = "Provides settings plugins for main build"
+
+java.configureJavaToolChain()

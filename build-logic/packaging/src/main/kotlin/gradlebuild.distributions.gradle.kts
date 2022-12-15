@@ -27,7 +27,7 @@ import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.docsDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
 import gradlebuild.packaging.tasks.PluginsManifest
-import org.gradle.api.internal.runtimeshaded.PackageListGenerator
+import gradlebuild.basics.tasks.PackageListGenerator
 import java.util.jar.Attributes
 
 /**
@@ -92,8 +92,8 @@ docsPath.description = "Resolves to the complete Gradle documentation - automati
 
 // List of relocated packages that will be used at Gradle runtime to generate the runtime shaded jars
 val generateRelocatedPackageList by tasks.registering(PackageListGenerator::class) {
-    classpath = runtimeClasspath
-    outputFile = file(generatedTxtFileFor("api-relocated"))
+    classpath.from(runtimeClasspath)
+    outputFile.set(generatedTxtFileFor("api-relocated"))
 }
 
 // Extract pubic API metadata from source code of Gradle module Jars packaged in the distribution (used by the two tasks below to handle default imports in build scripts)

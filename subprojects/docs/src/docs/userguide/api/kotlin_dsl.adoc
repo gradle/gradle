@@ -728,6 +728,16 @@ This is the basic configuration you need to use the plugin:
 include::sample[dir="snippets/kotlinDsl/kotlinDslPlugin/kotlin",files="buildSrc/build.gradle.kts[tags=apply]"]
 ====
 
+The Kotlin DSL Plugin leverages <<toolchains#toolchains,Java Toolchains>>.
+By default the code will target Java 8.
+You can change that by defining a Java toolchain to be used by the project:
+
+.Changing the JVM target using toolchains
+====
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/kotlin/",files="buildSrc/src/main/kotlin/myproject.java-conventions.gradle.kts[tags=toolchain]"]
+include::sample[dir="samples/java/jvm-multi-project-with-toolchains/groovy/",files="buildSrc/src/main/groovy/myproject.java-conventions.gradle[tags=toolchain]"]
+====
+
 [[sec:kotlin]]
 == The embedded Kotlin
 

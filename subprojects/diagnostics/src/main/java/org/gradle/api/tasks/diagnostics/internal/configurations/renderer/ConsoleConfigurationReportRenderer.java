@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.configurations.renderer;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.GradleException;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ConfigurationReportModel;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportArtifact;
 import org.gradle.api.tasks.diagnostics.internal.configurations.model.ReportAttribute;
@@ -182,6 +183,8 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         writeConfigurationNameHeader(config, spec.getReportedTypeAlias());
         writeDescription(config.getDescription());
 
+        writeErrors(config.getLenientErrors());
+
         if (!config.getAttributes().isEmpty() ||
             (spec.isIncludeCapabilities() && !config.getCapabilities().isEmpty()) ||
             (spec.isIncludeArtifacts() && !config.getArtifacts().isEmpty()) ||
@@ -222,6 +225,13 @@ public final class ConsoleConfigurationReportRenderer extends AbstractConfigurat
         indent(false);
         if (description != null) {
             output.style(StyledTextOutput.Style.Normal).println(description);
+        }
+    }
+
+    private void writeErrors(List<? extends GradleException> lenientErrors) {
+        if (!lenientErrors.isEmpty()) {
+            indent(false);
+            lenientErrors.forEach(ex -> output.style(StyledTextOutput.Style.Failure).println(ex.getMessage()));
         }
     }
 
