@@ -23,7 +23,6 @@ import org.gradle.api.tasks.wrapper.Wrapper;
 import org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources;
 import org.gradle.util.internal.DistributionLocator;
 
-import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.LATEST;
 import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.NIGHTLY;
 import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.RELEASE_CANDIDATE;
 import static org.gradle.api.tasks.wrapper.internal.DefaultWrapperVersionsResources.RELEASE_NIGHTLY;
@@ -41,7 +40,7 @@ public abstract class WrapperPlugin implements Plugin<Project> {
     public void apply(Project project) {
         if (project.getParent() == null) {
             String versionUrl = getVersionUrl();
-            TextResource latest = project.getResources().getText().fromUri(versionUrl + "/" + LATEST);
+            TextResource latest = project.getResources().getText().fromUri(versionUrl + "/current");
             TextResource releaseCandidate = project.getResources().getText().fromUri(versionUrl + "/" + RELEASE_CANDIDATE);
             TextResource nightly = project.getResources().getText().fromUri(versionUrl + "/" + NIGHTLY);
             TextResource releaseNightly = project.getResources().getText().fromUri(versionUrl + "/" + RELEASE_NIGHTLY);
