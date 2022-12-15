@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.serialization.codecs
+package org.gradle.configurationcache.extensions
+
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.configurationcache.problems.DocumentationSection
 
 
-class BrokenValue(val failure: Throwable) {
-    fun rethrow(): Nothing {
-        throw failure
-    }
-}
+internal
+fun DocumentationRegistry.documentationLinkFor(section: DocumentationSection) =
+    configurationCacheLinkFor(section.anchor)
+
+
+internal
+fun DocumentationRegistry.configurationCacheLinkFor(anchor: String): String =
+    getDocumentationFor("configuration_cache", anchor)

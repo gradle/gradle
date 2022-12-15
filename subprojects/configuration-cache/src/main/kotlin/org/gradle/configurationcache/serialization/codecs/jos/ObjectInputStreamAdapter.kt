@@ -16,6 +16,9 @@
 
 package org.gradle.configurationcache.serialization.codecs.jos
 
+import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.configurationcache.extensions.documentationLinkFor
+import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.beans.BeanStateReader
 import org.gradle.configurationcache.serialization.readDouble
@@ -129,4 +132,9 @@ class ObjectInputStreamAdapter(
 
 internal
 fun unsupported(feature: String): Nothing =
-    throw UnsupportedOperationException("'$feature' is not supported by the Gradle configuration cache.")
+    throw UnsupportedOperationException("'$feature' is not supported by the Gradle configuration cache. See $javaSerializationDocumentationLink for details.")
+
+
+private
+val javaSerializationDocumentationLink: String
+    get() = DocumentationRegistry().documentationLinkFor(DocumentationSection.NotYetImplementedJavaSerialization)

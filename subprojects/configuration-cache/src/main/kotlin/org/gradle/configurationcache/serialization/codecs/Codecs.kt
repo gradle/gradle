@@ -123,7 +123,6 @@ class Codecs(
         baseTypes()
 
         bind(HASHCODE_SERIALIZER)
-        bind(BrokenValueCodec)
 
         providerTypes(
             propertyFactory,
@@ -141,6 +140,7 @@ class Codecs(
 
         bind(ClosureCodec)
         bind(GroovyMetaClassCodec)
+        bind(SerializedLambdaParametersCheckingCodec)
 
         // Dependency management types
         bind(ArtifactCollectionCodec(fileCollectionFactory, artifactSetConverter))

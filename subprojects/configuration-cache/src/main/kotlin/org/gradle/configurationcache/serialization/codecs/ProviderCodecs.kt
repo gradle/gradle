@@ -172,7 +172,7 @@ class BuildServiceProviderCodec(
             if (isResolved) {
                 val parameters = read() as BuildServiceParameters?
                 val maxUsages = readInt()
-                buildServiceRegistryOf(buildIdentifier).register(name, implementationType, parameters, maxUsages)
+                buildServiceRegistryOf(buildIdentifier).registerIfAbsent(name, implementationType, parameters, maxUsages)
             } else {
                 buildServiceRegistryOf(buildIdentifier).consume(name, implementationType)
             }
