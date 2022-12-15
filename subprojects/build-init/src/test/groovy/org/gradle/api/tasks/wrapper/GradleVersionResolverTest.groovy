@@ -34,6 +34,6 @@ class GradleVersionResolverTest extends Specification {
 
         then:
         def e = thrown(GradleException)
-        e.message == "There is currently no version information available for \"latest\"."
+        e.message == "There is currently no version information available for 'latest'."
     }
 }
