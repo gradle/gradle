@@ -138,7 +138,7 @@ class AbstractTestLoggerTest extends Specification {
         textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}a test {failure}FAILED{normal}${sep}"
     }
 
-    def "logging of atomic test whose parent isn't the test class includes test class name"() {
+    def "logging of atomic test whose parent isn't the test class"() {
         createLogger(LogLevel.INFO)
         methodDescriptor.parent = innerSuiteDescriptor
 
@@ -146,7 +146,7 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(methodDescriptor, TestLogEvent.STARTED)
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}OuterSuiteClass > InnerSuiteClass > foo.bar.TestClass.testMethod STARTED${sep}"
+        textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}OuterSuiteClass > InnerSuiteClass > foo.bar.TestClass.a test STARTED${sep}"
     }
 
     def "logs header just once per batch of events with same type and for same test"() {

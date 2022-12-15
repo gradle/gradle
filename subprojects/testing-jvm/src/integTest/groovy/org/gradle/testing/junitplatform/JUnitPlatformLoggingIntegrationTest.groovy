@@ -16,7 +16,9 @@
 
 package org.gradle.testing.junitplatform
 
-class JUnitPlatformLoggingIntegrationTest extends JUnitPlatformIntegrationSpec  {
+import spock.lang.Issue
+
+class JUnitPlatformLoggingIntegrationTest extends JUnitPlatformIntegrationSpec {
 
     @Override
     def setup() {
@@ -31,7 +33,7 @@ class JUnitPlatformLoggingIntegrationTest extends JUnitPlatformIntegrationSpec  
 
     def "should log display names if present"() {
         given:
-        file("src/test/java/pkg/TopLevelClass.java")  << """
+        file("src/test/java/pkg/TopLevelClass.java") << """
             package pkg;
             import org.junit.jupiter.api.DisplayName;
             import org.junit.jupiter.api.Nested;
@@ -67,7 +69,7 @@ class JUnitPlatformLoggingIntegrationTest extends JUnitPlatformIntegrationSpec  
 
     def "should fall back to plain name if no display names present"() {
         given:
-        file("src/test/java/pkg/TopLevelClass.java")  << """
+        file("src/test/java/pkg/TopLevelClass.java") << """
             package pkg;
 
             import org.junit.jupiter.api.DisplayName;
@@ -98,4 +100,33 @@ class JUnitPlatformLoggingIntegrationTest extends JUnitPlatformIntegrationSpec  
         outputContains("TopLevelClass > NestedClass > nestedTestMethod()")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/5975")
+    def "should log display names for dynamically created tests"() {
+        given:
+        file("src/test/java/org/gradle/JUnitJupiterDynamicTest.java") << """
+            package org.gradle;
+            import org.junit.jupiter.api.DynamicTest;
+            import org.junit.jupiter.api.TestFactory;
+            import java.util.stream.IntStream;
+            import java.util.stream.Stream;
+            import static org.junit.jupiter.api.Assertions.*;
+            import static org.junit.jupiter.api.DynamicTest.dynamicTest;
+            public class JUnitJupiterDynamicTest {
+                @TestFactory
+                Stream<DynamicTest> streamOfTests() {
+                    return IntStream.of(2, 4, 5)
+                        .mapToObj(v -> dynamicTest(v + " is even", () -> assertEquals(0, v % 2)));
+                }
+            }
+        """
+
+        when:
+        runAndFail("test")
+
+        then:
+        def parentEventPath = "JUnitJupiterDynamicTest > streamOfTests()"
+        outputContains("${parentEventPath} > 2 is even PASSED")
+        outputContains("${parentEventPath} > 4 is even PASSED")
+        outputContains("${parentEventPath} > 5 is even FAILED")
+    }
 }
