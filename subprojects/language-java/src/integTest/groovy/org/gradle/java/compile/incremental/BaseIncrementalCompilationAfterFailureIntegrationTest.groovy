@@ -65,7 +65,7 @@ abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends Abs
 
         when:
         source("class A { }")
-        run language.compileTaskName
+        run language.compileTaskName, "--info"
 
         then:
         outputs.recompiledClasses("A")

@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -103,11 +105,16 @@ public class CompileTransaction {
         } catch (CompilationFailedException t) {
             if (spec.getCompileOptions().supportsIncrementalCompilationAfterFailure()) {
                 deleteRecursively(spec.getDestinationDir());
-                if (spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory() != null) {
-                    deleteRecursively(spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory());
-                }
-                if (spec.getCompileOptions().getHeaderOutputDirectory() != null) {
-                    deleteRecursively(spec.getCompileOptions().getHeaderOutputDirectory());
+                try {
+                    deleter.ensureEmptyDirectory(spec.getDestinationDir());
+                    if (spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory() != null) {
+                        deleter.ensureEmptyDirectory(spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory());
+                    }
+                    if (spec.getCompileOptions().getHeaderOutputDirectory() != null) {
+                        deleter.ensureEmptyDirectory(spec.getCompileOptions().getHeaderOutputDirectory());
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
                 rollbackStash(stashResult.stashedFiles);
                 backup.forEach((file, bytes) -> {
@@ -115,7 +122,7 @@ public class CompileTransaction {
                     try {
                         long lastModified = file.lastModified();
                         Files.write(file.toPath(), bytes);
-                        file.setLastModified(lastModified);
+                        Files.setLastModifiedTime(file.toPath(), FileTime.from(lastModified, TimeUnit.MILLISECONDS));
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -143,7 +150,7 @@ public class CompileTransaction {
                 .filter(path -> !Files.isDirectory(path))
                 .forEach(path -> {
                     try {
-                        files.put(path.toFile(), Files.readAllBytes(path));
+                        files.put(path.toAbsolutePath().toFile(), Files.readAllBytes(path.toAbsolutePath()));
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
