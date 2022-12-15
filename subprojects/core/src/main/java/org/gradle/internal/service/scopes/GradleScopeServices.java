@@ -30,7 +30,6 @@ import org.gradle.api.internal.plugins.PluginTarget;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
-import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
@@ -203,7 +202,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    BuildServiceRegistryInternal createSharedServiceRegistry(
+    DefaultBuildServicesRegistry createSharedServiceRegistry(
         BuildState buildState,
         Instantiator instantiator,
         DomainObjectCollectionFactory factory,
