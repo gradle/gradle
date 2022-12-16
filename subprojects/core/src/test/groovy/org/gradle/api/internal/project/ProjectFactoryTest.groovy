@@ -28,7 +28,10 @@ import org.gradle.internal.resource.EmptyFileTextResource
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
+
+import java.nio.file.Paths
 
 class ProjectFactoryTest extends Specification {
     @Rule
@@ -48,6 +51,26 @@ class ProjectFactoryTest extends Specification {
 
     def setup() {
         owner.buildIdentifier >> buildId
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22620")
+    def "creates a project with root project dir"() {
+        def buildFile = tmpDir.createFile("build.gradle")
+        def rootDir = Paths.get("").toAbsolutePath().getRoot()
+        def projectDir = rootDir.toFile()
+
+        given:
+        projectDescriptor.name >> "name"
+        projectDescriptor.projectDir >> projectDir
+        projectDescriptor.buildFile >> buildFile
+        gradle.projectRegistry >> projectRegistry
+
+        when:
+        factory.createProject(gradle, projectDescriptor, projectState, null, serviceRegistryFactory, rootProjectScope, baseScope)
+
+        then:
+        def ex = thrown(ProjectFactory.InvalidProjectDirException)
+        ex.message == "Project cannot be created in root directory " + rootDir + ", please change to a sub one."
     }
 
     def "creates a project with build script"() {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -32,6 +33,8 @@ import org.gradle.util.internal.NameValidator;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class ProjectFactory implements IProjectFactory {
     private final Instantiator instantiator;
@@ -44,6 +47,10 @@ public class ProjectFactory implements IProjectFactory {
 
     @Override
     public ProjectInternal createProject(GradleInternal gradle, ProjectDescriptor projectDescriptor, ProjectState owner, @Nullable ProjectInternal parent, ServiceRegistryFactory serviceRegistryFactory, ClassLoaderScope selfClassLoaderScope, ClassLoaderScope baseClassLoaderScope) {
+        if (isRootDir(projectDescriptor)) {
+            throw new InvalidProjectDirException("Project cannot be created in root directory "+ getRootDir() + ", please change to a sub one.");
+        }
+
         File buildFile = projectDescriptor.getBuildFile();
         TextResource resource = textFileResourceLoader.loadFile("build file", buildFile);
         ScriptSource source = new TextResourceScriptSource(resource);
@@ -67,5 +74,19 @@ public class ProjectFactory implements IProjectFactory {
 
         gradle.getProjectRegistry().addProject(project);
         return project;
+    }
+
+    private static boolean isRootDir(ProjectDescriptor projectDescriptor) {
+        return getRootDir().equals(projectDescriptor.getProjectDir().toPath());
+    }
+
+    private static Path getRootDir() {
+        return Paths.get("").toAbsolutePath().getRoot();
+    }
+
+    public static class InvalidProjectDirException extends GradleException {
+        public InvalidProjectDirException(String message) {
+            super(message);
+        }
     }
 }
