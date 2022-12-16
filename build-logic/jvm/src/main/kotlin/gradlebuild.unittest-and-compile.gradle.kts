@@ -327,6 +327,10 @@ fun configureTests() {
                 enabled.convention(project.predictiveTestSelectionEnabled)
             }
         }
+        // TODO Kotlin 1.8 - remove after wrapper update
+        if (usesEmbeddedExecuter()) {
+            enabled = false
+        }
     }
 }
 
