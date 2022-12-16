@@ -74,9 +74,6 @@ class ConfigurationCacheProblems(
     var incompatibleTasks = newConcurrentHashSet<String>()
 
     private
-    val hasIncompatibleTypes get() = incompatibleTasks.isNotEmpty()
-
-    private
     lateinit var cacheAction: ConfigurationCacheAction
 
     val shouldDiscardEntry: Boolean
@@ -228,7 +225,6 @@ class ConfigurationCacheProblems(
                 // else not storing or loading and no problems to report
             }
         }
-
     }
 
     private
@@ -239,7 +235,7 @@ class ConfigurationCacheProblems(
 
     private
     fun discardStateDueToProblems(summary: Summary) =
-        (summary.problemCount > 0 || hasIncompatibleTypes) && isFailOnProblems
+        (summary.problemCount > 0 || incompatibleTasks.isNotEmpty()) && isFailOnProblems
 
     private
     fun hasTooManyProblems(summary: Summary) =
