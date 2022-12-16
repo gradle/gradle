@@ -258,7 +258,7 @@ class JavaIncrementalCompilationAfterFailureIntegrationTest extends BaseIncremen
     CompiledLanguage language = CompiledLanguage.JAVA
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    def "incrementally compilation after failure works with modules #description"() {
+    def "incremental compilation after failure works with modules #description"() {
         file("impl/build.gradle") << """
             def layout = project.layout
             tasks.compileJava {

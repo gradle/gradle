@@ -75,7 +75,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
     @Issue("https://github.com/gradle/gradle/issues/23067")
-    def "incrementally compilation works with modules with manual module path with #description"() {
+    def "incremental compilation works with modules with manual module path with #description"() {
         file("impl/build.gradle") << """
             def layout = project.layout
             tasks.compileJava {
@@ -122,7 +122,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    def "incrementally compilation works with modules with inferred module path"() {
+    def "incremental compilation works with modules with inferred module path"() {
         file("impl/build.gradle") << """
             def layout = project.layout
             tasks.compileJava {
