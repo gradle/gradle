@@ -79,6 +79,7 @@ public interface TaskOutputModel extends InstanceModel, TaskModel {
 
         private Stream<FileOutputPropertyModel> resolveOutputProperties(FileOutputPropertySchema schema) {
             // TODO Resolve composite outputs to multiple properties
+            // TODO Replicate OutputUnpacker.resolveOutputFilePropertySpecs() here
             FileCollection files = fileCollectionResolver.resolveFileCollection(schema.getValue());
             if (files == null) {
                 return Stream.empty();
