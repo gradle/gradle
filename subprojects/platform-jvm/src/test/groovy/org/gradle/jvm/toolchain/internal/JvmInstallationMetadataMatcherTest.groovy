@@ -33,7 +33,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.TempDir
 
-class JavaToolchainMatcherTest extends Specification {
+class JvmInstallationMetadataMatcherTest extends Specification {
 
     @TempDir
     File temporaryFolder
@@ -57,7 +57,7 @@ class JavaToolchainMatcherTest extends Specification {
         spec.getImplementation().set(implementation)
 
         then:
-        new JavaToolchainMatcher(spec).test(metadata)
+        new JvmInstallationMetadataMatcher(spec).test(metadata)
 
         where:
         jdk              | systemProperties         | javaVersion             | vendor                    | implementation

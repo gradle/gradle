@@ -32,11 +32,15 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
 
     private final JavaToolchainQueryService queryService;
     private final ObjectFactory objectFactory;
+    private final JavaCompilerFactory compilerFactory;
+    private final ToolchainToolFactory toolFactory;
 
     @Inject
-    public DefaultJavaToolchainService(JavaToolchainQueryService queryService, ObjectFactory objectFactory) {
+    public DefaultJavaToolchainService(JavaToolchainQueryService queryService, ObjectFactory objectFactory, JavaCompilerFactory compilerFactory, ToolchainToolFactory toolFactory) {
         this.queryService = queryService;
         this.objectFactory = objectFactory;
+        this.compilerFactory = compilerFactory;
+        this.toolFactory = toolFactory;
     }
 
     @Override
@@ -46,7 +50,7 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
 
     @Override
     public Provider<JavaCompiler> compilerFor(JavaToolchainSpec spec) {
-        return queryService.toolFor(spec, JavaToolchain::getJavaCompiler, JavaTool.COMPILER);
+        return queryService.toolFor(spec, javaToolchain -> new DefaultToolchainJavaCompiler(javaToolchain, compilerFactory), JavaTool.COMPILER);
     }
 
     @Override
@@ -56,7 +60,7 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
 
     @Override
     public Provider<JavaLauncher> launcherFor(JavaToolchainSpec spec) {
-        return queryService.toolFor(spec, JavaToolchain::getJavaLauncher, JavaTool.LAUNCHER);
+        return queryService.toolFor(spec, DefaultToolchainJavaLauncher::new, JavaTool.LAUNCHER);
     }
 
     @Override
@@ -66,7 +70,7 @@ public class DefaultJavaToolchainService implements JavaToolchainService {
 
     @Override
     public Provider<JavadocTool> javadocToolFor(JavaToolchainSpec spec) {
-        return queryService.toolFor(spec, JavaToolchain::getJavadocTool, JavaTool.JAVADOC);
+        return queryService.toolFor(spec, javaToolchain -> toolFactory.create(JavadocTool.class, javaToolchain), JavaTool.JAVADOC);
     }
 
     private DefaultToolchainSpec configureToolchainSpec(Action<? super JavaToolchainSpec> config) {
