@@ -23,12 +23,12 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -63,17 +63,25 @@ import java.util.List;
 @CacheableTask
 public abstract class ValidatePlugins extends DefaultTask {
 
+    @Nested
+    abstract Property<JavaLauncher> getLauncher();
+
     public ValidatePlugins() {
         getEnableStricterValidation().convention(false);
         getIgnoreFailures().convention(false);
         getFailOnWarning().convention(true);
+
+        JavaToolchainSpec toolchain = getProject().getExtensions().getByType(JavaPluginExtension.class).getToolchain();
+        JavaToolchainService service = getProject().getExtensions().getByType(JavaToolchainService.class);
+
+        getLauncher().convention(service.launcherFor(toolchain));
     }
 
     @TaskAction
     public void validateTaskClasses() throws IOException {
         getWorkerExecutor()
             .processIsolation(spec -> {
-                spec.getForkOptions().setExecutable(toolchainLauncher().get().getExecutablePath());
+                spec.getForkOptions().setExecutable(getLauncher().get().getExecutablePath());
                 spec.getClasspath().setFrom(getClasses(), getClasspath());
             })
             .submit(ValidateAction.class, params -> {
@@ -132,12 +140,6 @@ public abstract class ValidatePlugins extends DefaultTask {
             builder.append(String.format("%n  - %s", problemMessage));
         }
         return builder;
-    }
-
-    private Provider<JavaLauncher> toolchainLauncher() {
-        JavaToolchainSpec toolchain = getProject().getExtensions().getByType(JavaPluginExtension.class).getToolchain();
-        JavaToolchainService service = getProject().getExtensions().getByType(JavaToolchainService.class);
-        return service.launcherFor(toolchain);
     }
 
     /**
