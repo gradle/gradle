@@ -37,7 +37,6 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
     kotlinOptions.apply {
         freeCompilerArgs += listOf(
             "-opt-in=kotlin.contracts.ExperimentalContracts",
-            "-Xsam-conversions=class",
         )
     }
 }
