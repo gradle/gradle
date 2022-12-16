@@ -239,7 +239,6 @@ Use the `version(Action)` method to configure strict versions instead.
 The deprecated `build-scan` plugin application method has been removed from the Kotlin DSL.
 Use the `gradle-enterprise` method instead.
 
-
 === Potential breaking changes
 
 ==== `JavaForkOptions` `getJvmArgs()` and `getAllJvmArgs()` return immutable lists
@@ -248,7 +247,17 @@ The lists of JVM arguments retrieved from the `JavaForkOptions` interface are no
 
 Previously, modifications of the returned list were silently ignored.
 
-==== Plugins, tasks and extension classes are now abstract
+==== Nullable annotations better reflect actual nullability of API
+
+In some APIs, nullability was not correctly annotated and APIs that did allow null or returned null were marked as non-null.
+In Java or Groovy, this mismatch did not cause problems at compile time.
+In Kotlin, this mismatch made valid code difficult to write because the language would not allow you to pass null.
+
+One particular example was returning `null` from a `Provider#map` or `Provider#flatMap`. In both APIs, Gradle allows you to return null, but in the Kotlin DSL this was considered illegal.
+
+This correction may cause compilation errors in code that expected non-null.
+
+==== Plugins, tasks and extension classes are abstract
 
 Most public classes for plugins, tasks and extensions have been made abstract.
 This was done to make it easier to remove boilerplate from Gradle's implementation.

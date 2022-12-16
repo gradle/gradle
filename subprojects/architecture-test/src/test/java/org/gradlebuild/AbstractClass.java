@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.io;
+package org.gradlebuild;
 
-import org.gradle.internal.InternalTransformer;
-import org.gradle.internal.concurrent.CompositeStoppable;
+public abstract class AbstractClass {
 
-import java.io.Closeable;
-
-public abstract class IoUtils {
-
-    // TODO merge in IoActions
-
-    public static <T, C extends Closeable> T get(C resource, InternalTransformer<T, ? super C> transformer) {
-        try {
-            return transformer.transform(resource);
-        } finally {
-            CompositeStoppable.stoppable(resource).stop();
-        }
-    }
 }

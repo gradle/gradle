@@ -21,8 +21,8 @@ import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.Factory;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public class BuildableBackedProvider<T> extends AbstractProviderWithValue<T> {

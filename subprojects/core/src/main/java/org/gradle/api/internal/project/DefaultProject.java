@@ -1015,7 +1015,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     }
 
     @Override
-    public <T> Provider<T> provider(Callable<T> value) {
+    public <T> Provider<T> provider(Callable<? extends T> value) {
         return getProviders().provider(value);
     }
 
