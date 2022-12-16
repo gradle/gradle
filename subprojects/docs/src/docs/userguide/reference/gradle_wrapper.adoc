@@ -203,12 +203,21 @@ If you nevertheless want *all* the wrapper files to be completely up-to-date, yo
 
 Use the Gradle `wrapper` task to generate the wrapper, specifying a version. The default is the current version. Once you have upgraded the wrapper, you can check that it's the version you expect by executing `./gradlew --version`.
 
-.Example: Upgrading the Wrapper version
+.Example: Upgrading the Wrapper the `latest` version
+[listing,subs=+attributes]
+----
+$ ./gradlew wrapper --gradle-version latest
+include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
+----
+
+.Example: Upgrading the Wrapper to a specific version
 [listing,subs=+attributes]
 ----
 $ ./gradlew wrapper --gradle-version {gradleVersion}
 include::{snippetsPath}/wrapper/simple/tests/wrapperGradleVersionUpgrade.out[]
 ----
+
+
 
 [[customizing_wrapper]]
 == Customizing the Gradle Wrapper

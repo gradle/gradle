@@ -313,6 +313,8 @@ public abstract class Wrapper extends DefaultTask {
      * e.g. there is not a `release-candidate` available at all times.
      *
      * @see #setGradleVersion(String)
+     *
+     * @throws GradleException if the label that can be provided via {@link #setGradleVersion(String)} can not be resolved at the moment. For example, there is not a `release-candidate` available at all times.
      */
     @Input
     public String getGradleVersion() {
@@ -322,10 +324,10 @@ public abstract class Wrapper extends DefaultTask {
     /**
      * The version of the gradle distribution required by the wrapper.
      * This is usually the same version of Gradle you use for building your project.
-     * The are labels allowed to specify a version: latest, release-candidate, nightly, and release-nightly
+     * The following labels are allowed to specify a version: {@code latest}, {@code release-candidate}, {@code nightly}, and {@code release-nightly}
      */
     @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper. " +
-        "The following labels are allowed: latest, release-candidate, nightly, and release-nightly")
+        "The following labels are allowed: latest, release-candidate, nightly, and release-nightly.")
     public void setGradleVersion(String gradleVersion) {
         this.gradleVersionResolver.setGradleVersionString(gradleVersion);
     }
