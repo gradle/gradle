@@ -52,12 +52,10 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
                         }
                         apiVersion = "1.5"
                         languageVersion = "1.5"
-                        useOldBackend = true
                         freeCompilerArgs += KotlinDslPluginSupport.kotlinCompilerArgs
                     }
                     it.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf(
                         "-XXLanguage:+DisableCompatibilityModeForNewInference",
-                        "-Xuse-old-backend",
                     )))
                 }
             }
