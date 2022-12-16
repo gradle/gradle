@@ -84,7 +84,14 @@
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
         <module name="IllegalImport">
-            <property name="illegalPkgs" value="jdk.internal,com.beust,org.testng.collections"/>
+            <!--
+                We shouldn't use jdk.internal types.
+                
+                com.beust and org.testng.collections has classes that look like Guava.
+
+                We prefer to import javax.annotation and fully-qualify references to org.jetbrains.annotations.
+            -->
+            <property name="illegalPkgs" value="jdk.internal,com.beust,org.testng.collections,org.jetbrains.annotations"/>
             <!-- The variants from org.gradle.util.internal should be used instead-->
             <property name="illegalClasses" value="^org\.gradle\.util\.(CollectionUtils|NameMatcher|NameValidator|VersionNumber|TextUtil|WrapUtil|RelativePathUtil|DistributionLocator|SingleMessageLogger|ClosureBackedAction|ConfigureUtil)"/>
         </module>
