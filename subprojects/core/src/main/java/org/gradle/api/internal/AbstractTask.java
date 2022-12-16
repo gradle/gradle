@@ -31,6 +31,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectOrderingUtil;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
@@ -543,7 +544,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public int compareTo(Task otherTask) {
-        int depthCompare = 0; //project.compareTo(otherTask.getProject());
+        int depthCompare = ProjectOrderingUtil.compare(getOwner(), ((TaskInternal) otherTask).getOwner());
         if (depthCompare == 0) {
             return getPath().compareTo(otherTask.getPath());
         } else {
@@ -1065,17 +1066,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private void notifyProjectAccess() {
-        if (isaBoolean()) {
+        if (isAtExecutionTime()) {
             getTaskExecutionAccessBroadcaster().onProjectAccess("Task.project", this);
         }
     }
 
-    private boolean isaBoolean() {
+    private boolean isAtExecutionTime() {
         return !getConfigurationTimeBarrier().isAtConfigurationTime();
     }
 
     private void notifyTaskDependenciesAccess(String invocationDescription) {
-        if (isaBoolean()) {
+        if (isAtExecutionTime()) {
             getTaskExecutionAccessBroadcaster().onTaskDependenciesAccess(invocationDescription, this);
         }
     }

@@ -29,6 +29,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.StateTransitionControllerFactory;
@@ -241,6 +242,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         private final ResourceLock taskLock;
         private final Set<Thread> canDoAnythingToThisProject = new CopyOnWriteArraySet<>();
         private final ProjectLifecycleController controller;
+        private final Lazy<Integer> depth = Lazy.unsafe().of(() -> getParent() != null ? getParent().getDepth() + 1 : 0);
 
         ProjectStateImpl(
             BuildState owner,
@@ -335,6 +337,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
         @Override
         public File getProjectDir() {
             return descriptor.getProjectDir();
+        }
+
+        @Override
+        public int getDepth() {
+            return depth.get();
         }
 
         @Override
