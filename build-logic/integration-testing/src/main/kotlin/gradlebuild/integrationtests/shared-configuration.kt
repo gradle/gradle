@@ -122,8 +122,6 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
     if (testType == TestType.INTEGRATION) {
         createTestTask(prefix + "ForceRealizeTest", defaultExecuter, sourceSet, testType) {
             systemProperties["org.gradle.integtest.force.realize.metadata"] = "true"
-            // TODO Kotlin 1.8 - remove after wrapper update
-            enabled = false
         }
     }
 }
