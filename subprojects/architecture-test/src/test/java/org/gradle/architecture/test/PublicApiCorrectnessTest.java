@@ -51,7 +51,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.primitive;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 
 @AnalyzeClasses(packages = "org.gradle")
-public class PublicApiAccessTest {
+public class PublicApiCorrectnessTest {
 
     private static final DescribedPredicate<JavaClass> allowed_types_for_public_api =
         gradlePublicApi()
