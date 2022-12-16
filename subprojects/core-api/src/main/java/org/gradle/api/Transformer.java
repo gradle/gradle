@@ -15,8 +15,6 @@
  */
 package org.gradle.api;
 
-import org.jetbrains.annotations.Nullable;
-
 /**
  * <p>A {@code Transformer} transforms objects of type.</p>
  *
@@ -25,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
  * @param <OUT> The type the value is transformed to.
  * @param <IN> The type of the value to be transformed.
  */
-public interface Transformer<OUT extends @Nullable Object, IN> {
+public interface Transformer<OUT extends @org.jetbrains.annotations.Nullable Object, IN> {
     /**
      * Transforms the given object, and returns the transformed value.
      *
