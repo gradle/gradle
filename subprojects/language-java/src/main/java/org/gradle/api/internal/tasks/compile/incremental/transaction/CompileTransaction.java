@@ -231,24 +231,24 @@ public class CompileTransaction {
     }
 
     private void rollbackStash(List<StashedFile> stashedFiles) {
-        if (isIncrementalCompilationAfterFailure()) {
+        if (supportsIncrementalCompilationAfterFailure()) {
             stashedFiles.forEach(StashedFile::unstash);
         }
     }
 
     private void setupSpecOutputs(List<StagedOutput> stagedOutputs) {
-        if (isIncrementalCompilationAfterFailure()) {
+        if (supportsIncrementalCompilationAfterFailure()) {
             stagedOutputs.forEach(StagedOutput::setupSpecOutput);
         }
     }
 
     private void restoreSpecOutputs(List<StagedOutput> stagedOutputs) {
-        if (isIncrementalCompilationAfterFailure()) {
+        if (supportsIncrementalCompilationAfterFailure()) {
             stagedOutputs.forEach(StagedOutput::restoreSpecOutput);
         }
     }
 
-    private boolean isIncrementalCompilationAfterFailure() {
+    private boolean supportsIncrementalCompilationAfterFailure() {
         return spec.getCompileOptions().supportsIncrementalCompilationAfterFailure();
     }
 

@@ -27,6 +27,7 @@ import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URLClassLoader;
 import java.util.Collections;
 import java.util.Set;
@@ -51,7 +52,7 @@ public class GradleStandardJavaFileManager extends ForwardingJavaFileManager<Sta
             try {
                 fileManager.setLocation(GradleLocation.PREVIOUS_CLASS_OUTPUT, Collections.singleton(previousClassOutput));
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new UncheckedIOException("Problem registering previous class output location", e);
             }
         }
     }
