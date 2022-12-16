@@ -136,8 +136,9 @@ Required by:
         """
 
         buildA.buildFile << """
+            def runtimeClasspath = configurations.runtimeClasspath
             classes.doLast {
-                def components = configurations.runtimeClasspath.incoming.resolutionResult.allComponents.id
+                def components = runtimeClasspath.incoming.resolutionResult.allComponents.id
                 assert components.size() == 3
                 assert components[0].build.name == ':'
                 assert components[0].build.currentBuild
