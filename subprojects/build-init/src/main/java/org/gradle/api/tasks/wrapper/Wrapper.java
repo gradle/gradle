@@ -294,16 +294,6 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     /**
-     * Returns the gradle version for the wrapper.
-     *
-     * @see #setGradleVersion(String)
-     */
-    @Input
-    public String getGradleVersion() {
-        return gradleVersionResolver.getGradleVersion().getVersion();
-    }
-
-    /**
      * Set Wrapper versions resources.
      *
      * @since 8.1
@@ -318,10 +308,24 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     /**
-     * The version of the gradle distribution required by the wrapper. This is usually the same version of Gradle you
-     * use for building your project.
+     * Returns the gradle version for the wrapper.
+     * This may throw if the label that can be provided via #setGradleVersion(String) can not be resolved at the moment
+     * e.g. there is not a `release-candidate` available at all times.
+     *
+     * @see #setGradleVersion(String)
      */
-    @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper.")
+    @Input
+    public String getGradleVersion() {
+        return gradleVersionResolver.getGradleVersion().getVersion();
+    }
+
+    /**
+     * The version of the gradle distribution required by the wrapper.
+     * This is usually the same version of Gradle you use for building your project.
+     * The are labels allowed to specify a version: latest, release-candidate, nightly, and release-nightly
+     */
+    @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper. " +
+        "The following labels are allowed: latest, release-candidate, nightly, and release-nightly")
     public void setGradleVersion(String gradleVersion) {
         this.gradleVersionResolver.setGradleVersionString(gradleVersion);
     }
