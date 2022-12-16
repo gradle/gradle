@@ -21,7 +21,9 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -33,6 +35,9 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.execution.WorkValidationException;
+import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.plugin.devel.tasks.internal.ValidateAction;
 import org.gradle.workers.WorkerExecutor;
 
@@ -67,7 +72,10 @@ public abstract class ValidatePlugins extends DefaultTask {
     @TaskAction
     public void validateTaskClasses() throws IOException {
         getWorkerExecutor()
-            .classLoaderIsolation(spec -> spec.getClasspath().setFrom(getClasses(), getClasspath()))
+            .processIsolation(spec -> {
+                spec.getForkOptions().setExecutable(toolchainLauncher().get().getExecutablePath());
+                spec.getClasspath().setFrom(getClasses(), getClasspath());
+            })
             .submit(ValidateAction.class, params -> {
                 params.getClasses().setFrom(getClasses());
                 params.getOutputFile().set(getOutputFile());
@@ -124,6 +132,12 @@ public abstract class ValidatePlugins extends DefaultTask {
             builder.append(String.format("%n  - %s", problemMessage));
         }
         return builder;
+    }
+
+    private Provider<JavaLauncher> toolchainLauncher() {
+        JavaToolchainSpec toolchain = getProject().getExtensions().getByType(JavaPluginExtension.class).getToolchain();
+        JavaToolchainService service = getProject().getExtensions().getByType(JavaToolchainService.class);
+        return service.launcherFor(toolchain);
     }
 
     /**
