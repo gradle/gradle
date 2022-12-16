@@ -40,5 +40,5 @@ interface ProblemsListener {
         )
     }
 
-    fun forIncompatibleType(): ProblemsListener = this
+    fun forIncompatibleTask(path: String): ProblemsListener = this
 }
