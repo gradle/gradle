@@ -37,7 +37,7 @@ The allowed labels are:
 - `nightly`
 - `release-nightly`
 
-More Details can be found in the [Gradle Wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper) section.
+More details can be found in the [Gradle Wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper) section.
 
 <!--
 

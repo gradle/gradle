@@ -309,8 +309,6 @@ public abstract class Wrapper extends DefaultTask {
 
     /**
      * Returns the gradle version for the wrapper.
-     * This may throw if the label that can be provided via #setGradleVersion(String) can not be resolved at the moment
-     * e.g. there is not a `release-candidate` available at all times.
      *
      * @see #setGradleVersion(String)
      *
