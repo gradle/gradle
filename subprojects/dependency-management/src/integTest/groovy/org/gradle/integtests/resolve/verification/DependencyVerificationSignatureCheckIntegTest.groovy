@@ -21,7 +21,6 @@ import org.gradle.api.attributes.Usage
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.security.fixtures.KeyServer
 import org.gradle.security.fixtures.SigningFixtures
 import org.gradle.security.internal.Fingerprint
@@ -131,9 +130,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
+        assertConfigCacheDiscarded()
 
         where:
         terse << [true, false]
@@ -178,10 +175,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -316,10 +310,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -405,10 +396,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -465,10 +453,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -515,10 +500,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -559,10 +541,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '$pkId' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
 
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         trustedKey << [
             validPublicKeyHexString,
@@ -609,10 +588,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -694,10 +670,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -740,10 +713,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         when: "publish keys"
         keyServerFixture.withDefaultSigningKey()
         fails ":compileJava"
@@ -761,10 +731,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         when: "refreshes the keys"
         succeeds ":compileJava", "--refresh-keys"
 
@@ -808,10 +775,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         when: "publish keys"
         keyServerFixture.withDefaultSigningKey()
         fails ":compileJava", "-Dorg.gradle.internal.test.clockoffset=${TimeUnit.HOURS.toMillis(23)}"
@@ -824,10 +788,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         when: "24 hours passed"
         succeeds ":compileJava", "-Dorg.gradle.internal.test.clockoffset=${TimeUnit.HOURS.toMillis(24) + TimeUnit.MINUTES.toMillis(5)}"
 
@@ -865,10 +826,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         when: "ignore key"
         replaceMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -885,10 +843,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.pom (org:foo:1.0) multiple problems reported:
       - in repository 'maven': artifact was signed but all keys were ignored
       - in repository 'maven': checksum is missing from verification metadata."""
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         when: "doesn't ignore key anymore"
         replaceMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -901,10 +856,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '14f53f0824875d73' but it wasn't found in any key server so it couldn't be verified
 """
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         when: "ignore key only for artifact"
         replaceMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -919,9 +871,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.jar (org:foo:1.0) multiple problems reported:
       - in repository 'maven': artifact was signed but all keys were ignored
       - in repository 'maven': checksum is missing from verification metadata."""
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
+        assertConfigCacheDiscarded()
     }
 
 
@@ -1073,10 +1023,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -1120,10 +1067,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
       - in repository 'maven': artifact was signed but all keys were ignored
       - in repository 'maven': checksum is missing from verification metadata."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -1168,10 +1112,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
       - in repository 'maven': artifact was signed but all keys were ignored
       - in repository 'maven': checksum is missing from verification metadata."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -1221,10 +1162,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
 
@@ -1275,10 +1213,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums."""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -1320,10 +1255,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': checksum is missing from verification metadata.""")
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         enableVerifySignatures << [true, false]
     }
@@ -1407,10 +1339,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
         }
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
-
+        assertConfigCacheDiscarded()
         where:
         terse << [true, false]
     }
@@ -1487,9 +1416,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
   - On artifact foo-1.0.pom (org:foo:1.0) in repository 'maven': Artifact was signed with key '${pkId}' (test-user@gradle.com) and passed verification but the key isn't in your trusted keys list.
 
 If the artifacts are trustworthy, you will need to update the gradle/verification-metadata.xml file by following the instructions at ${docsUrl}"""
-            if (GradleContextualExecuter.isConfigCache()) {
-                failure.assertOutputContains("Configuration cache entry discarded.")
-            }
+            assertConfigCacheDiscarded()
         }
 
         where:
@@ -1666,9 +1593,7 @@ One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository mave
   - foo-1.0.jar (org:foo:1.0) from repository maven
   - foo-1.0.pom (org:foo:1.0) from repository maven
 This can indicate that a dependency has been compromised. Please carefully verify the signatures and checksums. Key servers are disabled, this can indicate that you need to update the local keyring with the missing keys."""
-        if (GradleContextualExecuter.isConfigCache()) {
-            failure.assertOutputContains("Configuration cache entry discarded.")
-        }
+        assertConfigCacheDiscarded()
     }
 
     @ToBeFixedForConfigurationCache
