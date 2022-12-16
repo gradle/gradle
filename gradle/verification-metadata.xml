@@ -81,6 +81,7 @@
          <trusted-key id="1fa868a348719e88b6d0de24c03ef1d7d692bcff" group="org.scala-lang"/>
          <trusted-key id="21f0942275ea159a501d375328852008a47bb995" group="^com[.]google($|([.].*))" regex="true"/>
          <trusted-key id="253e8e4c6fb28d11748115c1249dee8e2c07a0a2" group="com.github.javaparser" name="javaparser-core"/>
+         <trusted-key id="28118c070cb22a0175a2e8d43d12ca2ac19f3181" group="^com[.]fasterxml[.]jackson($|([.].*))" regex="true"/>
          <trusted-key id="2bcbdd0f23ea1cafcc11d4860374cf2e8dd1bdfd" group="org.sonatype.plexus"/>
          <trusted-key id="2be67ac00d699e04e840b7fe29967e804d85663f">
             <trusting group="com.eed3si9n" name="shaded-scalajson_2.13"/>
@@ -1446,6 +1447,7 @@
          <artifact name="grolifant-0.16.1.jar">
             <ignored-keys>
                <ignored-key id="54ac8e2d98cfeac6" reason="also-trust requires ignoring signatures"/>
+               <ignored-key id="ea022560a81e5bd48db3d18b54ac8e2d98cfeac6" reason="PGP verification failed"/>
             </ignored-keys>
             <sha256 value="a867e911d060a240b8aa111896b7379282fe61940dfb949e72600f7ca67cb92f" origin="Maven Central (also is JCenter)">
                <also-trust value="362c450c9738834181fdfac1147fa11cf21cefd59d7a5368756e174f93567a43"/>
