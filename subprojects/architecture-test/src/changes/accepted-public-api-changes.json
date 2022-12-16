@@ -106,6 +106,14 @@
         },
         {
             "type": "org.gradle.api.artifacts.dsl.DependencyHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyHandler.add(java.lang.String,java.lang.Object,groovy.lang.Closure)",
+            "acceptation": "This could always return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.DependencyHandler",
             "member": "Method org.gradle.api.artifacts.dsl.DependencyHandler.registerTransform(org.gradle.api.Action)",
             "acceptation": "Legacy ArtifactTransform API has been removed",
             "changes": [
