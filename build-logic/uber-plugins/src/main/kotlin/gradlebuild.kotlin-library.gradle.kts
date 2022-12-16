@@ -67,6 +67,7 @@ fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
         freeCompilerArgs += listOf(
             "-Xjsr305=strict",
             "-java-parameters",
+            "-Xsam-conversions=class",
             "-Xskip-metadata-version-check",
         )
         jvmTarget = "1.8"
