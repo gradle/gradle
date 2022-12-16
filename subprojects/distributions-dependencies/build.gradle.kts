@@ -18,7 +18,7 @@ val archunitVersion = "1.0.0-rc1"
 val asmVersion = "9.3"
 val awsS3Version = "1.12.365"
 val bouncycastleVersion = "1.68"
-val jacksonVersion = "2.13.3"
+val jacksonVersion = "2.14.1"
 val jaxbVersion = "3.0.0"
 val jettyVersion = "9.4.36.v20210114"
 val junit5Version = "5.8.2"
@@ -94,6 +94,7 @@ dependencies {
         api(libs.jacksonAnnotations)    { version { strictly(jacksonVersion) }}
         api(libs.jacksonCore)           { version { strictly(jacksonVersion) }}
         api(libs.jacksonDatabind)       { version { strictly(jacksonVersion) }}
+        api(libs.jacksonKotlin)         { version { strictly(jacksonVersion) }}
         api(libs.jakartaActivation)     { version { strictly("2.0.0") }}
         api(libs.jakartaXmlBind)        { version { strictly("3.0.0") }}
         api(libs.jansi)                 { version { strictly("1.18"); because("2.x changes the API") }}
@@ -159,7 +160,6 @@ dependencies {
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
         api(libs.guice)                 { version { strictly("4.2.3") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
-        api(libs.jacksonKotlin)         { version { strictly("2.9.2") }}
         api(libs.javaParser)            { version { strictly("3.17.0") }}
         api(libs.jetty)                 { version { strictly(jettyVersion) }}
         api(libs.jettySecurity)         { version { strictly(jettyVersion) }}
