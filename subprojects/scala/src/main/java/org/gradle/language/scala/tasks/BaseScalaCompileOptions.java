@@ -16,6 +16,7 @@
 
 package org.gradle.language.scala.tasks;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -164,14 +165,18 @@ public abstract class BaseScalaCompileOptions extends AbstractOptions {
     /**
      * Additional parameters passed to the compiler.
      * Each parameter must start with '-'.
+     *
+     * @return The immutable list of additional parameters.
      */
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public List<String> getAdditionalParameters() {
         return additionalParameters;
     }
 
     public void setAdditionalParameters(@Nullable List<String> additionalParameters) {
-        this.additionalParameters = additionalParameters;
+        this.additionalParameters = additionalParameters == null ? null : ImmutableList.copyOf(additionalParameters);
     }
 
     /**
