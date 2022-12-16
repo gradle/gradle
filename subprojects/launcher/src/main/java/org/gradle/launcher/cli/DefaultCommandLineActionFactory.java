@@ -16,6 +16,7 @@
 package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import org.apache.tools.ant.Main;
 import org.codehaus.groovy.util.ReleaseInfo;
 import org.gradle.api.Action;
@@ -55,7 +56,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
+ * <p>Responsible for executing a set of command-line arguments.</p>
  */
 public class DefaultCommandLineActionFactory implements CommandLineActionFactory {
     public static final String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY = "org.gradle.internal.launcher.welcomeMessageEnabled";
@@ -63,24 +64,36 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     private static final String VERSION = "v";
     private static final String VERSION_CONTINUE = "V";
 
+    private final LoggingServiceRegistry loggingServices;
+    private final List<CommandLineActionCreator> actionCreators;
+
+    public DefaultCommandLineActionFactory() {
+        this(LoggingServiceRegistry.newCommandLineProcessLogging());
+    }
+
+    private DefaultCommandLineActionFactory(LoggingServiceRegistry loggingServices) {
+        this(loggingServices, new BuildActionsFactory(loggingServices));
+    }
+
     /**
-     * <p>Converts the given command-line arguments to an {@link Action} which performs the action requested by the
-     * command-line args.
+     * Allows tests to inject a mock build action factory to avoid attempting to execute actual builds.
+     */
+    @VisibleForTesting
+    public DefaultCommandLineActionFactory(LoggingServiceRegistry loggingServices, CommandLineActionCreator buildActionsFactory) {
+        this.loggingServices = loggingServices;
+        this.actionCreators = ImmutableList.of(new BuiltInActionCreator(), new ContinuingActionCreator(), buildActionsFactory);
+    }
+
+    /**
+     * Creates an {@link Action} which executes the commands specified by the provided arguments and
+     * reports execution events to the provided listener.
      *
-     * @param args The command-line arguments.
-     * @return The action to execute.
+     * @param args The arguments describing the command to run.
      */
     @Override
-    public CommandLineExecution convert(List<String> args) {
-        ServiceRegistry loggingServices = createLoggingServices();
-
-        LoggingConfiguration loggingConfiguration = new DefaultLoggingConfiguration();
-
-        return new WithLogging(loggingServices,
-            args,
-            loggingConfiguration,
-            new ParseAndBuildAction(loggingServices, args),
-            new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData()));
+    public Action<ExecutionListener> convert(List<String> args) {
+        Action<ExecutionListener> action = new ParseAndBuildAction(args, actionCreators);
+        return new WithLogging(loggingServices, args, new DefaultLoggingConfiguration(), action);
     }
 
     private static GradleLauncherMetaData clientMetaData() {
@@ -97,44 +110,21 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         out.println();
     }
 
-    /**
-     * This method is left visible so that tests can override it to inject {@link CommandLineActionCreator}s which
-     * don't actually attempt to run the build per normally.
-     *
-     * @param loggingServices logging services to use when instantiating any {@link CommandLineActionCreator}s
-     * @param actionCreators collection of {@link CommandLineActionCreator}s to which to add a new {@link BuildActionsFactory}
-     */
-    @VisibleForTesting
-    protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, List<CommandLineActionCreator> actionCreators) {
-        actionCreators.add(new BuildActionsFactory(loggingServices));
-    }
-
-    /**
-     * This method is left visible so that tests can override it to inject mocked {@link ServiceRegistry}s.
-     *
-     * @return the created {@link ServiceRegistry}
-     */
-    @VisibleForTesting
-    protected ServiceRegistry createLoggingServices() {
-        return LoggingServiceRegistry.newCommandLineProcessLogging();
-    }
-
     private static class BuiltInActionCreator implements CommandLineActionCreator {
         @Override
         public void configureCommandLineParser(CommandLineParser parser) {
             parser.option(HELP, "?", "help").hasDescription("Shows this help message.");
             parser.option(VERSION, "version").hasDescription("Print version info and exit.");
-            parser.option(VERSION_CONTINUE, "show-version").hasDescription("Print version info and continue.");
         }
 
         @Override
         @Nullable
         public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
             if (commandLine.hasOption(HELP)) {
-                return new ShowUsageAction(parser);
+                return listener -> showHelp(parser);
             }
             if (commandLine.hasOption(VERSION)) {
-                return new ShowVersionAction();
+                return DefaultCommandLineActionFactory::showVersion;
             }
             return null;
         }
@@ -143,128 +133,93 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     /**
      * This {@link CommandLineActionCreator} is responsible for handling any command line options that produce {@link ContinuingAction}s.
      */
-    private static class ContinuingActionCreator extends NonParserConfiguringCommandLineActionCreator {
+    private static class ContinuingActionCreator implements CommandLineActionCreator {
+        @Override
+        public void configureCommandLineParser(CommandLineParser parser) {
+            parser.option(VERSION_CONTINUE, "show-version").hasDescription("Print version info and continue.");
+        }
+
         @Override
         @Nullable
         public ContinuingAction<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
             if (commandLine.hasOption(DefaultCommandLineActionFactory.VERSION_CONTINUE)) {
-                return (ContinuingAction<ExecutionListener>) executionListener -> new ShowVersionAction().execute(executionListener);
+                return DefaultCommandLineActionFactory::showVersion;
             }
             return null;
         }
     }
 
-    private static class CommandLineParseFailureAction implements Action<ExecutionListener> {
-        private final Exception exception;
-        private final CommandLineParser parser;
-
-        public CommandLineParseFailureAction(CommandLineParser parser, Exception exception) {
-            this.parser = parser;
-            this.exception = exception;
-        }
-
-        @Override
-        public void execute(ExecutionListener executionListener) {
-            System.err.println();
-            System.err.println(exception.getMessage());
-            showUsage(System.err, parser);
-            executionListener.onFailure(exception);
-        }
+    private static void showCommandLineParseFailure(Exception exception, CommandLineParser parser) {
+        System.err.println();
+        System.err.println(exception.getMessage());
+        showUsage(System.err, parser);
     }
 
-    private static class ShowUsageAction implements Action<ExecutionListener> {
-        private final CommandLineParser parser;
-
-        public ShowUsageAction(CommandLineParser parser) {
-            this.parser = parser;
-        }
-
-        @Override
-        public void execute(ExecutionListener executionListener) {
-            System.out.println();
-            System.out.print("To see help contextual to the project, use ");
-            clientMetaData().describeCommand(System.out, "help");
-            System.out.println();
-            showUsage(System.out, parser);
-        }
+    private static void showHelp(CommandLineParser parser) {
+        System.out.println();
+        System.out.print("To see help contextual to the project, use ");
+        clientMetaData().describeCommand(System.out, "help");
+        System.out.println();
+        showUsage(System.out, parser);
     }
 
-    public static class ShowVersionAction implements Action<ExecutionListener> {
-        @Override
-        public void execute(ExecutionListener executionListener) {
-            DefaultGradleVersion currentVersion = DefaultGradleVersion.current();
+    private static void showVersion(ExecutionListener executionListener) {
+        DefaultGradleVersion currentVersion = DefaultGradleVersion.current();
 
-            final StringBuilder sb = new StringBuilder();
-            sb.append("%n------------------------------------------------------------%nGradle ");
-            sb.append(currentVersion.getVersion());
-            sb.append("%n------------------------------------------------------------%n%nBuild time:   ");
-            sb.append(currentVersion.getBuildTimestamp());
-            sb.append("%nRevision:     ");
-            sb.append(currentVersion.getGitRevision());
-            sb.append("%n%nKotlin:       ");
-            sb.append(KotlinDslVersion.current().getKotlinVersion());
-            sb.append("%nGroovy:       ");
-            sb.append(ReleaseInfo.getVersion());
-            sb.append("%nAnt:          ");
-            sb.append(Main.getAntVersion());
-            sb.append("%nJVM:          ");
-            sb.append(Jvm.current());
-            sb.append("%nOS:           ");
-            sb.append(OperatingSystem.current());
-            sb.append("%n");
+        final StringBuilder sb = new StringBuilder();
+        sb.append("%n------------------------------------------------------------%nGradle ");
+        sb.append(currentVersion.getVersion());
+        sb.append("%n------------------------------------------------------------%n%nBuild time:   ");
+        sb.append(currentVersion.getBuildTimestamp());
+        sb.append("%nRevision:     ");
+        sb.append(currentVersion.getGitRevision());
+        sb.append("%n%nKotlin:       ");
+        sb.append(KotlinDslVersion.current().getKotlinVersion());
+        sb.append("%nGroovy:       ");
+        sb.append(ReleaseInfo.getVersion());
+        sb.append("%nAnt:          ");
+        sb.append(Main.getAntVersion());
+        sb.append("%nJVM:          ");
+        sb.append(Jvm.current());
+        sb.append("%nOS:           ");
+        sb.append(OperatingSystem.current());
+        sb.append("%n");
 
-            System.out.println(String.format(sb.toString()));
-        }
+        System.out.println(String.format(sb.toString()));
     }
 
     /**
-     * This {@link Action} is also a {@link CommandLineActionCreator} that, when run, will create new {@link Action}s that
-     * will be immediately executed.
+     * An {@link Action} which executes the actions generated by list of provided {@link CommandLineActionCreator}s.
      *
-     * This class accomplishes this be maintaining a list of {@link CommandLineActionCreator}s which can each attempt to
-     * create an {@link Action} from the given CLI args, and handles the logic for deciding whether or not to continue processing
-     * based on whether the result is a {@link ContinuingAction} or not.  It allows for injecting alternate Creators which
-     * won't actually attempt to run a build via the containing class' {@link #createBuildActionFactoryActionCreator(ServiceRegistry, List)}
-     * method - this is why this class is not {@code static}.
+     * The provided {@link CommandLineActionCreator}s each attempt to create an {@link Action} from the given CLI args.
+     * After processing each created action, subsequent actions are only executed if the processed action is a {@link ContinuingAction}.
      */
-    private class ParseAndBuildAction extends NonParserConfiguringCommandLineActionCreator implements Action<ExecutionListener> {
-        private final ServiceRegistry loggingServices;
+    private static class ParseAndBuildAction implements Action<ExecutionListener> {
         private final List<String> args;
-        private List<CommandLineActionCreator> actionCreators;
-        private CommandLineParser parser = new CommandLineParser();
+        private final List<CommandLineActionCreator> actionCreators;
 
-        private ParseAndBuildAction(ServiceRegistry loggingServices, List<String> args) {
-            this.loggingServices = loggingServices;
+        private ParseAndBuildAction(List<String> args, List<CommandLineActionCreator> actionCreators) {
             this.args = args;
-
-            actionCreators = new ArrayList<>();
-            actionCreators.add(new BuiltInActionCreator());
-            actionCreators.add(new ContinuingActionCreator());
+            this.actionCreators = actionCreators;
         }
 
         @Override
         public void execute(ExecutionListener executionListener) {
-            // This must be added only during execute, because the actual constructor is called by various tests and this will not succeed if called then
-            createBuildActionFactoryActionCreator(loggingServices, actionCreators);
-            configureCreators();
+            CommandLineParser parser = new CommandLineParser();
+            actionCreators.forEach(creator -> creator.configureCommandLineParser(parser));
 
-            Action<? super ExecutionListener> action;
             try {
                 ParsedCommandLine commandLine = parser.parse(args);
-                action = createAction(parser, commandLine);
+                combineActions(parser, commandLine, actionCreators).execute(executionListener);
             } catch (CommandLineArgumentException e) {
-                action = new CommandLineParseFailureAction(parser, e);
+                showCommandLineParseFailure(e, parser);
+                executionListener.onFailure(e);
             }
-
-            action.execute(executionListener);
         }
 
-        private void configureCreators() {
-            actionCreators.forEach(creator -> creator.configureCommandLineParser(parser));
-        }
-
-        @Override
-        public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine) {
+        private static Action<? super ExecutionListener> combineActions(
+            CommandLineParser parser, ParsedCommandLine commandLine, List<CommandLineActionCreator> actionCreators
+        ) {
             List<Action<? super ExecutionListener>> actions = new ArrayList<>(2);
             for (CommandLineActionCreator actionCreator : actionCreators) {
                 Action<? super ExecutionListener> action = actionCreator.createAction(parser, commandLine);
@@ -284,34 +239,23 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         }
     }
 
-    /**
-     * Abstract type for any {@link CommandLineActionCreator} that does not make use of the {@link#configureCommandLineParser(CommandLineParser)}
-     * method.
-     */
-    private static abstract class NonParserConfiguringCommandLineActionCreator implements CommandLineActionCreator {
-        @Override
-        public void configureCommandLineParser(CommandLineParser parser) {
-            // no-op
-        }
-    }
-
-    private static class WithLogging implements CommandLineExecution {
+    private static class WithLogging implements Action<ExecutionListener> {
         private final ServiceRegistry loggingServices;
         private final List<String> args;
         private final LoggingConfiguration loggingConfiguration;
         private final Action<ExecutionListener> action;
-        private final Action<Throwable> reporter;
 
-        WithLogging(ServiceRegistry loggingServices, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action, Action<Throwable> reporter) {
+        WithLogging(ServiceRegistry loggingServices, List<String> args, LoggingConfiguration loggingConfiguration, Action<ExecutionListener> action) {
             this.loggingServices = loggingServices;
             this.args = args;
             this.loggingConfiguration = loggingConfiguration;
             this.action = action;
-            this.reporter = reporter;
         }
 
         @Override
         public void execute(ExecutionListener executionListener) {
+            final Action<Throwable> reporter = new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), loggingConfiguration, clientMetaData());
+
             BuildOptionBackedConverter<WelcomeMessageConfiguration> welcomeMessageConverter = new BuildOptionBackedConverter<>(new WelcomeMessageBuildOptions());
             BuildOptionBackedConverter<LoggingConfiguration> loggingBuildOptions = new BuildOptionBackedConverter<>(new LoggingConfigurationBuildOptions());
             InitialPropertiesConverter propertiesConverter = new InitialPropertiesConverter();
@@ -352,12 +296,14 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
             loggingManager.start();
+
             try {
                 Action<ExecutionListener> exceptionReportingAction =
                     new ExceptionReportingAction(reporter, loggingManager,
                         new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
                             new WelcomeMessageAction(buildLayout, welcomeMessageConfiguration,
                                 new DebugLoggerWarningAction(loggingConfiguration, action))));
+
                 exceptionReportingAction.execute(executionListener);
             } finally {
                 loggingManager.stop();

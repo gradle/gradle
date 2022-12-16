@@ -29,7 +29,6 @@ import org.gradle.internal.logging.text.StreamingStyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.bootstrap.CommandLineActionFactory
 import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -41,28 +40,18 @@ import spock.lang.Specification
 
 class DefaultCommandLineActionFactoryTest extends Specification {
     @Rule
-    public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();
+    public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     @Rule
-    public final SetSystemProperties sysProperties = new SetSystemProperties();
+    public final SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+
     final ExecutionListener executionListener = Mock()
     final LoggingServiceRegistry loggingServices = Mock()
     final LoggingManagerInternal loggingManager = Mock()
-    final CommandLineActionCreator actionFactory1 = Mock()
-    final CommandLineActionCreator actionFactory2 = Mock()
-    final CommandLineActionFactory factory = new DefaultCommandLineActionFactory() {
-        @Override
-        protected LoggingServiceRegistry createLoggingServices() {
-            return loggingServices
-        }
+    final CommandLineActionCreator buildActionsFactory = Mock()
 
-        @Override
-        protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, List<CommandLineActionCreator> actionCreators) {
-            actionCreators.add(actionFactory1)
-            actionCreators.add(actionFactory2)
-        }
-    }
+    final CommandLineActionFactory factory = new DefaultCommandLineActionFactory(loggingServices, buildActionsFactory)
 
     def setup() {
         ProgressLoggerFactory progressLoggerFactory = Mock()
@@ -85,11 +74,10 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         commandLineExecution.execute(executionListener)
 
         then:
-        1 * actionFactory1.configureCommandLineParser(!null) >> {
+        1 * buildActionsFactory.configureCommandLineParser(!null) >> {
             CommandLineParser parser -> parser.option("some-option")
         }
-        1 * actionFactory2.configureCommandLineParser(!null)
-        1 * actionFactory1.createAction(!null, !null) >> rawAction
+        1 * buildActionsFactory.createAction(!null, !null) >> rawAction
         1 * rawAction.execute(executionListener)
     }
 
@@ -104,9 +92,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         1 * loggingManager.start()
 
         and:
-        1 * actionFactory1.configureCommandLineParser(!null)
-        1 * actionFactory2.configureCommandLineParser(!null)
-        1 * actionFactory1.createAction(!null, !null) >> rawAction
+        1 * buildActionsFactory.configureCommandLineParser(!null)
+        1 * buildActionsFactory.createAction(!null, !null) >> rawAction
     }
 
     def "reports command-line parse failure"() {
@@ -121,7 +108,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         outputs.stdErr.contains('--some-option')
 
         and:
-        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
+        1 * buildActionsFactory.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option('some-option')}
         1 * executionListener.onFailure({it instanceof CommandLineArgumentException})
         0 * executionListener._
     }
@@ -140,8 +127,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         outputs.stdErr.contains('--some-option')
 
         and:
-        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
-        1 * actionFactory1.createAction(!null, !null) >> { throw failure }
+        1 * buildActionsFactory.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option('some-option')}
+        1 * buildActionsFactory.createAction(!null, !null) >> { throw failure }
         1 * executionListener.onFailure(failure)
         0 * executionListener._
     }
@@ -158,7 +145,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         outputs.stdErr.contains('--some-option')
 
         and:
-        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
+        1 * buildActionsFactory.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option('some-option')}
         1 * executionListener.onFailure({it instanceof CommandLineArgumentException})
         0 * executionListener._
     }
@@ -174,7 +161,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         outputs.stdErr.contains('<broken>')
 
         and:
-        1 * actionFactory1.createAction(!null, !null) >> { throw failure }
+        1 * buildActionsFactory.createAction(!null, !null) >> { throw failure }
         1 * executionListener.onFailure(failure)
         0 * executionListener._
     }
@@ -191,7 +178,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         outputs.stdOut.contains('--some-option')
 
         and:
-        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
+        1 * buildActionsFactory.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option('some-option')}
         0 * executionListener._
 
         where:
@@ -237,8 +224,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         outputs.stdOut.contains(expectedText)
 
         and:
-        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
-        0 * actionFactory1.createAction(_, _)
+        1 * buildActionsFactory.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option('some-option')}
+        0 * buildActionsFactory.createAction(_, _)
         1 * loggingManager.start()
         0 * executionListener._
 
@@ -271,26 +258,17 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
         then:
         outputs.stdOut.contains(expectedText)
-        outputs.stdOut.contains("action1")
-        !action1Intermediary || outputs.stdOut.contains("action2")
 
         and:
-        1 * actionFactory1.createAction(!null, !null) >> {
-            def action1 = { println "action1" }
-            action1Intermediary ? action1 as ContinuingAction<ExecutionListener> : action1 as Action<ExecutionListener>
-
-        }
-        action2Called * actionFactory2.createAction(!null, !null) >> {
-            { println "action2" } as Action<ExecutionListener>
-        }
+        numBuildsExecuted * buildActionsFactory.createAction(!null, !null)
         1 * loggingManager.start()
         0 * executionListener._
 
         where:
-        options            | action1Intermediary | action2Called
-        ['-V']             | false               | 0
-        ['--show-version'] | false               | 0
-        ['-V']             | true                | 1
-        ['--show-version'] | true                | 1
+        options            | numBuildsExecuted
+        ['-v']             | 0
+        ['--version']      | 0
+        ['-V']             | 1
+        ['--show-version'] | 1
     }
 }

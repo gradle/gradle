@@ -15,9 +15,10 @@
  */
 package org.gradle.launcher
 
+import org.gradle.api.Action
 import org.gradle.launcher.bootstrap.CommandLineActionFactory
 import org.gradle.launcher.bootstrap.ExecutionCompleter
-import org.gradle.launcher.cli.DefaultCommandLineActionFactory
+import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
@@ -27,18 +28,16 @@ class MainTest extends Specification {
     @Rule
     final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
 
-    CommandLineActionFactory.CommandLineExecution actionImpl
+    Action<ExecutionListener> actionImpl
 
     void action(Closure closure) {
-        actionImpl = closure as CommandLineActionFactory.CommandLineExecution
+        actionImpl = closure as Action
     }
 
-    def actionFactoryImpl
+    CommandLineActionFactory actionFactoryImpl
 
     void actionFactory(Closure closure) {
-        actionFactoryImpl = new DefaultCommandLineActionFactory() {
-            CommandLineActionFactory.CommandLineExecution convert(List args) { closure(args) }
-        }
+        actionFactoryImpl = closure as CommandLineActionFactory
     }
     boolean completedSuccessfully
     boolean completedWithFailure
