@@ -29,6 +29,7 @@ dependencies {
     implementation(project(":tooling-api"))
     implementation(project(":file-watching"))
     implementation(project(":problems"))
+    implementation(project(":file-temp"))
 
     implementation(libs.groovy) // for 'ReleaseInfo.getVersion()'
     implementation(libs.slf4jApi)
@@ -37,6 +38,7 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.asm)
     implementation(libs.ant)
+    implementation(libs.nativePlatform)
 
     runtimeOnly(libs.asm)
     runtimeOnly(libs.commonsIo)

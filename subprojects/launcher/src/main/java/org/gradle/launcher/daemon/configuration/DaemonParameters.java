@@ -36,6 +36,7 @@ import java.util.Set;
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     public static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
+    public static final JavaVersion MIN_SUPPORTED_JVM_VERSION = JavaVersion.VERSION_1_8;
 
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxPermSize=384m", "-XX:+HeapDumpOnOutOfMemoryError");
     public static final List<String> DEFAULT_JVM_8_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=384m", "-XX:+HeapDumpOnOutOfMemoryError");
@@ -57,7 +58,8 @@ public class DaemonParameters {
     private boolean stop;
     private boolean status;
     private Priority priority = Priority.NORMAL;
-    private JavaInfo jvm = Jvm.current();
+    private JavaInfo jvm;
+    private Integer jvmVersion;
 
     public DaemonParameters(BuildLayoutResult layout, FileCollectionFactory fileCollectionFactory) {
         this(layout, fileCollectionFactory, Collections.<String, String>emptyMap());
@@ -117,13 +119,25 @@ public class DaemonParameters {
     }
 
     public JavaInfo getEffectiveJvm() {
-        return jvm;
+        return jvm != null ? jvm : Jvm.current();
     }
 
     @Nullable
-    public DaemonParameters setJvm(JavaInfo jvm) {
-        this.jvm = jvm == null ? Jvm.current() : jvm;
-        return this;
+    public JavaInfo getJvm() {
+        return jvm;
+    }
+
+    public void setJvm(@Nullable JavaInfo jvm) {
+        this.jvm = jvm;
+    }
+
+    public void setJvmVersion(@Nullable Integer version) {
+        this.jvmVersion = version;
+    }
+
+    @Nullable
+    public Integer getJvmVersion() {
+        return jvmVersion;
     }
 
     public void applyDefaultsFor(JavaVersion javaVersion) {

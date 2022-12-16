@@ -23,6 +23,7 @@ import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
+import org.gradle.internal.buildoption.IntegerBuildOption;
 import org.gradle.internal.buildoption.Origin;
 import org.gradle.internal.buildoption.StringBuildOption;
 import org.gradle.internal.jvm.JavaHomeException;
@@ -42,6 +43,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         new BaseDirOption(),
         new JvmArgsOption(),
         new JavaHomeOption(),
+        new JvmVersionOption(),
         new DebugOption(),
         new DebugHostOption(),
         new DebugPortOption(),
@@ -143,6 +145,24 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
             } catch (JavaHomeException e) {
                 origin.handleInvalidValue(value, "Java home supplied seems to be invalid");
             }
+        }
+    }
+
+    public static class JvmVersionOption extends IntegerBuildOption<DaemonParameters> {
+        public static final String GRADLE_PROPERTY = "org.gradle.experimental.daemon.jvm.version";
+
+        public JvmVersionOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(int value, DaemonParameters settings, Origin origin) {
+            int minAllowed = Integer.parseInt(DaemonParameters.MIN_SUPPORTED_JVM_VERSION.getMajorVersion());
+
+            if (value < minAllowed) {
+                origin.handleInvalidValue(Integer.toString(value), "Daemon JVM version must be at least " + minAllowed);
+            }
+            settings.setJvmVersion(value);
         }
     }
 
