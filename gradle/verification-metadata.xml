@@ -85,6 +85,10 @@
          <trusted-key id="1fa868a348719e88b6d0de24c03ef1d7d692bcff" group="org.scala-lang"/>
          <trusted-key id="21f0942275ea159a501d375328852008a47bb995" group="^com[.]google($|([.].*))" regex="true"/>
          <trusted-key id="253e8e4c6fb28d11748115c1249dee8e2c07a0a2" group="com.github.javaparser" name="javaparser-core"/>
+         <trusted-key id="28118c070cb22a0175a2e8d43d12ca2ac19f3181">
+            <trusting group="com.fasterxml.jackson.core"/>
+            <trusting group="^com[.]fasterxml[.]jackson($|([.].*))" regex="true"/>
+         </trusted-key>
          <trusted-key id="2bcbdd0f23ea1cafcc11d4860374cf2e8dd1bdfd" group="org.sonatype.plexus"/>
          <trusted-key id="2be67ac00d699e04e840b7fe29967e804d85663f">
             <trusting group="com.eed3si9n" name="shaded-scalajson_2.13"/>
@@ -150,7 +154,6 @@
          <trusted-key id="5f55943e13d49059d3f342777186b06e1ed139e7" group="org.apache.lucene"/>
          <trusted-key id="600ea202b1ec682f4a788e5aac7a514bc9f9bb70" group="io.opencensus"/>
          <trusted-key id="60c6700e08f02b9eb6f4a46745145f826cf4bf98" group="com.googlecode.plist" name="dd-plist"/>
-         <trusted-key id="6214760097dc5cfad0175ac2c9fbaa83a8753994" group="^com[.]fasterxml[.]jackson($|([.].*))" regex="true"/>
          <trusted-key id="666a4692ce11b7b3f4eb7b3410066a9707090cf9" group="org.javassist" name="javassist"/>
          <trusted-key id="66ca61ea0fc7e9ea1216f83396b88eacd463b90b" group="com.diffplug.spotless"/>
          <trusted-key id="694621a7227d8d5289699830abe9f3126bb741c1">
@@ -185,10 +188,6 @@
             <trusting group="^com[.]diffplug($|([.].*))" regex="true"/>
             <trusting group="^org[.]jetbrains($|([.].*))" regex="true"/>
             <trusting group="^org[.]rnorth($|([.].*))" regex="true"/>
-         </trusted-key>
-         <trusted-key id="8a10792983023d5d14c93b488d7f1bec1e2ecae7">
-            <trusting group="com.fasterxml.jackson.core"/>
-            <trusting group="^com[.]fasterxml[.]jackson($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="8c03da5873b13e40c8c0dce46a7ae74683a8ae1a" group="net.sourceforge.htmlunit"/>
          <trusted-key id="8da70c00df7af1b0d2f9dc74ddbcc1270a29d081" group="org.apache.ant"/>
@@ -312,7 +311,7 @@
             <sha256 value="e9e154f7d5714f2f46463646dc7fa15b8dcb6f4c79bb87c8295ab7aa3eb6b0a4" origin="Artifact is not signed"/>
          </artifact>
          <artifact name="android-studio-2022.1.1.12.mac_arm.zip">
-            <sha256 value="c372719eb01b895c95aff5d072eb2afa5c64c581c640f78997251e9a33c2f043" origin="Artifact is not signed"/>
+            <sha256 value="c372719eb01b895c95aff5d072eb2afa5c64c581c640f78997251e9a33c2f043" reason="Artifact is not signed"/>
          </artifact>
          <artifact name="android-studio-2022.1.1.12.windows.zip">
             <sha256 value="6d198058cc39d568ac65cef58f84a5927f5e5a32ff6aeb76c1020f421ae0c4f7" origin="Artifact is not signed"/>
@@ -320,17 +319,17 @@
       </component>
       <component group="antlr" name="antlr" version="2.7.7">
          <artifact name="antlr-2.7.7.jar">
-            <sha256 value="88fbda4b912596b9f56e8e12e580cc954bacfb51776ecfddd3e18fc1cf56dc4c" origin="Artifact is not signed"/>
+            <sha256 value="88fbda4b912596b9f56e8e12e580cc954bacfb51776ecfddd3e18fc1cf56dc4c" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="aopalliance" name="aopalliance" version="1.0">
          <artifact name="aopalliance-1.0.jar">
-            <sha256 value="0addec670fedcd3f113c5c8091d783280d23f75e3acb841b61a9cdb079376a08" origin="Artifact is not signed"/>
+            <sha256 value="0addec670fedcd3f113c5c8091d783280d23f75e3acb841b61a9cdb079376a08" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="cglib" name="cglib-nodep" version="2.1_3">
          <artifact name="cglib-nodep-2.1_3.jar">
-            <sha256 value="e77f0b091a800acd15217bbc3c3629c1af0925b55b271fc5d0586422985639bb" origin="Artifact is not signed"/>
+            <sha256 value="e77f0b091a800acd15217bbc3c3629c1af0925b55b271fc5d0586422985639bb" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="com.andreapivetta.kolor" name="kolor" version="0.0.2">
@@ -664,7 +663,7 @@
       </component>
       <component group="com.uwyn" name="jhighlight" version="1.0">
          <artifact name="jhighlight-1.0.jar">
-            <sha256 value="ede52343fc4a8f080a1801bb735be1b895a5055d61cef55e2b5c6ac7dd4e5c8c" origin="Artifact is not signed"/>
+            <sha256 value="ede52343fc4a8f080a1801bb735be1b895a5055d61cef55e2b5c6ac7dd4e5c8c" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="com.vdurmont" name="semver4j" version="2.1.0">
@@ -730,12 +729,12 @@
       </component>
       <component group="flot" name="flot" version="0.8.1">
          <artifact name="flot-0.8.1-min.js">
-            <sha256 value="889e1e07300265211222ad70b0644b9af0954eb2f9eaf06544c0e436967f434f" origin="Artifact is not signed"/>
+            <sha256 value="889e1e07300265211222ad70b0644b9af0954eb2f9eaf06544c0e436967f434f" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="gradle.plugin.org.jetbrains.gradle.plugin.idea-ext" name="gradle-idea-ext" version="1.0.1">
          <artifact name="gradle-idea-ext-1.0.1.jar">
-            <sha256 value="001c6c04c330b0e16bf9836afdf8b27c89e5e33caf88b3d8272d12afe1a24e08" origin="Artifact is not signed"/>
+            <sha256 value="001c6c04c330b0e16bf9836afdf8b27c89e5e33caf88b3d8272d12afe1a24e08" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="gradle.plugin.org.ysb33r.gradle" name="gradle-cloudci-plugin" version="2.3">
@@ -765,7 +764,7 @@
       </component>
       <component group="io.github.gradle" name="gradle-enterprise-conventions-plugin" version="0.7.6">
          <artifact name="gradle-enterprise-conventions-plugin-0.7.6.jar">
-            <sha256 value="b3ff4bba6c5ac6e50e7225c7d1f69c0a9bc2ae9f3ce2bfacdc3f1b3999c2e758" origin="Artifact is not signed"/>
+            <sha256 value="b3ff4bba6c5ac6e50e7225c7d1f69c0a9bc2ae9f3ce2bfacdc3f1b3999c2e758" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="io.github.microutils" name="kotlin-logging-jvm" version="2.1.21">
@@ -780,7 +779,7 @@
       </component>
       <component group="io.usethesource" name="capsule" version="0.6.3">
          <artifact name="capsule-0.6.3.jar">
-            <sha256 value="38df64de67bd7c953f3643bdc34fe5fc674eb7e42b8f65f01e2233b8e5006a09" origin="Artifact is not signed"/>
+            <sha256 value="38df64de67bd7c953f3643bdc34fe5fc674eb7e42b8f65f01e2233b8e5006a09" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="it.unimi.dsi" name="fastutil" version="8.5.2">
@@ -810,12 +809,12 @@
       </component>
       <component group="javax.activation" name="activation" version="1.1.1">
          <artifact name="activation-1.1.1.jar">
-            <sha256 value="ae475120e9fcd99b4b00b38329bd61cdc5eb754eee03fe66c01f50e137724f99" origin="Artifact is not signed"/>
+            <sha256 value="ae475120e9fcd99b4b00b38329bd61cdc5eb754eee03fe66c01f50e137724f99" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="javax.annotation" name="jsr250-api" version="1.0">
          <artifact name="jsr250-api-1.0.jar">
-            <sha256 value="a1a922d0d9b6d183ed3800dfac01d1e1eb159f0e8c6f94736931c1def54a941f" origin="Artifact is not signed"/>
+            <sha256 value="a1a922d0d9b6d183ed3800dfac01d1e1eb159f0e8c6f94736931c1def54a941f" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="javax.enterprise" name="cdi-api" version="1.0">
@@ -825,7 +824,7 @@
       </component>
       <component group="javax.inject" name="javax.inject" version="1">
          <artifact name="javax.inject-1.jar">
-            <sha256 value="91c77044a50c481636c32d916fd89c9118a72195390452c81065080f957de7ff" origin="Artifact is not signed"/>
+            <sha256 value="91c77044a50c481636c32d916fd89c9118a72195390452c81065080f957de7ff" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="javax.xml.bind" name="jaxb-api" version="2.3.0">
@@ -865,7 +864,7 @@
       </component>
       <component group="jquery" name="jquery.min" version="3.5.1">
          <artifact name="jquery.min-3.5.1.js">
-            <sha256 value="f7f6a5894f1d19ddad6fa392b2ece2c5e578cbf7da4ea805b6885eb6985b6e3d" origin="Artifact is not signed"/>
+            <sha256 value="f7f6a5894f1d19ddad6fa392b2ece2c5e578cbf7da4ea805b6885eb6985b6e3d" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="junit" name="junit" version="4.12">
@@ -875,7 +874,7 @@
       </component>
       <component group="me.champeau.gradle" name="japicmp-gradle-plugin" version="0.4.1">
          <artifact name="japicmp-gradle-plugin-0.4.1.jar">
-            <sha256 value="5e87d84077de0c60d9ff4eedbc9fac1506693019eb6f55652afc9e1ff2b482ba" origin="Artifact is not signed"/>
+            <sha256 value="5e87d84077de0c60d9ff4eedbc9fac1506693019eb6f55652afc9e1ff2b482ba" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="me.champeau.jmh" name="jmh-gradle-plugin" version="0.6.8">
@@ -906,7 +905,7 @@
       </component>
       <component group="net.jcip" name="jcip-annotations" version="1.0">
          <artifact name="jcip-annotations-1.0.jar">
-            <sha256 value="be5805392060c71474bf6c9a67a099471274d30b83eef84bfc4e0889a4f1dcc0" origin="Artifact is not signed"/>
+            <sha256 value="be5805392060c71474bf6c9a67a099471274d30b83eef84bfc4e0889a4f1dcc0" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="net.openhft" name="zero-allocation-hashing" version="0.10.1">
@@ -921,7 +920,7 @@
       </component>
       <component group="net.sf.docbook" name="docbook-xsl" version="1.75.2">
          <artifact name="docbook-xsl-1.75.2-resources.zip">
-            <sha256 value="eea2df391d11dcf3732d2b9ac1c344d527c955984824c08da4afdcd5acf92d03" origin="Artifact is not signed"/>
+            <sha256 value="eea2df391d11dcf3732d2b9ac1c344d527c955984824c08da4afdcd5acf92d03" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="net.sf.ezmorph" name="ezmorph" version="1.0.6">
@@ -951,7 +950,7 @@
       </component>
       <component group="net.sf.xslthl" name="xslthl" version="2.0.1">
          <artifact name="xslthl-2.0.1.jar">
-            <sha256 value="28026d1b450cdc532c6a92264658d29b9b57a006cfbfb8c9cac2b098fd93e772" origin="Artifact is not signed"/>
+            <sha256 value="28026d1b450cdc532c6a92264658d29b9b57a006cfbfb8c9cac2b098fd93e772" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="net.sourceforge.cssparser" name="cssparser" version="0.9.13">
@@ -1056,12 +1055,12 @@
       </component>
       <component group="org.asciidoctor" name="asciidoctor-gradle-base" version="3.3.2">
          <artifact name="asciidoctor-gradle-base-3.3.2.jar">
-            <sha256 value="05621bf96e33332f1fddb3522cd17d3a1afebefbef5d123b897f84ece0667fc6" origin="Artifact is not signed"/>
+            <sha256 value="05621bf96e33332f1fddb3522cd17d3a1afebefbef5d123b897f84ece0667fc6" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.asciidoctor" name="asciidoctor-gradle-jvm" version="3.3.2">
          <artifact name="asciidoctor-gradle-jvm-3.3.2.jar">
-            <sha256 value="c3f3943389d7670aaa6f132be52d26c3da042f3fd0c8d10d7a31ce63865457ea" origin="Artifact is not signed"/>
+            <sha256 value="c3f3943389d7670aaa6f132be52d26c3da042f3fd0c8d10d7a31ce63865457ea" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.asciidoctor" name="asciidoctor-gradle-plugin" version="1.5.10">
@@ -1207,12 +1206,12 @@
       </component>
       <component group="org.gradle" name="gradle-tooling-api" version="6.0.1">
          <artifact name="gradle-tooling-api-6.0.1.jar">
-            <sha256 value="843245599385e906a4133fed1765c4d9f2e697b0091bb681cffd71dc426ff76b" origin="Artifact is not signed"/>
+            <sha256 value="843245599385e906a4133fed1765c4d9f2e697b0091bb681cffd71dc426ff76b" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle" name="test-retry-gradle-plugin" version="1.5.0">
          <artifact name="test-retry-gradle-plugin-1.5.0.jar">
-            <sha256 value="8fdac2ede2237b381b2bd99e735b93d648bc580e1115ee95ced673f6a1c4bbcd" origin="Artifact is not signed"/>
+            <sha256 value="8fdac2ede2237b381b2bd99e735b93d648bc580e1115ee95ced673f6a1c4bbcd" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle.ci.health" name="common" version="0.63">
@@ -1262,7 +1261,7 @@
       </component>
       <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.21">
          <artifact name="gradle-guides-plugin-0.21.jar">
-            <sha256 value="c136d7744951e1541a121377a34d36e83f09f732c0e2b8d8deffbd48aa125c5d" origin="Artifact is not signed"/>
+            <sha256 value="c136d7744951e1541a121377a34d36e83f09f732c0e2b8d8deffbd48aa125c5d" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-conventions" version="0.8.0">
@@ -1312,7 +1311,7 @@
       </component>
       <component group="org.jlleitschuh.gradle" name="ktlint-gradle" version="10.3.0">
          <artifact name="ktlint-gradle-10.3.0.jar">
-            <sha256 value="6923398b3a77a1fb3722aacbcdde6ab0527cfcc98eb3fef6974074f96ae7fe76" origin="Artifact is not signed"/>
+            <sha256 value="6923398b3a77a1fb3722aacbcdde6ab0527cfcc98eb3fef6974074f96ae7fe76" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.jruby.jcodings" name="jcodings" version="1.0.46">
@@ -1322,7 +1321,7 @@
       </component>
       <component group="org.json" name="json" version="20080701">
          <artifact name="json-20080701.jar">
-            <sha256 value="03acd6adab2da447f49814751b0e953fb62a6a1023f9d2a705c30a6e3e4638eb" origin="Artifact is not signed"/>
+            <sha256 value="03acd6adab2da447f49814751b0e953fb62a6a1023f9d2a705c30a6e3e4638eb" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.jvnet.staxex" name="stax-ex" version="1.8.1">
@@ -1376,7 +1375,7 @@
       </component>
       <component group="org.openmbee.junit" name="junit-xml-parser" version="1.0.0">
          <artifact name="junit-xml-parser-1.0.0.jar">
-            <sha256 value="ef5da0d3135e27372039e8b0251b40b100c48b4f1308ab8cc43531b208620049" origin="Artifact is not signed"/>
+            <sha256 value="ef5da0d3135e27372039e8b0251b40b100c48b4f1308ab8cc43531b208620049" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.owasp.encoder" name="encoder" version="1.2.2">
@@ -1436,7 +1435,7 @@
       </component>
       <component group="org.w3c.css" name="sac" version="1.3">
          <artifact name="sac-1.3.jar">
-            <sha256 value="003785669f921aafe4f137468dd20a01a36111e94fd7449f26c16e7924d82d23" origin="Artifact is not signed"/>
+            <sha256 value="003785669f921aafe4f137468dd20a01a36111e94fd7449f26c16e7924d82d23" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.yaml" name="snakeyaml" version="1.32">
@@ -1446,10 +1445,11 @@
       </component>
       <component group="org.ysb33r.gradle" name="grolifant" version="0.16.1">
          <artifact name="grolifant-0.16.1.jar">
+            <pgp value="ea022560a81e5bd48db3d18b54ac8e2d98cfeac6"/>
             <ignored-keys>
-               <ignored-key id="54ac8e2d98cfeac6" reason="also-trust requires ignoring signatures"/>
+               <ignored-key id="ea022560a81e5bd48db3d18b54ac8e2d98cfeac6" reason="PGP verification failed"/>
             </ignored-keys>
-            <sha256 value="a867e911d060a240b8aa111896b7379282fe61940dfb949e72600f7ca67cb92f" origin="Maven Central (also is JCenter)">
+            <sha256 value="a867e911d060a240b8aa111896b7379282fe61940dfb949e72600f7ca67cb92f" reason="Difference between Maven Central and JCenter">
                <also-trust value="362c450c9738834181fdfac1147fa11cf21cefd59d7a5368756e174f93567a43"/>
             </sha256>
          </artifact>
@@ -1461,12 +1461,12 @@
       </component>
       <component group="xalan" name="serializer" version="2.7.1">
          <artifact name="serializer-2.7.1.jar">
-            <sha256 value="a15078d243d4a20b6b4e8ae2f61ed4655e352054e121aada6f7441f1ed445a3c" origin="Artifact is not signed"/>
+            <sha256 value="a15078d243d4a20b6b4e8ae2f61ed4655e352054e121aada6f7441f1ed445a3c" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="xalan" name="xalan" version="2.7.1">
          <artifact name="xalan-2.7.1.jar">
-            <sha256 value="55a2e95144acf1abe44fea91c2948525c9b1f00fcaa1d10e753e92872ffbdd1e" origin="Artifact is not signed"/>
+            <sha256 value="55a2e95144acf1abe44fea91c2948525c9b1f00fcaa1d10e753e92872ffbdd1e" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="xerces" name="xercesImpl" version="2.12.1">
@@ -1481,7 +1481,7 @@
       </component>
       <component group="xml-resolver" name="xml-resolver" version="1.2">
          <artifact name="xml-resolver-1.2.jar">
-            <sha256 value="47dcde8986019314ef78ae7280a94973a21d2ed95075a40a000b42da956429e1" origin="Artifact is not signed"/>
+            <sha256 value="47dcde8986019314ef78ae7280a94973a21d2ed95075a40a000b42da956429e1" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="xyz.rogfam" name="littleproxy" version="2.0.5">
