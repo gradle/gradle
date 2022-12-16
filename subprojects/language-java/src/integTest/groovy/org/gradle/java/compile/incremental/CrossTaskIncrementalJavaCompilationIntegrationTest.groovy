@@ -75,14 +75,14 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
     @Issue("https://github.com/gradle/gradle/issues/23067")
-    def "incremental compilation works with modules with manual module path with #description"() {
+    def "incremental compilation works with modules #description"() {
         file("impl/build.gradle") << """
             def layout = project.layout
             tasks.compileJava {
-                modularity.inferModulePath = false
-                options.compilerArgs.addAll($modulePathParameter)
+                modularity.inferModulePath = $inferModulePath
+                options.compilerArgs.addAll($compileArgs)
                 doFirst {
-                    classpath = layout.files()
+                    $doFirst
                 }
             }
         """
@@ -115,48 +115,9 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         impl.recompiledClasses("B", "module-info")
 
         where:
-        description               | modulePathParameter
-        "--module-path=<modules>" | '["--module-path=\${classpath.join(File.pathSeparator)}"]'
-        "--module-path <modules>" | '["--module-path", "\${classpath.join(File.pathSeparator)}"]'
-        "-p <modules>"            | '["-p", "\${classpath.join(File.pathSeparator)}"]'
-    }
-
-    @Requires(TestPrecondition.JDK9_OR_LATER)
-    def "incremental compilation works with modules with inferred module path"() {
-        file("impl/build.gradle") << """
-            def layout = project.layout
-            tasks.compileJava {
-                modularity.inferModulePath = true
-
-            }
-        """
-        source api: ["package a; public class A {}"]
-        file("api/src/main/${language.name}/module-info.${language.name}").text = """
-            module api {
-                exports a;
-            }
-        """
-        source impl: [
-            "package b; import a.A; import c.C; public class B extends A {}",
-            "package c; public class C {}",
-            "package c.d; public class D {}"
-        ]
-        file("impl/src/main/${language.name}/module-info.${language.name}").text = """
-            module impl {
-                requires api;
-                exports b;
-                exports c;
-                exports c.d;
-            }
-        """
-        succeeds "impl:${language.compileTaskName}"
-
-        when:
-        impl.snapshot { source api: "package a; public class A { void m1() {} }" }
-
-        then:
-        succeeds "impl:${language.compileTaskName}", "--info"
-        impl.recompiledClasses("B", "module-info")
+        description                 | inferModulePath | compileArgs                                                  | doFirst
+        "with inferred module-path" | "true"          | "[]"                                                         | ""
+        "with manual module-path"   | "false"         | "[\"--module-path=\${classpath.join(File.pathSeparator)}\"]" | "classpath = layout.files()"
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
