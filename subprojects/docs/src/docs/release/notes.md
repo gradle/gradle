@@ -1,6 +1,10 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release includes several improvements to the [Kotlin DSL](https://github.com/gradle/gradle/blob/release/subprojects/docs/src/docs/release/userguide/kotlin_dsl.html), testing on internal classes with the [JVM test suite](https://github.com/gradle/gradle/blob/release/subprojects/docs/src/docs/release/userguide/jvm_test_suite_plugin.html), and many improvements to `buildSrc` to behave more like included builds such as running `buildSrc` tasks directly, skipping tests, having init scripts and including other builds with  `buildSrc`. 
+
+As always, there are also performance improvements like enhancements to the [configuration cache](http://userguide/configuration_cache.html).
+
+We would like to thank the following community members for their contributions to this release of Gradle:
 
 <!--
 Include only their name, impactful features should be called out separately below.
@@ -78,12 +82,12 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ### JVM
 
-#### Introduced `projectInternalView()` dependency for test suites with access to project internals
+#### Introduced access to testing project internals with JVM test suite 
 
 The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now
 supports depending on the internal view of the current project at compile-time.
 Previously it was only possible to depend on the current project's API. This allows
-test suites to access project internals that is not declared on
+test suites to access project internals that are not declared on
 the `api` or `compileOnlyApi` configurations. This functionality can be useful when
 testing internal classes that use dependencies that are not exposed as part of a
 project's API, like those declared on the `implementation` and `compileOnly` configurations.
@@ -278,29 +282,29 @@ beforeSettings { settings ->
 
 See [Configuring cleanup of caches and distributions](userguide/directory_layout.html#dir:gradle_user_home:configure_cache_cleanup) for more information.
 
-#### Improvements for `buildSrc` builds
+### Improvements for `buildSrc` builds
 
 This release includes several improvements for [`buildSrc`](userguide/organizing_gradle_projects.html#sec:build_sources) builds to behave more like [included builds](userguide/composite_builds.html).
 
-##### Run `buildSrc` tasks directly
+#### Run `buildSrc` tasks directly
 It is now possible to run the tasks of a `buildSrc` build from the command-line, using the same syntax used for tasks of included builds.
 For example, you can use `gradle buildSrc:build` to run the `build` task in the `buildSrc` build.
 
 For more details see the [user manual](userguide/composite_builds.html#composite_build_executing_tasks)
 
-##### `buildSrc` can include other builds
+#### `buildSrc` can include other builds
 The `buildSrc` build can now include other builds by declaring them in `buildSrc/settings.gradle.kts` or `buildSrc/settings.gradle`.
 You can use `pluginsManagement { includeBuild(someDir) }` or `includeBuild(someDir)` in this settings script to include other builds in `buildSrc`.
 
 For more details see the [user manual](userguide/composite_builds.html)
 
-##### Tests for `buildSrc` are no longer automatically run
+#### Tests for `buildSrc` are no longer automatically run
 When Gradle builds the output of `buildSrc` it only runs the tasks that produce that output. It no longer runs the `build` task.
 In particular, this means that the tests of `buildSrc` and its subprojects are not built and executed when they are not needed.
 
 You can run the tests for `buildSrc` in the same way as other project, as described above.
 
-##### Init scripts are applied to `buildSrc`
+#### Init scripts are applied to `buildSrc`
 
 Init scripts specified on the command-line using `--init-script` are now applied to `buildSrc`, in addition to the main build and all included builds.
 
