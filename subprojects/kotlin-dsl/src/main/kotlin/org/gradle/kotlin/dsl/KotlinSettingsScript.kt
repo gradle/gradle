@@ -67,8 +67,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
 )
 @ScriptTemplateAdditionalCompilerArguments(
     [
-        "-language-version", "1.5",
-        "-api-version", "1.5",
+        "-language-version", "1.8",
+        "-api-version", "1.8",
         "-Xjvm-default=all",
         "-Xjsr305=strict",
         "-XXLanguage:+DisableCompatibilityModeForNewInference",
