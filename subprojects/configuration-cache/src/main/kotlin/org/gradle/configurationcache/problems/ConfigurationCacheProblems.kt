@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.problems
 
+import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
@@ -70,7 +71,10 @@ class ConfigurationCacheProblems(
     var updatedProjects = 0
 
     private
-    var hasIncompatibleTypes = false
+    var incompatibleTasks = newConcurrentHashSet<String>()
+
+    private
+    val hasIncompatibleTypes get() = incompatibleTasks.isNotEmpty()
 
     private
     lateinit var cacheAction: ConfigurationCacheAction
@@ -81,9 +85,7 @@ class ConfigurationCacheProblems(
                 return false
             }
             val summary = summarizer.get()
-            val discardStateDueToProblems = discardStateDueToProblems(summary)
-            val hasTooManyProblems = hasTooManyProblems(summary)
-            return discardStateDueToProblems || hasTooManyProblems
+            return discardStateDueToProblems(summary) || hasTooManyProblems(summary)
         }
 
     init {
@@ -108,8 +110,8 @@ class ConfigurationCacheProblems(
         this.updatedProjects = updatedProjects
     }
 
-    override fun forIncompatibleType(): ProblemsListener {
-        hasIncompatibleTypes = true
+    override fun forIncompatibleTask(path: String): ProblemsListener {
+        incompatibleTasks.add(path)
         return object : ProblemsListener {
             override fun onProblem(problem: PropertyProblem) {
                 onProblem(problem, ProblemSeverity.Suppressed)
@@ -210,9 +212,9 @@ class ConfigurationCacheProblems(
             val reusedProjectsString = reusedProjects.counter("project")
             val updatedProjectsString = updatedProjects.counter("project")
             when {
-                isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded.")
+                isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded due to serialization error.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == STORE && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded.")
+                cacheAction == STORE && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
                 cacheAction == STORE && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == STORE && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
                 cacheAction == STORE && !hasProblems -> log("Configuration cache entry stored.")
@@ -226,6 +228,13 @@ class ConfigurationCacheProblems(
                 // else not storing or loading and no problems to report
             }
         }
+
+    }
+
+    private
+    fun incompatibleTasksSummary() = when {
+        incompatibleTasks.isNotEmpty() -> " because incompatible ${if (incompatibleTasks.size > 1) "tasks were" else "task was"} found: ${incompatibleTasks.joinToString(", ") { "'$it'" }}."
+        else -> "."
     }
 
     private
