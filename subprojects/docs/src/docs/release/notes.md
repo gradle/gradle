@@ -107,6 +107,21 @@ testing {
 For more information about adding different types of test dependencies, see [JVM test suite](userguide/jvm_test_suite_plugin.html).
 
 
+
+##### Updated Toolchain Download Repositories
+
+Starting in Gradle 8, Java Toolchain auto-provisioning needs explicit definition. This can be done via toolchain repository plugins, like the [Foojay Toolchains Plugin](https://github.com/gradle/disco-toolchains):
+
+```
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.3.0")
+}
+```
+
+
+For more information, see [Toolchain Download Repositories](https://github.com/gradle/gradle/blob/release/subprojects/docs/src/docs/release/userguide/toolchains.html#sec:provisioning).
+
+
 ###  Kotlin DSL
 
 Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assistance, refactoring, documentation, and more.
