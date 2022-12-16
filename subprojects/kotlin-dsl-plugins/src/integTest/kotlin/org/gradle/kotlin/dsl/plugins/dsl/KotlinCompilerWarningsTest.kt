@@ -47,7 +47,7 @@ class KotlinCompilerWarningsTest : AbstractPluginTest() {
         withBuildScriptForKotlinCompile("allWarningsAsErrors = true")
         withKotlinSourceFile()
 
-        val result = buildAndFail("compileKotlin")
+        val result = build("compileKotlin")
 
         result.assertNotOutput(experimentalWarningHeader)
         result.assertNotOutput(experimentalFeatureWithoutWarning)
@@ -99,7 +99,7 @@ class KotlinCompilerWarningsTest : AbstractPluginTest() {
         )
         withKotlinSourceFile()
 
-        val result = buildAndFail("compileKotlin")
+        val result = build("compileKotlin")
 
         result.assertHasErrorOutput(experimentalWarningHeader)
         result.assertHasErrorOutput(experimentalFeatureToWarnAbout)

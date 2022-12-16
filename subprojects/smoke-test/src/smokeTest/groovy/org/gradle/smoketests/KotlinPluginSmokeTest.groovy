@@ -146,6 +146,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         assumeFalse(kotlinVersion.startsWith("1.3."))
         assumeFalse(kotlinVersion.startsWith("1.4."))
         assumeFalse(kotlinVersion.startsWith("1.5."))
+        assumeFalse(kotlinVersion.startsWith("1.6."))
 
         given:
         buildFile << """

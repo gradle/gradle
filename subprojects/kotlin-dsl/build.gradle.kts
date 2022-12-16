@@ -8,10 +8,9 @@ description = "Kotlin DSL Provider"
 
 dependencies {
 
-    compileOnlyApi(libs.futureKotlin("reflect"))
-
     api(project(":kotlin-dsl-tooling-models"))
     api(libs.futureKotlin("stdlib-jdk8"))
+    api(libs.futureKotlin("reflect"))
 
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
