@@ -447,7 +447,7 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.tarTree(tarPath)
         }
 
-        override fun <T : Any?> provider(value: Callable<T>): Provider<T> {
+        override fun <T : Any> provider(value: Callable<out T?>): Provider<T> {
             onAccess()
             return delegate.provider(value)
         }
