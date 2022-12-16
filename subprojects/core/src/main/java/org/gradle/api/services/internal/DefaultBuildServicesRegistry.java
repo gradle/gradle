@@ -187,13 +187,6 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         return withRegistrations(registrations -> {
             BuildServiceRegistration<?, ?> existing = registrations.findByName(name);
             if (existing != null) {
-                Class existingType = getProvidedType(existing.getService());
-                if (!implementationType.isAssignableFrom(existingType)) {
-                    boolean sameName = existingType.getTypeName().equals(implementationType.getTypeName());
-                    String additionalDetail = sameName ? " (same name but from a different classloader)" : "";
-                    String message = String.format("Service '%s' has already been registered with type '%s', cannot register another with type '%s'%s.", name, existingType.getName(), implementationType.getName(), additionalDetail);
-                    throw new IllegalArgumentException(message);
-                }
                 // TODO - assert same type
                 // TODO - assert same parameters
                 return uncheckedNonnullCast(existing.getService());
