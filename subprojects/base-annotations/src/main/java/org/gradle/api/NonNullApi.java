@@ -39,6 +39,7 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE, ElementType.PACKAGE})
 @NotNull
+@Nonnull
 @TypeQualifierDefault({ElementType.METHOD, ElementType.PARAMETER})
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
