@@ -91,3 +91,29 @@ jobs:
             If you are still interested in contributing this, please ensure that
             it is rebased against the latest branch (usually `master`), all review
             comments have been addressed and the build is passing.
+  close-pending-reproducer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v6
+        with:
+          # GLOBAL ------------------------------------------------------------
+          operations-per-run: 30
+          exempt-all-milestones: true
+          days-before-stale: -1
+          only-labels: 'pending:reproducer'
+
+          # ISSUES ------------------------------------------------------------
+          stale-issue-label: 'pending:reproducer'
+          close-issue-message: >
+            This issue has been automatically closed due to inactivity. If you can reproduce this on a
+            recent version of Gradle or if you have a good use case for this feature, please feel free
+            to let know so we can reopen the issue. Please try to provide steps to reproduce, a quick
+            explanation of your use case or a high-quality pull request.
+
+          # PULL REQUESTS -----------------------------------------------------
+          stale-pr-label: 'pending:reproducer'
+          close-pr-message: >
+            This pull request has been automatically closed due to inactivity.
+            If you are still interested in contributing this, please ensure that
+            it is rebased against the latest branch (usually `master`), all review
+            comments have been addressed and the build is passing.
