@@ -18,11 +18,14 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.hamcrest.Matchers.containsString
+import static org.junit.Assume.assumeNotNull
 
 class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 
@@ -793,5 +796,33 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 error(missingAnnotationMessage { type('MyTask').property("optionsList${iterableSymbol}.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
                 error(missingAnnotationMessage { type('MyTask').property("providedOptions.notAnnotated").missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
         ])
+    }
+
+    def "honors configured Java Toolchain to avoid compiled by a more recent version failure"() {
+        def currentJdk = Jvm.current()
+        def newerJdk = AvailableJavaHomes.getDifferentVersion { it.languageVersion > currentJdk.javaVersion }
+        assumeNotNull(newerJdk)
+
+        def installationPaths = [currentJdk, newerJdk].collect { it.javaHome.absolutePath }.join(",")
+
+        given:
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.work.*;
+
+            @DisableCachingByDefault(because = "test task")
+            public abstract class MyTask extends DefaultTask {
+            }
+        """
+        executer.withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
+        buildFile << """
+            java {
+                toolchain {
+                    languageVersion.set(JavaLanguageVersion.of(${newerJdk.javaVersion.majorVersion}))
+                }
+            }
+        """
+        expect:
+        assertValidationSucceeds()
     }
 }
