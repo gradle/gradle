@@ -43,8 +43,8 @@ import java.util.Set;
 
 abstract class AbstractRecompilationSpecProvider implements RecompilationSpecProvider {
 
-    private static final String MODULE_INFO_CLASS = "module-info";
-    private static final String PACKAGE_INFO_CLASS = "package-info";
+    private static final String MODULE_INFO_CLASS_NAME = "module-info";
+    private static final String PACKAGE_INFO_CLASS_NAME = "package-info";
 
     private final Deleter deleter;
     private final FileOperations fileOperations;
@@ -190,7 +190,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
 
     private static void processTypesToReprocess(Set<String> typesToReprocess, RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
         for (String typeToReprocess : typesToReprocess) {
-            if (typeToReprocess.endsWith(PACKAGE_INFO_CLASS) || typeToReprocess.equals(MODULE_INFO_CLASS)) {
+            if (typeToReprocess.endsWith(PACKAGE_INFO_CLASS_NAME) || typeToReprocess.equals(MODULE_INFO_CLASS_NAME)) {
                 // Fixes: https://github.com/gradle/gradle/issues/17572
                 // package-info classes cannot be passed as classes to reprocess to the Java compiler.
                 // Therefore, we need to recompile them every time anything changes if they are processed by an aggregating annotation processor.
@@ -203,16 +203,15 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     private static void addModuleInfoToCompile(RecompilationSpec spec, SourceFileClassNameConverter sourceFileClassNameConverter) {
-        Set<String> moduleInfoSources = sourceFileClassNameConverter.getRelativeSourcePaths(MODULE_INFO_CLASS);
+        Set<String> moduleInfoSources = sourceFileClassNameConverter.getRelativeSourcePaths(MODULE_INFO_CLASS_NAME);
         if (!moduleInfoSources.isEmpty()) {
             // Always recompile module-info.java if present.
             // This solves case for incremental compilation for manual --module-path when not combined with --module-source-path or --source-path,
             // since compiled module-info is not in the output after we change compile outputs in the CompileTransaction.
             // Alternative would be, that we would move/copy the module-info class to transaction outputs and add transaction outputs to classpath.
             // First part of fix for: https://github.com/gradle/gradle/issues/23067
-            spec.addClassToCompile(MODULE_INFO_CLASS);
+            spec.addClassToCompile(MODULE_INFO_CLASS_NAME);
             spec.addSourcePaths(moduleInfoSources);
-            spec.setIsIncrementalCompilationOfJavaModule(true);
         }
     }
 
@@ -232,7 +231,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
         Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
-        spec.setIsIncrementalCompilationOfJavaModule(recompilationSpec.isIncrementalCompilationOfJavaModule());
+        spec.setIsIncrementalCompilationOfJavaModule(recompilationSpec.hasClassToCompile(MODULE_INFO_CLASS_NAME));
         return new CompileTransaction(spec, classesToDelete, resourcesToDelete, fileOperations, deleter);
     }
 

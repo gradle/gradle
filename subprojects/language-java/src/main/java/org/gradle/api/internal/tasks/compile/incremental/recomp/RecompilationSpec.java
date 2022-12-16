@@ -29,7 +29,6 @@ public class RecompilationSpec {
     private final Collection<String> classesToProcess = new LinkedHashSet<>();
     private final Collection<GeneratedResource> resourcesToGenerate = new LinkedHashSet<>();
     private String fullRebuildCause;
-    private boolean isIncrementalCompilationOfJavaModule;
 
     @Override
     public String toString() {
@@ -54,6 +53,10 @@ public class RecompilationSpec {
 
     public Set<String> getClassesToCompile() {
         return Collections.unmodifiableSet(classesToCompile);
+    }
+
+    public boolean hasClassToCompile(String className) {
+        return classesToCompile.contains(className);
     }
 
     public void addClassToReprocess(String classToReprocess) {
@@ -98,13 +101,5 @@ public class RecompilationSpec {
 
     public void setFullRebuildCause(String description) {
         fullRebuildCause = description;
-    }
-
-    public boolean isIncrementalCompilationOfJavaModule() {
-        return isIncrementalCompilationOfJavaModule;
-    }
-
-    public void setIsIncrementalCompilationOfJavaModule(boolean isIncrementalCompilationOfJavaModule) {
-        this.isIncrementalCompilationOfJavaModule = isIncrementalCompilationOfJavaModule;
     }
 }
