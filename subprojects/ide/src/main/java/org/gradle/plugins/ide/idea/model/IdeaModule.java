@@ -160,6 +160,9 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  */
 public abstract class IdeaModule {
 
+    public static final String DOWNLOAD_SOURCES_PROPERTY = "org.gradle.idea.sources.download";
+    public static final String DOWNLOAD_JAVADOC_PROPERTY = "org.gradle.idea.javadoc.download";
+
     private String name;
     private Set<File> sourceDirs;
     private Set<File> generatedSourceDirs = Sets.newLinkedHashSet();
@@ -171,7 +174,7 @@ public abstract class IdeaModule {
     private Set<File> testResourceDirs = Sets.newLinkedHashSet();
     private ConfigurableFileCollection testResources;
     private Map<String, Map<String, Collection<Configuration>>> scopes = Maps.newLinkedHashMap();
-    private boolean downloadSources = true;
+    private boolean downloadSources;
     private boolean downloadJavadoc;
     private File contentRoot;
     /**
@@ -201,6 +204,9 @@ public abstract class IdeaModule {
 
         this.testSources = project.getObjects().fileCollection();
         this.testResources = project.getObjects().fileCollection();
+
+        this.downloadSources = getProject().getProviders().gradleProperty(DOWNLOAD_SOURCES_PROPERTY).map(Boolean::parseBoolean).getOrElse(true);
+        this.downloadJavadoc = getProject().getProviders().gradleProperty(DOWNLOAD_JAVADOC_PROPERTY).map(Boolean::parseBoolean).getOrElse(false);
 
         // TODO: remove this whileDisabled wrapping for Gradle 8.1
         testSources.from(project.provider(() -> DeprecationLogger.whileDisabled(() -> getTestSourceDirs())));
