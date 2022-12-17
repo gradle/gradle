@@ -40,6 +40,7 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @Issue("https://youtrack.jetbrains.com/issue/KT-44303")
     fun `can configure ext extension`() {
         withBuildScript(
             """
@@ -51,6 +52,44 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
 
         build("help")
     }
+
+    /**
+     * When this issue gets fixed in a future Kotlin version, remove -XXLanguage:+DisableCompatibilityModeForNewInference from Kotlin DSL compiler arguments.
+     */
+    @Test
+    @Issue("https://youtrack.jetbrains.com/issue/KT-44303")
+    @ToBeImplemented
+    fun `kotlin resolution and inference issue KT-44303`() {
+        withBuildScript("""
+            import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+            plugins { `embedded-kotlin` }
+            $repositoriesBlock
+            dependencies {
+                implementation(gradleKotlinDsl())
+            }
+        """)
+
+        withFile("src/main/kotlin/code.kt", """
+            import org.gradle.api.*
+
+            class MyPlugin : Plugin<Project> {
+                override fun apply(project: Project): Unit = project.run {
+                    ext {
+                        set("foo", "bar")
+                    }
+                }
+            }
+        """)
+
+        val result = buildAndFail("classes")
+
+        result.assertHasFailure("Execution failed for task ':compileKotlin'.") {
+            it.assertHasCause("Compilation error. See log for more details")
+        }
+        result.assertHasErrorOutput("src/main/kotlin/code.kt:7:25 Unresolved reference. None of the following candidates is applicable because of receiver type mismatch")
+    }
+
 
     @Test
     @Issue("https://youtrack.jetbrains.com/issue/KT-55068")
