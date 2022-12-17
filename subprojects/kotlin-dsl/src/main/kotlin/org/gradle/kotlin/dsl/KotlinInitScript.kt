@@ -66,6 +66,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
         "-Xjvm-default=all",
         "-Xjsr305=strict",
         "-XXLanguage:+DisableCompatibilityModeForNewInference",
+        "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
     ]
 )
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
