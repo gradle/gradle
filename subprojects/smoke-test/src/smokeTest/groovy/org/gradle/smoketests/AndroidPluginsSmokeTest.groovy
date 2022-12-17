@@ -43,10 +43,10 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     @Override
     SmokeTestGradleRunner runner(String... tasks) {
         def runner = super.runner(tasks)
-        def jvmArguments = new ArrayList<>(runner.jvmArguments)
         // TODO: AGP's ShaderCompile uses Task.project after the configuration barrier to compute inputs
-        jvmArguments.add("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
-        return runner.withJvmArguments(jvmArguments)
+        return runner.withJvmArguments(runner.jvmArguments + [
+            "-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true"
+        ])
     }
 
     @UnsupportedWithConfigurationCache
