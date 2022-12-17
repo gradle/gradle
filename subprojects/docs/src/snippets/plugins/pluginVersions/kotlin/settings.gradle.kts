@@ -1,6 +1,6 @@
 // tag::configure-plugin-version[]
 pluginManagement {
-  val helloPluginVersion: String by settings
+  val helloPluginVersion: String = settings.withGroovyBuilder { getProperty("helloPluginVersion") } as String
   plugins {
     id("com.example.hello") version "${helloPluginVersion}"
   }

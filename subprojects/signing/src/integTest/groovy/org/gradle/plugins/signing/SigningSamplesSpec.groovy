@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Ignore
 
 class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     @Rule
@@ -113,6 +114,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
+    @Ignore("https://youtrack.jetbrains.com/issue/KT-55065")
     @UsesSample('signing/in-memory')
     @ToBeFixedForConfigurationCache
     def "uses in-memory PGP keys with dsl #dsl"() {
@@ -134,6 +136,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
+    @Ignore("https://youtrack.jetbrains.com/issue/KT-55065")
     @UsesSample('signing/in-memory-subkey')
     @ToBeFixedForConfigurationCache
     def "uses in-memory PGP subkeys with dsl #dsl"() {
