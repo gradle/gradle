@@ -9,9 +9,9 @@ tasks.register<Zip>("stuffZip") {
 
 // tag::signing[]
 signing {
-    val signingKeyId: String? = project.findProperty("signingKeyId") as String?
-    val signingKey: String? = project.findProperty("signingKey") as String?
-    val signingPassword: String? = project.findProperty("signingPassword") as String?
+    val signingKeyId: String? by project
+    val signingKey: String? by project
+    val signingPassword: String? by project
     useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
     sign(tasks["stuffZip"])
 }
