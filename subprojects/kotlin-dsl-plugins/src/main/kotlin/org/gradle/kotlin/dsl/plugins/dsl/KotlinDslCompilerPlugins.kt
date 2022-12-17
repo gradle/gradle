@@ -56,6 +56,7 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
                     }
                     it.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf(
                         "-XXLanguage:+DisableCompatibilityModeForNewInference",
+                        "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
                     )))
                 }
             }

@@ -384,7 +384,8 @@ val gradleKotlinDslLanguageVersionSettings = LanguageVersionSettingsImpl(
         JvmAnalysisFlags.jvmDefaultMode to JvmDefaultMode.ENABLE,
     ),
     specificFeatures = mapOf(
-        LanguageFeature.DisableCompatibilityModeForNewInference to LanguageFeature.State.ENABLED
+        LanguageFeature.DisableCompatibilityModeForNewInference to LanguageFeature.State.ENABLED,
+        LanguageFeature.TypeEnhancementImprovementsInStrictMode to LanguageFeature.State.DISABLED,
     )
 )
 
