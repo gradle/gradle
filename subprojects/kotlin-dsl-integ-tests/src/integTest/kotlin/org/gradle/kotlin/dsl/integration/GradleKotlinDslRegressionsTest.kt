@@ -93,4 +93,42 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
             }
         }
     }
+
+    /**
+     * When this issue gets fixed in a future Kotlin version, remove -XXLanguage:-TypeEnhancementImprovementsInStrictMode from Kotlin DSL compiler arguments.
+     */
+    @Test
+    @Issue("https://youtrack.jetbrains.com/issue/KT-55542")
+    @ToBeImplemented
+    fun `nullable type parameters on non-nullable member works without disabling Koltlin type enhancement improvements in strict mode`() {
+        withBuildScript("""
+            import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+            plugins { `embedded-kotlin` }
+            $repositoriesBlock
+            dependencies {
+                implementation(gradleKotlinDsl())
+            }
+            tasks.withType<KotlinCompile>().configureEach {
+                kotlinOptions.freeCompilerArgs += "-Xjsr305=strict"
+            }
+        """)
+
+        withFile("src/main/kotlin/code.kt", """
+            import org.gradle.api.*
+
+            class MyPlugin : Plugin<Project> {
+                override fun apply(project: Project): Unit = project.run {
+                    provider { "thing" }.map { null }
+                }
+            }
+        """)
+
+        val result = buildAndFail("classes")
+
+        result.assertHasFailure("Execution failed for task ':compileKotlin'.") {
+            it.assertHasCause("Compilation error. See log for more details")
+        }
+        result.assertHasErrorOutput("src/main/kotlin/code.kt:6:48 Null can not be a value of a non-null type Nothing")
+    }
 }
