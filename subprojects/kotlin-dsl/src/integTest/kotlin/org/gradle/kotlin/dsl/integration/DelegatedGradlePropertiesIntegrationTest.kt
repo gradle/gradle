@@ -5,7 +5,6 @@ import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.hamcrest.CoreMatchers.containsString
 
 import org.hamcrest.MatcherAssert.assertThat
-import org.junit.Ignore
 import org.junit.Test
 
 
@@ -43,7 +42,6 @@ class DelegatedGradlePropertiesIntegrationTest : AbstractKotlinIntegrationTest()
         )
     }
 
-    @Ignore("https://youtrack.jetbrains.com/issue/KT-55065")
     @Test
     fun `delegated properties follow Gradle mechanics and allow to model optional properties via nullable kotlin types`() {
 
