@@ -17,7 +17,6 @@
 package org.gradle.ide.visualstudio.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -86,22 +85,15 @@ public class DefaultVisualStudioSolution implements VisualStudioSolutionInternal
     @Override
     @Internal
     public List<VisualStudioProjectMetadata> getProjects() {
-        return CollectionUtils.collect(ideArtifactRegistry.getIdeProjects(VisualStudioProjectMetadata.class), new Transformer<VisualStudioProjectMetadata, IdeArtifactRegistry.Reference<VisualStudioProjectMetadata>>() {
-            @Override
-            public VisualStudioProjectMetadata transform(IdeArtifactRegistry.Reference<VisualStudioProjectMetadata> reference) {
-                return reference.get();
-            }
-        });
+        return CollectionUtils.collect(
+            ideArtifactRegistry.getIdeProjects(VisualStudioProjectMetadata.class),
+            IdeArtifactRegistry.Reference::get
+        );
     }
 
     @Input
     public List<String> getProjectFilePaths() {
-        return CollectionUtils.collect(getProjects(), new Transformer<String, VisualStudioProjectMetadata>() {
-            @Override
-            public String transform(VisualStudioProjectMetadata metadata) {
-                return metadata.getFile().getAbsolutePath();
-            }
-        });
+        return CollectionUtils.collect(getProjects(), metadata -> metadata.getFile().getAbsolutePath());
     }
 
     @Input

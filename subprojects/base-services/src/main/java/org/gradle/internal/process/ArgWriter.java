@@ -16,8 +16,8 @@
 
 package org.gradle.internal.process;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.InternalTransformer;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,8 +48,8 @@ public class ArgWriter implements ArgCollector {
         return new ArgWriter(writer, true, WHITESPACE);
     }
 
-    public static Transformer<ArgWriter, PrintWriter> unixStyleFactory() {
-        return new Transformer<ArgWriter, PrintWriter>() {
+    public static InternalTransformer<ArgWriter, PrintWriter> unixStyleFactory() {
+        return new InternalTransformer<ArgWriter, PrintWriter>() {
             @Override
             public ArgWriter transform(PrintWriter original) {
                 return unixStyle(original);
@@ -66,8 +66,8 @@ public class ArgWriter implements ArgCollector {
         return new ArgWriter(writer, true, WHITESPACE_OR_HASH);
     }
 
-    public static Transformer<ArgWriter, PrintWriter> javaStyleFactory() {
-        return new Transformer<ArgWriter, PrintWriter>() {
+    public static InternalTransformer<ArgWriter, PrintWriter> javaStyleFactory() {
+        return new InternalTransformer<ArgWriter, PrintWriter>() {
             @Override
             public ArgWriter transform(PrintWriter original) {
                 return javaStyle(original);
@@ -82,8 +82,8 @@ public class ArgWriter implements ArgCollector {
         return new ArgWriter(writer, false, WHITESPACE);
     }
 
-    public static Transformer<ArgWriter, PrintWriter> windowsStyleFactory() {
-        return new Transformer<ArgWriter, PrintWriter>() {
+    public static InternalTransformer<ArgWriter, PrintWriter> windowsStyleFactory() {
+        return new InternalTransformer<ArgWriter, PrintWriter>() {
             @Override
             public ArgWriter transform(PrintWriter original) {
                 return windowsStyle(original);
@@ -94,8 +94,8 @@ public class ArgWriter implements ArgCollector {
     /**
      * Returns an args transformer that replaces the provided args with a generated args file containing the args. Uses platform text encoding.
      */
-    public static Transformer<List<String>, List<String>> argsFileGenerator(final File argsFile, final Transformer<ArgWriter, PrintWriter> argWriterFactory) {
-        return new Transformer<List<String>, List<String>>() {
+    public static InternalTransformer<List<String>, List<String>> argsFileGenerator(final File argsFile, final InternalTransformer<ArgWriter, PrintWriter> argWriterFactory) {
+        return new InternalTransformer<List<String>, List<String>>() {
             @Override
             public List<String> transform(List<String> args) {
                 if (args.isEmpty()) {

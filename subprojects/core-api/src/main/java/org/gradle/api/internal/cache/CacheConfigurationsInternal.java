@@ -38,30 +38,15 @@ public interface CacheConfigurationsInternal extends CacheConfigurations {
     CacheResourceConfigurationInternal getCreatedResources();
 
     @Override
-    UnlockableProperty<Cleanup> getCleanup();
-
-    /**
-     * Execute the provided runnable with all cache configuration properties unlocked and mutable.
-     */
-    void withMutableValues(Runnable runnable);
+    Property<Cleanup> getCleanup();
 
     Provider<CleanupFrequency> getCleanupFrequency();
 
-    /**
-     * Represents a property that can be locked, preventing any changes that mutate the value.
-     * As opposed to finalization, the expectation is that the property may be unlocked
-     * again in the future.  This allows properties that can only be changed during a certain
-     * window of time.
-     */
-    interface UnlockableProperty<T> extends Property<T> {
-        /**
-         * Lock the property, preventing changes that mutate the value.
-         */
-        void lock();
+    void finalizeConfigurationValues();
 
-        /**
-         * Unlock the property, allowing changes that mutate the value.
-         */
-        void unlock();
-    }
+    /**
+     * Synchronizes the property values of the provided cache configurations with those of this cache configuration
+     * by setting the provided configuration's properties to be backed by the properties of this configuration.
+     */
+    void synchronize(CacheConfigurationsInternal cacheConfigurationsInternal);
 }

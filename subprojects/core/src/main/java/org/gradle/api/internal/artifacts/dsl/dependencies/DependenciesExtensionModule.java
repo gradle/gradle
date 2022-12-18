@@ -32,7 +32,6 @@ import org.gradle.api.artifacts.dsl.DependencyModifier;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
-import org.gradle.internal.Transformers;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;
 
@@ -94,7 +93,7 @@ public class DependenciesExtensionModule {
      */
     public static ExternalModuleDependency module(Dependencies self, Map<String, CharSequence> map) {
         if (!MODULE_LEGAL_MAP_KEYS.containsAll(map.keySet())) {
-            CollectionUtils.SetDiff<String> diff = CollectionUtils.diffSetsBy(MODULE_LEGAL_MAP_KEYS, map.keySet(), Transformers.noOpTransformer());
+            CollectionUtils.SetDiff<String> diff = CollectionUtils.diffSetsBy(MODULE_LEGAL_MAP_KEYS, map.keySet(), k -> k);
             throw new IllegalArgumentException("The map must not contain the following keys: " + diff.rightOnly);
         }
         if (!map.containsKey(NAME)) {
