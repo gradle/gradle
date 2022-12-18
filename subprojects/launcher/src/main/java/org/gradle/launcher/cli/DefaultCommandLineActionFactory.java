@@ -54,9 +54,10 @@ import javax.annotation.Nullable;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
- * <p>Responsible for executing a set of command-line arguments.</p>
+ * <p>Responsible for converting a set of command-line arguments into an {@link Action}.</p>
  */
 public class DefaultCommandLineActionFactory implements CommandLineActionFactory {
     public static final String WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY = "org.gradle.internal.launcher.welcomeMessageEnabled";
@@ -65,34 +66,28 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     private static final String VERSION_CONTINUE = "V";
 
     private final LoggingServiceRegistry loggingServices;
-    private final List<CommandLineActionCreator> actionCreators;
+    private final Supplier<List<CommandLineActionCreator>> actionCreatorsFactory;
 
     public DefaultCommandLineActionFactory() {
         this(LoggingServiceRegistry.newCommandLineProcessLogging());
     }
 
     private DefaultCommandLineActionFactory(LoggingServiceRegistry loggingServices) {
-        this(loggingServices, new BuildActionsFactory(loggingServices));
+        this(loggingServices, () -> new BuildActionsFactory(loggingServices));
     }
 
     /**
      * Allows tests to inject a mock build action factory to avoid attempting to execute actual builds.
      */
     @VisibleForTesting
-    public DefaultCommandLineActionFactory(LoggingServiceRegistry loggingServices, CommandLineActionCreator buildActionsFactory) {
+    public DefaultCommandLineActionFactory(LoggingServiceRegistry loggingServices, Supplier<CommandLineActionCreator> buildActionsFactory) {
         this.loggingServices = loggingServices;
-        this.actionCreators = ImmutableList.of(new BuiltInActionCreator(), new ContinuingActionCreator(), buildActionsFactory);
+        this.actionCreatorsFactory = () -> ImmutableList.of(new BuiltInActionCreator(), new ContinuingActionCreator(), buildActionsFactory.get());
     }
 
-    /**
-     * Creates an {@link Action} which executes the commands specified by the provided arguments and
-     * reports execution events to the provided listener.
-     *
-     * @param args The arguments describing the command to run.
-     */
     @Override
     public Action<ExecutionListener> convert(List<String> args) {
-        Action<ExecutionListener> action = new ParseAndBuildAction(args, actionCreators);
+        Action<ExecutionListener> action = new ParseAndBuildAction(args, actionCreatorsFactory);
         return new WithLogging(loggingServices, args, new DefaultLoggingConfiguration(), action);
     }
 
@@ -196,15 +191,19 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
      */
     private static class ParseAndBuildAction implements Action<ExecutionListener> {
         private final List<String> args;
-        private final List<CommandLineActionCreator> actionCreators;
+        private final Supplier<List<CommandLineActionCreator>> actionCreatorsFactory;
 
-        private ParseAndBuildAction(List<String> args, List<CommandLineActionCreator> actionCreators) {
+        private ParseAndBuildAction(List<String> args, Supplier<List<CommandLineActionCreator>> actionCreators) {
             this.args = args;
-            this.actionCreators = actionCreators;
+            this.actionCreatorsFactory = actionCreators;
         }
 
         @Override
         public void execute(ExecutionListener executionListener) {
+            // We fetch the action creators lazily since BuildActionsFactory calls NativeServices.getInstance() in its constructor,
+            // but the NativeServices are not initialized until NativeServicesInitializingAction#execute is called.
+            List<CommandLineActionCreator> actionCreators = actionCreatorsFactory.get();
+
             CommandLineParser parser = new CommandLineParser();
             actionCreators.forEach(creator -> creator.configureCommandLineParser(parser));
 

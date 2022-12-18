@@ -51,7 +51,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
     final LoggingManagerInternal loggingManager = Mock()
     final CommandLineActionCreator buildActionsFactory = Mock()
 
-    final CommandLineActionFactory factory = new DefaultCommandLineActionFactory(loggingServices, buildActionsFactory)
+    final CommandLineActionFactory factory = new DefaultCommandLineActionFactory(loggingServices, () -> buildActionsFactory)
 
     def setup() {
         ProgressLoggerFactory progressLoggerFactory = Mock()

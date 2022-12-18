@@ -21,5 +21,13 @@ import org.gradle.api.Action;
 import java.util.List;
 
 public interface CommandLineActionFactory {
+    /**
+     * Creates an {@link Action} which executes the commands specified by the provided arguments and
+     * reports execution events to the provided listener.
+     *
+     * @param args The arguments describing the command to run.
+     *
+     * @return The action to execute.
+     */
     Action<ExecutionListener> convert(List<String> args);
 }
