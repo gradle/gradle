@@ -143,6 +143,10 @@ import java.util.Set;
  * </pre>
  */
 public abstract class EclipseClasspath {
+
+    public static final String DOWNLOAD_SOURCES_PROPERTY = "org.gradle.eclipse.sources.download";
+    public static final String DOWNLOAD_JAVADOC_PROPERTY = "org.gradle.eclipse.javadoc.download";
+
     private Iterable<SourceSet> sourceSets;
 
     private Collection<Configuration> plusConfigurations = new ArrayList<Configuration>();
@@ -153,7 +157,7 @@ public abstract class EclipseClasspath {
 
     private File defaultOutputDir;
 
-    private boolean downloadSources = true;
+    private boolean downloadSources;
 
     private boolean downloadJavadoc;
 
@@ -178,6 +182,9 @@ public abstract class EclipseClasspath {
         this.containsTestFixtures = project.getObjects().property(Boolean.class).convention(false);
         this.testSourceSets = project.getObjects().setProperty(SourceSet.class);
         this.testConfigurations = project.getObjects().setProperty(Configuration.class);
+
+        this.downloadSources = getProject().getProviders().gradleProperty(DOWNLOAD_SOURCES_PROPERTY).map(Boolean::parseBoolean).getOrElse(true);
+        this.downloadJavadoc = getProject().getProviders().gradleProperty(DOWNLOAD_JAVADOC_PROPERTY).map(Boolean::parseBoolean).getOrElse(false);
     }
 
     /**
