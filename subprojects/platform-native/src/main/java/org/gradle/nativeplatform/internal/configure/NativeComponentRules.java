@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.internal.configure;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.nativeplatform.BuildType;
 import org.gradle.nativeplatform.Flavor;
@@ -26,7 +25,11 @@ import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.platform.internal.NativePlatforms;
-import org.gradle.platform.base.internal.*;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.DefaultBinaryNamingScheme;
+import org.gradle.platform.base.internal.DefaultPlatformRequirement;
+import org.gradle.platform.base.internal.PlatformRequirement;
+import org.gradle.platform.base.internal.PlatformResolvers;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collections;
@@ -69,12 +72,7 @@ public class NativeComponentRules {
             PlatformRequirement requirement = DefaultPlatformRequirement.create(nativePlatforms.getDefaultPlatformName());
             targetPlatforms = Collections.singletonList(requirement);
         }
-        return CollectionUtils.collect(targetPlatforms, new Transformer<NativePlatform, PlatformRequirement>() {
-            @Override
-            public NativePlatform transform(PlatformRequirement platformRequirement) {
-                return platforms.resolve(NativePlatform.class, platformRequirement);
-            }
-        });
+        return CollectionUtils.collect(targetPlatforms, platformRequirement -> platforms.resolve(NativePlatform.class, platformRequirement));
     }
 
     private static void executeForEachBuildType(

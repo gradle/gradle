@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -249,7 +249,7 @@ public abstract class CollectionUtils {
     }
 
     public static List<String> toStringList(Iterable<?> iterable) {
-        return collect(iterable, new LinkedList<String>(), Transformers.asString());
+        return collect(iterable, new LinkedList<String>(), String::valueOf);
     }
 
     /**
@@ -433,7 +433,7 @@ public abstract class CollectionUtils {
     }
 
     private static <C extends Collection<String>> C stringizeInternal(Iterable<?> source, C destination) {
-        return collectInternal(source, destination, Transformers.asString());
+        return collectInternal(source, destination, String::valueOf);
     }
 
     public static <E> boolean replace(List<E> list, Spec<? super E> filter, Transformer<? extends E, ? super E> transformer) {

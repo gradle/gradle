@@ -53,7 +53,7 @@ abstract class UnitTestAndCompileExtension(
      */
     fun enforceJava6Compatibility() {
         tasks.withType<JavaCompile>().configureEach {
-            options.release.set(null)
+            options.release.set(null as Int?)
             options.compilerArgs.remove("-parameters")
             sourceCompatibility = "6"
             targetCompatibility = "6"

@@ -21,7 +21,4 @@ import java.util.function.Supplier;
 
 public interface CacheResourceConfigurationInternal extends CacheResourceConfiguration {
     Supplier<Long> getRemoveUnusedEntriesOlderThanAsSupplier();
-
-    @Override
-    CacheConfigurationsInternal.UnlockableProperty<Long> getRemoveUnusedEntriesOlderThan();
 }
