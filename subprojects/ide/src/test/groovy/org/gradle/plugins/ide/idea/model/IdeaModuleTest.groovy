@@ -76,4 +76,25 @@ class IdeaModuleTest extends AbstractProjectBuilderSpec {
        expect:
        module.targetBytecodeVersion == null
    }
+
+    def "download sources is true by default"() {
+        given:
+        project.getPlugins().apply(JavaPlugin)
+        project.getPlugins().apply(IdeaPlugin)
+        def iml = Mock(IdeaModuleIml)
+        def module = TestUtil.newInstance(IdeaModule, moduleProject, iml)
+        expect:
+        module.downloadSources
+    }
+
+    def "download javadoc is false by default"() {
+        given:
+        project.getPlugins().apply(JavaPlugin)
+        project.getPlugins().apply(IdeaPlugin)
+        def iml = Mock(IdeaModuleIml)
+        def module = TestUtil.newInstance(IdeaModule, moduleProject, iml)
+        expect:
+        !module.downloadJavadoc
+    }
+
 }

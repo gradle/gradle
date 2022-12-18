@@ -468,6 +468,33 @@ dependencies {
     }
 
     @ToBeFixedForConfigurationCache
+    def "does not download localGroovy() sources when sources download is disabled by using gradle.properties"() {
+        given:
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
+
+        file('gradle.properties') << """
+org.gradle.eclipse.sources.download=false
+org.gradle.idea.sources.download=false
+"""
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation localGroovy()
+            }
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsNoSourcesAndJavadocEntry()
+    }
+
+    @ToBeFixedForConfigurationCache
     def "does not download localGroovy() sources when offline"() {
         given:
         executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")

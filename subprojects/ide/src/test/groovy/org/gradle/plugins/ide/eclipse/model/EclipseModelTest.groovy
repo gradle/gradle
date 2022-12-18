@@ -25,6 +25,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.plugins.ide.api.XmlFileContentMerger
+import org.gradle.util.TestProviderFactory
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -35,6 +36,7 @@ class EclipseModelTest extends Specification {
     EclipseModel model
     def project = Mock(ProjectInternal) {
         getTaskDependencyFactory() >> TestFiles.taskDependencyFactory()
+        getProviders() >> new TestProviderFactory()
     }
 
     def setup() {
@@ -201,4 +203,15 @@ class EclipseModelTest extends Specification {
         then:
         2 * xmlTransformer.addAction(xmlAction)
     }
+
+    def "download sources is true by default"() {
+        expect:
+        model.classpath.downloadSources
+    }
+
+    def "download javadoc is false by default"() {
+        expect:
+        !model.classpath.downloadJavadoc
+    }
+
 }
