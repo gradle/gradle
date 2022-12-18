@@ -121,6 +121,9 @@ project('resolve') {
         """
 
         expect:
+        //TODO: remove this once dependency verification stops triggering dependency resolution at execution time
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+
         succeeds('query')
     }
 }
