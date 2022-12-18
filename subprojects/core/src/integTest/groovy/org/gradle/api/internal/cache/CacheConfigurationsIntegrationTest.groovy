@@ -100,7 +100,7 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("help")
-        failureCauseContains(String.format(DefaultCacheConfigurations.ILLEGAL_MODIFICATION_ERROR, errorProperty))
+        failureCauseContains(String.format(DefaultCacheConfigurations.UNSAFE_MODIFICATION_ERROR, errorProperty))
 
         where:
         property                                           | errorProperty                  | value

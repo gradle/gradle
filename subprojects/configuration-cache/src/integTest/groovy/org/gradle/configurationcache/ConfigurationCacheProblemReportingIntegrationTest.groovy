@@ -163,7 +163,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         and:
         configurationCache.assertStateStoreFailed()
-        outputContains("Configuration cache entry discarded.")
+        outputContains("Configuration cache entry discarded due to serialization error.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
@@ -180,7 +180,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
 
         and:
         configurationCache.assertStateStoreFailed()
-        outputContains("Configuration cache entry discarded.")
+        outputContains("Configuration cache entry discarded due to serialization error.")
         failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
