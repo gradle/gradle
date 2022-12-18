@@ -45,5 +45,9 @@ public interface FlowParameters {
      * @since 8.1
      */
     @Incubating
-    final class None implements FlowParameters {}
+    final class None implements FlowParameters {
+        public final static None INSTANCE = new None();
+
+        private None() {}
+    }
 }
