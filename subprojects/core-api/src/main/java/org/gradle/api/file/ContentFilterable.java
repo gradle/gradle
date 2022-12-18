@@ -79,7 +79,7 @@ public interface ContentFilterable {
      * @param transformer to implement line based filtering
      * @return this
      */
-    ContentFilterable filter(Transformer<String, String> transformer);
+    ContentFilterable filter(Transformer<@org.jetbrains.annotations.Nullable String, String> transformer);
 
     /**
      * <p>Expands property references in each file as it is copied. More specifically, each file is transformed using

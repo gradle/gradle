@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.scala.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
@@ -77,7 +78,7 @@ public class ScalaCompileOptionsConfigurer {
         if (additionalParameters == null) {
             scalaCompileOptions.setAdditionalParameters(Collections.singletonList(targetParameter));
         } else {
-            additionalParameters.add(targetParameter);
+            scalaCompileOptions.setAdditionalParameters(new ImmutableList.Builder<String>().addAll(additionalParameters).add(targetParameter).build());
         }
     }
 
