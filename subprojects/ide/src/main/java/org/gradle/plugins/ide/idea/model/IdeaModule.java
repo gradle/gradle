@@ -160,8 +160,8 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  */
 public abstract class IdeaModule {
 
-    public static final String DOWNLOAD_SOURCES_PROPERTY = "org.gradle.idea.sources.download";
-    public static final String DOWNLOAD_JAVADOC_PROPERTY = "org.gradle.idea.javadoc.download";
+    private static final String DOWNLOAD_SOURCES_PROPERTY = "org.gradle.idea.sources.download";
+    private static final String DOWNLOAD_JAVADOC_PROPERTY = "org.gradle.idea.javadoc.download";
 
     private String name;
     private Set<File> sourceDirs;

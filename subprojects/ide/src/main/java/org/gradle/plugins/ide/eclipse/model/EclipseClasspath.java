@@ -144,8 +144,8 @@ import java.util.Set;
  */
 public abstract class EclipseClasspath {
 
-    public static final String DOWNLOAD_SOURCES_PROPERTY = "org.gradle.eclipse.sources.download";
-    public static final String DOWNLOAD_JAVADOC_PROPERTY = "org.gradle.eclipse.javadoc.download";
+    private static final String DOWNLOAD_SOURCES_PROPERTY = "org.gradle.eclipse.sources.download";
+    private static final String DOWNLOAD_JAVADOC_PROPERTY = "org.gradle.eclipse.javadoc.download";
 
     private Iterable<SourceSet> sourceSets;
 
