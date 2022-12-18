@@ -28,6 +28,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry
+import org.gradle.util.TestProviderFactory
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -106,6 +107,7 @@ class IdeaModelTest extends Specification {
 
             getObjects() >> objectFactory
             provider(_) >> Mock(Provider)
+            getProviders() >> new TestProviderFactory()
         }
         def xmlAction = {} as Action<XmlProvider>
         def moduleIml = Spy(IdeaModuleIml, constructorArgs: [xmlTransformer, null])
