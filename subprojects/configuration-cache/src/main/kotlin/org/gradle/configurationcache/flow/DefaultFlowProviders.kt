@@ -28,17 +28,37 @@ import org.gradle.internal.service.scopes.ServiceScope
 @ServiceScope(Scopes.Build::class)
 class DefaultFlowProviders : FlowProviders {
 
-    override fun getRequestedTasksResult(): Provider<RequestedTasksResult> =
+    private
+    val requestedTasksResult by lazy {
         RequestedTasksResultProvider()
+    }
+
+    override fun getRequestedTasksResult(): Provider<RequestedTasksResult> =
+        requestedTasksResult
 }
 
 
-private
+internal
 class RequestedTasksResultProvider : AbstractMinimalProvider<RequestedTasksResult>() {
+
+    private
+    var result: RequestedTasksResult? = null
+
+    fun set(result: RequestedTasksResult) {
+        require(this.result == null)
+        this.result = result
+    }
 
     override fun getType(): Class<RequestedTasksResult> = RequestedTasksResult::class.java
 
     override fun calculateOwnValue(consumer: ValueSupplier.ValueConsumer): ValueSupplier.Value<out RequestedTasksResult> {
-        TODO("Not yet implemented")
+        require(result != null) {
+            "Cannot access flow provider value before it becomes available!"
+        }
+        return ValueSupplier.Value.ofNullable(result)
+    }
+
+    override fun calculateExecutionTimeValue(): ValueSupplier.ExecutionTimeValue<out RequestedTasksResult> {
+        return ValueSupplier.ExecutionTimeValue.changingValue(this)
     }
 }
