@@ -70,8 +70,6 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
-import org.gradle.internal.resources.ResourceLockCoordinationService;
-import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.util.GradleVersion;
@@ -164,9 +162,5 @@ public class ExecutionGradleServices {
             new ExecuteStep<>(buildOperationExecutor
         )))))))))))))))))))))))));
         // @formatter:on
-    }
-
-    SharedResourceLeaseRegistry createSharedResourceLeaseRegistry(ResourceLockCoordinationService coordinationService) {
-        return new SharedResourceLeaseRegistry(coordinationService);
     }
 }
