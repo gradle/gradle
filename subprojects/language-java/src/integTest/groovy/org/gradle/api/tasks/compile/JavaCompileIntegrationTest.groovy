@@ -264,8 +264,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task checkClasspath {
+                def classpath = compileJava.classpath
                 doLast {
-                    def compileClasspath = compileJava.classpath.files*.name
+                    def compileClasspath = classpath.files*.name
                     assert !compileClasspath.contains('b.jar')
                     assert compileClasspath.contains('other-1.0.jar')
                     assert !compileClasspath.contains('shared-1.0.jar')
