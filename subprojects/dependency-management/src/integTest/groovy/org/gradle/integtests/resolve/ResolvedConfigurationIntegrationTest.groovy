@@ -64,8 +64,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
-        //TODO: remove this once dependency verification stops triggering dependency resolution at execution time
-        executer.withArguments("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
 
         fails "validate"
         outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
@@ -119,8 +119,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
-        //TODO: remove this once dependency verification stops triggering dependency resolution at execution time
-        executer.withArguments("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
 
         fails "validate"
         outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
@@ -193,8 +193,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
-        //TODO: remove this once dependency verification stops triggering dependency resolution at execution time
-        executer.withArguments("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -271,8 +271,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         f1.allowAll()
 
         expect:
-        //TODO: remove this once dependency verification stops triggering dependency resolution at execution time
-        executer.withArguments("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -337,8 +337,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.artifact.expectGetUnauthorized()
 
         expect:
-        //TODO: remove this once dependency verification stops triggering dependency resolution at execution time
-        executer.withArguments("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -383,8 +383,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m2.allowAll()
 
         expect:
-        //TODO: remove this once dependency verification stops triggering dependency resolution at execution time
-        executer.withArguments("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -442,8 +442,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         bar1.allowAll()
 
         expect:
-        //TODO: remove this once dependency verification stops triggering dependency resolution at execution time
-        executer.withArguments("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 }
