@@ -24,6 +24,21 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
+### Gradle Wrapper
+
+#### Introduced labels for selecting the version 
+
+The [`--gradle-version`](userguide/gradle_wrapper.html#sec:adding_wrapper) parameter for the wrapper plugin 
+now supports using predefined labels to select a version.
+
+The allowed labels are:
+- `latest`
+- `release-candidate`
+- `nightly`
+- `release-nightly`
+
+More details can be found in the [Gradle Wrapper](userguide/gradle_wrapper.html#sec:adding_wrapper) section.
+
 <!--
 
 ================== TEMPLATE ==============================
