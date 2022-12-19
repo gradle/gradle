@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.Depend
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -55,6 +56,13 @@ public class PreviousCompilation {
 
     public Set<String> getTypesToReprocess(Set<String> compiledClasses) {
         return classAnalysis.getTypesToReprocess(compiledClasses);
+    }
+
+    public Set<String> getAllClasses() {
+        return data.getCompilerApiData().getSourceToClassMapping().values()
+            .stream()
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
     }
 
     public SourceFileClassNameConverter getSourceToClassConverter() {

@@ -19,9 +19,11 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.tasks.compile.CompileOptions;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -35,10 +37,34 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     private List<File> modulePath;
     private List<File> sourceRoots;
     private boolean isIncrementalCompilationOfJavaModule;
+    private Set<String> undeletedClasses = Collections.emptySet();
+    private File backupDestinationDir;
+    private JavaClassCompileOrder javacCompilerOrder = JavaClassCompileOrder.UNORDERED;
 
     @Override
     public MinimalJavaCompileOptions getCompileOptions() {
         return compileOptions;
+    }
+
+    @Nullable
+    @Override
+    public File getClassBackupDir() {
+        return backupDestinationDir;
+    }
+
+    @Override
+    public void setClassBackupDir(@Nullable File classBackupDir) {
+        this.backupDestinationDir = classBackupDir;
+    }
+
+    @Override
+    public JavaClassCompileOrder getJavaClassCompileOrder() {
+        return javacCompilerOrder;
+    }
+
+    @Override
+    public void setJavaClassCompileOrder(JavaClassCompileOrder javaClassCompileOrder) {
+        this.javacCompilerOrder = javaClassCompileOrder;
     }
 
     public void setCompileOptions(CompileOptions compileOptions) {
@@ -68,6 +94,16 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     @Override
     public Set<String> getClasses() {
         return classes;
+    }
+
+    @Override
+    public void setUndeletedClasses(Set<String> classes) {
+        this.undeletedClasses = classes;
+    }
+
+    @Override
+    public Set<String> getUndeletedClasses() {
+        return undeletedClasses;
     }
 
     @Override

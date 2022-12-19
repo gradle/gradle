@@ -18,15 +18,34 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
 
 public interface JavaCompileSpec extends JvmLanguageCompileSpec {
+    enum JavaClassCompileOrder {
+        REVERSE_ALPHABETICALLY,
+        UNORDERED;
+
+        public static JavaClassCompileOrder fromInternalSystemProperty() {
+            return "reverse".equals(System.getProperty("org.gradle.internal.javac.class.compile.order")) ? REVERSE_ALPHABETICALLY : UNORDERED;
+        }
+    }
+
     MinimalJavaCompileOptions getCompileOptions();
 
     @Override
     File getDestinationDir();
+
+    @Nullable
+    File getClassBackupDir();
+
+    void setClassBackupDir(@Nullable File classBackupDir);
+
+    JavaClassCompileOrder getJavaClassCompileOrder();
+
+    void setJavaClassCompileOrder(JavaClassCompileOrder javacClassCompileOrder);
 
     /**
      * The annotation processor path to use. When empty, no processing should be done. When not empty, processing should be done.
@@ -41,7 +60,12 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
 
     void setClasses(Set<String> classes);
 
+
     Set<String> getClasses();
+
+    void setUndeletedClasses(Set<String> classes);
+
+    Set<String> getUndeletedClasses();
 
     List<File> getModulePath();
 

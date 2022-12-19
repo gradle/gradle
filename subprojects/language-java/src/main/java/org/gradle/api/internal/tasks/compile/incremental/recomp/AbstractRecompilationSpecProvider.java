@@ -77,6 +77,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         processSourceChanges(current, sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
         processCompilerSpecificDependencies(spec, recompilationSpec, sourceFileChangeProcessor, sourceFileClassNameConverter);
         collectAllSourcePathsAndIndependentClasses(sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
+        recompilationSpec.addAllClasses(previous.getAllClasses());
 
         Set<String> typesToReprocess = previous.getTypesToReprocess(recompilationSpec.getClassesToCompile());
         processTypesToReprocess(typesToReprocess, recompilationSpec, sourceFileClassNameConverter);
@@ -230,6 +231,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         spec.setSourceFiles(narrowDownSourcesToCompile(sourceTree, sourceToCompile));
         includePreviousCompilationOutputOnClasspath(spec);
         addClassesToProcess(spec, recompilationSpec);
+        addAllUndeletedClasses(spec, recompilationSpec);
         Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
         spec.setIsIncrementalCompilationOfJavaModule(recompilationSpec.hasClassToCompile(MODULE_INFO_CLASS_NAME));
         return new CompileTransaction(spec, classesToDelete, resourcesToDelete, fileOperations, deleter);
@@ -265,6 +267,12 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         Set<String> classesToProcess = new HashSet<>(recompilationSpec.getClassesToProcess());
         classesToProcess.removeAll(recompilationSpec.getClassesToCompile());
         spec.setClasses(classesToProcess);
+    }
+
+    private static void addAllUndeletedClasses(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
+        Set<String> undeletedClasses = new HashSet<>(recompilationSpec.getAllClasses());
+        undeletedClasses.removeAll(recompilationSpec.getClassesToCompile());
+        spec.setUndeletedClasses(undeletedClasses);
     }
 
     private static void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {
