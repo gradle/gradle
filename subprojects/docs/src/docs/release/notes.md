@@ -4,8 +4,6 @@ This release includes several improvements to the [Kotlin DSL](https://github.co
 
 As always, there are also performance improvements like enhancements to the [configuration cache](http://userguide/configuration_cache.html).
 
-We would like to thank the following community members for their contributions to this release of Gradle:
-
 <!--
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
@@ -14,30 +12,42 @@ Include only their name, impactful features should be called out separately belo
  The list is rendered as is, so use commas after each contributor's name, and a period at the end.
 -->
 We would like to thank the following community members for their contributions to this release of Gradle:
-
+[Abdul Rauf](https://github.com/armujahid),
 [Andrei Nevedomskii](https://github.com/monosoul),
+[aSemy](https://github.com/aSemy),
 [Björn Kautler](https://github.com/Vampire),
-[Clara Guerrero](https://github.com/cguerreros),
-[David Marin](https://github.com/dmarin),
+[bodhili](https://github.com/bodhili),
+[Cédric Champeau](https://github.com/melix),
+[Christoph Dreis](https://github.com/dreis2211),
+[Clara Guerrero Sánchez](https://github.com/cguerreros),
+[David Marin Vaquero](https://github.com/dmarin),
+[David Morris](https://github.com/codefish1),
 [Denis Buzmakov](https://github.com/bacecek),
 [Dmitry Pogrebnoy](https://github.com/DmitryPogrebnoy),
 [Dzmitry Neviadomski](https://github.com/nevack),
 [Eliezer Graber](https://github.com/eygraber),
+[Eric Pederson](https://github.com/sourcedelica),
 [Fedor Ihnatkevich](https://github.com/Jeffset),
 [Gabriel Rodriguez](https://github.com/gabrielrodriguez2746),
-[Guruprasad Bagade](https://github.com/prasad-333),
 [Herbert von Broeuschmeul](https://github.com/HvB),
+[Jeff](https://github.com/mathjeff),
+[Jendrik Johannes](https://github.com/jjohannes),
+[Korov](https://github.com/Korov),
+[Marcono1234](https://github.com/Marcono1234),
+[Mariell Hoversholm](https://github.com/Proximyst),
 [Matthew Haughton](https://github.com/3flex),
+[Matthias Ernst](https://github.com/mernst-github),
+[Michael Ernst](https://github.com/mernst),
 [Michael Torres](https://github.com/torresmi),
-[Pankaj Kumar](https://github.com/p1729),
-[Ricardo Jiang](https://github.com/RicardoJiang),
+[Pankaj](https://github.com/p1729),
+[prasad-333](https://github.com/prasad-333),
+[RicardoJiang](https://github.com/RicardoJiang),
 [Siddardha Bezawada](https://github.com/SidB3),
 [Stephen Topley](https://github.com/stopley),
 [Victor Maldonado](https://github.com/vmmaldonadoz),
 [Vinay Potluri](https://github.com/vinaypotluri),
-[Jeff Gaston](https://github.com/mathjeff),
-[David Morris](https://github.com/codefish1),
-[Cédric Champeau](https://github.com/melix).
+[Xin Wang](https://github.com/scaventz).
+
 
 ## Upgrade instructions
 
