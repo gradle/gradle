@@ -13,16 +13,16 @@
 // limitations under the License.
 
 [[incremental_builds]]
-= Incremental builds
+= Incremental build
 
 An important part of any build tool is the ability to avoid doing work that has already been done.
 Consider the process of compilation.
 Once your source files have been compiled, there should be no need to recompile them unless something has changed that affects the output, such as the modification of a source file or the removal of an output file.
 And compilation can take a significant amount of time, so skipping the step when it’s not needed saves a lot of time.
 
-Gradle supports this behavior out of the box through a feature called *incremental builds*.
+Gradle supports this behavior out of the box through a feature called *incremental build*.
 You have almost certainly already seen it in action.
-When you run a task and the task is marked with `UP-TO-DATE` in the console output, this means incremental builds are at work.
+When you run a task and the task is marked with `UP-TO-DATE` in the console output, this means incremental build is at work.
 
 How does an incremental build work? How can you make sure your tasks support running incrementally? Let’s take a look.
 
@@ -45,7 +45,7 @@ What this means for build authors is simple: you need to tell Gradle which task 
 Let’s now look at how you can register task properties as inputs and outputs.
 
 [[sec:task_input_output_annotations]]
-== Input and output declaration
+== Declaring inputs and outputs via annotations
 
 If you’re implementing a custom task as a class, then it takes just two steps to make it work with incremental build:
 
@@ -317,7 +317,7 @@ Both graph and flat results can be combined and augmented with resolved file inf
 This is all demonstrated in the link:../samples/sample_tasks_with_dependency_resolution_result_inputs.html[Tasks with dependency resolution result inputs] sample.
 
 [[sec:task_input_using_classpath_annotations]]
-==== Using the classpath annotations
+=== Using the classpath annotations
 
 Besides `@InputFiles`, for JVM-related tasks Gradle understands the concept of classpath inputs. Both runtime and compile classpaths are treated differently when Gradle is looking for changes.
 
@@ -332,7 +332,7 @@ Additionally to the aforementioned general classpath rules, compile classpaths i
 This means that changes which only touch the implementation of classes do not make the task out of date.
 
 [[sec:task_input_nested_inputs]]
-==== Nested inputs
+=== Nested inputs
 
 When analyzing `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]` task properties for declared input and output sub-properties Gradle uses the type of the actual value.
 Hence it can discover all sub-properties declared by a runtime sub-type.
@@ -400,14 +400,14 @@ There are other task types where this kind of nested inputs are available:
 In the same way, this kind of modelling is available to custom tasks.
 
 [[sec:task_input_validation]]
-=== Task input validation
+=== Validation at runtime
 
 When executing the build Gradle checks if task types are declared with the proper annotations.
 It tries to identify problems where e.g. annotations are used on incompatible types, or on setters etc.
 Any getter not annotated with an input/output annotation is also flagged.
 These problems then fail the build or are turned into deprecation warnings when the task is executed.
 
-Tasks that have a validation warning are executed without any optimizations.
+Tasks that have a validation warning are executed *without any optimizations*.
 Specifically, they never can be:
 
 * up-to-date,
@@ -418,14 +418,14 @@ Specifically, they never can be:
 The in-memory representation of the file system state (_<<file_system_watching.adoc#sec:daemon_watch_fs,Virtual File System>>)_ is also invalidated before an invalid task is executed.
 
 [[sec:task_input_output_runtime_api]]
-== Runtime API
+== Declaring inputs and outputs via the runtime API
 
 Custom task classes are an easy way to bring your own build logic into the arena of incremental build, but you don’t always have that option. That's why Gradle also provides an alternative API that can be used with any tasks, which we look at next.
 
 When you don’t have access to the source for a custom task class, there is no way to add any of the annotations we covered in the previous section. Fortunately, Gradle provides a runtime API for scenarios just like that. It can also be used for ad-hoc tasks, as you'll see next.
 
 [[sec:runtime_api_for_adhoc]]
-=== Managing inputs and outputs of ad-hoc tasks
+=== Declaring inputs and outputs of ad-hoc tasks
 
 This runtime API is provided through a couple of aptly named properties that are available on every Gradle task:
 
@@ -501,7 +501,7 @@ The `TaskInputs.files()` method returns a builder that has a `skipWhenEmpty()` m
 Now that you have seen both the annotations and the runtime API, you may be wondering which API you should be using. Our recommendation is to use the annotations wherever possible, and it’s sometimes worth creating a custom task class just so that you can make use of them. The runtime API is more for situations in which you can’t use the annotations.
 
 [[sec:runtime_api_for_custom_tasks]]
-==== Registering inputs and outputs for custom task types
+=== Declaring inputs and outputs for custom task types
 
 Another type of example involves registering additional inputs and outputs for instances of a custom task class.
 For example, imagine that the `ProcessTemplates` task also needs to read `src/headers/headers.txt` (e.g. because it is included from one of the sources).
@@ -522,7 +522,7 @@ If the task type is already using the incremental build annotations, registering
 ====
 
 [[sec:task_input_output_side_effects]]
-== Incremental build benefits
+== Benefits of declaring task inputs and outputs
 
 Once you declare a task’s formal inputs and outputs, Gradle can then infer things about those properties. For example, if an input of one task is set to the output of another, that means the first task depends on the second, right? Gradle knows this and can act upon it.
 
