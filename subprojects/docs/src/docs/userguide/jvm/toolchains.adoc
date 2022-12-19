@@ -418,7 +418,7 @@ include::sample[dir="snippets/java/toolchain-task/kotlin/",files="build.gradle.k
 include::sample[dir="snippets/java/toolchain-task/groovy/",files="build.gradle[tags=custom-toolchain-task-with-java]"]
 ====
 <1> We declare a `JavaLauncher` property on the task.
-The property must be marked as a <<more_about_tasks.adoc#sec:task_input_nested_inputs,`@Nested` input>> to make sure the task is responsive to toolchain changes.
+The property must be marked as a <<incremental_build.adoc#sec:task_input_nested_inputs,`@Nested` input>> to make sure the task is responsive to toolchain changes.
 <2> We obtain the toolchain spec from the `java` extension to use it as a default.
 <3> Using the `JavaToolchainService` we get a provider of the `JavaLauncher` that matches the toolchain.
 <4> Finally, we wire the launcher provider as a convention for our property.
