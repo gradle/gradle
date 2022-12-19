@@ -47,4 +47,5 @@ public interface DependencyFactoryInternal extends DependencyFactory {
     DependencyConstraint createDependencyConstraint(Object dependencyNotation);
     ClientModule createModule(Object dependencyNotation, Closure configureClosure);
     ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map);
+    void injectServices(Dependency dependency);
 }
