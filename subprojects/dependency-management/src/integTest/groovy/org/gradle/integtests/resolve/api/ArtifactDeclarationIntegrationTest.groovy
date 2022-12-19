@@ -524,11 +524,12 @@ task checkArtifacts {
             }
 
             task copyAndPrintDependencies {
+                configurations.implementation.dependencies.each {
+                    project.dependencies.add("destination1", it)
+                    configurations.destination2.dependencies.add(it)
+                }
+
                 doLast {
-                    configurations.implementation.dependencies.each {
-                        project.dependencies.add("destination1", it)
-                        configurations.destination2.dependencies.add(it)
-                    }
                     configurations.implementation.dependencies.each {
                         println("implementation " + it + " " + it.artifacts*.classifier)
                     }
