@@ -20,12 +20,15 @@ import org.gradle.api.Action;
 import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.api.model.ObjectFactory;
 
+import javax.inject.Inject;
+
 public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
     private final CacheConfigurations.CacheResourceConfiguration releasedWrappersConfiguration;
     private final CacheConfigurations.CacheResourceConfiguration snapshotWrappersConfiguration;
     private final CacheConfigurations.CacheResourceConfiguration downloadedResourcesConfiguration;
     private final CacheConfigurations.CacheResourceConfiguration createdResourcesConfiguration;
 
+    @Inject
     public DefaultCacheConfigurations(ObjectFactory objectFactory) {
         this.releasedWrappersConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS);
         this.snapshotWrappersConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_SNAPSHOT_DISTS);
@@ -33,6 +36,7 @@ public class DefaultCacheConfigurations implements CacheConfigurationsInternal {
         this.createdResourcesConfiguration = createResourceConfiguration(objectFactory, DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES);
     }
 
+    @Inject
     private static CacheResourceConfiguration createResourceConfiguration(ObjectFactory objectFactory, int defaultDays) {
         CacheResourceConfiguration resourceConfiguration = objectFactory.newInstance(CacheResourceConfiguration.class);
         resourceConfiguration.getRemoveUnusedEntriesAfterDays().convention(defaultDays);
