@@ -25,6 +25,9 @@ import org.gradle.internal.serialize.Encoder;
 
 import java.io.IOException;
 
+/**
+ * A thread-safe and reusable serializer for {@link BuildIdentifier}.
+ */
 public class BuildIdentifierSerializer extends AbstractSerializer<BuildIdentifier> {
     private static final byte ROOT = 0;
     private static final byte LOCAL = 1;
