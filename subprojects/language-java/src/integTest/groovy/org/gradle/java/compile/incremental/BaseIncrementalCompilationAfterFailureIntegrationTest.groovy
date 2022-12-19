@@ -26,9 +26,15 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
-import static org.junit.Assume.assumeFalse
-
 abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
+
+    String compileStaticAnnotation = ""
+
+    def setup() {
+        // We need to pass source files to javac in a stable order,
+        // only that way we can test that some classes were generated before the compilation failure.
+        propertiesFile << "systemProp.org.gradle.internal.javac.class.compile.order=reverse"
+    }
 
     def "detects deletion of a source base class that leads to compilation failure but keeps old files"() {
         def a = source "class A {}"
@@ -45,17 +51,102 @@ abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends Abs
         outputs.deletedClasses()
     }
 
-    def "old classes are restored after the compile failure"() {
+    def "old classes are restored after the compile failure and incremental compilation works after a failure"() {
         source("class A {}", "class B {}")
         outputs.snapshot { run language.compileTaskName }
 
         when:
-        source("class A { garbage }")
+        def a = source("class A { garbage }")
         runAndFail language.compileTaskName
 
         then:
         outputs.noneRecompiled()
         outputs.hasFiles(file("A.class"), file("B.class"))
+
+        when:
+        a.text = "class A {}"
+        run language.compileTaskName
+
+        then:
+        outputs.noneRecompiled()
+    }
+
+    def "new generated classes are removed on the compile failure and incremental compilation works after a failure"() {
+        source("class A {}", "class B {}")
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        // Compile .java also for Groovy, so the file is written before failure
+        file("src/main/$languageName/c/C.java").text = "package c; class C {}"
+        def a = source("$compileStaticAnnotation class A { A m1() { return 0; } }")
+        runAndFail language.compileTaskName, "-d"
+
+        then:
+        outputs.noneRecompiled()
+        outputs.hasFiles(file("A.class"), file("B.class"))
+        outputContains("Deleting generated files: [${file("build/classes/$languageName/main/c/C.class")}]")
+        outputContains("Restoring stashed files: [${file("build/classes/$languageName/main/A.class")}]")
+        outputContains("Restoring overwritten files: []")
+        !file("build/classes/$languageName/main/c/").exists()
+
+        when:
+        a.text = "class A {}"
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("C")
+    }
+
+    def "classes in renamed files are restored on the compile failure and incremental compilation works after a failure"() {
+        def a = source"class A {}"
+        def b = source "class B {}"
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        // Compile .java also for Groovy, so the file is written before failure
+        file("src/main/$languageName/B1.java").text = "class B { void m1() {} }"
+        b.delete()
+        a.text = "$compileStaticAnnotation class A { A getA() { return new B(); } }"
+        runAndFail language.compileTaskName, "-d"
+
+        then:
+        outputs.noneRecompiled()
+        outputs.hasFiles(file("A.class"), file("B.class"))
+        outputContains("Deleting generated files: [${file("build/classes/$languageName/main/B.class")}]")
+        outputContains("Restoring stashed files: [${file("build/classes/$languageName/main/A.class")}, ${file("build/classes/$languageName/main/B.class")}]")
+        outputContains("Restoring overwritten files: []")
+
+        when:
+        a.text = "class A {}"
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("B")
+    }
+
+    def "overwritten classes are restored on the compile failure and incremental compilation works after a failure"() {
+        source("class A {}", "class B {}")
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        // Compile .java also for Groovy, so the file is written before failure
+        file("src/main/$languageName/B1.java").text = "class B { void m1() {} }"
+        def a = source("$compileStaticAnnotation class A { A getA() { return new B(); } }")
+        runAndFail language.compileTaskName, "-d"
+
+        then:
+        outputs.noneRecompiled()
+        outputs.hasFiles(file("A.class"), file("B.class"))
+        outputContains("Deleting generated files: [${file("build/classes/$languageName/main/B.class")}]")
+        outputContains("Restoring stashed files: [${file("build/classes/$languageName/main/A.class")}]")
+        outputContains("Restoring overwritten files: [${file("build/classes/$languageName/main/B.class")}]")
+
+        when:
+        a.text = "class A {}"
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("B")
     }
 
     def "incremental compilation works after a compile failure"() {
@@ -110,7 +201,6 @@ abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends Abs
 
     def "writes relative paths to source-to-class mapping after incremental compilation"() {
         given:
-        assumeFalse("Source-to-class mapping is not written for CLI compiler", this.class == JavaSourceCliIncrementalCompilationIntegrationTest.class)
         source("package test.gradle; class A {}", "package test2.gradle; class B {}")
         outputs.snapshot { run language.compileTaskName }
         def previousCompilationDataFile = file("build/tmp/${language.compileTaskName}/previous-compilation-data.bin")
@@ -306,12 +396,43 @@ class JavaIncrementalCompilationAfterFailureIntegrationTest extends BaseIncremen
         "with inferred module-path" | "true"          | "[]"                                                         | ""
         "with manual module-path"   | "false"         | "[\"--module-path=\${classpath.join(File.pathSeparator)}\"]" | "classpath = layout.files()"
     }
+
+    def "incremental compilation after failure works with header output"() {
+        given:
+        def a = source("class A { public native void foo(); }")
+        source("class B {}")
+        succeeds "compileJava"
+
+        when:
+        outputs.snapshot {
+            a.text = "class A { public native void foo(); String m1() { return 0; } }"
+            source("package c; class C { public native void foo(); }")
+        }
+
+        then:
+        runAndFail "compileJava", "-d"
+        outputs.noneRecompiled()
+        outputContains("Deleting generated files: [${file("build/classes/$languageName/main/c/C.class")}, ${file("build/generated/sources/headers/java/main/c_C.h")}]")
+        outputContains("Restoring stashed files: [${file("build/classes/$languageName/main/A.class")}, ${file("build/generated/sources/headers/java/main/A.h")}]")
+        outputContains("Restoring overwritten files: []")
+
+        when:
+        a.text = 'class A { public native void foo(); String m1() { return ""; } }'
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("A", "C")
+    }
 }
 
 class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrementalCompilationAfterFailureIntegrationTest {
+
+    private static final COMPILE_STATIC_ANNOTATION = "@groovy.transform.CompileStatic"
+
     CompiledLanguage language = CompiledLanguage.GROOVY
 
     def setup() {
+        compileStaticAnnotation = COMPILE_STATIC_ANNOTATION
         configureGroovyIncrementalCompilation()
     }
 
@@ -379,5 +500,50 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
         outputs.recompiledClasses("AppTest", "AppTest\$_some_test_closure1", "AppTest\$_some_test_closure1\$_closure2", "BaseTest")
         compileTransactionDir.exists()
         stashDirClasses() == ["AppTest.class", "AppTest\$_some_test_closure1.class", "AppTest\$_some_test_closure1\$_closure2.class", "BaseTest.class"] as Set<String>
+    }
+
+    /**
+     * While it's possible to reproduce a compilation failure after some .class is written to a disk for Java, it's much harder for Groovy,
+     * since Groovy compiler will first analyze all classes and only then write all on disk. While Java compiler can also generate classes before other are analysed.
+     *
+     * That is why we test restoring overwritten and deleting new files just with Java files.
+     */
+    def 'incremental compilation after a failure works when #description compilation fails and new classes are deleted and overwritten classes are restored'() {
+        given:
+        File a = sourceWithFileSuffix(fileWithErrorSuffix, "class A { }")
+        sourceWithFileSuffix("groovy", "class B {}")
+        sourceWithFileSuffix("groovy", "class C {}")
+        run "compileGroovy"
+
+        when:
+        outputs.snapshot {
+            file("src/main/groovy/B1.java").text = "class B { void m1() {} }"
+            sourceWithFileSuffix("java", "class D {}")
+            a.text = "$compileErrorClassAnnotation class A { A m1() { return 0; }; }"
+        }
+
+        then:
+        runAndFail "compileGroovy", "-d"
+        outputs.noneRecompiled()
+        outputContains("Deleting generated files: [${file("build/classes/$languageName/main/B.class")}, ${file("build/classes/$languageName/main/D.class")}]")
+        outputContains("Restoring stashed files: [${file("build/classes/$languageName/main/A.class")}]")
+        outputContains("Restoring overwritten files: [${file("build/classes/$languageName/main/B.class")}]")
+
+        when:
+        outputs.snapshot {
+            a.text = "class A { A m1() { return new A(); }; }"
+        }
+        file("src/main/groovy/B1.java").delete()
+        run "compileGroovy"
+
+        then:
+        outputs.recompiledClasses("A", "D")
+
+        where:
+        // We must trigger failure in a "Semantic Analysis" stage and not in parse stage, otherwise compiler won't output anything on a disk.
+        // So for example "class A { garbage }" will cause compiler to fail very early and nothing will be written on a disk.
+        description | fileWithErrorSuffix | compileErrorClassAnnotation
+        "Java"      | "java"              | ""
+        "Groovy"    | "groovy"            | COMPILE_STATIC_ANNOTATION
     }
 }

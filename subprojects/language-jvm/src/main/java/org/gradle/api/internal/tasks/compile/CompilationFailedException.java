@@ -15,16 +15,37 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import javax.annotation.Nullable;
+import java.util.Optional;
+
 public class CompilationFailedException extends RuntimeException {
+
+    private final Object compilerPartialResult;
+
     public CompilationFailedException() {
+        this((Object) null);
+    }
+
+    public CompilationFailedException(@Nullable Object compilerPartialResult) {
         super("Compilation failed; see the compiler error output for details.");
+        this.compilerPartialResult = compilerPartialResult;
     }
 
     public CompilationFailedException(int exitCode) {
         super(String.format("Compilation failed with exit code %d; see the compiler error output for details.", exitCode));
+        this.compilerPartialResult = null;
     }
 
     public CompilationFailedException(Throwable cause) {
         super(cause);
+        this.compilerPartialResult = null;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> Optional<T> getCompilerPartialResult(Class<T> type) {
+        if (compilerPartialResult != null && type.isAssignableFrom(compilerPartialResult.getClass())) {
+            return (Optional<T>) Optional.of(compilerPartialResult);
+        }
+        return Optional.empty();
     }
 }
