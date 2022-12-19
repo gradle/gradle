@@ -92,7 +92,7 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ### JVM
 
-#### Introduced access to testing project internals with JVM test suite 
+#### Allow Test Suites to depend on project implementation details 
 
 The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now
 supports depending on the internal view of the current project at compile-time.
@@ -124,7 +124,7 @@ For more information about adding different types of test dependencies, see [JVM
 
 ##### Updated Toolchain Download Repositories
 
-Starting in Gradle 8, Java Toolchain auto-provisioning needs explicit definition. This can be done via toolchain repository plugins, like the [Foojay Toolchains Plugin](https://github.com/gradle/disco-toolchains):
+Gradle 7.6 introduced [arbitrary toolchain repositories](https://docs.gradle.org/7.6/userguide/toolchains.html#sub:download_repositories). In Gradle 8.0, if toolchain auto-provisioning is needed, at least one Java Toolchain repository needs an explicit definition for the build. This can be done via toolchain repository plugins, like the [Foojay Toolchains Plugin](https://github.com/gradle/disco-toolchains):
 
 ```
 plugins {
@@ -166,13 +166,9 @@ See the [`kotlin-dsl` plugin manual](userguide/kotlin_dsl.adoc#sec:kotlin-dsl_pl
 
 #### Improved Script compilation performance 
 
-This Gradle version introduces an interpreter for [declarative `plugins {}` blocks](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts.
-It allows avoiding calling the Kotlin compiler for declarative `plugins {}` blocks and is enabled by default.
+Gradle 8.0 introduces an interpreter for the [declarative plugins {} blocks](https://github.com/gradle/gradle/blob/release/subprojects/docs/src/docs/release/userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts that make the overall build time around 20% faster. By default, calling the Kotlin compiler for declarative `plugins {}` blocks is avoided.
 
-On a build with declarative `plugins {}` blocks, a Gradle invocation that needs to compile all scripts, the interpreter makes the overall build time around 20% faster.
-As usual, compiled scripts are stored in the build cache and can be reused by other builds.
-
-Here is what is supported in declarative `plugins {}` blocks:
+To utilize this performance, ensure you are using the supported formats in the declarative `plugins {}` blocks:
 
 ```kotlin
 plugins {
@@ -243,13 +239,11 @@ For more information, see [Exporting keys](userguide/dependency_verification.htm
 
 #### Consistent task execution for configuration cache hit and configuration cache miss builds
 
-When the [configuration cache](userguide/configuration_cache.html) is enabled and Gradle is able to locate a compatible configuration cache entry for the requested tasks, 
-it loads the tasks to run from the cache entry and runs them as so-called 'isolated' tasks. Isolated tasks are able to run in parallel by default, subject to dependency constraints.
+In Gradle 8.0, tasks run in parallel from the first build when using the configuration cache. Gradle now loads the set of tasks from the cache entry after storing them on a cache miss. These tasks are isolated and can run in parallel. This is more  fine-grained than using the --parallel flag.
 
-When Gradle is unable to locate a configuration cache entry to use, it runs the 'configuration' phase to calculate the set of tasks to run and then stores these tasks to a new cache entry.
-In previous versions, Gradle would then run these tasks directly. However, as these tasks are not isolated, they would not run in parallel.
+When the [configuration cache](https://github.com/gradle/gradle/blob/release/subprojects/docs/src/docs/release/userguide/configuration_cache.html) is enabled, and Gradle is able to locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the cache entry and runs them as so-called 'isolated' tasks. Isolated tasks are able to run in parallel by default, subject to dependency constraints.
 
-In this release, Gradle now loads the set of tasks from the cache entry after storing them on a cache miss. These tasks are isolated and can run in parallel.
+When Gradle is unable to locate a configuration cache entry to use, it runs the 'configuration' phase to calculate the set of tasks to run and then stores these tasks to a new cache entry. In previous versions, Gradle would then run these tasks directly. However, as these tasks are not isolated, they would not run in parallel.
 
 There are some additional advantages to this new behavior:
 
@@ -300,26 +294,26 @@ This release includes several improvements for [`buildSrc`](userguide/organizing
 It is now possible to run the tasks of a `buildSrc` build from the command-line, using the same syntax used for tasks of included builds.
 For example, you can use `gradle buildSrc:build` to run the `build` task in the `buildSrc` build.
 
-For more details see the [user manual](userguide/composite_builds.html#composite_build_executing_tasks)
+For more details, see the [user manual](userguide/composite_builds.html#composite_build_executing_tasks)
 
 #### `buildSrc` can include other builds
 The `buildSrc` build can now include other builds by declaring them in `buildSrc/settings.gradle.kts` or `buildSrc/settings.gradle`.
 You can use `pluginsManagement { includeBuild(someDir) }` or `includeBuild(someDir)` in this settings script to include other builds in `buildSrc`.
 
-For more details see the [user manual](userguide/composite_builds.html)
+For more details, see the [user manual](userguide/composite_builds.html)
 
 #### Tests for `buildSrc` are no longer automatically run
 When Gradle builds the output of `buildSrc` it only runs the tasks that produce that output. It no longer runs the `build` task.
 In particular, this means that the tests of `buildSrc` and its subprojects are not built and executed when they are not needed.
 
-You can run the tests for `buildSrc` in the same way as other project, as described above.
+You can run the tests for `buildSrc` in the same way as other projects, as described above.
 
 #### Init scripts are applied to `buildSrc`
 
 Init scripts specified on the command-line using `--init-script` are now applied to `buildSrc`, in addition to the main build and all included builds.
 
 
-### Plugin Development
+### Code Quality Plugin Improvements
 
 #### Enhanced CodeNarc Plugin to automatically detects the appropriate version for the current Groovy runtime
 
