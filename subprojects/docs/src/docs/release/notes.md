@@ -104,7 +104,7 @@ testing {
 }
 ```
 
-For more information about warning modes, see [JVM test suite](userguide/jvm_test_suite_plugin.html).
+For more information about adding different types of test dependencies, see [JVM test suite](userguide/jvm_test_suite_plugin.html).
 
 
 ###  Kotlin DSL
@@ -135,7 +135,7 @@ Starting with Gradle 8.0, it now uses the configured Java Toolchain, or Java 8 i
 
 See the [`kotlin-dsl` plugin manual](userguide/kotlin_dsl.adoc#sec:kotlin-dsl_plugin) for more information on how to configure the Java Toolchain for precompiled script plugins and the [migration guide](userguide/upgrading_version_7.html#kotlin_dsl_plugin_toolchains) for more information on changed behaviour.
 
-##### Improved Script compilation performance 
+##### Improved Script compilation performance
 
 This Gradle version introduces an interpreter for [declarative `plugins {}` blocks](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts.
 It allows to avoid calling the Kotlin compiler for declarative `plugins {}` blocks and is enabled by default.
@@ -182,14 +182,14 @@ In the cases above, Gradle falls back to the Kotlin compiler, providing the same
 
 Warning modes that are supposed to print all warnings were printing only one for each specific warning message.
 
-If there were two warnings with the same message, but originating from different steps of the build process (i.e. different stack traces), only one of them was printed. 
+If there were two warnings with the same message, but originating from different steps of the build process (i.e. different stack traces), only one of them was printed.
 
 Now one gets printed for each combination of message and stack trace.
 
 For more information about warning modes, see [Showing or hiding warnings](userguide/command_line_interface.html#sec:command_line_warnings).
 
 
-#### Improved Dependency verification metadata 
+#### Improved Dependency verification metadata
 
 The following nodes with dependency verification metadata file `verification-metadata.xml` now support a `reason` attribute:
 
@@ -206,7 +206,7 @@ You can now use the `export-keys` flag to export all already trusted keys:
 ./gradlew --export-keys
 ```
 
-There is no longer a need to write verification metadata when exporting trusted keys. 
+There is no longer a need to write verification metadata when exporting trusted keys.
 
 For more information, see [Exporting keys](userguide/dependency_verification.html#sec:local-keyring).
 
@@ -216,7 +216,7 @@ For more information, see [Exporting keys](userguide/dependency_verification.htm
 
 #### Consistent task execution for configuration cache hit and configuration cache miss builds
 
-When the configuration cache is enabled and Gradle is able to locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the 
+When the configuration cache is enabled and Gradle is able to locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the
 cache entry and runs them a so called 'isolated' tasks. Isolated tasks are able to run in parallel (subject to dependency constraints).
 
 When Gradle is unable to locate a configuration cache entry to use, it runs the 'configuration' phase to calculate the set of tasks to run and then stores these tasks to a new cache entry.
@@ -228,11 +228,11 @@ There are some additional advantages to this new behaviour:
 
 - Any problems that happen during deserialization will be reported in the cache miss build, making it easier to spot such problems.
 - Tasks have access to the same state in cache miss and cache hit builds.
-- Gradle can release all heap used by the configuration state prior to task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks were able to access it. This reduces the peak heap usage for a given set of tasks. 
+- Gradle can release all heap used by the configuration state prior to task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks were able to access it. This reduces the peak heap usage for a given set of tasks.
 
 This consistent behavior for cache miss and cache hit builds should help people who are migrating to use the configuration cache, as many more problems can now be discovered on the first (cache miss) build.
 
-#### Improved compatibility with core plugins 
+#### Improved compatibility with core plugins
 
 The [`gradle init` command](userguide/build_init_plugin.html) can be used with the configuration cache enabled.
 
@@ -280,7 +280,7 @@ TODO - link to declaring included builds
 When Gradle builds the output of `buildSrc` it only runs the tasks that produce that output. It no longer runs the `build` task.
 In particular, this means that the tests of `buildSrc` and its subprojects are not built and executed when they are not needed.
 
-TODO - you can run these tasks from the command-line or edit buildSrc to restore the old behaviour; link to upgrade guide 
+TODO - you can run these tasks from the command-line or edit buildSrc to restore the old behaviour; link to upgrade guide
 
 #### Init scripts are applied to `buildSrc`
 Init scripts specified on the command-line using `--init-script` are now applied to `buildSrc`, in addition to the main build and all included builds.
@@ -292,7 +292,7 @@ ADD RELEASE FEATURES ABOVE
 -->
 
 #### Improved Gradle User Home Cache Cleanup
-Previously, cleanup of the caches in Gradle User Home used fixed retention periods (30 days or 7 days depending on the cache).  
+Previously, cleanup of the caches in Gradle User Home used fixed retention periods (30 days or 7 days depending on the cache).
 These retention periods can now be configured via the [Settings](dsl/org.gradle.api.initialization.Settings.html) object in an init script in Gradle User Home.
 
 ```groovy
@@ -303,7 +303,7 @@ beforeSettings { settings ->
 }
 ```
 
-Furthermore, it was previously only possible to partially disable cache cleanup via the `org.gradle.cache.cleanup` Gradle property in Gradle User Home.  
+Furthermore, it was previously only possible to partially disable cache cleanup via the `org.gradle.cache.cleanup` Gradle property in Gradle User Home.
 Disabling cache cleanup now affects more caches under Gradle User Home and can also be configured via the [Settings](dsl/org.gradle.api.initialization.Settings.html) object in an init script in Gradle User Home.
 
 ```groovy
