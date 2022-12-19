@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
+import org.gradle.cache.internal.TestCaches;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.file.Deleter;
@@ -67,7 +68,7 @@ public class TestFiles {
     private static final FileSystem FILE_SYSTEM = NativeServicesTestFixture.getInstance().get(FileSystem.class);
     private static final DefaultFileLookup FILE_LOOKUP = new DefaultFileLookup();
     private static final DefaultExecActionFactory EXEC_FACTORY =
-        DefaultExecActionFactory.of(resolver(), fileCollectionFactory(), new DefaultExecutorFactory(), NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class));
+            DefaultExecActionFactory.of(resolver(), fileCollectionFactory(), new DefaultExecutorFactory(), NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class));
 
     public static FileCollectionInternal empty() {
         return FileCollectionFactory.empty();
@@ -142,45 +143,46 @@ public class TestFiles {
     }
 
     public static FileOperations fileOperations(File basedDir) {
-        return fileOperations(basedDir, null);
+        return fileOperations(basedDir, new DefaultTemporaryFileProvider(() -> new File(basedDir, "tmp")));
     }
 
-    public static FileOperations fileOperations(File basedDir, @Nullable TemporaryFileProvider temporaryFileProvider) {
+    public static FileOperations fileOperations(File basedDir, TemporaryFileProvider temporaryFileProvider) {
         FileResolver fileResolver = resolver(basedDir);
         FileSystem fileSystem = fileSystem();
 
         DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
-            fileResolver,
-            taskDependencyFactory(),
-            fileSystem,
-            temporaryFileProvider,
-            textResourceAdapterFactory(temporaryFileProvider)
+                fileResolver,
+                taskDependencyFactory(),
+                fileSystem,
+                temporaryFileProvider,
+                textResourceAdapterFactory(temporaryFileProvider)
         );
 
         return new DefaultFileOperations(
-            fileResolver,
-            temporaryFileProvider,
-            TestUtil.instantiatorFactory().inject(),
-            directoryFileTreeFactory(),
-            streamHasher(),
-            fileHasher(),
-            resourceHandlerFactory,
-            fileCollectionFactory(basedDir),
-            objectFactory(),
-            fileSystem,
-            getPatternSetFactory(),
-            deleter(),
-            documentationRegistry(),
-            taskDependencyFactory(),
-            providerFactory());
+                fileResolver,
+                temporaryFileProvider,
+                TestUtil.instantiatorFactory().inject(),
+                directoryFileTreeFactory(),
+                null,
+                fileHasher(),
+                resourceHandlerFactory,
+                fileCollectionFactory(basedDir),
+                objectFactory(),
+                fileSystem,
+                getPatternSetFactory(),
+                deleter(),
+                documentationRegistry(),
+                taskDependencyFactory(),
+                providerFactory(),
+                TestCaches.decompressionCacheFactory(temporaryFileProvider.newTemporaryDirectory("cache-dir")));
     }
 
     public static ApiTextResourceAdapter.Factory textResourceAdapterFactory(@Nullable TemporaryFileProvider temporaryFileProvider) {
         return new ApiTextResourceAdapter.Factory(
-            __ -> {
-                throw new IllegalStateException("Can't create TextUriResourceLoader");
-            },
-            temporaryFileProvider
+                __ -> {
+                    throw new IllegalStateException("Can't create TextUriResourceLoader");
+                },
+                temporaryFileProvider
         );
     }
 
@@ -207,12 +209,12 @@ public class TestFiles {
 
     public static FileSystemAccess fileSystemAccess(VirtualFileSystem virtualFileSystem) {
         return new DefaultFileSystemAccess(
-            fileHasher(),
-            new StringInterner(),
-            fileSystem(),
-            virtualFileSystem,
-            locations -> {},
-            new DirectorySnapshotterStatistics.Collector()
+                fileHasher(),
+                new StringInterner(),
+                fileSystem(),
+                virtualFileSystem,
+                locations -> {},
+                new DirectorySnapshotterStatistics.Collector()
         );
     }
 
@@ -234,11 +236,11 @@ public class TestFiles {
 
     public static ExecFactory execFactory(File baseDir) {
         return execFactory().forContext()
-            .withFileResolver(resolver(baseDir))
-            .withFileCollectionFactory(fileCollectionFactory(baseDir))
-            .withInstantiator(TestUtil.instantiatorFactory().inject())
-            .withObjectFactory(objectFactory())
-            .build();
+                .withFileResolver(resolver(baseDir))
+                .withFileCollectionFactory(fileCollectionFactory(baseDir))
+                .withInstantiator(TestUtil.instantiatorFactory().inject())
+                .withObjectFactory(objectFactory())
+                .build();
     }
 
     public static ExecActionFactory execActionFactory() {
@@ -277,4 +279,5 @@ public class TestFiles {
     public static TemporaryFileProvider tmpDirTemporaryFileProvider(File baseDir) {
         return new DefaultTemporaryFileProvider(() -> baseDir);
     }
+
 }

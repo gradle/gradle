@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.AbstractFileTreeElement;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -49,19 +50,22 @@ public class ZipFileTree extends AbstractArchiveFileTree {
     private final Chmod chmod;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileHasher fileHasher;
+    private final DecompressionCache decompressionCache;
 
     public ZipFileTree(
         Provider<File> zipFile,
         File tmpDir,
         Chmod chmod,
         DirectoryFileTreeFactory directoryFileTreeFactory,
-        FileHasher fileHasher
+        FileHasher fileHasher,
+        DecompressionCache decompressionCache
     ) {
         this.fileProvider = zipFile;
         this.tmpDir = tmpDir;
         this.chmod = chmod;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileHasher = fileHasher;
+        this.decompressionCache = decompressionCache;
     }
 
     @Override
