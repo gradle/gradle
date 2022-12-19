@@ -24,6 +24,7 @@ tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
 moduleIdentity.createBuildReceipt()
 
 dependencies {
+    api(libs.jetbrainsAnnotations)
     api(project(":base-annotations"))
     api(project(":worker-services"))
     api(project(":hashing"))

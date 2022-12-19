@@ -414,7 +414,9 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         return dependencyProvider.map(dep -> {
             DefaultExternalModuleDependencyVariantSpec spec = objects.newInstance(DefaultExternalModuleDependencyVariantSpec.class, objects, dep);
             variantSpec.execute(spec);
-            return new DefaultMinimalDependencyVariant(dep, spec.attributesAction, spec.capabilitiesMutator, spec.classifier, spec.artifactType);
+            DefaultMinimalDependencyVariant newDep = DefaultMinimalDependencyVariant.create(dep, spec.attributesAction, spec.capabilitiesMutator, spec.classifier, spec.artifactType);
+            dependencyFactory.injectServices(newDep);
+            return newDep;
         });
     }
 

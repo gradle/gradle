@@ -27,11 +27,11 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
+import org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableMinimalDependency;
-import org.gradle.api.internal.artifacts.dependencies.DependencyVariant;
+import org.gradle.api.internal.artifacts.dependencies.MinimalExternalModuleDependencyInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
-import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
@@ -61,7 +61,7 @@ public class DependencyNotationParser {
         NotationConverter<String, ? extends ExternalModuleDependency> stringNotationConverter =
             new DependencyStringNotationConverter<>(instantiator, DefaultExternalModuleDependency.class, stringInterner);
         NotationConverter<MinimalExternalModuleDependency, ? extends MinimalExternalModuleDependency> minimalExternalDependencyNotationConverter =
-            new MinimalExternalDependencyNotationConverter(instantiator, attributesFactory, capabilityNotationParser);
+            new MinimalExternalDependencyNotationConverter(instantiator);
         MapNotationConverter<? extends ExternalModuleDependency> mapNotationConverter =
             new DependencyMapNotationConverter<>(instantiator, DefaultExternalModuleDependency.class);
         NotationConverter<FileCollection, ? extends FileCollectionDependency> filesNotationConverter =
@@ -80,8 +80,9 @@ public class DependencyNotationParser {
             .fromType(DependencyFactoryInternal.ClassPathNotation.class, dependencyClassPathNotationConverter)
             .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
             .toComposite();
-        return new DependencyNotationParser(
-            notationParser,
+        return
+            new DependencyNotationParser(
+            new ServiceInjectingNotationParser(notationParser, attributesFactory, capabilityNotationParser),
             new NotationConverterToNotationParserAdapter<>(stringNotationConverter),
             new NotationConverterToNotationParserAdapter<>(minimalExternalDependencyNotationConverter),
             new NotationConverterToNotationParserAdapter<>(mapNotationConverter),
@@ -138,37 +139,57 @@ public class DependencyNotationParser {
 
     private static class MinimalExternalDependencyNotationConverter implements NotationConverter<MinimalExternalModuleDependency, MinimalExternalModuleDependency> {
         private final Instantiator instantiator;
-        private final ImmutableAttributesFactory attributesFactory;
-        private final NotationParser<Object, Capability> capabilityNotationParser;
 
-        public MinimalExternalDependencyNotationConverter(Instantiator instantiator, ImmutableAttributesFactory attributesFactory, NotationParser<Object, Capability> capabilityNotationParser) {
+        public MinimalExternalDependencyNotationConverter(Instantiator instantiator) {
             this.instantiator = instantiator;
-            this.attributesFactory = attributesFactory;
-            this.capabilityNotationParser = capabilityNotationParser;
         }
 
         @Override
         public void convert(MinimalExternalModuleDependency notation, NotationConvertResult<? super MinimalExternalModuleDependency> result) throws TypeConversionException {
             DefaultMutableMinimalDependency moduleDependency = instantiator.newInstance(DefaultMutableMinimalDependency.class, notation.getModule(), notation.getVersionConstraint());
-            if (notation instanceof DependencyVariant) {
-                moduleDependency.setAttributesFactory(attributesFactory);
-                moduleDependency.setCapabilityNotationParser(capabilityNotationParser);
-                DependencyVariant dependencyVariant = (DependencyVariant) notation;
-                moduleDependency.attributes(dependencyVariant::mutateAttributes);
-                moduleDependency.capabilities(dependencyVariant::mutateCapabilities);
-                String classifier = dependencyVariant.getClassifier();
-                String artifactType = dependencyVariant.getArtifactType();
-                if (classifier != null || artifactType != null) {
-                    ModuleFactoryHelper.addExplicitArtifactsIfDefined(moduleDependency, artifactType, classifier);
-                }
-            }
+            MinimalExternalModuleDependencyInternal internal = (MinimalExternalModuleDependencyInternal) notation;
+            internal.copyTo(moduleDependency);
             result.converted(moduleDependency);
         }
 
         @Override
         public void describe(DiagnosticsVisitor visitor) {
         }
-
-
     }
+
+    private static class ServiceInjectingNotationParser implements NotationParser<Object, Dependency> {
+
+        private final NotationParser<Object, Dependency> delegate;
+        private final ImmutableAttributesFactory attributesFactory;
+        private final NotationParser<Object, Capability> capabilityNotationParser;
+
+        public ServiceInjectingNotationParser(
+            NotationParser<Object, Dependency> delegate,
+            ImmutableAttributesFactory attributesFactory,
+            NotationParser<Object, Capability> capabilityNotationParser
+        ) {
+            this.delegate = delegate;
+            this.attributesFactory = attributesFactory;
+            this.capabilityNotationParser = capabilityNotationParser;
+        }
+
+        @Override
+        public Dependency parseNotation(Object notation) throws TypeConversionException {
+            Dependency parsed = delegate.parseNotation(notation);
+
+            if (parsed instanceof AbstractModuleDependency) {
+                AbstractModuleDependency moduleDependency = (AbstractModuleDependency) parsed;
+                moduleDependency.setAttributesFactory(attributesFactory);
+                moduleDependency.setCapabilityNotationParser(capabilityNotationParser);
+            }
+
+            return parsed;
+        }
+
+        @Override
+        public void describe(DiagnosticsVisitor visitor) {
+            delegate.describe(visitor);
+        }
+    }
+
 }
