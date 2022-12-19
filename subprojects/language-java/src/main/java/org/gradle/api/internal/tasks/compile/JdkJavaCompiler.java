@@ -34,12 +34,19 @@ import javax.tools.StandardJavaFileManager;
 import java.io.File;
 import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import static org.gradle.api.internal.tasks.compile.JavaCompileSpec.JavaClassCompileOrder.REVERSE_ALPHABETICALLY;
 
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
+    private static final String JAVAC_CLASS_COMPILE_ORDER = "org.gradle.internal.javac.class.compile.order";
+
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
 
     @Inject
@@ -55,7 +62,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         JavaCompiler.CompilationTask task = createCompileTask(spec, result);
         boolean success = task.call();
         if (!success) {
-            throw new CompilationFailedException();
+            throw new CompilationFailedException(result);
         }
         return result;
     }
@@ -66,13 +73,22 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
         Charset charset = compileOptions.getEncoding() != null ? Charset.forName(compileOptions.getEncoding()) : null;
         StandardJavaFileManager standardFileManager = compiler.getStandardFileManager(null, null, charset);
-        Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(spec.getSourceFiles());
+        Iterable<File> sourceFiles = spec.getJavaClassCompileOrder() == REVERSE_ALPHABETICALLY
+            ? StreamSupport.stream(spec.getSourceFiles().spliterator(), false).sorted(Comparator.reverseOrder()).collect(Collectors.toList())
+            : spec.getSourceFiles();
+        Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(sourceFiles);
         boolean hasEmptySourcepaths = JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options);
         File previousClassOutput = maybeGetPreviousClassOutput(spec);
         JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths, previousClassOutput);
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, spec.getClasses(), compilationUnits);
         if (compiler instanceof IncrementalCompilationAwareJavaCompiler) {
-            task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(task, result.getSourceClassesMapping(), result.getConstantsAnalysisResult(), new CompilationSourceDirs(spec));
+            task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(
+                task,
+                result.getSourceClassesMapping(),
+                result.getConstantsAnalysisResult(),
+                new CompilationSourceDirs(spec),
+                new CompilationClassBackupService(spec, result)
+            );
         }
         Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();
         task = new AnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());
