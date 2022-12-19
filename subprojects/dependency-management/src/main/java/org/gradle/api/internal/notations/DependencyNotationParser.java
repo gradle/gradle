@@ -80,8 +80,7 @@ public class DependencyNotationParser {
             .fromType(DependencyFactoryInternal.ClassPathNotation.class, dependencyClassPathNotationConverter)
             .invalidNotationMessage("Comprehensive documentation on dependency notations is available in DSL reference for DependencyHandler type.")
             .toComposite();
-        return
-            new DependencyNotationParser(
+        return new DependencyNotationParser(
             new ServiceInjectingNotationParser(notationParser, attributesFactory, capabilityNotationParser),
             new NotationConverterToNotationParserAdapter<>(stringNotationConverter),
             new NotationConverterToNotationParserAdapter<>(minimalExternalDependencyNotationConverter),
