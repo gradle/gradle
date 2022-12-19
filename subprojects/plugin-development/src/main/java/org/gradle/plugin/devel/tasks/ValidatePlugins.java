@@ -21,7 +21,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -36,8 +35,6 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.jvm.toolchain.JavaLauncher;
-import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.plugin.devel.tasks.internal.ValidateAction;
 import org.gradle.workers.WorkerExecutor;
 
@@ -63,18 +60,10 @@ import java.util.List;
 @CacheableTask
 public abstract class ValidatePlugins extends DefaultTask {
 
-    @Nested
-    abstract Property<JavaLauncher> getLauncher();
-
     public ValidatePlugins() {
         getEnableStricterValidation().convention(false);
         getIgnoreFailures().convention(false);
         getFailOnWarning().convention(true);
-
-        JavaToolchainSpec toolchain = getProject().getExtensions().getByType(JavaPluginExtension.class).getToolchain();
-        JavaToolchainService service = getProject().getExtensions().getByType(JavaToolchainService.class);
-
-        getLauncher().convention(service.launcherFor(toolchain));
     }
 
     @TaskAction
@@ -156,6 +145,9 @@ public abstract class ValidatePlugins extends DefaultTask {
      */
     @Classpath
     public abstract ConfigurableFileCollection getClasspath();
+
+    @Nested
+    public abstract Property<JavaLauncher> getLauncher();
 
     /**
      * Specifies whether the build should break when plugin verifications fails.
