@@ -28,7 +28,6 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     private File tempDir;
     private List<File> classpath;
     private File destinationDir;
-    private File originalDestinationDir;
     private Iterable<File> sourceFiles;
     private Integer release;
     private String sourceCompatibility;
@@ -53,16 +52,6 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     @Override
     public void setDestinationDir(File destinationDir) {
         this.destinationDir = destinationDir;
-    }
-
-    @Override
-    public File getOriginalDestinationDir() {
-        return originalDestinationDir;
-    }
-
-    @Override
-    public void setOriginalDestinationDir(File originalDestinationDir) {
-        this.originalDestinationDir = originalDestinationDir;
     }
 
     @Override

@@ -34,6 +34,10 @@ abstract class AbstractJavaGroovyIncrementalCompilationSupport extends AbstractI
         return sourceForLanguageWithSuffixForProject(language, language.name, project, classBodies)
     }
 
+    File sourceWithFileSuffix(String suffix, String... classBodies) {
+        return sourceForLanguageWithSuffixForProject(language, suffix, "", classBodies)
+    }
+
     File sourceWithFileSuffixForProject(String suffix, String project, String... classBodies) {
         return sourceForLanguageWithSuffixForProject(language, suffix, project, classBodies)
     }

@@ -16,20 +16,15 @@
 
 package org.gradle.api.internal.tasks.compile.reflect;
 
-import com.google.common.collect.Iterables;
 import org.gradle.internal.classpath.ClassPath;
 
-import javax.annotation.Nullable;
 import javax.tools.ForwardingJavaFileManager;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.StandardLocation;
-import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.net.URLClassLoader;
-import java.util.Collections;
 import java.util.Set;
 
 import static org.gradle.api.internal.tasks.compile.filter.AnnotationProcessorFilter.getFilteredClassLoader;
@@ -37,32 +32,19 @@ import static org.gradle.api.internal.tasks.compile.filter.AnnotationProcessorFi
 public class GradleStandardJavaFileManager extends ForwardingJavaFileManager<StandardJavaFileManager> {
     private final ClassPath annotationProcessorPath;
     private final boolean hasEmptySourcePaths;
-    private final boolean hasPreviousClassOutput;
 
-    private GradleStandardJavaFileManager(StandardJavaFileManager fileManager, ClassPath annotationProcessorPath, boolean hasEmptySourcePaths, @Nullable File previousClassOutput) {
+    private GradleStandardJavaFileManager(StandardJavaFileManager fileManager, ClassPath annotationProcessorPath, boolean hasEmptySourcePaths) {
         super(fileManager);
         this.annotationProcessorPath = annotationProcessorPath;
         this.hasEmptySourcePaths = hasEmptySourcePaths;
-        this.hasPreviousClassOutput = previousClassOutput != null;
-        registerPreviousClassOutput(previousClassOutput);
-    }
-
-    private void registerPreviousClassOutput(@Nullable File previousClassOutput) {
-        if (previousClassOutput != null) {
-            try {
-                fileManager.setLocation(GradleLocation.PREVIOUS_CLASS_OUTPUT, Collections.singleton(previousClassOutput));
-            } catch (IOException e) {
-                throw new UncheckedIOException("Problem registering previous class output location", e);
-            }
-        }
     }
 
     /**
      * Overrides particular methods to prevent javac from accessing source files outside of Gradle's understanding or
      * classloaders outside of Gradle's control.
      */
-    public static JavaFileManager wrap(StandardJavaFileManager delegate, ClassPath annotationProcessorPath, boolean hasEmptySourcePaths, @Nullable File previousClassOutput) {
-        return new GradleStandardJavaFileManager(delegate, annotationProcessorPath, hasEmptySourcePaths, previousClassOutput);
+    public static JavaFileManager wrap(StandardJavaFileManager delegate, ClassPath annotationProcessorPath, boolean hasEmptySourcePaths) {
+        return new GradleStandardJavaFileManager(delegate, annotationProcessorPath, hasEmptySourcePaths);
     }
 
     @Override
@@ -96,20 +78,6 @@ public class GradleStandardJavaFileManager extends ForwardingJavaFileManager<Sta
                 kinds.remove(JavaFileObject.Kind.SOURCE);
             }
         }
-
-        if (hasPreviousClassOutput && location.equals(StandardLocation.CLASS_OUTPUT)) {
-            // For Java module compilation we list also previous class output as class output.
-            // This is needed for incremental compilation after a failure where we change output folders.
-            // With that we make sure that all module classes/packages are found by javac.
-            // In case one of --module-source-path or --source-path is provided, this makes sure, that javac won't automatically recompile
-            // classes that are not in CLASS_OUTPUT. And in case when --module-source-path or --source-path are not provided,
-            // this makes sure that javac doesn't fail on missing packages or classes that are not in CLASS_OUTPUT.
-            // Second and last part of fix for: https://github.com/gradle/gradle/issues/23067
-            Iterable<JavaFileObject> previousClassOutput = super.list(GradleLocation.PREVIOUS_CLASS_OUTPUT, packageName, kinds, recurse);
-            Iterable<JavaFileObject> classOutput = super.list(location, packageName, kinds, recurse);
-            return Iterables.concat(previousClassOutput, classOutput);
-        }
-
         return super.list(location, packageName, kinds, recurse);
     }
 
@@ -123,19 +91,5 @@ public class GradleStandardJavaFileManager extends ForwardingJavaFileManager<Sta
         }
 
         return classLoader;
-    }
-
-    private enum GradleLocation implements Location {
-        PREVIOUS_CLASS_OUTPUT;
-
-        @Override
-        public String getName() {
-            return name();
-        }
-
-        @Override
-        public boolean isOutputLocation() {
-            return false;
-        }
     }
 }
