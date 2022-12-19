@@ -52,6 +52,7 @@ import org.gradle.cache.scopes.ProjectScopedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -85,8 +86,10 @@ public class WorkerSharedProjectScopeServices {
 
     protected DefaultFileOperations createFileOperations(
             FileResolver fileResolver,
+            TemporaryFileProvider temporaryFileProvider,
             Instantiator instantiator,
             DirectoryFileTreeFactory directoryFileTreeFactory,
+            StreamHasher streamHasher,
             FileHasher fileHasher,
             DefaultResourceHandler.Factory resourceHandlerFactory,
             FileCollectionFactory fileCollectionFactory,
@@ -96,13 +99,14 @@ public class WorkerSharedProjectScopeServices {
             Deleter deleter,
             DocumentationRegistry documentationRegistry,
             ProviderFactory providers,
-            TaskDependencyFactory taskDependencyFactory,
-            DecompressionCacheFactory decompressionCache
+            TaskDependencyFactory taskDependencyFactory
     ) {
         return new DefaultFileOperations(
                 fileResolver,
+                temporaryFileProvider,
                 instantiator,
                 directoryFileTreeFactory,
+                streamHasher,
                 fileHasher,
                 resourceHandlerFactory,
                 fileCollectionFactory,
@@ -111,9 +115,7 @@ public class WorkerSharedProjectScopeServices {
                 patternSetFactory,
                 deleter,
                 documentationRegistry,
-                taskDependencyFactory,
-                providers,
-                decompressionCache);
+                taskDependencyFactory, providers);
     }
 
     protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
