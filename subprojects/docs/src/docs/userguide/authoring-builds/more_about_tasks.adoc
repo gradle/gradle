@@ -32,7 +32,7 @@ Task executed its actions.
 `UP-TO-DATE`::
 Task's outputs did not change.
 +
-* Task has outputs and inputs and they have not changed. See <<incremental_builds.adoc#incremental_builds,Incremental Builds>>.
+* Task has outputs and inputs and they have not changed. See <<incremental_build.adoc#incremental_build,Incremental Build>>.
 * Task has actions, but the task tells Gradle it did not change its outputs.
 * Task has no actions and some dependencies, but all of the dependencies are up-to-date, skipped or from cache. See also <<#sec:lifecycle_tasks,Lifecycle Tasks>>.
 * Task has no actions and no dependencies.
@@ -51,7 +51,7 @@ Task did not execute its actions.
 `NO-SOURCE`::
 Task did not need to execute its actions.
 +
-* Task has inputs and outputs, but <<incremental_builds.adoc#skip-when-empty,no sources>>. For example, source files are `.java` files for link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile].
+* Task has inputs and outputs, but <<incremental_build.adoc#skip-when-empty,no sources>>. For example, source files are `.java` files for link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile].
 
 
 [[sec:defining_tasks]]

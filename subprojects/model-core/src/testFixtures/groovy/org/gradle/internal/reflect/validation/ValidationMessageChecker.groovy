@@ -426,7 +426,7 @@ trait ValidationMessageChecker {
 
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
                                                                    String message,
-                                                                   String docId = "incremental_builds",
+                                                                   String docId = "incremental_build",
                                                                    String section = "") {
         String asSingleLine = convertToSingleLine(message)
         String deprecationMessage = asSingleLine + (asSingleLine.endsWith(" ") ? '' : ' ') +
