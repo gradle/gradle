@@ -275,8 +275,12 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         this.capabilityNotationParser = capabilityNotationParser;
     }
 
-    protected ImmutableAttributesFactory getAttributesFactory() {
+    public ImmutableAttributesFactory getAttributesFactory() {
         return attributesFactory;
+    }
+
+    public NotationParser<Object, Capability> getCapabilityNotationParser() {
+        return capabilityNotationParser;
     }
 
     private void setAttributes(AttributeContainerInternal attributes) {
