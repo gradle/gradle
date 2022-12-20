@@ -20,7 +20,6 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.resource.cached.CachedExternalResource
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import java.io.File
 import java.net.URI
