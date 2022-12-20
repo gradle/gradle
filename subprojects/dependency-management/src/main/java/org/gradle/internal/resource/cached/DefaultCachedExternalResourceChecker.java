@@ -38,7 +38,7 @@ public class DefaultCachedExternalResourceChecker implements CachedExternalResou
             return null;
         }
 
-        ExternalResourceMetaData remoteMetaData = externalResourceRepository.resource(location, true).getMetaData();
+        ExternalResourceMetaData remoteMetaData = repository.resource(location, true).getMetaData();
 
         if (remoteMetaData == null) {
             return null;
