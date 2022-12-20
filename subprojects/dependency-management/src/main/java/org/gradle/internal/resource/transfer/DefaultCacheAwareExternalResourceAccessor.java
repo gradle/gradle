@@ -35,7 +35,7 @@ import org.gradle.internal.resource.cached.CachedExternalResource;
 import org.gradle.internal.resource.cached.CachedExternalResourceChecker;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.CachedExternalResourceListener;
-import org.gradle.internal.resource.cached.CachedExternalResourceRemoteMetaData;
+import org.gradle.internal.resource.cached.ExternalResourceRemoteMetaData;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
@@ -89,6 +89,8 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
         return producerGuard.guardByKey(location, () -> {
             LOGGER.debug("Constructing external resource: {}", location);
             CachedExternalResource cached = cachedExternalResourceIndex.lookup(location.toString());
+
+            cachedExternalResourceChecker.add(location, delegate);
 
             // If we have no caching options, just get the thing directly
             if (cached == null && (additionalCandidates == null || additionalCandidates.isNone())) {

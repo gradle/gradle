@@ -22,6 +22,8 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DefaultCachedExternalResourceChecker implements CachedExternalResourceChecker {
 
@@ -46,6 +48,6 @@ public class DefaultCachedExternalResourceChecker implements CachedExternalResou
 
         boolean isUpToDate = ExternalResourceMetaDataCompare.isDefinitelyUnchanged(localMetaData, () -> remoteMetaData);
 
-        return new CachedExternalResourceRemoteMetaData(remoteMetaData, isUpToDate);
+        return new ExternalResourceRemoteMetaData(remoteMetaData, isUpToDate);
     }
 }

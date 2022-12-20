@@ -18,12 +18,12 @@ package org.gradle.internal.resource.cached;
 
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
-public class CachedExternalResourceRemoteMetaData {
-    private final ExternalResourceMetaData externalResourceMetaData;
+public class ExternalResourceRemoteMetaData {
+    private final ExternalResourceMetaData metaData;
     private final boolean isUpToDate;
 
-    public CachedExternalResourceRemoteMetaData(ExternalResourceMetaData externalResourceMetaData, boolean isUpToDate) {
-        this.externalResourceMetaData = externalResourceMetaData;
+    public ExternalResourceRemoteMetaData(ExternalResourceMetaData metaData, boolean isUpToDate) {
+        this.metaData = metaData;
         this.isUpToDate = isUpToDate;
     }
 
@@ -32,6 +32,6 @@ public class CachedExternalResourceRemoteMetaData {
     }
 
     public ExternalResourceMetaData getMetaData() {
-        return externalResourceMetaData;
+        return metaData;
     }
 }
