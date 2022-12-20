@@ -34,9 +34,7 @@ public class DefaultCachedExternalResourceChecker implements CachedExternalResou
     public ExternalResourceRemoteMetaData check(ExternalResourceName location, @Nullable ExternalResourceMetaData localMetaData) {
         ExternalResourceRepository repository = resourcesToRepos.get(location);
 
-    @Override
-    public CachedExternalResourceRemoteMetaData check(ExternalResourceName location, @Nullable ExternalResourceMetaData localMetaData) {
-        if (externalResourceRepository == null) {
+        if (repository == null) {
             return null;
         }
 
