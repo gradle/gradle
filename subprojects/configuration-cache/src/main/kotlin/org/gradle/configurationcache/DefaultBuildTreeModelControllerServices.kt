@@ -147,10 +147,11 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
     ) {
         fun createTaskExecutionAccessChecker(
             configurationTimeBarrier: ConfigurationTimeBarrier,
+            /** In non-CC builds, [ConfigurationCacheStartParameter] is not registered; accepting a list here is a way to ignore its absence. */
             configurationCacheStartParameter: List<ConfigurationCacheStartParameter>
         ): TaskExecutionAccessChecker = when {
             !isConfigurationCacheEnabled -> TaskExecutionAccessCheckers.TaskStateBased
-            configurationCacheStartParameter.singleOrNull()?.taskExecutionAccessPreStable ?: false -> TaskExecutionAccessCheckers.TaskStateBased
+            configurationCacheStartParameter.single().taskExecutionAccessPreStable -> TaskExecutionAccessCheckers.TaskStateBased
             else -> TaskExecutionAccessCheckers.ConfigurationTimeBarrierBased(configurationTimeBarrier)
         }
     }
