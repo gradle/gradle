@@ -50,6 +50,7 @@ import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -175,6 +176,27 @@ public class DefaultFileOperations implements FileOperations {
     public FileTreeInternal zipTree(Object zipPath) {
         Provider<File> fileProvider = asFileProvider(zipPath);
         return new FileTreeAdapter(new ZipFileTree(fileProvider, fileSystem, directoryFileTreeFactory, fileHasher, decompressionCacheFactory.create()), taskDependencyFactory, patternSetFactory);
+    }
+
+    @Override
+    public FileTreeInternal zipTreeNoLocking(Object zipPath) {
+        Provider<File> fileProvider = asFileProvider(zipPath);
+        DecompressionCache nonLockingCache = new DecompressionCache() {
+            @Override
+            public File getBaseDir() {
+                return directoryFileTreeFactory.create(new File(fileProvider.get().getParentFile(), "non-locking-cache")).getDir();
+            }
+
+            @Override
+            public void useCache(Runnable action) {
+                action.run();
+            }
+
+            @Override
+            public void close() throws IOException {}
+        };
+
+        return new FileTreeAdapter(new ZipFileTree(fileProvider, fileSystem, directoryFileTreeFactory, fileHasher, nonLockingCache), taskDependencyFactory, patternSetFactory);
     }
 
     @Override
