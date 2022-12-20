@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.fixtures
 
+import groovy.transform.Canonical
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
@@ -39,14 +40,10 @@ class MissingScriptFixture {
             .collect { ScriptLanguage scriptLanguage, Scenario scenario -> new Spec(scriptLanguage, scenario) }
     }
 
+    @Canonical
     static class Spec {
-        private final ScriptLanguage scriptLanguage;
-        private final Scenario scenario
-
-        Spec(ScriptLanguage scriptLanguage, Scenario scenario) {
-            this.scriptLanguage = scriptLanguage
-            this.scenario = scenario
-        }
+        ScriptLanguage scriptLanguage;
+        Scenario scenario
 
         @Override
         String toString() {
