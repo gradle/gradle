@@ -39,10 +39,9 @@ public class SelectedTaskExecutionAction implements BuildWorkExecutor {
     private void bindAllReferencesOfProject(TaskExecutionGraph graph) {
         Set<Project> seen = Sets.newHashSet();
         for (Task task : graph.getAllTasks()) {
-            Project taskProject = ((TaskInternal) task).getProjectUnchecked();
+            ProjectInternal taskProject = ((TaskInternal) task).getProjectUnchecked();
             if (seen.add(taskProject)) {
-                ProjectInternal projectInternal = (ProjectInternal) taskProject;
-                projectInternal.bindAllModelRules();
+                taskProject.bindAllModelRules();
             }
         }
     }
