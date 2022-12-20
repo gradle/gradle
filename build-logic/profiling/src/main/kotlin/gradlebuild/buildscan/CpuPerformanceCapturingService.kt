@@ -17,11 +17,15 @@
 package gradlebuild.buildscan
 
 import com.gradle.scan.plugin.BuildScanExtension
+import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.provider.ValueSource
+import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecOperations
 import java.io.ByteArrayOutputStream
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
@@ -29,12 +33,36 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import kotlin.math.ceil
 
-abstract class CpuPerformanceCapturingService : BuildService<BuildServiceParameters.None>, AutoCloseable {
-    private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
-    val performanceSamples = ConcurrentLinkedQueue<Int>()
-
+abstract class PmSetValueSource : ValueSource<Int?, ValueSourceParameters.None> {
     @get:Inject
     abstract val execOperations: ExecOperations
+
+    override fun obtain(): Int? {
+        val output = ByteArrayOutputStream()
+        val result = execOperations.exec {
+            commandLine("pmset", "-g", "therm")
+            standardOutput = output
+        }
+        return if (result.exitValue == 0) parseOutput(output.toString(StandardCharsets.UTF_8)) else null
+    }
+
+    private fun parseOutput(output: String) =
+        output
+            .lines()
+            .map { it.trim() }
+            .find { it.startsWith("CPU_Speed_Limit") }
+            ?.split("=")
+            ?.first()
+            ?.trim()
+            ?.toInt()
+}
+
+abstract class CpuPerformanceCapturingService : BuildService<BuildServiceParameters.None>, AutoCloseable {
+    private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
+    private val performanceSamples = ConcurrentLinkedQueue<Int>()
+
+    @get:Inject
+    abstract val providerFactory: ProviderFactory
 
     init {
         if (OperatingSystem.current().isMacOsX) {
@@ -73,24 +101,10 @@ abstract class CpuPerformanceCapturingService : BuildService<BuildServiceParamet
         } else -1
 
     private fun speedLimit(): Int? {
-        val output = ByteArrayOutputStream()
-        val result = execOperations.exec {
-            commandLine("pmset", "-g", "therm")
-            standardOutput = output
-        }
-        return if (result.exitValue == 0) parseOutput(output.toString()) else null
+        val valueProvider = providerFactory.of(PmSetValueSource::class.java) {}
+        return valueProvider.get()
     }
 
-    fun parseOutput(output: String) =
-        output
-            .lines()
-            .find { it.trim().startsWith("CPU_Speed_Limit") }
-            ?.split("=")
-            ?.get(1)
-            ?.trim()
-            ?.toInt()
-
-    data class ProcessResult(val exitCode: Int, val output: String)
     data class CpuPerformance(
         val average: Int,
         val max: Int,
