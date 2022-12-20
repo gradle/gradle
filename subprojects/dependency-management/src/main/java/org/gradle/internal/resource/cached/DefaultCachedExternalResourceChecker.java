@@ -25,8 +25,9 @@ import javax.annotation.Nullable;
 
 public class DefaultCachedExternalResourceChecker implements CachedExternalResourceChecker {
 
-    public DefaultCachedExternalResourceChecker() {
-        this.externalResourceRepository = null;
+    private final Map<ExternalResourceName, ExternalResourceRepository> resourcesToRepos = new HashMap<>();
+    public void add(ExternalResourceName location, ExternalResourceRepository repository) {
+        resourcesToRepos.put(location, repository);
     }
 
     @Override
