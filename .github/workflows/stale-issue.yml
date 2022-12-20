@@ -106,10 +106,8 @@ jobs:
           stale-issue-label: 'pending:reproducer'
           close-issue-label: 'closed:unreproducible'
           close-issue-message: >
-            This issue has been automatically closed due to inactivity. If you can reproduce this on a
-            recent version of Gradle or if you have a good use case for this feature, please feel free
-            to let know so we can reopen the issue. Please try to provide steps to reproduce, a quick
-            explanation of your use case or a high-quality pull request.
+            While we asked for a reproducer, none was provided. If you provide a valid reproducer, we will consider this issue again.
+            In the meantime, closing as unreproducible.
 
           # PULL REQUESTS -----------------------------------------------------
           stale-pr-label: 'pending:reproducer'
