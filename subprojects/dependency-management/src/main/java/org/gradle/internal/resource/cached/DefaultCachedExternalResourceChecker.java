@@ -31,9 +31,8 @@ public class DefaultCachedExternalResourceChecker implements CachedExternalResou
     }
 
     @Override
-    public void setExternalResourceRepository(@Nullable ExternalResourceRepository externalResourceRepository) {
-        this.externalResourceRepository = externalResourceRepository;
-    }
+    public ExternalResourceRemoteMetaData check(ExternalResourceName location, @Nullable ExternalResourceMetaData localMetaData) {
+        ExternalResourceRepository repository = resourcesToRepos.get(location);
 
     @Override
     public CachedExternalResourceRemoteMetaData check(ExternalResourceName location, @Nullable ExternalResourceMetaData localMetaData) {
