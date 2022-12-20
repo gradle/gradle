@@ -21,9 +21,6 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scopes;
 
-import javax.annotation.Nonnull;
-import java.net.URI;
-
 @EventScope(Scopes.Build.class)
 public interface CachedExternalResourceListener {
 
