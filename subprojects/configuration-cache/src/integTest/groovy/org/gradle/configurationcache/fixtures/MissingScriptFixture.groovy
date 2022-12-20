@@ -25,6 +25,10 @@ import static org.gradle.util.internal.GFileUtils.relativePathOf
 class MissingScriptFixture {
 
     static List<Spec> specs() {
+        multiLanguageSpecs() + singleLanguageSpecs()
+    }
+
+    private static List<Spec> multiLanguageSpecs() {
         [
             ScriptLanguage.values(),
             [
@@ -35,9 +39,16 @@ class MissingScriptFixture {
                 new MissingBuildInIncluded(),
                 new MissingSettingsInIncluded()
             ]
+        ].combinations().collect { ScriptLanguage scriptLanguage, Scenario scenario ->
+            new Spec(scriptLanguage, scenario)
+        }
+    }
+
+    private static List<Spec> singleLanguageSpecs() {
+        [
+            new Spec(ScriptLanguage.GROOVY, new MissingBuildTakesPrecedence()),
+            new Spec(ScriptLanguage.GROOVY, new MissingSettingsTakesPrecedence())
         ]
-            .combinations()
-            .collect { ScriptLanguage scriptLanguage, Scenario scenario -> new Spec(scriptLanguage, scenario) }
     }
 
     @Canonical
@@ -141,6 +152,52 @@ class MissingScriptFixture {
         @Override
         String getDisplayName(String scriptExtension) {
             return "settings$scriptExtension"
+        }
+    }
+
+    static class MissingBuildTakesPrecedence implements Scenario {
+
+        @Override
+        void setup(AbstractIntegrationSpec spec) {}
+
+        @Override
+        void createInitialBuildLayoutIn(TestFile dir, ScriptLanguage scriptLanguage) {
+            dir.file("a", "build.gradle.kts") << dummyTaskIn(ScriptLanguage.KOTLIN)
+            dir.file("settings$scriptLanguage.extension") << settingsScriptIn(scriptLanguage, "a")
+        }
+
+        @Override
+        TestFile addMissingScript(TestFile dir, ScriptLanguage scriptLanguage) {
+            return dir.file("a", "build$scriptLanguage.extension") << dummyTaskIn(scriptLanguage)
+        }
+
+        @Override
+        String getDisplayName(String scriptExtension) {
+            return "build$scriptExtension over existing build.gradle.kts"
+        }
+    }
+
+    static class MissingSettingsTakesPrecedence implements Scenario {
+
+        @Override
+        void setup(AbstractIntegrationSpec spec) {
+            spec.useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+        }
+
+        @Override
+        void createInitialBuildLayoutIn(TestFile dir, ScriptLanguage scriptLanguage) {
+            dir.file("build$scriptLanguage.extension") << dummyTaskIn(scriptLanguage)
+            dir.file("settings.gradle.kts") << ''
+        }
+
+        @Override
+        TestFile addMissingScript(TestFile dir, ScriptLanguage scriptLanguage) {
+            return dir.file("settings$scriptLanguage.extension") << ''
+        }
+
+        @Override
+        String getDisplayName(String scriptExtension) {
+            return "settings$scriptExtension over existing settings.gradle.kts"
         }
     }
 
