@@ -36,7 +36,6 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     private Set<String> classes;
     private List<File> modulePath;
     private List<File> sourceRoots;
-    private boolean isIncrementalCompilationOfJavaModule;
     private Set<String> undeletedClasses = Collections.emptySet();
     private File backupDestinationDir;
     private JavaClassCompileOrder javacCompilerOrder = JavaClassCompileOrder.UNORDERED;
@@ -140,16 +139,6 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     @Override
     public void setModulePath(List<File> modulePath) {
         this.modulePath = modulePath;
-    }
-
-    @Override
-    public boolean isIncrementalCompilationOfJavaModule() {
-        return isIncrementalCompilationOfJavaModule;
-    }
-
-    @Override
-    public void setIsIncrementalCompilationOfJavaModule(boolean isIncrementalCompilationOfJavaModule) {
-        this.isIncrementalCompilationOfJavaModule = isIncrementalCompilationOfJavaModule;
     }
 
     @Override

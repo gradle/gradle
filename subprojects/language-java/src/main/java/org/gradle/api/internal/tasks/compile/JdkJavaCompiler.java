@@ -25,7 +25,6 @@ import org.gradle.language.base.internal.compile.Compiler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
@@ -45,7 +44,6 @@ import static org.gradle.api.internal.tasks.compile.JavaCompileSpec.JavaClassCom
 
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
-    private static final String JAVAC_CLASS_COMPILE_ORDER = "org.gradle.internal.javac.class.compile.order";
 
     private final Factory<JavaCompiler> javaHomeBasedJavaCompilerFactory;
 
@@ -78,8 +76,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
             : spec.getSourceFiles();
         Iterable<? extends JavaFileObject> compilationUnits = standardFileManager.getJavaFileObjectsFromFiles(sourceFiles);
         boolean hasEmptySourcepaths = JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options);
-        File previousClassOutput = maybeGetPreviousClassOutput(spec);
-        JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths, previousClassOutput);
+        JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, spec.getClasses(), compilationUnits);
         if (compiler instanceof IncrementalCompilationAwareJavaCompiler) {
             task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(
@@ -105,13 +102,5 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
             }
         }
         return false;
-    }
-
-    @Nullable
-    private static File maybeGetPreviousClassOutput(JavaCompileSpec spec) {
-        if (JavaVersion.current().isJava9Compatible() && spec.isIncrementalCompilationOfJavaModule() && !spec.getDestinationDir().equals(spec.getOriginalDestinationDir())) {
-            return spec.getOriginalDestinationDir();
-        }
-        return null;
     }
 }
