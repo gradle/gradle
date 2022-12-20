@@ -49,4 +49,6 @@ public interface CacheConfigurationsInternal extends CacheConfigurations {
      * by setting the provided configuration's properties to be backed by the properties of this configuration.
      */
     void synchronize(CacheConfigurationsInternal cacheConfigurationsInternal);
+
+    void setCleanupHasBeenConfigured(boolean hasBeenConfigured);
 }
