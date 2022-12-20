@@ -24,8 +24,6 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaDataCompare;
 import javax.annotation.Nullable;
 
 public class DefaultCachedExternalResourceChecker implements CachedExternalResourceChecker {
-    @Nullable
-    private ExternalResourceRepository externalResourceRepository;
 
     public DefaultCachedExternalResourceChecker() {
         this.externalResourceRepository = null;
