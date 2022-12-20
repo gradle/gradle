@@ -29,7 +29,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.cache.CleanupFrequency;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.Factory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -52,7 +51,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private final CacheResourceConfigurationInternal createdResourcesConfiguration;
     private final Property<Cleanup> cleanup;
 
-    private boolean hasBeenConfigured;
+    private boolean cleanupHasBeenConfigured;
 
     @Inject
     public DefaultCacheConfigurations(ObjectFactory objectFactory, PropertyHost propertyHost) {
@@ -117,7 +116,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     @Override
     public Provider<CleanupFrequency> getCleanupFrequency() {
         return getCleanup().map(cleanup ->
-            lastCleanupTimestamp -> hasBeenConfigured && ((CleanupInternal)cleanup).getCleanupFrequency().requiresCleanup(lastCleanupTimestamp)
+            lastCleanupTimestamp -> cleanupHasBeenConfigured && ((CleanupInternal)cleanup).getCleanupFrequency().requiresCleanup(lastCleanupTimestamp)
         );
     }
 
@@ -139,11 +138,8 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     }
 
     @Override
-    public <T> T allowCleanupOnlyIfSuccessful(Factory<T> factory) {
-        hasBeenConfigured = false;
-        T result = factory.create();
-        hasBeenConfigured = true;
-        return result;
+    public void setCleanupHasBeenConfigured(boolean hasBeenConfigured) {
+        this.cleanupHasBeenConfigured = hasBeenConfigured;
     }
 
     private static <T> Provider<T> providerFromSupplier(Supplier<T> supplier) {

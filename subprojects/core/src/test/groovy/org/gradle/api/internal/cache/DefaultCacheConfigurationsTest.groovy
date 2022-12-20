@@ -205,7 +205,7 @@ class DefaultCacheConfigurationsTest extends Specification {
         !cacheConfigurations.cleanupFrequency.get().requiresCleanup(CleanupFrequency.NEVER_CLEANED)
 
         when:
-        cacheConfigurations.allowCleanupOnlyIfSuccessful { return null }
+        cacheConfigurations.cleanupHasBeenConfigured = true
 
         then:
         cacheConfigurations.cleanupFrequency.get().requiresCleanup(CleanupFrequency.NEVER_CLEANED)

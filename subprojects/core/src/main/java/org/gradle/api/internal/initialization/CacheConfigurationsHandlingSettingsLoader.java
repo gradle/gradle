@@ -32,6 +32,9 @@ public class CacheConfigurationsHandlingSettingsLoader implements SettingsLoader
 
     @Override
     public SettingsState findAndLoadSettings(GradleInternal gradle) {
-        return cacheConfigurations.allowCleanupOnlyIfSuccessful(() -> delegate.findAndLoadSettings(gradle));
+        cacheConfigurations.setCleanupHasBeenConfigured(false);
+        SettingsState state = delegate.findAndLoadSettings(gradle);
+        cacheConfigurations.setCleanupHasBeenConfigured(true);
+        return state;
     }
 }
