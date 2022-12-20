@@ -18,6 +18,8 @@ package org.gradle.api.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskRequiredServices;
@@ -101,6 +103,19 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     @Internal
     Path getIdentityPath();
+
+    @Internal
+    ProjectState getOwner();
+
+    /**
+     * Returns the project instance without performing the model access checks.
+     * This allows accessing the project instance at the execution time, even if the project is an
+     * empty instance created for a task graph loaded from configuration cache.
+     *
+     * TODO: revisit the usages and make them safer
+     */
+    @Internal
+    ProjectInternal getProjectUnchecked();
 
     @Internal
     TaskIdentity<?> getTaskIdentity();

@@ -128,9 +128,9 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
                 @TaskAction
                 void run() {
-                    println "this.reference = " + badReference
-                    println "bean.reference = " + bean.badReference
-                    println "beanWithSameType.reference = " + beanWithSameType.badReference
+                    println "this.reference = " + badReference?.toString()
+                    println "bean.reference = " + bean.badReference?.toString()
+                    println "beanWithSameType.reference = " + beanWithSameType.badReference?.toString()
                 }
             }
 

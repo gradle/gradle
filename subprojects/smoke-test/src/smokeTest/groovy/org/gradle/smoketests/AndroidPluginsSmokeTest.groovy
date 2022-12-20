@@ -40,6 +40,15 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         AndroidHome.assertIsSet()
     }
 
+    @Override
+    SmokeTestGradleRunner runner(String... tasks) {
+        def runner = super.runner(tasks)
+        // TODO: AGP's ShaderCompile uses Task.project after the configuration barrier to compute inputs
+        return runner.withJvmArguments(runner.jvmArguments + [
+            "-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true"
+        ])
+    }
+
     @UnsupportedWithConfigurationCache
     def "can use sourceSets task with android library and application build (agp=#agpVersion, ide=#ide)"() {
         given:

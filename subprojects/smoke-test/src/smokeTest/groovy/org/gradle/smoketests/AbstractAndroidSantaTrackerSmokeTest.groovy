@@ -73,7 +73,13 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected SmokeTestGradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
-        def runnerArgs = [["-DagpVersion=$agpVersion", "-DkotlinVersion=$kotlinVersion", "--stacktrace"], tasks].flatten()
+        def runnerArgs = [[
+            // TODO: the versions of KGP we use still access Task.project from a cacheIf predicate
+            "-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true",
+            "-DagpVersion=$agpVersion",
+            "-DkotlinVersion=$kotlinVersion",
+            "--stacktrace"],
+        tasks].flatten()
         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
             // fall back to using Java 11 (LTS) for Android tests
             // Kapt is not compatible with JDK 16+, https://youtrack.jetbrains.com/issue/KT-45545,
