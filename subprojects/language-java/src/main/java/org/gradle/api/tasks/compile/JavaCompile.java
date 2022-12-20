@@ -235,7 +235,6 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions, getToolchain()).create();
 
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
-        spec.setOriginalDestinationDir(spec.getDestinationDir());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setJavaClassCompileOrder(JavaClassCompileOrder.fromInternalSystemProperty());
         spec.setTempDir(getTemporaryDir());
