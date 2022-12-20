@@ -189,7 +189,9 @@ import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerialize
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.resource.cached.ByUrlCachedExternalResourceIndex;
+import org.gradle.internal.resource.cached.CachedExternalResourceChecker;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
+import org.gradle.internal.resource.cached.CachedExternalResourceListener;
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore;
 import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.cached.TwoStageByUrlCachedExternalResourceIndex;
@@ -501,7 +503,9 @@ class DependencyManagementBuildScopeServices {
                                                                 FileResourceRepository fileResourceRepository,
                                                                 ChecksumService checksumService,
                                                                 StartParameterResolutionOverride startParameterResolutionOverride,
-                                                                ListenerManager listenerManager) {
+                                                                ListenerManager listenerManager,
+                                                                CachedExternalResourceChecker cachedExternalResourceChecker
+                                                                ) {
         return artifactCachesProvider.withWritableCache((md, manager) -> new RepositoryTransportFactory(
             resourceConnectorFactories,
             temporaryFileProvider,
@@ -513,7 +517,10 @@ class DependencyManagementBuildScopeServices {
             producerGuard,
             fileResourceRepository,
             checksumService,
-            listenerManager.getBroadcaster(FileResourceListener.class)));
+            listenerManager.getBroadcaster(FileResourceListener.class),
+            listenerManager.getBroadcaster(CachedExternalResourceListener.class),
+            cachedExternalResourceChecker
+            ));
     }
 
     RepositoryDisabler createRepositoryDisabler() {

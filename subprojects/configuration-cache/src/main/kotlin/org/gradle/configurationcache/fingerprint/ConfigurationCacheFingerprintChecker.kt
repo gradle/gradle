@@ -26,6 +26,8 @@ import org.gradle.configurationcache.extensions.filterKeysByPrefix
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.resource.ExternalResourceName
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.internal.util.NumberUtil.ordinal
 import org.gradle.util.Path
 import java.io.File
@@ -50,6 +52,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun hashCodeOf(file: File): HashCode?
         fun displayNameOf(fileOrDirectory: File): String
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
+        fun mustRefreshExternalResource(resourceName: ExternalResourceName, metaData: ExternalResourceMetaData): Boolean
     }
 
     suspend fun ReadContext.checkBuildScopedFingerprint(): CheckedFingerprint {
@@ -64,6 +67,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                         return CheckedFingerprint.EntryInvalid(reason)
                     }
                 }
+
                 else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
             }
         }
@@ -91,11 +95,13 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                         }
                     }
                 }
+
                 is ProjectSpecificFingerprint.ProjectDependency -> {
                     val consumer = projects.entryFor(input.consumingProject)
                     val target = projects.entryFor(input.targetProject)
                     target.consumedBy(consumer)
                 }
+
                 is ProjectSpecificFingerprint.CoupledProjects -> {
                     if (host.invalidateCoupledProjects) {
                         val referrer = projects.entryFor(input.referringProject)
@@ -104,6 +110,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                         referrer.consumedBy(target)
                     }
                 }
+
                 else -> throw IllegalStateException("Unexpected configuration cache fingerprint: $input")
             }
         }
@@ -122,10 +129,12 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     if (reusedProjects.contains(input.projectPath)) {
                         consumer.accept(input)
                     }
+
                 is ProjectSpecificFingerprint.ProjectDependency ->
                     if (reusedProjects.contains(input.consumingProject)) {
                         consumer.accept(input)
                     }
+
                 is ProjectSpecificFingerprint.CoupledProjects ->
                     if (reusedProjects.contains(input.referringProject)) {
                         consumer.accept(input)
@@ -147,34 +156,48 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     return "an input to $workDisplayName has changed"
                 }
             }
+
             is ConfigurationCacheFingerprint.InputFile -> input.run {
                 if (hasFileChanged(file, hash)) {
                     return "file '${displayNameOf(file)}' has changed"
                 }
             }
+
             is ConfigurationCacheFingerprint.ValueSource -> input.run {
                 val reason = checkFingerprintValueIsUpToDate(obtainedValue)
                 if (reason != null) return reason
             }
+
             is ConfigurationCacheFingerprint.InitScripts -> input.run {
                 val reason = checkInitScriptsAreUpToDate(fingerprints, host.allInitScripts)
                 if (reason != null) return reason
             }
+
             is ConfigurationCacheFingerprint.UndeclaredSystemProperty -> input.run {
                 if (System.getProperty(key) != value) {
                     return "system property '$key' has changed"
                 }
             }
+
             is ConfigurationCacheFingerprint.UndeclaredEnvironmentVariable -> input.run {
                 if (System.getenv(key) != value) {
                     return "environment variable '$key' has changed"
                 }
             }
+
             is ConfigurationCacheFingerprint.ChangingDependencyResolutionValue -> input.run {
                 if (host.buildStartTime >= expireAt) {
                     return reason
                 }
             }
+
+            is ConfigurationCacheFingerprint.ExternalResource -> input.run {
+                val resourceName = ExternalResourceName(uri)
+                if (host.mustRefreshExternalResource(resourceName, metaData)) {
+                    return "cached external resource ${resourceName.displayName} has expired"
+                }
+            }
+
             is ConfigurationCacheFingerprint.GradleEnvironment -> input.run {
                 if (host.gradleUserHomeDir != gradleUserHomeDir) {
                     return "Gradle user home directory has changed"
@@ -186,12 +209,14 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     return "the set of Gradle properties has changed"
                 }
             }
+
             is ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy -> input.run {
                 val current = System.getenv().filterKeysByPrefix(prefix)
                 if (current != snapshot) {
                     return "the set of environment variables prefixed by '$prefix' has changed"
                 }
             }
+
             is ConfigurationCacheFingerprint.SystemPropertiesPrefixedBy -> input.run {
                 val currentWithoutIgnored = System.getProperties().uncheckedCast<Map<String, Any>>().filterKeysByPrefix(prefix).filterKeys {
                     // remove properties that are known to be modified by the build logic at the moment of obtaining this, as their initial
@@ -224,6 +249,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     else -> null
                 }
             }
+
             current.size -> {
                 val removed = previous.size - upToDatePrefix
                 when {
@@ -232,6 +258,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     else -> null
                 }
             }
+
             else -> {
                 when (val modifiedScript = current[upToDatePrefix]) {
                     previous[upToDatePrefix].file -> "init script '${displayNameOf(modifiedScript)}' has changed"

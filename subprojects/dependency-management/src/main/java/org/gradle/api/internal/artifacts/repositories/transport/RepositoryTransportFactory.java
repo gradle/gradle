@@ -30,7 +30,9 @@ import org.gradle.internal.authentication.AuthenticationInternal;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.cached.CachedExternalResourceChecker;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
+import org.gradle.internal.resource.cached.CachedExternalResourceListener;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
 import org.gradle.internal.resource.local.FileResourceListener;
@@ -62,6 +64,9 @@ public class RepositoryTransportFactory {
     private final FileResourceRepository fileRepository;
     private final ChecksumService checksumService;
     private final FileResourceListener listener;
+    private final CachedExternalResourceListener cachedExternalResourceListener;
+    private final CachedExternalResourceChecker cachedExternalResourceChecker;
+
 
     public RepositoryTransportFactory(Collection<ResourceConnectorFactory> resourceConnectorFactory,
                                       TemporaryFileProvider temporaryFileProvider,
@@ -73,7 +78,10 @@ public class RepositoryTransportFactory {
                                       ProducerGuard<ExternalResourceName> producerGuard,
                                       FileResourceRepository fileRepository,
                                       ChecksumService checksumService,
-                                      FileResourceListener listener) {
+                                      FileResourceListener listener,
+                                      CachedExternalResourceListener cachedExternalResourceListener,
+                                      CachedExternalResourceChecker cachedExternalResourceChecker
+    ) {
         this.temporaryFileProvider = temporaryFileProvider;
         this.cachedExternalResourceIndex = cachedExternalResourceIndex;
         this.timeProvider = timeProvider;
@@ -84,6 +92,8 @@ public class RepositoryTransportFactory {
         this.fileRepository = fileRepository;
         this.checksumService = checksumService;
         this.listener = listener;
+        this.cachedExternalResourceListener = cachedExternalResourceListener;
+        this.cachedExternalResourceChecker = cachedExternalResourceChecker;
 
         registeredProtocols.addAll(resourceConnectorFactory);
     }
@@ -97,7 +107,7 @@ public class RepositoryTransportFactory {
     }
 
     public RepositoryTransport createFileTransport(String name) {
-        return new FileTransport(name, fileRepository, cachedExternalResourceIndex, temporaryFileProvider, timeProvider, artifactCacheLockingManager, producerGuard, checksumService, listener);
+        return new FileTransport(name, fileRepository, cachedExternalResourceIndex, temporaryFileProvider, timeProvider, artifactCacheLockingManager, producerGuard, checksumService, listener, cachedExternalResourceListener, cachedExternalResourceChecker);
     }
 
     public RepositoryTransport createTransport(String scheme, String name, Collection<Authentication> authentications, HttpRedirectVerifier redirectVerifier) {
@@ -127,7 +137,7 @@ public class RepositoryTransportFactory {
         ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
         cachePolicy = startParameterResolutionOverride.overrideExternalResourceCachePolicy(cachePolicy);
 
-        return new ResourceConnectorRepositoryTransport(name, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, artifactCacheLockingManager, resourceConnector, buildOperationExecutor, cachePolicy, producerGuard, fileRepository, checksumService);
+        return new ResourceConnectorRepositoryTransport(name, temporaryFileProvider, cachedExternalResourceIndex, timeProvider, artifactCacheLockingManager, resourceConnector, buildOperationExecutor, cachePolicy, producerGuard, fileRepository, checksumService, cachedExternalResourceListener, cachedExternalResourceChecker);
     }
 
     private void validateSchemes(Set<String> schemes) {

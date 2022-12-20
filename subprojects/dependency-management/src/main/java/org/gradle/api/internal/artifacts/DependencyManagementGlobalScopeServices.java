@@ -66,6 +66,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.cached.DefaultCachedExternalResourceChecker;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
@@ -80,6 +81,7 @@ import org.gradle.work.NormalizeLineEndings;
 class DependencyManagementGlobalScopeServices {
     void configure(ServiceRegistration registration) {
         registration.add(MarkConfigurationObservedListener.class);
+        registration.add(DefaultCachedExternalResourceChecker.class);
     }
 
     FileResourceRepository createFileResourceRepository(FileSystem fileSystem) {

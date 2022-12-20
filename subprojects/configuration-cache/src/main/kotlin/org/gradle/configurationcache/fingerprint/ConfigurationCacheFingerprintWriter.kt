@@ -70,10 +70,14 @@ import org.gradle.internal.execution.UnitOfWork.InputVisitor
 import org.gradle.internal.execution.WorkInputListener
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.properties.InputBehavior
+import org.gradle.internal.resource.ExternalResourceName
+import org.gradle.internal.resource.cached.CachedExternalResourceListener
 import org.gradle.internal.resource.local.FileResourceListener
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.util.Path
 import java.io.File
+import java.net.URI
 import java.util.EnumSet
 
 
@@ -97,6 +101,7 @@ class ConfigurationCacheFingerprintWriter(
     CoupledProjectsListener,
     FileResourceListener,
     FeatureFlagListener,
+    CachedExternalResourceListener,
     ConfigurationCacheEnvironment.Listener {
 
     interface Host {
@@ -175,6 +180,13 @@ class ConfigurationCacheFingerprintWriter(
             }
         }
         CompositeStoppable.stoppable(buildScopedWriter, projectScopedWriter).stop()
+    }
+
+    override fun externalResourceObserved(resourceName: ExternalResourceName, metaData: ExternalResourceMetaData) {
+        if (isInputTrackingDisabled()) {
+            return
+        }
+        sink().externalResourceObserved(resourceName, metaData)
     }
 
     override fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry, versions: Set<ModuleVersionIdentifier>) {
@@ -639,11 +651,20 @@ class ConfigurationCacheFingerprintWriter(
         private
         val undeclaredEnvironmentVariables = newConcurrentHashSet<String>()
 
+        private
+        val cachedExternalResources = newConcurrentHashSet<URI>()
+
         fun captureFile(file: File) {
             if (!capturedFiles.add(file)) {
                 return
             }
             write(inputFile(file))
+        }
+
+        fun externalResourceObserved(resourceName: ExternalResourceName, metaData: ExternalResourceMetaData) {
+            if (cachedExternalResources.add(resourceName.uri)) {
+                write(ConfigurationCacheFingerprint.ExternalResource(resourceName.uri, metaData))
+            }
         }
 
         fun systemPropertyRead(key: String, value: Any?) {

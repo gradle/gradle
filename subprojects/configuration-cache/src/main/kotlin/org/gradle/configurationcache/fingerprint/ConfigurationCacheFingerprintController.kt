@@ -46,6 +46,9 @@ import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.resource.ExternalResourceName
+import org.gradle.internal.resource.cached.CachedExternalResourceChecker
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.vfs.FileSystemAccess
@@ -78,6 +81,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val taskExecutionTracker: TaskExecutionTracker,
     private val environmentChangeTracker: EnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
+    private val cachedExternalResourceChecker: CachedExternalResourceChecker
 ) : Stoppable {
 
     interface Host {
@@ -346,6 +350,9 @@ class ConfigurationCacheFingerprintController internal constructor(
                 obtainedValue.valueSourceParametersType,
                 obtainedValue.valueSourceParameters
             )
+
+        override fun mustRefreshExternalResource(resourceName: ExternalResourceName, metaData: ExternalResourceMetaData): Boolean =
+            !(cachedExternalResourceChecker.check(resourceName, metaData)?.isUpToDate ?: false)
     }
 
     private
