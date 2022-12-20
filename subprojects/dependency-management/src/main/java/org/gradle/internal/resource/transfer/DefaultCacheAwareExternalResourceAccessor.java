@@ -104,7 +104,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             final boolean revalidate = true;
 
             ExternalResourceMetaData localMetaData = cached != null ? cached.getExternalResourceMetaData() : null;
-            CachedExternalResourceRemoteMetaData remoteMetaData = cachedExternalResourceChecker.check(location, localMetaData);
+            ExternalResourceRemoteMetaData remoteMetaData = cachedExternalResourceChecker.check(location, localMetaData);
 
             if (remoteMetaData == null) {
                 return null;
