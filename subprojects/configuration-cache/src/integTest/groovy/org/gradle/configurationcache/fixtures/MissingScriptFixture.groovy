@@ -53,7 +53,7 @@ class MissingScriptFixture {
             "${scenario.getDisplayName(scriptLanguage.extension)}"
         }
 
-        MissingScriptFixture createFixture(AbstractIntegrationSpec abstractIntegrationSpec) {
+        MissingScriptFixture setUpFixtureFor(AbstractIntegrationSpec abstractIntegrationSpec) {
             scenario.setup(abstractIntegrationSpec)
             return new MissingScriptFixture(scriptLanguage, scenario, abstractIntegrationSpec.testDirectory)
         }

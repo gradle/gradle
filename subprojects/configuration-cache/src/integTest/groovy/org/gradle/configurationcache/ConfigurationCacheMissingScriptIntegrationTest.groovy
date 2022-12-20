@@ -25,20 +25,35 @@ class ConfigurationCacheMissingScriptIntegrationTest extends AbstractConfigurati
 
     def "picking up formerly-missing #missingScriptsSpec"() {
         given:
-        def fixture = missingScriptsSpec.createFixture(this)
+        def configCache = newConfigurationCacheFixture()
+        def fixture = missingScriptsSpec.setUpFixtureFor(this)
+
+        and:
         fixture.createInitialBuildLayout()
 
         when:
         configurationCacheRun 'ok'
 
         then:
+        configCache.assertStateStored()
+
+        when:
         fixture.addMissingScript()
+
+        and:
+        configurationCacheRun 'ok'
+
+        then:
+        outputContains fixture.expectedCacheInvalidationMessage
+
+        and:
+        configCache.assertStateStored()
 
         when:
         configurationCacheRun 'ok'
 
         then:
-        outputContains(fixture.expectedCacheInvalidationMessage)
+        configCache.assertStateLoaded()
 
         where:
         missingScriptsSpec << MissingScriptFixture.specs()
