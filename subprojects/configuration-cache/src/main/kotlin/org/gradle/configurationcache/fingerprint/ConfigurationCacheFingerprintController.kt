@@ -59,7 +59,6 @@ import org.gradle.util.internal.GFileUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
-import java.net.URI
 import java.nio.file.Files
 
 
