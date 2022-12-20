@@ -39,6 +39,9 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * A thread-safe and reusable serializer for {@link ComponentIdentifier}.
+ */
 public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentIdentifier> {
     private final BuildIdentifierSerializer buildIdentifierSerializer = new BuildIdentifierSerializer();
 
