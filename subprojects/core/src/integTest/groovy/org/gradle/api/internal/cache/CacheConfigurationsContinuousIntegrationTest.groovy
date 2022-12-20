@@ -16,14 +16,28 @@
 
 package org.gradle.api.internal.cache
 
+import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.internal.time.TimestampSuppliers
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.GradleVersion
+import org.gradle.util.internal.TextUtil
+
+import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_30_DAYS
+import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.USED_TODAY
 
 
-class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
+class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousIntegrationTest implements GradleUserHomeCleanupFixture {
+    def setup() {
+        requireOwnGradleUserHomeDir()
+    }
+
+    @Override
+    TestFile getGradleUserHomeDir() {
+        return executer.gradleUserHomeDir
+    }
+
     def "can configure caches via init script and execute multiple builds in a session"() {
-        executer.requireOwnGradleUserHomeDir()
-
         def initDir = new File(executer.gradleUserHomeDir, "init.d")
         initDir.mkdirs()
         new File(initDir, "cache-settings.gradle") << """
@@ -127,6 +141,110 @@ class CacheConfigurationsContinuousIntegrationTest extends AbstractContinuousInt
         then:
         buildTriggeredAndSucceeded()
         outputContains("retention timestamp is " + retentionFile.text)
+    }
+
+    def "only executes cleanup after the build session ends"() {
+        alwaysCleanupCaches()
+
+        def oldButRecentlyUsedGradleDist = versionedDistDirs("1.4.5", USED_TODAY, "my-dist-1")
+        def oldNotRecentlyUsedGradleDist = versionedDistDirs("2.3.4", NOT_USED_WITHIN_30_DAYS, "my-dist-2")
+
+        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), NOT_USED_WITHIN_30_DAYS)
+        def currentDist = createDistributionChecksumDir(GradleVersion.current()).parentFile
+
+        when:
+        buildFile << """
+            task foo(type: Copy) {
+                from 'foo'
+                into layout.buildDir.dir('foo')
+            }
+        """
+        file('foo').text = 'bar'
+
+        then:
+        succeeds("foo")
+        file('build/foo/foo').text == 'bar'
+        getGcFile(currentCacheDir).assertDoesNotExist()
+
+        when:
+        file('foo').text = 'baz'
+
+        then:
+        buildTriggeredAndSucceeded()
+        file('build/foo/foo').text == 'baz'
+        getGcFile(currentCacheDir).assertDoesNotExist()
+
+        when:
+        sendEOT()
+
+        then:
+        waitForNotRunning()
+
+        and:
+        oldButRecentlyUsedGradleDist.assertAllDirsExist()
+        oldNotRecentlyUsedGradleDist.assertAllDirsDoNotExist()
+
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
+
+        getGcFile(currentCacheDir).assertExists()
+    }
+
+    def "does not execute cleanup after init script failure is introduced in between builds in a session"() {
+        withReleasedWrappersRetentionInDays(60)
+        alwaysCleanupCaches()
+
+        def oldButRecentlyUsedGradleDist = versionedDistDirs("1.4.5", USED_TODAY, "my-dist-1")
+        def oldNotRecentlyUsedGradleDist = versionedDistDirs("2.3.4", NOT_USED_WITHIN_30_DAYS, "my-dist-2")
+
+        def currentCacheDir = createVersionSpecificCacheDir(GradleVersion.current(), NOT_USED_WITHIN_30_DAYS)
+        def currentDist = createDistributionChecksumDir(GradleVersion.current()).parentFile
+
+        def initDir = gradleUserHomeDir.createDir("init.d")
+        initDir.createFile('maybeBroken.gradle') << """
+            def foo = new File('${TextUtil.normaliseFileSeparators(file('foo').absolutePath)}')
+            def fooFileProperty = services.get(ObjectFactory).fileProperty().fileValue(foo)
+            def fooContentProvider = services.get(ProviderFactory).fileContents(fooFileProperty).asText
+
+            if (fooContentProvider.get() == 'fail') {
+                throw new Exception('BOOM!')
+            }
+        """
+
+        when:
+        buildFile << """
+            task foo(type: Copy) {
+                from 'foo'
+                into layout.buildDir.dir('foo')
+            }
+        """
+        file('foo').text = 'bar'
+
+        then:
+        succeeds("foo")
+        file('build/foo/foo').text == 'bar'
+        getGcFile(currentCacheDir).assertDoesNotExist()
+
+        when:
+        file('foo').text = 'fail'
+
+        then:
+        buildTriggeredAndFailed()
+
+        when:
+        sendEOT()
+
+        then:
+        waitForNotRunning()
+
+        and:
+        oldButRecentlyUsedGradleDist.assertAllDirsExist()
+        oldNotRecentlyUsedGradleDist.assertAllDirsExist()
+
+        currentCacheDir.assertExists()
+        currentDist.assertExists()
+
+        getGcFile(currentCacheDir).assertDoesNotExist()
     }
 
     static String assertValueIsSameInDays(configuredDaysAgo) {

@@ -78,6 +78,7 @@ public class SettingsScopeServices extends DefaultServiceRegistry {
         CacheConfigurationsInternal cacheConfigurations = objectFactory.newInstance(DefaultCacheConfigurations.class);
         if (gradleInternal.isRootBuild()) {
             cacheConfigurations.synchronize(persistentCacheConfigurations);
+            persistentCacheConfigurations.setCleanupHasBeenConfigured(false);
         }
         return cacheConfigurations;
     }

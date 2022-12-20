@@ -51,6 +51,8 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     private final CacheResourceConfigurationInternal createdResourcesConfiguration;
     private final Property<Cleanup> cleanup;
 
+    private boolean cleanupHasBeenConfigured;
+
     @Inject
     public DefaultCacheConfigurations(ObjectFactory objectFactory, PropertyHost propertyHost) {
         this.releasedWrappersConfiguration = createResourceConfiguration(objectFactory, RELEASED_WRAPPERS, DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS);
@@ -113,7 +115,9 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
 
     @Override
     public Provider<CleanupFrequency> getCleanupFrequency() {
-        return getCleanup().map(cleanup -> ((CleanupInternal)cleanup).getCleanupFrequency());
+        return getCleanup().map(cleanup ->
+            lastCleanupTimestamp -> cleanupHasBeenConfigured && ((CleanupInternal)cleanup).getCleanupFrequency().requiresCleanup(lastCleanupTimestamp)
+        );
     }
 
     @Override
@@ -131,6 +135,11 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         downloadedResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         createdResourcesConfiguration.getRemoveUnusedEntriesOlderThan().finalizeValue();
         getCleanup().finalizeValue();
+    }
+
+    @Override
+    public void setCleanupHasBeenConfigured(boolean hasBeenConfigured) {
+        this.cleanupHasBeenConfigured = hasBeenConfigured;
     }
 
     private static <T> Provider<T> providerFromSupplier(Supplier<T> supplier) {
