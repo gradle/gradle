@@ -29,5 +29,6 @@ public interface CachedExternalResourceChecker {
 
     void add(ExternalResourceName location, ExternalResourceRepository repository);
 
-    void setExternalResourceRepository(@Nullable ExternalResourceRepository externalResourceRepository);
+    @Nullable
+    ExternalResourceRemoteMetaData check(ExternalResourceName location, @Nullable ExternalResourceMetaData localMetaData);
 }
