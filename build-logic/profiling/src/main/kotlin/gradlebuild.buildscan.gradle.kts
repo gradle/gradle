@@ -27,6 +27,8 @@ import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.testDistributionEnabled
+import gradlebuild.buildscan.CpuPerformanceCapturingService
+import gradlebuild.buildscan.addPerformanceMeasurement
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
 import org.gradle.internal.operations.BuildOperationDescriptor
@@ -172,3 +174,8 @@ fun customValueSearchUrl(search: Map<String, String>): String {
 }
 
 fun String.urlEncode() = URLEncoder.encode(this, Charsets.UTF_8.name())
+
+val performanceService = gradle.sharedServices.registerIfAbsent("cpuPerformanceCapturing", CpuPerformanceCapturingService::class.java) {}.get()
+buildScan?.let {
+    addPerformanceMeasurement(it, performanceService)
+}
