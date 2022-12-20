@@ -691,7 +691,7 @@ class DependencyManagementBuildScopeServices {
         UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
         // @formatter:off
         return new DefaultExecutionEngine(documentationRegistry,
-            new IdentifyStep<>(
+            new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(
