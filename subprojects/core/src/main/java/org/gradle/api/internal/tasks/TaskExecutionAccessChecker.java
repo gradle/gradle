@@ -18,6 +18,9 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.TaskInternal;
 
+/**
+ * Checks for tasks accessing the model at execution time, which might be a problem that needs reporting e.g. with configuration cache enabled.
+ */
 public interface TaskExecutionAccessChecker {
     void notifyProjectAccess(TaskInternal task);
     void notifyTaskDependenciesAccess(TaskInternal task, String invocationDescription);
