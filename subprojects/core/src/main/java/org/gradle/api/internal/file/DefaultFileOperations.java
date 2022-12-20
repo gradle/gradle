@@ -50,7 +50,9 @@ import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.cache.internal.DecompressionCache;
 import org.gradle.cache.internal.DecompressionCacheFactory;
+import org.gradle.cache.scopes.ScopedCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
@@ -85,6 +87,7 @@ public class DefaultFileOperations implements FileOperations {
     private final TaskDependencyFactory taskDependencyFactory;
     private final ProviderFactory providers;
     private final DecompressionCacheFactory decompressionCacheFactory;
+    private final ScopedCache scopedCache;
 
     public DefaultFileOperations(
         FileResolver fileResolver,
@@ -100,7 +103,8 @@ public class DefaultFileOperations implements FileOperations {
         DocumentationRegistry documentationRegistry,
         TaskDependencyFactory taskDependencyFactory,
         ProviderFactory providers,
-        DecompressionCacheFactory decompressionCacheFactory
+        DecompressionCacheFactory decompressionCacheFactory,
+        ScopedCache scopedCache
     ) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
@@ -125,6 +129,7 @@ public class DefaultFileOperations implements FileOperations {
         this.fileSystem = fileSystem;
         this.deleter = deleter;
         this.decompressionCacheFactory = decompressionCacheFactory;
+        this.scopedCache = scopedCache;
     }
 
     @Override
@@ -175,6 +180,27 @@ public class DefaultFileOperations implements FileOperations {
     public FileTreeInternal zipTree(Object zipPath) {
         Provider<File> fileProvider = asFileProvider(zipPath);
         return new FileTreeAdapter(new ZipFileTree(fileProvider, fileSystem, directoryFileTreeFactory, fileHasher, decompressionCacheFactory.create()), taskDependencyFactory, patternSetFactory);
+    }
+
+    @Override
+    public FileTreeInternal zipTreeNoLocking(Object zipPath) {
+        Provider<File> fileProvider = asFileProvider(zipPath);
+        DecompressionCache nonLockingCache = new DecompressionCache() {
+            @Override
+            public File getBaseDir() {
+                return directoryFileTreeFactory.create(scopedCache.baseDirForCrossVersionCache(DecompressionCache.EXPANSION_CACHE_KEY)).getDir();
+            }
+
+            @Override
+            public void useCache(Runnable action) {
+                action.run();
+            }
+
+            @Override
+            public void close() throws IOException {}
+        };
+
+        return new FileTreeAdapter(new ZipFileTree(fileProvider, fileSystem, directoryFileTreeFactory, fileHasher, nonLockingCache), taskDependencyFactory, patternSetFactory);
     }
 
     @Override
@@ -299,6 +325,7 @@ public class DefaultFileOperations implements FileOperations {
         ProviderFactory providers = services.get(ProviderFactory.class);
         TaskDependencyFactory taskDependencyFactory = services.get(TaskDependencyFactory.class);
         DecompressionCacheFactory decompressionCacheFactory = services.get(DecompressionCacheFactory.class);
+        ScopedCache scopedCache = services.get(ScopedCache.class);
 
         DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
             fileResolver,
@@ -322,6 +349,7 @@ public class DefaultFileOperations implements FileOperations {
             documentationRegistry,
             taskDependencyFactory,
             providers,
-            decompressionCacheFactory);
+            decompressionCacheFactory,
+            scopedCache);
     }
 }
