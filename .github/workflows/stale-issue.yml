@@ -103,6 +103,7 @@ jobs:
           only-labels: 'pending:reproducer'
 
           # ISSUES ------------------------------------------------------------
+          days-before-issue-close: 7
           stale-issue-label: 'pending:reproducer'
           close-issue-label: 'closed:unreproducible'
           close-issue-message: >
