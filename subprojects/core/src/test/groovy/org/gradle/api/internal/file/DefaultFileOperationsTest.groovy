@@ -73,7 +73,8 @@ class DefaultFileOperationsTest extends Specification {
             TestFiles.documentationRegistry(),
             TestFiles.taskDependencyFactory(),
             TestUtil.providerFactory(),
-            TestCaches.decompressionCacheFactory(temporaryFileProvider.newTemporaryDirectory("cache"))
+            TestCaches.decompressionCacheFactory(temporaryFileProvider.newTemporaryDirectory("cache")),
+            null
         )
     }
 
