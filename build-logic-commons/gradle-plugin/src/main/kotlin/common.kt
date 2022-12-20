@@ -20,5 +20,6 @@ import org.gradle.jvm.toolchain.JvmVendorSpec
 fun JavaPluginExtension.configureJavaToolChain() {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
+        vendor.set(JvmVendorSpec.ADOPTIUM)
     }
 }
