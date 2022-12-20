@@ -41,6 +41,7 @@ import org.gradle.configuration.project.PluginsProjectConfigureActions
 import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.configurationcache.extensions.get
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
+import org.gradle.configurationcache.flow.FlowServicesProvider
 import org.gradle.configurationcache.initialization.ConfigurationCacheBuildEnablement
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
@@ -75,6 +76,7 @@ class DefaultBuildModelControllerServices(
             registration.add(BuildState::class.java, owner)
             registration.addProvider(ServicesProvider(buildDefinition, parentBuild, services))
             registration.add(StableConfigurationCacheUnsupportedApiManagerAction::class.java)
+            registration.addProvider(FlowServicesProvider)
             if (buildModelParameters.isConfigurationCache) {
                 registration.add(ConfigurationCacheBuildEnablement::class.java)
                 registration.add(ConfigurationCacheProblemsListenerManagerAction::class.java)

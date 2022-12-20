@@ -85,8 +85,9 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.groovyJson)
-    implementation(libs.slf4jApi)
     implementation(libs.guava)
+    implementation(libs.inject)
+    implementation(libs.slf4jApi)
 
     implementation(libs.futureKotlin("stdlib-jdk8"))
     implementation(libs.futureKotlin("reflect"))
