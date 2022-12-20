@@ -27,6 +27,9 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 
+/**
+ * A thread-safe and reusable serializer for {@link PublishArtifactLocalArtifactMetadata}.
+ */
 public class PublishArtifactLocalArtifactMetadataSerializer implements Serializer<PublishArtifactLocalArtifactMetadata> {
 
     private final ComponentIdentifierSerializer componentIdentifierSerializer;

@@ -62,7 +62,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
     private synchronized DefaultBinaryStore createBinaryStore(String storeKey) {
         DefaultBinaryStore store = stores.get(storeKey);
-        if (store == null || isFull(store)) {
+        if (store == null || isFull(store) || store.isInUse()) {
             File storeFile = temp.createTemporaryFile("gradle", ".bin");
             storeFile.deleteOnExit();
             store = new DefaultBinaryStore(storeFile);
