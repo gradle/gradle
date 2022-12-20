@@ -20,12 +20,12 @@ import org.gradle.test.fixtures.file.TestFile
 
 class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    def '#target plugin with #parameter can react to task execution result'() {
+    def '#target #injectionStyle with #parameter can react to task execution result'() {
         given:
         def configCache = newConfigurationCacheFixture()
 
         and:
-        withLavaLampPluginFor target, parameter
+        withLavaLampPluginFor target, parameter, injectionStyle
 
         when: 'task runs successfully'
         configurationCacheRun 'help'
@@ -61,12 +61,16 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
         configCache.assertStateLoaded()
 
         where:
-        [target, parameter] << [ScriptTarget.values(), ParameterKind.values()].combinations()
+        [target, parameter, injectionStyle] << [
+            ScriptTarget.values(),
+            ParameterKind.values(),
+            InjectionStyle.values()
+        ].combinations()
     }
 
-    def '#target plugin with #parameter can react to configuration failure'() {
+    def '#target #injectionStyle with #parameter can react to configuration failure'() {
         given:
-        withLavaLampPluginFor target, parameter
+        withLavaLampPluginFor target, parameter, injectionStyle
 
         and: 'it fails at configuration time'
         buildFile '''
@@ -80,56 +84,31 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
         outputContains '(red)'
 
         where:
-        [target, parameter] << [ScriptTarget.values(), ParameterKind.values()].combinations()
+        [target, parameter, injectionStyle] << [
+            ScriptTarget.values(),
+            ParameterKind.values(),
+            InjectionStyle.values()
+        ].combinations()
     }
 
-    void withLavaLampPluginFor(ScriptTarget target, ParameterKind parameter) {
+    void withLavaLampPluginFor(ScriptTarget target, ParameterKind parameter, InjectionStyle injectionStyle) {
         switch (parameter) {
             case ParameterKind.SIMPLE: {
-                withSimpleLavaLampPluginFor target
+                withSimpleLavaLampPluginFor target, injectionStyle
                 break
             }
             case ParameterKind.SERVICE_REFERENCE: {
-                withLavaLampServicePluginFor target, false
+                withLavaLampServicePluginFor target, injectionStyle, false
                 break
             }
             case ParameterKind.NAMED_SERVICE_REFERENCE: {
-                withLavaLampServicePluginFor target, true
+                withLavaLampServicePluginFor target, injectionStyle, true
                 break
             }
         }
     }
 
-    enum ScriptTarget {
-        SETTINGS,
-        PROJECT;
-
-        String getFileName() {
-            this == SETTINGS ? 'settings.gradle' : 'build.gradle'
-        }
-
-        String getTargetType() {
-            toString().capitalize()
-        }
-
-        @Override
-        String toString() {
-            name().toLowerCase()
-        }
-    }
-
-    enum ParameterKind {
-        SIMPLE,
-        SERVICE_REFERENCE,
-        NAMED_SERVICE_REFERENCE;
-
-        @Override
-        String toString() {
-            "${name().toLowerCase().replace('_', ' ')} parameter"
-        }
-    }
-
-    private withSimpleLavaLampPluginFor(ScriptTarget target) {
+    private withSimpleLavaLampPluginFor(ScriptTarget target, InjectionStyle injectionStyle) {
         def targetType = target.targetType
         scriptFileFor(target) << """
             import org.gradle.api.flow.*
@@ -165,11 +144,50 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
                 }
             }
 
-            apply type: LavaLampPlugin
+            ${applyPluginUsing(injectionStyle, target, 'LavaLampPlugin')}
         """
     }
 
-    private withLavaLampServicePluginFor(ScriptTarget target, Boolean namedAnnotation) {
+    enum ScriptTarget {
+        SETTINGS,
+        PROJECT;
+
+        String getFileName() {
+            this == SETTINGS ? 'settings.gradle' : 'build.gradle'
+        }
+
+        String getTargetType() {
+            toString().capitalize()
+        }
+
+        @Override
+        String toString() {
+            name().toLowerCase()
+        }
+    }
+
+    enum ParameterKind {
+        SIMPLE,
+        SERVICE_REFERENCE,
+        NAMED_SERVICE_REFERENCE;
+
+        @Override
+        String toString() {
+            "${name().toLowerCase().replace('_', ' ')} parameter"
+        }
+    }
+
+    enum InjectionStyle {
+        PLUGIN,
+        NEW_INSTANCE;
+
+        @Override
+        String toString() {
+            name().toLowerCase().replace('_', ' ')
+        }
+    }
+
+    private withLavaLampServicePluginFor(ScriptTarget target, InjectionStyle injectionStyle, Boolean namedAnnotation) {
         def targetType = target.targetType
         scriptFileFor(target) << """
             import org.gradle.api.flow.*
@@ -217,8 +235,23 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
                 }
             }
 
-            apply type: BuildServicePlugin
+            ${applyPluginUsing(injectionStyle, target, 'BuildServicePlugin')}
         """
+    }
+
+    String applyPluginUsing(InjectionStyle injectionStyle, ScriptTarget target, String pluginType) {
+        switch (injectionStyle) {
+            case InjectionStyle.PLUGIN:
+                return "apply type: $pluginType"
+            case InjectionStyle.NEW_INSTANCE:
+                def targetObject = target.targetType.toLowerCase()
+                switch (target) {
+                    case ScriptTarget.PROJECT:
+                        return "objects.newInstance($pluginType).apply($targetObject)"
+                    case ScriptTarget.SETTINGS: // settings DSL doesn't expose `objects`
+                        return "extensions.create('$pluginType', $pluginType).apply($targetObject)"
+                }
+        }
     }
 
     private TestFile scriptFileFor(ScriptTarget target) {
