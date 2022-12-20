@@ -20,6 +20,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
@@ -38,9 +39,9 @@ public class SelectedTaskExecutionAction implements BuildWorkExecutor {
     private void bindAllReferencesOfProject(TaskExecutionGraph graph) {
         Set<Project> seen = Sets.newHashSet();
         for (Task task : graph.getAllTasks()) {
-            if (seen.add(task.getProject())) {
-                ProjectInternal projectInternal = (ProjectInternal) task.getProject();
-                projectInternal.bindAllModelRules();
+            ProjectInternal taskProject = ((TaskInternal) task).getProjectUnchecked();
+            if (seen.add(taskProject)) {
+                taskProject.bindAllModelRules();
             }
         }
     }

@@ -102,8 +102,9 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
                 consumer(project(":producer"))
             }
             tasks.register("resolve") {
+                def consumerFiles = configurations.consumer.files
                 doLast {
-                    configurations.consumer.files.forEach {
+                    consumerFiles.forEach {
                         println(it.name)
                     }
                 }

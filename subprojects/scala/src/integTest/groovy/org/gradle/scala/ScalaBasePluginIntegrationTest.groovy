@@ -49,9 +49,11 @@ class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
             }
 
             task verify {
+                def compileCustomScalaClasspath = compileCustomScala.scalaClasspath
+                def scaladocScalaClasspath = scaladoc.scalaClasspath
                 doLast {
-                    assert compileCustomScala.scalaClasspath.files.any { it.name == "$scalaCompilerLib-${version}.jar" }
-                    assert scaladoc.scalaClasspath.files.any { it.name == "$scalaCompilerLib-${version}.jar" }
+                    assert compileCustomScalaClasspath.files.any { it.name == "$scalaCompilerLib-${version}.jar" }
+                    assert scaladocScalaClasspath.files.any { it.name == "$scalaCompilerLib-${version}.jar" }
                 }
             }
         """

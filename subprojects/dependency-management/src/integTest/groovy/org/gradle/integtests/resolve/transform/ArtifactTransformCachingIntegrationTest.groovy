@@ -195,7 +195,8 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         buildFile << """
             subprojects {
                 task badTask {
-                    outputs.file { project.layout.buildDirectory.file("${forbiddenPath}") } withPropertyName "output"
+                    def projectLayout = project.layout
+                    outputs.file { projectLayout.buildDirectory.file("${forbiddenPath}") } withPropertyName "output"
                     doLast { }
                 }
             }

@@ -319,7 +319,6 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun saveToCache(stateType: StateType, action: (ConfigurationCacheStateFile) -> Unit) {
-        crossConfigurationTimeBarrier()
 
         // TODO - fingerprint should be collected until the state file has been written, as user code can run during this process
         // Moving this is currently broken because the Jar task queries provider values when serializing the manifest file tree and this
@@ -340,6 +339,8 @@ class DefaultConfigurationCache internal constructor(
                 }
             }
         }
+
+        crossConfigurationTimeBarrier()
 
         hasSavedValues = true
     }

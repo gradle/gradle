@@ -19,6 +19,8 @@ package org.gradle.configurationcache
 import org.gradle.api.GradleException
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier
+import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
 import org.gradle.configurationcache.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.initialization.VintageInjectedClasspathInstrumentationStrategy
@@ -122,6 +124,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(VintageBuildTreeLifecycleControllerFactory::class.java)
             registration.addProvider(VintageBuildTreeProvider())
         }
+        registration.addProvider(TaskExecutionAccessCheckerProvider(modelParameters.isConfigurationCache))
     }
 
     private
@@ -135,6 +138,21 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
     class VintageBuildTreeProvider {
         fun createBuildTreeWorkGraphPreparer(buildRegistry: BuildStateRegistry, buildTaskSelector: BuildTaskSelector): BuildTreeWorkGraphPreparer {
             return DefaultBuildTreeWorkGraphPreparer(buildRegistry, buildTaskSelector)
+        }
+    }
+
+    private
+    class TaskExecutionAccessCheckerProvider(
+        private val isConfigurationCacheEnabled: Boolean
+    ) {
+        fun createTaskExecutionAccessChecker(
+            configurationTimeBarrier: ConfigurationTimeBarrier,
+            /** In non-CC builds, [ConfigurationCacheStartParameter] is not registered; accepting a list here is a way to ignore its absence. */
+            configurationCacheStartParameter: List<ConfigurationCacheStartParameter>
+        ): TaskExecutionAccessChecker = when {
+            !isConfigurationCacheEnabled -> TaskExecutionAccessCheckers.TaskStateBased
+            configurationCacheStartParameter.single().taskExecutionAccessPreStable -> TaskExecutionAccessCheckers.TaskStateBased
+            else -> TaskExecutionAccessCheckers.ConfigurationTimeBarrierBased(configurationTimeBarrier)
         }
     }
 }
