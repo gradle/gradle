@@ -16,7 +16,11 @@
 
 package org.gradle.configurationcache.isolated
 
+import spock.lang.Ignore
+
+@Ignore("https://github.com/gradle/gradle/issues/23196")
 class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+
     def "projects are treated as coupled when parent mutates child project"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
