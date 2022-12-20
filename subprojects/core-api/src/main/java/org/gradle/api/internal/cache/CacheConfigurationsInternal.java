@@ -21,6 +21,7 @@ import org.gradle.api.cache.Cleanup;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.cache.CleanupFrequency;
+import org.gradle.internal.Factory;
 
 public interface CacheConfigurationsInternal extends CacheConfigurations {
     int DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS = 30;
@@ -49,4 +50,6 @@ public interface CacheConfigurationsInternal extends CacheConfigurations {
      * by setting the provided configuration's properties to be backed by the properties of this configuration.
      */
     void synchronize(CacheConfigurationsInternal cacheConfigurationsInternal);
+
+    <T> T allowCleanupOnlyIfSuccessful(Factory<T> factory);
 }

@@ -25,7 +25,7 @@ import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.Marke
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.USED_TODAY
 
 
-class CacheConfigurationsCompositeBuildTest extends AbstractIntegrationSpec implements GradleUserHomeCleanupFixture {
+class CacheConfigurationsLifecycleIntegrationTest extends AbstractIntegrationSpec implements GradleUserHomeCleanupFixture {
     def setup() {
         requireOwnGradleUserHomeDir()
     }
@@ -33,38 +33,6 @@ class CacheConfigurationsCompositeBuildTest extends AbstractIntegrationSpec impl
     @Override
     TestFile getGradleUserHomeDir() {
         return executer.gradleUserHomeDir
-    }
-
-    def "can configure cache retention with a composite build"() {
-        def initDir = new File(executer.gradleUserHomeDir, "init.d")
-        initDir.mkdirs()
-        new File(initDir, "cache-settings.gradle") << """
-            beforeSettings { settings ->
-                settings.caches {
-                    cleanup = Cleanup.DISABLED
-                    releasedWrappers.removeUnusedEntriesAfterDays = 10
-                    snapshotWrappers.removeUnusedEntriesAfterDays = 5
-                    downloadedResources.removeUnusedEntriesAfterDays = 10
-                    createdResources.removeUnusedEntriesAfterDays = 5
-                }
-            }
-        """
-
-        file('foo').createDir().createFile('settings.gradle')
-        file('bar').createDir().createFile('settings.gradle')
-        settingsFile << """
-            includeBuild('foo')
-            includeBuild('bar')
-        """
-
-        expect:
-        succeeds('help')
-
-        and:
-        succeeds(':foo:tasks')
-
-        and:
-        succeeds(':bar:tasks')
     }
 
     def "does not cleanup caches when initialization fails before cache configuration"() {
@@ -81,15 +49,8 @@ class CacheConfigurationsCompositeBuildTest extends AbstractIntegrationSpec impl
             throw new Exception('BOOM!')
         """
 
-        file('foo').createDir().createFile('settings.gradle')
-        file('bar').createDir().createFile('settings.gradle')
-        settingsFile << """
-            includeBuild('foo')
-            includeBuild('bar')
-        """
-
         when:
-        fails(":foo:tasks")
+        fails("help")
 
         then:
         oldButRecentlyUsedGradleDist.assertAllDirsExist()
