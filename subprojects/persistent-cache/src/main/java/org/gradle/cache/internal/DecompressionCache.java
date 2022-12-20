@@ -23,6 +23,8 @@ import java.io.File;
  * A cache that can be used to store decompressed data extracted from archive files like zip and tars.
  */
 public interface DecompressionCache extends Closeable {
+    String EXPANSION_CACHE_KEY = "expanded";
+
     /**
      * Returns the root directory used by this cache to store decompressed files.
      *
