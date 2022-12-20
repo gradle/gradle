@@ -27,8 +27,7 @@ import javax.annotation.Nullable;
 @ServiceScope(Scope.Global.class)
 public interface CachedExternalResourceChecker {
 
-    @Nullable
-    CachedExternalResourceRemoteMetaData check(ExternalResourceName externalResourceName, @Nullable ExternalResourceMetaData localMetaData);
+    void add(ExternalResourceName location, ExternalResourceRepository repository);
 
     void setExternalResourceRepository(@Nullable ExternalResourceRepository externalResourceRepository);
 }
