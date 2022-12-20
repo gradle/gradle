@@ -33,36 +33,32 @@ public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDepend
     private String classifier;
     private String artifactType;
 
-    public static DefaultMinimalDependencyVariant create(
-        MinimalExternalModuleDependency delegate,
-        @Nullable Action<? super AttributeContainer> attributesMutator,
-        @Nullable Action<? super ModuleDependencyCapabilitiesHandler> capabilitiesMutator,
-        @Nullable String classifier,
-        @Nullable String artifactType
+    public DefaultMinimalDependencyVariant(MinimalExternalModuleDependency delegate,
+                                           @Nullable Action<? super AttributeContainer> attributesMutator,
+                                           @Nullable Action<? super ModuleDependencyCapabilitiesHandler> capabilitiesMutator,
+                                           @Nullable String classifier,
+                                           @Nullable String artifactType
     ) {
+        super(delegate.getModule(), new DefaultMutableVersionConstraint(delegate.getVersionConstraint()));
+
         attributesMutator = GUtil.elvis(attributesMutator, Actions.doNothing());
         capabilitiesMutator = GUtil.elvis(capabilitiesMutator, Actions.doNothing());
 
         if (delegate instanceof DefaultMinimalDependencyVariant) {
-            DefaultMinimalDependencyVariant defaultDelegate = (DefaultMinimalDependencyVariant) delegate;
-            return new DefaultMinimalDependencyVariant(
-                delegate.getModule(),
-                new DefaultMutableVersionConstraint(delegate.getVersionConstraint()),
-                Actions.composite(defaultDelegate.attributesMutator, attributesMutator),
-                Actions.composite(defaultDelegate.capabilitiesMutator, capabilitiesMutator),
-                classifier == null ? defaultDelegate.getClassifier() : classifier,
-                artifactType == null ? defaultDelegate.getArtifactType() : artifactType
-            );
+            this.attributesMutator = Actions.composite(((DefaultMinimalDependencyVariant) delegate).attributesMutator, attributesMutator);
+            this.capabilitiesMutator = Actions.composite(((DefaultMinimalDependencyVariant) delegate).capabilitiesMutator, capabilitiesMutator);
+            this.classifier = GUtil.elvis(classifier, ((DefaultMinimalDependencyVariant) delegate).getClassifier());
+            this.artifactType = GUtil.elvis(classifier, ((DefaultMinimalDependencyVariant) delegate).getArtifactType());
         } else {
-            return new DefaultMinimalDependencyVariant(
-                delegate.getModule(),
-                new DefaultMutableVersionConstraint(delegate.getVersionConstraint()),
-                attributesMutator,
-                capabilitiesMutator,
-                classifier,
-                artifactType
-            );
+            this.attributesMutator = attributesMutator;
+            this.capabilitiesMutator = capabilitiesMutator;
+            this.classifier = classifier;
+            this.artifactType = artifactType;
         }
+
+        MinimalExternalModuleDependencyInternal internal = (MinimalExternalModuleDependencyInternal) delegate;
+        setAttributesFactory(internal.getAttributesFactory());
+        setCapabilityNotationParser(internal.getCapabilityNotationParser());
     }
 
     private DefaultMinimalDependencyVariant(

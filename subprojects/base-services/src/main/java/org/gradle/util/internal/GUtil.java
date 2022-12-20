@@ -24,7 +24,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
-import org.jetbrains.annotations.Contract;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -158,7 +157,6 @@ public class GUtil {
      * would trigger early configuration.
      */
     @Nullable
-    @Contract("!null, _ -> param1; null, !null -> param2; null, null -> null")
     public static <T> T elvis(@Nullable T object, @Nullable T defaultValue) {
         return isTrue(object) ? object : defaultValue;
     }
