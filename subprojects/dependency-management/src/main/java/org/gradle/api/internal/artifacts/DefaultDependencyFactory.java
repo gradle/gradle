@@ -75,15 +75,14 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
         Dependency dependency;
         if (dependencyNotation instanceof Dependency && !(dependencyNotation instanceof MinimalExternalModuleDependency)) {
             dependency = (Dependency) dependencyNotation;
-            injectServices(dependency);
         } else {
             dependency = dependencyNotationParser.getNotationParser().parseNotation(dependencyNotation);
         }
+        injectServices(dependency);
         return dependency;
     }
 
-    @Override
-    public void injectServices(Dependency dependency) {
+    private void injectServices(Dependency dependency) {
         if (dependency instanceof AbstractModuleDependency) {
             AbstractModuleDependency moduleDependency = (AbstractModuleDependency) dependency;
             moduleDependency.setAttributesFactory(attributesFactory);

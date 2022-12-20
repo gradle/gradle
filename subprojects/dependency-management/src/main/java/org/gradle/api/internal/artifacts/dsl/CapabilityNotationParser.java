@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.dependencies;
+package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.typeconversion.NotationParser;
 
-public interface MinimalExternalModuleDependencyInternal extends MinimalExternalModuleDependency {
-    void copyTo(AbstractExternalModuleDependency target);
-
-    ImmutableAttributesFactory getAttributesFactory();
-
-    NotationParser<Object, Capability> getCapabilityNotationParser();
+/**
+ * A concrete type for a generic {@link NotationParser} that parses {@link Capability}s.
+ * <p>
+ * This concrete type is necessary so that it can be injected into version catalog generated sources.
+ */
+public interface CapabilityNotationParser extends NotationParser<Object, Capability> {
 }

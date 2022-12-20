@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.dependencies;
+package org.gradle.api.internal.catalog;
 
+import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
-import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.typeconversion.NotationParser;
 
-public interface MinimalExternalModuleDependencyInternal extends MinimalExternalModuleDependency {
-    void copyTo(AbstractExternalModuleDependency target);
+import java.util.ArrayList;
 
-    ImmutableAttributesFactory getAttributesFactory();
-
-    NotationParser<Object, Capability> getCapabilityNotationParser();
+/**
+ * Default implementation of {@link ExternalModuleDependencyBundle}.
+ */
+public class DefaultExternalModuleDependencyBundle extends ArrayList<MinimalExternalModuleDependency> implements ExternalModuleDependencyBundle {
 }
