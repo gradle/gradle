@@ -130,7 +130,6 @@ class ConfigurationCacheFingerprintController internal constructor(
                 taskExecutionTracker,
                 environmentChangeTracker,
                 inputTrackingState,
-
             )
             addListener(fingerprintWriter)
             return Writing(fingerprintWriter, buildScopedSpoolFile, projectScopedSpoolFile)
