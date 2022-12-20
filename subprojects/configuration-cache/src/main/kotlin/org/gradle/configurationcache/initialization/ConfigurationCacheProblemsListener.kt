@@ -77,7 +77,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         }
         problems.onProblem(
             PropertyProblem(
-                userCodeApplicationContext.location(consumer),
+                userCodeLocation(consumer),
                 StructuredMessage.build {
                     text("external process started ")
                     reference(command)
@@ -125,7 +125,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         }
         problems.onProblem(
             listenerRegistrationProblem(
-                userCodeApplicationContext.location(null),
+                userCodeLocation(),
                 invocationDescription,
                 InvalidUserCodeException(
                     "Listener registration '$invocationDescription' by $invocationSource is unsupported."
@@ -133,6 +133,10 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             )
         )
     }
+
+    private
+    fun userCodeLocation(consumer: String? = null) =
+        userCodeApplicationContext.location(consumer)
 
     override fun onUnsafeCredentials(locationSpecificReason: String, task: TaskInternal) {
         val message = StructuredMessage.build {

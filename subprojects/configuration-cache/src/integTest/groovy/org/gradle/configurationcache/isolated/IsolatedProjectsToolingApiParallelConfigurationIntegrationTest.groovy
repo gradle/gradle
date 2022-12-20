@@ -30,6 +30,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         server.start()
     }
 
+    @Ignore("https://github.com/gradle/gradle/issues/23196")
     def "projects are configured and models created in parallel when project scoped model is queried concurrently"() {
         withSomeToolingModelBuilderPluginInBuildSrc("""
             ${server.callFromBuildUsingExpression("'model-' + project.name")}

@@ -16,7 +16,11 @@
 
 package org.gradle.configurationcache.isolated
 
+import spock.lang.Ignore
+
+@Ignore("https://github.com/gradle/gradle/issues/23196")
 class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+
     def "caches BuildAction that queries model that performs dependency resolution"() {
         given:
         withSomeToolingModelBuilderPluginThatPerformsDependencyResolutionInBuildSrc()
