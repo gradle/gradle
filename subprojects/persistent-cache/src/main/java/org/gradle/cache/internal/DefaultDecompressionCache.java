@@ -32,7 +32,6 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
  * are only permitted to one client at a time.  The cache will be a Gradle cross version cache.
  */
 public class DefaultDecompressionCache implements DecompressionCache {
-    private static final String EXPANSION_CACHE_KEY = "expanded";
     private static final String EXPANSION_CACHE_NAME = "Compressed Files Expansion Cache";
 
     private final PersistentCache cache;
