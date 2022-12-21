@@ -9,6 +9,9 @@ gradlebuildJava.usedForStartup()
 
 dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-core"))
+
+    integTestImplementation(project(":build-option"))
+    integTestImplementation(project(":launcher"))
 }
 
 tasks.named<Jar>("jar") {
