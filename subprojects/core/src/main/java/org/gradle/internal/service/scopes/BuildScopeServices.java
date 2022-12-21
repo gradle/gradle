@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
+import org.gradle.api.flow.FlowScope;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
@@ -662,6 +663,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         SharedResourceLeaseRegistry sharedResourceLeaseRegistry,
         FeatureFlags featureFlags
     ) {
+        // TODO:configuration-cache remove this hack
+        // HACK: force the instantiation of FlowScope so its listeners are registered before DefaultBuildServicesRegistry's
+        services.find(FlowScope.class);
+
         // Instantiate via `instantiator` for the DSL decorations to the `BuildServiceRegistry` API
         return instantiator.newInstance(
             DefaultBuildServicesRegistry.class,
