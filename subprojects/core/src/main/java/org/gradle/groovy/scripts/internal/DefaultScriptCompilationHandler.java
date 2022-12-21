@@ -39,10 +39,12 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.initialization.ClassLoaderScopeOrigin;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.agents.InstrumentingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ImplementationHashAware;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Serializer;
@@ -339,7 +341,12 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         private ClassLoaderScope prepareClassLoaderScope() {
             String scopeName = "groovy-dsl:" + source.getFileName() + ":" + scriptBaseClass.getSimpleName();
             ClassLoaderScopeOrigin origin = new ClassLoaderScopeOrigin.Script(source.getFileName(), source.getDisplayName());
-            return targetScope.createLockedChild(scopeName, origin, scriptClassPath, sourceHashCode, parent -> new ScriptClassLoader(source, parent, scriptClassPath, sourceHashCode));
+            return targetScope.createLockedChild(scopeName, origin, scriptClassPath, sourceHashCode, parent -> {
+                if (scriptClassPath instanceof TransformedClassPath) {
+                    return new InstrumentingScriptClassLoader(source, parent, scriptClassPath, sourceHashCode);
+                }
+                return new ScriptClassLoader(source, parent, scriptClassPath, sourceHashCode);
+            });
         }
     }
 
@@ -378,6 +385,12 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 }
             }
             return super.loadClass(name, resolve);
+        }
+    }
+
+    private static class InstrumentingScriptClassLoader extends ScriptClassLoader implements InstrumentingClassLoader {
+        InstrumentingScriptClassLoader(ScriptSource scriptSource, ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
+            super(scriptSource, parent, classPath, implementationHash);
         }
     }
 }
