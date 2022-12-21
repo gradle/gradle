@@ -48,7 +48,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.internal.scopes.DefaultProjectScopedCache;
-import org.gradle.cache.scopes.ProjectScopedCache;
 import org.gradle.cache.scopes.ScopedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
