@@ -18,7 +18,9 @@ package org.gradle.internal.classloader;
 
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.agents.InstrumentingClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.TransformedClassPath;
 
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -62,8 +64,11 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         this(name, urls.toArray(new URL[0]), parent);
     }
 
-    public VisitableURLClassLoader(String name, ClassLoader parent, ClassPath classPath) {
+    protected VisitableURLClassLoader(String name, ClassLoader parent, ClassPath classPath) {
         this(name, classPath.getAsURLArray(), parent);
+        if (classPath instanceof TransformedClassPath && !(this instanceof InstrumentingClassLoader)) {
+            throw new IllegalArgumentException("Cannot build a non-instrumenting class loader " + name + " out of transformed class path");
+        }
     }
 
     private VisitableURLClassLoader(String name, URL[] classpath, ClassLoader parent) {
@@ -82,7 +87,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
 
     @Override
     public String toString() {
-        return VisitableURLClassLoader.class.getSimpleName() + "(" + name + ")";
+        return getClass().getSimpleName() + "(" + name + ")";
     }
 
     @Override
@@ -130,6 +135,27 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         @Override
         public int hashCode() {
             return classpath.hashCode();
+        }
+    }
+
+    public static VisitableURLClassLoader fromClassPath(String name, ClassLoader parent, ClassPath classPath) {
+        if (classPath instanceof TransformedClassPath) {
+            return new InstrumentingVisitableURLClassLoader(name, parent, classPath);
+        }
+        return new VisitableURLClassLoader(name, parent, classPath);
+    }
+
+    private static class InstrumentingVisitableURLClassLoader extends VisitableURLClassLoader implements InstrumentingClassLoader {
+        static {
+            try {
+                ClassLoader.registerAsParallelCapable();
+            } catch (NoSuchMethodError ignore) {
+                // Not supported on Java 6
+            }
+        }
+
+        public InstrumentingVisitableURLClassLoader(String name, ClassLoader parent, ClassPath classPath) {
+            super(name, parent, classPath);
         }
     }
 }
