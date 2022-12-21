@@ -13,13 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.jvm.toolchain.JvmVendorSpec
 
-fun JavaPluginExtension.configureJavaToolChain() {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(11))
-        vendor.set(JvmVendorSpec.ADOPTIUM)
-    }
+package org.gradle.api.internal.artifacts.dependencies;
+
+import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.typeconversion.NotationParser;
+
+public interface MinimalExternalModuleDependencyInternal extends MinimalExternalModuleDependency {
+    void copyTo(AbstractExternalModuleDependency target);
+
+    ImmutableAttributesFactory getAttributesFactory();
+
+    NotationParser<Object, Capability> getCapabilityNotationParser();
 }
