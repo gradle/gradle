@@ -209,7 +209,7 @@ task checkArtifacts {
                 }
                 task jar {}
             }
-            
+
             project(':b') {
                 dependencies {
                     compile project(':a')
@@ -218,7 +218,7 @@ task checkArtifacts {
                 task checkArtifacts {
                     inputs.files configurations.compile
                     doLast {
-                        configurations.compile.resolvedConfiguration.resolvedArtifacts.forEach { println it } 
+                        configurations.compile.resolvedConfiguration.resolvedArtifacts.forEach { println it }
                     }
                 }
             }
@@ -247,7 +247,7 @@ task checkArtifacts {
                 }
                 task jar {}
             }
-            
+
             project(':b') {
                 dependencies {
                     compile project(':a')
@@ -256,7 +256,7 @@ task checkArtifacts {
                 task checkArtifacts {
                     inputs.files configurations.compile
                     doLast {
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.each { println it } 
+                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.each { println it }
                     }
                 }
             }
@@ -289,7 +289,7 @@ task checkArtifacts {
                 }
                 task classes {}
             }
-            
+
             project(':b') {
                 dependencies {
                     compile project(':a')
@@ -298,7 +298,7 @@ task checkArtifacts {
                 task checkArtifacts {
                     inputs.files configurations.compile
                     doLast {
-                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.each { println it } 
+                        assert configurations.compile.resolvedConfiguration.resolvedArtifacts.each { println it }
                     }
                 }
             }
@@ -504,6 +504,55 @@ task checkArtifacts {
         expect:
         succeeds("checkArtifacts")
         result.assertTasksExecutedInOrder(":a:checkArtifacts", ":a:jar", ":b:checkArtifacts")
+    }
+
+    def 'artifacts are copied when declaring dependency on existing version catalog dependency with artifact'() {
+        given:
+        buildFile << """
+            configurations {
+                implementation
+                destination1
+                destination2
+            }
+
+            dependencies {
+                implementation(libs.test) {
+                    artifact {
+                        classifier = "alternative"
+                    }
+                }
+            }
+
+            task copyAndPrintDependencies {
+                configurations.implementation.dependencies.each {
+                    project.dependencies.add("destination1", it)
+                    configurations.destination2.dependencies.add(it)
+                }
+
+                doLast {
+                    configurations.implementation.dependencies.each {
+                        println("implementation " + it + " " + it.artifacts*.classifier)
+                    }
+                    configurations.destination1.dependencies.each {
+                        println("destination1 " + it + " " + it.artifacts*.classifier)
+                    }
+                    configurations.destination2.dependencies.each {
+                        println("destination2 " + it + " " + it.artifacts*.classifier)
+                    }
+                }
+            }
+        """
+        file("gradle/libs.versions.toml") << """[libraries]
+test = { module = 'org:test', version = '1.0' }
+"""
+
+        when:
+        succeeds "copyAndPrintDependencies"
+
+        then:
+        outputContains("""implementation org:test:1.0 [alternative]
+destination1 org:test:1.0 [alternative]
+destination2 org:test:1.0 [alternative]""")
     }
 
 }

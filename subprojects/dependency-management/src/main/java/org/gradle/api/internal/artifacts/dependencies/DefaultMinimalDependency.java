@@ -15,13 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 
 import java.io.Serializable;
 
-public class DefaultMinimalDependency extends DefaultExternalModuleDependency implements MinimalExternalModuleDependency, Serializable {
+public class DefaultMinimalDependency extends DefaultExternalModuleDependency implements MinimalExternalModuleDependencyInternal, Serializable {
     public DefaultMinimalDependency(ModuleIdentifier module, MutableVersionConstraint versionConstraint) {
         super(module, versionConstraint);
     }
@@ -39,6 +38,11 @@ public class DefaultMinimalDependency extends DefaultExternalModuleDependency im
     @Override
     protected void validateMutation(Object currentValue, Object newValue) {
         validateMutation();
+    }
+
+    @Override
+    public void copyTo(AbstractExternalModuleDependency target) {
+        super.copyTo(target);
     }
 
     // Intentionally changes to the mutable version.
