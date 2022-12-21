@@ -56,6 +56,7 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.configurationcache.serialization.unsupported
 import org.gradle.internal.scripts.GradleScript
+import org.gradle.internal.service.DefaultServiceRegistry
 import java.io.FileDescriptor
 import java.io.InputStream
 import java.io.OutputStream
@@ -130,4 +131,7 @@ fun BindingsBuilder.unsupportedTypes() {
     // Direct build service references
     // Build services must always be referenced via their providers.
     bind(unsupported<BuildService<*>>())
+
+    // Gradle implementation types
+    bind(unsupported<DefaultServiceRegistry>())
 }
