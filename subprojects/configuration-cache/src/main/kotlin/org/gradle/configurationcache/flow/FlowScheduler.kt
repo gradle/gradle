@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache.flow
 
+import org.gradle.api.file.ArchiveOperations
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.flow.FlowParameters
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -50,7 +52,9 @@ class FlowScheduler(
     private
     fun injectableServicesOf(serviceRegistry: ServiceRegistry): DefaultServiceRegistry {
         return DefaultServiceRegistry().apply {
+            add(serviceRegistry.get(ArchiveOperations::class.java))
             add(serviceRegistry.get(ExecOperations::class.java))
+            add(serviceRegistry.get(FileSystemOperations::class.java))
         }
     }
 }
