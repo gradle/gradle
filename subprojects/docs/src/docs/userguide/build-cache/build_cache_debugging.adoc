@@ -37,7 +37,7 @@ BUILD SUCCESSFUL
 
 NOTE: Tasks that have no outputs or no inputs will always be executed, but that shouldn't be a problem.
 
-Use the methods as described below to <<#diagnosing_cache_miss,diagnose>> and <<common_caching_problems.adoc#common-problems,fix>> tasks that should be up-to-date but aren't.
+Use the methods as described in <<common_caching_problems.adoc#common-problems,fix>> tasks that should be up-to-date but aren't.
 If you find a task which is out of date, but no cacheable tasks depends on its outcome, then you don't have to do anything about it.
 The goal is to achieve <<build_cache_concepts.adoc#stable_task_inputs,stable task inputs>> for cacheable tasks.
 
@@ -81,7 +81,7 @@ You should see all cacheable tasks loaded from cache, while non-cacheable tasks 
 [.screenshot]
 image::build-cache/fully-cached-task-execution.png[]
 
-Again, use the below methods to <<#diagnosing_cache_miss,diagnose>> and <<common_caching_problems.adoc#common-problems,fix>> cacheability issues.
+Again, use the methods in <<common_caching_problems.adoc#common-problems,fix>> cacheability issues.
 
 [[caching_relocation_test]]
 === Testing cache relocatability
