@@ -22,9 +22,11 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.configurationcache.CheckedFingerprint
+import org.gradle.configurationcache.extensions.fileSystemEntryType
 import org.gradle.configurationcache.extensions.filterKeysByPrefix
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.serialization.ReadContext
+import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.util.NumberUtil.ordinal
 import org.gradle.util.Path
@@ -49,6 +51,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
+        fun hashCodeOfDirectoryContent(file: File): HashCode?
         fun displayNameOf(fileOrDirectory: File): String
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
     }
@@ -154,8 +157,19 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
             }
             is ConfigurationCacheFingerprint.DirectoryChildren -> input.run {
-                if (hasFileChanged(file, hash)) {
+                if (hasDirectoryChanged(file, hash)) {
                     return "directory '${displayNameOf(file)}' has changed"
+                }
+            }
+            is ConfigurationCacheFingerprint.InputFileSystemEntry -> input.run {
+                val newType = fileSystemEntryType(file)
+                if (newType != fileType) {
+                    val prefix = "the file system entry '${displayNameOf(file)}'"
+                    return when {
+                        newType == FileType.Missing -> return "$prefix has been removed"
+                        fileType == FileType.Missing -> return "$prefix has been created"
+                        else -> "$prefix has changed"
+                    }
                 }
             }
             is ConfigurationCacheFingerprint.ValueSource -> input.run {
@@ -273,6 +287,10 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     private
     fun hasFileChanged(file: File, originalHash: HashCode) =
         !isUpToDate(file, originalHash)
+
+    private
+    fun hasDirectoryChanged(file: File, originalHash: HashCode?) =
+        host.hashCodeOfDirectoryContent(file) != originalHash
 
     private
     fun isUpToDate(file: File, originalHash: HashCode) =
