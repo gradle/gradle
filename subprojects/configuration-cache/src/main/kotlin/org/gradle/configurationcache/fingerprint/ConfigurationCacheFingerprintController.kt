@@ -35,6 +35,7 @@ import org.gradle.configurationcache.problems.location
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import org.gradle.internal.agents.AgentControl
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
@@ -293,6 +294,9 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val cacheIntermediateModels: Boolean
             get() = modelParameters.isIntermediateModelCache
 
+        override val instrumentationAgentUsed: Boolean
+            get() = AgentControl.isInstrumentationAgentApplied()
+
         override fun hashCodeOf(file: File) =
             fileSystemAccess.hashCodeOf(file)
 
@@ -331,6 +335,9 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override val invalidateCoupledProjects: Boolean
             get() = modelParameters.isInvalidateCoupledProjects
+
+        override val instrumentationAgentUsed: Boolean
+            get() = AgentControl.isInstrumentationAgentApplied()
 
         override fun gradleProperty(propertyName: String): String? =
             gradleProperties.find(propertyName)?.uncheckedCast()
