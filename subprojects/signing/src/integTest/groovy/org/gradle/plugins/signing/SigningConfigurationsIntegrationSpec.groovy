@@ -15,14 +15,13 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import spock.lang.Issue
 
 import java.nio.file.Files
 
 class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache
     def "signing configurations"() {
         given:
         buildFile << """
@@ -51,7 +50,6 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0-sources.jar.asc").text
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue([
         "https://github.com/gradle/gradle/issues/21857",
         "https://github.com/gradle/gradle/issues/22375"
@@ -83,7 +81,6 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
     }
 
     @Issue("gradle/gradle#4980")
-    @ToBeFixedForConfigurationCache
     def "removing signature file causes sign task to re-execute"() {
         given:
         buildFile << """
@@ -114,7 +111,6 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0.jar.asc").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "duplicated inputs are handled"() {
         given:
         buildFile << """
