@@ -173,6 +173,13 @@ Use `implementation.bundle(libs.bundles.testing)` instead.
 
 For more information, see the updated <<jvm_test_suite_plugin.adoc#sec:declare_an_additional_test_suite, declare an additional test suite>> example in the JVM Test Suite Plugin section of the user guide and the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyAdder.html[`DependencyAdder`] page in the DSL reference.
 
+==== Incremental compilation temporarily changes the output location
+
+Incremental Java and Groovy compilation may now change the compiler output location.
+This might affect some annotation processors that allow users to wire some action to file paths (e.g. `-XepExcludedPaths` in Error Prone).
+This behaviour can be disabled by setting `options.incrementalAfterFailure` to `false`.
+Please refer to the <<java_plugin#sec:incremental_compilation_known_issues, userguide section about known incremental compilation issues>> for more details.
+
 === Deprecations
 
 [[invalid_toolchain_specification_deprecation]]
