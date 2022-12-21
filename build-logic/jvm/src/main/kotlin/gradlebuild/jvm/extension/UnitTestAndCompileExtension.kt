@@ -31,32 +31,30 @@ abstract class UnitTestAndCompileExtension(
      * Enforces **Java 6** compatibility.
      */
     fun usedInWorkers() {
-        enforceJava6Compatibility()
+        enforceCompatibility(6)
     }
 
     /**
      * Enforces **Java 6** compatibility.
      */
     fun usedForStartup() {
-        enforceJava6Compatibility()
+        enforceCompatibility(6)
     }
 
     /**
      * Enforces **Java 6** compatibility.
      */
     fun usedInToolingApi() {
-        enforceJava6Compatibility()
+        enforceCompatibility(7)
     }
 
-    /**
-     * Enforces **Java 6** compatibility.
-     */
-    fun enforceJava6Compatibility() {
+    private
+    fun enforceCompatibility(majorVersion: Int) {
         tasks.withType<JavaCompile>().configureEach {
             options.release.set(null as Int?)
             options.compilerArgs.remove("-parameters")
-            sourceCompatibility = "6"
-            targetCompatibility = "6"
+            sourceCompatibility = "$majorVersion"
+            targetCompatibility = "$majorVersion"
         }
         // Apply ParameterNamesIndex since 6 doesn't support -parameters
         project.apply(plugin = "gradlebuild.api-parameter-names-index")

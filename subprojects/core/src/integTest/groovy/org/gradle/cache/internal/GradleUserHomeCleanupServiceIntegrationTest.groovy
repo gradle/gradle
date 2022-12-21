@@ -21,9 +21,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
-import java.text.SimpleDateFormat
-import java.time.Instant
-
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.USED_TODAY
 
 class GradleUserHomeCleanupServiceIntegrationTest extends AbstractIntegrationSpec implements GradleUserHomeCleanupFixture {
@@ -215,75 +212,6 @@ class GradleUserHomeCleanupServiceIntegrationTest extends AbstractIntegrationSpe
         type              | daysToTriggerCleanup
         DistType.RELEASED | NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_RELEASED_DISTS
         DistType.SNAPSHOT | NOT_USED_WITHIN_DEFAULT_MAX_DAYS_FOR_SNAPSHOT_DISTS
-    }
-
-    private GradleDistDirs versionedDistDirs(String version, MarkerFileType lastUsed, String customDistName) {
-        def distVersion = GradleVersion.version(version)
-        return new GradleDistDirs(
-            createVersionSpecificCacheDir(distVersion, lastUsed),
-            createDistributionChecksumDir(distVersion).parentFile,
-            createCustomDistributionChecksumDir(customDistName, distVersion).parentFile
-        )
-    }
-
-    private static class GradleDistDirs {
-        private final TestFile cacheDir
-        private final TestFile distDir
-        private final TestFile customDistDir
-
-        GradleDistDirs(TestFile cacheDir, TestFile distDir, TestFile customDistDir) {
-            this.cacheDir = cacheDir
-            this.distDir = distDir
-            this.customDistDir = customDistDir
-        }
-
-        void assertAllDirsExist() {
-            cacheDir.assertExists()
-            distDir.assertExists()
-            customDistDir.assertExists()
-        }
-
-        void assertAllDirsDoNotExist() {
-            cacheDir.assertDoesNotExist()
-            distDir.assertDoesNotExist()
-            customDistDir.assertDoesNotExist()
-        }
-    }
-
-    private static enum DistType {
-        RELEASED() {
-            @Override
-            String version(String baseVersion) {
-                return baseVersion
-            }
-
-            @Override
-            String alternateVersion(String baseVersion) {
-                throw new UnsupportedOperationException()
-            }
-        },
-        SNAPSHOT() {
-            def formatter = new SimpleDateFormat("yyyyMMddHHmmssZ")
-            def now = Instant.now()
-
-            @Override
-            String version(String baseVersion) {
-                return baseVersion + '-' + formatter.format(Date.from(now))
-            }
-
-            @Override
-            String alternateVersion(String baseVersion) {
-                return baseVersion + '-' + formatter.format(Date.from(now.plusSeconds(60)))
-            }
-        }
-
-        abstract String version(String baseVersion)
-        abstract String alternateVersion(String baseVersion)
-
-        @Override
-        String toString() {
-            return name().toLowerCase()
-        }
     }
 
     @Override

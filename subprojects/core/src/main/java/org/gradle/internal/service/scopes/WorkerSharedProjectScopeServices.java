@@ -49,6 +49,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.internal.scopes.DefaultProjectScopedCache;
 import org.gradle.cache.scopes.ProjectScopedCache;
+import org.gradle.cache.scopes.ScopedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.FileHasher;
@@ -97,7 +98,8 @@ public class WorkerSharedProjectScopeServices {
             DocumentationRegistry documentationRegistry,
             ProviderFactory providers,
             TaskDependencyFactory taskDependencyFactory,
-            DecompressionCacheFactory decompressionCache
+            DecompressionCacheFactory decompressionCache,
+            ScopedCache scopedCache
     ) {
         return new DefaultFileOperations(
                 fileResolver,
@@ -113,7 +115,8 @@ public class WorkerSharedProjectScopeServices {
                 documentationRegistry,
                 taskDependencyFactory,
                 providers,
-                decompressionCache);
+                decompressionCache,
+                scopedCache);
     }
 
     protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {

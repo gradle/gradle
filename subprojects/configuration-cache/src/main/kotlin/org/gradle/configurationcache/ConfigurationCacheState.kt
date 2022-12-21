@@ -24,6 +24,7 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal.BUILD_SRC
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
@@ -635,6 +636,9 @@ class ConfigurationCacheState(
             cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.value(readNonNull<Provider<Long>>())
             cacheConfigurations.cleanup.value(readNonNull<Provider<Cleanup>>())
+        }
+        if (gradle.isRootBuild) {
+            gradle.serviceOf<CacheConfigurationsInternal>().setCleanupHasBeenConfigured(true)
         }
     }
 
