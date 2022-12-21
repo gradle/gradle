@@ -17,6 +17,9 @@
 package org.gradle.api.flow;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ArchiveOperations;
+import org.gradle.api.file.FileSystemOperations;
+import org.gradle.process.ExecOperations;
 
 /**
  * A dataflow action.
@@ -29,8 +32,13 @@ import org.gradle.api.Incubating;
  * <p>
  * Implementations can benefit from constructor injection of services
  * using the {@link javax.inject.Inject @Inject} annotation.
+ * Currently, only a small subset of services is supported:
  * </p>
- *
+ * <ul>
+ *     <li>{@link ArchiveOperations} provides means to operate on archives such as ZIP or TAR files.</li>
+ *     <li>{@link ExecOperations} provides means to execute external processes.</li>
+ *     <li>{@link FileSystemOperations} provides means to operate on the file system.</li>
+ * </ul>
  * <pre class='autoTested'>
  * /**
  *  * Plays a given {{@literal @}link Parameters#getMediaFile() media file} using {{@literal @}code ffplay}.
