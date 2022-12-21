@@ -165,13 +165,11 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
                 }
 
                 void apply($targetType target) {
-                    ${registerServiceBefore ? "target.gradle.sharedServices.registerIfAbsent('lamp', LavaLamp) {}" : ''}
                     flowScope.always(SetLavaLampColor) {
                         parameters.color = flowProviders.requestedTasksResult.map {
                             it.failure.present ? 'red' : 'green'
                         }
                     }
-                    ${registerServiceBefore ? '' : "target.gradle.sharedServices.registerIfAbsent('lamp', LavaLamp) {}"}
                 }
             }
 
@@ -205,7 +203,9 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
                 }
             }
 
+            ${registerServiceBefore ? "gradle.sharedServices.registerIfAbsent('lamp', LavaLamp) {}" : ''}
             apply type: LavaLampPlugin
+            ${registerServiceBefore ? '' : "gradle.sharedServices.registerIfAbsent('lamp', LavaLamp) {}"}
         """
         buildFile '''
             task ok
