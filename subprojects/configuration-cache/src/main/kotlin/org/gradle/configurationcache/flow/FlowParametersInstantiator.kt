@@ -25,6 +25,7 @@ import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.PropertyVisitor
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext
+import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.TypeValidationProblem
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.Scopes
@@ -42,17 +43,19 @@ class FlowParametersInstantiator(
     fun <P : FlowParameters> newInstance(parametersType: Class<P>, configure: (P) -> Unit): P {
         return instantiator.newInstance(parametersType).also {
             configure(it)
-            validate(it)
+            validate(parametersType, it)
         }
     }
 
     private
-    fun <P : FlowParameters> validate(parameters: P) {
+    fun <P : FlowParameters> validate(type: Class<P>, parameters: P) {
         inspection.propertyWalker.visitProperties(
             parameters,
-            object : ProblemRecordingTypeValidationContext(DocumentationRegistry(), null, { Optional.empty() }) {
+            object : ProblemRecordingTypeValidationContext(DocumentationRegistry(), type, { Optional.empty() }) {
                 override fun recordProblem(problem: TypeValidationProblem) {
-                    TODO("Not yet implemented: ${problem.shortDescription}")
+                    if (problem.id != ValidationProblemId.MISSING_ANNOTATION) {
+                        TODO("${where(problem)}: ${problem.shortDescription}")
+                    }
                 }
             },
             object : PropertyVisitor {
@@ -83,5 +86,14 @@ class FlowParametersInstantiator(
             ),
             instantiatorFactory.decorateScheme()
         )
+    }
+
+    private
+    fun where(problem: TypeValidationProblem): String = problem.where.run {
+        type.map { type ->
+            propertyName.map { propName ->
+                "${type.name}.$propName"
+            }.orElse(type.name)
+        }.orElse("unknown location")
     }
 }

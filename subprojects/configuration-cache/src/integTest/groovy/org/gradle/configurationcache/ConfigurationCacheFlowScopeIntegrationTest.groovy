@@ -146,6 +146,121 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
         simpleServiceTypeName = serviceType.simpleName
     }
 
+    def '#scriptTarget action can use build service registered #beforeOrAfter prior to the service being closed'() {
+        given:
+        def configCache = newConfigurationCacheFixture()
+        scriptFileFor(scriptTarget) << """
+            import org.gradle.api.flow.*
+            import org.gradle.api.services.*
+
+            class LavaLampPlugin implements Plugin<$targetType> {
+
+                final FlowScope flowScope
+                final FlowProviders flowProviders
+
+                @Inject
+                LavaLampPlugin(FlowScope flowScope, FlowProviders flowProviders) {
+                    this.flowScope = flowScope
+                    this.flowProviders = flowProviders
+                }
+
+                void apply($targetType target) {
+                    ${registerServiceBefore ? "target.gradle.sharedServices.registerIfAbsent('lamp', LavaLamp) {}" : ''}
+                    flowScope.always(SetLavaLampColor) {
+                        parameters.color = flowProviders.requestedTasksResult.map {
+                            it.failure.present ? 'red' : 'green'
+                        }
+                    }
+                    ${registerServiceBefore ? '' : "target.gradle.sharedServices.registerIfAbsent('lamp', LavaLamp) {}"}
+                }
+            }
+
+            class SetLavaLampColor implements FlowAction<Parameters> {
+
+                interface Parameters extends FlowParameters {
+                    @ServiceReference("lamp") Property<LavaLamp> getLamp()
+                    Property<String> getColor()
+                }
+
+                void execute(Parameters parameters) {
+                    parameters.with {
+                        lamp.get().setColor(color.get())
+                    }
+                }
+            }
+
+            abstract class LavaLamp implements BuildService<BuildServiceParameters.None>, AutoCloseable {
+
+                private Boolean closed = false
+
+                void setColor(String color) {
+                    assert !closed
+                    println('(' + color + ')')
+                }
+
+                @Override
+                void close() {
+                    println '(closed)'
+                    closed = true
+                }
+            }
+
+            apply type: LavaLampPlugin
+        """
+        buildFile '''
+            task ok
+            task fail { doLast { assert false } }
+        '''
+
+        when:
+        configurationCacheRun 'ok'
+
+        then:
+        configCache.assertStateStored()
+
+        and:
+        outputContains '(green)'
+        outputContains '(closed)'
+
+        when:
+        configurationCacheRun 'ok'
+
+        then:
+        configCache.assertStateLoaded()
+
+        and:
+        outputContains '(green)'
+        outputContains '(closed)'
+
+        when:
+        configurationCacheFails 'fail'
+
+        then:
+        configCache.assertStateStored()
+
+        and:
+        outputContains '(red)'
+        outputContains '(closed)'
+
+        when:
+        configurationCacheFails 'fail'
+
+        then:
+        configCache.assertStateLoaded()
+
+        and:
+        outputContains '(red)'
+        outputContains '(closed)'
+
+        where:
+        [scriptTarget, registerServiceBefore] << [
+            ScriptTarget.values(),
+            [true, false]
+        ].combinations()
+        targetType = scriptTarget.targetType
+        beforeOrAfter = registerServiceBefore ? 'before' : 'after'
+    }
+
     void withLavaLampPluginFor(ScriptTarget target, ParameterKind parameter, InjectionStyle injectionStyle) {
         switch (parameter) {
             case ParameterKind.SIMPLE: {
