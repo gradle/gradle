@@ -18,7 +18,9 @@ package org.gradle.api.internal.file.collections;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.CompositeFileTree;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -72,6 +74,12 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     public boolean contains(File file) {
         listener.fileCollectionObserved(this);
         return super.contains(file);
+    }
+
+    @Override
+    public FileTree visit(FileVisitor visitor) {
+        listener.fileCollectionObserved(this);
+        return super.visit(visitor);
     }
 
     @Override

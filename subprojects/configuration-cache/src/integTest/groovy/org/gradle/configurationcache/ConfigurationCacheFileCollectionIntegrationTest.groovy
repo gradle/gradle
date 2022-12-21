@@ -76,12 +76,13 @@ class ConfigurationCacheFileCollectionIntegrationTest extends AbstractConfigurat
         outputContains(output3)
 
         where:
-        expression                           | output1                | output2                       | output3
-        "'files=' + tree.files.name.sort()"  | "files=[file1, file2]" | "files=[file1, file2, file3]" | "files=[file2, file3]"
+        expression                                                                                      | output1                     | output2                            | output3
+        "'files=' + tree.files.name.sort()"                                                             | "files=[file1, file2]"      | "files=[file1, file2, file3]"      | "files=[file2, file3]"
+        "'files=' + { def names = new TreeSet(); tree.visit { d -> names.add(d.file.name) }; names }()" | "files=[dir, file1, file2]" | "files=[dir, file1, file2, file3]" | "files=[dir, file2, file3]"
         // TODO - should not invalidate the cache for this expression
-        "'empty=' + tree.empty"              | "empty=false"          | "empty=false"                 | "empty=false"
+        "'empty=' + tree.empty"                                                                         | "empty=false"               | "empty=false"                      | "empty=false"
         // TODO - should not invalidate the cache for this expression until the file is removed
-        "'contains=' + tree.contains(file1)" | "contains=true"        | "contains=true"               | "contains=false"
+        "'contains=' + tree.contains(file1)"                                                            | "contains=true"             | "contains=true"                    | "contains=false"
     }
 
     def "missing directory tree is treated as build input when its contents are queried during configuration"() {
@@ -154,12 +155,57 @@ class ConfigurationCacheFileCollectionIntegrationTest extends AbstractConfigurat
         outputContains(output1)
 
         where:
-        expression                           | output1          | output2
+        expression                                                                                      | output1          | output2
         // TODO - should not invalidate the cache when the empty root directory is created
-        "'files=' + tree.files.name.sort()"  | "files=[]"       | "files=[file1]"
+        "'files=' + tree.files.name.sort()"                                                             | "files=[]"       | "files=[file1]"
+        "'files=' + { def names = new TreeSet(); tree.visit { d -> names.add(d.file.name) }; names }()" | "files=[]"       | "files=[file1]"
         // TODO - should not invalidate the cache when the empty root directory is created
-        "'empty=' + tree.empty"              | "empty=true"     | "empty=false"
+        "'empty=' + tree.empty"                                                                         | "empty=true"     | "empty=false"
         // TODO - should not invalidate the cache when the empty root directory is created
-        "'contains=' + tree.contains(file1)" | "contains=false" | "contains=true"
+        "'contains=' + tree.contains(file1)"                                                            | "contains=false" | "contains=true"
+    }
+
+    def "elements of fixed file collection are not treated as build inputs"() {
+        buildFile << """
+            task report {
+                def files = files("file1", "file2")
+                def file1 = file("file1")
+                def result = $expression
+                doLast {
+                    println(result)
+                }
+            }
+        """
+        def file1 = file("file1").createFile()
+        def file2 = file("file2").createFile()
+        def fixture = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("report")
+
+        then:
+        fixture.assertStateStored()
+        outputContains(output)
+
+        when:
+        configurationCacheRun("report")
+
+        then:
+        fixture.assertStateLoaded()
+        outputContains(output)
+
+        when: // change file contents
+        file1.text = "updated"
+        configurationCacheRun("report")
+
+        then:
+        fixture.assertStateLoaded()
+        outputContains(output)
+
+        where:
+        expression              | output
+        "files.files.name"      | "[file1, file2]"
+        "files.empty"           | "false"
+        "files.contains(file1)" | "true"
     }
 }
