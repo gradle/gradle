@@ -833,10 +833,8 @@ public class TestFile extends File {
     public void writeProperties(Map<?, ?> properties) {
         Properties props = new Properties();
         props.putAll(properties);
-        try {
-            try (FileOutputStream stream = new FileOutputStream(this)) {
-                props.store(stream, "comment");
-            }
+        try (FileOutputStream stream = new FileOutputStream(this)) {
+            props.store(stream, "comment");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -16,10 +16,13 @@
 
 package org.gradle.wrapper
 
+
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.ClassRule
 import org.junit.Rule
+import spock.lang.Shared
 import spock.lang.Specification
 
 import java.util.zip.ZipEntry
@@ -27,38 +30,58 @@ import java.util.zip.ZipOutputStream
 
 @CleanupTestDirectory
 class InstallTest extends Specification {
-    File testDir
-    Install install
-    boolean downloadCalled
-    File zip
-    TestFile distributionDir
-    File zipStore
-    TestFile gradleHomeDir
-    TestFile zipDestination
+    public static final String FETCHED_HASH = "fetchedHash"
     WrapperConfiguration configuration = new WrapperConfiguration()
+
+    private final String zipFileName = 'gradle-0.9.zip';
+
+    File testDir
+    TestFile distributionDir
+    TestFile gradleHomeDir
+    File zipStore
+    TestFile zipDestination
+
     IDownload download = Mock()
     PathAssembler pathAssembler = Mock()
     PathAssembler.LocalDistribution localDistribution = Mock()
+    Install install
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
+    @Shared @ClassRule TestNameTestDirectoryProvider commonTemporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
+    @Shared TestFile templateZipFile = new TestFile(commonTemporaryFolder.testDirectory, "template-gradle.zip")
+    @Shared TestFile templateEvalZipFile = new TestFile(commonTemporaryFolder.testDirectory, "template-eval-gradle.zip")
+    @Shared String templateZipHash
+    @Shared String templateEvalZipHash
+
+    void setupSpec() {
+        createTestZip(templateZipFile)
+        templateZipHash = Install.calculateSha256Sum(templateZipFile)
+        createEvilZip(templateEvalZipFile)
+        templateEvalZipHash = Install.calculateSha256Sum(templateEvalZipFile)
+    }
+
     void setup() {
-        downloadCalled = false
+        initConfiguration()
+
         testDir = temporaryFolder.testDirectory
+        distributionDir = new TestFile(testDir, 'someDistPath')
+        gradleHomeDir = new TestFile(distributionDir, 'gradle-0.9')
+        zipStore = new File(testDir, 'zips')
+        zipDestination = new TestFile(zipStore, zipFileName)
+        install = new Install(new Logger(true), download, pathAssembler)
+    }
+
+    private void initConfiguration() {
         configuration.zipBase = PathAssembler.PROJECT_STRING
         configuration.zipPath = 'someZipPath'
         configuration.distributionBase = PathAssembler.GRADLE_USER_HOME_STRING
         configuration.distributionPath = 'someDistPath'
-        configuration.distribution = new URI('http://server/gradle-0.9.zip')
-        distributionDir = new TestFile(testDir, 'someDistPath')
-        gradleHomeDir = new TestFile(distributionDir, 'gradle-0.9')
-        zipStore = new File(testDir, 'zips')
-        zipDestination = new TestFile(zipStore, 'gradle-0.9.zip')
-        install = new Install(new Logger(true), download, pathAssembler)
+        configuration.distribution = new URI("http://server/$zipFileName")
     }
 
     void createTestZip(File zipDestination) {
-        TestFile explodedZipDir = temporaryFolder.createDir('explodedZip')
+        TestFile explodedZipDir = commonTemporaryFolder.createDir('explodedZip')
         TestFile gradleScript = explodedZipDir.file('gradle-0.9/bin/gradle')
         gradleScript.parentFile.createDir()
         gradleScript.write('something')
@@ -66,6 +89,7 @@ class InstallTest extends Specification {
         gradleLauncherJar.parentFile.createDir()
         gradleLauncherJar.write('something')
         explodedZipDir.zipTo(new TestFile(zipDestination))
+        explodedZipDir.deleteDir();
     }
 
     def "installs distribution and reuses on subsequent access"() {
@@ -83,7 +107,7 @@ class InstallTest extends Specification {
         gradleHomeDir.file("bin/gradle").assertIsFile()
 
         and:
-        1 * download.download(configuration.distribution, _) >> { createTestZip(it[1]) }
+        1 * download.download(configuration.distribution, _) >> { templateZipFile.copyTo(it[1]) }
         0 * download._
 
         when:
@@ -125,7 +149,7 @@ class InstallTest extends Specification {
         homeDir == gradleHomeDir
 
         and:
-        1 * download.download(configuration.distribution, _) >> { createTestZip(it[1]) }
+        1 * download.download(configuration.distribution, _) >> { templateZipFile.copyTo(it[1]) }
         0 * download._
     }
 
@@ -145,6 +169,42 @@ class InstallTest extends Specification {
         and:
         1 * download.download(configuration.distribution, _) >> { createEvilZip(it[1]) }
         0 * download._
+    }
+
+    def "get distribution hash"() {
+        when:
+
+        def hash = install.fetchDistributionSha256Sum(configuration, new TestFile(zipStore, zipFileName))
+
+        then:
+
+        hash == FETCHED_HASH
+
+        and:
+        1 * download.download(new URI(configuration.distribution.toString() + ".sha256"), _) >> { createFile(it[1]) }
+        0 * download._
+    }
+
+    def "fail on getting distribution hash"() {
+        when:
+
+        def hash = install.fetchDistributionSha256Sum(configuration, new TestFile(zipStore, zipFileName))
+
+        then:
+
+        hash == null
+
+        and:
+        1 * download.download(new URI(configuration.distribution.toString() + ".sha256"), _) >> { throw new Exception() }
+        0 * download._
+    }
+
+
+    void createFile(File file) {
+        file.parentFile.mkdirs()
+        new FileOutputStream(file).withCloseable { FileOutputStream fos ->
+            fos.write(FETCHED_HASH.getBytes())
+        }
     }
 
     static void createEvilZip(File zipDestination) {
