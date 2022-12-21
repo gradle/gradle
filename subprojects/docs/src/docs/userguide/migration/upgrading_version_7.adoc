@@ -673,7 +673,7 @@ tasks.withType<KotlinCompile>().configureEach {
 
 Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.13.html[Groovy 3.0.13].
 
-Since the previous version was 3.0.11, the https://groovy-lang.org/changelogs/changelog-3.0.12.html[3.0.12 changes] are also included.
+Since the previous version was 3.0.10, the https://groovy-lang.org/changelogs/changelog-3.0.11.html[3.0.11] and https://groovy-lang.org/changelogs/changelog-3.0.12.html[3.0.12] changes are also included.
 
 ==== Upgrade to CodeNarc 3.1.0
 
@@ -1151,6 +1151,7 @@ The same is true for `link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#di
 ==== Using LazyPublishArtifact without a FileResolver is deprecated
 
 When using a LazyPublishArtifact without a FileResolver, a different file resolution strategy is used, which duplicates some logic in the FileResolver.
+
 To improve consistency, LazyPublishArtifact should be used with a FileResolver, and will require it in the future.
 
 This also affects other internal APIs that use LazyPublishArtifact, which now also have deprecation warnings where needed.
@@ -1169,6 +1170,7 @@ This way, Gradle is able to apply optimizations like up-to-date checks instead o
 ==== Unique attribute sets
 
 The set of link:{javadocPath}/org/gradle/api/attributes/Attribute.html[Attribute]s associated with a _consumable_ configuration within a project, must be unique across all other configurations within that project which share the same set of link:{javadocPath}/org/gradle/api/capabilities/Capability.html[Capability]s.
+
 This will be checked at the end of configuring variant configurations, as they are locked against further mutation.
 
 If the set of attributes is shared across configurations, consider adding an additional attribute to one of the variants for the sole purpose of disambiguation.
@@ -1275,6 +1277,7 @@ These methods were changed to improve the consistency between the `libs.versions
 ==== Application order of plugins in the `plugins` block
 
 The order in which plugins in the `plugins` block were actually applied was inconsistent and depended on how a plugin was added to the class path.
+
 Now the plugins are always applied in the same order they are declared in the `plugins` block which in rare cases might change behavior of existing builds.
 
 ==== Effects of exclusion on substituted dependencies in dependency resolution

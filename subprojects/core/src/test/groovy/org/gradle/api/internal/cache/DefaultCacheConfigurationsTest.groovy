@@ -17,6 +17,7 @@
 package org.gradle.api.internal.cache
 
 import org.gradle.api.cache.Cleanup
+import org.gradle.cache.CleanupFrequency
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -189,6 +190,25 @@ class DefaultCacheConfigurationsTest extends Specification {
         mutableCacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.get() == twoDaysAgo
         mutableCacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan.get() == twoDaysAgo
         mutableCacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.get() == twoDaysAgo
+    }
+
+    def "will not require cleanup unless configured"() {
+        when:
+        def twoDaysAgo = daysAgo(2).get()
+        cacheConfigurations.createdResources.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+        cacheConfigurations.downloadedResources.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+        cacheConfigurations.releasedWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+        cacheConfigurations.snapshotWrappers.removeUnusedEntriesOlderThan.set(twoDaysAgo)
+        cacheConfigurations.cleanup.set(Cleanup.ALWAYS)
+
+        then:
+        !cacheConfigurations.cleanupFrequency.get().requiresCleanup(CleanupFrequency.NEVER_CLEANED)
+
+        when:
+        cacheConfigurations.cleanupHasBeenConfigured = true
+
+        then:
+        cacheConfigurations.cleanupFrequency.get().requiresCleanup(CleanupFrequency.NEVER_CLEANED)
     }
 
     void assertCannotConfigureErrorIsThrown(Exception e, String name) {
