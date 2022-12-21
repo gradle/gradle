@@ -16,6 +16,9 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.file.ArchiveOperations
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.process.ExecOperations
 import org.gradle.test.fixtures.file.TestFile
 
 class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -89,6 +92,58 @@ class ConfigurationCacheFlowScopeIntegrationTest extends AbstractConfigurationCa
             ParameterKind.values(),
             InjectionStyle.values()
         ].combinations()
+    }
+
+    def '#scriptTarget action can use injectable #simpleServiceTypeName'() {
+        given:
+        scriptFileFor(scriptTarget) << """
+            import org.gradle.api.flow.*
+
+            class FlowActionInjectionPlugin implements Plugin<$targetType> {
+
+                final FlowScope flowScope
+                final FlowProviders flowProviders
+
+                @Inject
+                FlowActionInjectionPlugin(FlowScope flowScope, FlowProviders flowProviders) {
+                    this.flowScope = flowScope
+                    this.flowProviders = flowProviders
+                }
+
+                void apply($targetType target) {
+                    flowScope.always(FlowActionInjection) {
+                    }
+                }
+            }
+
+            class FlowActionInjection implements FlowAction<FlowParameters.None> {
+
+                private final $serviceType.name service
+
+                @Inject
+                FlowActionInjection($serviceType.name service) {}
+
+                void execute(FlowParameters.None parameters) {
+                    println("(green)")
+                }
+            }
+
+            apply type: FlowActionInjectionPlugin
+        """
+
+        when:
+        configurationCacheRun 'help'
+
+        then:
+        outputContains '(green)'
+
+        where:
+        [scriptTarget, serviceType] << [
+            ScriptTarget.values(),
+            [ArchiveOperations, FileSystemOperations, ExecOperations]
+        ].combinations()
+        targetType = scriptTarget.targetType
+        simpleServiceTypeName = serviceType.simpleName
     }
 
     void withLavaLampPluginFor(ScriptTarget target, ParameterKind parameter, InjectionStyle injectionStyle) {
