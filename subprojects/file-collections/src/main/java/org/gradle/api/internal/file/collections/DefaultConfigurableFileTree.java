@@ -63,6 +63,18 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
     }
 
     @Override
+    public boolean isEmpty() {
+        listener.fileCollectionObserved(this);
+        return super.isEmpty();
+    }
+
+    @Override
+    public boolean contains(File file) {
+        listener.fileCollectionObserved(this);
+        return super.contains(file);
+    }
+
+    @Override
     public PatternSet getPatterns() {
         return patternSet;
     }

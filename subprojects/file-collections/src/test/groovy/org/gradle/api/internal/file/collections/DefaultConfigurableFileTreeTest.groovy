@@ -155,6 +155,15 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
         !fileTree.contains(new File('something'))
     }
 
+    def testNotifiesListenerWhenMembershipIsQueried() {
+        when:
+        def result = fileTree.contains(testDir)
+
+        then:
+        !result
+        1 * listener.fileCollectionObserved(fileTree)
+    }
+
     def testCanAddToAntTask() {
         File included1 = new File(testDir, 'subDir/included1')
         File included2 = new File(testDir, 'subDir2/included2')
@@ -172,8 +181,18 @@ class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
 
         expect:
         fileTree.files.empty
+        fileTree.empty
         assertSetContainsForAllTypes(fileTree)
         assertVisits(fileTree, [], [])
+    }
+
+    def testNotifiesListenerWhenIsEmptyQueried() {
+        when:
+        def result = fileTree.empty
+
+        then:
+        result
+        1 * listener.fileCollectionObserved(fileTree)
     }
 
     def testCanSelectFilesUsingPatterns() {

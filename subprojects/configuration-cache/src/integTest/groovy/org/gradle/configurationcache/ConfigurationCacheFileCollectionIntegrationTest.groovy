@@ -17,13 +17,14 @@
 package org.gradle.configurationcache
 
 class ConfigurationCacheFileCollectionIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
-    def "directory tree is treated as build input when queried during configuration"() {
+    def "directory tree is treated as build input when its contents are queried during configuration"() {
         buildFile << """
             task report {
                 def tree = fileTree("src")
-                def files = tree.files.name.sort()
+                def file1 = file("src/file1")
+                def result = $expression
                 doLast {
-                    println("files=" + files)
+                    println(result)
                 }
             }
         """
@@ -40,14 +41,14 @@ class ConfigurationCacheFileCollectionIntegrationTest extends AbstractConfigurat
 
         then:
         fixture.assertStateStored()
-        outputContains("files=[file1, file2]")
+        outputContains(output1)
 
         when:
         configurationCacheRun("report")
 
         then:
         fixture.assertStateLoaded()
-        outputContains("files=[file1, file2]")
+        outputContains(output1)
 
         when: // a file is added
         dir.createFile("file3")
@@ -56,14 +57,14 @@ class ConfigurationCacheFileCollectionIntegrationTest extends AbstractConfigurat
         then:
         fixture.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because an input to build file 'build.gradle' has changed.")
-        outputContains("files=[file1, file2, file3]")
+        outputContains(output2)
 
         when:
         configurationCacheRun("report")
 
         then:
         fixture.assertStateLoaded()
-        outputContains("files=[file1, file2, file3]")
+        outputContains(output2)
 
         when: // a file is removed
         dir.file("file1").delete()
@@ -72,16 +73,25 @@ class ConfigurationCacheFileCollectionIntegrationTest extends AbstractConfigurat
         then:
         fixture.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because an input to build file 'build.gradle' has changed.")
-        outputContains("files=[file2, file3]")
+        outputContains(output3)
+
+        where:
+        expression                           | output1                | output2                       | output3
+        "'files=' + tree.files.name.sort()"  | "files=[file1, file2]" | "files=[file1, file2, file3]" | "files=[file2, file3]"
+        // TODO - should not invalidate the cache for this expression
+        "'empty=' + tree.empty"              | "empty=false"          | "empty=false"                 | "empty=false"
+        // TODO - should not invalidate the cache for this expression until the file is removed
+        "'contains=' + tree.contains(file1)" | "contains=true"        | "contains=true"               | "contains=false"
     }
 
-    def "missing directory tree is treated as build input when queried during configuration"() {
+    def "missing directory tree is treated as build input when its contents are queried during configuration"() {
         buildFile << """
             task report {
                 def tree = fileTree("src")
-                def files = tree.files.name.sort()
+                def file1 = file("src/file1")
+                def result = $expression
                 doLast {
-                    println("files=" + files)
+                    println(result)
                 }
             }
         """
@@ -93,14 +103,14 @@ class ConfigurationCacheFileCollectionIntegrationTest extends AbstractConfigurat
 
         then:
         fixture.assertStateStored()
-        outputContains("files=[]")
+        outputContains(output1)
 
         when:
         configurationCacheRun("report")
 
         then:
         fixture.assertStateLoaded()
-        outputContains("files=[]")
+        outputContains(output1)
 
         when:
         dir.createDir() // empty directory
@@ -109,38 +119,47 @@ class ConfigurationCacheFileCollectionIntegrationTest extends AbstractConfigurat
         then:
         fixture.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because an input to build file 'build.gradle' has changed.")
-        outputContains("files=[]")
+        outputContains(output1)
 
         when:
         configurationCacheRun("report")
 
         then:
         fixture.assertStateLoaded()
-        outputContains("files=[]")
+        outputContains(output1)
 
         when: // file created
-        dir.file("dir/file1").createFile()
+        dir.file("file1").createFile()
         configurationCacheRun("report")
 
         then:
         fixture.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because an input to build file 'build.gradle' has changed.")
-        outputContains("files=[file1]")
+        outputContains(output2)
 
         when:
         configurationCacheRun("report")
 
         then:
         fixture.assertStateLoaded()
-        outputContains("files=[file1]")
+        outputContains(output2)
 
         when:
         dir.deleteDir() // directory does not exist
         configurationCacheRun("report")
 
         then:
-        fixture.assertStateStored() // It would be good to reuse a previous entry here
+        fixture.assertStateStored() // TODO - it would be good to reuse a previous entry here
         outputContains("Calculating task graph as configuration cache cannot be reused because an input to build file 'build.gradle' has changed.")
-        outputContains("files=[]")
+        outputContains(output1)
+
+        where:
+        expression                           | output1          | output2
+        // TODO - should not invalidate the cache when the empty root directory is created
+        "'files=' + tree.files.name.sort()"  | "files=[]"       | "files=[file1]"
+        // TODO - should not invalidate the cache when the empty root directory is created
+        "'empty=' + tree.empty"              | "empty=true"     | "empty=false"
+        // TODO - should not invalidate the cache when the empty root directory is created
+        "'contains=' + tree.contains(file1)" | "contains=false" | "contains=true"
     }
 }
