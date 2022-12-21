@@ -21,7 +21,6 @@ import spock.lang.Issue
 
 class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache
     def "signs single Maven publication"() {
         given:
         buildFile << """
@@ -53,7 +52,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "mavenJava", "pom-default.xml.asc").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "component can still be mutated after signing is configured for a Maven publication"() {
         given:
         buildFile << """
@@ -121,7 +119,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-3.0.jar").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "artifacts can still be mutated after signing is configured"() {
         given:
 
@@ -233,7 +230,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "ivy", "module.json.asc").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "allows signing Gradle metadata if version is a snapshot"() {
         when:
         buildFile << """
@@ -372,7 +368,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         outputContains "Publication of Gradle Module Metadata is disabled because you have configured an Ivy repository with a non-standard layout"
     }
 
-    @ToBeFixedForConfigurationCache
     def "sign task takes into account configuration changes"() {
         given:
         buildFile << """
@@ -497,7 +492,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "ivy", "ivy.xml.asc").assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "signs filtered publications of container"() {
         given:
         buildFile << """
@@ -790,7 +784,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("$artifactId-${version}-c.txt.asc").assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue([
         "https://github.com/gradle/gradle/issues/21857",
         "https://github.com/gradle/gradle/issues/22375"
