@@ -24,6 +24,7 @@ import org.gradle.cache.scopes.ScopedCache;
 import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.function.Supplier;
 
 /**
  * Implements a factory to create a {@link DecompressionCache} for a given {@link ScopedCache}.
@@ -32,11 +33,11 @@ import java.io.IOException;
  */
 public class DefaultDecompressionCacheFactory implements DecompressionCacheFactory, Closeable {
 
-    private final ScopedCache scopedCache;
+    private final Supplier<? extends ScopedCache> scopedCacheSupplier;
     private volatile DecompressionCache cache;
 
-    public DefaultDecompressionCacheFactory(ScopedCache scopedCache) {
-        this.scopedCache = scopedCache;
+    public DefaultDecompressionCacheFactory(Supplier<? extends ScopedCache> scopedCacheSupplier) {
+        this.scopedCacheSupplier = scopedCacheSupplier;
     }
 
     @Nonnull
@@ -45,7 +46,7 @@ public class DefaultDecompressionCacheFactory implements DecompressionCacheFacto
         if (cache == null) {
             synchronized (this) {
                 if (cache == null) {
-                    cache = new DefaultDecompressionCache(scopedCache);
+                    cache = new DefaultDecompressionCache(scopedCacheSupplier.get());
                 }
             }
         }
