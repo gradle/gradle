@@ -22,7 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Checks the status of Java agents shipped with Gradle. Because of the different class loaders, it is hard to query the Agent class directly.
+ * Provides methods to interact with the Java agent shipped with Gradle. Because of the different class loaders, it is hard to query the Agent class directly.
  * <p>
  * The agent class must follow a special protocol to be recognized properly: the class should have a method:
  * <pre>
@@ -32,14 +32,19 @@ import java.lang.reflect.Method;
  * <p>
  * It is possible to have an agent in the classpath without actually applying it, so checking for the availability of the class is not enough.
  */
-public class AgentStatus {
+public class AgentControl {
+    private static final String INSTRUMENTATION_AGENT_CLASS_NAME = "org.gradle.instrumentation.agent.Agent";
+
     /**
-     * Checks if the Java agent class {@code agentClassName} is applied to the current JVM.
+     * Checks if the instrumentation agent class is applied to the current JVM.
      *
-     * @param agentClassName the fully qualified name of the agent class
-     * @return {@code true} if the agent was applied.
+     * @return {@code true} if the agent was applied
      */
-    public static boolean isAgentApplied(String agentClassName) {
+    public static boolean isInstrumentationAgentApplied() {
+        return isAgentApplied(INSTRUMENTATION_AGENT_CLASS_NAME);
+    }
+
+    private static boolean isAgentApplied(String agentClassName) {
         try {
             // Java Agents are loaded by the system classloader.
             Class<?> agentClass = ClassLoader.getSystemClassLoader().loadClass(agentClassName);
@@ -48,7 +53,7 @@ public class AgentStatus {
         } catch (ClassNotFoundException e) {
             // This typically means that the agent is not loaded at all.
             // For now, this happens when running in a no-daemon mode, or when the Gradle distribution is not available.
-            LoggerFactory.getLogger(AgentStatus.class).debug("Agent {} is not loaded", agentClassName);
+            LoggerFactory.getLogger(AgentControl.class).debug("Agent {} is not loaded", agentClassName);
         } catch (NoSuchMethodException e) {
             throw new IllegalArgumentException("Agent class " + agentClassName + " doesn't provide public static method isApplied()");
         } catch (InvocationTargetException e) {

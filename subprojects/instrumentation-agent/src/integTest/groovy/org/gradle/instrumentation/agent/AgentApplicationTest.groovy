@@ -17,51 +17,119 @@
 package org.gradle.instrumentation.agent
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.agents.AgentStatus
-import org.gradle.util.internal.ToBeImplemented
+import org.gradle.internal.agents.AgentControl
+import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import spock.lang.Requires
 
 class AgentApplicationTest extends AbstractIntegrationSpec {
+    def "agent is disabled by default"() {
+        given:
+        withDumpAgentStatusTask()
+
+        when:
+        succeeds()
+
+        then:
+        agentWasNotApplied()
+    }
+
+    def "agent is not applied if disabled in the command-line"() {
+        given:
+        withoutAgent()
+        withDumpAgentStatusTask()
+
+        when:
+        succeeds()
+
+        then:
+        agentWasNotApplied()
+    }
 
     @Requires(value = { GradleContextualExecuter.daemon }, reason = "Agent injection is not implemented for non-daemon and embedded modes")
     def "agent is applied to the daemon process running the build"() {
         given:
-        buildFile("""
-            import ${AgentStatus.name}
-
-            tasks.register('hello') {
-                doLast {
-                    println("agent applied = \${AgentStatus.isAgentApplied("org.gradle.instrumentation.agent.Agent")}")
-                }
-            }
-        """)
+        withAgent()
+        withDumpAgentStatusTask()
 
         when:
-        succeeds("hello")
+        succeeds()
 
         then:
-        outputContains("agent applied = true")
+        agentWasApplied()
     }
 
-    @Requires(value = { !GradleContextualExecuter.daemon })
-    @ToBeImplemented("Agent should be used in all modes eventually")
-    def "agent is not applied in the unsupported modes yet"() {
+    @Requires(value = { GradleContextualExecuter.daemon }, reason = "Testing the daemons")
+    def "daemon with the same agent status is reused"() {
         given:
+        executer.requireIsolatedDaemons()
+        withDumpAgentStatusTask()
+
+        when:
+        withAgentApplied(useAgentOnFirstRun)
+        succeeds()
+
+        then:
+        daemons.daemon.becomesIdle()
+
+        when:
+        withAgentApplied(useAgentOnSecondRun)
+        succeeds()
+
+        then:
+        def expectedDaemonCount = shouldReuseDaemon ? 1 : 2
+
+        daemons.daemons.size() == expectedDaemonCount
+
+        where:
+        useAgentOnFirstRun | useAgentOnSecondRun || shouldReuseDaemon
+        true               | true                || true
+        false              | false               || true
+        true               | false               || false
+        false              | true                || false
+    }
+
+    private void withDumpAgentStatusTask() {
         buildFile("""
-            import ${AgentStatus.name}
+            import ${AgentControl.name}
 
             tasks.register('hello') {
                 doLast {
-                    println("agent applied = \${AgentStatus.isAgentApplied("org.gradle.instrumentation.agent.Agent")}")
+                    println("agent applied = \${AgentControl.isInstrumentationAgentApplied()}")
                 }
             }
+
+            defaultTasks 'hello'
         """)
+    }
 
-        when:
-        succeeds("hello")
+    private void agentWasApplied() {
+        agentStatusWas(true)
+    }
 
-        then:
-        outputContains("agent applied = false")
+    private void agentWasNotApplied() {
+        agentStatusWas(false)
+    }
+
+    private void agentStatusWas(boolean applied) {
+        outputContains("agent applied = $applied")
+    }
+
+    private void withAgent() {
+        withAgentApplied(true)
+    }
+
+    private void withAgentApplied(boolean shouldApply) {
+        executer.withArgument("-D${DaemonBuildOptions.ApplyInstrumentationAgentOption.GRADLE_PROPERTY}=$shouldApply")
+    }
+
+    private void withoutAgent() {
+        withAgentApplied(false)
+    }
+
+    DaemonsFixture getDaemons() {
+        new DaemonLogsAnalyzer(executer.daemonBaseDir)
     }
 }

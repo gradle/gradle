@@ -40,9 +40,9 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecHandle;
+import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
-import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.io.IOException;
@@ -108,8 +108,14 @@ public class DefaultDaemonStarter implements DaemonStarter {
         if (Boolean.getBoolean("org.gradle.daemon.debug")) {
             daemonArgs.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
         }
-        for (File agentJar : agentClasspath.getAsFiles()) {
-            daemonArgs.add("-javaagent:" + agentJar);
+
+        if (daemonParameters.shouldApplyInstrumentationAgent()) {
+            if (agentClasspath.isEmpty()) {
+                throw new IllegalStateException("Cannot find the agent JAR");
+            }
+            for (File agentJar : agentClasspath.getAsFiles()) {
+                daemonArgs.add("-javaagent:" + agentJar);
+            }
         }
 
         LOGGER.debug("Using daemon args: {}", daemonArgs);
