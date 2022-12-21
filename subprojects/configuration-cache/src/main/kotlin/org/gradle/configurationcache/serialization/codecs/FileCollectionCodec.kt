@@ -152,7 +152,7 @@ class CollectingVisitor : FileCollectionStructureVisitor {
             // Represents artifact transform outputs. Visit the source rather than the files
             // Transforms may have inputs or parameters that are task outputs or other changing files
             // When this is not the case, we should run the transform now and write the result.
-            // However, currently it is not easy to determine whether or not this is the case so assume that all transforms
+            // However, currently it is not easy to determine whether this is the case so assume that all transforms
             // have changing inputs
             FileCollectionStructureVisitor.VisitType.NoContents
         } else {
