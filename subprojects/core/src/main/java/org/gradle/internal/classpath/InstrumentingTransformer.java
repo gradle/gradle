@@ -34,7 +34,9 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
@@ -97,6 +99,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING = getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE);
     private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING = getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE, STRING_TYPE);
     private static final String RETURN_OBJECT_FROM_INT = getMethodDescriptor(OBJECT_TYPE, Type.INT_TYPE);
+    private static final String RETURN_BOOLEAN = getMethodDescriptor(Type.BOOLEAN_TYPE);
     private static final String RETURN_BOOLEAN_FROM_OBJECT = getMethodDescriptor(Type.BOOLEAN_TYPE, OBJECT_TYPE);
     private static final String RETURN_PROPERTIES = getMethodDescriptor(PROPERTIES_TYPE);
     private static final String RETURN_PROPERTIES_FROM_STRING = getMethodDescriptor(PROPERTIES_TYPE, STRING_TYPE);
@@ -114,6 +117,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final Type PROCESS_GROOVY_METHODS_TYPE = getType(ProcessGroovyMethods.class);
     private static final Type STRING_ARRAY_TYPE = getType(String[].class);
     private static final Type FILE_TYPE = getType(File.class);
+    private static final Type FILE_ARRAY_TYPE = getType(File[].class);
     private static final Type LIST_TYPE = getType(List.class);
 
     // ProcessBuilder().start() -> start(ProcessBuilder, String)
@@ -172,6 +176,17 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     // FileInputStream(String) -> fileOpened(String, String)
     private static final String RETURN_VOID_FROM_STRING = getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE);
     private static final String RETURN_VOID_FROM_STRING_STRING = getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, STRING_TYPE);
+    // File.exists() -> fileExists(File, String)
+    private static final String RETURN_BOOLEAN_FROM_FILE_STRING = getMethodDescriptor(Type.BOOLEAN_TYPE, FILE_TYPE, STRING_TYPE);
+    // File.listFiles() -> fileListFiles(File, String)
+    private static final String RETURN_FILE_ARRAY = getMethodDescriptor(FILE_ARRAY_TYPE);
+    private static final String RETURN_FILE_ARRAY_FROM_FILE_STRING = getMethodDescriptor(FILE_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
+    // File.listFiles(FileFilter) -> fileListFiles(File, FileFilter, String)
+    private static final String RETURN_FILE_ARRAY_FROM_FILEFILTER = getMethodDescriptor(FILE_ARRAY_TYPE, getType(FileFilter.class));
+    private static final String RETURN_FILE_ARRAY_FROM_FILE_FILEFILTER_STRING = getMethodDescriptor(FILE_ARRAY_TYPE, FILE_TYPE, getType(FileFilter.class), STRING_TYPE);
+    // File.listFiles(FileFilter) -> fileListFiles(File, FileFilter, String)
+    private static final String RETURN_FILE_ARRAY_FROM_FILENAMEFILTER = getMethodDescriptor(FILE_ARRAY_TYPE, getType(FilenameFilter.class));
+    private static final String RETURN_FILE_ARRAY_FROM_FILE_FILENAMEFILTER_STRING = getMethodDescriptor(FILE_ARRAY_TYPE, FILE_TYPE, getType(FilenameFilter.class), STRING_TYPE);
 
     private static final String LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class).getInternalName();
     private static final String LAMBDA_METAFACTORY_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), getType(Object[].class));
@@ -448,6 +463,34 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 if (name.equals("start") && descriptor.equals(RETURN_PROCESS)) {
                     _LDC(binaryClassNameOf(className));
                     _INVOKESTATIC(INSTRUMENTED_TYPE, "start", RETURN_PROCESS_FROM_PROCESS_BUILDER_STRING);
+                    return true;
+                }
+            }
+            if (owner.equals(FILE_TYPE.getInternalName())) {
+                if ((name.equals("exists") || name.equals("isFile") || name.equals("isDirectory"))
+                    && descriptor.equals(RETURN_BOOLEAN)
+                ) {
+                    String instrumentedMethodName =
+                        name.equals("exists") ? "fileExists" :
+                            name.equals("isFile") ? "fileIsFile" :
+                                "fileIsDirectory";
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, instrumentedMethodName, RETURN_BOOLEAN_FROM_FILE_STRING);
+                    return true;
+                }
+
+                if (name.equals("listFiles") &&
+                    (descriptor.equals(RETURN_FILE_ARRAY) ||
+                        descriptor.equals(RETURN_FILE_ARRAY_FROM_FILEFILTER) ||
+                        descriptor.equals(RETURN_FILE_ARRAY_FROM_FILENAMEFILTER))
+                ) {
+                    String instrumentedDescriptor =
+                        descriptor.equals(RETURN_FILE_ARRAY) ? RETURN_FILE_ARRAY_FROM_FILE_STRING  :
+                            descriptor.equals(RETURN_FILE_ARRAY_FROM_FILEFILTER) ? RETURN_FILE_ARRAY_FROM_FILE_FILEFILTER_STRING :
+                                RETURN_FILE_ARRAY_FROM_FILE_FILENAMEFILTER_STRING;
+
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "fileListFiles", instrumentedDescriptor);
                     return true;
                 }
             }

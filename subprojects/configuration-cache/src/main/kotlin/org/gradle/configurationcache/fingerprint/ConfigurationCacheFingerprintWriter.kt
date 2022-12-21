@@ -50,7 +50,9 @@ import org.gradle.configurationcache.CoupledProjectsListener
 import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.UndeclaredBuildInputListener
 import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.configurationcache.extensions.fileSystemEntryType
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFile
+import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFileSystemEntry
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.ValueSource
 import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.PropertyProblem
@@ -111,6 +113,7 @@ class ConfigurationCacheFingerprintWriter(
         val instrumentationAgentUsed: Boolean
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode
+        fun hashCodeOfDirectoryContent(file: File): HashCode
         fun displayNameOf(file: File): String
         fun reportInput(input: PropertyProblem)
         fun location(consumer: String?): PropertyTrace
@@ -148,6 +151,12 @@ class ConfigurationCacheFingerprintWriter(
 
     private
     val reportedFiles = newConcurrentHashSet<File>()
+
+    private
+    val reportedDirectories = newConcurrentHashSet<File>()
+
+    private
+    val reportedFileSystemEntries = newConcurrentHashSet<File>()
 
     private
     val reportedValueSources = newConcurrentHashSet<String>()
@@ -228,6 +237,22 @@ class ConfigurationCacheFingerprintWriter(
             return
         }
         sink().captureDirectoryChildren(file)
+    }
+
+    override fun directoryChildrenObserved(directory: File, consumer: String?) {
+        if (isInputTrackingDisabled() || isExecutingTask()) {
+            return
+        }
+        sink().captureDirectoryChildren(directory)
+        reportUniqueDirectoryChildrenInput(directory, consumer)
+    }
+
+    override fun fileSystemEntryObserved(file: File, consumer: String?) {
+        if (isInputTrackingDisabled() || isExecutingTask()) {
+            return
+        }
+        sink().captureFileSystemEntry(file)
+        reportUniqueFileSystemEntryInput(file, consumer)
     }
 
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
@@ -539,9 +564,39 @@ class ConfigurationCacheFingerprintWriter(
     }
 
     private
+    fun reportUniqueDirectoryChildrenInput(directory: File, consumer: String?) {
+        if (reportedDirectories.add(directory)) {
+            reportDirectoryContentInput(directory, consumer)
+        }
+    }
+
+    private
+    fun reportUniqueFileSystemEntryInput(file: File, consumer: String?) {
+        if (reportedFileSystemEntries.add(file)) {
+            reportFileSystemEntryInput(file, consumer)
+        }
+    }
+
+    private
     fun reportFileInput(file: File, consumer: String?) {
         reportInput(consumer, null) {
             text("file ")
+            reference(host.displayNameOf(file))
+        }
+    }
+
+    private
+    fun reportDirectoryContentInput(directory: File, consumer: String?) {
+        reportInput(consumer, null) {
+            text("directory content")
+            reference(host.displayNameOf(directory))
+        }
+    }
+
+    private
+    fun reportFileSystemEntryInput(file: File, consumer: String?) {
+        reportInput(consumer, null) {
+            text("file system entry")
             reference(host.displayNameOf(file))
         }
     }
@@ -647,6 +702,7 @@ class ConfigurationCacheFingerprintWriter(
     ) {
         val capturedFiles: MutableSet<File> = newConcurrentHashSet()
         val capturedDirectories: MutableSet<File> = newConcurrentHashSet()
+        val capturedFileSystemEntries: MutableSet<File> = newConcurrentHashSet()
 
         private
         val undeclaredSystemProperties = newConcurrentHashSet<String>()
@@ -665,7 +721,14 @@ class ConfigurationCacheFingerprintWriter(
             if (!capturedDirectories.add(file)) {
                 return
             }
-            write(ConfigurationCacheFingerprint.DirectoryChildren(file, host.hashCodeOf(file)))
+            write(ConfigurationCacheFingerprint.DirectoryChildren(file, host.hashCodeOfDirectoryContent(file)))
+        }
+
+        fun captureFileSystemEntry(file: File) {
+            if (!capturedFileSystemEntries.add(file)) {
+                return
+            }
+            write(inputFileSystemEntry(file))
         }
 
         fun systemPropertyRead(key: String, value: Any?) {
@@ -687,6 +750,9 @@ class ConfigurationCacheFingerprintWriter(
                 file,
                 host.hashCodeOf(file)
             )
+
+        fun inputFileSystemEntry(file: File) =
+            InputFileSystemEntry(file, fileSystemEntryType(file))
     }
 
     private
