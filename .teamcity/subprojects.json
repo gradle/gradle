@@ -245,6 +245,20 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "docs-asciidoctor-extensions",
+    "name": "docs-asciidoctor-extensions",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "dirName": "docs-asciidoctor-extensions-base",
+    "name": "docs-asciidoctor-extensions-base",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "ear",
     "name": "ear",
     "unitTests": true,
