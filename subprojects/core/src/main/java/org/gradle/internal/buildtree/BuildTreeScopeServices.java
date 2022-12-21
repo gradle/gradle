@@ -43,6 +43,7 @@ import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
 
@@ -99,7 +100,7 @@ public class BuildTreeScopeServices {
         return exceptionAnalyser;
     }
 
-    protected DecompressionCacheFactory createDecompressionCacheFactory(BuildTreeScopedCache cacheFactory) {
-        return new DefaultDecompressionCacheFactory(cacheFactory);
+    protected DecompressionCacheFactory createDecompressionCacheFactory(ServiceRegistry serviceRegistry) {
+        return new DefaultDecompressionCacheFactory(() -> serviceRegistry.get(BuildTreeScopedCache.class));
     }
 }

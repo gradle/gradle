@@ -151,10 +151,7 @@ public class WorkerSharedProjectScopeServices {
         return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 
-    protected ProjectScopedCache createProjectScopedCache(TemporaryFileProvider temporaryFileProvider, CacheRepository cacheRepository) {
-        return new DefaultProjectScopedCache(temporaryFileProvider.newTemporaryFile(".cache"), cacheRepository);
-    }
-    protected DecompressionCacheFactory createDecompressionCacheFactory(ProjectScopedCache cacheFactory) {
-        return new DefaultDecompressionCacheFactory(cacheFactory);
+    protected DecompressionCacheFactory createDecompressionCacheFactory(TemporaryFileProvider temporaryFileProvider, CacheRepository cacheRepository) {
+        return new DefaultDecompressionCacheFactory(() -> new DefaultProjectScopedCache(temporaryFileProvider.newTemporaryFile(".cache"), cacheRepository));
     }
 }
