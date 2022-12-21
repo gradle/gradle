@@ -608,7 +608,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         return zip
     }
 
-    def createDir(String name, @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+    TestFile createDir(String name, @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         TestFile root = file(name)
         root.create(cl)
     }
