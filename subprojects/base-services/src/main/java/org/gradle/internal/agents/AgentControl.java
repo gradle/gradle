@@ -16,8 +16,11 @@
 
 package org.gradle.internal.agents;
 
+import org.gradle.internal.UncheckedException;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+import java.lang.instrument.ClassFileTransformer;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -41,26 +44,56 @@ public class AgentControl {
      * @return {@code true} if the agent was applied
      */
     public static boolean isInstrumentationAgentApplied() {
-        return isAgentApplied(INSTRUMENTATION_AGENT_CLASS_NAME);
+        Method isAppliedMethod = findAgentMethod(INSTRUMENTATION_AGENT_CLASS_NAME, "isApplied");
+        if (isAppliedMethod == null) {
+            return false;
+        }
+        return callStaticAgentMethod(isAppliedMethod);
     }
 
-    private static boolean isAgentApplied(String agentClassName) {
+    public static boolean installTransformer(ClassFileTransformer transformer) {
+        Method installTransformer = findAgentMethod(INSTRUMENTATION_AGENT_CLASS_NAME, "installTransformer", ClassFileTransformer.class);
+        if (installTransformer == null) {
+            return false;
+        }
+        return callStaticAgentMethod(installTransformer, transformer);
+    }
+
+    @Nullable
+    private static Class<?> tryLoadAgentClass(String agentClassName) {
         try {
-            // Java Agents are loaded by the system classloader.
-            Class<?> agentClass = ClassLoader.getSystemClassLoader().loadClass(agentClassName);
-            Method isAppliedMethod = agentClass.getMethod("isApplied");
-            return (Boolean) isAppliedMethod.invoke(null);
+            return ClassLoader.getSystemClassLoader().loadClass(agentClassName);
         } catch (ClassNotFoundException e) {
             // This typically means that the agent is not loaded at all.
             // For now, this happens when running in a no-daemon mode, or when the Gradle distribution is not available.
             LoggerFactory.getLogger(AgentControl.class).debug("Agent {} is not loaded", agentClassName);
-        } catch (NoSuchMethodException e) {
-            throw new IllegalArgumentException("Agent class " + agentClassName + " doesn't provide public static method isApplied()");
-        } catch (InvocationTargetException e) {
-            throw new IllegalArgumentException("Failed to query status of agent " + agentClassName, e);
-        } catch (IllegalAccessException e) {
-            throw new IllegalArgumentException("Method " + agentClassName + ".isApplied() is not public", e);
         }
-        return false;
+        return null;
+    }
+
+    @Nullable
+    private static Method findAgentMethod(String agentClassName, String methodName, Class<?>... args) {
+        Class<?> agentClass = tryLoadAgentClass(agentClassName);
+        if (agentClass == null) {
+            return null;
+        }
+        try {
+            Method method = agentClass.getMethod(methodName, args);
+            method.setAccessible(true);
+            return method;
+        } catch (NoSuchMethodException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> T callStaticAgentMethod(Method method, Object... args) {
+        try {
+            return (T) method.invoke(null, args);
+        } catch (IllegalAccessException e) {
+            throw new IllegalArgumentException(e);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.unwrapAndRethrow(e);
+        }
     }
 }

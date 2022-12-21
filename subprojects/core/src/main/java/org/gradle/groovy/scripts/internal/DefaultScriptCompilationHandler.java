@@ -64,6 +64,7 @@ import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.security.CodeSource;
+import java.security.ProtectionDomain;
 import java.util.List;
 import java.util.Map;
 
@@ -389,8 +390,39 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     private static class InstrumentingScriptClassLoader extends ScriptClassLoader implements InstrumentingClassLoader {
+        private final ThreadLocal<Throwable> pendingException = new ThreadLocal<>();
+
         InstrumentingScriptClassLoader(ScriptSource scriptSource, ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
             super(scriptSource, parent, classPath, implementationHash);
+        }
+
+        @Override
+        public byte[] instrumentClass(String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+            return null;
+        }
+
+        @Override
+        public void transformFailed(Throwable cause) {
+            Throwable previousException = pendingException.get();
+            if (previousException != null) {
+                previousException.addSuppressed(cause);
+            } else {
+                pendingException.set(cause);
+            }
+        }
+
+        @Override
+        protected Class<?> findClass(String name) throws ClassNotFoundException {
+            try {
+                Class<?> loadedClass = super.findClass(name);
+                Throwable instrumentationException = pendingException.get();
+                if (instrumentationException != null) {
+                    throw new ClassNotFoundException("Failed to instrument class " + name + " in " + getName(), instrumentationException);
+                }
+                return loadedClass;
+            } finally {
+                pendingException.set(null);
+            }
         }
     }
 }

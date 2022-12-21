@@ -24,6 +24,7 @@ import org.gradle.internal.classpath.TransformedClassPath;
 
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.ProtectionDomain;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -43,6 +44,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
 
     /**
      * This method can be used to store user data that should live among with this classloader
+     *
      * @param consumerId the consumer
      * @param onMiss called to create the initial data, when not found
      * @param <T> the type of data
@@ -154,8 +156,39 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
             }
         }
 
+        private final ThreadLocal<Throwable> pendingException = new ThreadLocal<Throwable>();
+
         public InstrumentingVisitableURLClassLoader(String name, ClassLoader parent, ClassPath classPath) {
             super(name, parent, classPath);
+        }
+
+        @Override
+        public byte[] instrumentClass(String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+            return null;
+        }
+
+        @Override
+        public void transformFailed(Throwable cause) {
+            if (pendingException.get() == null) {
+                pendingException.set(cause);
+                // Only keep the first exception.
+                // It is unlikely that we'll get multiple here, because the agent aborts the processing immediately.
+                // On Java 7 we have addSuppressed but this class has to be compatible with Java 6.
+            }
+        }
+
+        @Override
+        protected Class<?> findClass(String name) throws ClassNotFoundException {
+            try {
+                Class<?> loadedClass = super.findClass(name);
+                Throwable instrumentationException = pendingException.get();
+                if (instrumentationException != null) {
+                    throw new ClassNotFoundException("Failed to instrument class " + name + " in " + getName(), instrumentationException);
+                }
+                return loadedClass;
+            } finally {
+                pendingException.set(null);
+            }
         }
     }
 }

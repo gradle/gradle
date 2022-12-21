@@ -16,5 +16,12 @@
 
 package org.gradle.internal.agents;
 
+import javax.annotation.Nullable;
+import java.security.ProtectionDomain;
+
 public interface InstrumentingClassLoader {
+    @Nullable
+    byte[] instrumentClass(String className, ProtectionDomain protectionDomain, byte[] classfileBuffer);
+
+    void transformFailed(Throwable th);
 }
