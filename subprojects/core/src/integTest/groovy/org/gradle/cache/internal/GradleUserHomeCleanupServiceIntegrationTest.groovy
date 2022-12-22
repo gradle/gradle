@@ -18,10 +18,12 @@ package org.gradle.cache.internal
 
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.USED_TODAY
+import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 
 class GradleUserHomeCleanupServiceIntegrationTest extends AbstractIntegrationSpec implements GradleUserHomeCleanupFixture {
     private static final int HALF_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS = Math.max(1, CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS / 2 as int)
@@ -174,6 +176,12 @@ class GradleUserHomeCleanupServiceIntegrationTest extends AbstractIntegrationSpe
 
     def "always cleans up unused version-specific cache directories and corresponding #type distributions when configured"() {
         given:
+        executer.requireIsolatedDaemons() // because we want to reuse Gradle user home services
+        executer.beforeExecute {
+            if (!GradleContextualExecuter.embedded) {
+                executer.withArgument("-D$REUSE_USER_HOME_SERVICES=true")
+            }
+        }
         requireOwnGradleUserHomeDir() // because we delete caches and distributions
         alwaysCleanupCaches()
 

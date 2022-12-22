@@ -116,7 +116,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
     @Override
     public Provider<CleanupFrequency> getCleanupFrequency() {
         return getCleanup().map(cleanup ->
-            lastCleanupTimestamp -> cleanupHasBeenConfigured && ((CleanupInternal)cleanup).getCleanupFrequency().requiresCleanup(lastCleanupTimestamp)
+            new MustBeConfiguredCleanupFrequency(((CleanupInternal) cleanup).getCleanupFrequency())
         );
     }
 
@@ -245,6 +245,24 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         public ContextualErrorMessageProperty<T> convention(Provider<? extends T> provider) {
             onlyIfMutable(() -> super.convention(provider));
             return this;
+        }
+    }
+
+    private class MustBeConfiguredCleanupFrequency implements CleanupFrequency {
+        private final CleanupFrequency configuredCleanupFrequency;
+
+        public MustBeConfiguredCleanupFrequency(CleanupFrequency configuredCleanupFrequency) {
+            this.configuredCleanupFrequency = configuredCleanupFrequency;
+        }
+
+        @Override
+        public boolean shouldCleanupOnEndOfSession() {
+            return configuredCleanupFrequency.shouldCleanupOnEndOfSession();
+        }
+
+        @Override
+        public boolean requiresCleanup(long lastCleanupTimestamp) {
+            return cleanupHasBeenConfigured && configuredCleanupFrequency.requiresCleanup(lastCleanupTimestamp);
         }
     }
 }
