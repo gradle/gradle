@@ -515,11 +515,11 @@ To help you understand how incremental compilation works, the following provides
 * Having a source structure that does not match the package names, while legal for compilation, might end up causing trouble in the toolchain.
     Even more if annotation processing and <<build_cache.adoc#build_cache,caching>> are involved.
 
-Additionally, Gradle might temporary change the output location while running incremental compilation.
-This might affect some annotation processors that inspect output locations and which allow users to wire some action to file paths (e.g. `-XepExcludedPaths` in Error Prone).
-You can disable this Gradle behaviour by setting link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getIncrementalAfterFailure--[`options.incrementalAfterFailure`] to `false` on the JavaCompile task.
+Additionally, Gradle might temporarily change the output location while running incremental compilation.
+This might affect some annotation processors that inspect output locations or accept file paths as arguments (e.g. `-XepExcludedPaths` in Error Prone).
+You can disable this behaviour by setting link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getIncrementalAfterFailure--[`options.incrementalAfterFailure`] to `false` on the JavaCompile task.
 Alternatively, you can try to specify a temporary output path to the annotation processor.
-The next table shows the mapping from output location to temporary output location:
+The following table shows the mapping from default output location to temporary output location:
 
 .Compiler output to temporary output location
 |===
