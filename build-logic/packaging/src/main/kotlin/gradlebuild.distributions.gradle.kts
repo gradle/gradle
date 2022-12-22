@@ -70,6 +70,8 @@ val coreRuntimeOnly by bucket()
 coreRuntimeOnly.description = "To define dependencies to the Gradle modules that make up the core of the distributions (lib/*.jar)"
 val pluginsRuntimeOnly by bucket()
 pluginsRuntimeOnly.description = "To define dependencies to the Gradle modules that represent additional plugins packaged in the distributions (lib/plugins/*.jar)"
+val agentsRuntimeOnly by bucket()
+agentsRuntimeOnly.description = "To define dependencies to the Gradle modules that represent Java agents packaged in the distribution (lib/agents/*.jar)"
 
 coreRuntimeOnly.withDependencies {
     // use 'withDependencies' to not attempt to find platform project during script compilation
@@ -81,6 +83,8 @@ val runtimeClasspath by libraryResolver(listOf(coreRuntimeOnly, pluginsRuntimeOn
 runtimeClasspath.description = "Resolves to all Jars that need to be in the distribution including all transitive dependencies"
 val coreRuntimeClasspath by libraryResolver(listOf(coreRuntimeOnly))
 coreRuntimeClasspath.description = "Resolves to all Jars, including transitives, that make up the core of the distribution (needed to decide if a Jar goes into 'plugins' or not)"
+val agentsRuntimeClasspath by libraryResolver(listOf(agentsRuntimeOnly))
+agentsRuntimeClasspath.description = "Resolves to all Jars that need to be added as agents"
 val gradleScriptPath by startScriptResolver(":launcher")
 gradleScriptPath.description = "Resolves to the Gradle start scripts (bin/*) - automatically adds dependency to the :launcher project"
 val sourcesPath by sourcesResolver(listOf(coreRuntimeOnly, pluginsRuntimeOnly))

@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.server;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.agents.AgentControl;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -95,6 +96,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         LOGGER.debug("Creating daemon context with opts: {}", configuration.getJvmOptions());
 
         builder.setDaemonOpts(configuration.getJvmOptions());
+        builder.setApplyInstrumentationAgent(AgentControl.isInstrumentationAgentApplied());
 
         return builder.create();
     }

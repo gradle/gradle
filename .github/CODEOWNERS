@@ -13,6 +13,9 @@ subprojects/hashing/                        @gradle/bt-execution
 subprojects/normalization-java/             @gradle/bt-execution
 subprojects/snapshots/                      @gradle/bt-execution
 
+# Configuration cache
+subprojects/instrumentation-agent           @gradle/bt-configuration-cache
+
 # Gradle Enterprise
 subprojects/enterprise/                     @ldaley @gradle/ge-testing @gradle/ge-build-insights
 subprojects/enterprise-logging/             @gradle/ge-build-insights @gradle/ge-testing
