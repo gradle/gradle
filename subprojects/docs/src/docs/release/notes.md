@@ -92,35 +92,6 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ### JVM
 
-#### Allow Test Suites to depend on project implementation details 
-
-The [JVM test suite](userguide/jvm_test_suite_plugin.html) `dependencies` block now
-supports depending on the internal view of the current project at compile-time.
-Previously it was only possible to depend on the current project's API. This allows
-test suites to access project internals that are not declared on
-the `api` or `compileOnlyApi` configurations. This functionality can be useful when
-testing internal classes that use dependencies that are not exposed as part of a
-project's API, like those declared on the `implementation` and `compileOnly` configurations.
-
-For example, the following snippet uses the new `projectInternalView()` API to define a
-test suite with access to project internals:
-
-```kotlin
-testing {
-    suites {
-        val unitLikeTestSuite by registering(JvmTestSuite::class) {
-            useJUnitJupiter()
-            dependencies {
-                implementation(projectInternalView())
-            }
-        }
-    }
-}
-```
-
-For more information about adding different types of test dependencies, see [JVM test suite](userguide/jvm_test_suite_plugin.html).
-
-
 
 ##### Updated Toolchain Download Repositories
 
