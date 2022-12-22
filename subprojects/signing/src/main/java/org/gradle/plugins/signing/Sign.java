@@ -109,7 +109,6 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
 
             signTask((AbstractArchiveTask) task);
         }
-
     }
 
     private void signTask(final AbstractArchiveTask archiveTask) {
