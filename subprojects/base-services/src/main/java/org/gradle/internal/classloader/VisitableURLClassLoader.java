@@ -18,10 +18,13 @@ package org.gradle.internal.classloader;
 
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.agents.InstrumentingClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 
+import javax.annotation.Nullable;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.ProtectionDomain;
@@ -142,7 +145,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
 
     public static VisitableURLClassLoader fromClassPath(String name, ClassLoader parent, ClassPath classPath) {
         if (classPath instanceof TransformedClassPath) {
-            return new InstrumentingVisitableURLClassLoader(name, parent, classPath);
+            return new InstrumentingVisitableURLClassLoader(name, parent, (TransformedClassPath) classPath);
         }
         return new VisitableURLClassLoader(name, parent, classPath);
     }
@@ -156,39 +159,42 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
             }
         }
 
-        private final ThreadLocal<Throwable> pendingException = new ThreadLocal<Throwable>();
+        private final TransformReplacer replacer;
+        private final TransformErrorHandler errorHandler;
 
-        public InstrumentingVisitableURLClassLoader(String name, ClassLoader parent, ClassPath classPath) {
+        public InstrumentingVisitableURLClassLoader(String name, ClassLoader parent, TransformedClassPath classPath) {
             super(name, parent, classPath);
+            replacer = new TransformReplacer(classPath);
+            errorHandler = new TransformErrorHandler(name);
         }
 
         @Override
-        public byte[] instrumentClass(String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
-            return null;
+        public byte[] instrumentClass(@Nullable String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+            return replacer.getInstrumentedClass(className, protectionDomain);
         }
 
         @Override
-        public void transformFailed(Throwable cause) {
-            if (pendingException.get() == null) {
-                pendingException.set(cause);
-                // Only keep the first exception.
-                // It is unlikely that we'll get multiple here, because the agent aborts the processing immediately.
-                // On Java 7 we have addSuppressed but this class has to be compatible with Java 6.
-            }
+        public void transformFailed(@Nullable String className, Throwable cause) {
+            errorHandler.classLoadingError(className, cause);
         }
 
         @Override
         protected Class<?> findClass(String name) throws ClassNotFoundException {
+            errorHandler.enterClassLoadingScope(name);
+            Class<?> loadedClass;
             try {
-                Class<?> loadedClass = super.findClass(name);
-                Throwable instrumentationException = pendingException.get();
-                if (instrumentationException != null) {
-                    throw new ClassNotFoundException("Failed to instrument class " + name + " in " + getName(), instrumentationException);
-                }
-                return loadedClass;
-            } finally {
-                pendingException.set(null);
+                loadedClass = super.findClass(name);
+            } catch (Throwable e) {
+                throw errorHandler.exitClassLoadingScopeWithException(e);
             }
+            errorHandler.exitClassLoadingScope();
+            return loadedClass;
+        }
+
+        @Override
+        public void close() throws IOException {
+            IoActions.closeQuietly(replacer);
+            super.close();
         }
     }
 }
