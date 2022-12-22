@@ -44,7 +44,12 @@ sealed class ConfigurationCacheFingerprint {
 
     data class InputFile(
         val file: File,
-        val hash: HashCode?
+        val hash: HashCode
+    ) : ConfigurationCacheFingerprint()
+
+    data class DirectoryChildren(
+        val file: File,
+        val hash: HashCode
     ) : ConfigurationCacheFingerprint()
 
     data class ValueSource(
