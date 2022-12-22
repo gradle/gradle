@@ -201,7 +201,7 @@ TIP: link:https://docs.gradle.com/enterprise/tutorials/task-inputs-comparison/[G
 [[diagnosing_cache_miss]]
 == Diagnosing the reasons for a cache miss
 
-You should be able to diagnose why the outputs of a certain task were not found in the build cache.
+Having the data from the last section at hand, you should be able to diagnose why the outputs of a certain task were not found in the build cache.
 Since you were expecting more tasks to be cached, you should be able to pinpoint a build which would have produced the artifact under question.
 
 Before diving into how to find out why one task has not been loaded from the cache we should first look into which task caused the cache misses.
