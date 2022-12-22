@@ -151,6 +151,8 @@ include("kotlin-dsl-plugins")
 
 // Internal utility and verification projects
 include("docs")
+include("docs-asciidoctor-extensions-base")
+include("docs-asciidoctor-extensions")
 include("samples")
 include("architecture-test")
 include("internal-testing")
