@@ -101,6 +101,6 @@ public class MissingLocalArtifactMetadata implements LocalComponentArtifactMetad
 
     @Override
     public boolean isOptionalArtifact() {
-        return true;
+        return false;
     }
 }
