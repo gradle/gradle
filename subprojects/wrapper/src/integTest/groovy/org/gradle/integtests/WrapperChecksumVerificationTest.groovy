@@ -88,7 +88,9 @@ Expected checksum: 'bad'
         writeValidDistributionHash()
 
         when:
-        def success = wrapperExecuter.run()
+        def success = wrapperExecuter
+            .withEnvironmentVars(["_JAVA_OPTIONS" : "-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y"])
+            .run()
 
         then:
         success.output.contains('BUILD SUCCESSFUL')
