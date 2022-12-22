@@ -100,6 +100,6 @@ public class BuildTreeScopeServices {
     }
 
     protected DecompressionCacheFactory createDecompressionCacheFactory(BuildTreeScopedCache cacheFactory) {
-        return new DefaultDecompressionCacheFactory(cacheFactory);
+        return new DefaultDecompressionCacheFactory(() -> cacheFactory);
     }
 }
