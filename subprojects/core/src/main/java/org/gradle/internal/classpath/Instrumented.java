@@ -18,6 +18,7 @@ package org.gradle.internal.classpath;
 
 import kotlin.io.FilesKt;
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
+import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
@@ -123,6 +124,7 @@ public class Instrumented {
         new FileCheckInterceptor.FileIsDirectoryInterceptor(),
         new FileListFilesInterceptor(),
         new FilesReadStringInterceptor(),
+        new FileTextInterceptor(),
         new ProcessGroovyMethodsExecuteInterceptor(),
         new ProcessBuilderStartInterceptor(),
         new ProcessBuilderStartPipelineInterceptor(),
@@ -408,6 +410,16 @@ public class Instrumented {
         Lazy.locking().of(() -> findStaticOrThrowError(Files.class, "readString", MethodType.methodType(String.class, Path.class)));
     private static final Lazy<MethodHandle> FILES_READ_STRING_PATH_CHARSET =
         Lazy.locking().of(() -> findStaticOrThrowError(Files.class, "readString", MethodType.methodType(String.class, Path.class, Charset.class)));
+
+    public static String groovyFileGetText(File file, String consumer) throws IOException {
+        listener().fileOpened(file, consumer);
+        return ResourceGroovyMethods.getText(file);
+    }
+
+    public static String groovyFileGetText(File file, String charset, String consumer) throws IOException {
+        listener().fileOpened(file, consumer);
+        return ResourceGroovyMethods.getText(file, charset);
+    }
 
     @SuppressWarnings("unchecked")
     public static List<Process> startPipeline(List<ProcessBuilder> pipeline, String consumer) throws IOException {
@@ -860,6 +872,30 @@ public class Instrumented {
                             Charset arg1Charset = (Charset) arg1;
                             return Instrumented.filesReadString(arg0Path, arg1Charset, consumer);
                         }
+                    }
+                }
+            }
+            return invocation.callOriginal();
+        }
+    }
+
+    private static class FileTextInterceptor extends CallInterceptor {
+        public FileTextInterceptor() {
+            super(InterceptScope.readsOfPropertiesNamed("text"), InterceptScope.methodsNamed("getText"));
+        }
+
+        @Override
+        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+            Object receiver = invocation.getReceiver();
+            if (receiver instanceof File) {
+                File receiverFile = (File) receiver;
+                if (invocation.getArgsCount() == 0) {
+                    return groovyFileGetText(receiverFile, consumer);
+                } else if (invocation.getArgsCount() == 1) {
+                    Object arg0 = invocation.getArgument(0);
+                    if (arg0 instanceof String) {
+                        String arg0String = (String) arg0;
+                        return groovyFileGetText(receiverFile, arg0String, consumer);
                     }
                 }
             }
