@@ -153,7 +153,7 @@ Tasks & properties::
  * Tasks configured and registered with the <<task_configuration_avoidance#sec:task_configuration_avoidance_migration_guidelines,task configuration avoidance>> APIs have more restrictions on the other methods that can be called from a configuration action.
  * The internal `@Option` and `@OptionValues` annotations — package `org.gradle.api.internal.tasks.options` — have been removed. Use the public link:{javadocPath}/org/gradle/api/tasks/options/Option.html[@Option] and link:{javadocPath}/org/gradle/api/tasks/options/OptionValues.html[@OptionValues] annotations instead.
  * The `Task.deleteAllActions()` method has been removed with no replacement.
- * The `Task.dependsOnTaskDidWork()` method has been removed — use <<more_about_tasks#sec:up_to_date_checks,declared inputs and outputs>> instead.
+ * The `Task.dependsOnTaskDidWork()` method has been removed — use <<incremental_build.adoc#incremental_build,declared inputs and outputs>> instead.
  * The following properties and methods of `TaskInternal` have been removed — use task dependencies, task rules, reusable utility methods, or the <<custom_tasks.adoc#worker_api,Worker API>> in place of executing a task directly.
  ** `execute()`
  ** `executer`

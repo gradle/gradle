@@ -24,7 +24,7 @@ trait UnreadableCopyDestinationFixture {
     private static final String COPY_UNREADABLE_DESTINATION_FAILURE = "Cannot access a file in the destination directory. " +
         "Copying to a directory which contains unreadable content is not supported. " +
         "Declare the task as untracked by using Task.doNotTrackState(). " +
-        "See https://docs.gradle.org/current/userguide/more_about_tasks.html#disable-state-tracking for more details."
+        "See https://docs.gradle.org/current/userguide/incremental_build.html#disable-state-tracking for more details."
 
     void expectUnreadableCopyDestinationFailure() {
         failure.assertHasDocumentedCause(COPY_UNREADABLE_DESTINATION_FAILURE)
