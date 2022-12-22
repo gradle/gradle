@@ -207,7 +207,7 @@ Since you were expecting more tasks to be cached, you should be able to pinpoint
 Before diving into how to find out why one task has not been loaded from the cache we should first look into which task caused the cache misses.
 There is a cascade effect which causes dependent tasks to be executed if one of the tasks earlier in the build is not loaded from the cache and has different outputs.
 Therefore, you should locate the first cacheable task which was executed and continue investigating from there.
-This can be done from the timeline view in a Build Scan(TM) or from the task input comparison directly:
+This can be done from the timeline view in a Build Scan(TM):
 
 [.screenshot]
 image::build-cache/first-non-cached-task.png[]
