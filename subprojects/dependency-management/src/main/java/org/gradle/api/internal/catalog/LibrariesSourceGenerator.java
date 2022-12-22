@@ -23,6 +23,8 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblem;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
@@ -111,8 +113,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
             writeSubAccessorFieldsOf(pluginsEntryPoint, AccessorKind.plugin);
             writeLn();
             writeLn("@Inject");
-            writeLn("public " + className + "(DefaultVersionCatalog config, ProviderFactory providers, ObjectFactory objects) {");
-            writeLn("    super(config, providers, objects);");
+            writeLn("public " + className + "(DefaultVersionCatalog config, ProviderFactory providers, ObjectFactory objects, ImmutableAttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser) {");
+            writeLn("    super(config, providers, objects, attributesFactory, capabilityNotationParser);");
             writeLn("}");
             writeLn();
             writeLibraryAccessors(librariesEntryPoint);
@@ -139,6 +141,8 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         addImport(AbstractExternalDependencyFactory.class);
         addImport(DefaultVersionCatalog.class);
         addImport(Map.class);
+        addImport(ImmutableAttributesFactory.class);
+        addImport(CapabilityNotationParser.class);
         addImport(Inject.class);
     }
 
@@ -182,7 +186,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         indent(() -> {
             writeSubAccessorFieldsOf(classNode, AccessorKind.bundle);
             writeLn();
-            writeLn("public " + bundleClassName + "(ObjectFactory objects, ProviderFactory providers, DefaultVersionCatalog config) { super(objects, providers, config); }");
+            writeLn("public " + bundleClassName + "(ObjectFactory objects, ProviderFactory providers, DefaultVersionCatalog config, ImmutableAttributesFactory attributesFactory, CapabilityNotationParser capabilityNotationParser) { super(objects, providers, config, attributesFactory, capabilityNotationParser); }");
             writeLn();
             if (isProvider) {
                 String path = classNode.getFullAlias();
@@ -633,7 +637,7 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
     private enum AccessorKind {
         library("libraries", "owner"),
         version("versions", "providers, config"),
-        bundle("bundles", "objects, providers, config"),
+        bundle("bundles", "objects, providers, config, attributesFactory, capabilityNotationParser"),
         plugin("plugins", "providers, config");
 
         private final String description;
