@@ -33,7 +33,6 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample('signing/conditional')
-    @ToBeFixedForConfigurationCache
     def "conditional signing with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))
@@ -54,7 +53,6 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @UsesSample('signing/gnupg-signatory')
     @Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
-    @ToBeFixedForConfigurationCache
     def "use gnupg signatory with dsl #dsl"() {
         setup:
         def projectDir = sample.dir.file(dsl)
@@ -114,7 +112,6 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample('signing/in-memory')
-    @ToBeFixedForConfigurationCache
     def "uses in-memory PGP keys with dsl #dsl"() {
         given:
         def projectDir = sample.dir.file(dsl)
@@ -135,7 +132,6 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample('signing/in-memory-subkey')
-    @ToBeFixedForConfigurationCache
     def "uses in-memory PGP subkeys with dsl #dsl"() {
         given:
         def projectDir = sample.dir.file(dsl)
