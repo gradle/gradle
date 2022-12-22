@@ -106,6 +106,12 @@ public class LocalFileStandInExternalResource extends AbstractExternalResource i
     }
 
     @Override
+    public boolean exists() {
+        listener.fileObserved(localFile);
+        return localFile.exists();
+    }
+
+    @Override
     @Nullable
     public ExternalResourceMetaData getMetaData() {
         FileMetadata fileMetadata = fileSystem.stat(localFile);
