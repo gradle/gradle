@@ -47,6 +47,17 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
         then:
         assertConfigurationCacheStateStored()
 
+        // TODO - this is here because AGP >=7.4 reads build/generated/source/kapt/debug at configuration time
+        when: 'up-to-date build, reusing configuration cache when enabled'
+        buildLocation(originalDir, agpVersion)
+
+        then:
+        if (agpVersion.startsWith('7.3')) {
+            assertConfigurationCacheStateLoaded()
+        } else {
+            assertConfigurationCacheStateStored()
+        }
+
         when: 'up-to-date build, reusing configuration cache when enabled'
         buildLocation(originalDir, agpVersion)
 
