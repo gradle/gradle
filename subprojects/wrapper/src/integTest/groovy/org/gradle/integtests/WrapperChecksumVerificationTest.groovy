@@ -19,13 +19,14 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.internal.hash.Hashing
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.wrapper.WrapperExecutor
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Shared
+
+import static org.gradle.internal.hash.Hashing.sha256
 
 @Issue('https://github.com/gradle/gradle-private/issues/1537')
 // wrapperExecuter requires a real distribution
@@ -131,7 +132,7 @@ Expected checksum: 'bad'
     }
 
     static String getDistributionHash(GradleDistribution distribution) {
-        Hashing.sha256().hashFile(distribution.binDistribution).toZeroPaddedString(Hashing.sha256().hexDigits)
+        sha256().hashFile(distribution.binDistribution).toZeroPaddedString(sha256().hexDigits)
     }
 
     def "wrapper preserves new checksum if it was provided in properties"() {
