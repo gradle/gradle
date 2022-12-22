@@ -19,7 +19,6 @@ package org.gradle.internal.resolve.resolver;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetFactory;
@@ -83,9 +82,10 @@ public class DefaultArtifactSelector implements ArtifactSelector {
     }
 
     private ImmutableSet<ResolvedVariant> buildResolvedVariants(ModuleVersionIdentifier moduleVersionId, ModuleSources sources, Set<? extends VariantResolveMetadata> allVariants, ExcludeSpec exclusions, @Nullable Map<VariantResolveMetadata.Identifier, ResolvedVariant> resolvedVariantCache) {
+        ImmutableCapabilities fallbackCapabilities = ImmutableCapabilities.of(ImmutableCapability.defaultCapabilityForComponent(moduleVersionId));
         ImmutableSet.Builder<ResolvedVariant> resolvedVariantBuilder = ImmutableSet.builder();
         for (VariantResolveMetadata variant : allVariants) {
-            ResolvedVariant resolvedVariant = toResolvedVariant(variant.getIdentifier(), variant.asDescribable(), variant.getAttributes(), variant.getArtifacts(), variant.getCapabilities(), exclusions, moduleVersionId, sources, resolvedVariantCache);
+            ResolvedVariant resolvedVariant = toResolvedVariant(variant.getIdentifier(), variant.asDescribable(), variant.getAttributes(), variant.getArtifacts(), withImplicitCapability(variant.getCapabilities().getCapabilities(), fallbackCapabilities), exclusions, moduleVersionId, sources, resolvedVariantCache);
             resolvedVariantBuilder.add(resolvedVariant);
         }
         return resolvedVariantBuilder.build();
@@ -95,7 +95,7 @@ public class DefaultArtifactSelector implements ArtifactSelector {
                                               DisplayName displayName,
                                               ImmutableAttributes variantAttributes,
                                               ImmutableList<? extends ComponentArtifactMetadata> artifacts,
-                                              CapabilitiesMetadata capabilities,
+                                              ImmutableCapabilities capabilities,
                                               ExcludeSpec exclusions,
                                               ModuleVersionIdentifier ownerId,
                                               ModuleSources moduleSources,
@@ -119,15 +119,15 @@ public class DefaultArtifactSelector implements ArtifactSelector {
         }
     }
 
-    private ResolvedVariant createResolvedVariant(VariantResolveMetadata.Identifier resolvedIdentifier, DisplayName displayName, ImmutableAttributes variantAttributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, CapabilitiesMetadata capabilities, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, List<? extends ComponentArtifactMetadata> artifactsToResolve) {
+    private ResolvedVariant createResolvedVariant(VariantResolveMetadata.Identifier resolvedIdentifier, DisplayName displayName, ImmutableAttributes variantAttributes, ImmutableList<? extends ComponentArtifactMetadata> artifacts, ImmutableCapabilities capabilities, ModuleVersionIdentifier ownerId, ModuleSources moduleSources, List<? extends ComponentArtifactMetadata> artifactsToResolve) {
         ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(variantAttributes, artifacts);
-        return ArtifactSetFactory.toResolvedVariant(resolvedIdentifier, displayName, attributes, artifactsToResolve, withImplicitCapability(capabilities.getCapabilities(), ownerId), ownerId, moduleSources, artifactResolver);
+        return ArtifactSetFactory.toResolvedVariant(resolvedIdentifier, displayName, attributes, artifactsToResolve, capabilities, ownerId, moduleSources, artifactResolver);
     }
 
-    private static ImmutableCapabilities withImplicitCapability(Collection<? extends Capability> capabilities, ModuleVersionIdentifier identifier) {
+    private static ImmutableCapabilities withImplicitCapability(Collection<? extends Capability> capabilities, ImmutableCapabilities fallbackCapabilities) {
         // TODO: This doesn't seem right. We should know the capability of the variant before we get here instead of assuming that it's the same as the owner
         if (capabilities.isEmpty()) {
-            return ImmutableCapabilities.of(ImmutableCapability.defaultCapabilityForComponent(identifier));
+            return fallbackCapabilities;
         } else {
             return ImmutableCapabilities.copyAsImmutable(capabilities);
         }

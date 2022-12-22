@@ -206,7 +206,7 @@ include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",fil
 ====
 
 For more information about incremental builds, check out the
-<<more_about_tasks.adoc#sec:up_to_date_checks,incremental builds documentation>>.
+<<incremental_build.adoc#incremental_build,incremental build documentation>>.
 
 === Visualize incremental builds with build scan timelines
 

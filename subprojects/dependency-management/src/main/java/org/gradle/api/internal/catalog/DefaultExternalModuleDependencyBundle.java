@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.provider
+package org.gradle.api.internal.catalog;
 
+import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
+import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 
-object KotlinDslPluginSupport {
+import java.util.ArrayList;
 
-    val kotlinCompilerArgs: List<String>
-        get() = listOf(
-            "-java-parameters",
-            "-Xjvm-default=all",
-            "-Xjsr305=strict",
-            "-Xsam-conversions=class",
-            "-XXLanguage:+DisableCompatibilityModeForNewInference",
-            "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
-        )
+/**
+ * Default implementation of {@link ExternalModuleDependencyBundle}.
+ */
+public class DefaultExternalModuleDependencyBundle extends ArrayList<MinimalExternalModuleDependency> implements ExternalModuleDependencyBundle {
 }
