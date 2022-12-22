@@ -63,4 +63,62 @@ class ResolvePOMSpec extends AbstractIntegrationSpec {
         expect:
         succeeds "build"
     }
+
+    def "getting the file for a @pom artifact from an included build replacing an external library doesn't fail the build"() {
+        given:
+        def mainProjectDir = file("main-project")
+        def includedLoggingProjectDir = file("included-logging")
+
+        mainProjectDir.file("settings.gradle.kts").text = """
+            rootProject.name = "main-project"
+            include("app")
+            includeBuild("../included-logging")
+        """
+
+        mainProjectDir.file("app/build.gradle.kts").text = """
+            plugins {
+                application
+            }
+
+            dependencies {
+                implementation("org.gradle.repro:lib@pom")
+            }
+
+            tasks.register("resolve") {
+                doLast {
+                    val c: Configuration = configurations.getByName("compileClasspath")
+                    c.getResolvedConfiguration()
+                        .getLenientConfiguration()
+                        .getAllModuleDependencies()
+                        .map { it.getAllModuleArtifacts() }
+                        .forEach { mas ->
+                            mas.forEach { a ->
+                                println(a.getFile())
+                            }
+                        }
+                }
+            }
+        """
+
+        includedLoggingProjectDir.file("settings.gradle.kts").text = """
+            rootProject.name = "included-logging"
+            include("lib")
+        """
+
+        includedLoggingProjectDir.file("lib/build.gradle.kts").text = """
+            plugins {
+                `java-library`
+            }
+        """
+
+        includedLoggingProjectDir.file("gradle.properties").text = """
+            group=org.gradle.repro
+            version=0.1.0-SNAPSHOT
+        """
+
+        executer.inDirectory(mainProjectDir)
+
+        expect:
+        succeeds "resolve"
+    }
 }
