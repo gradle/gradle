@@ -140,13 +140,13 @@ For more information, see [Toolchain Download Repositories](https://github.com/g
 
 Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assistance, refactoring, documentation, and more.
 
-#### Updated the Kotlin DSL to Kotlin API Level 1.5
+#### Updated the Kotlin DSL to Kotlin API Level 1.8
 
 Previously, the Kotlin DSL used Kotlin API level 1.4.
-Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.5.
+Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.8.
 This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0.
 
-For information about breaking and nonbreaking changes in this upgrade, see the [upgrading guide](userguide/upgrading_version_7.html#kotlin_language_1_5).
+For information about breaking and nonbreaking changes in this upgrade, see the [upgrading guide](userguide/upgrading_version_7.html#kotlin_language_1_8).
 
 #### Enhanced script compilation to use the Gradle JVM as Kotlin JVM Target
 

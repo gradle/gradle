@@ -517,23 +517,29 @@ Use the link:java_gradle_plugin.html[`java-gradle-plugin`]'s `validatePlugins` t
 Gradle changes the compression library used for creating archives from an Ant based one to https://commons.apache.org/proper/commons-compress/[Apache Commons Compress™].
 As a consequence archives created from the same content, are unlikely to end up identical byte-by-byte to their older versions, created with the old library.
 
-[[kotlin_1_7_22]]
-==== Upgrade to Kotlin 1.7.22
+[[kotlin_1_8.0]]
+==== Upgrade to Kotlin 1.8.0
 
-The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.7.22[Kotlin 1.7.22].
-For more information, see the release notes for Kotlin https://github.com/JetBrains/kotlin/releases/tag/v1.7.20[1.7.20] and https://github.com/JetBrains/kotlin/releases/tag/v1.7.21[1.7.21].
+The embedded Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.8.0[Kotlin 1.8.0].
+For more information, see the release notes for Kotlin
 
-[[kotlin_language_1_5]]
-==== Updated the Kotlin DSL to Kotlin API Level 1.5
+* https://github.com/JetBrains/kotlin/releases/tag/v1.7.20[1.7.20]
+* https://github.com/JetBrains/kotlin/releases/tag/v1.7.21[1.7.21]
+* https://github.com/JetBrains/kotlin/releases/tag/v1.8.0[1.8.0]
+
+[[kotlin_language_1_8]]
+==== Updated the Kotlin DSL to Kotlin API Level 1.8
 
 Previously, the Kotlin DSL used Kotlin API level 1.4.
-Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.5.
+Starting with Gradle 8.0, the Kotlin DSL uses Kotlin API level 1.8.
 This change brings all the improvements made to the Kotlin language and standard library since Kotlin 1.4.0.
 
 For information about breaking and nonbreaking changes in this upgrade, see the following links to the Kotlin documentation:
 
-* Kotlin 1.5 link:https://kotlinlang.org/docs/whatsnew15.html#language-features[language]
-* Kotlin 1.5 link:https://kotlinlang.org/docs/whatsnew17.html#standard-library[stdlib]
+* Kotlin 1.5 link:https://kotlinlang.org/docs/whatsnew15.html#language-features[language] / link:https://kotlinlang.org/docs/whatsnew15.html#standard-library[standard library]
+* Kotlin 1.6 link:https://kotlinlang.org/docs/whatsnew16.html#language[language] / link:https://kotlinlang.org/docs/whatsnew16.html#standard-library[standard library]
+* Kotlin 1.7 link:https://kotlinlang.org/docs/whatsnew17.html#language[language] / link:https://kotlinlang.org/docs/whatsnew17.html#standard-library[standard library]
+* Kotlin 1.8 link:https://kotlinlang.org/docs/whatsnew18.html#language[language] / link:https://kotlinlang.org/docs/whatsnew18.html#standard-library[standard library]
 
 [[kotlin_dsl_plugin_toolchains]]
 ==== `kotlinDslPluginOptions.jvmTarget` is deprecated
