@@ -48,9 +48,9 @@ class InstallTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    @Shared @ClassRule TestNameTestDirectoryProvider commonTemporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
-    @Shared TestFile templateZipFile = new TestFile(commonTemporaryFolder.testDirectory, "template-gradle.zip")
-    @Shared TestFile templateEvalZipFile = new TestFile(commonTemporaryFolder.testDirectory, "template-eval-gradle.zip")
+    @Shared @ClassRule TestNameTestDirectoryProvider sharedTemporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
+    @Shared TestFile templateZipFile = new TestFile(sharedTemporaryFolder.testDirectory, "template-gradle.zip")
+    @Shared TestFile templateEvalZipFile = new TestFile(sharedTemporaryFolder.testDirectory, "template-eval-gradle.zip")
     @Shared String templateZipHash
     @Shared String templateEvalZipHash
 
@@ -81,7 +81,7 @@ class InstallTest extends Specification {
     }
 
     void createTestZip(File zipDestination) {
-        TestFile explodedZipDir = commonTemporaryFolder.createDir('explodedZip')
+        TestFile explodedZipDir = sharedTemporaryFolder.createDir('explodedZip')
         TestFile gradleScript = explodedZipDir.file('gradle-0.9/bin/gradle')
         gradleScript.parentFile.createDir()
         gradleScript.write('something')
@@ -171,7 +171,7 @@ class InstallTest extends Specification {
         0 * download._
     }
 
-    def "get distribution hash"() {
+    def "successfully get distribution hash"() {
         when:
 
         def hash = install.fetchDistributionSha256Sum(configuration, new TestFile(zipStore, zipFileName))
@@ -181,8 +181,12 @@ class InstallTest extends Specification {
         hash == FETCHED_HASH
 
         and:
-        1 * download.download(new URI(configuration.distribution.toString() + ".sha256"), _) >> { createFile(it[1]) }
+        1 * download.download(distributionHashUri, _) >> { createFile(it[1]) }
         0 * download._
+    }
+
+    private getDistributionHashUri() {
+        new URI(configuration.distribution.toString() + ".sha256")
     }
 
     def "fail on getting distribution hash"() {
@@ -195,7 +199,7 @@ class InstallTest extends Specification {
         hash == null
 
         and:
-        1 * download.download(new URI(configuration.distribution.toString() + ".sha256"), _) >> { throw new Exception() }
+        1 * download.download(distributionHashUri, _) >> { throw new Exception() }
         0 * download._
     }
 
