@@ -175,7 +175,10 @@ fun customValueSearchUrl(search: Map<String, String>): String {
 
 fun String.urlEncode() = URLEncoder.encode(this, Charsets.UTF_8.name())
 
-val performanceService = gradle.sharedServices.registerIfAbsent("cpuPerformanceCapturing", CpuPerformanceCapturingService::class.java) {}.get()
+val performanceService = gradle.sharedServices.registerIfAbsent("cpuPerformanceCapturing", CpuPerformanceCapturingService::class.java) {}
+gradle.serviceOf<BuildEventsListenerRegistry>().onTaskCompletion(performanceService)
+
 buildScan?.let {
+    println("Add perfm measuremenet")
     addPerformanceMeasurement(it, performanceService)
 }

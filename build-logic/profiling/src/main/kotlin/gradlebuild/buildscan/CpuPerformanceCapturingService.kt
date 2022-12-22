@@ -17,6 +17,7 @@
 package gradlebuild.buildscan
 
 import com.gradle.scan.plugin.BuildScanExtension
+import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
@@ -24,6 +25,8 @@ import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecOperations
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationCompletionListener
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -57,25 +60,34 @@ abstract class PmSetValueSource : ValueSource<Int?, ValueSourceParameters.None> 
             ?.toInt()
 }
 
-abstract class CpuPerformanceCapturingService : BuildService<BuildServiceParameters.None>, AutoCloseable {
+abstract class CpuPerformanceCapturingService : BuildService<BuildServiceParameters.None>, AutoCloseable, OperationCompletionListener {
     private val scheduler: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
     private val performanceSamples = ConcurrentLinkedQueue<Int>()
 
     @get:Inject
     abstract val providerFactory: ProviderFactory
 
+    private val pmSetValue = providerFactory.of(PmSetValueSource::class.java) {}
+
     init {
+        println("Perf service initializing...")
         if (OperatingSystem.current().isMacOsX) {
             val captureDataPoint = {
-                val speedLimit = speedLimit()
+                println("Query speed limit")
+                val speedLimit = querySpeedLimit()
+                println("Speed limit: $speedLimit")
                 if (speedLimit != null) {
                     performanceSamples.add(speedLimit)
                 }
             }
             scheduler.scheduleAtFixedRate(captureDataPoint, 0, 5, TimeUnit.SECONDS)
+            println("Perf service started")
         } else {
             println("Not running on MacOS - no thermal throttling data will be captured")
         }
+    }
+
+    override fun onFinish(event: FinishEvent?) {
     }
 
     override fun close() {
@@ -100,9 +112,8 @@ abstract class CpuPerformanceCapturingService : BuildService<BuildServiceParamet
             samples[index - 1]
         } else -1
 
-    private fun speedLimit(): Int? {
-        val valueProvider = providerFactory.of(PmSetValueSource::class.java) {}
-        return valueProvider.get()
+    private fun querySpeedLimit(): Int? {
+        return pmSetValue.get()
     }
 
     data class CpuPerformance(
@@ -115,9 +126,12 @@ abstract class CpuPerformanceCapturingService : BuildService<BuildServiceParamet
     data class Percentile(val rank: Int, val value: Int)
 }
 
-fun addPerformanceMeasurement(buildScan: BuildScanExtension, performanceService: CpuPerformanceCapturingService) {
+fun addPerformanceMeasurement(buildScan: BuildScanExtension, performanceService: Provider<CpuPerformanceCapturingService>) {
     buildScan.buildFinished {
-        performanceService.getCpuPerformance()?.apply {
+        println("Build scan - build finished")
+        println(performanceService.get().getCpuPerformance())
+        performanceService.get().getCpuPerformance()?.apply {
+            println("Add perfm measuremenet values")
             buildScan.value("CPU Performance Average", average.toString())
             buildScan.value("CPU Performance Max", max.toString())
             buildScan.value("CPU Performance Median", median.toString())
