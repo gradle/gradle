@@ -27,6 +27,7 @@ import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.classpath.intercept.Invocation;
+import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -39,6 +40,8 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -119,6 +122,7 @@ public class Instrumented {
         new FileCheckInterceptor.FileIsFileInterceptor(),
         new FileCheckInterceptor.FileIsDirectoryInterceptor(),
         new FileListFilesInterceptor(),
+        new FilesReadStringInterceptor(),
         new ProcessGroovyMethodsExecuteInterceptor(),
         new ProcessBuilderStartInterceptor(),
         new ProcessBuilderStartPipelineInterceptor(),
@@ -388,6 +392,22 @@ public class Instrumented {
     }
 
     private static final MethodHandle FILESKT_READ_TEXT_DEFAULT = findStaticOrThrowError(FilesKt.class, "readText$default", kotlinDefaultMethodType(String.class, File.class, Charset.class));
+
+    public static String filesReadString(Path file, String consumer) throws Throwable {
+        listener().fileOpened(file.toFile(), consumer);
+        return (String) FILES_READ_STRING_PATH.get().invokeExact(file);
+    }
+
+    public static String filesReadString(Path file, Charset charset, String consumer) throws Throwable {
+        listener().fileOpened(file.toFile(), consumer);
+        return (String) FILES_READ_STRING_PATH_CHARSET.get().invokeExact(file, charset);
+    }
+
+    // These are initialized lazily, as we may be running a Java version < 11 which does not have the APIs.
+    private static final Lazy<MethodHandle> FILES_READ_STRING_PATH =
+        Lazy.locking().of(() -> findStaticOrThrowError(Files.class, "readString", MethodType.methodType(String.class, Path.class)));
+    private static final Lazy<MethodHandle> FILES_READ_STRING_PATH_CHARSET =
+        Lazy.locking().of(() -> findStaticOrThrowError(Files.class, "readString", MethodType.methodType(String.class, Path.class, Charset.class)));
 
     @SuppressWarnings("unchecked")
     public static List<Process> startPipeline(List<ProcessBuilder> pipeline, String consumer) throws IOException {
@@ -813,6 +833,32 @@ public class Instrumented {
                             return Instrumented.fileListFiles(fileReceiver, (FileFilter) arg0, consumer);
                         } else if (arg0 instanceof FilenameFilter) {
                             return Instrumented.fileListFiles(fileReceiver, (FilenameFilter) arg0, consumer);
+                        }
+                    }
+                }
+            }
+            return invocation.callOriginal();
+        }
+    }
+
+    private static class FilesReadStringInterceptor extends ClassBoundCallInterceptor {
+        public FilesReadStringInterceptor() {
+            super(Files.class, InterceptScope.methodsNamed("readString"));
+        }
+
+        @Override
+        protected Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable {
+            if (invocation.getArgsCount() >= 1 && invocation.getArgsCount() <= 2) {
+                Object arg0 = invocation.getArgument(0);
+                if (arg0 instanceof Path) {
+                    Path arg0Path = (Path) arg0;
+                    if (invocation.getArgsCount() == 1) {
+                        return Instrumented.filesReadString(arg0Path, consumer);
+                    } else if (invocation.getArgsCount() == 2) {
+                        Object arg1 = invocation.getArgument(1);
+                        if (arg1 instanceof Charset) {
+                            Charset arg1Charset = (Charset) arg1;
+                            return Instrumented.filesReadString(arg0Path, arg1Charset, consumer);
                         }
                     }
                 }
