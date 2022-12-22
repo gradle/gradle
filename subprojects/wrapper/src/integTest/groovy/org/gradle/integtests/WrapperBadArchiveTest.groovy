@@ -27,16 +27,18 @@ import spock.lang.Issue
 import static org.gradle.integtests.WrapperChecksumVerificationTest.getDistributionHash
 
 @Issue('https://github.com/gradle/gradle-private/issues/1537')
-@IgnoreIf({ GradleContextualExecuter.embedded }) // wrapperExecuter requires a real distribution
+// wrapperExecuter requires a real distribution
+@IgnoreIf({ GradleContextualExecuter.embedded })
 class WrapperBadArchiveTest extends AbstractWrapperIntegrationSpec {
 
     private static final String GRADLE_BIN_ZIP = "/gradle-bin.zip"
     private static final String GRADLE_BIN_HASH = "/gradle-bin.zip.sha256"
+    private static final String BAD_ARCHIVE_CONTENT = "bad archive content"
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
-    TestFile badArchive = file("bad-archive.zip") << "bad archive content"
+    TestFile badArchive = file("bad-archive.zip") << BAD_ARCHIVE_CONTENT
 
     def "wrapper gets bad archive on 1 attempt"() {
         given:

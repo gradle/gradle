@@ -17,6 +17,8 @@
 package org.gradle.wrapper
 
 
+import org.apache.tools.tar.TarEntry
+import org.apache.tools.tar.TarOutputStream
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -27,6 +29,8 @@ import spock.lang.Specification
 
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+
+import static org.gradle.internal.hash.Hashing.sha256
 
 @CleanupTestDirectory
 class InstallTest extends Specification {
@@ -48,7 +52,9 @@ class InstallTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    @Shared @ClassRule TestNameTestDirectoryProvider sharedTemporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
+    @Shared
+    @ClassRule
+    TestNameTestDirectoryProvider sharedTemporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
     @Shared TestFile templateZipFile = new TestFile(sharedTemporaryFolder.testDirectory, "template-gradle.zip")
     @Shared TestFile templateEvalZipFile = new TestFile(sharedTemporaryFolder.testDirectory, "template-eval-gradle.zip")
     @Shared String templateZipHash
@@ -171,6 +177,44 @@ class InstallTest extends Specification {
         0 * download._
     }
 
+    private static final String BAD_ARCHIVE_CONTENT = "bad archive content"
+    private static final byte[] RANDOM_ARCHIVE_CONTENT = new byte[]{182, 1, 128, 190, 122, 230, 21, 36, 231, 12, 76, 55, 153, 47, 240, 243, 134, 36, 10, 184, 61, 55, 6, 64, 230, 153, 135, 132,
+        7, 239, 222, 197, 147, 196, 58, 84, 178, 49, 167, 116, 21, 100, 66, 160, 138, 91, 98, 247, 25, 124, 43, 39, 195, 86, 103, 117, 5, 152, 111, 3, 3, 42, 169, 64, 41, 64, 104, 3, 105, 4, 99, 210,
+        14, 108, 117, 74, 201, 213, 28, 246, 53, 15, 42, 209, 56, 253, 215, 76, 212, 132, 243, 51, 211, 194, 170, 223, 74, 216, 183, 141, 175, 42, 200, 109, 101, 60, 147, 36, 143, 155, 133, 184, 254,
+        0, 47, 144, 204, 150, 14, 220, 51, 4, 169, 251, 189, 32, 221, 117, 157, 240, 78, 109, 16, 125, 255, 243, 36, 118, 252, 135, 191, 123, 122, 243, 229, 127, 1, 155, 141, 181, 96, 201, 75, 7, 32,
+        199, 116, 181, 80, 151, 11, 11, 30, 130, 160}
+
+
+    def "refuses to install distribution with #name zip and retry"() {
+        given:
+        _ * pathAssembler.getDistribution(configuration) >> localDistribution
+        _ * localDistribution.distributionDir >> distributionDir
+        _ * localDistribution.zipFile >> zipDestination
+
+        when:
+        install.createDist(configuration)
+
+        then:
+        def failure = thrown(RuntimeException)
+        failure.message.matches(/[\S\s]*Downloaded distribution file .* is no valid zip file\.[\S\s]*/)
+
+        and:
+        3 * download.download(configuration.distribution, _) >> { createFile(it[1], content) }
+        1 * download.download(distributionHashUri, _) >> { createFile(it[1], calcHash(content)) }
+        0 * download._
+
+        where:
+        content                         | name
+        BAD_ARCHIVE_CONTENT.getBytes()  | "bad archive"
+        RANDOM_ARCHIVE_CONTENT          | "random content"
+        new byte[0]                     | "empty file"
+        getEvilTarData()                | "evil tar"
+    }
+
+    private calcHash(byte[] bytes) {
+        sha256().hashBytes(bytes).toZeroPaddedString(sha256().hexDigits)
+    }
+
     def "successfully get distribution hash"() {
         when:
 
@@ -181,7 +225,7 @@ class InstallTest extends Specification {
         hash == FETCHED_HASH
 
         and:
-        1 * download.download(distributionHashUri, _) >> { createFile(it[1]) }
+        1 * download.download(distributionHashUri, _) >> { createFile(it[1], FETCHED_HASH.getBytes()) }
         0 * download._
     }
 
@@ -204,20 +248,34 @@ class InstallTest extends Specification {
     }
 
 
-    void createFile(File file) {
+    private createFile(File file, byte[] bytes) {
         file.parentFile.mkdirs()
         new FileOutputStream(file).withCloseable { FileOutputStream fos ->
-            fos.write(FETCHED_HASH.getBytes())
+            fos.write(bytes)
         }
     }
 
     static void createEvilZip(File zipDestination) {
         zipDestination.withOutputStream {
-            new ZipOutputStream(it).withCloseable { ZipOutputStream zos ->
+            new ZipOutputStream(it).withCloseable {  zos ->
                 zos.putNextEntry(new ZipEntry('../../tmp/evil.sh'))
                 zos.write("evil".getBytes('utf-8'))
                 zos.closeEntry()
             }
         }
     }
+
+    static byte[] getEvilTarData() {
+        def outputStream = new ByteArrayOutputStream()
+            new TarOutputStream(outputStream).withCloseable {  zos ->
+                def bytes = "evil".getBytes('utf-8')
+                def entry = new TarEntry('../../tmp/evil.sh')
+                entry.size = bytes.length
+                zos.putNextEntry(entry)
+                zos.write(bytes)
+                zos.closeEntry()
+            }
+        return outputStream.toByteArray()
+    }
+
 }
