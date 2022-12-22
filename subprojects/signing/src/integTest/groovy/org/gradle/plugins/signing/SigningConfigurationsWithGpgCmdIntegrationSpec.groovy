@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+
 import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider
 import org.gradle.util.Requires
 
@@ -25,7 +25,6 @@ class SigningConfigurationsWithGpgCmdIntegrationSpec extends SigningConfiguratio
         return SignMethod.GPG_CMD
     }
 
-    @ToBeFixedForConfigurationCache
     def "does not leak passphrase at info logging"() {
         given:
         buildFile << """
