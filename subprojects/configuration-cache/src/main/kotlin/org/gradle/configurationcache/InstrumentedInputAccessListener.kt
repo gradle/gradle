@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.file.FileCollection
 import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.configurationcache.services.EnvironmentChangeTracker
@@ -119,9 +118,5 @@ class InstrumentedInputAccessListener(
 
     override fun fileObserved(file: File, consumer: String?) {
         undeclaredInputBroadcast.fileObserved(file, consumer)
-    }
-
-    override fun fileCollectionObserved(fileCollection: FileCollection, consumer: String) {
-        undeclaredInputBroadcast.fileCollectionObserved(fileCollection, consumer)
     }
 }

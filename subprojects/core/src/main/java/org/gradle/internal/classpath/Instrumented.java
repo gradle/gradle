@@ -20,7 +20,6 @@ import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
-import org.gradle.api.file.FileCollection;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
@@ -76,9 +75,6 @@ public class Instrumented {
         public void fileObserved(File file, String consumer) {
         }
 
-        @Override
-        public void fileCollectionObserved(FileCollection fileCollection, String consumer) {
-        }
     };
 
     private static final AtomicReference<Listener> LISTENER = new AtomicReference<>(NO_OP);
@@ -354,10 +350,6 @@ public class Instrumented {
         }
     }
 
-    public static void fileCollectionObserved(FileCollection fileCollection, String consumer) {
-        listener().fileCollectionObserved(fileCollection, consumer);
-    }
-
     public static void fileObserved(File file, String consumer) {
         listener().fileObserved(absoluteFileOf(file), consumer);
     }
@@ -482,11 +474,6 @@ public class Instrumented {
         void fileOpened(File file, String consumer);
 
         void fileObserved(File file, String consumer);
-
-        /**
-         * Invoked when configuration logic observes the given file collection.
-         */
-        void fileCollectionObserved(FileCollection inputs, String consumer);
     }
 
     /**
