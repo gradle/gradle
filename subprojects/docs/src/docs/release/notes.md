@@ -135,7 +135,6 @@ plugins {
 
 For more information, see [Toolchain Download Repositories](https://github.com/gradle/gradle/blob/release/subprojects/docs/src/docs/release/userguide/toolchains.html#sec:provisioning).
 
-
 ###  Kotlin DSL
 
 Gradle's [Kotlin DSL](userguide/kotlin_dsl.html) provides an alternative syntax to the traditional Groovy DSL with an enhanced editing experience in supported IDEs, with superior content assistance, refactoring, documentation, and more.
@@ -168,7 +167,7 @@ See the [`kotlin-dsl` plugin manual](userguide/kotlin_dsl.adoc#sec:kotlin-dsl_pl
 
 Gradle 8.0 introduces an interpreter for the [declarative plugins {} blocks](https://github.com/gradle/gradle/blob/release/subprojects/docs/src/docs/release/userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts that make the overall build time around 20% faster. By default, calling the Kotlin compiler for declarative `plugins {}` blocks is avoided.
 
-To utilize this performance, ensure you are using the supported formats in the declarative `plugins {}` blocks:
+To utilize this performance, ensure you are using the supported formats in the declarative `plugins {}` blocks, for example:
 
 ```kotlin
 plugins {
@@ -183,23 +182,7 @@ plugins {
 
 Note that using version catalog aliases for plugins or plugin specification type-safe accessors is not supported by the `plugins {}` block interpreter.
 
-Here are examples of unsupported constructs:
-
-```kotlin
-plugins {
-    val v = "2"
-    id("some") version v    // <1>
-
-    `java-library`          // <2>
-    alias(libs.plugins.jmh) // <3>
-}
-```
-1. Non-declarative code, unsupported
-2. Plugin specification type-safe accessor, unsupported
-3. Version catalog plugin reference, unsupported
-
-In the cases above, Gradle falls back to the Kotlin compiler, providing the same performance as previous Gradle releases.
-
+In unsupported cases, Gradle falls back to the Kotlin compiler, providing the same performance as previous Gradle releases.
 
 ### General Improvements
 
@@ -212,7 +195,6 @@ If there were two warnings with the same message, but originating from different
 Now one gets printed for each combination of message and stack trace.
 
 For more information about warning modes, see [Showing or hiding warnings](userguide/command_line_interface.html#sec:command_line_warnings).
-
 
 #### Improved Dependency verification metadata
 
