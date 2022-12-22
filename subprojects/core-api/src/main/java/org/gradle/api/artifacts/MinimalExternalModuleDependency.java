@@ -26,4 +26,10 @@ import org.gradle.internal.HasInternalProtocol;
 public interface MinimalExternalModuleDependency extends ExternalModuleDependency {
     ModuleIdentifier getModule();
     VersionConstraint getVersionConstraint();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    MinimalExternalModuleDependency copy();
 }

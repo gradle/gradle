@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.provider
+package org.gradle.api.internal.artifacts.dsl;
 
+import org.gradle.api.capabilities.Capability;
+import org.gradle.internal.typeconversion.NotationParser;
 
-object KotlinDslPluginSupport {
-
-    val kotlinCompilerArgs: List<String>
-        get() = listOf(
-            "-java-parameters",
-            "-Xjvm-default=all",
-            "-Xjsr305=strict",
-            "-Xsam-conversions=class",
-            "-XXLanguage:+DisableCompatibilityModeForNewInference",
-            "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
-        )
+/**
+ * A concrete type for a generic {@link NotationParser} that parses {@link Capability}s.
+ * <p>
+ * This concrete type is necessary so that it can be injected into version catalog generated sources.
+ */
+public interface CapabilityNotationParser extends NotationParser<Object, Capability> {
 }

@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-plugins {
-    id "org.jetbrains.kotlin.jvm" version "1.8.0-RC2"
-}
+package org.gradle.api.internal.artifacts.dependencies;
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.api.artifacts.MinimalExternalModuleDependency;
+import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.typeconversion.NotationParser;
 
-repositories {
-    mavenCentral()
-}
+public interface MinimalExternalModuleDependencyInternal extends MinimalExternalModuleDependency {
+    void copyTo(AbstractExternalModuleDependency target);
 
-// tag::configure[]
-tasks.withType(KotlinCompile).configureEach {
-    kotlinOptions.freeCompilerArgs += "-Xsam-conversions=class"
+    ImmutableAttributesFactory getAttributesFactory();
+
+    NotationParser<Object, Capability> getCapabilityNotationParser();
 }
-// tag::configure[]
