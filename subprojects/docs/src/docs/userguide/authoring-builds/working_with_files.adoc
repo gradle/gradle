@@ -205,7 +205,7 @@ In this case, we're taking the runtime dependencies of the project — `configur
 [[sec:creating_directories_example]]
 == Creating directories
 
-Many tasks need to create directories to store the files they generate, which is why Gradle automatically manages this aspect of tasks when they explicitly define file and directory outputs. You can learn about this feature in the <<more_about_tasks.adoc#sec:up_to_date_checks,incremental build>> section of the user manual. All core Gradle tasks ensure that any output directories they need are created if necessary using this mechanism.
+Many tasks need to create directories to store the files they generate, which is why Gradle automatically manages this aspect of tasks when they explicitly define file and directory outputs. You can learn about this feature in the <<incremental_build.adoc#incremental_build,incremental build>> section of the user manual. All core Gradle tasks ensure that any output directories they need are created if necessary using this mechanism.
 
 In cases where you need to create a directory manually, you can use the standard `{javaApi}/java/nio/file/Files.html#createDirectories-java.nio.file.Path-java.nio.file.attribute.FileAttribute++...++-[Files.createDirectories]` or `{javaApi}/java/io/File.html#mkdirs--[File.mkdirs]` methods from within your build scripts or custom task implementations. Here's a simple example that creates a single `images` directory in the project folder:
 
@@ -302,7 +302,7 @@ include::sample[dir="snippets/files/sampleJavaProject/groovy",files="build.gradl
 
 See how we're using the `compileJava` task as the source of the files to package and we've created a project property `archivesDirPath` to store the location where we put archives, on the basis we're likely to use it elsewhere in the build.
 
-Using a task directly as an argument like this relies on it having <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>>, so it won't always be possible.
+Using a task directly as an argument like this relies on it having <<incremental_build.adoc#sec:task_inputs_outputs,defined outputs>>, so it won't always be possible.
 In addition, this example could be improved further by relying on the Java plugin's convention for `destinationDirectory` rather than overriding it, but it does demonstrate the use of project properties.
 
 [[sec:single_file_paths]]
@@ -347,7 +347,7 @@ You will also find that many parts of the Gradle API use `FileCollection`, such 
 
 The recommended way to specify a collection of files is to use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object++...++)] method, which returns a `FileCollection` instance.
 This method is very flexible and allows you to pass multiple strings, `File` instances, collections of strings, collections of ``File``s, and more.
-You can even pass in tasks as arguments if they have <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>>.
+You can even pass in tasks as arguments if they have <<incremental_build.adoc#sec:task_inputs_outputs,defined outputs>>.
 Learn about all the supported argument types in the reference guide.
 
 [CAUTION]
@@ -544,7 +544,7 @@ Not only does `from()` accept multiple arguments, it also allows several differe
  * A `String` — treated as a file path or, if it starts with "file://", a file URI
  * A `File` — used as a file path
  * A `FileCollection` or `FileTree` — all files in the collection are included in the copy
- * A task — the files or directories that form a task's <<more_about_tasks.adoc#sec:task_inputs_outputs,defined outputs>> are included
+ * A task — the files or directories that form a task's <<incremental_build.adoc#sec:task_inputs_outputs,defined outputs>> are included
 
 In fact, `from()` accepts all the same arguments as link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object...)] so see that method for a more detailed list of acceptable types.
 
@@ -729,11 +729,11 @@ include::sample[dir="snippets/files/copy/groovy",files="build.gradle[tags=copy-m
 
 The above example demonstrates the basic syntax and also highlights two major limitations of using the `copy()` method:
 
- 1. The `copy()` method is not <<more_about_tasks.adoc#sec:up_to_date_checks,incremental>>. The example's `copyMethod` task will _always_ execute because it has no information about what files make up the task's inputs. You have to manually define the task inputs and outputs.
+ 1. The `copy()` method is not <<incremental_build.adoc#incremental_build,incremental>>. The example's `copyMethod` task will _always_ execute because it has no information about what files make up the task's inputs. You have to manually define the task inputs and outputs.
 
  2. Using a task as a copy source, i.e. as an argument to `from()`, won't set up an automatic task dependency between your task and that copy source. As such, if you are using the `copy()` method as part of a task action, you must explicitly declare all inputs and outputs in order to get the correct behavior.
 
-The following example shows you how to workaround these limitations by using the <<more_about_tasks.adoc#sec:task_input_output_runtime_api,dynamic API for task inputs and outputs>>:
+The following example shows you how to workaround these limitations by using the <<incremental_build.adoc#sec:task_input_output_runtime_api,dynamic API for task inputs and outputs>>:
 
 .Copying files using the copy() method with up-to-date check
 ====
