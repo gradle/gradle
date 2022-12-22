@@ -18,6 +18,8 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
+import java.util.jar.JarOutputStream
+
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 abstract class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
@@ -62,6 +64,7 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
         def compiledClassFile = checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
 
         when:
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         def result = buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
         def md5Before = compiledClassFile.md5Hash
 
@@ -71,6 +74,7 @@ class AndroidSantaTrackerIncrementalCompilationSmokeTest extends AndroidSantaTra
 
         when:
         fileToChange.replace("computeCurrentVelocity(1000", "computeCurrentVelocity(2000")
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         buildLocationMaybeExpectingWorkerExecutorDeprecation(checkoutDir, agpVersion)
         def md5After = compiledClassFile.md5Hash
 
@@ -105,6 +109,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
             checkoutDir, agpVersion,
             "common:lintDebug", "playgames:lintDebug", "doodles-lib:lintDebug"
         )
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
         def result = runner.buildAndFail()
@@ -118,6 +123,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
             checkoutDir, agpVersion,
             "common:lintDebug", "playgames:lintDebug", "doodles-lib:lintDebug"
         )
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         runner.withArguments(runner.arguments + "--continue")
         result = runner.buildAndFail()
 
@@ -127,5 +133,31 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
 
         where:
         agpVersion << TESTED_AGP_VERSIONS.findAll { !it.startsWith("4.")}
+    }
+}
+
+class SantaTrackerConfigurationCacheWorkaround {
+    static void beforeBuild(File checkoutDir, File gradleHome) {
+        // Workaround for Android Gradle plugin checking for the presence of these directories at configuration time,
+        // which invalidates configuration cache if their presence changes. Create these directories before the first build.
+        // See: https://android.googlesource.com/platform/tools/base/+/studio-master-dev/build-system/gradle-core/src/main/java/com/android/build/gradle/tasks/ShaderCompile.java#120
+        // TODO: remove this once AGP stops checking for the existence of these directories at configuration time
+        checkoutDir.listFiles().findAll { it.isDirectory() && new File(it, "build.gradle").exists() }.each {
+            new File(it, "build/intermediates/merged_shaders/debug/out").mkdirs()
+            new File(it, "build/intermediates/merged_shaders/debugUnitTest/out").mkdirs()
+            new File(it, "build/intermediates/merged_shaders/debugAndroidTest/out").mkdirs()
+            new File(it, "build/intermediates/merged_shaders/release/out").mkdirs()
+            new File(it, "build/intermediates/merged_shaders/releaseAndroidTest/out").mkdirs()
+        }
+        File androidAnalyticsSetting = new File(System.getProperty("user.home"), ".android/analytics.settings")
+        if (!androidAnalyticsSetting.exists()) {
+            androidAnalyticsSetting.parentFile.mkdirs()
+            androidAnalyticsSetting.createNewFile()
+        }
+        def androidFakeDependency = new File(gradleHome, "android/FakeDependency.jar")
+        if (!androidFakeDependency.exists()) {
+            androidFakeDependency.parentFile.mkdirs()
+            new JarOutputStream(new FileOutputStream(androidFakeDependency)).close()
+        }
     }
 }
