@@ -279,9 +279,17 @@ internal
 fun Encoder.writeClassPath(classPath: ClassPath) {
     // Ensure that the proper type is going to be restored,
     // because it is important for the equality checks.
-    writeBoolean(classPath is TransformedClassPath)
-    writeCollection(classPath.asFiles) {
-        writeFile(it)
+    if (classPath is TransformedClassPath) {
+        writeBoolean(true)
+        writeCollection(classPath.asFiles.zip(classPath.asTransformedFiles)) {
+            writeFile(it.first)
+            writeFile(it.second)
+        }
+    } else {
+        writeBoolean(false)
+        writeCollection(classPath.asFiles) {
+            writeFile(it)
+        }
     }
 }
 
@@ -289,17 +297,33 @@ fun Encoder.writeClassPath(classPath: ClassPath) {
 internal
 fun Decoder.readClassPath(): ClassPath {
     val isTransformed = readBoolean()
+    return if (isTransformed) {
+        readTransformedClassPath()
+    } else {
+        readDefaultClassPath()
+    }
+}
+
+
+internal
+fun Decoder.readDefaultClassPath(): ClassPath {
     val size = readSmallInt()
     val builder = DefaultClassPath.builderWithExactSize(size)
     for (i in 0 until size) {
         builder.add(readFile())
     }
-    val defaultClassPath = builder.build()
-    return if (isTransformed) {
-        TransformedClassPath(defaultClassPath)
-    } else {
-        defaultClassPath
+    return builder.build()
+}
+
+
+internal
+fun Decoder.readTransformedClassPath(): ClassPath {
+    val size = readSmallInt()
+    val builder = TransformedClassPath.Builder.withExpectedSize(size)
+    for (i in 0 until size) {
+        builder.add(readFile(), readFile())
     }
+    return builder.build()
 }
 
 
