@@ -95,6 +95,7 @@ public class Signature extends AbstractPublishArtifact {
 
     private Callable<String> classifierGenerator;
 
+    @Nullable
     private Callable<String> nameGenerator;
 
     /**
@@ -176,12 +177,10 @@ public class Signature extends AbstractPublishArtifact {
     public Signature(Callable<File> toSign, Callable<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
         // TODO: find a way to inject a proper task dependency factory without breaking the public API
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
-        this.toSignGenerator = toSign;
-        this.classifierGenerator = classifier;
-        this.signatureSpec = signatureSpec;
+        init(toSign, classifier, null, signatureSpec);
     }
 
-    private void init(Callable<File> toSign, Callable<String> classifier, Callable<String> name, SignatureSpec signatureSpec) {
+    private void init(Callable<File> toSign, Callable<String> classifier, @Nullable Callable<String> name, SignatureSpec signatureSpec) {
         this.toSignGenerator = toSign;
         this.classifierGenerator = classifier;
         this.nameGenerator = name;
