@@ -54,17 +54,21 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.URI;
+import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ChecksumAndSignatureVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation, Stoppable {
     private final static Logger LOGGER = Logging.getLogger(ChecksumAndSignatureVerificationOverride.class);
 
     private final DependencyVerifier verifier;
-    private final Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failures = LinkedHashMultimap.create();
     private final BuildOperationExecutor buildOperationExecutor;
     private final ChecksumService checksumService;
     private final SignatureVerificationService signatureVerificationService;
@@ -72,7 +76,6 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
     private final Set<VerificationQuery> verificationQueries = Sets.newConcurrentHashSet();
     private final Deque<VerificationEvent> verificationEvents = Queues.newArrayDeque();
     private final AtomicBoolean closed = new AtomicBoolean();
-    private final AtomicBoolean hasFatalFailure = new AtomicBoolean();
     private final DependencyVerificationReportWriter reportWriter;
 
     public ChecksumAndSignatureVerificationOverride(BuildOperationExecutor buildOperationExecutor,
@@ -115,17 +118,18 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
         }
     }
 
-    private void verifyConcurrently() {
-        hasFatalFailure.set(false);
+    private VerificationResult verifyConcurrently() {
         synchronized (verificationEvents) {
             if (verificationEvents.isEmpty()) {
-                return;
+                return VerificationResult.noError();
             }
         }
         if (closed.get()) {
             LOGGER.debug("Cannot perform verification of all dependencies because the verification service has been shutdown. Under normal circumstances this shouldn't happen unless a user buildFinished was added in an unexpected way.");
-            return;
+            return VerificationResult.noError();
         }
+        AtomicBoolean hasFatalFailure = new AtomicBoolean();
+        Queue<Map.Entry<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure>> failures = new ConcurrentLinkedQueue<>();
         buildOperationExecutor.runAll(queue -> {
             VerificationEvent event;
             synchronized (verificationEvents) {
@@ -135,9 +139,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                         @Override
                         public void run(BuildOperationContext context) {
                             verifier.verify(checksumService, signatureVerificationService, ve.kind, ve.artifact, ve.mainFile, ve.signatureFile.create(), f -> {
-                                synchronized (failures) {
-                                    failures.put(ve.artifact, new RepositoryAwareVerificationFailure(f, ve.repositoryName));
-                                }
+                                failures.add(new AbstractMap.SimpleEntry<>(ve.artifact, new RepositoryAwareVerificationFailure(f, ve.repositoryName)));
                                 if (f.isFatal()) {
                                     hasFatalFailure.set(true);
                                 }
@@ -153,7 +155,7 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
                 }
             }
         });
-
+        return VerificationResult.of(failures, hasFatalFailure);
     }
 
     @Override
@@ -163,24 +165,22 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
 
     @Override
     public void artifactsAccessed(String displayName) {
-        verifyConcurrently();
-        synchronized (failures) {
-            if (hasFatalFailure.get() && !failures.isEmpty()) {
-                // There are fatal failures, but not necessarily on all artifacts so we first filter out
-                // the artifacts which only have not fatal errors
-                failures.asMap().entrySet().removeIf(entry -> {
-                    Collection<RepositoryAwareVerificationFailure> value = entry.getValue();
-                    return value.stream().noneMatch(wrapper -> wrapper.getFailure().isFatal());
-                });
-                VerificationReport report = reportWriter.generateReport(displayName, failures, verifier.getConfiguration().isUseKeyServers());
-                String errorMessage = buildConsoleErrorMessage(report);
-                if (verificationMode == DependencyVerificationMode.LENIENT) {
-                    LOGGER.error(errorMessage);
-                    failures.clear();
-                    hasFatalFailure.set(false);
-                } else {
-                    throw new DependencyVerificationException(errorMessage);
-                }
+        VerificationResult result = verifyConcurrently();
+        if (result.hasFatalFailure && !result.failures.isEmpty()) {
+            // There are fatal failures, but not necessarily on all artifacts so we first filter out
+            // the artifacts which only have not fatal errors
+            Multimap<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure> failures = LinkedHashMultimap.create();
+            result.failures.forEach(e -> failures.put(e.getKey(), e.getValue()));
+            failures.asMap().entrySet().removeIf(entry -> {
+                Collection<RepositoryAwareVerificationFailure> value = entry.getValue();
+                return value.stream().noneMatch(wrapper -> wrapper.getFailure().isFatal());
+            });
+            VerificationReport report = reportWriter.generateReport(displayName, failures, verifier.getConfiguration().isUseKeyServers());
+            String errorMessage = buildConsoleErrorMessage(report);
+            if (verificationMode == DependencyVerificationMode.LENIENT) {
+                LOGGER.error(errorMessage);
+            } else {
+                throw new DependencyVerificationException(errorMessage);
             }
         }
     }
@@ -283,6 +283,24 @@ public class ChecksumAndSignatureVerificationOverride implements DependencyVerif
             this.mainFile = mainFile;
             this.signatureFile = signatureFile;
             this.repositoryName = repositoryName;
+        }
+    }
+
+    private static class VerificationResult {
+        private final Queue<Map.Entry<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure>> failures;
+        private final boolean hasFatalFailure;
+
+        private VerificationResult(Queue<Map.Entry<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure>> failures, boolean hasFatalFailure) {
+            this.failures = failures;
+            this.hasFatalFailure = hasFatalFailure;
+        }
+
+        public static VerificationResult noError() {
+            return new VerificationResult(new LinkedList<>(), false);
+        }
+
+        public static VerificationResult of(Queue<Map.Entry<ModuleComponentArtifactIdentifier, RepositoryAwareVerificationFailure>> failures, AtomicBoolean hasFatalFailure) {
+            return new VerificationResult(failures, hasFatalFailure.get());
         }
     }
 }
