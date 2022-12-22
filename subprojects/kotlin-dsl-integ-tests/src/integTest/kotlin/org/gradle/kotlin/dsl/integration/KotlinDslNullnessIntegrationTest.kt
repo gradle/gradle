@@ -23,8 +23,17 @@ import org.junit.Test
  * Integration tests for API usage specific to Kotlin DSL nullness detection.
  */
 class KotlinDslNullnessIntegrationTest : AbstractPluginIntegrationTest() {
+
     @Test
-    fun `Provider#map works with a null return value`() {
+    fun `Provider#map works with a null return value in script`() {
+        withBuildScript("""
+            provider { "thing" }.map { null }
+        """)
+        build("help")
+    }
+
+    @Test
+    fun `Provider#map works with a null return value in a kotlin-dsl project`() {
         withKotlinDslPlugin()
 
         withFile(
@@ -51,7 +60,16 @@ class KotlinDslNullnessIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `Provider#flatMap works with a null return value`() {
+    fun `Provider#flatMap works with a null return value in script`() {
+        withBuildScript("""
+            val providerA: Provider<String> = provider { "thing" }.flatMap { provider { null } }
+            val providerB: Provider<String> = provider { "thing" }.flatMap { null }
+        """)
+        build("help")
+    }
+
+    @Test
+    fun `Provider#flatMap works with a null return value in a kotlin-dsl project`() {
         withKotlinDslPlugin()
 
         withFile(
@@ -81,7 +99,17 @@ class KotlinDslNullnessIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `CopySpec#filter works with a null return value`() {
+    fun `CopySpec#filter works with a null return value in script`() {
+        withBuildScript("""
+            fun eliminateEverything(spec: CopySpec) {
+                spec.filter { null }
+            }
+        """)
+        build("help")
+    }
+
+    @Test
+    fun `CopySpec#filter works with a null return value in a kotlin-dsl project`() {
         withKotlinDslPlugin()
 
         withFile(

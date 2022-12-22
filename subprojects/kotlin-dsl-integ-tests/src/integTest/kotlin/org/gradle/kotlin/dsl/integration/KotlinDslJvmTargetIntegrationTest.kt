@@ -48,7 +48,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `precompiled scripts use jvmTarget 8 by default`() {
+    fun `precompiled scripts use the build jvm target default`() {
 
         withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
 
@@ -62,7 +62,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
         withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
         withBuildScript("""plugins { id("some") }""")
 
-        assertThat(build("help").output, containsString(outputFor(JavaVersion.VERSION_1_8)))
+        assertThat(build("help").output, containsString(outputFor(JavaVersion.current())))
     }
 
     @Test
@@ -74,6 +74,12 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
 
         withDefaultSettingsIn("buildSrc")
         withKotlinDslPluginIn("buildSrc").appendText("""
+
+            java {
+                sourceCompatibility = JavaVersion.VERSION_11
+                targetCompatibility = JavaVersion.VERSION_11
+            }
+
             kotlinDslPluginOptions {
                 jvmTarget.set("11")
             }
