@@ -82,10 +82,10 @@ public class FileTransport extends AbstractRepositoryTransport {
             if (baseName == null || resource.getFile().getName().equals(baseName)) {
                 // Use the origin file when it can satisfy the basename requirements
                 return resource;
+            } else {
+                // Use the file from the cache when it does not
+                return delegate.getResource(source, baseName, fileStore, additionalCandidates);
             }
-
-            // Use the file from the cache when it does not
-            return delegate.getResource(source, baseName, fileStore, additionalCandidates);
         }
     }
 }
