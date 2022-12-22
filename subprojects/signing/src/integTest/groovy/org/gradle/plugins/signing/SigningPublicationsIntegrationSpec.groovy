@@ -256,7 +256,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         succeeds "signMavenPublication"
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishes signature files for Maven publication"() {
         given:
         buildFile << """
@@ -409,7 +408,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "mavenJava", "pom-default.xml.asc").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "publish task takes into account configuration changes"() {
         given:
         buildFile << """
@@ -716,7 +714,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/20166")
     def "signs single Maven publication with similar artifacts"() {
         given:
