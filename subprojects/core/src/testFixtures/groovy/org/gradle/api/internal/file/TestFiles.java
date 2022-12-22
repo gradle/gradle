@@ -160,7 +160,7 @@ public class TestFiles {
 
         return new DefaultFileOperations(
             fileResolver,
-                TestUtil.instantiatorFactory().inject(),
+            TestUtil.instantiatorFactory().inject(),
             directoryFileTreeFactory(),
             fileHasher(),
             resourceHandlerFactory,

@@ -68,7 +68,7 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 ### Configuration cache improvements
 
 TODO - Java lambdas are supported, and unsupported captured values are reported.
-TODO - Groovy closures
+TODO - File collections queried at configuration time are treated as configuration inputs.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE

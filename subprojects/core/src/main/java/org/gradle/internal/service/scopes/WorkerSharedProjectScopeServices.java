@@ -22,7 +22,6 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.DefaultDecompressionCacheFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultArchiveOperations;
-import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.DefaultFileSystemOperations;
@@ -52,6 +51,7 @@ import org.gradle.cache.scopes.ProjectScopedCache;
 import org.gradle.cache.scopes.ScopedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -77,7 +77,10 @@ public class WorkerSharedProjectScopeServices {
     void configure(ServiceRegistration registration) {
         registration.add(DefaultPropertyFactory.class);
         registration.add(DefaultFilePropertyFactory.class);
-        registration.add(DefaultFileCollectionFactory.class);
+    }
+
+    protected FileCollectionFactory createFileCollectionFactory(FileCollectionFactory parent, PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost) {
+        return parent.forChildScope(fileResolver, taskDependencyFactory, propertyHost);
     }
 
     protected FileResolver createFileResolver(FileLookup lookup) {
