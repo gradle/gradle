@@ -22,6 +22,7 @@ import org.gradle.configurationcache.problems.DocumentationSection
 import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.classpath.TransformedClassPath
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -276,6 +277,9 @@ suspend fun <K, V, T : MutableMap<K, V>> ReadContext.readMapEntriesInto(items: T
 
 internal
 fun Encoder.writeClassPath(classPath: ClassPath) {
+    // Ensure that the proper type is going to be restored,
+    // because it is important for the equality checks.
+    writeBoolean(classPath is TransformedClassPath)
     writeCollection(classPath.asFiles) {
         writeFile(it)
     }
@@ -284,12 +288,18 @@ fun Encoder.writeClassPath(classPath: ClassPath) {
 
 internal
 fun Decoder.readClassPath(): ClassPath {
+    val isTransformed = readBoolean()
     val size = readSmallInt()
     val builder = DefaultClassPath.builderWithExactSize(size)
     for (i in 0 until size) {
         builder.add(readFile())
     }
-    return builder.build()
+    val defaultClassPath = builder.build()
+    return if (isTransformed) {
+        TransformedClassPath(defaultClassPath)
+    } else {
+        defaultClassPath
+    }
 }
 
 

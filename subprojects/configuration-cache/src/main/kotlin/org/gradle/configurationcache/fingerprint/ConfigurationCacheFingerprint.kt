@@ -29,7 +29,12 @@ sealed class ConfigurationCacheFingerprint {
     data class GradleEnvironment(
         val gradleUserHomeDir: File,
         val jvm: String,
-        val startParameterProperties: Map<String, Any?>
+        val startParameterProperties: Map<String, Any?>,
+        /**
+         * Whether the instrumentation agent was used when computing the cache.
+         * With the agent, the class paths may be stored differently, making the caches incompatible with one another.
+         */
+        val instrumentationAgentUsed: Boolean
     ) : ConfigurationCacheFingerprint()
 
     data class InitScripts(

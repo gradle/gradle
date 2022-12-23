@@ -81,7 +81,7 @@ public class JdkTools {
             isolatedToolsLoader = new VisitableURLClassLoader("jdk-tools", filteringClassLoader, defaultClassPath.getAsURLs());
             isJava9Compatible = false;
         } else {
-            isolatedToolsLoader = new VisitableURLClassLoader("jdk-tools", filteringClassLoader, DefaultClassPath.of(compilerPlugins));
+            isolatedToolsLoader = VisitableURLClassLoader.fromClassPath("jdk-tools", filteringClassLoader, DefaultClassPath.of(compilerPlugins));
             isJava9Compatible = true;
         }
     }
