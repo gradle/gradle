@@ -530,7 +530,7 @@ class DependencyManagementBuildScopeServices {
                                                                         ListenerManager listenerManager,
                                                                         BuildCommencedTimeProvider timeProvider,
                                                                         ServiceRegistry serviceRegistry) {
-        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry, timeProvider, () -> serviceRegistry.get(GradleProperties.class));
+        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry, timeProvider, () -> serviceRegistry.get(GradleProperties.class), listenerManager.getBroadcaster(FileResourceListener.class));
         registerBuildFinishedHooks(listenerManager, override);
         return override;
     }
