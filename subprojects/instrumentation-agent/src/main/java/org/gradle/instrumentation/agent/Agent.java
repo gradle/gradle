@@ -16,13 +16,14 @@
 
 package org.gradle.instrumentation.agent;
 
+import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 
 /**
  * An entry point for the on-the-fly bytecode instrumentation agent.
  */
 public class Agent {
-    private static boolean isApplied;
+    private static volatile Instrumentation instrumentation;
 
     public static void premain(String agentArgs, Instrumentation inst) {
         doMain(inst);
@@ -33,11 +34,21 @@ public class Agent {
     }
 
     static void doMain(Instrumentation inst) {
-        isApplied = true;
+        instrumentation = inst;
     }
 
     @SuppressWarnings("unused")  // Used reflectively.
     public static boolean isApplied() {
-        return isApplied;
+        return instrumentation != null;
+    }
+
+    @SuppressWarnings("unused")  // Used reflectively.
+    public static boolean installTransformer(ClassFileTransformer transformer) {
+        Instrumentation inst = instrumentation;
+        if (inst != null) {
+            inst.addTransformer(transformer);
+            return true;
+        }
+        return false;
     }
 }

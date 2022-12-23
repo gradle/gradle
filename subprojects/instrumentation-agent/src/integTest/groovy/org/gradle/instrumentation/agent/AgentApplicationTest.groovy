@@ -17,6 +17,7 @@
 package org.gradle.instrumentation.agent
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -61,6 +62,65 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         agentWasApplied()
     }
 
+    @Requires(value = { (GradleContextualExecuter.daemon && GradleContextualExecuter.configCache) }, reason = "Agent injection is not implemented for non-daemon and embedded modes")
+    def "keeping agent status does not invalidate the configuration cache"() {
+        def configurationCache = new ConfigurationCacheFixture(this)
+        given:
+        withDumpAgentStatusAtConfiguration()
+
+        when:
+        withAgentApplied(agentStatus)
+        succeeds()
+
+        then:
+        agentStatusWas(agentStatus)
+        configurationCache.assertStateStored {
+            loadsOnStore = false
+        }
+
+        when:
+        withAgentApplied(agentStatus)
+        succeeds()
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        where:
+        agentStatus << [true, false]
+    }
+
+    @Requires(value = { (GradleContextualExecuter.daemon && GradleContextualExecuter.configCache) }, reason = "Agent injection is not implemented for non-daemon and embedded modes")
+    def "changing agent status invalidates the configuration cache"() {
+        def configurationCache = new ConfigurationCacheFixture(this)
+        given:
+        withDumpAgentStatusAtConfiguration()
+
+        when:
+        withAgentApplied(useAgentOnFirstRun)
+        succeeds()
+
+        then:
+        agentStatusWas(useAgentOnFirstRun)
+        configurationCache.assertStateStored {
+            loadsOnStore = false
+        }
+
+        when:
+        withAgentApplied(useAgentOnSecondRun)
+        succeeds()
+
+        then:
+        agentStatusWas(useAgentOnSecondRun)
+        configurationCache.assertStateStored {
+            loadsOnStore = false
+        }
+
+        where:
+        useAgentOnFirstRun | useAgentOnSecondRun
+        true               | false
+        false              | true
+    }
+
     @Requires(value = { GradleContextualExecuter.daemon }, reason = "Testing the daemons")
     def "daemon with the same agent status is reused"() {
         given:
@@ -98,6 +158,21 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
             tasks.register('hello') {
                 doLast {
                     println("agent applied = \${AgentControl.isInstrumentationAgentApplied()}")
+                }
+            }
+
+            defaultTasks 'hello'
+        """)
+    }
+
+    private void withDumpAgentStatusAtConfiguration() {
+        buildFile("""
+            import ${AgentControl.name}
+
+            def status = AgentControl.isInstrumentationAgentApplied()
+            tasks.register('hello') {
+                doLast {
+                    println("agent applied = \$status")
                 }
             }
 

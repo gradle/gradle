@@ -45,6 +45,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val invalidateCoupledProjects: Boolean
+        val instrumentationAgentUsed: Boolean
         fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
@@ -189,6 +190,13 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
                 if (host.startParameterProperties != startParameterProperties) {
                     return "the set of Gradle properties has changed"
+                }
+                if (host.instrumentationAgentUsed != instrumentationAgentUsed) {
+                    val statusChangeString = when (instrumentationAgentUsed) {
+                        true -> "is no longer available"
+                        false -> "is now applied"
+                    }
+                    return "the instrumentation Java agent $statusChangeString"
                 }
             }
             is ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy -> input.run {

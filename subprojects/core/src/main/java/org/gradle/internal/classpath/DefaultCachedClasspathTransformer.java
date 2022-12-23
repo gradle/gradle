@@ -22,6 +22,7 @@ import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.internal.Either;
+import org.gradle.internal.agents.AgentControl;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -123,12 +124,16 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     private ClassPath transformFiles(ClassPath classPath, ClasspathFileTransformer transformer) {
-        return DefaultClassPath.of(
+        ClassPath transformedClassPath = DefaultClassPath.of(
             transformAll(
                 classPath.getAsFiles(),
                 (file, seen) -> cachedFile(file, transformer, seen)
             )
         );
+        if (AgentControl.isInstrumentationAgentApplied()) {
+            return new TransformedClassPath(transformedClassPath);
+        }
+        return transformedClassPath;
     }
 
     private Transform transformerFor(StandardTransform transform) {
