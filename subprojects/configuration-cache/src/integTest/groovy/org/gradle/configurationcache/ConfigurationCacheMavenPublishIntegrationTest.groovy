@@ -28,7 +28,7 @@ import spock.lang.Issue
 import static org.gradle.util.internal.GFileUtils.deleteDirectory
 import static org.gradle.util.internal.GFileUtils.listFiles
 
-class ConfigurationCachePublishingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     @Rule
     public final HttpServer server = new HttpServer()
@@ -295,6 +295,7 @@ class ConfigurationCachePublishingIntegrationTest extends AbstractConfigurationC
     }
 
     private ProjectConfiguration configureProject(String username, String password, String repositoryName, boolean inlinedCredentials) {
+        assert !inlinedCredentials : "Inlined credentials are not supported with the configuration cache"
         with (server) {
             requireAuthentication(username, password)
             // or else insecure protocol enforcement is skipped
