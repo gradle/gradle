@@ -119,4 +119,18 @@ class InstrumentedInputAccessListener(
     override fun fileObserved(file: File, consumer: String?) {
         undeclaredInputBroadcast.fileObserved(file, consumer)
     }
+
+    override fun fileSystemEntryObserved(file: File, consumer: String) {
+        if (Workarounds.canReadFiles(consumer)) {
+            return
+        }
+        undeclaredInputBroadcast.fileSystemEntryObserved(file, consumer)
+    }
+
+    override fun directoryContentObserved(directory: File, consumer: String) {
+        if (Workarounds.canReadFiles(consumer)) {
+            return
+        }
+        undeclaredInputBroadcast.directoryChildrenObserved(directory, consumer)
+    }
 }
