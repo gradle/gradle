@@ -70,12 +70,7 @@ Expected checksum: 'bad'
         file('gradle/wrapper/gradle-wrapper.properties') << "distributionSha256Sum=${Hashing.sha256().hashFile(distribution.binDistribution).toZeroPaddedString(Hashing.sha256().hexDigits)}"
 
         when:
-        def success = wrapperExecuter
-            .withCommandLineGradleOpts("-Dorg.gradle.debug=true", "-Dorg.gradle.debug.server=false", "-Dorg.gradle.debug.host=localhost", "-Dorg.gradle.debug.port=5006")
-//            .withCommandLineGradleOpts(JvmOptions.getDebugArgument(false, false, "localhost:5005"))
-//            .withCommandLineGradleOpts("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y")
-//            .withBuildJvmOpts("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y")
-            .run()
+        def success = wrapperExecuter.run()
         then:
         success.output.contains('BUILD SUCCESSFUL')
     }
