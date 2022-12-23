@@ -645,8 +645,9 @@ class DependencyManagementBuildScopeServices {
                                                                                   BuildCommencedTimeProvider timeProvider,
                                                                                   BuildScopedCache buildScopedCache,
                                                                                   FileHasher fileHasher,
-                                                                                  StartParameter startParameter) {
-        return new DefaultSignatureVerificationServiceFactory(transportFactory, globalScopedCache, decoratorFactory, buildOperationExecutor, fileHasher, buildScopedCache, timeProvider, startParameter.isRefreshKeys());
+                                                                                  StartParameter startParameter,
+                                                                                  ListenerManager listenerManager) {
+        return new DefaultSignatureVerificationServiceFactory(transportFactory, globalScopedCache, decoratorFactory, buildOperationExecutor, fileHasher, buildScopedCache, timeProvider, startParameter.isRefreshKeys(), listenerManager.getBroadcaster(FileResourceListener.class));
     }
 
     private void registerBuildFinishedHooks(ListenerManager listenerManager, DependencyVerificationOverride dependencyVerificationOverride) {
