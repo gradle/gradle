@@ -18,13 +18,11 @@ package org.gradle.api.publish.ivy.internal.publication;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Streams;
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectCollection;
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExternalDependency;
@@ -35,7 +33,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
@@ -67,8 +64,6 @@ import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifactSet;
 import org.gradle.api.publish.ivy.internal.artifact.DerivedIvyArtifact;
-import org.gradle.api.publish.ivy.internal.publisher.IvyArtifactInternal;
-import org.gradle.api.publish.ivy.internal.publisher.NormalizedIvyArtifact;
 import org.gradle.api.publish.ivy.internal.artifact.SingleOutputTaskIvyArtifact;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependencySet;
@@ -77,9 +72,11 @@ import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyProjectDependenc
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publisher.DefaultReadOnlyIvyPublicationIdentity;
+import org.gradle.api.publish.ivy.internal.publisher.IvyArtifactInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.publish.ivy.internal.publisher.MutableIvyPublicationidentity;
+import org.gradle.api.publish.ivy.internal.publisher.NormalizedIvyArtifact;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
@@ -88,6 +85,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.internal.GUtil;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
@@ -96,10 +94,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toMap;
+import java.util.stream.Stream;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
@@ -136,7 +131,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private SoftwareComponentInternal component;
     private final DocumentationRegistry documentationRegistry;
     private boolean alias;
-    private Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<IvyExcludeRule>();
+    private final Set<IvyExcludeRule> globalExcludes = new LinkedHashSet<>();
     private boolean populated;
     private boolean artifactsOverridden;
     private boolean versionMappingInUse = false;
@@ -168,6 +163,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
+    @Nonnull
     public String getName() {
         return name;
     }
@@ -434,7 +430,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private void addProjectDependency(ProjectDependency dependency, String confMapping) {
         ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, dependency);
         DefaultIvyDependency moduleDep = new DefaultIvyDependency(
-            identifier.getGroup(), identifier.getName(), identifier.getVersion(), confMapping, dependency.isTransitive(), Collections.<DependencyArtifact>emptyList(), dependency.getExcludeRules());
+            identifier.getGroup(), identifier.getName(), identifier.getVersion(), confMapping, dependency.isTransitive(), Collections.emptyList(), dependency.getExcludeRules());
         ivyDependencies.add(new DefaultIvyProjectDependency(moduleDep, dependency.getDependencyProject().getPath()));
     }
 
@@ -556,14 +552,20 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         populateFromComponent();
 
         // Preserve identity of artifacts
-        Map<IvyArtifact, NormalizedIvyArtifact> normalizedArtifacts = normalizedIvyArtifacts();
+        Set<IvyArtifact> main = linkedHashSetOf(normalizedIvyArtifacts(
+            mainArtifacts.stream().filter(this::isValidArtifact)
+        ));
+        LinkedHashSet<IvyArtifact> all = new LinkedHashSet<>(main);
+        normalizedIvyArtifacts(
+            Streams.concat(metadataArtifacts.stream(), derivedArtifacts.stream())
+        ).forEach(all::add);
         return new IvyNormalizedPublication(
             name,
             getCoordinates(),
-            linkedHashSetOf(mainArtifacts.stream().map(it -> normalizedArtifacts.get(it))),
+            main,
             asReadOnlyIdentity(getIdentity()),
             getIvyDescriptorFile(),
-            new LinkedHashSet<>(normalizedArtifacts.values())
+            all
         );
     }
 
@@ -586,12 +588,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return true;
     }
 
-    private Map<IvyArtifact, NormalizedIvyArtifact> normalizedIvyArtifacts() {
-        return Streams.concat(
-                mainArtifacts.stream().filter(this::isValidArtifact),
-                metadataArtifacts.stream(),
-                derivedArtifacts.stream()
-            ).distinct().filter(element -> {
+    private Stream<IvyArtifact> normalizedIvyArtifacts(Stream<IvyArtifact> artifacts) {
+        return artifacts.filter(element -> {
                 if (!((PublicationArtifactInternal) element).shouldBePublished()) {
                     return false;
                 }
@@ -601,10 +599,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                 }
                 return true;
             })
-            .collect(toMap(
-                Function.identity(),
-                it -> normalizedArtifactFor(it)
-            ));
+            .map(it -> normalizedArtifactFor(it));
     }
 
     private static NormalizedIvyArtifact normalizedArtifactFor(IvyArtifact artifact) {
