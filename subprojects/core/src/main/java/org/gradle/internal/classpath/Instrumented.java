@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath;
 
+import kotlin.io.FilesKt;
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
@@ -33,9 +34,12 @@ import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,6 +47,9 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+
+import static org.gradle.internal.classpath.InstrumentedUtil.findStaticOrThrowError;
+import static org.gradle.internal.classpath.InstrumentedUtil.kotlinDefaultMethodType;
 
 public class Instrumented {
     private static final Listener NO_OP = new Listener() {
@@ -369,6 +376,18 @@ public class Instrumented {
         listener().directoryContentObserved(file, consumer);
         return file.listFiles(fileFilter);
     }
+
+    public static String kotlinIoFilesKtReadText(File receiver, Charset charset, String consumer) {
+        listener().fileOpened(receiver, consumer);
+        return FilesKt.readText(receiver, charset);
+    }
+
+    public static String kotlinIoFilesKtReadTextDefault(File receiver, Charset charset, int defaultMask, Object defaultMarker, String consumer) throws Throwable {
+        listener().fileOpened(receiver, consumer);
+        return (String) FILESKT_READ_TEXT_DEFAULT.invokeExact(receiver, charset, defaultMask, defaultMarker);
+    }
+
+    private static final MethodHandle FILESKT_READ_TEXT_DEFAULT = findStaticOrThrowError(FilesKt.class, "readText$default", kotlinDefaultMethodType(String.class, File.class, Charset.class));
 
     @SuppressWarnings("unchecked")
     public static List<Process> startPipeline(List<ProcessBuilder> pipeline, String consumer) throws IOException {
@@ -932,3 +951,23 @@ public class Instrumented {
         }
     }
 }
+
+class InstrumentedUtil {
+    static MethodHandle findStaticOrThrowError(Class<?> refc, String name, MethodType methodType) {
+        try {
+            return MethodHandles.lookup().findStatic(refc, name, methodType);
+        } catch (NoSuchMethodException e) {
+            throw new NoSuchMethodError(e.getMessage());
+        } catch (IllegalAccessException e) {
+            throw new IllegalAccessError(e.getMessage());
+        }
+    }
+
+    static MethodType kotlinDefaultMethodType(Class<?> returnType, Class<?>... parameterTypes) {
+        Class<?>[] defaultParameterTypes = Arrays.copyOf(parameterTypes, parameterTypes.length + 2);
+        defaultParameterTypes[parameterTypes.length] = int.class; // default value mask
+        defaultParameterTypes[parameterTypes.length + 1] = Object.class; // default signature marker
+        return MethodType.methodType(returnType, defaultParameterTypes);
+    }
+}
+

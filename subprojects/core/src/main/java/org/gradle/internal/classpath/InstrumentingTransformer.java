@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath;
 
+import kotlin.io.FilesKt;
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
@@ -42,6 +43,7 @@ import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.SerializedLambda;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -119,6 +121,14 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final Type FILE_TYPE = getType(File.class);
     private static final Type FILE_ARRAY_TYPE = getType(File[].class);
     private static final Type LIST_TYPE = getType(List.class);
+
+    private static final Type KOTLIN_IO_FILES_TYPE = getType(FilesKt.class);
+    // readText(File, Charset) -> kotlinIoFilesKtReadText(File, Charset, String)
+    private static final String RETURN_STRING_FROM_FILE_CHARSET = getMethodDescriptor(STRING_TYPE, FILE_TYPE, getType(Charset.class));
+    private static final String RETURN_STRING_FROM_FILE_CHARSET_STRING = getMethodDescriptor(STRING_TYPE, FILE_TYPE, getType(Charset.class), STRING_TYPE);
+    // readText$default(File, Charset, int, Object) -> kotlinIoFilesKtReadText(File, Charset, String)
+    private static final String RETURN_STRING_FROM_FILE_CHARSET_INT_OBJECT = getMethodDescriptor(STRING_TYPE, FILE_TYPE, getType(Charset.class), INT_TYPE, OBJECT_TYPE);
+    private static final String RETURN_STRING_FROM_FILE_CHARSET_INT_OBJECT_STRING = getMethodDescriptor(STRING_TYPE, FILE_TYPE, getType(Charset.class), INT_TYPE, OBJECT_TYPE, STRING_TYPE);
 
     // ProcessBuilder().start() -> start(ProcessBuilder, String)
     private static final String RETURN_PROCESS = getMethodDescriptor(PROCESS_TYPE);
@@ -436,6 +446,17 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 _LDC(binaryClassNameOf(className));
                 _INVOKESTATIC(INSTRUMENTED_TYPE, "execute", instrumentedDescriptor.get());
                 return true;
+            } else if (owner.equals(KOTLIN_IO_FILES_TYPE.getInternalName())) {
+                if (name.equals("readText") && descriptor.equals(RETURN_STRING_FROM_FILE_CHARSET)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "kotlinIoFilesKtReadText", RETURN_STRING_FROM_FILE_CHARSET_STRING);
+                    return true;
+                }
+                if (name.equals("readText$default") && descriptor.equals(RETURN_STRING_FROM_FILE_CHARSET_INT_OBJECT)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "kotlinIoFilesKtReadTextDefault", RETURN_STRING_FROM_FILE_CHARSET_INT_OBJECT_STRING);
+                    return true;
+                }
             }
             if (owner.equals(PROCESS_BUILDER_TYPE.getInternalName()) && name.equals("startPipeline") && descriptor.equals(RETURN_LIST_FROM_LIST)) {
                 _LDC(binaryClassNameOf(className));
