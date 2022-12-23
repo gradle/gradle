@@ -75,6 +75,10 @@ dependencies {
         because("The Groovy compiler inspects the dependencies at compile time")
     }
 
+    compileOnly(libs.futureKotlin("stdlib")) {
+        because("it needs to forward calls from instrumented code to the Kotlin standard library")
+    }
+
     testImplementation(project(":platform-jvm"))
     testImplementation(project(":testing-base"))
     testImplementation(project(":platform-native"))
