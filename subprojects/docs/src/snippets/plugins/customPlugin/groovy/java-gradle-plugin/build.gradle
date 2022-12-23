@@ -31,8 +31,9 @@ gradlePlugin {
 
 publishing {
     repositories {
+        def repoDir = layout.buildDirectory.dir("repo")
         maven {
-            url = uri(layout.buildDirectory.dir("repo"))
+            url = uri(repoDir)
         }
     }
 }
