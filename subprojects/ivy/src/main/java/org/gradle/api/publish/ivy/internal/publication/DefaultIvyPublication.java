@@ -67,6 +67,8 @@ import org.gradle.api.publish.ivy.IvyConfigurationContainer;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
 import org.gradle.api.publish.ivy.internal.artifact.DefaultIvyArtifactSet;
 import org.gradle.api.publish.ivy.internal.artifact.DerivedIvyArtifact;
+import org.gradle.api.publish.ivy.internal.publisher.IvyArtifactInternal;
+import org.gradle.api.publish.ivy.internal.publisher.NormalizedIvyArtifact;
 import org.gradle.api.publish.ivy.internal.artifact.SingleOutputTaskIvyArtifact;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyDependencySet;
@@ -74,9 +76,10 @@ import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.dependency.DefaultIvyProjectDependency;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
+import org.gradle.api.publish.ivy.internal.publisher.DefaultReadOnlyIvyPublicationIdentity;
 import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.publish.ivy.internal.publisher.MutableIvyPublicationidentity;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
@@ -93,6 +96,10 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toMap;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
 
@@ -102,24 +109,15 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private static final String API_ELEMENTS_VARIANT = "apiElements";
     private static final String RUNTIME_VARIANT = "runtime";
     private static final String RUNTIME_ELEMENTS_VARIANT = "runtimeElements";
-    private static final Spec<IvyArtifact> PUBLISHED_ARTIFACTS = artifact -> {
-        if (artifact instanceof PublicationArtifactInternal) {
-            if (!((PublicationArtifactInternal) artifact).shouldBePublished()) {
-                return false;
-            }
-        }
-        return artifact.getFile().exists();
-    };
 
     @VisibleForTesting
     public static final String UNSUPPORTED_FEATURE = " contains dependencies that cannot be represented in a published ivy descriptor.";
     @VisibleForTesting
     public static final String PUBLICATION_WARNING_FOOTER = "These issues indicate information that is lost in the published 'ivy.xml' metadata file, which may be an issue if the published library is consumed by an old Gradle version or Apache Ivy.\nThe 'module' metadata file, which is used by Gradle 6+ is not affected.";
 
-
     private final String name;
     private final IvyModuleDescriptorSpecInternal descriptor;
-    private final IvyPublicationIdentity publicationIdentity;
+    private final MutableIvyPublicationidentity publicationIdentity;
     private final IvyConfigurationContainer configurations;
     private final DefaultIvyArtifactSet mainArtifacts;
     private final PublicationArtifactSet<IvyArtifact> metadataArtifacts;
@@ -147,7 +145,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     @Inject
     public DefaultIvyPublication(
-        String name, Instantiator instantiator, ObjectFactory objectFactory, IvyPublicationIdentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
+        String name, Instantiator instantiator, ObjectFactory objectFactory, MutableIvyPublicationidentity publicationIdentity, NotationParser<Object, IvyArtifact> ivyArtifactNotationParser,
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
         ImmutableAttributesFactory immutableAttributesFactory,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy, PlatformSupport platformSupport,
@@ -553,28 +551,64 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     @Override
     public IvyNormalizedPublication asNormalisedPublication() {
         populateFromComponent();
-        DomainObjectSet<IvyArtifact> mainArtifacts = this.mainArtifacts.matching(artifact -> {
-            // Validation is done this way for backwards compatibility
-            File artifactFile = artifact.getFile();
-            if (artifactFile == null || !artifactFile.exists()) {
-                throw new InvalidIvyPublicationException(name, String.format("artifact file does not exist: '%s'", artifactFile));
+
+        // Preserve identity of artifacts
+        Map<IvyArtifact, NormalizedIvyArtifact> normalizedArtifacts = normalizedIvyArtifacts();
+        Set<NormalizedIvyArtifact> mainArtifacts = this.mainArtifacts
+            .matching(this::isValidArtifact)
+            .stream()
+            .map(it -> normalizedArtifactFor(it))
+            .collect(Collectors.toSet());
+        return new IvyNormalizedPublication(
+            name,
+            getCoordinates(),
+            mainArtifacts,
+            asReadOnlyIdentity(getIdentity()),
+            getIvyDescriptorFile(),
+            new LinkedHashSet<>(normalizedArtifacts.values())
+        );
+    }
+
+    private IvyPublicationIdentity asReadOnlyIdentity(IvyPublicationIdentity identity) {
+        return new DefaultReadOnlyIvyPublicationIdentity(identity);
+    }
+
+    private boolean isValidArtifact(IvyArtifact artifact) {
+        // Validation is done this way for backwards compatibility
+        File artifactFile = artifact.getFile();
+        if (artifactFile == null) {
+            throw new InvalidIvyPublicationException(name, String.format("artifact file does not exist: '%s'", artifact));
+        }
+        return true;
+    }
+
+    private Map<IvyArtifact, NormalizedIvyArtifact> normalizedIvyArtifacts() {
+        return artifactsToBePublished()
+            .stream()
+            .collect(toMap(
+                Function.identity(),
+                this::normalizedArtifactFor
+            ));
+    }
+
+    private NormalizedIvyArtifact normalizedArtifactFor(IvyArtifact artifact) {
+        return new NormalizedIvyArtifact((IvyArtifactInternal) artifact);
+    }
+
+    private DomainObjectSet<IvyArtifact> artifactsToBePublished() {
+        return CompositeDomainObjectSet.create(
+            IvyArtifact.class,
+            Cast.uncheckedCast(new DomainObjectCollection<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts})
+        ).matching(element -> {
+            if (!((PublicationArtifactInternal) element).shouldBePublished()) {
+                return false;
+            }
+            if (gradleModuleDescriptorArtifact == element) {
+                // We temporarily want to allow skipping the publication of Gradle module metadata
+                return gradleModuleDescriptorArtifact.isEnabled();
             }
             return true;
         });
-        Set<IvyArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(IvyArtifact.class, Cast.uncheckedCast(new DomainObjectCollection<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts})).matching(new Spec<IvyArtifact>() {
-            @Override
-            public boolean isSatisfiedBy(IvyArtifact element) {
-                if (!PUBLISHED_ARTIFACTS.isSatisfiedBy(element)) {
-                    return false;
-                }
-                if (gradleModuleDescriptorArtifact == element) {
-                    // We temporarily want to allow skipping the publication of Gradle module metadata
-                    return gradleModuleDescriptorArtifact.isEnabled();
-                }
-                return true;
-            }
-        });
-        return new IvyNormalizedPublication(name, this.mainArtifacts, getIdentity(), getIvyDescriptorFile(), artifactsToBePublished);
     }
 
     @Override
@@ -678,4 +712,5 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     public Set<IvyExcludeRule> getGlobalExcludes() {
         return globalExcludes;
     }
+
 }

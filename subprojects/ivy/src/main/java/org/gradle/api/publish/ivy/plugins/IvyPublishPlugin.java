@@ -21,7 +21,7 @@ import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.Module;
@@ -52,6 +52,7 @@ import org.gradle.api.publish.tasks.GenerateModuleMetadata;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.model.Path;
@@ -168,19 +169,27 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         publication.setModuleDescriptorGenerator(generatorTask);
     }
 
-    private void disableGradleMetadataGenerationIfCustomLayout(NamedDomainObjectList<IvyArtifactRepository> repositories, GenerateModuleMetadata generateTask) {
-        AtomicBoolean didWarn = new AtomicBoolean();
-        Spec<? super Task> checkStandardLayout = task -> {
-            boolean standard = repositories.stream().allMatch(this::hasStandardPattern);
+    private static void disableGradleMetadataGenerationIfCustomLayout(NamedDomainObjectList<IvyArtifactRepository> repositories, GenerateModuleMetadata generateTask) {
+        boolean standard = repositories.stream().allMatch(IvyPublishPlugin::hasStandardPattern);
+        generateTask.onlyIf("The Ivy repositories follow the standard layout", Cast.uncheckedCast(new CheckStandardLayoutSpec(standard)));
+    }
+
+    private static class CheckStandardLayoutSpec implements Spec<GenerateModuleMetadata> {
+        private final boolean standard;
+        private final AtomicBoolean didWarn = new AtomicBoolean();
+        CheckStandardLayoutSpec(boolean standard) {
+            this.standard = standard;
+        }
+        @Override
+        public boolean isSatisfiedBy(GenerateModuleMetadata element) {
             if (!standard && !didWarn.getAndSet(true)) {
                 LOGGER.warn("Publication of Gradle Module Metadata is disabled because you have configured an Ivy repository with a non-standard layout");
             }
             return standard;
-        };
-        generateTask.onlyIf("The Ivy repositories follow the standard layout", checkStandardLayout);
+        }
     }
 
-    private boolean hasStandardPattern(IvyArtifactRepository ivyArtifactRepository) {
+    private static boolean hasStandardPattern(ArtifactRepository ivyArtifactRepository) {
         DefaultIvyArtifactRepository repo = (DefaultIvyArtifactRepository) ivyArtifactRepository;
         RepositoryDescriptor descriptor = repo.getDescriptor();
         if (descriptor instanceof IvyRepositoryDescriptor) {
