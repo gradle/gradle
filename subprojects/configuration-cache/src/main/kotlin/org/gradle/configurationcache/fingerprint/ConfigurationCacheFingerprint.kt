@@ -19,6 +19,7 @@ package org.gradle.configurationcache.fingerprint
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import java.io.File
 
@@ -55,6 +56,11 @@ sealed class ConfigurationCacheFingerprint {
     data class DirectoryChildren(
         val file: File,
         val hash: HashCode
+    ) : ConfigurationCacheFingerprint()
+
+    data class InputFileSystemEntry(
+        val file: File,
+        val fileType: FileType
     ) : ConfigurationCacheFingerprint()
 
     data class ValueSource(

@@ -42,6 +42,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
         setupCopyOfSantaTracker(relocatedDir)
 
         when: 'clean build'
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(originalDir, homeDir)
         buildLocationMaybeExpectingWorkerExecutorDeprecation(originalDir, agpVersion)
 
         then:
@@ -49,6 +50,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
 
         // TODO - this is here because AGP >=7.4 reads build/generated/source/kapt/debug at configuration time
         when: 'up-to-date build, reusing configuration cache when enabled'
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(originalDir, homeDir)
         buildLocation(originalDir, agpVersion)
 
         then:
@@ -59,12 +61,14 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
         }
 
         when: 'up-to-date build, reusing configuration cache when enabled'
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(originalDir, homeDir)
         buildLocation(originalDir, agpVersion)
 
         then:
         assertConfigurationCacheStateLoaded()
 
         when: 'clean cached build'
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(relocatedDir, homeDir)
         BuildResult relocatedResult = buildLocationMaybeExpectingWorkerExecutorDeprecation(relocatedDir, agpVersion)
 
         then:
@@ -80,6 +84,7 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
 
         when: 'clean cached build, reusing configuration cache when enabled'
         cleanLocation(relocatedDir, agpVersion)
+        SantaTrackerConfigurationCacheWorkaround.beforeBuild(relocatedDir, homeDir)
         buildLocationMaybeExpectingWorkerExecutorDeprecation(relocatedDir, agpVersion)
 
         then:
