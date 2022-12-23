@@ -180,7 +180,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can verify signature for artifacts downloaded in a previous build (stop in between = #stopInBetween)"() {
         given:
         terseConsoleOutput(false)
@@ -222,7 +221,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         stopInBetween << [false, true]
     }
 
-    @ToBeFixedForConfigurationCache
     def "can verify classified artifacts downloaded in previous builds (stop in between = #stopInBetween)"() {
         def keyring = newKeyRing()
         keyServerFixture.registerPublicKey(keyring.publicKey)
@@ -877,7 +875,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
 
     // This test exercises the fact that the signature cache is aware
     // of changes of the artifact
-    @ToBeFixedForConfigurationCache
     def "can detect tampered file between builds (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -930,7 +927,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def "caching takes trusted keys into account (terse output=#terse)"() {
         createMetadataFile {
             keyServer(keyServerFixture.uri)
@@ -1596,7 +1592,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         assertConfigCacheDiscarded()
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/19663")
     def "fails when disabling reaching out to key servers after previous successful build and no key rings file"() {
         given:
