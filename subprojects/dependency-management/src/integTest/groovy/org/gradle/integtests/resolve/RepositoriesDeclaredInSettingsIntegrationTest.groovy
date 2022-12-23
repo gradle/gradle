@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.util.GradleVersion
+import org.gradle.util.TestPrecondition
+import org.gradle.util.UnitTestPreconditions
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -572,7 +574,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
     }
 
     // fails to delete directory under Windows otherwise
-    @IgnoreIf({ TestPrecondition.WINDOWS.fulfilled })
+    @IgnoreIf({ TestPrecondition.doSatisfies(UnitTestPreconditions.Windows) })
     def "can use a published settings plugin which will apply to both the main build and buildSrc"() {
         def pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
         pluginPortal.start()
@@ -710,7 +712,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
     }
 
     // fails to delete directory under Windows otherwise
-    @IgnoreIf({ TestPrecondition.WINDOWS.fulfilled })
+    @IgnoreIf({ TestPrecondition.doSatisfies(UnitTestPrecondition.Windows) })
     void "repositories declared in settings shouldn't be used to resolve plugins"() {
         def pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
         pluginPortal.start()

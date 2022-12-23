@@ -18,6 +18,7 @@ package org.gradle.internal.file.impl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
@@ -159,9 +160,8 @@ class DefaultDeleterTest extends Specification {
     }
 
     def "reports reasonable help message when failing to delete single #description"() {
-
         if (isSymlink) {
-            assumeTrue(TestPrecondition.SYMLINKS.isFulfilled())
+            assumeTrue(TestPrecondition.doSatisfies(UnitTestPreconditions.Symlinks))
         }
 
         given:

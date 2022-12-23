@@ -16,6 +16,7 @@
 
 package org.gradle.util
 
+import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 import org.testcontainers.DockerClientFactory
@@ -23,6 +24,7 @@ import org.testcontainers.DockerClientFactory
 import static org.gradle.util.TestPrecondition.doSatisfies
 import static org.gradle.util.TestPrecondition.notSatisfies
 
+@CompileStatic
 class UnitTestPreconditions {
 
     static final class Symlinks implements TestPrecondition {

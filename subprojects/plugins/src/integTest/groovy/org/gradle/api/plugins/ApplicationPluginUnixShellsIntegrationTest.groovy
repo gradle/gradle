@@ -42,28 +42,28 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
         ].find { it.exists() }
     }
 
-    private static class BashAvailable implements TestPrecondition {
+    static class BashAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
             return locate("bash")
         }
     }
 
-    private static class DashAvailable implements TestPrecondition {
+    static class DashAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
             return locate("bash")
         }
     }
 
-    private static class StaticShAvailable implements TestPrecondition {
+    static class StaticShAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
             return locate("bash")
         }
     }
 
-    private static class ShellcheckAvailable implements TestPrecondition {
+    static class ShellcheckAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
             return locate("bash")

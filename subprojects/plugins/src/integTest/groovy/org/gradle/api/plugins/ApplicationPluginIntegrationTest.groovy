@@ -22,6 +22,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.UnitTestPreconditions
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -505,7 +506,7 @@ startScripts {
         OperatingSystem.current().isWindows() ? runViaWindowsStartScript(startScriptDir) : runViaUnixStartScript(startScriptDir)
     }
 
-    @IgnoreIf({ TestPrecondition.WINDOWS.fulfilled })
+    @IgnoreIf({ TestPrecondition.doSatisfies(UnitTestPreconditions.Windows) })
     // This test already fails silently on Windows, but adding an explicit check for the existence of xargs made it fail explicitly.
     def "can run under posix sh environment"() {
         buildFile << """
