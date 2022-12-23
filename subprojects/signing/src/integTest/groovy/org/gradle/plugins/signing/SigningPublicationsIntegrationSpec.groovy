@@ -85,7 +85,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-3.0.jar").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "component can still be mutated after signing is configured for an Ivy publication"() {
         given:
         buildFile << """
@@ -160,7 +159,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0-custom2.jar.asc").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "signs single Ivy publication"() {
         given:
         buildFile << """
@@ -192,7 +190,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "ivyJava", "ivy.xml.asc").text
     }
 
-    @ToBeFixedForConfigurationCache
     def "signs Gradle metadata"() {
         given:
         buildFile << """
@@ -452,7 +449,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
     }
 
-    @ToBeFixedForConfigurationCache
     def "signs all publications in container"() {
         given:
         buildFile << """
@@ -523,7 +519,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5099")
-    @ToBeFixedForConfigurationCache
     def "disabling sign tasks skips uploading signature artifacts but does not break publishing"() {
         given:
         buildFile << """
