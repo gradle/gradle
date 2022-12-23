@@ -144,7 +144,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
         ImmutableAttributesFactory immutableAttributesFactory,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy, PlatformSupport platformSupport,
-        DocumentationRegistry documentationRegistry, TaskDependencyFactory taskDependencyFactory) {
+        DocumentationRegistry documentationRegistry, TaskDependencyFactory taskDependencyFactory
+    ) {
         this.name = name;
         this.publicationIdentity = publicationIdentity;
         this.projectDependencyResolver = projectDependencyResolver;
@@ -301,7 +302,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
      * If a usage represents the Java API variant, it is also not included, because the Java Runtime variant already includes everything
      * (including both also works but would lead to some duplication, that might break backwards compatibility in certain cases).
      */
-    private boolean defaultShouldExtend(UsageContext usageContext) {
+    private static boolean defaultShouldExtend(UsageContext usageContext) {
         if (!(usageContext instanceof IvyPublishingAwareContext)) {
             return true;
         }
@@ -311,11 +312,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return !isJavaApiVariant(usageContext.getName());
     }
 
-    private boolean isJavaRuntimeVariant(String usageName) {
+    private static boolean isJavaRuntimeVariant(String usageName) {
         return RUNTIME_VARIANT.equals(usageName) || RUNTIME_ELEMENTS_VARIANT.equals(usageName);
     }
 
-    private boolean isJavaApiVariant(String usageName) {
+    private static boolean isJavaApiVariant(String usageName) {
         return API_VARIANT.equals(usageName) || API_ELEMENTS_VARIANT.equals(usageName);
     }
 
@@ -340,7 +341,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         }
     }
 
-    private String artifactKey(PublishArtifact publishArtifact) {
+    private static String artifactKey(PublishArtifact publishArtifact) {
         return publishArtifact.getName() + ":" + publishArtifact.getType() + ":" + publishArtifact.getExtension() + ":" + publishArtifact.getClassifier();
     }
 
@@ -389,7 +390,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         }
     }
 
-    private String confMappingFor(UsageContext usageContext, ModuleDependency dependency) {
+    private static String confMappingFor(UsageContext usageContext, ModuleDependency dependency) {
         String conf = mapUsageNameToIvyConfiguration(usageContext.getName());
         String confMappingTarget = mapUsageNameToIvyConfiguration(dependency.getTargetConfiguration());
 
@@ -417,7 +418,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
      * The usage name usually corresponds to the name of the Gradle configuration on which the variant represented by the usage is based on.
      * For backward compatibility, the 'apiElements' and 'runtimeElements' configurations/variants of the Java ecosystem are named 'compile' and 'runtime' in the publication.
      */
-    private String mapUsageNameToIvyConfiguration(String usageName) {
+    private static String mapUsageNameToIvyConfiguration(String usageName) {
         if (isJavaApiVariant(usageName)) {
             return "compile";
         }
@@ -589,7 +590,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     private Stream<IvyArtifact> normalizedIvyArtifacts(Stream<IvyArtifact> artifacts) {
-        return artifacts.filter(element -> {
+        return artifacts
+            .filter(element -> {
                 if (!((PublicationArtifactInternal) element).shouldBePublished()) {
                     return false;
                 }
