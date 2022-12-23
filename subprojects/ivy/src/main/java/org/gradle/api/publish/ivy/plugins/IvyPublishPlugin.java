@@ -31,10 +31,12 @@ import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDe
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
@@ -67,8 +69,8 @@ import static org.apache.commons.lang.StringUtils.capitalize;
 /**
  * Adds the ability to publish in the Ivy format to Ivy repositories.
  *
- * @since 1.3
  * @see <a href="https://docs.gradle.org/current/userguide/publishing_ivy.html">Ivy Publishing reference</a>
+ * @since 1.3
  */
 public abstract class IvyPublishPlugin implements Plugin<Project> {
     private final static Logger LOGGER = Logging.getLogger(IvyPublishPlugin.class);
@@ -170,22 +172,24 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
     }
 
     private static void disableGradleMetadataGenerationIfCustomLayout(NamedDomainObjectList<IvyArtifactRepository> repositories, GenerateModuleMetadata generateTask) {
-        boolean standard = repositories.stream().allMatch(IvyPublishPlugin::hasStandardPattern);
+        Provider<Boolean> standard = new DefaultProvider<>(() -> repositories.stream().allMatch(IvyPublishPlugin::hasStandardPattern));
         generateTask.onlyIf("The Ivy repositories follow the standard layout", Cast.uncheckedCast(new CheckStandardLayoutSpec(standard)));
     }
 
     private static class CheckStandardLayoutSpec implements Spec<GenerateModuleMetadata> {
-        private final boolean standard;
+        private final Provider<Boolean> standard;
         private final AtomicBoolean didWarn = new AtomicBoolean();
-        CheckStandardLayoutSpec(boolean standard) {
+
+        CheckStandardLayoutSpec(Provider<Boolean> standard) {
             this.standard = standard;
         }
+
         @Override
         public boolean isSatisfiedBy(GenerateModuleMetadata element) {
-            if (!standard && !didWarn.getAndSet(true)) {
+            if (!standard.get() && !didWarn.getAndSet(true)) {
                 LOGGER.warn("Publication of Gradle Module Metadata is disabled because you have configured an Ivy repository with a non-standard layout");
             }
-            return standard;
+            return standard.get();
         }
     }
 
@@ -211,8 +215,9 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
         private final FileResolver fileResolver;
         private final TaskDependencyFactory taskDependencyFactory;
 
-        private IvyPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, ObjectFactory objectFactory, FileResolver fileResolver,
-                                      TaskDependencyFactory taskDependencyFactory
+        private IvyPublicationFactory(
+            DependencyMetaDataProvider dependencyMetaDataProvider, Instantiator instantiator, ObjectFactory objectFactory, FileResolver fileResolver,
+            TaskDependencyFactory taskDependencyFactory
         ) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
