@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
@@ -304,7 +303,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("$artifactId-${version}.module.asc").assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishes signature files for Ivy publication"() {
         given:
         buildFile << """
@@ -582,7 +580,6 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
     }
 
-    @ToBeFixedForConfigurationCache
     @Issue("https://github.com/gradle/gradle/issues/5136")
     def "doesn't publish stale signatures"() {
         buildFile << """
@@ -622,6 +619,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             }
 
             tasks.register("cleanRepo") {
+                def buildDir = project.buildDir
                 doLast {
                     new File("\${buildDir}/m2Repo").deleteDir()
                     new File("\${buildDir}/ivyRepo").deleteDir()
