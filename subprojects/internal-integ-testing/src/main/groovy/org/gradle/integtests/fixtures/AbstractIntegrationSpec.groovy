@@ -704,4 +704,27 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         }
         """
     }
+
+    /**
+     * Generates a `repositories` block pointing to the standard Ivy repo fixture.
+     *
+     * This is often required for running with configuration cache enabled, as
+     * configuration cache eagerly resolves dependencies when storing the classpath.
+     */
+    protected String ivyTestRepository(GradleDsl dsl = GROOVY) {
+        """
+        repositories {
+            ${RepoScriptBlockUtil.repositoryDefinition(dsl, "ivy", ivyRepo.rootDir.name, ivyRepo.uri.toString())}
+        }
+        """
+    }
+
+    protected String emptyJavaClasspath() {
+        """
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
+        """
+    }
 }
