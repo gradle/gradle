@@ -180,7 +180,7 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
 
     private
     fun withBuildScriptWithAssignment(): File {
-        val outputFilePath = "${projectRoot.absolutePath}/build/myTask/hello-world.txt"
+        val outputFilePath = "${projectRoot.absolutePath.replace("\\", "/")}/build/myTask/hello-world.txt"
         withBuildScript("""
             abstract class MyTask : DefaultTask() {
                 @get:Input
