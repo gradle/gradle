@@ -17,7 +17,6 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.os.OperatingSystem
@@ -440,7 +439,6 @@ class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
         failureDescriptionContains("Could not determine the dependencies of task ':b'.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "Relies on input files not being resolvable")
     def "failure to determine inputs cancels build and has a reasonable message after initial success"() {
         when:
         def bFlag = file("bFlag")
