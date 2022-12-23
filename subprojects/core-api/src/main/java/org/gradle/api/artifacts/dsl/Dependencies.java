@@ -20,7 +20,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.api.attributes.CompileView;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.annotation.Nullable;
@@ -117,20 +116,4 @@ public interface Dependencies {
      */
     @Inject
     ObjectFactory getObjectFactory();
-
-    /**
-     * Create a dependency on the current project's internal view. During compile-time, this dependency will
-     * resolve the current project's implementation in addition to its API. During runtime, this dependency
-     * behaves as a usual project dependency.
-     *
-     * @return the current project, including implementation details, as a dependency
-     * @since 8.0
-     */
-    default ProjectDependency projectInternalView() {
-        ProjectDependency currentProject = project();
-        currentProject.attributes(attrs -> {
-            attrs.attribute(CompileView.VIEW_ATTRIBUTE, getObjectFactory().named(CompileView.class, CompileView.JAVA_INTERNAL));
-        });
-        return currentProject;
-    }
 }
