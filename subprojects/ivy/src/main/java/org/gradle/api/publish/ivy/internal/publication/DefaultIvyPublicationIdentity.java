@@ -17,9 +17,9 @@
 package org.gradle.api.publish.ivy.internal.publication;
 
 import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
+import org.gradle.api.publish.ivy.internal.publisher.MutableIvyPublicationidentity;
 
-public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
+public class DefaultIvyPublicationIdentity implements MutableIvyPublicationidentity {
     private Module delegate;
     private String organisation;
     private String module;
