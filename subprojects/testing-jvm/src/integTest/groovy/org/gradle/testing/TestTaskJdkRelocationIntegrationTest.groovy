@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.IntegTestPreconditions
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.condition.Requires
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators

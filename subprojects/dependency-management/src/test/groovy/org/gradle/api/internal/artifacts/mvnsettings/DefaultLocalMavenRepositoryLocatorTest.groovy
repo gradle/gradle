@@ -18,8 +18,8 @@ package org.gradle.api.internal.artifacts.mvnsettings
 import org.apache.maven.settings.io.SettingsParseException
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification

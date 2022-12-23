@@ -23,8 +23,8 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 

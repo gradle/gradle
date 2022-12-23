@@ -18,7 +18,7 @@ package org.gradle.testkit.runner;
 
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.util.TestPrecondition;
+import org.gradle.test.fixtures.condition.TestPrecondition;
 
 public class TestKitPreconditions {
 

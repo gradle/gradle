@@ -17,8 +17,8 @@
 package org.gradle.internal.nativeintegration.filesystem.jdk7
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 

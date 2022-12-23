@@ -22,8 +22,8 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Matchers
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.junit.Rule
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST

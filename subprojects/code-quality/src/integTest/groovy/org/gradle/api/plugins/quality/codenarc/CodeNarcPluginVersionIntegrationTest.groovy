@@ -22,8 +22,8 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
 import org.gradle.testing.fixture.GroovyCoverage
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.IgnoreIf
 import spock.lang.Issue

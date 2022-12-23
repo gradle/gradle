@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.JavaVersion
 import org.gradle.internal.jvm.Jvm
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import spock.lang.Specification
 import spock.lang.Subject
 

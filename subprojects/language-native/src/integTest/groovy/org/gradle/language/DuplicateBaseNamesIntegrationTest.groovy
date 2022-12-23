@@ -28,8 +28,8 @@ import org.gradle.language.fixtures.app.DuplicateWindowsResourcesBaseNamesTestAp
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.TestNativeComponent
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32

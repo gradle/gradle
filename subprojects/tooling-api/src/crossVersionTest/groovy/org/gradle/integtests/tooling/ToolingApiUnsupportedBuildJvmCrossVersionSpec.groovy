@@ -25,7 +25,7 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
 import org.gradle.util.IntegTestPreconditions
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.condition.Requires
 
 @Requires([
     IntegTestPreconditions.Java5HomeAvailable,

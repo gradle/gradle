@@ -21,8 +21,8 @@ import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 
 class VisualStudioSingleProjectIntegrationTest extends AbstractVisualStudioIntegrationSpec {

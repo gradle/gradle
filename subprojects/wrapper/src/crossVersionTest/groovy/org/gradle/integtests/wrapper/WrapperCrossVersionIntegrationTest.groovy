@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.util.GradleVersion
 import org.gradle.util.IntegTestPreconditions
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.condition.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
 import spock.lang.IgnoreIf

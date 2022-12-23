@@ -18,8 +18,8 @@ package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 import static org.gradle.util.Matchers.containsText
 

@@ -23,8 +23,8 @@ import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
 import org.gradle.testing.AbstractTestFrameworkIntegrationTest
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 import static org.junit.Assume.assumeTrue
 

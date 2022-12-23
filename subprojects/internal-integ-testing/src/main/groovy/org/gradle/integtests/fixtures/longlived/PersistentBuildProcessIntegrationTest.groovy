@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures.longlived
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.IntegTestPreconditions
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.condition.Requires
 
 /**
  * Base class for test that test the behaviour of Gradle when running subsequent builds in the same build process.

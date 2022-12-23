@@ -21,8 +21,8 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.Specification
 

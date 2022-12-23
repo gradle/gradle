@@ -40,12 +40,12 @@ import com.tngtech.archunit.lang.conditions.ArchConditions;
 import com.tngtech.archunit.library.freeze.FreezingArchRule;
 import org.gradle.util.EmptyStatement;
 import org.gradle.util.Matchers;
-import org.gradle.util.PreconditionVerifier;
-import org.gradle.util.Requires;
+import org.gradle.test.fixtures.condition.Requires;
 import org.gradle.util.SetSystemProperties;
 import org.gradle.util.TestClassLoader;
-import org.gradle.util.TestPrecondition;
-import org.gradle.util.TestPreconditionExtension;
+import org.gradle.test.fixtures.condition.TestPrecondition;
+import org.gradle.test.fixtures.condition.TestPreconditionExtension;
+import org.gradle.test.fixtures.condition.UnitTestPreconditions;
 import org.gradle.util.UsesNativeServices;
 import org.gradle.util.UsesNativeServicesExtension;
 

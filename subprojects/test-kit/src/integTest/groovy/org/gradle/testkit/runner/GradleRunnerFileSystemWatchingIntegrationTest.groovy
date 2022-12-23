@@ -20,8 +20,8 @@ import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.NoDebug
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 import static org.junit.Assume.assumeTrue
 

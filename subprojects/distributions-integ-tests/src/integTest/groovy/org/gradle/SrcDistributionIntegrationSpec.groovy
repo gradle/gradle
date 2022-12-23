@@ -21,8 +21,8 @@ import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.gradle.util.internal.AntUtil
 import org.gradle.util.internal.ToBeImplemented
 

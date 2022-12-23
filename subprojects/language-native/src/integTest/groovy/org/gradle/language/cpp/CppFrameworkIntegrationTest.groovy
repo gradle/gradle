@@ -18,8 +18,8 @@ package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 class CppFrameworkIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
     @Requires(UnitTestPreconditions.MacOs)

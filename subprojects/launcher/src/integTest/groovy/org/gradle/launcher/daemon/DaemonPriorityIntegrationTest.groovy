@@ -18,8 +18,8 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.util.TestPrecondition
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.TestPrecondition
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import spock.lang.IgnoreIf
 /**
  * For forking a daemon process in embedded mode:

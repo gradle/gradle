@@ -19,7 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.IntegTestPreconditions
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.condition.Requires
 import spock.lang.Issue
 
 import static org.gradle.api.JavaVersion.VERSION_1_8

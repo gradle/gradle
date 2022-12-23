@@ -23,8 +23,8 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 import java.text.SimpleDateFormat
 

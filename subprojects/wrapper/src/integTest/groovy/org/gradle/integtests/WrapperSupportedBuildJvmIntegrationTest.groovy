@@ -19,7 +19,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
 import org.gradle.util.IntegTestPreconditions
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.condition.Requires
 import spock.lang.IgnoreIf
 
 @Requires([IntegTestPreconditions.Java6HomeAvailable, IntegTestPreconditions.Java7HomeAvailable ])

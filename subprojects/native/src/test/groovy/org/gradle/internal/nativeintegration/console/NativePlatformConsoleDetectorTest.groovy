@@ -20,8 +20,8 @@ import net.rubygrapefruit.platform.NativeException
 import net.rubygrapefruit.platform.terminal.Terminals
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import spock.lang.Specification
 
 class NativePlatformConsoleDetectorTest extends Specification {

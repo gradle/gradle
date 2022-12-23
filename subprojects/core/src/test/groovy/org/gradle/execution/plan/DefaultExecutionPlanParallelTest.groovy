@@ -38,8 +38,8 @@ import org.gradle.internal.file.Stat
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Path
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 

@@ -20,8 +20,8 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppHelloWorldApp()
