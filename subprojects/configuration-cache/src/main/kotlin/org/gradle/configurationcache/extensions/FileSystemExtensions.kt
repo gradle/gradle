@@ -50,5 +50,5 @@ fun FileSystemAccess.directoryContentHash(file: File): HashCode =
             hasher.hash()
         }
 
-        else -> HashCode.fromBytes(byteArrayOf())
+        else -> HashCode.fromBytes(byteArrayOf(0, 0, 0, 0))
     }
