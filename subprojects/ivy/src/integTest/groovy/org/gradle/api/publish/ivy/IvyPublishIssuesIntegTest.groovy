@@ -20,6 +20,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyFileModule
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.spockframework.util.TextUtil
+import spock.lang.Ignore
 import spock.lang.Issue
 
 public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
@@ -65,6 +66,7 @@ public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5136")
+    @Ignore
     void "doesn't publish if main artifact is missing"() {
         settingsFile << 'rootProject.name = "test"'
         buildFile << """
