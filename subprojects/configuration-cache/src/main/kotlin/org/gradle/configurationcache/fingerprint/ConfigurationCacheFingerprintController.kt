@@ -26,7 +26,6 @@ import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.ConfigurationCacheStateFile
 import org.gradle.configurationcache.InputTrackingState
-import org.gradle.configurationcache.extensions.hashCodeOf
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
@@ -294,7 +293,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             get() = modelParameters.isIntermediateModelCache
 
         override fun hashCodeOf(file: File) =
-            fileSystemAccess.hashCodeOf(file)
+            fileSystemAccess.read(file.absolutePath).hash
 
         override fun displayNameOf(file: File): String =
             GFileUtils.relativePathOf(file, rootDirectory)
@@ -336,7 +335,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             gradleProperties.find(propertyName)?.uncheckedCast()
 
         override fun hashCodeOf(file: File) =
-            fileSystemAccess.hashCodeOf(file)
+            fileSystemAccess.read(file.absolutePath).hash
 
         override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode =
             fileCollectionFingerprinter.fingerprint(fileCollection).hash
