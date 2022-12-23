@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.configurationcache.extensions
+package org.gradle.internal.agents;
 
-import org.gradle.internal.hash.HashCode
-import org.gradle.internal.vfs.FileSystemAccess
-import java.io.File
+import javax.annotation.Nullable;
+import java.security.ProtectionDomain;
 
+public interface InstrumentingClassLoader {
+    @Nullable
+    byte[] instrumentClass(String className, ProtectionDomain protectionDomain, byte[] classfileBuffer);
 
-internal
-fun FileSystemAccess.hashCodeOf(file: File): HashCode? =
-    readRegularFileContentHash(file.path)
-        .orElse(null)
+    void transformFailed(Throwable th);
+}

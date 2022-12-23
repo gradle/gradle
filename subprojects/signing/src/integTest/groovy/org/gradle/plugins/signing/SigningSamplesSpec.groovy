@@ -18,7 +18,6 @@ package org.gradle.plugins.signing
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.util.Requires
@@ -75,7 +74,6 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample('signing/maven-publish')
-    @ToBeFixedForConfigurationCache
     def "publish attaches signatures with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))

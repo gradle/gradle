@@ -45,6 +45,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val invalidateCoupledProjects: Boolean
+        val instrumentationAgentUsed: Boolean
         fun gradleProperty(propertyName: String): String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
@@ -152,6 +153,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     return "file '${displayNameOf(file)}' has changed"
                 }
             }
+            is ConfigurationCacheFingerprint.DirectoryChildren -> input.run {
+                if (hasFileChanged(file, hash)) {
+                    return "directory '${displayNameOf(file)}' has changed"
+                }
+            }
             is ConfigurationCacheFingerprint.ValueSource -> input.run {
                 val reason = checkFingerprintValueIsUpToDate(obtainedValue)
                 if (reason != null) return reason
@@ -184,6 +190,13 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
                 if (host.startParameterProperties != startParameterProperties) {
                     return "the set of Gradle properties has changed"
+                }
+                if (host.instrumentationAgentUsed != instrumentationAgentUsed) {
+                    val statusChangeString = when (instrumentationAgentUsed) {
+                        true -> "is no longer available"
+                        false -> "is now applied"
+                    }
+                    return "the instrumentation Java agent $statusChangeString"
                 }
             }
             is ConfigurationCacheFingerprint.EnvironmentVariablesPrefixedBy -> input.run {
@@ -258,11 +271,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     }
 
     private
-    fun hasFileChanged(file: File, originalHash: HashCode?) =
+    fun hasFileChanged(file: File, originalHash: HashCode) =
         !isUpToDate(file, originalHash)
 
     private
-    fun isUpToDate(file: File, originalHash: HashCode?) =
+    fun isUpToDate(file: File, originalHash: HashCode) =
         host.hashCodeOf(file) == originalHash
 
     private

@@ -545,9 +545,8 @@ public abstract class SigningExtension {
 
         @Override
         public boolean shouldBePublished() {
-            return signTask.isEnabled() &&
-                signTask.getOnlyIf().isSatisfiedBy(signTask) &&
-                create().exists();
+            return signTask.isEnabled()
+                && signTask.getOnlyIf().isSatisfiedBy(signTask);
         }
     }
 }

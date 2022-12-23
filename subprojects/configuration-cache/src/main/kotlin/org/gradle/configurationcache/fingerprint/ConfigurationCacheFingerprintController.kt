@@ -26,7 +26,6 @@ import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.ConfigurationCacheStateFile
 import org.gradle.configurationcache.InputTrackingState
-import org.gradle.configurationcache.extensions.hashCodeOf
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
@@ -35,6 +34,7 @@ import org.gradle.configurationcache.problems.location
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import org.gradle.internal.agents.AgentControl
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
@@ -293,8 +293,11 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val cacheIntermediateModels: Boolean
             get() = modelParameters.isIntermediateModelCache
 
+        override val instrumentationAgentUsed: Boolean
+            get() = AgentControl.isInstrumentationAgentApplied()
+
         override fun hashCodeOf(file: File) =
-            fileSystemAccess.hashCodeOf(file)
+            fileSystemAccess.read(file.absolutePath).hash
 
         override fun displayNameOf(file: File): String =
             GFileUtils.relativePathOf(file, rootDirectory)
@@ -332,11 +335,14 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val invalidateCoupledProjects: Boolean
             get() = modelParameters.isInvalidateCoupledProjects
 
+        override val instrumentationAgentUsed: Boolean
+            get() = AgentControl.isInstrumentationAgentApplied()
+
         override fun gradleProperty(propertyName: String): String? =
             gradleProperties.find(propertyName)?.uncheckedCast()
 
         override fun hashCodeOf(file: File) =
-            fileSystemAccess.hashCodeOf(file)
+            fileSystemAccess.read(file.absolutePath).hash
 
         override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode =
             fileCollectionFingerprinter.fingerprint(fileCollection).hash
