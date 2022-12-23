@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.verification
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
@@ -970,7 +969,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         assertConfigCacheDiscarded()
     }
 
-    @ToBeFixedForConfigurationCache(because = "does dependency resolution at execution time")
     def "can disable verification of a detached configuration (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", 'sha1', "invalid")
@@ -982,11 +980,11 @@ This can indicate that a dependency has been compromised. Please carefully verif
         uncheckedModule("org", "foo")
         buildFile << """
             tasks.register("resolve") {
+                def conf = configurations.detachedConfiguration(dependencies.create("org:foo:1.0"))
+                if (project.hasProperty("disableVerification")) {
+                    conf.resolutionStrategy.disableDependencyVerification()
+                }
                 doLast {
-                    def conf = configurations.detachedConfiguration(dependencies.create("org:foo:1.0"))
-                    if (project.hasProperty("disableVerification")) {
-                        conf.resolutionStrategy.disableDependencyVerification()
-                    }
                     println conf.files
                 }
             }
