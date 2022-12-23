@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.verification
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
@@ -649,7 +648,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4934")
-    @ToBeFixedForConfigurationCache
     def "can detect a tampered file in the local cache (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "d48c8da6999eb2191744f01691f84675e7ff520b")
@@ -706,7 +704,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
      * it means they have access to the local FS so all bets are off.
      */
     @Issue("https://github.com/gradle/gradle/issues/4934")
-    @ToBeFixedForConfigurationCache
     def "can detect a tampered metadata file in the local cache (stop in between = #stop)"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "d48c8da6999eb2191744f01691f84675e7ff520b")
@@ -972,7 +969,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         assertConfigCacheDiscarded()
     }
 
-    @ToBeFixedForConfigurationCache
     def "can disable verification of a detached configuration (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", 'sha1', "invalid")
@@ -984,11 +980,11 @@ This can indicate that a dependency has been compromised. Please carefully verif
         uncheckedModule("org", "foo")
         buildFile << """
             tasks.register("resolve") {
+                def conf = configurations.detachedConfiguration(dependencies.create("org:foo:1.0"))
+                if (project.hasProperty("disableVerification")) {
+                    conf.resolutionStrategy.disableDependencyVerification()
+                }
                 doLast {
-                    def conf = configurations.detachedConfiguration(dependencies.create("org:foo:1.0"))
-                    if (project.hasProperty("disableVerification")) {
-                        conf.resolutionStrategy.disableDependencyVerification()
-                    }
                     println conf.files
                 }
             }
@@ -1019,7 +1015,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def "handles artifacts cleaned by the cache cleanup"() {
 
         createMetadataFile {
