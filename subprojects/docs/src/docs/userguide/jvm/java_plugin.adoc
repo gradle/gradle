@@ -519,10 +519,10 @@ Additionally, Gradle might temporarily change the output location while running 
 This might affect some annotation processors that inspect output locations or accept file paths as arguments (e.g., `-XepExcludedPaths` in Error Prone).
 There are two options:
 
- - You can disable `incremental after failure` by setting the link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getIncrementalAfterFailure--[`options.incrementalAfterFailure`] to `false` on the JavaCompile task.
--  You can keep `incremental after failure` working by passing a temporary output value to the annotation processor as a parameter so the annotation processor is aware of that path. In case of Error Prone, pass a value to `-XepExcludedPaths`. For example:
-Before, you might have had: `-XepExcludedPaths=.\*/build/generated/.*`.
-With the new behavior, they might need to do +
+ - Disable `incremental after failure` by setting link:{javadocPath}/org/gradle/api/tasks/compile/CompileOptions.html#getIncrementalAfterFailure--[`options.incrementalAfterFailure`] to `false` on the JavaCompile task.
+-  Keep `incremental after failure` enabled by instead passing a temporary output value to the annotation processor as a parameter so that the annotation processor is aware of the temporary path. 
+
+In the case of Error Prone, `-XepExcludedPaths` must be set. Given an existing value of `-XepExcludedPaths=.\*/build/generated/.*`, the updated value would be
 `-XepExcludedPaths=.\*/(build/generated|compileJava/compileTransaction/annotation-output)/.*`.
 
 The following table shows the mapping from default output location to temporary output location:
