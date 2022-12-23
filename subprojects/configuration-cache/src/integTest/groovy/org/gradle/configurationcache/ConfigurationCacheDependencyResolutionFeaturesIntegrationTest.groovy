@@ -662,7 +662,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         run("resolve1", "--write-locks", "--refresh-dependencies")
 
         then:
-        noExceptionThrown()
+        outputContains("result = [lib-1.4.jar]")
 
         when:
         configurationCacheRun("resolve1")
@@ -688,6 +688,82 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         configurationCache.assertStateStored()
         outputContains("Calculating task graph as configuration cache cannot be reused because file '${lockFile}' has changed.")
         outputContains("result = [lib-1.4.jar]")
+    }
+
+    def "invalidates cache when verification file changes"() {
+        server.start()
+        def v3 = remoteRepo.module("thing", "lib", "1.3").publish()
+        v3.allowAll()
+
+        taskTypeLogsInputFileCollectionContent()
+        buildFile << """
+            configurations {
+                implementation
+            }
+
+            repositories { maven { url = '${remoteRepo.uri}' } }
+
+            dependencies {
+                implementation 'thing:lib:1.3'
+            }
+
+            task resolve1(type: ShowFilesTask) {
+                inFiles.from(configurations.implementation)
+            }
+        """
+
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun("resolve1")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun("resolve1")
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        configurationCacheRun("resolve1", "--write-verification-metadata", "sha256")
+
+        then:
+        configurationCache.assertStateStored()
+        def verificationFile = file("gradle/verification-metadata.xml")
+        verificationFile.isFile()
+
+        // TODO - get a false cache miss here because the content of the metadata file changes during the previous build
+        when:
+        configurationCacheRun("resolve1")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has changed.")
+
+        when:
+        configurationCacheRun("resolve1")
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        verificationFile.replace('<sha256 value="9e44491880e9ca23ab209f9b2e31cf2a7d26cd33841aea9a490c1b8c9bbf27e5"', '<sha256 value="12345"')
+        configurationCacheFails("resolve1")
+
+        then:
+        outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has changed.")
+        failure.assertHasCause("Dependency verification failed for configuration ':implementation'")
+        configurationCache.assertStateStoreFailed()
+
+        when:
+        verificationFile.delete()
+        configurationCacheRun("resolve1")
+
+        then:
+        outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has changed.")
+        configurationCache.assertStateStored()
     }
 
     abstract class FileRepoSetup {
