@@ -362,9 +362,17 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         config.execute(layout);
     }
 
+    public AbstractRepositoryLayout getLayout() {
+        return layout;
+    }
+
     @Override
     public IvyArtifactRepositoryMetaDataProvider getResolve() {
         return metaDataProvider;
+    }
+
+    public void setLayout(AbstractRepositoryLayout layout) {
+        this.layout = layout;
     }
 
     /**

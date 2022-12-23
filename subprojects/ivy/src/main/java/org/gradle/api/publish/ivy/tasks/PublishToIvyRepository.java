@@ -24,6 +24,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.repositories.DefaultIvyArtifactRepository;
+import org.gradle.api.internal.artifacts.repositories.layout.AbstractRepositoryLayout;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -220,21 +221,23 @@ public abstract class PublishToIvyRepository extends DefaultTask {
 
             private Object writeReplace() {
                 CredentialsSpec credentialsSpec = repository.getConfiguredCredentials().map(it -> CredentialsSpec.of(repository.getName(), it)).getOrNull();
-                return new DefaultRepositorySpec(repository.getName(), repository.getUrl(), repository.isAllowInsecureProtocol(), credentialsSpec);
+                return new DefaultRepositorySpec(repository.getName(), repository.getUrl(), repository.isAllowInsecureProtocol(), credentialsSpec, repository.getLayout());
             }
         }
 
         static class DefaultRepositorySpec extends RepositorySpec {
             private final URI repositoryUrl;
             private final CredentialsSpec credentials;
+            private final AbstractRepositoryLayout layout;
             private final boolean allowInsecureProtocol;
             private final String name;
 
-            public DefaultRepositorySpec(String name, URI repositoryUrl, boolean allowInsecureProtocol, CredentialsSpec credentials) {
+            public DefaultRepositorySpec(String name, URI repositoryUrl, boolean allowInsecureProtocol, CredentialsSpec credentials, AbstractRepositoryLayout layout) {
                 this.name = name;
                 this.repositoryUrl = repositoryUrl;
                 this.allowInsecureProtocol = allowInsecureProtocol;
                 this.credentials = credentials;
+                this.layout = layout;
             }
             @Override
             IvyArtifactRepository get(ServiceRegistry services) {
@@ -242,6 +245,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
                 repository.setName(name);
                 repository.setUrl(repositoryUrl);
                 repository.setAllowInsecureProtocol(allowInsecureProtocol);
+                repository.setLayout(layout);
                 if (credentials != null) {
                     Provider<? extends Credentials> provider = services.get(ProviderFactory.class).credentials(credentials.getType(), name);
                     repository.setConfiguredCredentials(provider.get());
