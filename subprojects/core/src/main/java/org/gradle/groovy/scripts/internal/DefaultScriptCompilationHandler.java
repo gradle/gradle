@@ -38,10 +38,13 @@ import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.initialization.ClassLoaderScopeOrigin;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.agents.InstrumentingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ImplementationHashAware;
+import org.gradle.internal.classloader.TransformErrorHandler;
+import org.gradle.internal.classloader.TransformReplacer;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
@@ -56,6 +59,7 @@ import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -344,7 +348,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             ClassLoaderScopeOrigin origin = new ClassLoaderScopeOrigin.Script(source.getFileName(), source.getDisplayName());
             return targetScope.createLockedChild(scopeName, origin, scriptClassPath, sourceHashCode, parent -> {
                 if (scriptClassPath instanceof TransformedClassPath) {
-                    return new InstrumentingScriptClassLoader(source, parent, scriptClassPath, sourceHashCode);
+                    return new InstrumentingScriptClassLoader(source, parent, (TransformedClassPath) scriptClassPath, sourceHashCode);
                 }
                 return new ScriptClassLoader(source, parent, scriptClassPath, sourceHashCode);
             });
@@ -390,39 +394,41 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
     }
 
     private static class InstrumentingScriptClassLoader extends ScriptClassLoader implements InstrumentingClassLoader {
-        private final ThreadLocal<Throwable> pendingException = new ThreadLocal<>();
+        private final TransformReplacer replacer;
+        private final TransformErrorHandler errorHandler;
 
-        InstrumentingScriptClassLoader(ScriptSource scriptSource, ClassLoader parent, ClassPath classPath, HashCode implementationHash) {
+        InstrumentingScriptClassLoader(ScriptSource scriptSource, ClassLoader parent, TransformedClassPath classPath, HashCode implementationHash) {
             super(scriptSource, parent, classPath, implementationHash);
+            replacer = new TransformReplacer(classPath);
+            errorHandler = new TransformErrorHandler(getName());
         }
 
         @Override
-        public byte[] instrumentClass(String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
-            return null;
+        public byte[] instrumentClass(@Nullable String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+            return replacer.getInstrumentedClass(className, protectionDomain);
         }
 
         @Override
-        public void transformFailed(Throwable cause) {
-            Throwable previousException = pendingException.get();
-            if (previousException != null) {
-                previousException.addSuppressed(cause);
-            } else {
-                pendingException.set(cause);
-            }
+        public void transformFailed(@Nullable String className, Throwable cause) {
+            errorHandler.classLoadingError(className, cause);
         }
 
         @Override
         protected Class<?> findClass(String name) throws ClassNotFoundException {
+            errorHandler.enterClassLoadingScope(name);
+            Class<?> loadedClass;
             try {
-                Class<?> loadedClass = super.findClass(name);
-                Throwable instrumentationException = pendingException.get();
-                if (instrumentationException != null) {
-                    throw new ClassNotFoundException("Failed to instrument class " + name + " in " + getName(), instrumentationException);
-                }
-                return loadedClass;
-            } finally {
-                pendingException.set(null);
+                loadedClass = super.findClass(name);
+            } catch (Throwable e) {
+                throw errorHandler.exitClassLoadingScopeWithException(e);
             }
+            errorHandler.exitClassLoadingScope();
+            return loadedClass;
+        }
+
+        @Override
+        public void close() throws IOException {
+            IoActions.closeQuietly(replacer);
         }
     }
 }

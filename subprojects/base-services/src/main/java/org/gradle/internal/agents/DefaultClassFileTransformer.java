@@ -37,7 +37,7 @@ public class DefaultClassFileTransformer implements ClassFileTransformer {
         } catch (Throwable th) {
             // Throwing exception from the ClassFileTransformer has no effect - if it happens, the class is loaded unchanged silently.
             // This is not something we want, so we notify the class loader about this.
-            instrumentingLoader.transformFailed(th);
+            instrumentingLoader.transformFailed(className, th);
             return null;
         }
     }
