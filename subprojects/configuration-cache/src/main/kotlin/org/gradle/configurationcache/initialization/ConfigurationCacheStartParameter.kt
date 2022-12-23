@@ -89,6 +89,9 @@ class ConfigurationCacheStartParameter(
     val isUpdateDependencyLocks
         get() = startParameter.lockedDependenciesToUpdate.isNotEmpty()
 
+    val isWriteDependencyVerifications
+        get() = startParameter.writeDependencyVerifications.isNotEmpty()
+
     val requestedTaskNames: List<String> by unsafeLazy {
         startParameter.taskNames
     }
