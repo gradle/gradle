@@ -18,7 +18,6 @@ package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.internal.Cast;
 
 import java.io.File;
 import java.util.Set;
@@ -32,13 +31,13 @@ public class IvyNormalizedPublication {
     private final Set<IvyArtifact> mainArtifacts;
     private final ModuleVersionIdentifier coordinates;
 
-    public IvyNormalizedPublication(String name, ModuleVersionIdentifier coordinates, Set<? extends IvyArtifact> mainArtifacts, IvyPublicationIdentity projectIdentity, File ivyDescriptorFile, Set<IvyArtifact> allArtifacts) {
+    public IvyNormalizedPublication(String name, ModuleVersionIdentifier coordinates, Set<IvyArtifact> mainArtifacts, IvyPublicationIdentity projectIdentity, File ivyDescriptorFile, Set<IvyArtifact> allArtifacts) {
         this.name = name;
         this.coordinates = coordinates;
         this.projectIdentity = projectIdentity;
         this.ivyDescriptorFile = ivyDescriptorFile;
+        this.mainArtifacts = mainArtifacts;
         this.allArtifacts = allArtifacts;
-        this.mainArtifacts = Cast.uncheckedCast(mainArtifacts);
     }
 
     public String getName() {
