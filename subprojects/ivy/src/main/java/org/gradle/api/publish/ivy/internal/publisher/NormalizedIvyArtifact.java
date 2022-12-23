@@ -118,4 +118,9 @@ public class NormalizedIvyArtifact implements IvyArtifactInternal, Serializable 
     public boolean shouldBePublished() {
         return shouldBePublished.get();
     }
+
+    @Override
+    public NormalizedIvyArtifact asNormalisedArtifact() {
+        return this;
+    }
 }
