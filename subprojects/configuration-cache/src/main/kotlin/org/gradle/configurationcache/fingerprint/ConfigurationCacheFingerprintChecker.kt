@@ -152,6 +152,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     return "file '${displayNameOf(file)}' has changed"
                 }
             }
+            is ConfigurationCacheFingerprint.DirectoryChildren -> input.run {
+                if (hasFileChanged(file, hash)) {
+                    return "directory '${displayNameOf(file)}' has changed"
+                }
+            }
             is ConfigurationCacheFingerprint.ValueSource -> input.run {
                 val reason = checkFingerprintValueIsUpToDate(obtainedValue)
                 if (reason != null) return reason
@@ -258,11 +263,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     }
 
     private
-    fun hasFileChanged(file: File, originalHash: HashCode?) =
+    fun hasFileChanged(file: File, originalHash: HashCode) =
         !isUpToDate(file, originalHash)
 
     private
-    fun isUpToDate(file: File, originalHash: HashCode?) =
+    fun isUpToDate(file: File, originalHash: HashCode) =
         host.hashCodeOf(file) == originalHash
 
     private

@@ -109,7 +109,7 @@ class ConfigurationCacheFingerprintWriter(
         val buildStartTime: Long
         val cacheIntermediateModels: Boolean
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
-        fun hashCodeOf(file: File): HashCode?
+        fun hashCodeOf(file: File): HashCode
         fun displayNameOf(file: File): String
         fun reportInput(input: PropertyProblem)
         fun location(consumer: String?): PropertyTrace
@@ -219,6 +219,13 @@ class ConfigurationCacheFingerprintWriter(
         }
         // Ignore consumer for now, only used by Gradle internals and so shouldn't appear in the report.
         captureFile(file)
+    }
+
+    override fun directoryChildrenObserved(file: File) {
+        if (isInputTrackingDisabled()) {
+            return
+        }
+        sink().captureDirectoryChildren(file)
     }
 
     override fun systemPropertyRead(key: String, value: Any?, consumer: String?) {
@@ -637,6 +644,7 @@ class ConfigurationCacheFingerprintWriter(
         private val host: Host
     ) {
         val capturedFiles: MutableSet<File> = newConcurrentHashSet()
+        val capturedDirectories: MutableSet<File> = newConcurrentHashSet()
 
         private
         val undeclaredSystemProperties = newConcurrentHashSet<String>()
@@ -649,6 +657,13 @@ class ConfigurationCacheFingerprintWriter(
                 return
             }
             write(inputFile(file))
+        }
+
+        fun captureDirectoryChildren(file: File) {
+            if (!capturedDirectories.add(file)) {
+                return
+            }
+            write(ConfigurationCacheFingerprint.DirectoryChildren(file, host.hashCodeOf(file)))
         }
 
         fun systemPropertyRead(key: String, value: Any?) {
