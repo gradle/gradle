@@ -20,6 +20,7 @@ import org.eclipse.jetty.http.HttpStatus
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.file.TestFile
@@ -339,6 +340,7 @@ credentials {
         module.jarFile.assertIsCopyOf(new TestFile(largeJar))
     }
 
+    @ToBeFixedForConfigurationCache
     void "does not upload meta-data file if artifact upload fails"() {
         given:
         buildFile << """
@@ -514,6 +516,7 @@ credentials {
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
     }
 
+    @ToBeFixedForConfigurationCache(because = "checks for credentials earlier")
     def "fails at configuration time with helpful error message when username and password provider has no value"() {
         given:
         buildFile << publicationBuildWithCredentialsProvider('2', 'org.gradle', ivyHttpRepo.uri)
