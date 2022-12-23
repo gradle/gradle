@@ -605,7 +605,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     private static NormalizedIvyArtifact normalizedArtifactFor(IvyArtifact artifact) {
-        return new NormalizedIvyArtifact((IvyArtifactInternal) artifact);
+        return ((IvyArtifactInternal) artifact).asNormalisedArtifact();
     }
 
     @Override
