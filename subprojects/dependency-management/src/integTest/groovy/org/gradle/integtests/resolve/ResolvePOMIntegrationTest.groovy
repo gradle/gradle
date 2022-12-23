@@ -19,9 +19,9 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
-@Issue("https://github.com/gradle/gradle/pull/23245")
-class ResolvePOMSpec extends AbstractIntegrationSpec {
-    def "resolving a @pom artifact from an included build replacing an external library doesn't fail the build"() {
+@Issue("https://github.com/gradle/gradle/issues/22875")
+class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
+    def "resolving a @pom artifact from an included build replacing an external library fails the build"() {
         given:
         def mainProjectDir = file("main-project")
         def includedLoggingProjectDir = file("included-logging")
@@ -61,7 +61,9 @@ class ResolvePOMSpec extends AbstractIntegrationSpec {
         executer.inDirectory(mainProjectDir)
 
         expect:
-        succeeds "build"
+        fails "build"
+        failure.assertHasCause("Could not resolve all task dependencies for configuration ':app:runtimeClasspath'")
+        failure.assertHasCause("Could not find lib.pom (project :included-logging:lib)")
     }
 
     def "getting the file for a @pom artifact from an included build replacing an external library doesn't fail the build"() {

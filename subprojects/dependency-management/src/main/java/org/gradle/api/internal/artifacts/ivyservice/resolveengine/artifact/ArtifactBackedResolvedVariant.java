@@ -63,7 +63,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
             try {
                 artifacts = artifactsSupplier.get();
             } catch (Exception e) {
-                return EMPTY;
+                return new UnavailableResolvedArtifactSet(e);
             }
             if (artifacts.isEmpty()) {
                 return EMPTY;
