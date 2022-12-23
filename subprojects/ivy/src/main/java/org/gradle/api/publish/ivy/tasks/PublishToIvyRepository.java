@@ -44,6 +44,7 @@ import org.gradle.internal.serialization.Transient;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.work.DisableCachingByDefault;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.net.URI;
 import java.util.concurrent.Callable;
@@ -191,8 +192,8 @@ public abstract class PublishToIvyRepository extends DefaultTask {
         private final IvyNormalizedPublication publication;
 
         public PublishSpec(
-                RepositorySpec repository,
-                IvyNormalizedPublication publication
+            RepositorySpec repository,
+            IvyNormalizedPublication publication
         ) {
             this.repository = repository;
             this.publication = publication;
@@ -220,8 +221,20 @@ public abstract class PublishToIvyRepository extends DefaultTask {
             }
 
             private Object writeReplace() {
-                CredentialsSpec credentialsSpec = repository.getConfiguredCredentials().map(it -> CredentialsSpec.of(repository.getName(), it)).getOrNull();
-                return new DefaultRepositorySpec(repository.getName(), repository.getUrl(), repository.isAllowInsecureProtocol(), credentialsSpec, repository.getLayout());
+                return new DefaultRepositorySpec(
+                    repository.getName(),
+                    repository.getUrl(),
+                    repository.isAllowInsecureProtocol(),
+                    credentialsSpec(),
+                    repository.getLayout()
+                );
+            }
+
+            @Nullable
+            private CredentialsSpec credentialsSpec() {
+                return repository.getConfiguredCredentials().map(
+                    credentials -> CredentialsSpec.of(repository.getName(), credentials)
+                ).getOrNull();
             }
         }
 
@@ -239,6 +252,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
                 this.credentials = credentials;
                 this.layout = layout;
             }
+
             @Override
             IvyArtifactRepository get(ServiceRegistry services) {
                 DefaultIvyArtifactRepository repository = (DefaultIvyArtifactRepository) services.get(BaseRepositoryFactory.class).createIvyRepository();
