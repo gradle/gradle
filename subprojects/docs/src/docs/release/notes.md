@@ -2,7 +2,7 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release includes several improvements to the [Kotlin DSL](https://github.com/gradle/gradle/blob/release/subprojects/docs/src/docs/release/userguide/kotlin_dsl.html), testing on internal classes with the [JVM test suite](https://github.com/gradle/gradle/blob/release/subprojects/docs/src/docs/release/userguide/jvm_test_suite_plugin.html), and many improvements to `buildSrc` to behave more like included builds such as running `buildSrc` tasks directly, skipping tests, having init scripts and including other builds with  `buildSrc`. 
 
-As always, there are also performance improvements like enhancements to the [configuration cache](http://userguide/configuration_cache.html).
+As always, there are also performance improvements like enhancements to the [configuration cache](userguide/configuration_cache.html).
 
 <!--
 Include only their name, impactful features should be called out separately below.
@@ -95,7 +95,7 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ##### Updated Toolchain Download Repositories
 
-Gradle 7.6 introduced [arbitrary toolchain repositories](https://docs.gradle.org/7.6/userguide/toolchains.html#sub:download_repositories). In Gradle 8.0, if toolchain auto-provisioning is needed, at least one Java Toolchain repository needs an explicit definition for the build. This can be done via toolchain repository plugins, like the [Foojay Toolchains Plugin](https://github.com/gradle/disco-toolchains):
+Gradle 7.6 introduced [arbitrary toolchain repositories](https://docs.gradle.org/7.6/userguide/toolchains.html#sub:download_repositories). In Gradle 8.0, there is no longer a default toolchain provisioner. You have to declare at least one Java Toolchain repository explicitly.  This can be done via toolchain repository plugins, like the [Foojay Toolchains Plugin](https://github.com/gradle/disco-toolchains):
 
 ```
 plugins {
@@ -104,8 +104,7 @@ plugins {
 ```
 
 
-For more information, see [Toolchain Download Repositories](https://github.com/gradle/gradle/blob/release/subprojects/docs/src/docs/release/userguide/toolchains.html#sec:provisioning).
-
+For more information, see [Toolchain Download Repositories](userguide/toolchains.html#sec:provisioning).
 
 ###  Kotlin DSL
 
@@ -137,9 +136,9 @@ See the [`kotlin-dsl` plugin manual](userguide/kotlin_dsl.adoc#sec:kotlin-dsl_pl
 
 #### Improved Script compilation performance 
 
-Gradle 8.0 introduces an interpreter for the [declarative plugins {} blocks](https://github.com/gradle/gradle/blob/release/subprojects/docs/src/docs/release/userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts that make the overall build time around 20% faster. By default, calling the Kotlin compiler for declarative `plugins {}` blocks is avoided.
+Gradle 8.0 introduces an interpreter for the [declarative plugins {} blocks](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts that make the overall build time around 20% faster. By default, calling the Kotlin compiler for declarative `plugins {}` blocks is avoided.
 
-To utilize this performance, ensure you are using the supported formats in the declarative `plugins {}` blocks:
+To utilize this performance, ensure you are using the supported formats in the declarative `plugins {}` blocks, for example:
 
 ```kotlin
 plugins {
@@ -152,25 +151,9 @@ plugins {
 2. Plugin specification with version and/or the plugin application flag
 3. Kotlin plugin specification helper
 
-Note that using version catalog aliases for plugins or plugin specification type-safe accessors is not supported by the `plugins {}` block interpreter.
+Note that using version catalog aliases for plugins or plugin specification type-safe accessors is not supported by the `plugins {}` block interpreter. This support will be added in a later version.
 
-Here are examples of unsupported constructs:
-
-```kotlin
-plugins {
-    val v = "2"
-    id("some") version v    // <1>
-
-    `java-library`          // <2>
-    alias(libs.plugins.jmh) // <3>
-}
-```
-1. Non-declarative code, unsupported
-2. Plugin specification type-safe accessor, unsupported
-3. Version catalog plugin reference, unsupported
-
-In the cases above, Gradle falls back to the Kotlin compiler, providing the same performance as previous Gradle releases.
-
+In unsupported cases, Gradle falls back to the Kotlin compiler, providing the same performance as previous Gradle releases.
 
 ### General Improvements
 
@@ -183,7 +166,6 @@ If there were two warnings with the same message, but originating from different
 Now one gets printed for each combination of message and stack trace.
 
 For more information about warning modes, see [Showing or hiding warnings](userguide/command_line_interface.html#sec:command_line_warnings).
-
 
 #### Improved Dependency verification metadata
 
@@ -208,11 +190,13 @@ For more information, see [Exporting keys](userguide/dependency_verification.htm
 
 ### Configuration Cache
 
+The [configuration cache](userguide/configuration_cache.html) improves build time by caching the result of the configuration phase and reusing this for subsequent builds.
+
 #### Consistent task execution for configuration cache hit and configuration cache miss builds
 
 In Gradle 8.0, tasks run in parallel from the first build when using the configuration cache. Gradle now loads the set of tasks from the cache entry after storing them on a cache miss. These tasks are isolated and can run in parallel. This is more  fine-grained than using the --parallel flag.
 
-When the [configuration cache](https://github.com/gradle/gradle/blob/release/subprojects/docs/src/docs/release/userguide/configuration_cache.html) is enabled, and Gradle is able to locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the cache entry and runs them as so-called 'isolated' tasks. Isolated tasks are able to run in parallel by default, subject to dependency constraints.
+When the [configuration cache](userguide/configuration_cache.html) is enabled, and Gradle is able to locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the cache entry and runs them as so-called 'isolated' tasks. Isolated tasks are able to run in parallel by default, subject to dependency constraints.
 
 When Gradle is unable to locate a configuration cache entry to use, it runs the 'configuration' phase to calculate the set of tasks to run and then stores these tasks to a new cache entry. In previous versions, Gradle would then run these tasks directly. However, as these tasks are not isolated, they would not run in parallel.
 
