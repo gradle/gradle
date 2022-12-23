@@ -390,10 +390,11 @@ public class Instrumented {
 
     public static String kotlinIoFilesKtReadTextDefault(File receiver, Charset charset, int defaultMask, Object defaultMarker, String consumer) throws Throwable {
         listener().fileOpened(receiver, consumer);
-        return (String) FILESKT_READ_TEXT_DEFAULT.invokeExact(receiver, charset, defaultMask, defaultMarker);
+        return (String) FILESKT_READ_TEXT_DEFAULT.get().invokeExact(receiver, charset, defaultMask, defaultMarker);
     }
 
-    private static final MethodHandle FILESKT_READ_TEXT_DEFAULT = findStaticOrThrowError(FilesKt.class, "readText$default", kotlinDefaultMethodType(String.class, File.class, Charset.class));
+    private static final Lazy<MethodHandle> FILESKT_READ_TEXT_DEFAULT =
+        Lazy.locking().of(() -> findStaticOrThrowError(FilesKt.class, "readText$default", kotlinDefaultMethodType(String.class, File.class, Charset.class)));
 
     public static String filesReadString(Path file, String consumer) throws Throwable {
         listener().fileOpened(file.toFile(), consumer);
