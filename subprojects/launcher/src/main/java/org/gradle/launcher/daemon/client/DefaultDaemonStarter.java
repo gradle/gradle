@@ -39,8 +39,8 @@ import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.process.internal.DefaultExecActionFactory;
-import org.gradle.process.internal.DefaultJavaDebugOptions;
 import org.gradle.process.internal.ExecHandle;
+import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
@@ -107,7 +107,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         daemonArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getAsFiles()));
 
         if (Boolean.getBoolean("org.gradle.daemon.debug")) {
-            daemonArgs.add(new DefaultJavaDebugOptions().toDebugArgument());
+            daemonArgs.add(JvmOptions.getDebugArgument(true, true, "5005"));
         }
 
         if (daemonParameters.shouldApplyInstrumentationAgent()) {

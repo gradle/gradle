@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.process.internal
+package org.gradle.integtests.fixtures.executer
+
 
 import spock.lang.Specification
 
-class DefaultJavaDebugOptionsTest  extends Specification {
+class JavaDebugOptionsInternalTest extends Specification {
     def "check default debug option"() {
         when:
-        def opts = new DefaultJavaDebugOptions();
+        def opts = new JavaDebugOptionsInternal();
 
         then:
         opts.toDebugArgument() == "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"

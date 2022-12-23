@@ -94,8 +94,4 @@ public class DefaultJavaDebugOptions implements JavaDebugOptions {
     public Property<Boolean> getSuspend() {
         return suspend;
     }
-
-    public String toDebugArgument() {
-        return JvmOptions.getDebugArgument(this);
-    }
 }
