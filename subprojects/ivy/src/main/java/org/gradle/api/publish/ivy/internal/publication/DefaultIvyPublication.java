@@ -557,22 +557,23 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
         // Preserve identity of artifacts
         Map<IvyArtifact, NormalizedIvyArtifact> normalizedArtifacts = normalizedIvyArtifacts();
-        Set<NormalizedIvyArtifact> mainArtifacts = this.mainArtifacts
-            .matching(this::isValidArtifact)
-            .stream()
-            .map(it -> normalizedArtifactFor(it))
-            .collect(Collectors.toSet());
         return new IvyNormalizedPublication(
             name,
             getCoordinates(),
-            mainArtifacts,
+            linkedHashSetOf(mainArtifacts.stream().map(it -> normalizedArtifacts.get(it))),
             asReadOnlyIdentity(getIdentity()),
             getIvyDescriptorFile(),
             new LinkedHashSet<>(normalizedArtifacts.values())
         );
     }
 
-    private IvyPublicationIdentity asReadOnlyIdentity(IvyPublicationIdentity identity) {
+    private static <T> Set<T> linkedHashSetOf(Stream<T> stream) {
+        LinkedHashSet<T> set = new LinkedHashSet<>();
+        stream.forEach(set::add);
+        return set;
+    }
+
+    private static IvyPublicationIdentity asReadOnlyIdentity(IvyPublicationIdentity identity) {
         return new DefaultReadOnlyIvyPublicationIdentity(identity);
     }
 
@@ -586,40 +587,35 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     private Map<IvyArtifact, NormalizedIvyArtifact> normalizedIvyArtifacts() {
-        return artifactsToBePublished()
-            .stream()
+        return Streams.concat(
+                mainArtifacts.stream().filter(this::isValidArtifact),
+                metadataArtifacts.stream(),
+                derivedArtifacts.stream()
+            ).distinct().filter(element -> {
+                if (!((PublicationArtifactInternal) element).shouldBePublished()) {
+                    return false;
+                }
+                if (gradleModuleDescriptorArtifact == element) {
+                    // We temporarily want to allow skipping the publication of Gradle module metadata
+                    return gradleModuleDescriptorArtifact.isEnabled();
+                }
+                return true;
+            })
             .collect(toMap(
                 Function.identity(),
-                this::normalizedArtifactFor
+                it -> normalizedArtifactFor(it)
             ));
     }
 
-    private NormalizedIvyArtifact normalizedArtifactFor(IvyArtifact artifact) {
+    private static NormalizedIvyArtifact normalizedArtifactFor(IvyArtifact artifact) {
         return new NormalizedIvyArtifact((IvyArtifactInternal) artifact);
-    }
-
-    private DomainObjectSet<IvyArtifact> artifactsToBePublished() {
-        return CompositeDomainObjectSet.create(
-            IvyArtifact.class,
-            Cast.uncheckedCast(new DomainObjectCollection<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts})
-        ).matching(element -> {
-            if (!((PublicationArtifactInternal) element).shouldBePublished()) {
-                return false;
-            }
-            if (gradleModuleDescriptorArtifact == element) {
-                // We temporarily want to allow skipping the publication of Gradle module metadata
-                return gradleModuleDescriptorArtifact.isEnabled();
-            }
-            return true;
-        });
     }
 
     @Override
     public boolean writeGradleMetadataMarker() {
-        if (canPublishModuleMetadata() && gradleModuleDescriptorArtifact != null && gradleModuleDescriptorArtifact.isEnabled()) {
-            return true;
-        }
-        return false;
+        return canPublishModuleMetadata()
+            && gradleModuleDescriptorArtifact != null
+            && gradleModuleDescriptorArtifact.isEnabled();
     }
 
     private boolean canPublishModuleMetadata() {
