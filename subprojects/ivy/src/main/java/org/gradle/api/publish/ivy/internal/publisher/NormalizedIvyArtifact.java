@@ -73,7 +73,7 @@ public class NormalizedIvyArtifact implements IvyArtifactInternal, Serializable 
     }
 
     @Override
-    public void setConf(String conf) {
+    public void setConf(@Nullable String conf) {
         throw new IllegalStateException();
     }
 
