@@ -435,9 +435,31 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter copyTo(GradleExecuter executer);
 
     /**
+     * Where possible, starts the Gradle build process in debug mode with the provided options.
+     */
+    GradleExecuter startBuildProcessInDebugger(boolean flag, boolean server, boolean suspend, int port, String host);
+
+    /**
      * Where possible, starts the Gradle build process in suspended debug mode.
      */
     GradleExecuter startBuildProcessInDebugger(boolean flag);
+
+    /**
+     * Sets the build process debug host
+     */
+    GradleExecuter buildProcessDebugHost(String host);
+    /**
+     * Sets the build process debug port
+     */
+    GradleExecuter buildProcessDebugPort(int port);
+    /**
+     * Turns on/off the debug server mode for the build process
+     */
+    GradleExecuter buildProcessDebugServer(boolean server);
+    /**
+     * Turns on/off the debug suspend mode for the build process
+     */
+    GradleExecuter buildProcessDebugSuspend(boolean suspend);
 
     GradleExecuter withProfiler(String profilerArg);
 
@@ -454,6 +476,30 @@ public interface GradleExecuter extends Stoppable {
      * Starts the launcher JVM (daemon client) in suspended debug mode
      */
     GradleExecuter startLauncherInDebugger(boolean debugLauncher);
+
+    /**
+     * Starts the launcher JVM (daemon client) in debug mode with the provided options
+     */
+    GradleExecuter startLauncherInDebugger(boolean flag, boolean server, boolean suspend, int port, String host);
+
+    /**
+     * Sets the launcher JVM (daemon client) debug port
+     */
+    GradleExecuter launcherDebugPort(int port);
+    /**
+     * Sets the launcher JVM (daemon client) debug host
+     */
+    GradleExecuter launcherDebugHost(String host);
+
+    /**
+     * Turns on/off the launcher JVM (daemon client) debug server mode
+     */
+    GradleExecuter launcherDebugServer(boolean server);
+    /**
+     * Turns on/off the launcher JVM (daemon client) debug suspend mode
+     */
+    GradleExecuter launcherDebugSuspend(boolean suspend);
+
 
     boolean isDebugLauncher();
 

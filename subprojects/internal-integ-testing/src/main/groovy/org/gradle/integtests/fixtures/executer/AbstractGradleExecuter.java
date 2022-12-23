@@ -52,6 +52,7 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
+import org.gradle.process.internal.DefaultJavaDebugOptions;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.ResettableExpectations;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -126,10 +127,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private static final String LAUNCHER_DEBUG_SYSPROP = "org.gradle.integtest.launcher.debug";
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
 
-    protected static final List<String> DEBUG_ARGS = ImmutableList.of(
-        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
-    );
-
     private final Logger logger;
 
     protected final IntegrationTestBuildContext buildContext;
@@ -189,8 +186,16 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected final GradleDistribution distribution;
     private GradleVersion gradleVersionOverride;
 
-    private boolean debug = Boolean.getBoolean(DEBUG_SYSPROP);
-    private boolean debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);
+    private DefaultJavaDebugOptions debug = createJavaDebugOptions(Boolean.getBoolean(DEBUG_SYSPROP));
+
+    private DefaultJavaDebugOptions debugLauncher = createJavaDebugOptions(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP));
+
+    private static DefaultJavaDebugOptions createJavaDebugOptions(boolean debugLauncher) {
+        DefaultJavaDebugOptions debugOptions = new DefaultJavaDebugOptions();
+        debugOptions.getEnabled().set(debugLauncher);
+        return debugOptions;
+    }
+
     private String profiler = System.getProperty(PROFILE_SYSPROP, "");
 
     protected boolean interactive;
@@ -257,8 +262,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         renderWelcomeMessage = false;
         disableToolchainDownload = true;
         disableToolchainDetection = true;
-        debug = Boolean.getBoolean(DEBUG_SYSPROP);
-        debugLauncher = Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP);
+        debug = createJavaDebugOptions(Boolean.getBoolean(DEBUG_SYSPROP));
+        debugLauncher = createJavaDebugOptions(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP));
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
@@ -405,8 +410,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             executer.withGradleVersionOverride(gradleVersionOverride);
         }
 
-        executer.startBuildProcessInDebugger(debug);
-        executer.startLauncherInDebugger(debugLauncher);
+        executer.startBuildProcessInDebugger(debug.getEnabled().get());
+        executer.startLauncherInDebugger(debugLauncher.getEnabled().get());
         executer.withProfiler(profiler);
         executer.withForceInteractive(interactive);
 
@@ -562,7 +567,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             gradleInvocation.implicitLauncherJvmArgs.add(String.format("-D%s=%s", key, value));
         }
         if (isDebugLauncher()) {
-            gradleInvocation.implicitLauncherJvmArgs.addAll(DEBUG_ARGS);
+            gradleInvocation.implicitLauncherJvmArgs.add(debugLauncher.toDebugArgument());
         }
         gradleInvocation.implicitLauncherJvmArgs.add("-ea");
     }
@@ -578,7 +583,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             if (System.getenv().containsKey("CI")) {
                 throw new IllegalArgumentException("Builds cannot be started with the debugger enabled on CI. This will cause tests to hang forever. Remove the call to startBuildProcessInDebugger().");
             }
-            buildJvmOpts.addAll(DEBUG_ARGS);
+            buildJvmOpts.add(debug.toDebugArgument());
         }
         if (isProfile()) {
             buildJvmOpts.add(profiler);
@@ -1513,19 +1518,73 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter startBuildProcessInDebugger(boolean flag) {
-        debug = flag;
+        debug.getEnabled().set(flag);
         return this;
     }
+
+
+    @Override
+    public GradleExecuter startBuildProcessInDebugger(boolean flag, boolean server, boolean suspend, int port, String host) {
+        debug.getServer().set(server);
+        debug.getSuspend().set(suspend);
+        debug.getPort().set(port);
+        debug.getHost().set(host);
+        return startBuildProcessInDebugger(flag);
+    }
+
+    public GradleExecuter buildProcessDebugPort(int port){
+        debug.getPort().set(port);
+        return this;
+    }
+    public GradleExecuter buildProcessDebugHost(String host){
+        debug.getHost().set(host);
+        return this;
+    }
+    public GradleExecuter buildProcessDebugServer(boolean server){
+        debug.getServer().set(server);
+        return this;
+    }
+    public GradleExecuter buildProcessDebugSuspend(boolean suspend){
+        debug.getSuspend().set(suspend);
+        return this;
+    }
+
 
     @Override
     public GradleExecuter startLauncherInDebugger(boolean flag) {
-        debugLauncher = flag;
+        debugLauncher.getEnabled().set(flag);
         return this;
     }
 
+    public GradleExecuter startLauncherInDebugger(boolean flag, boolean server, boolean suspend, int port, String host) {
+        debugLauncher.getServer().set(server);
+        debugLauncher.getSuspend().set(suspend);
+        debugLauncher.getPort().set(port);
+        debugLauncher.getHost().set(host);
+        return startLauncherInDebugger(flag);
+    }
+
+    public GradleExecuter launcherDebugPort(int port){
+        debugLauncher.getPort().set(port);
+        return this;
+    }
+    public GradleExecuter launcherDebugHost(String host){
+        debugLauncher.getHost().set(host);
+        return this;
+    }
+    public GradleExecuter launcherDebugServer(boolean server){
+        debugLauncher.getServer().set(server);
+        return this;
+    }
+    public GradleExecuter launcherDebugSuspend(boolean suspend){
+        debugLauncher.getSuspend().set(suspend);
+        return this;
+    }
+
+
     @Override
     public boolean isDebugLauncher() {
-        return debugLauncher;
+        return debugLauncher.getEnabled().get();
     }
 
     @Override
@@ -1584,7 +1643,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public boolean isDebug() {
-        return debug;
+        return debug.getEnabled().get();
     }
 
     @Override
