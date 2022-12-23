@@ -32,7 +32,6 @@ class IvyPublishS3IntegrationTest extends AbstractIvyPublishIntegTest {
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish to an S3 Ivy repository"() {
         given:
         def ivyRepo = server.remoteIvyRepo
