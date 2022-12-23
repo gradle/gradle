@@ -94,6 +94,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class DefaultIvyPublication implements IvyPublicationInternal {
@@ -553,12 +554,16 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         populateFromComponent();
 
         // Preserve identity of artifacts
-        Set<IvyArtifact> main = linkedHashSetOf(normalizedIvyArtifacts(
-            mainArtifacts.stream().filter(this::isValidArtifact)
-        ));
+        Set<IvyArtifact> main = linkedHashSetOf(
+            normalized(
+                mainArtifacts.stream(),
+                this::isValidArtifact
+            )
+        );
         LinkedHashSet<IvyArtifact> all = new LinkedHashSet<>(main);
-        normalizedIvyArtifacts(
-            Streams.concat(metadataArtifacts.stream(), derivedArtifacts.stream())
+        normalized(
+            Streams.concat(metadataArtifacts.stream(), derivedArtifacts.stream()),
+            this::isPublishableArtifact
         ).forEach(all::add);
         return new IvyNormalizedPublication(
             name,
@@ -586,22 +591,31 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (artifactFile == null) {
             throw new InvalidIvyPublicationException(name, String.format("artifact file does not exist: '%s'", artifact));
         }
+        if (!((IvyArtifactInternal) artifact).shouldBePublished()) {
+            // Fail if it's the main artifact, otherwise simply disable publication
+            if (artifact.getClassifier() == null) {
+                throw new IllegalStateException("Artifact " + artifact.getFile().getName() + " wasn't produced by this build.");
+            }
+            return false;
+        }
         return true;
     }
 
-    private Stream<IvyArtifact> normalizedIvyArtifacts(Stream<IvyArtifact> artifacts) {
+    private static Stream<IvyArtifact> normalized(Stream<IvyArtifact> artifacts, Predicate<IvyArtifact> predicate) {
         return artifacts
-            .filter(element -> {
-                if (!((PublicationArtifactInternal) element).shouldBePublished()) {
-                    return false;
-                }
-                if (gradleModuleDescriptorArtifact == element) {
-                    // We temporarily want to allow skipping the publication of Gradle module metadata
-                    return gradleModuleDescriptorArtifact.isEnabled();
-                }
-                return true;
-            })
-            .map(it -> normalizedArtifactFor(it));
+            .filter(predicate)
+            .map(DefaultIvyPublication::normalizedArtifactFor);
+    }
+
+    private boolean isPublishableArtifact(IvyArtifact element) {
+        if (!((PublicationArtifactInternal) element).shouldBePublished()) {
+            return false;
+        }
+        if (gradleModuleDescriptorArtifact == element) {
+            // We temporarily want to allow skipping the publication of Gradle module metadata
+            return gradleModuleDescriptorArtifact.isEnabled();
+        }
+        return true;
     }
 
     private static NormalizedIvyArtifact normalizedArtifactFor(IvyArtifact artifact) {

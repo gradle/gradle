@@ -61,17 +61,6 @@ public class IvyNormalizedPublication {
     }
 
     public Set<IvyArtifact> getAllArtifacts() {
-        assertMainArtifactsPublishable();
         return allArtifacts;
-    }
-
-    private void assertMainArtifactsPublishable() {
-        mainArtifacts.forEach(artifact -> {
-            if (artifact.getClassifier() == null) {
-                if (!((IvyArtifactInternal) artifact).shouldBePublished()) {
-                    throw new IllegalStateException("Artifact " + artifact.getFile().getName() + " wasn't produced by this build.");
-                }
-            }
-        });
     }
 }
