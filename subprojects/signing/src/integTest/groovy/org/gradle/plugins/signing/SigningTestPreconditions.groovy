@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.signing
 
-import org.gradle.util.TestPrecondition
+import org.gradle.test.fixtures.condition.TestPrecondition
 
 class SigningTestPreconditions {
 

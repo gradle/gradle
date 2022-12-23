@@ -19,6 +19,7 @@ package org.gradle.util
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.condition.TestPrecondition
 
 class IntegTestPreconditions {
 

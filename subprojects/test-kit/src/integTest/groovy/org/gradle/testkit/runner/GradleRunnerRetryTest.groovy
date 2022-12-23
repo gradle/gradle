@@ -19,8 +19,8 @@ package org.gradle.testkit.runner
 
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
 

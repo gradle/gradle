@@ -17,7 +17,7 @@ package org.gradle.plugins.signing
 
 
 import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.condition.Requires
 
 @Requires(SigningTestPreconditions.GpgAvailable)
 class SigningConfigurationsWithGpgCmdIntegrationSpec extends SigningConfigurationsIntegrationSpec {

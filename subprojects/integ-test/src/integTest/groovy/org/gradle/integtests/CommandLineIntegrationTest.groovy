@@ -24,9 +24,8 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.internal.GFileUtils
-import org.gradle.util.PreconditionVerifier
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.junit.Assume
 import org.junit.Before
 import org.junit.Rule
@@ -38,8 +37,6 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
 
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider)
-    @Rule
-    public final PreconditionVerifier verifier = new PreconditionVerifier()
 
     @Before
     void setup() {

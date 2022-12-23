@@ -19,7 +19,7 @@ package org.gradle.integtests.fixtures
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.util.GradleVersion
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 import javax.annotation.Nullable
 

@@ -17,8 +17,8 @@
 package org.gradle.connectivity
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 @Requires(UnitTestPreconditions.Online)
 class MavenGoogleDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
@@ -58,11 +58,11 @@ class MavenGoogleDependencyResolveIntegrationTest extends AbstractDependencyReso
             configurations {
                 compile
             }
-            
+
             dependencies {
                 compile '$dependencyGav'
             }
-            
+
             task copyLibs(type: Copy) {
                 from configurations.compile
                 into "\$buildDir/libs"

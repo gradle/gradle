@@ -31,9 +31,9 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.condition.Requires
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.junit.Rule
 
 @Requires(UnitTestPreconditions.NotWindows)

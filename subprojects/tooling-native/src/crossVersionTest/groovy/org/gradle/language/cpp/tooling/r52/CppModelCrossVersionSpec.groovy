@@ -25,8 +25,8 @@ import org.gradle.tooling.model.cpp.CppExecutable
 import org.gradle.tooling.model.cpp.CppLibrary
 import org.gradle.tooling.model.cpp.CppProject
 import org.gradle.tooling.model.cpp.CppSharedLibrary
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 @ToolingApiVersion(">=5.2")
 @TargetGradleVersion(">=5.2")

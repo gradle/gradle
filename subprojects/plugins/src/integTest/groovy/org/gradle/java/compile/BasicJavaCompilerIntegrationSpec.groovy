@@ -23,8 +23,8 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.classanalysis.JavaClassUtil
 import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.IntegTestPreconditions
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
 

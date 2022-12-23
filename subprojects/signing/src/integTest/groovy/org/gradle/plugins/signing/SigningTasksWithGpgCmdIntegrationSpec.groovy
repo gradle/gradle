@@ -16,7 +16,7 @@
 package org.gradle.plugins.signing
 
 
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.condition.Requires
 
 @Requires(SigningTestPreconditions.GpgAvailable)
 class SigningTasksWithGpgCmdIntegrationSpec extends SigningTasksIntegrationSpec {

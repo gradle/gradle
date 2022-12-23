@@ -20,8 +20,8 @@ import org.gradle.api.GradleException
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.GradleConnectionException
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 @LeaksFileHandles
 //With older 2.x Gradle versions -> Unable to delete file: native-platform.dll

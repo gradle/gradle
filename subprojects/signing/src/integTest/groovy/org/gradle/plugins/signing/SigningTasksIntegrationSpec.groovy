@@ -19,7 +19,7 @@ package org.gradle.plugins.signing
 import org.gradle.plugins.signing.signatory.internal.gnupg.GnupgSignatoryProvider
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.condition.Requires
 
 import static org.gradle.plugins.signing.SigningIntegrationSpec.SignMethod.GPG_CMD
 import static org.gradle.plugins.signing.SigningIntegrationSpec.SignMethod.OPEN_GPG

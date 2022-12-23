@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.util
+package org.gradle.test.fixtures.condition
 
 import groovy.transform.CompileStatic
 import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 import org.testcontainers.DockerClientFactory
 
-import static org.gradle.util.TestPrecondition.doSatisfies
-import static org.gradle.util.TestPrecondition.notSatisfies
+import static org.gradle.test.fixtures.condition.TestPrecondition.doSatisfies
+import static org.gradle.test.fixtures.condition.TestPrecondition.notSatisfies
 
 @CompileStatic
 class UnitTestPreconditions {

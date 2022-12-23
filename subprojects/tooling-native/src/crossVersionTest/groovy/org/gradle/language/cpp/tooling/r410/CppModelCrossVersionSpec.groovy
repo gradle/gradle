@@ -27,8 +27,8 @@ import org.gradle.tooling.model.cpp.CppProject
 import org.gradle.tooling.model.cpp.CppSharedLibrary
 import org.gradle.tooling.model.cpp.CppStaticLibrary
 import org.gradle.tooling.model.cpp.CppTestSuite
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 @ToolingApiVersion(">=4.10")
 @TargetGradleVersion(">=4.10")

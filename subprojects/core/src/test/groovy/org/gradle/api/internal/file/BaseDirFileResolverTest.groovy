@@ -18,7 +18,6 @@ package org.gradle.api.internal.file
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.PreconditionVerifier
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -39,7 +38,6 @@ class BaseDirFileResolverTest {
 
     BaseDirFileResolver baseDirConverter
     @Rule public TestNameTestDirectoryProvider rootDir = new TestNameTestDirectoryProvider(getClass())
-    @Rule public PreconditionVerifier preconditions = new PreconditionVerifier()
 
     @Before public void setUp() {
         baseDir = rootDir.testDirectory

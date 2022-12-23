@@ -16,8 +16,8 @@
 
 package org.gradle.smoketests
 
-import org.gradle.util.Requires
-import org.gradle.util.UnitTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 @Requires(UnitTestPreconditions.Jdk11OrLater)
 class GradleGitPropertiesSmokeTest extends AbstractPluginValidatingSmokeTest {

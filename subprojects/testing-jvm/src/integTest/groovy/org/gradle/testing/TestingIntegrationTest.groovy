@@ -23,7 +23,8 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
-import org.gradle.util.Requires
+import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.hamcrest.CoreMatchers
 import org.gradle.util.internal.TextUtil
 import org.gradle.util.UnitTestPreconditions
