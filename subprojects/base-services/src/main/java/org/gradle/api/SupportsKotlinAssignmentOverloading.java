@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 /**
  * Marks interface that works with overloaded Kotlin assignment.
  *
- * @since 8.0
+ * @since 8.1
  */
 @Incubating
 @Documented

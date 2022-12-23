@@ -15,7 +15,7 @@
  */
 
 /**
- * @since 8.0
+ * @since 8.1
  */
 @file:Incubating
 package org.gradle.kotlin.dsl
@@ -31,7 +31,7 @@ import java.io.File
 /**
  * Assign value: T to a property with assign operator
  *
- * @since 8.0
+ * @since 8.1
  */
 @Incubating
 fun <T> Property<T>.assign(value: T) = this.set(value)
@@ -40,7 +40,7 @@ fun <T> Property<T>.assign(value: T) = this.set(value)
 /**
  * Assign value: Provider<T> to a property with assign operator
  *
- * @since 8.0
+ * @since 8.1
  */
 @Incubating
 fun <T> Property<T>.assign(value: Provider<T>) = this.set(value)
@@ -49,7 +49,7 @@ fun <T> Property<T>.assign(value: Provider<T>) = this.set(value)
 /**
  * Assign file to a FileSystemLocationProperty with assign operator
  *
- * @since 8.0
+ * @since 8.1
  */
 @Incubating
 fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(file: File) = this.set(file)
