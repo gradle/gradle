@@ -16,8 +16,11 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
+import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
@@ -25,11 +28,13 @@ import java.io.Serializable;
 public class NormalizedIvyArtifact implements IvyArtifactInternal, Serializable {
     private final File file;
     private final String extension;
+    @Nullable
     private final String classifier;
     private final String name;
     private final String type;
+    @Nullable
     private final String conf;
-    private final boolean shouldBePublished;
+    private final Provider<Boolean> shouldBePublished;
 
     public NormalizedIvyArtifact(IvyArtifactInternal artifact) {
         this.name = artifact.getName();
@@ -38,7 +43,7 @@ public class NormalizedIvyArtifact implements IvyArtifactInternal, Serializable 
         this.file = artifact.getFile();
         this.extension = artifact.getExtension();
         this.classifier = artifact.getClassifier();
-        this.shouldBePublished = artifact.shouldBePublished();
+        this.shouldBePublished = new DefaultProvider<>(artifact::shouldBePublished);
     }
 
     @Override
@@ -61,6 +66,7 @@ public class NormalizedIvyArtifact implements IvyArtifactInternal, Serializable 
         throw new IllegalStateException();
     }
 
+    @Nullable
     @Override
     public String getConf() {
         return conf;
@@ -102,6 +108,7 @@ public class NormalizedIvyArtifact implements IvyArtifactInternal, Serializable 
         throw new IllegalStateException();
     }
 
+    @Nonnull
     @Override
     public TaskDependency getBuildDependencies() {
         throw new IllegalStateException();
@@ -109,6 +116,6 @@ public class NormalizedIvyArtifact implements IvyArtifactInternal, Serializable 
 
     @Override
     public boolean shouldBePublished() {
-        return shouldBePublished;
+        return shouldBePublished.get();
     }
 }
