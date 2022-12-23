@@ -45,8 +45,10 @@ credentials {
     password 'bad'
 }
 '''
-    @Rule ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
-    @Rule HttpServer server = new HttpServer()
+    @Rule
+    ProgressLoggingFixture progressLogging = new ProgressLoggingFixture(executer, temporaryFolder)
+    @Rule
+    HttpServer server = new HttpServer()
 
     private IvyHttpModule module
     private IvyHttpRepository ivyHttpRepo
@@ -139,7 +141,7 @@ credentials {
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
         org.gradle.api.credentials.PasswordCredentials credentials = new DefaultPasswordCredentials('testuser', 'password')
-        buildFile << publicationBuild(version, group, ivyHttpRepo.uri, "ivy","""
+        buildFile << publicationBuild(version, group, ivyHttpRepo.uri, "ivy", """
             credentials {
                 username '${credentials.username}'
                 password '${credentials.password}'
@@ -541,7 +543,7 @@ credentials {
     @Issue("https://github.com/gradle/gradle/issues/14902")
     def "does not fail when publishing is set to always up to date"() {
         given:
-        buildFile << publicationBuild(version, group, ivyHttpRepo.uri, "ivy","""
+        buildFile << publicationBuild(version, group, ivyHttpRepo.uri, "ivy", """
         credentials {
             username 'foo'
             password 'bar'
