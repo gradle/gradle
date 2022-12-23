@@ -21,7 +21,7 @@ import java.security.ProtectionDomain;
 
 public interface InstrumentingClassLoader {
     @Nullable
-    byte[] instrumentClass(String className, ProtectionDomain protectionDomain, byte[] classfileBuffer);
+    byte[] instrumentClass(@Nullable String className, ProtectionDomain protectionDomain, byte[] classfileBuffer);
 
-    void transformFailed(Throwable th);
+    void transformFailed(@Nullable String className, Throwable th);
 }
