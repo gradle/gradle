@@ -740,7 +740,7 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
 
         then:
         configurationCache.assertStateStored()
-        outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has changed.")
+        outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has changed.".replace('/', File.separator))
 
         when:
         configurationCacheRun("resolve1")
@@ -753,16 +753,29 @@ class ConfigurationCacheDependencyResolutionFeaturesIntegrationTest extends Abst
         configurationCacheFails("resolve1")
 
         then:
-        outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has changed.")
+        outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has changed.".replace('/', File.separator))
         failure.assertHasCause("Dependency verification failed for configuration ':implementation'")
         configurationCache.assertStateStoreFailed()
+
+        when:
+        verificationFile.replace('<sha256 value="12345"', '<sha256 value="9e44491880e9ca23ab209f9b2e31cf2a7d26cd33841aea9a490c1b8c9bbf27e5"')
+        configurationCacheRun("resolve1")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun("resolve1")
+
+        then:
+        configurationCache.assertStateLoaded()
 
         when:
         verificationFile.delete()
         configurationCacheRun("resolve1")
 
         then:
-        outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has changed.")
+        outputContains("Calculating task graph as configuration cache cannot be reused because file 'gradle/verification-metadata.xml' has changed.".replace('/', File.separator))
         configurationCache.assertStateStored()
     }
 
