@@ -150,7 +150,6 @@ include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies-pr
 <1> Add a production dependency which is used as part of the library's public API.
 <2> Add a production dependency which is only used internally and is not exposed as part of this project's public classes.
 <3> Configure a new test suite which adds a `project()` dependency to the suite's compile and runtime classpaths. This dependency provides access to the project's outputs as well as any dependencies declared on its `api` and `compileOnlyApi` configurations.
-<4> Configure a new test suite which adds a `projectInternalView()` dependency to the test suite's compile and runtime classpaths. This dependency allows a test suite to access internal project dependencies which are declared on the project's `implementation` and `compileOnly` configurations, in addition to the configurations that the `project()` dependency provides.
 
 == Configure source directories of a test suite
 ====
