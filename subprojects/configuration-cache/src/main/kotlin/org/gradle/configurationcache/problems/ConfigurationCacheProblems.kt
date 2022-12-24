@@ -81,6 +81,9 @@ class ConfigurationCacheProblems(
             if (cacheAction == LOAD) {
                 return false
             }
+            if (isFailingBuildDueToSerializationError) {
+                return true
+            }
             val summary = summarizer.get()
             return discardStateDueToProblems(summary) || hasTooManyProblems(summary)
         }

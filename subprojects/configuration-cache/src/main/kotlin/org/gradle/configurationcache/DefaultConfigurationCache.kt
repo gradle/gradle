@@ -88,7 +88,7 @@ class DefaultConfigurationCache internal constructor(
 
     // Have one or more values been successfully written to the entry?
     private
-    var hasSavedValues = false
+    var cacheEntryRequiresCommit = false
 
     private
     lateinit var host: Host
@@ -171,7 +171,8 @@ class DefaultConfigurationCache internal constructor(
             store.useForStore { layout ->
                 layout.fileFor(StateType.Entry).delete()
             }
-        } else if (hasSavedValues) {
+            cacheEntryRequiresCommit = false
+        } else if (cacheEntryRequiresCommit) {
             val reusedProjects = mutableSetOf<Path>()
             val updatedProjects = mutableSetOf<Path>()
             intermediateModels.value.visitProjects(reusedProjects::add, updatedProjects::add)
@@ -181,7 +182,7 @@ class DefaultConfigurationCache internal constructor(
                 cacheIO.writeCacheEntryDetailsTo(buildStateRegistry, intermediateModels.value.values, projectMetadata.value.values, layout.fileFor(StateType.Entry))
             }
             problems.projectStateStats(reusedProjects.size, updatedProjects.size)
-            hasSavedValues = false
+            cacheEntryRequiresCommit = false
         }
     }
 
@@ -334,13 +335,14 @@ class DefaultConfigurationCache internal constructor(
         // can cause the provider value to incorrectly be treated as a task graph input
         Instrumented.discardListener()
 
+        cacheEntryRequiresCommit = true
+
         buildOperationExecutor.withStoreOperation(cacheKey.string) {
             store.useForStore { layout ->
                 try {
                     action(layout.fileFor(stateType))
                 } catch (error: ConfigurationCacheError) {
                     // Invalidate state on serialization errors
-                    hasSavedValues = false
                     problems.failingBuildDueToSerializationError()
                     throw error
                 } finally {
@@ -350,8 +352,6 @@ class DefaultConfigurationCache internal constructor(
         }
 
         crossConfigurationTimeBarrier()
-
-        hasSavedValues = true
     }
 
     private
