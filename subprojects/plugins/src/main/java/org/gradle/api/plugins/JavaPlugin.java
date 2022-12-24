@@ -29,7 +29,6 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
-import org.gradle.api.attributes.CompileView;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.component.AdhocComponentWithVariants;
@@ -254,8 +253,6 @@ public abstract class JavaPlugin implements Plugin<Project> {
 
     private static final String SOURCE_ELEMENTS_VARIANT_NAME = "mainSourceElements";
 
-    private static final String COMPILE_ELEMENTS_CONFIGURATION_NAME = "compileElements";
-
     private final ObjectFactory objectFactory;
     private final SoftwareComponentFactory softwareComponentFactory;
     private final JvmPluginServices jvmServices;
@@ -389,28 +386,11 @@ public abstract class JavaPlugin implements Plugin<Project> {
             builder -> builder.fromSourceSet(mainSourceSet)
                 .providesApi()
                 .withDescription("API elements for main."));
-        apiElementsConfiguration.getAttributes().attribute(CompileView.VIEW_ATTRIBUTE, objectFactory.named(CompileView.class, CompileView.JAVA_API));
 
         // Configure variants
         addJarArtifactToConfiguration(apiElementsConfiguration, jarArtifact);
 
         return apiElementsConfiguration;
-    }
-
-    private void createCompileElements(Project project, SourceSet mainSourceSet, PublishArtifact jarArtifact) {
-        ConfigurationContainer configurations = project.getConfigurations();
-        Configuration implementationConfiguration = configurations.getByName(IMPLEMENTATION_CONFIGURATION_NAME);
-        Configuration compileOnly = configurations.getByName(COMPILE_ONLY_CONFIGURATION_NAME);
-
-        final Configuration compileElementsConfiguration = jvmServices.createOutgoingElements(COMPILE_ELEMENTS_CONFIGURATION_NAME,
-            builder -> builder.fromSourceSet(mainSourceSet)
-                .providesApi()
-                .withDescription("Compile elements for main.")
-                .extendsFrom(implementationConfiguration, compileOnly));
-        compileElementsConfiguration.getAttributes().attribute(CompileView.VIEW_ATTRIBUTE, objectFactory.named(CompileView.class, CompileView.JAVA_INTERNAL));
-
-        // Configure variants
-        addJarArtifactToConfiguration(compileElementsConfiguration, jarArtifact);
     }
 
     private void createSourceElements(Project project, SourceSet mainSourceSet) {
@@ -437,7 +417,6 @@ public abstract class JavaPlugin implements Plugin<Project> {
         final Configuration runtimeElementsConfiguration = createRuntimeElements(project, mainSourceSet, jarArtifact);
         final Configuration apiElementsConfiguration = createApiElements(mainSourceSet, jarArtifact);
         createSourceElements(project, mainSourceSet);
-        createCompileElements(project, mainSourceSet, jarArtifact);
 
         // Register the main "Java" component
         AdhocComponentWithVariants java = softwareComponentFactory.adhoc("java");
