@@ -108,14 +108,13 @@ public class StartParameterResolutionOverride {
         FileResourceListener fileResourceListener
     ) {
         List<String> checksums = startParameter.getWriteDependencyVerifications();
+        File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
+        fileResourceListener.fileObserved(verificationsFile);
         if (!checksums.isEmpty() || startParameter.isExportKeys()) {
-            File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
             return DisablingVerificationOverride.of(
                 new WriteDependencyVerificationFile(verificationsFile, keyRing.get(), buildOperationExecutor, checksums, checksumService, signatureVerificationServiceFactory, startParameter.isDryRun(), startParameter.isExportKeys())
             );
         } else {
-            File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
-            fileResourceListener.fileObserved(verificationsFile);
             if (verificationsFile.exists()) {
                 if (startParameter.getDependencyVerificationMode() == DependencyVerificationMode.OFF) {
                     return DependencyVerificationOverride.NO_VERIFICATION;
