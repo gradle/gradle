@@ -26,10 +26,35 @@ public class DefaultOsMemoryInfo implements OsMemoryInfo {
         if (operatingSystem.isMacOsX()) {
             delegate = new NativeOsMemoryInfo();
         } else if (operatingSystem.isLinux()) {
-            delegate = new MemInfoOsMemoryInfo();
+            delegate = getLinuxDelegate();
         } else {
             delegate = new MBeanOsMemoryInfo();
         }
+    }
+
+    private OsMemoryInfo getLinuxDelegate() {
+        OsMemoryInfo cGroupDelegate = new CGroupMemoryInfo();
+        OsMemoryInfo memInfoDelegate = new MemInfoOsMemoryInfo();
+
+        OsMemoryStatus cGroupSnapshot;
+        OsMemoryStatus memInfoSnapshot;
+
+        try {
+            cGroupSnapshot = cGroupDelegate.getOsSnapshot();
+        } catch (UnsupportedOperationException e) {
+            return memInfoDelegate;
+        }
+
+        try {
+            memInfoSnapshot = memInfoDelegate.getOsSnapshot();
+        } catch (UnsupportedOperationException e) {
+            return cGroupDelegate;
+        }
+
+        long cGroupFreeMemory = cGroupSnapshot.getFreePhysicalMemory();
+        long memInfoFreeMemory = memInfoSnapshot.getFreePhysicalMemory();
+
+        return cGroupFreeMemory > memInfoFreeMemory ? memInfoDelegate : cGroupDelegate;
     }
 
     @Override
