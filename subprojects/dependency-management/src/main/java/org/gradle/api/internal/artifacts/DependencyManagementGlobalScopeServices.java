@@ -20,10 +20,12 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
+import org.gradle.api.internal.artifacts.configurations.MarkConfigurationObservedListener;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ModuleSelectorStringNotationConverter;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultLocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultDependencyDescriptorFactory;
@@ -42,8 +44,8 @@ import org.gradle.api.internal.artifacts.transform.InputArtifactDependenciesAnno
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
-import org.gradle.api.internal.tasks.properties.annotations.TypeAnnotationHandler;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.services.ServiceReference;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Console;
@@ -61,12 +63,11 @@ import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.properties.annotations.TypeAnnotationHandler;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
-import org.gradle.internal.resource.local.FileResourceConnector;
-import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.transport.file.FileConnectorFactory;
+import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.typeconversion.CrossBuildCachingNotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
@@ -74,8 +75,8 @@ import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
 
 class DependencyManagementGlobalScopeServices {
-    FileResourceRepository createFileResourceRepository(FileSystem fileSystem) {
-        return new FileResourceConnector(fileSystem);
+    void configure(ServiceRegistration registration) {
+        registration.add(MarkConfigurationObservedListener.class);
     }
 
     ImmutableModuleIdentifierFactory createModuleIdentifierFactory() {
@@ -87,6 +88,10 @@ class DependencyManagementGlobalScopeServices {
             .toType(ComponentSelector.class)
             .converter(new CrossBuildCachingNotationConverter<>(new ModuleSelectorStringNotationConverter(moduleIdentifierFactory), cacheFactory.newCache()))
             .toComposite();
+    }
+
+    VersionParser createVersionParser() {
+        return new VersionParser();
     }
 
     IvyContextManager createIvyContextManager() {
@@ -155,7 +160,8 @@ class DependencyManagementGlobalScopeServices {
                 InputFiles.class,
                 Internal.class,
                 Nested.class,
-                ReplacedBy.class
+                ReplacedBy.class,
+                ServiceReference.class
             ),
             ImmutableSet.of(
                 Classpath.class,
@@ -192,7 +198,6 @@ class DependencyManagementGlobalScopeServices {
             ),
             instantiationScheme
         );
-        InstantiationScheme legacyInstantiationScheme = instantiatorFactory.injectScheme();
-        return new ArtifactTransformActionScheme(instantiationScheme, inspectionScheme, legacyInstantiationScheme);
+        return new ArtifactTransformActionScheme(instantiationScheme, inspectionScheme);
     }
 }

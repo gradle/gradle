@@ -18,15 +18,16 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     private final static String[] TASKS_REPORT_TASK = ['tasks'] as String[]
     private final static String[] TASKS_DETAILED_REPORT_TASK = TASKS_REPORT_TASK + ['--all'] as String[]
     private final static String GROUP = 'Hello world'
+    private final static String GROUP_1 = 'Group 1'
+    private final static String GROUP_2 = 'Group 2'
+    private final static String TASKS_GROUPS_REPORT_TASK = TASKS_REPORT_TASK + ['--groups', GROUP_1]
 
-    @Unroll
     def "always renders default tasks running #tasks"() {
         given:
         String projectName = 'test'
@@ -52,13 +53,128 @@ javaToolchains - Displays the detected java toolchains.
 outgoingVariants - Displays the outgoing variants of root project '$projectName'.
 projects - Displays the sub-projects of root project '$projectName'.
 properties - Displays the properties of root project '$projectName'.
+resolvableConfigurations - Displays the configurations that can be resolved in root project '$projectName'.
 tasks - Displays the tasks runnable from root project '$projectName'.""")
 
         where:
         tasks << [TASKS_REPORT_TASK, TASKS_DETAILED_REPORT_TASK]
     }
 
-    @Unroll
+    def "shows task types when run with --types"() {
+        given:
+        String projectName = 'test'
+        settingsFile << "rootProject.name = '$projectName'"
+
+        when:
+        succeeds "tasks", "--types"
+
+        then:
+        output.contains("""
+Build Setup tasks
+-----------------
+init (org.gradle.buildinit.tasks.InitBuild) - Initializes a new Gradle build.
+wrapper (org.gradle.api.tasks.wrapper.Wrapper) - Generates Gradle wrapper files.
+
+Help tasks
+----------
+buildEnvironment (org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask) - Displays all buildscript dependencies declared in root project '$projectName'.
+dependencies (org.gradle.api.tasks.diagnostics.DependencyReportTask) - Displays all dependencies declared in root project '$projectName'.
+dependencyInsight (org.gradle.api.tasks.diagnostics.DependencyInsightReportTask) - Displays the insight into a specific dependency in root project '$projectName'.
+help (org.gradle.configuration.Help) - Displays a help message.
+javaToolchains (org.gradle.jvm.toolchain.internal.task.ShowToolchainsTask) - Displays the detected java toolchains.
+outgoingVariants (org.gradle.api.tasks.diagnostics.OutgoingVariantsReportTask) - Displays the outgoing variants of root project '$projectName'.
+projects (org.gradle.api.tasks.diagnostics.ProjectReportTask) - Displays the sub-projects of root project '$projectName'.
+properties (org.gradle.api.tasks.diagnostics.PropertyReportTask) - Displays the properties of root project '$projectName'.
+resolvableConfigurations (org.gradle.api.tasks.diagnostics.ResolvableConfigurationsReportTask) - Displays the configurations that can be resolved in root project '$projectName'.
+tasks (org.gradle.api.tasks.diagnostics.TaskReportTask) - Displays the tasks runnable from root project '$projectName'.""")
+    }
+
+    def "shows Default task defined in build file when run with --types"() {
+        given:
+        String projectName = 'test'
+        settingsFile << "rootProject.name = '$projectName'"
+
+        buildFile << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+
+        when:
+        succeeds "tasks", "--types"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sayHello (org.gradle.api.DefaultTask)""")
+    }
+
+    def "shows Default tasks with same name defined in multiple projects when run with --types"() {
+        given:
+        buildFile << multiProjectBuild()
+        settingsFile << "include 'sub1', 'sub2'"
+
+        file('sub1/build.gradle') << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+        file('sub2/build.gradle') << """
+task sayHello {
+    group = 'Build'
+
+    doLast {
+        println "Hello!"
+    }
+}"""
+
+        when:
+        succeeds "tasks", "--types", "--all"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sub1:sayHello (org.gradle.api.DefaultTask)
+sub2:sayHello (org.gradle.api.DefaultTask)""")
+    }
+
+    def "shows Custom task defined in build file when run with --types"() {
+        given:
+        String projectName = 'test'
+        settingsFile << "rootProject.name = '$projectName'"
+
+        buildFile << """
+class HelloTask extends DefaultTask {
+    final Property<String> message = project.objects.property(String).convention("Hello!")
+
+    @TaskAction def sayHello() {
+        println(message.get())
+    }
+}
+
+task sayHi(type: HelloTask) {
+    group = 'Build'
+    message = 'Hi!'
+}"""
+
+        when:
+        succeeds "tasks", "--types"
+
+        then:
+        output.contains("""
+Build tasks
+-----------
+sayHi (HelloTask)""")
+    }
+
     def "always renders task rule running #tasks"() {
         given:
         buildFile << """
@@ -86,7 +202,6 @@ Pattern: ping<ID>
         tasks << [TASKS_REPORT_TASK, TASKS_DETAILED_REPORT_TASK]
     }
 
-    @Unroll
     def "renders tasks with and without group running #tasks"() {
         given:
         buildFile << """
@@ -116,7 +231,6 @@ b
         TASKS_DETAILED_REPORT_TASK | true               | true
     }
 
-    @Unroll
     def "renders task with dependencies without group in detailed report running #tasks"() {
         given:
         buildFile << """
@@ -143,7 +257,6 @@ b
         TASKS_DETAILED_REPORT_TASK | true
     }
 
-    @Unroll
     def "renders grouped task with dependencies in detailed report running #tasks"() {
         given:
         buildFile << """
@@ -173,7 +286,7 @@ b
         TASKS_DETAILED_REPORT_TASK | true
     }
 
-    def "renders only tasks in help group running [tasks, --group=build setup"() {
+    def "renders only tasks in given group running [tasks, --group=build setup]"() {
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
             task mytask {
@@ -199,6 +312,73 @@ To see all tasks and more detail, run gradle tasks --all
 To see more detail about a task, run gradle help --task <task>
 """)
         !output.contains("custom")
+    }
+
+    def "renders only tasks in given group running [tasks, --groups=build setup]"() {
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+            task mytask {
+                group = "custom"
+            }
+        """
+        when:
+        succeeds "tasks", "--groups=build setup"
+
+        then:
+        output.contains("""
+------------------------------------------------------------
+Tasks runnable from root project 'test'
+------------------------------------------------------------
+
+Build Setup tasks
+-----------------
+init - Initializes a new Gradle build.
+wrapper - Generates Gradle wrapper files.
+
+To see all tasks and more detail, run gradle tasks --all
+
+To see more detail about a task, run gradle help --task <task>
+""")
+        !output.contains("custom")
+    }
+
+    def "renders tasks in given groups running [tasks, --groups=Group 1]"() {
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << twoGroupsTasks()
+
+        when:
+        succeeds "tasks", "--groups=Group 1"
+
+        then:
+        output.contains("$GROUP_1 tasks")
+        !output.contains("$GROUP_2 tasks")
+        !output.contains("Build Setup")
+    }
+
+    def "renders tasks in given groups running [tasks, --groups=Group 1, --groups=Group 2]"() {
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << twoGroupsTasks()
+
+        when:
+        succeeds "tasks", "--groups=Group 1", "--groups=Group 2"
+
+        then:
+        output.contains("$GROUP_1 tasks")
+        output.contains("$GROUP_2 tasks")
+        !output.contains("Build Setup")
+    }
+
+    def "renders tasks given by group and groups running [tasks, --group=Group 1, --groups=Group 2]"() {
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << twoGroupsTasks()
+
+        when:
+        succeeds "tasks", "--group=Group 1", "--groups=Group 2"
+
+        then:
+        output.contains("$GROUP_1 tasks")
+        output.contains("$GROUP_2 tasks")
+        !output.contains("Build Setup")
     }
 
     def "renders tasks in a multi-project build running [tasks]"() {
@@ -272,7 +452,6 @@ alpha - ALPHA_in_sub1
 """
     }
 
-    @Unroll
     def "task report includes tasks defined via model rules running #tasks"() {
         when:
         buildScript """
@@ -302,7 +481,6 @@ alpha - ALPHA_in_sub1
         TASKS_DETAILED_REPORT_TASK | true               | true
     }
 
-    @Unroll
     def "task report includes tasks with dependencies defined via model rules running #tasks"() {
         when:
         buildScript """
@@ -380,7 +558,6 @@ b
         succeeds TASKS_DETAILED_REPORT_TASK
     }
 
-    @Unroll
     def "renders tasks with dependencies created by model rules running #tasks"() {
         when:
         settingsFile << "rootProject.name = 'test-project'"
@@ -481,6 +658,17 @@ ${'-' * header.length()}"""
             }
 
             task c
+        """
+    }
+
+    static String twoGroupsTasks() {
+        """
+            task task1 {
+                group = "$GROUP_1"
+            }
+            task task2 {
+                group = "$GROUP_2"
+            }
         """
     }
 }

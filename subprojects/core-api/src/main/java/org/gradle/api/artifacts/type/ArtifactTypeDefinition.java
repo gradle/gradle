@@ -35,7 +35,6 @@ public interface ArtifactTypeDefinition extends HasAttributes, Named {
      *
      * @since 7.3
      */
-    @Incubating
     Attribute<String> ARTIFACT_TYPE_ATTRIBUTE = Attribute.of("artifactType", String.class);
 
     /**
@@ -72,6 +71,14 @@ public interface ArtifactTypeDefinition extends HasAttributes, Named {
      * @since 5.3
      */
     String DIRECTORY_TYPE = "directory";
+
+    /**
+     * Represents a binary file
+     *
+     * @since 7.4
+     */
+    @Incubating
+    String BINARY_DATA_TYPE = "binary";
 
     /**
      * Returns the set of file name extensions that should be mapped to this artifact type. Defaults to the name of this type.

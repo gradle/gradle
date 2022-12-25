@@ -56,7 +56,6 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.instanceOf
 import static org.hamcrest.MatcherAssert.assertThat
@@ -410,7 +409,6 @@ println 'hi'
         1 * verifier.execute(!null)
     }
 
-    @Unroll
     @Issue('GRADLE-3382')
     def "test compile with #unknownClass"() {
         ScriptSource source = new TextResourceScriptSource(new StringTextResource("script.gradle", "new ${unknownClass}()"))

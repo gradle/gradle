@@ -16,17 +16,18 @@
 
 package org.gradle.internal.execution.steps
 
+import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.OutputSnapshotter
 import org.gradle.internal.execution.UnitOfWork
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.execution.history.PreviousExecutionState
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
@@ -39,19 +40,11 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
     def classloaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
     def outputSnapshotter = Mock(OutputSnapshotter)
     def inputFingerprinter = Mock(InputFingerprinter)
-    def implementationSnapshot = ImplementationSnapshot.of("MyWorkClass", HashCode.fromInt(1234))
+    def implementationSnapshot = ImplementationSnapshot.of("MyWorkClass", TestHashCodes.hashCodeFrom(1234))
     def overlappingOutputDetector = Mock(OverlappingOutputDetector)
     def executionHistoryStore = Mock(ExecutionHistoryStore)
 
     def step = new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector, delegate)
-
-    @Override
-    protected ValidationFinishedContext createContext() {
-        Stub(ValidationFinishedContext) {
-            getInputProperties() >> ImmutableSortedMap.of()
-            getInputFileProperties() >> ImmutableSortedMap.of()
-        }
-    }
 
     def setup() {
         _ * work.history >> Optional.of(executionHistoryStore)
@@ -72,8 +65,8 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
 
     def "implementations are snapshotted"() {
         def additionalImplementations = [
-            ImplementationSnapshot.of("FirstAction", HashCode.fromInt(2345)),
-            ImplementationSnapshot.of("SecondAction", HashCode.fromInt(3456))
+            ImplementationSnapshot.of("FirstAction", TestHashCodes.hashCodeFrom(2345)),
+            ImplementationSnapshot.of("SecondAction", TestHashCodes.hashCodeFrom(3456))
         ]
 
         when:
@@ -103,22 +96,27 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         def knownFileFingerprint = Mock(CurrentFileCollectionFingerprint)
         def inputSnapshot = Mock(ValueSnapshot)
         def inputFileFingerprint = Mock(CurrentFileCollectionFingerprint)
+        def knownInputProperties = ImmutableSortedMap.of("known", knownSnapshot)
+        def knownInputFileProperties = ImmutableSortedMap.of("known-file", knownFileFingerprint)
 
         when:
         step.execute(work, context)
 
         then:
-        _ * context.inputProperties >> ImmutableSortedMap.of("known", knownSnapshot)
-        _ * context.inputFileProperties >> ImmutableSortedMap.of("known-file", knownFileFingerprint)
+        _ * context.inputProperties >> knownInputProperties
+        _ * context.inputFileProperties >> knownInputFileProperties
         1 * inputFingerprinter.fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of("known", knownSnapshot),
-            ImmutableSortedMap.of("known-file", knownFileFingerprint),
+            knownInputProperties,
+            knownInputFileProperties,
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
+            knownInputProperties,
             ImmutableSortedMap.of("input", inputSnapshot),
-            ImmutableSortedMap.of("input-file", inputFileFingerprint))
+            knownInputFileProperties,
+            ImmutableSortedMap.of("input-file", inputFileFingerprint),
+            ImmutableSet.of())
         interaction { snapshotState() }
         1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
             def state = delegateContext.beforeExecutionState.get()
@@ -150,12 +148,15 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         assertOperation()
     }
 
-    def "no state is captured when input properties cannot be snapshot"() {
+    def "fails when input properties cannot be snapshot"() {
         def failure = new InputFingerprinter.InputFileFingerprintingException("input", new IOException("Error"))
         when:
         step.execute(work, context)
 
         then:
+        def ex = thrown RuntimeException
+        ex == failure
+
         _ * context.inputProperties >> ImmutableSortedMap.of()
         _ * context.inputFileProperties >> ImmutableSortedMap.of()
         1 * inputFingerprinter.fingerprintInputProperties(
@@ -166,30 +167,27 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
             _
         ) >> { throw failure }
         interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
-            assert !delegateContext.beforeExecutionState.present
-        }
         0 * _
 
-        assertOperation()
+        assertOperation(ex)
     }
 
-    def "no state is captured when output file properties cannot be snapshot"() {
+    def "fails when output file properties cannot be snapshot"() {
         def failure = new OutputSnapshotter.OutputFileSnapshottingException("output", new IOException("Error")) {}
         when:
         step.execute(work, context)
 
         then:
+        def ex = thrown RuntimeException
+        ex == failure
+
         _ * context.inputProperties >> ImmutableSortedMap.of()
         _ * context.inputFileProperties >> ImmutableSortedMap.of()
         1 * outputSnapshotter.snapshotOutputs(work, _) >> { throw failure }
         interaction { snapshotState() }
-        1 * delegate.execute(work, _ as BeforeExecutionContext) >> { UnitOfWork work, BeforeExecutionContext delegateContext ->
-            assert !delegateContext.beforeExecutionState.present
-        }
         0 * _
 
-        assertOperation()
+        assertOperation(ex)
     }
 
     def "detects overlapping outputs when instructed"() {
@@ -227,7 +225,7 @@ class CaptureStateBeforeExecutionStepTest extends StepSpec<BeforeExecutionContex
         _ * work.visitImplementations(_ as UnitOfWork.ImplementationVisitor) >> { UnitOfWork.ImplementationVisitor visitor ->
             visitor.visitImplementation(implementationSnapshot)
         }
-        _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of())
+        _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSet.of())
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
         _ * outputSnapshotter.snapshotOutputs(work, _) >> ImmutableSortedMap.of()
         _ * context.history >> Optional.of(executionHistoryStore)

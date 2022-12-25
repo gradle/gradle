@@ -25,14 +25,12 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DependencyVerificationsXmlWriterTest extends Specification {
     private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
     private String rawContents
     private String contents
 
-    @Unroll
     def "can write an empty file"() {
         when:
         builder.verifyMetadata = verifyMetadata
@@ -60,8 +58,31 @@ class DependencyVerificationsXmlWriterTest extends Specification {
         true           | true
     }
 
+    def 'can write top level comments'() {
+        when:
+        builder.addTopLevelComment("Some top level comment")
+        builder.addTopLevelComment("Another comment\non two lines")
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<!-- Some top level comment -->
+<!-- Another comment
+on two lines -->
+<verification-metadata>
+   <configuration>
+      <verify-metadata>true</verify-metadata>
+      <verify-signatures>false</verify-signatures>
+   </configuration>
+   <components/>
+</verification-metadata>
+"""
+        and:
+        hasNamespaceDeclaration()
+    }
+
     private boolean hasNamespaceDeclaration() {
-        rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.1.xsd"')
+        rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd"')
     }
 
     def "can declare key servers"() {
@@ -108,10 +129,10 @@ class DependencyVerificationsXmlWriterTest extends Specification {
       <trusted-artifacts>
          <trust group="group"/>
          <trust group="group" name="module"/>
-         <trust group="group" name="module" version="1.0" regex="true"/>
          <trust group="group" name="module" version="1.1" file="somefile.jar"/>
-         <trust group="group2" name="module2" version="1.2" file="somefile.jar" regex="true"/>
          <trust name="module2" file="somefile.jar" regex="true"/>
+         <trust group="group" name="module" version="1.0" regex="true"/>
+         <trust group="group2" name="module2" version="1.2" file="somefile.jar" regex="true"/>
       </trusted-artifacts>
    </configuration>
    <components/>
@@ -356,7 +377,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
         declareChecksumOfArtifact(group, name, version, "jar", "jar", null, algorithm, checksum, origin)
     }
 
-    private declareChecksumOfArtifact(String group, String name, version, String type, String ext, String classifier, String algorithm, String checksum, String origin = null) {
+    private declareChecksumOfArtifact(String group, String name, version, String type, String ext, String classifier, String algorithm, String checksum, String origin = null, String reason = null) {
         builder.addChecksum(
             new DefaultModuleComponentArtifactIdentifier(
                 DefaultModuleComponentIdentifier.newId(
@@ -370,7 +391,8 @@ class DependencyVerificationsXmlWriterTest extends Specification {
             ),
             ChecksumKind.valueOf(algorithm),
             checksum,
-            origin
+            origin,
+            reason
         )
     }
 

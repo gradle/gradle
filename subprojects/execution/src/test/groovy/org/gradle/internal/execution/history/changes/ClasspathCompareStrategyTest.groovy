@@ -22,7 +22,7 @@ import org.gradle.internal.execution.history.impl.SerializableFileCollectionFing
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import spock.lang.Specification
 
 class ClasspathCompareStrategyTest extends Specification {
@@ -171,19 +171,19 @@ class ClasspathCompareStrategyTest extends Specification {
 
     def changes(Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
         def visitor = new CollectingChangeVisitor()
-        def strategyConfigurationHash = HashCode.fromInt(1234)
-        def currentFingerprint = new SerializableFileCollectionFingerprint(current, ImmutableMultimap.of("some", HashCode.fromInt(1234)), strategyConfigurationHash)
-        def previousFingerprint = new SerializableFileCollectionFingerprint(previous, ImmutableMultimap.of("some", HashCode.fromInt(4321)), strategyConfigurationHash)
+        def strategyConfigurationHash = TestHashCodes.hashCodeFrom(1234)
+        def currentFingerprint = new SerializableFileCollectionFingerprint(current, ImmutableMultimap.of("some", TestHashCodes.hashCodeFrom(1234)), strategyConfigurationHash)
+        def previousFingerprint = new SerializableFileCollectionFingerprint(previous, ImmutableMultimap.of("some", TestHashCodes.hashCodeFrom(4321)), strategyConfigurationHash)
         CLASSPATH.visitChangesSince(previousFingerprint, currentFingerprint, "test", visitor)
         visitor.getChanges().toList()
     }
 
     def fingerprint(String normalizedPath, def hashCode = 0x1234abcd) {
-        return new DefaultFileSystemLocationFingerprint(normalizedPath, FileType.RegularFile, HashCode.fromInt((int) hashCode))
+        return new DefaultFileSystemLocationFingerprint(normalizedPath, FileType.RegularFile, TestHashCodes.hashCodeFrom((int) hashCode))
     }
 
     def jar(int hashCode) {
-        return new DefaultFileSystemLocationFingerprint("", FileType.RegularFile, HashCode.fromInt(hashCode))
+        return new DefaultFileSystemLocationFingerprint("", FileType.RegularFile, TestHashCodes.hashCodeFrom(hashCode))
     }
 
     def added(String path) {

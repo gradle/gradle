@@ -34,7 +34,6 @@ import org.gradle.api.initialization.resolve.RepositoriesMode;
 import org.gradle.api.initialization.resolve.RulesMode;
 import org.gradle.api.initialization.resolve.MutableVersionCatalogContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -81,15 +80,14 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
                                                  DependencyMetaDataProvider dependencyMetaDataProvider,
                                                  ObjectFactory objects,
                                                  ProviderFactory providers,
-                                                 CollectionCallbackActionDecorator collectionCallbackActionDecorator,
-                                                 FeaturePreviews featurePreviews) {
+                                                 CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         this.context = context;
         this.repositoryMode = objects.property(RepositoriesMode.class).convention(RepositoriesMode.PREFER_PROJECT);
         this.rulesMode = objects.property(RulesMode.class).convention(RulesMode.PREFER_PROJECT);
         this.dependencyResolutionServices = Lazy.locking().of(() -> dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, makeUnknownProjectFinder(), RootScriptDomainObjectContext.INSTANCE));
         this.librariesExtensionName = objects.property(String.class).convention("libs");
         this.projectsExtensionName = objects.property(String.class).convention("projects");
-        this.versionCatalogs = objects.newInstance(DefaultVersionCatalogBuilderContainer.class, collectionCallbackActionDecorator, objects, providers, dependencyResolutionServices, context, featurePreviews);
+        this.versionCatalogs = objects.newInstance(DefaultVersionCatalogBuilderContainer.class, collectionCallbackActionDecorator, objects, providers, dependencyResolutionServices, context);
     }
 
     @Override

@@ -16,14 +16,16 @@
 
 package org.gradle.internal.resolve.result
 
+
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.internal.resolve.ArtifactNotFoundException
 import org.gradle.internal.resolve.ArtifactResolveException
 import spock.lang.Specification
 
 class DefaultBuildableArtifactResolveResultTest extends Specification {
     final result = new DefaultBuildableArtifactResolveResult()
-    final artifactFile = Mock(File)
+    final artifactFile = Mock(ResolvableArtifact)
     final artifactId = Mock(ComponentArtifactIdentifier)
 
     def "has no result by default"() {

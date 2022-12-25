@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.testing.TestExecutionSpec
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.report.TestReporter
-import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
@@ -33,7 +32,6 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
     def suiteDescriptor = Mock(TestDescriptorInternal)
     def testDescriptor = Mock(TestDescriptorInternal)
 
-    private WorkerLeaseRegistry.WorkerLeaseCompletion completion
     private Test task
 
     def setup() {
@@ -43,11 +41,6 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         task.binaryResultsDirectory.set(task.project.file('build/test-results'))
         task.reports.junitXml.outputLocation.set(task.project.file('build/test-results'))
         task.testClassesDirs = task.project.layout.files()
-        completion = task.project.services.get(WorkerLeaseRegistry).startWorker()
-    }
-
-    def cleanup() {
-        completion.leaseFinish()
     }
 
     def expectTestSuiteFails() {
@@ -280,17 +273,15 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         task.addTestOutputListener(Stub(TestOutputListener))
 
         then:
-        !task.testListenerInternalBroadcaster.isEmpty()
-        !task.testOutputListenerBroadcaster.isEmpty()
-        !task.testListenerInternalBroadcaster.isEmpty()
+        task.testListenerBroadcaster.size() == 2
+        task.testOutputListenerBroadcaster.size() == 2
 
         when:
         task.executeTests()
 
         then:
-        task.testListenerInternalBroadcaster.isEmpty()
-        task.testOutputListenerBroadcaster.isEmpty()
-        task.testListenerInternalBroadcaster.isEmpty()
+        task.testListenerBroadcaster.size() == 1
+        task.testOutputListenerBroadcaster.size() == 1
     }
 
     def "removes listeners even if execution fails"() {
@@ -308,9 +299,8 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         ex.message == "Boo!"
 
         and:
-        task.testListenerInternalBroadcaster.isEmpty()
-        task.testOutputListenerBroadcaster.isEmpty()
-        task.testListenerInternalBroadcaster.isEmpty()
+        task.testListenerBroadcaster.size() == 1
+        task.testOutputListenerBroadcaster.size() == 1
     }
 
     def "reports all test failures for multiple suites"() {

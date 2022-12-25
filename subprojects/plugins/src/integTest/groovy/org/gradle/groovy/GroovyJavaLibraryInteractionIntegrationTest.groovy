@@ -17,10 +17,10 @@ package org.gradle.groovy
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyResolutionTest {
 
@@ -32,8 +32,8 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
         """
     }
 
+    @ToBeFixedForConfigurationCache(because = "serializes the incorrect artifact in ArtifactCollection used by resolve fixture")
     @Issue("https://github.com/gradle/gradle/issues/7398")
-    @Unroll
     def "selects #expected output when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib (compileClasspath)"() {
         given:
         resolve = new ResolveTestFixture(buildFile, "compileClasspath")
@@ -85,16 +85,17 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
                         'org.gradle.dependency.bundling': 'external',
                         'org.gradle.jvm.version': JavaVersion.current().majorVersion,
                         'org.gradle.usage': 'java-api',
-                        'org.gradle.libraryelements': 'jar'])
+                        'org.gradle.libraryelements': 'jar',
+                        ])
                     switch (expected) {
                         case "jar":
                             artifact(name: "groovyLib")
                             break
                         case "classes":
                             // first one is "main" from Java sources
-                            artifact(name: 'main', noType: true)
+                            artifact name: 'main', version: '', extension: '', type: 'java-classes-directory'
                             // second one is "main" from Groovy sources
-                            artifact(name: 'main', noType: true)
+                            artifact name: 'main', version: '', extension: '', type: 'java-classes-directory'
                             break
                     }
                 }
@@ -120,7 +121,6 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
         'java'         | 'implementation' | false             | true                      | "jar"
     }
 
-    @Unroll
     def "selects classes when #consumerPlugin plugin adds a project dependency to #consumerConf and producer has java-library=#groovyWithJavaLib (runtime classes variant)"() {
         given:
         resolve = new ResolveTestFixture(buildFile, "runtimeClasspath")
@@ -181,9 +181,9 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
 
                     module('org.codehaus.groovy:groovy:2.5.10')
                     // first one is "main" from Java sources
-                    artifact(name: 'main', noType: true)
+                    artifact name: 'main', version: '', extension: '', type: 'java-classes-directory'
                     // second one is "main" from Groovy sources
-                    artifact(name: 'main', noType: true)
+                    artifact name: 'main', version: '', extension: '', type: 'java-classes-directory'
                 }
             }
         }

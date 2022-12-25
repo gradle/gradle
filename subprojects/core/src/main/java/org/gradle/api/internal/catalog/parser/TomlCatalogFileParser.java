@@ -454,7 +454,7 @@ public class TomlCatalogFileParser {
                                            @Nullable String prefer,
                                            @Nullable List<String> rejectedVersions,
                                            @Nullable Boolean rejectAll) {
-        VersionCatalogBuilder.LibraryAliasBuilder aliasBuilder = builder.alias(alias).to(group, name);
+        VersionCatalogBuilder.LibraryAliasBuilder aliasBuilder = builder.library(alias, group, name);
         if (versionRef != null) {
             aliasBuilder.versionRef(versionRef);
             return;
@@ -487,7 +487,7 @@ public class TomlCatalogFileParser {
                                            @Nullable String prefer,
                                            @Nullable List<String> rejectedVersions,
                                            @Nullable Boolean rejectAll) {
-        VersionCatalogBuilder.PluginAliasBuilder aliasBuilder = builder.alias(alias).toPluginId(id);
+        VersionCatalogBuilder.PluginAliasBuilder aliasBuilder = builder.plugin(alias, id);
         if (versionRef != null) {
             aliasBuilder.versionRef(versionRef);
             return;

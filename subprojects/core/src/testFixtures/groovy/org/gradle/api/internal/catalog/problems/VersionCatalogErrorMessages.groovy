@@ -49,6 +49,10 @@ trait VersionCatalogErrorMessages {
         buildMessage(ReservedAlias, VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec)
     }
 
+    String aliasContainsReservedName(@DelegatesTo(value = ReservedAlias, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(ReservedAlias, VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec)
+    }
+
     String undefinedVersionRef(@DelegatesTo(value = UndefinedVersionRef, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(UndefinedVersionRef, VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE, spec)
     }
@@ -69,12 +73,28 @@ trait VersionCatalogErrorMessages {
         buildMessage(UnexpectedFormatVersion, VersionCatalogProblemId.UNSUPPORTED_FORMAT_VERSION, spec)
     }
 
+    String aliasNotFinished(@DelegatesTo(value = AliasNotFinished, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(AliasNotFinished, VersionCatalogProblemId.ALIAS_NOT_FINISHED, spec)
+    }
+
     String missingCatalogFile(@DelegatesTo(value = MissingCatalogFile, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(MissingCatalogFile, VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST, spec)
     }
 
     String parseError(@DelegatesTo(value=ParseError, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(ParseError, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec)
+    }
+
+    String noImportFiles(@DelegatesTo(value=NoImportFiles, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(NoImportFiles, VersionCatalogProblemId.NO_IMPORT_FILES, spec)
+    }
+
+    String tooManyImportFiles(@DelegatesTo(value=NoImportFiles, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(TooManyImportFiles, VersionCatalogProblemId.TOO_MANY_IMPORT_FILES, spec)
+    }
+
+    String tooManyImportInvokation(@DelegatesTo(value=TooManyFromInvokation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(TooManyFromInvokation, VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION, spec)
     }
 
     private static <T extends InCatalog<T>> String buildMessage(Class<T> clazz, VersionCatalogProblemId id, Closure<?> spec) {
@@ -140,7 +160,7 @@ trait VersionCatalogErrorMessages {
     static class NameClash extends InCatalog<NameClash> {
         private List<String> aliases = []
         private String getterName
-        private String kind = 'aliases'
+        private String kind = 'library aliases'
 
         NameClash inConflict(String... aliases) {
             Collections.addAll(this.aliases, aliases)
@@ -159,7 +179,7 @@ trait VersionCatalogErrorMessages {
 
         @Override
         String build() {
-            """${intro}  - Problem: In version catalog ${catalog}, dependency ${kind} ${aliases.join(' and ')} are mapped to the same accessor name ${getterName}().
+            """${intro}  - Problem: In version catalog ${catalog}, ${kind} ${aliases.join(' and ')} are mapped to the same accessor name ${getterName}().
 
     Reason: A name clash was detected.
 
@@ -218,6 +238,12 @@ trait VersionCatalogErrorMessages {
             this
         }
 
+        ReservedAlias shouldNotContain(String name) {
+            this.alias = name
+            this.message = "Alias '$name' contains a reserved name in Gradle and prevents generation of accessors"
+            this
+        }
+
         ReservedAlias reservedAliasPrefix(String... suffixes) {
             this.solution = "Use a different alias which prefix is not equal to ${oxfordListOf(suffixes as List, 'or')}"
             this
@@ -225,6 +251,11 @@ trait VersionCatalogErrorMessages {
 
         ReservedAlias reservedAliases(String... aliases) {
             this.solution = "Use a different alias which isn't in the reserved names ${oxfordListOf(aliases as List, "or")}"
+            this
+        }
+
+        ReservedAlias reservedNames(String... names) {
+            this.solution = "Use a different alias which doesn't contain any of ${oxfordListOf(names as List, "or")}"
             this
         }
 
@@ -361,7 +392,7 @@ ${solution}
 
     static class InvalidAliasNotation extends InCatalog<InvalidAliasNotation> {
         String alias
-        String kind = 'alias'
+        String kind = 'library'
         String notation
 
         InvalidAliasNotation() {
@@ -386,11 +417,11 @@ ${solution}
 
         @Override
         String build() {
-            """${intro}  - Problem: In version catalog ${catalog}, invalid ${kind} '${notation}' name.
+            """${intro}  - Problem: In version catalog ${catalog}, invalid ${kind} alias '${notation}'.
 
-    Reason: ${kind.capitalize()} names must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+.
+    Reason: ${kind.capitalize()} aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+.
 
-    Possible solution: Make sure the name matches the [a-z]([a-zA-Z0-9_.\\-])+ regular expression.
+    Possible solution: Make sure the alias matches the [a-z]([a-zA-Z0-9_.\\-])+ regular expression.
 
     ${documentation}"""
         }
@@ -428,6 +459,35 @@ ${solution}
         }
     }
 
+    static class AliasNotFinished extends InCatalog<AliasNotFinished> {
+
+        String alias
+
+        AliasNotFinished() {
+            intro = """Invalid catalog definition:
+"""
+        }
+
+        AliasNotFinished alias(String v) {
+            this.alias = v
+            this
+        }
+
+
+        @Override
+        String build() {
+            """${intro}  - Problem: In version catalog ${catalog}, dependency alias builder '${alias}' was not finished.
+
+    Reason: A version was not set or explicitly declared as not wanted.
+
+    Possible solutions:
+      1. Call `.version()` to give the alias a version.
+      2. Call `.withoutVersion()` to explicitly declare that the alias should not have a version.
+
+    ${documentation}"""
+        }
+    }
+
     static class MissingCatalogFile extends InCatalog<MissingCatalogFile> {
         File missingFile
 
@@ -448,6 +508,61 @@ ${solution}
     Reason: File '${missingFile.absolutePath}' doesn't exist.
 
     Possible solution: Make sure that the catalog file '${missingFile.name}' exists before importing it.
+
+    ${documentation}"""
+        }
+    }
+
+    static class NoImportFiles extends InCatalog<NoImportFiles> {
+        NoImportFiles() {
+            intro = """Invalid catalog definition:
+"""
+        }
+
+        @Override
+        String build() {
+            """${intro}  - Problem: In version catalog ${catalog}, no files are resolved to be imported.
+
+    Reason: The imported dependency doesn't resolve into any file.
+
+    Possible solution: Check the import statement, it should resolve into a single file.
+
+    ${documentation}"""
+        }
+    }
+
+    static class TooManyImportFiles extends InCatalog<TooManyImportFiles> {
+        TooManyImportFiles() {
+            intro = """Invalid catalog definition:
+"""
+        }
+
+        @Override
+        String build() {
+            """${intro}  - Problem: In version catalog ${catalog}, importing multiple files are not supported.
+
+    Reason: The import consists of multiple files.
+
+    Possible solution: Only import a single file.
+
+    ${documentation}"""
+        }
+    }
+
+    static class TooManyFromInvokation extends InCatalog<TooManyFromInvokation> {
+        TooManyFromInvokation() {
+            intro = """Invalid catalog definition:
+"""
+            section = "importing-catalog-from-file"
+        }
+
+        @Override
+        String build() {
+            """${intro}  - Problem: In version catalog ${catalog}, you can only call the 'from' method a single time.
+
+    Reason: The method was called more than once.
+
+    Possible solution: Remove further usages of the method call.
 
     ${documentation}"""
         }

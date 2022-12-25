@@ -47,10 +47,10 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
     private final AbstractDynamicObject dynamicDelegate;
     private DynamicObject parent;
-    private Convention convention;
+    private final Convention convention;
     private DynamicObject beforeConvention;
     private DynamicObject afterConvention;
-    private DynamicObject extraPropertiesDynamicObject;
+    private final DynamicObject extraPropertiesDynamicObject;
 
     public ExtensibleDynamicObject(Object delegate, Class<?> publicType, InstanceGenerator instanceGenerator) {
         this(delegate, createDynamicObject(delegate, publicType), new DefaultConvention(instanceGenerator));
@@ -165,7 +165,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
     }
 
     private DynamicObject snapshotInheritable() {
-        final List<DynamicObject> delegates = new ArrayList<DynamicObject>(4);
+        final List<DynamicObject> delegates = new ArrayList<>(4);
         delegates.add(extraPropertiesDynamicObject);
         if (beforeConvention != null) {
             delegates.add(beforeConvention);
@@ -190,7 +190,7 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         @Override
         public void setProperty(String name, Object value) {
             throw new MissingPropertyException(String.format("Could not find property '%s' inherited from %s.", name,
-                    dynamicDelegate.getDisplayName()));
+                dynamicDelegate.getDisplayName()));
         }
 
         @Override

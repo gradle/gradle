@@ -22,10 +22,8 @@ import org.gradle.launcher.configuration.BuildLayoutResult
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import org.gradle.launcher.daemon.configuration.DaemonParameters
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DaemonCommandLineConverterTest extends Specification {
-    @Unroll
     def "converts daemon options - #options"() {
         when:
         def converted = convert(options)
@@ -43,7 +41,6 @@ class DaemonCommandLineConverterTest extends Specification {
         ['--no-daemon', '--daemon']     | true
     }
 
-    @Unroll
     def "can convert foreground option - #options"() {
         when:
         def converted = convert(options)
@@ -59,7 +56,6 @@ class DaemonCommandLineConverterTest extends Specification {
         ['--foreground', '--daemon']    | true
     }
 
-    @Unroll
     def "can convert stop option - #options"() {
         when:
         def converted = convert(options)
@@ -73,7 +69,6 @@ class DaemonCommandLineConverterTest extends Specification {
         ['--stop'] | true
     }
 
-    @Unroll
     def "can convert status option - #options"() {
         when:
         def converted = convert(options)

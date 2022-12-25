@@ -33,10 +33,10 @@ public class BuildOperationFiringBuildTreeWorkExecutor implements BuildTreeWorkE
     }
 
     @Override
-    public ExecutionResult<Void> execute(BuildTreeWorkGraph graph) {
+    public ExecutionResult<Void> execute(BuildTreeWorkGraph.FinalizedGraph graph) {
         return executor.call(new CallableBuildOperation<ExecutionResult<Void>>() {
             @Override
-            public ExecutionResult<Void> call(BuildOperationContext context) throws Exception {
+            public ExecutionResult<Void> call(BuildOperationContext context) {
                 return delegate.execute(graph);
             }
 

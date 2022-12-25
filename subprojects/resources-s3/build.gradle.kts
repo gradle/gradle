@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation for interacting with S3 repositories"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core-api"))

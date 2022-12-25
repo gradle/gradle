@@ -29,9 +29,9 @@ import org.gradle.internal.snapshot.TestSnapshotFixture
 import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT
 import static org.gradle.internal.file.FileMetadata.AccessType.VIA_SYMLINK
 import static org.gradle.internal.file.impl.DefaultFileMetadata.file
-import static org.gradle.internal.hash.HashCode.fromInt
+import static org.gradle.internal.hash.TestHashCodes.hashCodeFrom
 import static org.gradle.internal.snapshot.FileSystemSnapshot.EMPTY
-import static org.gradle.internal.snapshot.SnapshotUtil.index
+import static org.gradle.internal.snapshot.SnapshotUtil.indexByAbsolutePath
 
 class FileSystemSnapshotSerializerTest extends SerializerSpec implements TestSnapshotFixture {
     def stringInterner = new StringInterner()
@@ -51,7 +51,7 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec implements TestSna
     }
 
     def "reads and writes file snapshots"() {
-        def snapshots = new RegularFileSnapshot("/home/lptr/dev/one.txt", "one.txt", fromInt(1234), file(1, 1, DIRECT))
+        def snapshots = new RegularFileSnapshot("/home/lptr/dev/one.txt", "one.txt", hashCodeFrom(1234), file(1, 1, DIRECT))
 
         when:
         def out = serialize(snapshots, serializer)
@@ -61,7 +61,7 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec implements TestSna
     }
 
     def "reads and writes directory snapshots"() {
-        def snapshots =  new DirectorySnapshot("/home/lptr/dev", "dev", DIRECT, fromInt(1111), [])
+        def snapshots =  new DirectorySnapshot("/home/lptr/dev", "dev", DIRECT, hashCodeFrom(1111), [])
 
         when:
         def out = serialize(snapshots, serializer)
@@ -114,6 +114,6 @@ class FileSystemSnapshotSerializerTest extends SerializerSpec implements TestSna
 
     private static void assertEqualSnapshots(FileSystemSnapshot snapshot, FileSystemSnapshot expected) {
         assert snapshot == expected
-        assert index(snapshot) == index(expected)
+        assert indexByAbsolutePath(snapshot) == indexByAbsolutePath(expected)
     }
 }

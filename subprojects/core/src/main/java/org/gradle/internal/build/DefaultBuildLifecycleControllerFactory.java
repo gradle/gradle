@@ -22,10 +22,10 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.BuildWorkExecutor;
-import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.internal.InternalBuildFinishedListener;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
@@ -77,18 +77,12 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
         @SuppressWarnings("deprecation")
         File customSettingsFile = startParameter.getSettingsFile();
         if (customSettingsFile != null) {
-            DeprecationLogger.deprecateAction("Specifying custom settings file location")
-                .willBeRemovedInGradle8()
-                .withUpgradeGuideSection(7, "configuring_custom_build_layout")
-                .nagUser();
+            logFileDeprecationWarning(DeprecationLogger.deprecateAction("Specifying custom settings file location"));
         }
         @SuppressWarnings("deprecation")
         File customBuildFile = startParameter.getBuildFile();
         if (customBuildFile != null) {
-            DeprecationLogger.deprecateAction("Specifying custom build file location")
-                .willBeRemovedInGradle8()
-                .withUpgradeGuideSection(7, "configuring_custom_build_layout")
-                .nagUser();
+            logFileDeprecationWarning(DeprecationLogger.deprecateAction("Specifying custom build file location"));
         }
 
         GradleInternal gradle = buildScopeServices.get(GradleInternal.class);
@@ -100,13 +94,18 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
             buildModelController,
             exceptionAnalyser,
             gradle.getBuildListenerBroadcaster(),
-            listenerManager.getBroadcaster(BuildCompletionListener.class),
             listenerManager.getBroadcaster(InternalBuildFinishedListener.class),
             gradle.getServices().get(BuildWorkPreparer.class),
             gradle.getServices().get(BuildWorkExecutor.class),
-            buildScopeServices,
             buildToolingModelControllerFactory,
             stateTransitionControllerFactory
         );
+    }
+
+    private static void logFileDeprecationWarning(DeprecationMessageBuilder<?> specifyingCustomfileLocation) {
+        specifyingCustomfileLocation
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "configuring_custom_build_layout")
+            .nagUser();
     }
 }

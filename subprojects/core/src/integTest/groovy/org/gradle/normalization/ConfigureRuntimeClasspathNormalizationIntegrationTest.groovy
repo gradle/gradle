@@ -17,16 +17,16 @@
 package org.gradle.normalization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
+import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.util.jar.Attributes
 import java.util.jar.Manifest
 
-@Unroll
 class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractIntegrationSpec {
     def "can ignore files on runtime classpath in #tree (using runtime API: #api)"() {
         def project = new ProjectWithRuntimeClasspathNormalization(api).withFilesIgnored()
@@ -82,7 +82,6 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'nested in dir jars' | 'ignoredResourceInNestedInDirJar' | 'notIgnoredResourceInNestedInDirJar' | Api.ANNOTATION
     }
 
-    @Unroll
     def "can ignore manifest attributes in #tree on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withManifestAttributesIgnored()
         def manifestResource = project[resourceName]
@@ -109,7 +108,6 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'directory' | 'manifestInDirectory'
     }
 
-    @Unroll
     def "can ignore entire manifest in #tree on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withManifestIgnored()
         def manifestResource = project[resourceName]
@@ -136,7 +134,6 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'directory' | 'manifestInDirectory'
     }
 
-    @Unroll
     def "can ignore all meta-inf files in #tree on runtime classpath"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withAllMetaInfIgnored()
         def manifestResource = project[resourceName]
@@ -355,6 +352,35 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         executedAndNotSkipped(project.customTask)
     }
 
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
+    def "property ordering is consistent"() {
+        def differentJdk = AvailableJavaHomes.differentJdk
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
+        (1..100).each { index ->
+            buildFile << """
+                normalization {
+                    runtimeClasspath {
+                        properties('**/$index/foo.properties') {
+                            ignoreProperty '${IGNORE_ME}'
+                        }
+                    }
+                }
+            """
+        }
+
+        when:
+        withBuildCache().succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        run "clean"
+        executer.withJavaHome(differentJdk.javaHome)
+        withBuildCache().succeeds project.customTask
+        then:
+        skipped(project.customTask)
+    }
+
     def "properties files are normalized against changes to whitespace, order and comments"() {
         def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
         project.propertiesFileInDir.setContent('''
@@ -439,9 +465,18 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         executedAndNotSkipped(project.customTask)
     }
 
-    def "safely handles properties files with bad unicode escape sequences"() {
-        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME)
-        project.propertiesFileInDir.backingFile.text = 'propertyWithBadValue=this is a bad unicode sequence \\uxxxx'
+    def "safely handles properties files in #description with bad unicode escape sequences"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withFilesIgnored()
+        project[resource].writeRaw('propertyWithBadValue=this is a bad unicode sequence'.bytes, [0x5C, 0x75, 0x78, 0x78, 0x78, 0x78] as byte[])
+        project.buildFile << """
+            normalization {
+                runtimeClasspath {
+                    properties('**/foo.properties') {
+                        ignoreProperty '${IGNORE_ME}'
+                    }
+                }
+            }
+        """
 
         when:
         succeeds project.customTask
@@ -454,10 +489,58 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         skipped(project.customTask)
 
         when:
-        project.propertiesFileInDir.backingFile.text = 'propertyWithBadValue=this is also a bad unicode sequence \\uyyyy'
+        project[resource].writeRaw('propertyWithBadValue=this is also a bad unicode sequence '.bytes, [0x5C, 0x75, 0x79, 0x79, 0x79, 0x79] as byte[])
         succeeds project.customTask
         then:
         executedAndNotSkipped(project.customTask)
+
+        when:
+        project[ignoredResource].changeContents()
+
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        where:
+        description        | resource                    | ignoredResource
+        "directories"      | "propertiesFileInDir"       | "ignoredResourceInDirectory"
+        "zip files"        | "propertiesFileInJar"       | "ignoredResourceInJar"
+        "nested zip files" | "propertiesFileInNestedJar" | "ignoredResourceInNestedJar"
+    }
+
+    def "safely handles manifests in #description with bad attributes"() {
+        def project = new ProjectWithRuntimeClasspathNormalization(Api.RUNTIME).withManifestPropertiesIgnored().withFilesIgnored()
+        def badAttribute = 'Created-By: ' + ('x' * 512)
+        project[resource].replaceContents(badAttribute)
+
+        when:
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        when:
+        project[resource].replaceContents(badAttribute.replace('x', 'y'))
+        succeeds project.customTask
+        then:
+        executedAndNotSkipped(project.customTask)
+
+        when:
+        project[ignoredResource].changeContents()
+
+        succeeds project.customTask
+        then:
+        skipped(project.customTask)
+
+        where:
+        description        | resource              | ignoredResource
+        "directories"      | "manifestInDirectory" | "ignoredResourceInDirectory"
+        "zip files"        | "jarManifest"         | "ignoredResourceInJar"
+        "nested zip files" | "nestedJarManifest"   | "ignoredResourceInNestedJar"
     }
 
     @Issue('https://github.com/gradle/gradle/issues/16144')
@@ -470,7 +553,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         project.buildFile << """
             normalization {
                 runtimeClasspath {
-                    if (providers.gradleProperty('${enableFilterFlag}').forUseAtConfigurationTime().present) {
+                    if (providers.gradleProperty('${enableFilterFlag}').present) {
                         ${normalizationRule}
                     }
                 }
@@ -494,6 +577,95 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         PROPERTIES_FILTER_FLAG  | "properties('**/foo.properties') { ignoreProperty '${ALSO_IGNORE_ME}' }"  | 'properties rule'
         META_INF_FILTER_FLAG    | "metaInf { ignoreAttribute '${IMPLEMENTATION_VERSION}' }"                 | 'meta-inf rule'
         FILE_FILTER_FLAG        | "ignore '**/ignored.txt'"                                                 | 'ignore rule'
+    }
+
+    def "treats '#extension' as archive"() {
+        def archive = file("archive.${extension}")
+        def contents = file("archiveContents").createDir()
+        def ignoredFile = contents.file("ignored.txt")
+        ignoredFile << "this file is ignored"
+        def nonIgnoredFile = contents.file("not-ignored.txt")
+        nonIgnoredFile << "this file is not ignored"
+        contents.zipTo(archive)
+        buildFile << """
+            normalization {
+                runtimeClasspath {
+                    ignore 'ignored.txt'
+                }
+            }
+
+            task customTask {
+                def outputFile = file("build/output.txt")
+                inputs.file("${archive.name}")
+                    .withPropertyName("classpath")
+                    .withNormalizer(ClasspathNormalizer)
+                outputs.file(outputFile)
+                    .withPropertyName("outputFile")
+                outputs.cacheIf { true }
+
+                doLast {
+                    outputFile.text = "done"
+                }
+            }
+        """
+        when:
+        run "customTask"
+        then:
+        executedAndNotSkipped(":customTask")
+
+        when:
+        ignoredFile.text = "changed"
+        archive.delete()
+        contents.zipTo(archive)
+        run "customTask"
+        then:
+        skipped(":customTask")
+
+        where:
+        extension << ["zip", "jar", "war", "rar", "ear", "apk", "aar", "klib"]
+    }
+
+    def "does not treat 'any' extension as archive"() {
+        def archive = file("archive.any")
+        def contents = file("archiveContents").createDir()
+        def ignoredFile = contents.file("ignored.txt")
+        ignoredFile << "this file is ignored"
+        def nonIgnoredFile = contents.file("not-ignored.txt")
+        nonIgnoredFile << "this file is not ignored"
+        contents.zipTo(archive)
+        buildFile << """
+            normalization {
+                runtimeClasspath {
+                    ignore 'ignored.txt'
+                }
+            }
+
+            task customTask {
+                def outputFile = file("build/output.txt")
+                inputs.file("${archive.name}")
+                    .withPropertyName("classpath")
+                    .withNormalizer(ClasspathNormalizer)
+                outputs.file(outputFile)
+                    .withPropertyName("outputFile")
+                outputs.cacheIf { true }
+
+                doLast {
+                    outputFile.text = "done"
+                }
+            }
+        """
+        when:
+        run "customTask"
+        then:
+        executedAndNotSkipped(":customTask")
+
+        when:
+        ignoredFile.text = "changed"
+        archive.delete()
+        contents.zipTo(archive)
+        run "customTask"
+        then:
+        executedAndNotSkipped(":customTask")
     }
 
     static final String IGNORE_ME = 'ignore-me'
@@ -521,6 +693,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         TestResource notIgnoredResourceInNestedJar
         TestResource notIgnoredResourceInNestedInDirJar
         ManifestResource jarManifest
+        ManifestResource nestedJarManifest
         TestResource jarManifestProperties
         ManifestResource manifestInDirectory
         PropertiesResource propertiesFileInDir
@@ -570,7 +743,8 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
                 propertiesFileInDir = new PropertiesResource(file('some/path/to/foo.properties'), [(IGNORE_ME): 'this should be ignored', (DONT_IGNORE_ME): 'this should not be ignored'])
                 manifestInDirectory = new ManifestResource(file('META-INF/MANIFEST.MF')).withAttributes((IMPLEMENTATION_VERSION): "1.0.0")
             }
-            nestedJarContents = root.file('libraryContents').create {
+            nestedJarContents = root.file('nestedLibraryContents').create {
+                nestedJarManifest = new ManifestResource(file('META-INF/MANIFEST.MF'), this.&createJar).withAttributes((IMPLEMENTATION_VERSION): "1.0.0")
                 ignoredResourceInNestedJar = new TestResource(file('some/package/ignored.txt') << "This should be ignored", this.&createJar)
                 notIgnoredResourceInNestedJar = new TestResource(file('some/package/not-ignored.txt') << "This should not be ignored", this.&createJar)
                 propertiesFileInNestedJar = new PropertiesResource(file('some/path/to/foo.properties'), [(IGNORE_ME): 'this should be ignored', (DONT_IGNORE_ME): 'this should not be ignored'], this.&createJar)
@@ -733,6 +907,16 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         void replaceContents(String contents) {
             backingFile.withWriter { w ->
                 w << contents
+            }
+            changed()
+        }
+
+        void writeRaw(byte[]... content) {
+            def stream = backingFile.newOutputStream()
+            try {
+                content.each { stream.write(it) }
+            } finally {
+                stream.close()
             }
             changed()
         }

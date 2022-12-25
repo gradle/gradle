@@ -1,6 +1,11 @@
+import gradlebuild.basics.buildBranch
+import gradlebuild.basics.buildCommitId
+
 plugins {
     id("gradlebuild.internal.java")
 }
+
+description = "The collector project for the 'integ-tests' portion of the Gradle distribution"
 
 dependencies {
     integTestImplementation(project(":internal-testing"))
@@ -20,6 +25,6 @@ dependencies {
 }
 
 tasks.forkingIntegTest {
-    systemProperty("gradleBuildBranch", moduleIdentity.gradleBuildBranch.get())
-    systemProperty("gradleBuildCommitId", moduleIdentity.gradleBuildCommitId.get())
+    systemProperty("gradleBuildBranch", buildBranch.get())
+    systemProperty("gradleBuildCommitId", buildCommitId.get())
 }

@@ -16,15 +16,12 @@
 
 package org.gradle.internal.snapshot
 
-import spock.lang.Unroll
-
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 import static org.gradle.internal.snapshot.PathUtil.compareChars
 import static org.gradle.internal.snapshot.PathUtil.compareCharsIgnoringCase
 import static org.gradle.internal.snapshot.PathUtil.equalChars
 
-@Unroll
 class CaseInsensitiveVfsRelativePathTest extends AbstractCaseVfsRelativePathTest {
 
     def "#left and #right are equal ignoring case"() {

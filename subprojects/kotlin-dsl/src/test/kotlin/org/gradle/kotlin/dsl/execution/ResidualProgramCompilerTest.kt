@@ -23,35 +23,28 @@ import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.same
 import com.nhaarman.mockito_kotlin.verify
-
 import org.gradle.api.Project
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
-
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.hash.HashCode
-
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyBasePlugins
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyDefaultPluginRequests
+import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequests
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.ApplyPluginRequestsOf
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CloseTargetScope
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.SetupEmbeddedKotlin
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
-
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
-
 import org.gradle.plugin.management.internal.PluginRequests
-
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-
 import org.junit.Test
 import org.mockito.InOrder
-
 import java.util.Arrays.fill
 
 
@@ -142,7 +135,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
     fun `Dynamic(Static(CloseTargetScope))`() {
 
         val source = ProgramSource("settings.gradle.kts", "include(\"foo\", \"bar\")")
-        val sourceHash = HashCode.fromInt(42)
+        val sourceHash = TestHashCodes.hashCodeFrom(42)
         val target = mock<Settings>()
         val programHost = safeMockProgramHost()
         val scriptHost = scriptHostWith(target)
@@ -195,7 +188,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
             "task(\"precompiled stage 2\")"
         )
 
-        val sourceHash = HashCode.fromInt(42)
+        val sourceHash = TestHashCodes.hashCodeFrom(42)
         val target = mock<Project>()
         val scriptHost = scriptHostWith(target)
         val accessorsClassPath = mock<ClassPath>()
@@ -241,7 +234,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
         val scriptSource =
             buildscriptFragment.source.map { text("println(\"stage 2\")") }
 
-        val sourceHash = HashCode.fromInt(42)
+        val sourceHash = TestHashCodes.hashCodeFrom(42)
 
         val scriptHandler = mock<ScriptHandlerInternal> {
             on { repositories } doReturn mock<RepositoryHandler>()
@@ -287,13 +280,35 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
 
     @Test
     fun `Static(ApplyPluginRequestsOf(plugins), ApplyBasePlugins)`() {
-
         val fragment = fragmentAtLine(
             3,
             "plugins",
             """id("stage-1")"""
         )
+        assertPluginApplicationBehaviorOf(
+            fragment,
+            ApplyPluginRequestsOf(Program.Plugins(fragment))
+        )
+    }
 
+    @Test
+    fun `Static(ApplyPluginRequests(plugins), ApplyBasePlugins)`() {
+        val fragment = fragmentAtLine(
+            3,
+            "plugins",
+            """id("stage-1")"""
+        )
+        assertPluginApplicationBehaviorOf(
+            fragment,
+            ApplyPluginRequests(
+                listOf(ResidualProgram.PluginRequestSpec("stage-1")),
+                source = Program.Plugins(fragment)
+            )
+        )
+    }
+
+    private
+    fun assertPluginApplicationBehaviorOf(fragment: ProgramSourceFragment, applyPlugins: ResidualProgram.Instruction) {
         val target = mock<Project>()
 
         val scriptHost = scriptHostWith(target = target)
@@ -311,7 +326,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
 
         withExecutableProgramFor(
             Static(
-                ApplyPluginRequestsOf(Program.Plugins(fragment)),
+                applyPlugins,
                 ApplyBasePlugins
             ),
             programTarget = ProgramTarget.Project
@@ -338,7 +353,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
 
         assertThat(
             pluginRequests.single().lineNumber,
-            equalTo(3)
+            equalTo(fragment.lineNumber)
         )
     }
 
@@ -602,7 +617,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
         target: T,
         val programTarget: ProgramTarget
     ) {
-        val sourceHash = HashCode.fromInt(42)
+        val sourceHash = TestHashCodes.hashCodeFrom(42)
         val scriptHost = scriptHostWith(target = target)
         val accessorsClassPath = mock<ClassPath>()
         val programHost = safeMockProgramHost {

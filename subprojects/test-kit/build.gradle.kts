@@ -1,19 +1,29 @@
-import org.gradle.api.internal.runtimeshaded.PackageListGenerator
+import gradlebuild.basics.tasks.PackageListGenerator
 
 plugins {
     id("gradlebuild.distribution.implementation-java")
 }
+
+description = "A library that aids in testing Gradle plugins and build logic in general"
 
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":core-api"))
     implementation(project(":core"))
     implementation(project(":build-option"))
-    implementation(project(":wrapper"))
+    implementation(project(":logging"))
+    implementation(project(":wrapper-shared"))
     implementation(project(":tooling-api"))
     implementation(project(":file-temp"))
     implementation(libs.commonsIo)
     api(libs.groovyTest)
+
+    testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(project(":launcher"))
+    testFixturesImplementation(project(":tooling-api"))
+    testFixturesImplementation(project(":wrapper-shared"))
+    testFixturesImplementation(testFixtures(project(":core")))
+    testFixturesImplementation(libs.guava)
 
     testImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))
@@ -33,8 +43,8 @@ dependencies {
 }
 
 val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {
-    classpath = sourceSets.main.get().runtimeClasspath
-    outputFile = file(layout.buildDirectory.file("runtime-api-info/test-kit-relocated.txt"))
+    classpath.from(sourceSets.main.map { it.runtimeClasspath })
+    outputFile.set(layout.buildDirectory.file("runtime-api-info/test-kit-relocated.txt"))
 }
 tasks.jar {
     into("org/gradle/api/internal/runtimeshaded") {
@@ -42,7 +52,7 @@ tasks.jar {
     }
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/testkit/runner/internal/**")
 }
 

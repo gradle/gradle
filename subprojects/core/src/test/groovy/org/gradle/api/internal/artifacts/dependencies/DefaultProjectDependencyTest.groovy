@@ -19,9 +19,9 @@ package org.gradle.api.internal.artifacts.dependencies
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.artifacts.DependencyResolveContext
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
@@ -30,13 +30,10 @@ import static org.gradle.util.Matchers.strictlyEqual
 import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
-
-    ProjectAccessListener listener = Mock()
-
     private projectDependency
 
     def setup() {
-        projectDependency = new DefaultProjectDependency(project, null, false)
+        projectDependency = new DefaultProjectDependency(project, null, false, TestFiles.taskDependencyFactory())
         project.version = "1.2"
         project.group = "org.gradle"
     }
@@ -61,7 +58,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         conf.dependencies.add(dep1)
         superConf.dependencies.add(dep2)
 
-        projectDependency = new DefaultProjectDependency(project, "conf", null, true)
+        projectDependency = new DefaultProjectDependency(project, "conf", true, TestFiles.taskDependencyFactory())
 
         when:
         projectDependency.resolve(context)
@@ -75,7 +72,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
 
     void "if resolution context is not transitive it will not contain all dependencies"() {
         def context = Mock(DependencyResolveContext)
-        projectDependency = new DefaultProjectDependency(project, null, true)
+        projectDependency = new DefaultProjectDependency(project, null, true, TestFiles.taskDependencyFactory())
 
         when:
         projectDependency.resolve(context)
@@ -87,7 +84,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
 
     void "if dependency is not transitive the resolution context will not contain all dependencies"() {
         def context = Mock(DependencyResolveContext)
-        projectDependency = new DefaultProjectDependency(project, null, true)
+        projectDependency = new DefaultProjectDependency(project, null, true, TestFiles.taskDependencyFactory())
         projectDependency.setTransitive(false)
 
         when:
@@ -101,16 +98,14 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         def context = Mock(TaskDependencyResolveContext)
 
         def conf = project.configurations.create('conf')
-        def listener = Mock(ProjectAccessListener)
-        projectDependency = new DefaultProjectDependency(project, 'conf', listener, true)
+        projectDependency = new DefaultProjectDependency(project, 'conf', true, TestFiles.taskDependencyFactory())
 
         when:
         projectDependency.buildDependencies.visitDependencies(context)
 
         then:
         1 * context.add(conf)
-        1 * context.add({it.is(conf.allArtifacts)})
-        1 * listener.beforeResolvingProjectDependency(project)
+        1 * context.add({ it.is(conf.allArtifacts) })
         0 * _
     }
 
@@ -120,33 +115,31 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         project.configurations.create('conf') {
             canBeConsumed = false
         }
-        def listener = Mock(ProjectAccessListener)
-        projectDependency = new DefaultProjectDependency(project, 'conf', listener, true)
+        projectDependency = new DefaultProjectDependency(project, 'conf', true, TestFiles.taskDependencyFactory())
 
         when:
         projectDependency.buildDependencies.visitDependencies(context)
 
         then:
         def e = thrown(ConfigurationNotConsumableException)
-        e.message == "Selected configuration 'conf' on 'root project 'test'' but it can't be used as a project dependency because it isn't intended for consumption by other components."
+        e.message == "Selected configuration 'conf' on 'root project 'test-project'' but it can't be used as a project dependency because it isn't intended for consumption by other components."
     }
 
     void "does not build project dependencies if configured so"() {
-         def context = Mock(TaskDependencyResolveContext)
-         project.configurations.create('conf')
-         projectDependency = new DefaultProjectDependency(project, 'conf', listener, false)
+        def context = Mock(TaskDependencyResolveContext)
+        project.configurations.create('conf')
+        projectDependency = new DefaultProjectDependency(project, 'conf', false, TestFiles.taskDependencyFactory())
 
-         when:
-         projectDependency.buildDependencies.visitDependencies(context)
+        when:
+        projectDependency.buildDependencies.visitDependencies(context)
 
-         then:
-         0 * _
-     }
+        then:
+        0 * _
+    }
 
     void "is self resolving dependency"() {
         def conf = project.configurations.create('conf')
-        def listener = Mock(ProjectAccessListener)
-        projectDependency = new DefaultProjectDependency(project, 'conf', listener, true)
+        projectDependency = new DefaultProjectDependency(project, 'conf', true, TestFiles.taskDependencyFactory())
 
         when:
         def files = projectDependency.resolve()
@@ -185,24 +178,24 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
     }
 
     private createProjectDependency() {
-        def out = new DefaultProjectDependency(project, listener, true)
+        def out = new DefaultProjectDependency(project, true)
         out.addArtifact(new DefaultDependencyArtifact("name", "type", "ext", "classifier", "url"))
         out
     }
 
     void "knows if is equal"() {
         expect:
-        assertThat(new DefaultProjectDependency(project, listener, true),
-                strictlyEqual(new DefaultProjectDependency(project, listener, true)))
+        assertThat(new DefaultProjectDependency(project, true),
+            strictlyEqual(new DefaultProjectDependency(project, true)))
 
-        assertThat(new DefaultProjectDependency(project, "conf1", listener, false),
-                strictlyEqual(new DefaultProjectDependency(project, "conf1", listener, false)))
+        assertThat(new DefaultProjectDependency(project, "conf1", false, TestFiles.taskDependencyFactory()),
+            strictlyEqual(new DefaultProjectDependency(project, "conf1", false, TestFiles.taskDependencyFactory())))
 
         when:
-        def base = new DefaultProjectDependency(project, "conf1", listener, true)
-        def differentConf = new DefaultProjectDependency(project, "conf2", listener, true)
-        def differentBuildDeps = new DefaultProjectDependency(project, "conf1", listener, false)
-        def differentProject = new DefaultProjectDependency(Mock(ProjectInternal), "conf1", listener, true)
+        def base = new DefaultProjectDependency(project, "conf1", true, TestFiles.taskDependencyFactory())
+        def differentConf = new DefaultProjectDependency(project, "conf2", true, TestFiles.taskDependencyFactory())
+        def differentBuildDeps = new DefaultProjectDependency(project, "conf1", false, TestFiles.taskDependencyFactory())
+        def differentProject = new DefaultProjectDependency(Mock(ProjectInternal), "conf1", true, TestFiles.taskDependencyFactory())
 
         then:
         base != differentConf

@@ -21,6 +21,7 @@ import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -28,8 +29,8 @@ import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.process.ExecOperations;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
@@ -86,7 +87,7 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
         return parametersType;
     }
 
-    @NotNull
+    @Nonnull
     private <T extends IMPLEMENTATION, P extends PARAMS> Class<P> inferParameterType(Class<T> implementationType, int typeArgumentIndex) {
         // Avoid using TypeToken for the common simple case, as TypeToken is quite slow
         for (Type superType : implementationType.getGenericInterfaces()) {
@@ -167,6 +168,9 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
                 }
                 if (serviceClass.isAssignableFrom(ProviderFactory.class)) {
                     return allServices.find(ProviderFactory.class);
+                }
+                if (serviceClass.isAssignableFrom(BuildServiceRegistry.class)) {
+                    return allServices.find(BuildServiceRegistry.class);
                 }
                 for (Class<?> whiteListedService : additionalWhiteListedServices) {
                     if (serviceClass.isAssignableFrom(whiteListedService)) {

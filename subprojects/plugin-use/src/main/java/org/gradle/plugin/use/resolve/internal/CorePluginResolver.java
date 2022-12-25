@@ -46,7 +46,7 @@ public class CorePluginResolver implements PluginResolver {
 
         PluginImplementation<?> plugin = pluginRegistry.lookup(id);
         if (plugin == null) {
-            result.notFound(getDescription(), format("not a core plugin, please see %s for available core plugins", documentationRegistry.getDocumentationFor("standard_plugins")));
+            result.notFound(getDescription(), format("not a core plugin, please see %s for available core plugins", documentationRegistry.getDocumentationFor("plugin_reference")));
             return;
         }
 

@@ -23,7 +23,6 @@ import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.Phase
 import org.gradle.profiler.ScenarioContext
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
 
 class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceTest {
 
@@ -34,7 +33,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
     public static final int WARMUPS = 10
     public static final int INVOCATIONS = 20
 
-    @Unroll
     def "with and without plugin application (#scenario)"() {
         given:
         def jobArgs = ['--continue', '-Dscan.capture-task-input-files'] + scenarioArgs

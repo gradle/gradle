@@ -16,24 +16,25 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.List;
 
-@NotThreadSafe
+/**
+ * A thread-safe and reusable serializer for {@link ComponentSelectionReason} if and only if the passed in
+ * {@link ComponentSelectionDescriptorFactory} is thread-safe and reusable.
+ */
 public class ComponentSelectionReasonSerializer implements Serializer<ComponentSelectionReason> {
 
-    private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;
+    private final ComponentSelectionDescriptorSerializer componentSelectionDescriptorSerializer;
 
     public ComponentSelectionReasonSerializer(ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory) {
-        this.componentSelectionDescriptorFactory = componentSelectionDescriptorFactory;
+        this.componentSelectionDescriptorSerializer = new ComponentSelectionDescriptorSerializer(componentSelectionDescriptorFactory);
     }
 
     @Override
@@ -46,21 +47,9 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
         int size = decoder.readSmallInt();
         ComponentSelectionDescriptor[] descriptors = new ComponentSelectionDescriptor[size];
         for (int i = 0; i < size; i++) {
-            ComponentSelectionCause cause = ComponentSelectionCause.values()[decoder.readByte()];
-            String desc = readDescriptionText(decoder);
-            String defaultReason = cause.getDefaultReason();
-            if (desc.equals(defaultReason)) {
-                descriptors[i] = componentSelectionDescriptorFactory.newDescriptor(cause);
-            } else {
-                descriptors[i] = componentSelectionDescriptorFactory.newDescriptor(cause, desc);
-            }
-
+            descriptors[i] = componentSelectionDescriptorSerializer.read(decoder);
         }
         return descriptors;
-    }
-
-    private String readDescriptionText(Decoder decoder) throws IOException {
-        return decoder.readString();
     }
 
     @Override
@@ -68,17 +57,7 @@ public class ComponentSelectionReasonSerializer implements Serializer<ComponentS
         List<ComponentSelectionDescriptor> descriptions = value.getDescriptions();
         encoder.writeSmallInt(descriptions.size());
         for (ComponentSelectionDescriptor description : descriptions) {
-            writeDescription(encoder, description);
+            componentSelectionDescriptorSerializer.write(encoder, description);
         }
     }
-
-    private void writeDescription(Encoder encoder, ComponentSelectionDescriptor description) throws IOException {
-        encoder.writeByte((byte) description.getCause().ordinal());
-        writeDescriptionText(encoder, description.getDescription());
-    }
-
-    private void writeDescriptionText(Encoder encoder, String description) throws IOException {
-        encoder.writeString(description);
-    }
-
 }

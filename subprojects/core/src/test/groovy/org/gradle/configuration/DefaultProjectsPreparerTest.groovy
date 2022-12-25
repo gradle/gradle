@@ -15,14 +15,10 @@
  */
 package org.gradle.configuration
 
-
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.ProjectConfigurer
-import org.gradle.initialization.BuildLoader
-import org.gradle.initialization.ModelConfigurationListener
-import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.operations.BuildOperationExecutor
 import spock.lang.Specification
@@ -32,13 +28,9 @@ class DefaultProjectsPreparerTest extends Specification {
     def gradle = Mock(GradleInternal)
     def rootProject = Mock(ProjectInternal)
     def projectConfigurer = Mock(ProjectConfigurer)
-    def buildRegistry = Mock(BuildStateRegistry)
-    def buildLoader = Mock(BuildLoader)
     def modelParameters = Mock(BuildModelParameters)
-    def modelListener = Mock(ModelConfigurationListener)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
-    def buildStateRegistry = Mock(BuildStateRegistry)
-    def configurer = new DefaultProjectsPreparer(projectConfigurer, modelParameters, modelListener, buildOperationExecutor, buildStateRegistry)
+    def configurer = new DefaultProjectsPreparer(projectConfigurer, modelParameters, buildOperationExecutor)
 
     def setup() {
         gradle.startParameter >> startParameter
@@ -53,13 +45,22 @@ class DefaultProjectsPreparerTest extends Specification {
         1 * projectConfigurer.configureHierarchy(rootProject)
     }
 
-    def "configures build for on demand mode"() {
+    def "configures root build for on demand mode"() {
         when:
         configurer.prepareProjects(gradle)
 
         then:
         gradle.rootBuild >> true
         modelParameters.configureOnDemand >> true
-        1 * projectConfigurer.configure(rootProject)
+    }
+
+    def "configures non-root build for on demand mode"() {
+        when:
+        configurer.prepareProjects(gradle)
+
+        then:
+        gradle.rootBuild >> false
+        modelParameters.configureOnDemand >> true
+        1 * projectConfigurer.configureHierarchy(rootProject)
     }
 }

@@ -41,12 +41,12 @@ public interface ScopedCache {
     File getRootDir();
 
     /**
-     * Returns the base directory that would be used for a Gradle-version specific cache om this scope.
+     * Returns the base directory that would be used for a Gradle-version specific cache of this scope.
      */
     File baseDirForCache(String key);
 
     /**
-     * Returns the base directory that would be used for a cross Gradle version specific cache om this scope.
+     * Returns the base directory that would be used for a cross Gradle version specific cache of this scope.
      */
     File baseDirForCrossVersionCache(String key);
 }

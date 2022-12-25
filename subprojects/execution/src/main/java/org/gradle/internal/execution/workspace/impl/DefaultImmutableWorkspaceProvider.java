@@ -16,9 +16,13 @@
 
 package org.gradle.internal.execution.workspace.impl;
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
+import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CleanupAction;
+import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -29,12 +33,12 @@ import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.impl.SingleDepthFileAccessTracker;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
 import java.io.Closeable;
 import java.io.File;
 import java.util.function.Function;
 
-import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Closeable {
@@ -49,14 +53,20 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        StringInterner stringInterner
+        StringInterner stringInterner,
+        ClassLoaderHierarchyHasher classLoaderHasher,
+        CleanupActionDecorator cleanupActionDecorator,
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         return withBuiltInHistory(
             cacheBuilder,
             fileAccessTimeJournal,
             inMemoryCacheDecoratorFactory,
             stringInterner,
-            DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP
+            classLoaderHasher,
+            DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
+            cleanupActionDecorator,
+            cacheConfigurations
         );
     }
 
@@ -65,26 +75,35 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         FileAccessTimeJournal fileAccessTimeJournal,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
         StringInterner stringInterner,
-        int treeDepthToTrackAndCleanup
+        ClassLoaderHierarchyHasher classLoaderHasher,
+        int treeDepthToTrackAndCleanup,
+        CleanupActionDecorator cleanupActionDecorator,
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         return new DefaultImmutableWorkspaceProvider(
             cacheBuilder,
             fileAccessTimeJournal,
-            cache -> new DefaultExecutionHistoryStore(() -> cache, inMemoryCacheDecoratorFactory, stringInterner),
-            treeDepthToTrackAndCleanup
+            cache -> new DefaultExecutionHistoryStore(() -> cache, inMemoryCacheDecoratorFactory, stringInterner, classLoaderHasher),
+            treeDepthToTrackAndCleanup,
+            cleanupActionDecorator,
+            cacheConfigurations
         );
     }
 
     public static DefaultImmutableWorkspaceProvider withExternalHistory(
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
-        ExecutionHistoryStore executionHistoryStore
+        ExecutionHistoryStore executionHistoryStore,
+        CleanupActionDecorator cleanupActionDecorator,
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         return new DefaultImmutableWorkspaceProvider(
             cacheBuilder,
             fileAccessTimeJournal,
             __ -> executionHistoryStore,
-            DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP
+            DEFAULT_FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP,
+            cleanupActionDecorator,
+            cacheConfigurations
         );
     }
 
@@ -92,10 +111,12 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         CacheBuilder cacheBuilder,
         FileAccessTimeJournal fileAccessTimeJournal,
         Function<PersistentCache, ExecutionHistoryStore> historyFactory,
-        int treeDepthToTrackAndCleanup
+        int treeDepthToTrackAndCleanup,
+        CleanupActionDecorator cleanupActionDecorator,
+        CacheConfigurationsInternal cacheConfigurations
     ) {
         PersistentCache cache = cacheBuilder
-            .withCleanup(createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup))
+            .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cleanupActionDecorator, cacheConfigurations))
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
         this.cache = cache;
@@ -104,11 +125,18 @@ public class DefaultImmutableWorkspaceProvider implements WorkspaceProvider, Clo
         this.executionHistoryStore = historyFactory.apply(cache);
     }
 
-    private static CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup) {
+    private CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CleanupActionDecorator cleanupActionDecorator, CacheConfigurationsInternal cacheConfigurations) {
+        return DefaultCacheCleanupStrategy.from(
+            cleanupActionDecorator.decorate(createCleanupAction(fileAccessTimeJournal, treeDepthToTrackAndCleanup, cacheConfigurations)),
+            cacheConfigurations.getCleanupFrequency()
+        );
+    }
+
+    private static CleanupAction createCleanupAction(FileAccessTimeJournal fileAccessTimeJournal, int treeDepthToTrackAndCleanup, CacheConfigurationsInternal cacheConfigurations) {
         return new LeastRecentlyUsedCacheCleanup(
             new SingleDepthFilesFinder(treeDepthToTrackAndCleanup),
             fileAccessTimeJournal,
-            DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+            cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesOlderThanAsSupplier()
         );
     }
 

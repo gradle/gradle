@@ -29,7 +29,7 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         """
     }
 
-    def "plugin runtime configuration is deprecated for consumption"() {
+    def "plugin runtime configuration is not consumable"() {
         given:
         file("producer/build.gradle") << """
             plugins {
@@ -48,17 +48,17 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
         """
 
         then:
-        executer.expectDocumentedDeprecationWarning("The $configuration configuration has been deprecated for consumption. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#plugin_configuration_consumption")
-        succeeds("test")
+        fails("test")
+        result.assertHasErrorOutput("Selected configuration '$configuration' on 'project :producer' but it can't be used as a project dependency because it isn't intended for consumption by other components")
 
         where:
         plugin       | configuration
-        'codenarc'   | 'codenarc'
-        'pmd'        | 'pmd'
-        'checkstyle' | 'checkstyle'
         'antlr'      | 'antlr'
+        'codenarc'   | 'codenarc'
         'jacoco'     | 'jacocoAgent'
         'jacoco'     | 'jacocoAnt'
+        'pmd'        | 'pmd'
+        'checkstyle' | 'checkstyle'
         'scala'      | 'zinc'
         'war'        | 'providedRuntime'
         'war'        | 'providedCompile'
@@ -90,6 +90,11 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
                     canBeResolved = true
                     attributes {
                         attribute(Attribute.of("test", String), "test")
+                        ${plugin == 'codenarc' ?
+                        """
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL)) // to avoid shadowRuntimeElements variant
+                        """ : ""
+                        }
                     }
                 }
             }
@@ -97,8 +102,9 @@ class PluginConfigurationAttributesIntegrationTest extends AbstractIntegrationSp
                 consumer(project(":producer"))
             }
             tasks.register("resolve") {
+                def consumerFiles = configurations.consumer.files
                 doLast {
-                    configurations.consumer.files.forEach {
+                    consumerFiles.forEach {
                         println(it.name)
                     }
                 }

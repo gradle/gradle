@@ -23,14 +23,14 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
-import org.gradle.internal.reflect.Instantiator
+import org.gradle.api.internal.tasks.TaskDependencyFactory
+import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultObjectFactoryTest extends Specification {
     def propertyFactory = new DefaultPropertyFactory(Stub(PropertyHost))
     def patternSetFactory = TestFiles.patternSetFactory
-    def factory = new DefaultObjectFactory(Stub(Instantiator), Stub(NamedObjectInstantiator), Stub(DirectoryFileTreeFactory), patternSetFactory, propertyFactory, Stub(FilePropertyFactory), Stub(FileCollectionFactory), Stub(DomainObjectCollectionFactory))
+    def factory = new DefaultObjectFactory(TestUtil.instantiatorFactory().decorateLenient(), TestUtil.objectInstantiator(), Stub(DirectoryFileTreeFactory), patternSetFactory, propertyFactory, Stub(FilePropertyFactory), Stub(TaskDependencyFactory), Stub(FileCollectionFactory), Stub(DomainObjectCollectionFactory))
 
     def "property has no value"() {
         expect:
@@ -54,7 +54,6 @@ class DefaultObjectFactoryTest extends Specification {
         t.message == 'Class cannot be null'
     }
 
-    @Unroll
     def "can create property with primitive type"() {
         given:
         def property = factory.property(type)
@@ -87,7 +86,6 @@ class DefaultObjectFactoryTest extends Specification {
         property.get().empty
     }
 
-    @Unroll
     def "can create list property with primitive type"() {
         given:
         def property = factory.listProperty(type)
@@ -114,7 +112,6 @@ class DefaultObjectFactoryTest extends Specification {
         property.get().empty
     }
 
-    @Unroll
     def "can create set property with primitive type"() {
         given:
         def property = factory.setProperty(type)
@@ -141,7 +138,6 @@ class DefaultObjectFactoryTest extends Specification {
         property.get().isEmpty()
     }
 
-    @Unroll
     def "can create map property with primitive type"() {
         given:
         def property = factory.mapProperty(type, type)

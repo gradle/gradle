@@ -26,7 +26,8 @@ import org.codehaus.groovy.runtime.StringGroovyMethods
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.PluginManager
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.bytecode.InternalName
@@ -41,6 +42,7 @@ import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 import org.gradle.kotlin.dsl.support.zipTo
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil.replaceLineSeparatorsOf
 import org.gradle.util.internal.ToBeImplemented
 
@@ -62,8 +64,8 @@ import java.io.File
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
+
     @Test
-    @ToBeFixedForConfigurationCache
     fun `cannot use type-safe accessors for extensions contributed in afterEvaluate`() {
         withFolders {
             "producer/src/main/kotlin" {
@@ -123,7 +125,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     withFile(
                         "src/main/kotlin/gradlePropertyPlugin.gradle.kts",
                         """
-                        val property = providers.gradleProperty("theGradleProperty").forUseAtConfigurationTime()
+                        val property = providers.gradleProperty("theGradleProperty")
                         if (property.isPresent) {
                             println("property is present in plugin!")
                         }
@@ -192,7 +194,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         }
     }
 
-    @ToBeFixedForConfigurationCache
     @Test
     fun `can use type-safe accessors for applied plugins with CRLF line separators`() {
 
@@ -216,7 +217,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `fails the build with help message for plugin spec with version`() {
 
         withDefaultSettings().appendText(
@@ -248,7 +248,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/17246")
     @Test
-    @ToBeFixedForConfigurationCache
     fun `fails the build with help message for plugin spec with version in settings plugin`() {
 
         withDefaultSettings().appendText(
@@ -282,7 +281,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use type-safe accessors with same name but different meaning in sibling plugins`() {
 
         val externalPlugins = withExternalPlugins()
@@ -355,7 +353,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     """
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use type-safe accessors for the Kotlin Gradle plugin extensions`() {
 
         assumeNonEmbeddedGradleExecuter() // Unknown issue with accessing the plugin portal from pre-compiled script plugin in embedded test mode
@@ -387,7 +384,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use type-safe accessors for plugins applied by sibling plugin`() {
 
         withKotlinDslPlugin()
@@ -414,7 +410,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use type-safe accessors from scripts with same name but different ids`() {
 
         val externalPlugins = withExternalPlugins()
@@ -483,7 +478,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can apply sibling plugin whether it has a plugins block or not`() {
 
         withKotlinDslPlugin()
@@ -514,7 +508,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can apply sibling plugin from another package`() {
 
         withKotlinDslPlugin()
@@ -542,7 +535,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `generated type-safe accessors are internal`() {
 
         givenPrecompiledKotlinScript(
@@ -594,7 +586,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     Declaration(
                         "",
                         "JavaProjectPlugin",
-                        null
+                        Visibilities.Public
                     )
                 )
             )
@@ -602,7 +594,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use core plugin spec builders`() {
 
         givenPrecompiledKotlinScript(
@@ -630,7 +621,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use plugin spec builders for plugins in the implementation classpath`() {
 
         // given:
@@ -663,7 +653,6 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use plugin specs with jruby-gradle-plugin`() {
 
         withKotlinDslPlugin().appendText(
@@ -690,36 +679,68 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
-    fun `plugin application errors are reported but don't cause the build to fail`() {
+    fun `plugin application errors fail the build by default`() {
 
-        // given:
         val pluginId = "invalid.plugin"
         val pluginJar = jarWithInvalidPlugin(pluginId, "InvalidPlugin")
 
         withPrecompiledScriptApplying(pluginId, pluginJar)
 
-        gradleExecuterFor(arrayOf("classes")).withStackTraceChecksDisabled().run().apply {
-            assertOutputContains("An exception occurred applying plugin request [id: '$pluginId']")
-            assertOutputContains("'InvalidPlugin' is neither a plugin or a rule source and cannot be applied.")
-        }
-    }
-
-    @Test
-    @ToBeFixedForConfigurationCache
-    fun `plugin application errors can be made to fail the build via system property`() {
-
-        // given:
-        val pluginId = "invalid.plugin"
-        val pluginJar = jarWithInvalidPlugin(pluginId, "InvalidPlugin")
-
-        withPrecompiledScriptApplying(pluginId, pluginJar)
-
-        gradleExecuterFor(arrayOf("classes", "-Dorg.gradle.kotlin.dsl.precompiled.accessors.strict=true")).withStackTraceChecksDisabled().runWithFailure().apply {
+        val assertions: ExecutionFailure.() -> Unit = {
             assertHasFailure("An exception occurred applying plugin request [id: '$pluginId']") {
                 assertHasCause("'InvalidPlugin' is neither a plugin or a rule source and cannot be applied.")
             }
         }
+
+        gradleExecuterFor(arrayOf("classes"))
+            .withStackTraceChecksDisabled()
+            .runWithFailure()
+            .assertions()
+
+        executer.beforeExecute {
+            it.expectDeprecationWarning(
+                "The org.gradle.kotlin.dsl.precompiled.accessors.strict system property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#strict-kotlin-dsl-precompiled-scripts-accessors-by-default"
+            )
+        }
+
+        gradleExecuterFor(arrayOf("--rerun-tasks", "classes", "-Dorg.gradle.kotlin.dsl.precompiled.accessors.strict="))
+            .withStackTraceChecksDisabled()
+            .runWithFailure()
+            .assertions()
+
+        gradleExecuterFor(arrayOf("--rerun-tasks", "classes", "-Dorg.gradle.kotlin.dsl.precompiled.accessors.strict=true"))
+            .withStackTraceChecksDisabled()
+            .runWithFailure()
+            .assertions()
+    }
+
+    @Test
+    fun `plugin application errors can be ignored but are reported`() {
+
+        val pluginId = "invalid.plugin"
+        val pluginJar = jarWithInvalidPlugin(pluginId, "InvalidPlugin")
+
+        withPrecompiledScriptApplying(pluginId, pluginJar)
+
+        executer.beforeExecute {
+            it.expectDeprecationWarning(
+                "The org.gradle.kotlin.dsl.precompiled.accessors.strict system property has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 9.0. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#strict-kotlin-dsl-precompiled-scripts-accessors-by-default"
+            )
+        }
+
+        val assertions: ExecutionResult.() -> Unit = {
+            assertOutputContains("An exception occurred applying plugin request [id: '$pluginId']")
+            assertOutputContains("'InvalidPlugin' is neither a plugin or a rule source and cannot be applied.")
+        }
+
+        gradleExecuterFor(arrayOf("--rerun-tasks", "classes", "-Dorg.gradle.kotlin.dsl.precompiled.accessors.strict=false"))
+            .withStackTraceChecksDisabled()
+            .run()
+            .assertions()
     }
 
     private
@@ -746,14 +767,12 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use plugin spec builders in multi-project builds with local and external plugins`() {
 
         testPluginSpecBuildersInMultiProjectBuildWithPluginsFromPackage(null)
     }
 
     @Test
-    @ToBeFixedForConfigurationCache
     fun `can use plugin spec builders in multi-project builds with local and external plugins sharing package name`() {
 
         testPluginSpecBuildersInMultiProjectBuildWithPluginsFromPackage("p")

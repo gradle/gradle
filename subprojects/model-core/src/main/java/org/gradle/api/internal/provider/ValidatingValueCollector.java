@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
 
 import javax.annotation.Nullable;
@@ -33,9 +34,16 @@ class ValidatingValueCollector<T> implements ValueCollector<T> {
 
     @Override
     public void add(@Nullable T value, ImmutableCollection.Builder<T> dest) {
+        Preconditions.checkNotNull(
+            value,
+            "Cannot get the value of a property of type %s with element type %s as the source value contains a null element.",
+            collectionType.getName(), elementType.getName());
+
         T sanitized = sanitizer.sanitize(value);
         if (!elementType.isInstance(sanitized)) {
-            throw new IllegalArgumentException(String.format("Cannot get the value of a property of type %s with element type %s as the source value contains an element of type %s.", collectionType.getName(), elementType.getName(), value.getClass().getName()));
+            throw new IllegalArgumentException(String.format(
+                "Cannot get the value of a property of type %s with element type %s as the source value contains an element of type %s.",
+                collectionType.getName(), elementType.getName(), value.getClass().getName()));
         }
         dest.add(sanitized);
     }

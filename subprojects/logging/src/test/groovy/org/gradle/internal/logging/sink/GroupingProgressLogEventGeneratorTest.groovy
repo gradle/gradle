@@ -29,7 +29,6 @@ import org.gradle.internal.logging.format.LogHeaderFormatter
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.OperationIdentifier
 import spock.lang.Subject
-import spock.lang.Unroll
 
 class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
     private final OutputEventListener downstreamListener = Mock(OutputEventListener)
@@ -432,7 +431,6 @@ class GroupingProgressLogEventGeneratorTest extends OutputSpecification {
         0 * downstreamListener._
     }
 
-    @Unroll
     def "forwards header again when status changes after output is flushed (verbose: #verbose)"() {
         def olderTimestamp = 0
         def taskStartEvent = new ProgressStartEvent(new OperationIdentifier(-3L), new OperationIdentifier(-4L), olderTimestamp, CATEGORY, "Execute :a", null, null, 0, true, new OperationIdentifier(-3L), BuildOperationCategory.TASK)

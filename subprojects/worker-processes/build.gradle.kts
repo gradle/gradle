@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
+description = "Infrastructure that bootstraps a worker process"
+
 gradlebuildJava.usedInWorkers()
 
 dependencies {

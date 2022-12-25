@@ -16,14 +16,11 @@
 
 package org.gradle.internal.enterprise;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 /**
  * The plugin uses this to announce its presence and provide its service.
  *
  * It is obtained via the settings object's service registry for the root build only.
  */
-@UsedByScanPlugin
 public interface GradleEnterprisePluginCheckInService {
 
     /**

@@ -15,9 +15,9 @@
  */
 package org.gradle.util.internal
 
-import org.gradle.api.Transformer
+
+import org.gradle.internal.InternalTransformer
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.util.internal.CollectionUtils.addAll
 import static org.gradle.util.internal.CollectionUtils.collect
@@ -42,7 +42,6 @@ import static org.gradle.util.internal.CollectionUtils.toSet
 import static org.gradle.util.internal.CollectionUtils.toStringList
 import static org.gradle.util.internal.CollectionUtils.unpack
 
-@Unroll
 class CollectionUtilsTest extends Specification {
 
     def "list filtering"() {
@@ -70,7 +69,7 @@ class CollectionUtilsTest extends Specification {
     }
 
     def "list collecting"() {
-        def transformer = new Transformer() {
+        def transformer = new InternalTransformer() {
             def transform(i) { i * 2 }
         }
         def collect = { Integer[] nums -> collect(nums as List, transformer) }
@@ -158,8 +157,7 @@ class CollectionUtilsTest extends Specification {
         !replace(l, { false }, transformer { it })
     }
 
-    @Unroll
-    "diffing sets"() {
+    def "diffing sets"() {
         given:
         def leftSet = left as Set
         def rightSet = right as Set
@@ -413,7 +411,7 @@ class CollectionUtilsTest extends Specification {
         nonEmptyOrNull([]) == null
     }
 
-    Transformer<?, ?> transformer(Closure c) {
-        c as Transformer
+    InternalTransformer<?, ?> transformer(Closure c) {
+        c as InternalTransformer
     }
 }

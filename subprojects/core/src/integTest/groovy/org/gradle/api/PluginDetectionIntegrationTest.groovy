@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Issue
-import spock.lang.Unroll
 
 /**
  * Tests various aspects of detecting the existence of plugins by their ID.
@@ -29,7 +28,6 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
 
     public static final List<String> JAVA_PLUGIN_IDS = ["java", "org.gradle.java"]
 
-    @Unroll
     def "core plugins are detectable - applied by #appliedBy, detected by #detectedBy"() {
         buildFile << """
             def operations = []
@@ -50,7 +48,14 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
             assert pluginManager.hasPlugin("$detectedBy")
             assert pluginManager.findPlugin("$detectedBy").id == "$detectedBy"
 
-            task verify { doLast { assert operations == ['applying', 'withId for JavaPlugin', 'withPlugin', 'applied'] } }
+            task verify {
+                doLast {
+                    assert operations[0] == 'applying'
+                    assert operations[1] =~ /withId for JavaPlugin[\$]Inject[\\d]*/
+                    assert operations[2] == 'withPlugin'
+                    assert operations[3] == 'applied'
+                }
+            }
         """
 
         expect:

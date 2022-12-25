@@ -32,7 +32,6 @@ import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.util.AttributeTestUtil.attributes
 
@@ -381,7 +380,8 @@ class GradleModuleMetadataParserTest extends Specification {
                         "group": "g3",
                         "module": "m3",
                         "version": { "requires": "v3" }
-                    }
+                    },
+                    { "group": "g4", "module": "m4" }
                 ],
                 "attributes": { "usage": "compile" }
             },
@@ -404,6 +404,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * variant1.addDependencyConstraint("g1", "m1", requires("v1"), null, ImmutableAttributes.EMPTY)
         1 * variant1.addDependencyConstraint("g2", "m2", prefers("v2"), null, ImmutableAttributes.EMPTY)
         1 * variant1.addDependencyConstraint("g3", "m3", requires("v3"), null, ImmutableAttributes.EMPTY)
+        1 * variant1.addDependencyConstraint("g4", "m4", emptyConstraint(), null, ImmutableAttributes.EMPTY)
         1 * variant1.setAvailableExternally(false)
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addDependencyConstraint("g3", "m3", prefers("v3"), null, ImmutableAttributes.EMPTY)
@@ -744,7 +745,6 @@ class GradleModuleMetadataParserTest extends Specification {
         0 * metadata._
     }
 
-    @Unroll
     def "fails for missing #label"() {
         def metadata = Mock(MutableModuleComponentResolveMetadata)
 
@@ -849,7 +849,6 @@ class GradleModuleMetadataParserTest extends Specification {
         e.cause.message == "Expected BEGIN_ARRAY but was BEGIN_OBJECT at line 1 column 42 path \$.variants"
     }
 
-    @Unroll
     def "is lenient with version checks if we manage to parse content (#label, version = #version)"() {
         def metadata = Mock(MutableModuleComponentResolveMetadata) {
             addVariant(_, _) >> Stub(MutableComponentVariant)

@@ -153,22 +153,18 @@ public class GitVersionControlSystem implements VersionControlSystem {
     }
 
     private static void updateSubModules(Git git) throws IOException, GitAPIException {
-        SubmoduleWalk walker = SubmoduleWalk.forIndex(git.getRepository());
-        try {
+        try (SubmoduleWalk walker = SubmoduleWalk.forIndex(git.getRepository())) {
             while (walker.next()) {
-                Repository submodule = walker.getRepository();
-                try {
-                    Git submoduleGit = Git.wrap(submodule);
-                    configureTransport(submoduleGit.fetch()).call();
-                    git.submoduleUpdate().addPath(walker.getPath()).call();
-                    submoduleGit.reset().setMode(ResetCommand.ResetType.HARD).call();
-                    updateSubModules(submoduleGit);
-                } finally {
-                    submodule.close();
+                try (Repository submodule = walker.getRepository()) {
+                    if (submodule != null) {
+                        Git submoduleGit = Git.wrap(submodule);
+                        configureTransport(submoduleGit.fetch()).call();
+                        git.submoduleUpdate().addPath(walker.getPath()).call();
+                        submoduleGit.reset().setMode(ResetCommand.ResetType.HARD).call();
+                        updateSubModules(submoduleGit);
+                    }
                 }
             }
-        } finally {
-            walker.close();
         }
     }
 

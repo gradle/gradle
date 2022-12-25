@@ -21,7 +21,6 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.configuration.internal.UserCodeApplicationId
 import org.gradle.internal.Actions
 import org.gradle.internal.DisplayName
-import spock.lang.Unroll
 
 abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDomainObjectCollectionSpec<T> {
     abstract NamedDomainObjectContainer<T> getContainer()
@@ -37,10 +36,8 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
         ]
     }
 
-    @Unroll
     def "allow query and mutating methods from create using #methods.key"() {
         setupContainerDefaults()
-        String methodUnderTest = methods.key
         Closure method = bind(methods.value)
 
         when:
@@ -52,7 +49,6 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
         methods << getQueryMethods() + getMutatingMethods()
     }
 
-    @Unroll
     def "disallow mutating from register actions using #mutatingMethods.key"() {
         setupContainerDefaults()
         String methodUnderTest = mutatingMethods.key
@@ -69,10 +65,8 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
         mutatingMethods << getMutatingMethods()
     }
 
-    @Unroll
     def "allow query methods from register using #queryMethods.key"() {
         setupContainerDefaults()
-        String methodUnderTest = queryMethods.key
         Closure method = bind(queryMethods.value)
 
         when:

@@ -29,7 +29,6 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.InternalAction
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.testing.TestListener
-import org.gradle.initialization.BuildCompletionListener
 import org.gradle.internal.DisplayName
 import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.InternalListener
@@ -37,7 +36,6 @@ import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.service.scopes.Scopes
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultListenerBuildOperationDecoratorTest extends Specification {
 
@@ -45,7 +43,11 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
 
     private static interface InternalTaskExecutionGraphListener extends TaskExecutionGraphListener, InternalListener {}
 
-    private static interface ComboListener extends BuildListener, ProjectEvaluationListener, TaskExecutionGraphListener, BuildCompletionListener {}
+    private static interface Other {
+        void completed()
+    }
+
+    private static interface ComboListener extends BuildListener, ProjectEvaluationListener, TaskExecutionGraphListener, Other {}
 
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def context = new DefaultUserCodeApplicationContext()
@@ -284,7 +286,6 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         verifyExpectedOp('foo', id, failure)
     }
 
-    @Unroll
     def 'decorates BuildListener listeners'() {
         given:
         def settingsEvaluatedArg = Mock(Settings)
@@ -426,7 +427,6 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         verifyNoOp()
     }
 
-    @Unroll
     def 'decorates ProjectEvaluationListener listeners'() {
         given:
         def beforeEvaluateArg = Mock(Project)
@@ -468,7 +468,6 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
         decorateAsObject << [true, false]
     }
 
-    @Unroll
     def 'decorates TaskExecutionGraphListener listeners'() {
         given:
         def arg = Mock(TaskExecutionGraph)

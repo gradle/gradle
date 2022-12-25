@@ -33,10 +33,7 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
         testProjects = ["mediumMonolithicJavaProject", "largeJavaMultiProject", "largeJavaMultiProjectKotlinDsl"])
 )
 class BuildSrcApiChangePerformanceTest extends AbstractCrossVersionPerformanceTest {
-
     def setup() {
-        def targetVersion = "7.3-20210810230613+0000"
-        runner.targetVersions = [targetVersion]
         runner.minimumBaseVersion = "6.8"
         runner.warmUpRuns = 3
     }

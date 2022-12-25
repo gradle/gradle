@@ -47,6 +47,8 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
     public abstract boolean isEmpty();
 
+    public abstract int size();
+
     public BroadcastDispatch<T> add(Dispatch<MethodInvocation> dispatch) {
         return add(dispatch, dispatch);
     }
@@ -110,6 +112,11 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         @Override
         public boolean isEmpty() {
             return true;
+        }
+
+        @Override
+        public int size() {
+            return 0;
         }
 
         @Override
@@ -234,6 +241,11 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
+        public int size() {
+            return 1;
+        }
+
+        @Override
         public void visitListeners(Action<T> visitor) {
             if (getType().isInstance(handler)) {
                 visitor.execute(getType().cast(handler));
@@ -342,8 +354,13 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
+        public int size() {
+            return dispatchers.size();
+        }
+
+        @Override
         public void dispatch(MethodInvocation message) {
-            dispatch(message, dispatchers.iterator());
+            dispatch(message, dispatchers);
         }
     }
 }

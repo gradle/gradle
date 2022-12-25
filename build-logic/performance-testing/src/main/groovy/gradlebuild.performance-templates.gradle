@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-import gradlebuild.performance.generator.tasks.*
-import org.gradle.api.file.FileSystemOperations
+import gradlebuild.performance.generator.tasks.BuildBuilderGenerator
+import gradlebuild.performance.generator.tasks.CppMultiProjectGeneratorTask
+import gradlebuild.performance.generator.tasks.JavaExecProjectGeneratorTask
+import gradlebuild.performance.generator.tasks.JvmProjectGeneratorTask
+import gradlebuild.performance.generator.tasks.KtsProjectGeneratorTask
+import gradlebuild.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
+import gradlebuild.performance.generator.tasks.NativeProjectGeneratorTask
+import gradlebuild.performance.generator.tasks.NativeProjectWithDepsGeneratorTask
+import gradlebuild.performance.generator.tasks.RemoteProject
 
 import static gradlebuild.basics.BuildEnvironmentKt.repoRoot
+import static gradlebuild.basics.BuildParamsKt.getBuildCommitId
 
 // === Gradle Build ===
 performanceTest.registerTestProject("gradleBuildCurrent", RemoteProject) {
     remoteUri = repoRoot(project).asFile.absolutePath
-    ref = moduleIdentity.gradleBuildCommitId
+    ref = getBuildCommitId(project)
 }
 
 performanceTest.registerTestProject("gradleBuildBaseline", RemoteProject) {
@@ -336,7 +344,7 @@ performanceTest.registerTestProject("bigCppMulti", CppMultiProjectGeneratorTask)
 tasks.register("buildBuilder", RemoteProject) {
     remoteUri = 'https://github.com/blindpirate/build-builder.git'
     // From master branch
-    ref = '1afcdf45d8db281ec11272f6ec0e3aa1be717bd9'
+    ref = 'b20046b38b5c11213a307f6454a6a71a59a08ba2'
 }
 
 tasks.register("installBuildBuilder", GradleBuild) {
@@ -386,22 +394,28 @@ performanceTest.registerTestProject("bigSwiftApp", BuildBuilderGenerator) {
 }
 
 // === Android ===
-performanceTest.registerTestProject("largeAndroidBuild", RemoteProject) {
+performanceTest.registerAndroidTestProject("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
-    // From android-41 branch
-    ref = "b3964ffea18ef5d280b5b493c5c7b8d8b986056c"
+    // From android-73 branch
+    ref = "54eef7cc87e9eb1e89fce0d2de8d12e60c694080"
 }
 
-performanceTest.registerTestProject("santaTrackerAndroidBuild", RemoteProject) {
+performanceTest.registerAndroidTestProject("largeAndroidBuild2", RemoteProject) {
+    remoteUri = 'https://github.com/gradle/perf-android-large-2.git'
+    // Pinned from android-73-kotlin-16 branch
+    ref = "a67ceb08a7b4e4a71e3c151a3abd72a9abe5d703"
+}
+
+performanceTest.registerAndroidTestProject("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from main branch
-    ref = 'c26e2b8aa5c34758934009f1d5b0334f7fc2db5a'
+    ref = '37a7d12c40f36657a0cb0181979c401c752bd328'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }
 }
 
-performanceTest.registerTestProject("uberMobileApp", RemoteProject) {
+performanceTest.registerAndroidTestProject("uberMobileApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/android-build-eval.git'
     subdirectory = 'mobile_app1'
     // Pinned from PR https://github.com/uber-common/android-build-eval/pull/17
@@ -516,14 +530,14 @@ private void addGoogleServicesJson(File outputDirectory) {
 performanceTest.registerTestProject("excludeRuleMergingBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     // From master branch
-    ref = "aa321f693adc9af8962209c7c21bbb1d918650d2"
+    ref = "b0eb05ab058e55e3aad5935d499c9079284c2592"
     subdirectory = 'exclude-merging'
 }
 
 performanceTest.registerTestProject("springBootApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
     // From master branch
-    ref = "f93d2e6d7057f4cdf379a817bdf036e85e97429a"
+    ref = "e53dc7182fafcf9fedf07920cbbea8b40ee4eef4"
     subdirectory = 'parallel-downloads'
 }
 

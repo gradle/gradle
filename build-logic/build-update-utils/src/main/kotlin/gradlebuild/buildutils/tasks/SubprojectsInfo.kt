@@ -59,7 +59,7 @@ abstract class SubprojectsInfo : DefaultTask() {
             subprojectDir.name,
             subprojectDir.name,
             subprojectDir.hasDescendantDir("src/test"),
-            if (subprojectDir.name == "docs") true else subprojectDir.hasDescendantDir("src/integTest"),
+            subprojectDir.hasDescendantDir("src/integTest"),
             subprojectDir.hasDescendantDir("src/crossVersionTest")
         )
     }

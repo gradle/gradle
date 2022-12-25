@@ -55,7 +55,8 @@ class AbstractKotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScript
         return new BuildSpec(
             scripts: [
                 init: init,
-                someInit: someInit
+                someInit: someInit,
+                settings: file("settings.gradle.kts")
             ],
             jars: [
                 init: initJar,

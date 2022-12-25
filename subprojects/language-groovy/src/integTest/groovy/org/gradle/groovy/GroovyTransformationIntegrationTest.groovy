@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovyCoverage
 import spock.lang.Issue
 
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+
 @TargetCoverage({ GroovyCoverage.SUPPORTS_DISABLING_AST_TRANSFORMATIONS })
 @Issue('https://github.com/gradle/gradle/issues/1031')
 class GroovyTransformationIntegrationTest extends MultiVersionIntegrationSpec {
@@ -35,7 +37,7 @@ class GroovyTransformationIntegrationTest extends MultiVersionIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                implementation "org.codehaus.groovy:groovy:${version}"
+                implementation "${groovyModuleDependency("groovy", versionNumber)}"
             }
         """
     }

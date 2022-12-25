@@ -16,10 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
-import spock.lang.Unroll
-
 class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
-    @Unroll
     def "reports problem when build script uses #block block to apply plugins to another project"() {
         settingsFile << """
             include("a")
@@ -35,7 +32,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'build.gradle.kts': Cannot access project ':a' from project ':'")
             problem("Build file 'build.gradle.kts': Cannot access project ':b' from project ':'")
@@ -47,7 +44,6 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         "subprojects" | _
     }
 
-    @Unroll
     def "reports problem when build script uses #block block to access dynamically added elements"() {
         settingsFile << """
             include("a")
@@ -66,7 +62,7 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         configurationCacheFails("assemble")
 
         then:
-        fixture.assertStateStoreFailed {
+        fixture.assertStateStoredAndDiscarded {
             projectsConfigured(":", ":a", ":b")
             problem("Build file 'build.gradle.kts': Cannot access project ':a' from project ':'", 3)
             problem("Build file 'build.gradle.kts': Cannot access project ':b' from project ':'", 3)
@@ -76,5 +72,53 @@ class IsolatedProjectsAccessFromKotlinDslIntegrationTest extends AbstractIsolate
         block         | _
         "allprojects" | _
         "subprojects" | _
+    }
+
+    def "reports cross-project model access in Gradle.#invocation"() {
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        file("a/build.gradle.kts") << """
+            gradle.${invocation} { println(buildDir) }
+        """
+
+        when:
+        configurationCacheFails(":a:help", ":b:help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a", ":b")
+            accessedProjects.each {
+                problem("Build file 'a/build.gradle.kts': Cannot access project '$it' from project ':a'")
+            }
+        }
+
+        where:
+        invocation               | accessedProjects
+        "beforeProject"          | [":b"]
+        "afterProject"           | [":b"]
+    }
+
+    def "reports cross-project model access from a listener added to Gradle.projectsEvaluated"() {
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        file("a/build.gradle.kts") << """
+            gradle.projectsEvaluated {
+                allprojects { println(buildDir) }
+            }
+        """
+
+        when:
+        configurationCacheFails(":a:help", ":b:help")
+
+        then:
+        fixture.assertStateStoredAndDiscarded {
+            projectsConfigured(":", ":a", ":b")
+            problem("Build file 'a/build.gradle.kts': Cannot access project ':' from project ':a'")
+            problem("Build file 'a/build.gradle.kts': Cannot access project ':b' from project ':a'")
+        }
     }
 }

@@ -17,6 +17,7 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":plugin-development"))
     implementation(project(":plugins"))
+    implementation(project(":platform-jvm"))
     implementation(project(":resources"))
     implementation(project(":snapshots"))
     implementation(project(":tooling-api"))
@@ -24,7 +25,9 @@ dependencies {
     implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false
     }
+    implementation(libs.futureKotlin("compiler-embeddable"))
 
+    implementation(libs.groovy)
     implementation(libs.slf4jApi)
     implementation(libs.inject)
 
@@ -32,6 +35,6 @@ dependencies {
     testImplementation(libs.mockitoKotlin2)
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/provider/plugins/precompiled/tasks/**")
 }

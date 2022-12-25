@@ -39,7 +39,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -48,7 +48,6 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios
 import org.gradle.util.Path
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.FIXED_10
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.FIXED_9
@@ -63,6 +62,7 @@ import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCEN
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_THREE_DEPENDENCIES
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_TWO_DEPENDENCIES
 import static org.gradle.resolve.scenarios.VersionRangeResolveTestScenarios.SCENARIOS_WITH_REJECT
+
 /**
  * Unit test coverage of dependency resolution of a single module version, given a set of input selectors.
  */
@@ -74,10 +74,10 @@ class SelectorStateResolverTest extends Specification {
     private final componentFactory = new TestComponentFactory()
     private final ModuleIdentifier moduleId = DefaultModuleIdentifier.newId("org", "module")
     private final ResolveOptimizations resolveOptimizations = new ResolveOptimizations()
-    private final SelectorStateResolver conflictHandlingResolver = new SelectorStateResolver(conflictResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator())
-    private final SelectorStateResolver failingResolver = new SelectorStateResolver(new FailingConflictResolver(), componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator())
+    private final VersionParser versionParser = new VersionParser()
+    private final SelectorStateResolver conflictHandlingResolver = new SelectorStateResolver(conflictResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
+    private final SelectorStateResolver failingResolver = new SelectorStateResolver(new FailingConflictResolver(), componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
 
-    @Unroll
     def "resolve selector #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -90,7 +90,6 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_SINGLE
     }
 
-    @Unroll
     def "resolve pair #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -103,7 +102,6 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_TWO_DEPENDENCIES
     }
 
-    @Unroll
     def "resolve empty pair #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -116,7 +114,6 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_EMPTY
     }
 
-    @Unroll
     def "resolve prefer pair #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -129,7 +126,6 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_PREFER
     }
 
-    @Unroll
     def "resolve reject pair #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -142,7 +138,6 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_DEPENDENCY_WITH_REJECT
     }
 
-    @Unroll
     def "resolve three #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -155,7 +150,6 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_THREE_DEPENDENCIES
     }
 
-    @Unroll
     def "resolve deps with reject #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -168,7 +162,6 @@ class SelectorStateResolverTest extends Specification {
         permutation << SCENARIOS_WITH_REJECT
     }
 
-    @Unroll
     def "resolve four #permutation"() {
         given:
         def candidates = permutation.candidates
@@ -186,7 +179,7 @@ class SelectorStateResolverTest extends Specification {
         def nine = new TestProjectSelectorState(projectId)
         def otherNine = new TestProjectSelectorState(projectId)
         ModuleConflictResolver mockResolver = Mock()
-        SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator())
+        SelectorStateResolver resolverWithMock = new SelectorStateResolver(mockResolver, componentFactory, root, resolveOptimizations, versionComparator.asVersionComparator(), versionParser)
 
         when:
         def selected = resolverWithMock.selectBest(moduleId, moduleSelectors([nine, otherNine]))
@@ -246,7 +239,7 @@ class SelectorStateResolverTest extends Specification {
     }
 
     ModuleSelectors moduleSelectors(List<? extends ResolvableSelectorState> selectors) {
-        def moduleSelectors = new ModuleSelectors<ResolvableSelectorState>(versionComparator.asVersionComparator())
+        def moduleSelectors = new ModuleSelectors<ResolvableSelectorState>(versionComparator.asVersionComparator(), versionParser)
         selectors.forEach { moduleSelectors.add(it, false) }
         return moduleSelectors
     }
@@ -275,7 +268,7 @@ class SelectorStateResolverTest extends Specification {
 
     static class TestComponentFactory implements ComponentStateFactory<ComponentResolutionState> {
         @Override
-        ComponentResolutionState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentResolveMetadata metadata) {
+        ComponentResolutionState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentGraphResolveState state) {
             return new TestComponentResolutionState(componentIdentifier, id)
         }
     }

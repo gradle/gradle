@@ -19,13 +19,11 @@ package org.gradle.internal.resource.transport.aws.s3
 import org.gradle.internal.resource.transport.http.HttpProxySettings
 import spock.lang.Specification
 
-import static com.amazonaws.services.s3.internal.Constants.S3_HOSTNAME
-
 class S3ConnectionPropertiesTest extends Specification {
 
     final S3ConnectionProperties s3ConnectionProperties = new S3ConnectionProperties()
 
-    def "should report invalid scheme"() {
+    def "should report invalid scheme #endpoint"() {
         when:
         s3ConnectionProperties.configureEndpoint(endpoint)
         then:
@@ -55,7 +53,7 @@ class S3ConnectionPropertiesTest extends Specification {
         HttpProxySettings.HttpProxy secureProxy = Mock()
         HttpProxySettings secureHttpProxySettings = Mock()
 
-        1 * secureHttpProxySettings.getProxy(S3_HOSTNAME) >> secureProxy
+        1 * secureHttpProxySettings.getProxy() >> secureProxy
 
         when:
         S3ConnectionProperties properties = new S3ConnectionProperties(Mock(HttpProxySettings), secureHttpProxySettings, null, null)
@@ -69,7 +67,7 @@ class S3ConnectionPropertiesTest extends Specification {
         HttpProxySettings.HttpProxy proxy = Mock()
         HttpProxySettings httpProxySettings = Mock()
 
-        1 * httpProxySettings.getProxy(_) >> proxy
+        1 * httpProxySettings.getProxy() >> proxy
 
         when:
         S3ConnectionProperties properties = new S3ConnectionProperties(httpProxySettings, Mock(HttpProxySettings), new URI(endpoint), null)
@@ -83,7 +81,7 @@ class S3ConnectionPropertiesTest extends Specification {
         HttpProxySettings.HttpProxy secureProxy = Mock()
         HttpProxySettings secureHttpProxySettings = Mock()
 
-        1 * secureHttpProxySettings.getProxy(_) >> secureProxy
+        1 * secureHttpProxySettings.getProxy() >> secureProxy
 
         when:
         S3ConnectionProperties properties = new S3ConnectionProperties(Mock(HttpProxySettings), secureHttpProxySettings, new URI(endpoint), null)
@@ -92,7 +90,7 @@ class S3ConnectionPropertiesTest extends Specification {
         properties.getProxy().get() == secureProxy
     }
 
-    def "should report invalid maxErrorRetryCount"() {
+    def "should report invalid maxErrorRetryCount=#value"() {
         when:
         s3ConnectionProperties.configureErrorRetryCount(value)
         then:

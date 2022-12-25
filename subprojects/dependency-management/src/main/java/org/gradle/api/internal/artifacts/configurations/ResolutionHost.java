@@ -19,9 +19,12 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.internal.DisplayName;
 
 import java.util.Collection;
+import java.util.Optional;
 
 public interface ResolutionHost {
     DisplayName displayName(String type);
 
     void rethrowFailure(String type, Collection<Throwable> failures);
+
+    Optional<? extends RuntimeException> mapFailure(String type, Collection<Throwable> failures);
 }

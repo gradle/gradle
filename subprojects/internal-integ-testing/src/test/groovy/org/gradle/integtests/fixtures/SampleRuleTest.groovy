@@ -16,11 +16,9 @@
 package org.gradle.integtests.fixtures
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class SampleRuleTest extends Specification {
 
-    @Unroll
     def "test directory for sample '#sampleName' is '#dirName'"() {
 
         expect:

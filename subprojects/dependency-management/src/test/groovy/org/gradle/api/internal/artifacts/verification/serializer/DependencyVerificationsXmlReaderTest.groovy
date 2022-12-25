@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DependencyVerificationsXmlReaderTest extends Specification {
     private DependencyVerifier verifier
@@ -41,7 +40,7 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         parse """<?xml version="1.0" encoding="UTF-8"?>
 <verification-metadata xmlns="https://schema.gradle.org/dependency-verification"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.1.xsd">
+      xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.2.xsd">
 </verification-metadata>
 """
         then:
@@ -61,7 +60,6 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         e.cause.message == "Invalid dependency verification metadata file: <component> must be found under the <components> tag"
     }
 
-    @Unroll
     def "parses configuration (metadata=#verifyMetadata, signatures=#verifySignatures)"() {
         when:
         parse """<?xml version="1.0" encoding="UTF-8"?>

@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
 
 class SamplesJavaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrationTest {
 
@@ -33,7 +32,6 @@ class SamplesJavaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrati
         executer.withRepositoryMirrors()
     }
 
-    @Unroll
     @UsesSample('java/customizedLayout')
     def "can build jar with #dsl dsl"() {
         TestFile javaprojectDir = sample.dir.file(dsl)

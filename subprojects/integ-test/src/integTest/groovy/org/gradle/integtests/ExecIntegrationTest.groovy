@@ -22,13 +22,11 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class ExecIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".*javaexecProjectMethod")
     def 'can execute java with #task'() {
         given:
@@ -84,7 +82,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         task << ['javaexecTask', 'javaexecProjectMethod', 'javaexecInjectedTaskAction']
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".*execProjectMethod")
     def 'can execute commands with #task'() {
         given:
@@ -263,7 +260,6 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = [".*Task", ".*ProjectMethod"])
     def "can capture output of #task"() {
 
@@ -382,22 +378,5 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             'execTask', 'execProjectMethod', 'execInjectedTaskAction',
             'javaexecTask', 'javaexecProjectMethod', 'javaexecInjectedTaskAction'
         ]
-    }
-
-    def "execResult property is deprecated"() {
-        when:
-        buildFile << """
-            task run(type: Exec) {
-                executable = org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
-                args("-version")
-                doLast {
-                    println(execResult)
-                }
-            }
-        """
-        executer.expectDocumentedDeprecationWarning("The AbstractExecTask.execResult property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the executionResult property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.AbstractExecTask.html#org.gradle.api.tasks.AbstractExecTask:execResult for more details.")
-
-        then:
-        succeeds("run")
     }
 }

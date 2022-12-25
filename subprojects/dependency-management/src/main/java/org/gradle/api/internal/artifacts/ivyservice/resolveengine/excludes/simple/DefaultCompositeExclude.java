@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 
 import java.util.Set;
-import java.util.stream.Stream;
 
 abstract class DefaultCompositeExclude implements CompositeExclude {
     private final ImmutableSet<ExcludeSpec> components;
@@ -51,11 +50,6 @@ abstract class DefaultCompositeExclude implements CompositeExclude {
     @Override
     public int hashCode() {
         return hashCode;
-    }
-
-    @Override
-    public final Stream<ExcludeSpec> components() {
-        return components.stream();
     }
 
     @Override

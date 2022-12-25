@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.resource.sftp.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.resource.sftp.AbstractSftpDependencyResolutionTest
 
 class MavenSftpRepoResolveIntegrationTest extends AbstractSftpDependencyResolutionTest {
@@ -58,7 +57,6 @@ class MavenSftpRepoResolveIntegrationTest extends AbstractSftpDependencyResoluti
         file('libs').assertHasDescendants 'projectA-1.2.jar'
     }
 
-    @ToBeFixedForConfigurationCache
     def "cannot add invalid authentication types for sftp repo"() {
         given:
         def mavenSftpRepo = getMavenSftpRepo()

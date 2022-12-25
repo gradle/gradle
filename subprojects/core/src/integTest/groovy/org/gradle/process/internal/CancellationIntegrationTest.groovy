@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import spock.lang.Ignore
-import spock.lang.Unroll
 
 @Ignore("https://github.com/gradle/gradle/issues/18280")
 class CancellationIntegrationTest extends DaemonIntegrationSpec implements DirectoryBuildCacheFixture {
@@ -31,7 +30,6 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
     private DaemonClientFixture client
     private int daemonLogCheckpoint
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.exec")
     def "can cancel #scenario"() {
         given:
@@ -76,7 +74,6 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
         'blocking tasks' | 'blockingCustomTask'
     }
 
-    @Unroll
     def "task gets rerun after cancellation when buildcache = #buildCacheEnabled and ignoreExitValue = #ignoreExitValue"() {
         given:
         file('outputFile') << ''
@@ -111,7 +108,6 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
         false             | false
     }
 
-    @Unroll
     def "task gets rerun after cancellation when buildcache = #buildCacheEnabled and exceptions ignored = #ignored"() {
         given:
         file('outputFile') << ''

@@ -18,7 +18,6 @@ package org.gradle.configurationcache.fixtures
 
 import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.Action
-import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
@@ -84,14 +83,17 @@ class ToolingApiBackedGradleExecuter extends AbstractGradleExecuter {
         toolingApi.withConnector {
             it.forProjectDirectory(workingDir)
         }
+
+        def systemPropertiesBeforeInvocation = new HashMap<String, Object>(System.getProperties())
+
         try {
             toolingApi.withConnection {
                 action.execute(it)
             }
         } finally {
             if (GradleContextualExecuter.embedded) {
-                System.clearProperty(StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME)
-                System.clearProperty(StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME)
+                System.getProperties().clear()
+                System.getProperties().putAll(systemPropertiesBeforeInvocation)
             }
         }
     }

@@ -19,7 +19,6 @@ package org.gradle.api.internal.runtimeshaded
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.apache.ivy.core.settings.IvySettings
-import org.cyberneko.html.xercesbridge.XercesBridge
 import org.gradle.api.Action
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.IoActions
@@ -310,7 +309,7 @@ org.gradle.api.internal.tasks.CompileServices"""
 
     def "remaps class literals in strings"() {
         given:
-        def clazz = XercesBridge
+        def clazz = IvySettings
         byte[] classData = clazz.getClassLoader().getResourceAsStream("${clazz.name.replace('.', '/')}.class").bytes
 
         when:
@@ -322,8 +321,8 @@ org.gradle.api.internal.tasks.CompileServices"""
 
         then:
         def bytecode = writer.toString()
-        !bytecode.contains('LDC "org.cyberneko.html.xercesbridge.XercesBridge_2_3"')
-        bytecode.contains('LDC "org.gradle.internal.impldep.org.cyberneko.html.xercesbridge.XercesBridge_2_3"')
+        !bytecode.contains('LDC "org.apache.ivy.plugins.matcher.GlobPatternMatcher"')
+        bytecode.contains('LDC "org.gradle.internal.impldep.org.apache.ivy.plugins.matcher.GlobPatternMatcher"')
     }
 
     def "remaps class literals in strings with slashes"() {
@@ -433,7 +432,7 @@ org.gradle.api.internal.tasks.CompileServices"""
             JarEntry providerConfigJarEntry = jar.getJarEntry("META-INF/services/$serviceType")
             IoActions.withResource(jar.getInputStream(providerConfigJarEntry), new Action<InputStream>() {
                 void execute(InputStream inputStream) {
-                    assert inputStream.text == "org.gradle.internal.impldep.org.junit.JarToolProvider\norg.gradle.internal.impldep.org.jetbrains.ide.JavadocToolProvider\norg.gradle.internal.impldep.bsh.Main"
+                    assert inputStream.text == "org.gradle.internal.impldep.org.junit.JarToolProvider\norg.gradle.internal.impldep.bsh.Main"
                 }
             })
         }

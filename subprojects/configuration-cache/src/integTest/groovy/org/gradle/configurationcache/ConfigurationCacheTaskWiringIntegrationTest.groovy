@@ -18,7 +18,6 @@ package org.gradle.configurationcache
 
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
-import spock.lang.Unroll
 
 class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements TasksWithInputsAndOutputs {
     def "task input property can consume the mapped output of another task"() {
@@ -125,7 +124,6 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
         result.assertTasksSkipped(":producer", ":transformer")
     }
 
-    @Unroll
     def "task input property can consume the mapped output of another task connected via project property with #description"() {
         taskTypeWithInputFileProperty()
         taskTypeWithIntInputProperty()

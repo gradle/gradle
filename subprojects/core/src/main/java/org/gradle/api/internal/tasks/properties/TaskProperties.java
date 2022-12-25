@@ -21,7 +21,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.tasks.TaskValidationContext;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 
 /**
@@ -53,33 +53,11 @@ public interface TaskProperties {
     ImmutableSortedSet<InputFilePropertySpec> getInputFileProperties();
 
     /**
-     * The input files.
-     */
-    FileCollection getInputFiles();
-
-    /**
-     * Whether there are source files.
-     *
-     * Source files are {@link InputFilePropertySpec}s where {@link InputFilePropertySpec#isSkipWhenEmpty()} returns true.
-     */
-    boolean hasSourceFiles();
-
-    /**
-     * The source files.
-     */
-    FileCollection getSourceFiles();
-
-    /**
      * Output file properties.
      *
      * It is guaranteed that all the {@link OutputFilePropertySpec}s have a name and that the names are unique.
      */
     ImmutableSortedSet<OutputFilePropertySpec> getOutputFileProperties();
-
-    /**
-     * The output files.
-     */
-    FileCollection getOutputFiles();
 
     /**
      * Whether output properties have been declared.
@@ -104,5 +82,5 @@ public interface TaskProperties {
     /**
      * Validations for the properties.
      */
-    void validate(TaskValidationContext validationContext);
+    void validate(PropertyValidationContext validationContext);
 }

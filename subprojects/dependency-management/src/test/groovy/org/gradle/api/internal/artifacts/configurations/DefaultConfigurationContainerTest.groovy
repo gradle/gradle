@@ -16,23 +16,25 @@
 
 package org.gradle.api.internal.artifacts.configurations
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder
+import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -48,14 +50,14 @@ import spock.lang.Specification
 class DefaultConfigurationContainerTest extends Specification {
 
     private ConfigurationResolver resolver = Mock(ConfigurationResolver)
-    private ListenerManager listenerManager = Stub(ListenerManager.class)
+    private ListenerManager listenerManager = Stub(ListenerManager.class) {
+        _ * getBroadcaster(ProjectDependencyObservedListener.class) >> Stub(ProjectDependencyObservedListener)
+    }
     private DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider.class)
-    private LocalComponentMetadataBuilder metaDataBuilder = Mock(LocalComponentMetadataBuilder)
     private ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     private DependencySubstitutionRules globalSubstitutionRules = Mock(DependencySubstitutionRules)
     private VcsMappingsStore vcsMappingsInternal = Mock(VcsMappingsStore)
     private BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
-    private TaskResolver taskResolver = Mock(TaskResolver)
     private DependencyLockingProvider lockingProvider = Mock(DependencyLockingProvider)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
     private DocumentationRegistry documentationRegistry = Mock(DocumentationRegistry)
@@ -70,32 +72,47 @@ class DefaultConfigurationContainerTest extends Specification {
         }
     }
     private ComponentSelectorConverter componentSelectorConverter = Mock()
-    private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
-        resolver,
+    private DomainObjectContext domainObjectContext = new RootScriptDomainObjectContext()
+    private DefaultRootComponentMetadataBuilder.Factory rootComponentMetadataBuilderFactory = Mock(DefaultRootComponentMetadataBuilder.Factory) {
+        create(_) >> Mock(DefaultRootComponentMetadataBuilder)
+    }
+    private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         instantiator,
-        new RootScriptDomainObjectContext(),
+        resolver,
         listenerManager,
         metaDataProvider,
-        metaDataBuilder,
+        domainObjectContext,
         TestFiles.fileCollectionFactory(),
+        buildOperationExecutor,
+        new PublishArtifactNotationParserFactory(
+                instantiator,
+                metaDataProvider,
+                TestFiles.resolver(),
+                TestFiles.taskDependencyFactory(),
+        ),
+        immutableAttributesFactory,
+        documentationRegistry,
+        userCodeApplicationContext,
+        projectStateRegistry,
+        Mock(WorkerThreadRegistry),
+        TestUtil.domainObjectCollectionFactory(),
+        calculatedValueContainerFactory,
+        TestFiles.taskDependencyFactory()
+    )
+    private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
+        instantiator,
         globalSubstitutionRules,
         vcsMappingsInternal,
         componentIdentifierFactory,
-        buildOperationExecutor,
-        taskResolver,
         immutableAttributesFactory,
         moduleIdentifierFactory,
         componentSelectorConverter,
         lockingProvider,
-        projectStateRegistry,
-        calculatedValueContainerFactory,
-        documentationRegistry,
         callbackActionDecorator,
-        userCodeApplicationContext,
-        Mock(WorkerThreadRegistry),
-        TestUtil.domainObjectCollectionFactory(),
         Mock(NotationParser),
-        TestUtil.objectFactory()
+        TestUtil.objectFactory(),
+        rootComponentMetadataBuilderFactory,
+        configurationFactory
     )
 
     def addsNewConfigurationWhenConfiguringSelf() {
@@ -172,5 +189,15 @@ class DefaultConfigurationContainerTest extends Specification {
 
         then:
         thrown MissingMethodException
+    }
+
+    // withType when used with a class that is not a super-class of the container does not work with registered elements
+    @NotYetImplemented
+    def "can find all configurations even when they're registered"() {
+        when:
+        configurationContainer.register("foo")
+        configurationContainer.create("bar")
+        then:
+        configurationContainer.withType(ConfigurationInternal).toList()*.name == ["bar", "foo"]
     }
 }

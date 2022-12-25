@@ -18,17 +18,20 @@ package org.gradle.kotlin.dsl.fixtures
 
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
-import org.gradle.api.Project
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configuration.DefaultImportsReader
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.Describables
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.resource.StringTextResource
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
@@ -171,6 +174,7 @@ class SimplifiedKotlinScriptEvaluator(
         override fun loadClassInChildScopeOf(
             classLoaderScope: ClassLoaderScope,
             childScopeId: String,
+            origin: ClassLoaderScopeOrigin,
             location: File,
             className: String,
             accessorsClassPath: ClassPath
@@ -183,14 +187,14 @@ class SimplifiedKotlinScriptEvaluator(
 
         override fun applyPluginsTo(scriptHost: KotlinScriptHost<*>, pluginRequests: PluginRequests) = Unit
 
-        override fun applyBasePluginsTo(project: Project) = Unit
+        override fun applyBasePluginsTo(project: ProjectInternal) = Unit
 
         override fun setupEmbeddedKotlinFor(scriptHost: KotlinScriptHost<*>) = Unit
 
         override fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>) = Unit
 
         override fun hashOf(classPath: ClassPath): HashCode =
-            HashCode.fromInt(0)
+            TestHashCodes.hashCodeFrom(0)
 
         override fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String =
             action()
@@ -199,6 +203,9 @@ class SimplifiedKotlinScriptEvaluator(
 
         override val implicitImports: List<String>
             get() = ImplicitImports(DefaultImportsReader()).list
+
+        override val jvmTarget: JavaVersion
+            get() = JavaVersion.current()
     }
 }
 

@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule
@@ -32,7 +31,6 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
     String getAuthConfig() { '' }
 
-    @Unroll
     def "downloads artifacts in parallel from a Maven repo - #expression"() {
         def m1 = mavenRepo.module('test', 'test1', '1.0').publish()
         def m2 = mavenRepo.module('test', 'test2', '1.0').publish()
@@ -55,8 +53,9 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
             }
             task resolve {
                 inputs.files configurations.compile
+                def files = $expression
                 doLast {
-                    println ${expression} as List
+                    println files as List
                 }
             }
 """
@@ -107,9 +106,10 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
                 compile 'test:test4:1.0'
             }
             task resolve {
-                inputs.files configurations.compile
+                def files = configurations.compile
+                inputs.files files
                 doLast {
-                    println configurations.compile.files
+                    println files
                 }
             }
 """
@@ -152,9 +152,10 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
                 compile 'test:test4:1.0'
             }
             task resolve {
-                inputs.files configurations.compile
+                def files = configurations.compile
+                inputs.files files
                 doLast {
-                    println configurations.compile.files
+                    println files
                 }
             }
 """
@@ -231,9 +232,10 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
                 }
             }
             task resolve {
-                inputs.files configurations.compile
+                def files = configurations.compile
+                inputs.files files
                 doLast {
-                    println configurations.compile.files
+                    println files
                 }
             }
 """
@@ -289,10 +291,11 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
             }
 
             task resolve {
-               inputs.files configurations.compile
-                  doLast {
-                      println configurations.compile.files
-                  }
+                def files = configurations.compile
+                inputs.files files
+                doLast {
+                    println files
+                }
             }
         """
 

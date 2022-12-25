@@ -16,9 +16,7 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import spock.lang.Unroll
 
 class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
@@ -34,7 +32,6 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
         includedBuilds << buildB
     }
 
-    @Unroll
     def "includes build identifier in logging output with #display"() {
         dependency "org.test:${dependencyName}:1.0"
 
@@ -59,8 +56,6 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
         "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
-    @Unroll
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "includes build identifier in dependency report with #display"() {
         dependency "org.test:${dependencyName}:1.0"
 
@@ -85,7 +80,6 @@ runtimeClasspath - Runtime classpath of source set 'main'.
         "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
-    @Unroll
     def "includes build identifier in error message on failure to resolve dependencies of build with #display"() {
         dependency "org.test:${dependencyName}:1.0"
 
@@ -110,7 +104,6 @@ Required by:
         "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
-    @Unroll
     def "includes build identifier in task failure error message with #display"() {
         dependency "org.test:${dependencyName}:1.0"
 
@@ -134,7 +127,6 @@ Required by:
         "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
-    @Unroll
     def "includes build identifier in dependency resolution results with #display"() {
         dependency "org.test:${dependencyName}:1.0"
 
@@ -144,8 +136,9 @@ Required by:
         """
 
         buildA.buildFile << """
+            def runtimeClasspath = configurations.runtimeClasspath
             classes.doLast {
-                def components = configurations.runtimeClasspath.incoming.resolutionResult.allComponents.id
+                def components = runtimeClasspath.incoming.resolutionResult.allComponents.id
                 assert components.size() == 3
                 assert components[0].build.name == ':'
                 assert components[0].build.currentBuild

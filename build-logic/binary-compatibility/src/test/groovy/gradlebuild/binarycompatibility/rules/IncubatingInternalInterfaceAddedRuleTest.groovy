@@ -25,10 +25,9 @@ import japicmp.util.Optional
 import javassist.CtClass
 import me.champeau.gradle.japicmp.report.Violation
 import org.gradle.api.Incubating
-import spock.lang.Unroll
 
 class IncubatingInternalInterfaceAddedRuleTest extends AbstractContextAwareRuleSpecification {
-    IncubatingInternalInterfaceAddedRule rule = new IncubatingInternalInterfaceAddedRule(getInitializationParams())
+    IncubatingInternalInterfaceAddedRule rule
 
     static class OldSuper {}
 
@@ -59,6 +58,7 @@ class IncubatingInternalInterfaceAddedRuleTest extends AbstractContextAwareRuleS
     Map interfaces
 
     def setup() {
+        rule = new IncubatingInternalInterfaceAddedRule(getInitializationParams())
         rule.context = context
 
         oldBase = instanceScopedPool.get(OldBase.name)
@@ -79,7 +79,6 @@ class IncubatingInternalInterfaceAddedRuleTest extends AbstractContextAwareRuleS
                       'incubating': incubatingInterface]
     }
 
-    @Unroll
     def "#member change should not be reported"() {
         expect:
         noViolation(rule)

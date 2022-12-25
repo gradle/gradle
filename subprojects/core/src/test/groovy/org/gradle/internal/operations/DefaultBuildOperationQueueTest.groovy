@@ -24,7 +24,6 @@ import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
@@ -77,7 +76,6 @@ class DefaultBuildOperationQueueTest extends Specification {
         workerRegistry.stop()
     }
 
-    @Unroll
     def "executes all #runs operations in #threads threads"() {
         given:
         setupQueue(threads)
@@ -117,7 +115,6 @@ class DefaultBuildOperationQueueTest extends Specification {
         thrown IllegalStateException
     }
 
-    @Unroll
     def "failures propagate to caller regardless of when it failed #operations with #threads threads"() {
         given:
         setupQueue(threads)
@@ -163,7 +160,6 @@ class DefaultBuildOperationQueueTest extends Specification {
         e.message.contains(LOG_LOCATION)
     }
 
-    @Unroll
     def "when queue is canceled, unstarted operations do not execute (#runs runs, #threads threads)"() {
         def expectedInvocations = threads <= runs ? threads : runs
         CountDownLatch startedLatch = new CountDownLatch(expectedInvocations)

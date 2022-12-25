@@ -18,10 +18,8 @@ package org.gradle.api.file
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
-    @Unroll
     def "task #annotation file property is implicitly finalized when task starts execution"() {
         buildFile << """
             class SomeTask extends DefaultTask {
@@ -36,8 +34,9 @@ class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec imple
 
             task show(type: SomeTask) {
                 prop = file("in.txt")
+                def other = file("other.txt")
                 doFirst {
-                    prop = file("other.txt")
+                    prop = other
                 }
             }
 """
@@ -56,7 +55,6 @@ class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec imple
         "@OutputFile" | _
     }
 
-    @Unroll
     def "task #annotation directory property is implicitly finalized when task starts execution"() {
         buildFile << """
             class SomeTask extends DefaultTask {
@@ -71,8 +69,9 @@ class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec imple
 
             task show(type: SomeTask) {
                 prop = file("in.dir")
+                def other = file("other.dir")
                 doFirst {
-                    prop = file("other.dir")
+                    prop = other
                 }
             }
 """
@@ -91,7 +90,6 @@ class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec imple
         "@OutputDirectory" | _
     }
 
-    @Unroll
     def "task ad hoc file property registered using #registrationMethod is implicitly finalized when task starts execution"() {
         given:
         buildFile << """
@@ -101,8 +99,9 @@ def prop = project.objects.fileProperty()
 task thing {
     ${registrationMethod}(prop)
     prop.set(file("file-1"))
+    def other = file("ignored")
     doLast {
-        prop.set(file("ignored"))
+        prop.set(other)
         println "prop = " + prop.get()
     }
 }
@@ -122,7 +121,6 @@ task thing {
         "outputs.file"     | _
     }
 
-    @Unroll
     def "task ad hoc directory property registered using #registrationMethod is implicitly finalized when task starts execution"() {
         given:
         buildFile << """
@@ -132,8 +130,9 @@ def prop = project.objects.directoryProperty()
 task thing {
     ${registrationMethod}(prop)
     prop.set(file("file-1"))
+    def other = file("ignored")
     doLast {
-        prop.set(file("ignored"))
+        prop.set(other)
         println "prop = " + prop.get()
     }
 }
@@ -159,16 +158,17 @@ task thing {
             task producer(type: FileProducer) {
                 output = layout.buildDir.file("text.out")
             }
-            println("prop = " + producer.output.get())
+            def output = producer.output
+            println("prop = " + output.get())
             task after {
                 dependsOn(producer)
                 doLast {
-                    println("prop = " + producer.output.get())
+                    println("prop = " + output.get())
                 }
             }
             task before {
                 doLast {
-                    println("prop = " + producer.output.get())
+                    println("prop = " + output.get())
                 }
             }
             producer.dependsOn(before)
@@ -186,16 +186,17 @@ task thing {
                 output = layout.buildDir.dir("dir.out")
                 names = ["a", "b"]
             }
-            println("prop = " + producer.output.get())
+            def output = producer.output
+            println("prop = " + output.get())
             task after {
                 dependsOn(producer)
                 doLast {
-                    println("prop = " + producer.output.get())
+                    println("prop = " + output.get())
                 }
             }
             task before {
                 doLast {
-                    println("prop = " + producer.output.get())
+                    println("prop = " + output.get())
                 }
             }
             producer.dependsOn(before)
@@ -213,17 +214,19 @@ task thing {
             task producer(type: FileProducer) {
                 output.disallowUnsafeRead()
                 output = layout.buildDir.file("text.out")
+                def other = file('ignore')
                 doFirst {
                     try {
-                        output = file('ignore')
+                        output = other
                     } catch(IllegalStateException e) {
                         println("set failed: " + e.message)
                     }
                 }
             }
+            def output = producer.output
 
             try {
-                producer.output.get()
+                output.get()
             } catch(IllegalStateException e) {
                 println("get failed: " + e.message)
             }
@@ -231,14 +234,14 @@ task thing {
             task after {
                 dependsOn(producer)
                 doLast {
-                    println("prop = " + producer.output.get())
+                    println("prop = " + output.get())
                 }
             }
 
             task before {
                 doLast {
                     try {
-                        producer.output.get()
+                        output.get()
                     } catch(IllegalStateException e) {
                         println("get from task failed: " + e.message)
                     }
@@ -263,17 +266,19 @@ task thing {
                 output.disallowUnsafeRead()
                 output = layout.buildDir.dir("dir.out")
                 names = ["a", "b"]
+                def other = file('ignore')
                 doFirst {
                     try {
-                        output = file('ignore')
+                        output = other
                     } catch(IllegalStateException e) {
                         println("set failed: " + e.message)
                     }
                 }
             }
+            def output = producer.output
 
             try {
-                producer.output.get()
+                output.get()
             } catch(IllegalStateException e) {
                 println("get failed: " + e.message)
             }
@@ -281,14 +286,14 @@ task thing {
             task after {
                 dependsOn(producer)
                 doLast {
-                    println("prop = " + producer.output.get())
+                    println("prop = " + output.get())
                 }
             }
 
             task before {
                 doLast {
                     try {
-                        producer.output.get()
+                        output.get()
                     } catch(IllegalStateException e) {
                         println("get from task failed: " + e.message)
                     }
@@ -495,9 +500,10 @@ task thing {
 
             thing.prop.disallowUnsafeRead()
             thing.prop.set(producer.output)
+            def prop = thing.prop
 
             try {
-                thing.prop.get()
+                prop.get()
             } catch(IllegalStateException e) {
                 println("get failed: " + e.message)
             }
@@ -505,14 +511,14 @@ task thing {
             task after {
                 dependsOn(thing.prop)
                 doLast {
-                    println("prop = " + thing.prop.get())
+                    println("prop = " + prop.get())
                 }
             }
 
             task before {
                 doLast {
                     try {
-                        thing.prop.get()
+                        prop.get()
                     } catch(RuntimeException e) {
                         println("get from task failed: " + e.message)
                         println("get from task failed cause: " + e.cause.message)
@@ -546,9 +552,10 @@ task thing {
 
             thing.prop.disallowUnsafeRead()
             thing.prop.set(producer.output)
+            def prop = thing.prop
 
             try {
-                thing.prop.get()
+                prop.get()
             } catch(IllegalStateException e) {
                 println("get failed: " + e.message)
             }
@@ -556,14 +563,14 @@ task thing {
             task after {
                 dependsOn(thing.prop)
                 doLast {
-                    println("prop = " + thing.prop.get())
+                    println("prop = " + prop.get())
                 }
             }
 
             task before {
                 doLast {
                     try {
-                        thing.prop.get()
+                        prop.get()
                     } catch(RuntimeException e) {
                         println("get from task failed: " + e.message)
                         println("get from task failed cause: " + e.cause.message)
@@ -598,15 +605,16 @@ task thing {
 
             thing.prop.disallowUnsafeRead()
             thing.prop.set(producer.output.map { it.asFile.text as Integer })
+            def prop = thing.prop
 
             try {
-                thing.prop.get()
+                prop.get()
             } catch(IllegalStateException e) {
                 println("get failed: " + e.message)
             }
 
             task after {
-                dependsOn(thing.prop)
+                dependsOn(prop)
                 doLast {
                     println("prop = " + thing.prop.get())
                 }
@@ -615,7 +623,7 @@ task thing {
             task before {
                 doLast {
                     try {
-                        thing.prop.get()
+                        prop.get()
                     } catch(RuntimeException e) {
                         println("get from task failed: " + e.message)
                         println("get from task failed cause: " + e.cause.message)

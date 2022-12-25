@@ -25,11 +25,13 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.internal.Cast;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.use.PluginId;
@@ -44,6 +46,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 @ServiceScope(Scopes.Build.class)
 public class TaskNodeFactory {
@@ -52,23 +55,37 @@ public class TaskNodeFactory {
     private final GradleInternal thisBuild;
     private final DocumentationRegistry documentationRegistry;
     private final DefaultTypeOriginInspectorFactory typeOriginInspectorFactory;
+    private final Function<LocalTaskNode, ResolveMutationsNode> resolveMutationsNodeFactory;
 
-    public TaskNodeFactory(GradleInternal thisBuild, DocumentationRegistry documentationRegistry, BuildTreeWorkGraphController workGraphController) {
+    public TaskNodeFactory(
+        GradleInternal thisBuild,
+        DocumentationRegistry documentationRegistry,
+        BuildTreeWorkGraphController workGraphController,
+        NodeValidator nodeValidator,
+        BuildOperationRunner buildOperationRunner,
+        ExecutionNodeAccessHierarchies accessHierarchies
+    ) {
         this.thisBuild = thisBuild;
         this.documentationRegistry = documentationRegistry;
         this.workGraphController = workGraphController;
         this.typeOriginInspectorFactory = new DefaultTypeOriginInspectorFactory();
+        resolveMutationsNodeFactory = localTaskNode -> new ResolveMutationsNode(localTaskNode, nodeValidator, buildOperationRunner, accessHierarchies);
     }
 
     public Set<Task> getTasks() {
         return nodes.keySet();
     }
 
+    @Nullable
+    public TaskNode getNode(Task task) {
+        return nodes.get(task);
+    }
+
     public TaskNode getOrCreateNode(Task task) {
         TaskNode node = nodes.get(task);
         if (node == null) {
-            if (task.getProject().getGradle() == thisBuild) {
-                node = new LocalTaskNode((TaskInternal) task, new DefaultWorkValidationContext(documentationRegistry, typeOriginInspectorFactory.forTask(task)));
+            if (((ProjectInternal) task.getProject()).getGradle().getIdentityPath().equals(thisBuild.getIdentityPath())) {
+                node = new LocalTaskNode((TaskInternal) task, new DefaultWorkValidationContext(documentationRegistry, typeOriginInspectorFactory.forTask(task)), resolveMutationsNodeFactory);
             } else {
                 node = TaskInAnotherBuild.of((TaskInternal) task, workGraphController);
             }
@@ -77,7 +94,8 @@ public class TaskNodeFactory {
         return node;
     }
 
-    public void clear() {
+    public void resetState() {
+        typeOriginInspectorFactory.resetState();
         nodes.clear();
     }
 
@@ -87,6 +105,10 @@ public class TaskNodeFactory {
 
         public ProjectScopedTypeOriginInspector forTask(Task task) {
             return projectToInspector.computeIfAbsent(task.getProject(), ProjectScopedTypeOriginInspector::new);
+        }
+
+        void resetState() {
+            projectToInspector.clear();
         }
 
         @Nullable

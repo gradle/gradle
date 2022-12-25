@@ -16,11 +16,11 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
@@ -29,16 +29,20 @@ import java.util.stream.Collectors;
 
 public class EnvironmentVariableListInstallationSupplier implements InstallationSupplier {
 
+    private static final String JAVA_INSTALLATIONS_FROM_ENV_PROPERTY = "org.gradle.java.installations.fromEnv";
+
     private final ProviderFactory factory;
+    private final FileResolver fileResolver;
 
     @Inject
-    public EnvironmentVariableListInstallationSupplier(ProviderFactory factory) {
+    public EnvironmentVariableListInstallationSupplier(ProviderFactory factory, FileResolver fileResolver) {
         this.factory = factory;
+        this.fileResolver = fileResolver;
     }
 
     @Override
     public Set<InstallationLocation> get() {
-        final Provider<String> property = factory.gradleProperty("org.gradle.java.installations.fromEnv");
+        final Provider<String> property = factory.gradleProperty(JAVA_INSTALLATIONS_FROM_ENV_PROPERTY);
         if (property.isPresent()) {
             final String listOfEnvironmentVariables = property.get();
             return Arrays.stream(listOfEnvironmentVariables.split(","))
@@ -55,7 +59,7 @@ public class EnvironmentVariableListInstallationSupplier implements Installation
         if (value.isPresent()) {
             final String path = value.get().trim();
             if (!path.isEmpty()) {
-                return Optional.of(new InstallationLocation(new File(path), "environment variable '" + environmentVariable + "'"));
+                return Optional.of(new InstallationLocation(fileResolver.resolve(path), "environment variable '" + environmentVariable + "'"));
             }
         }
         return Optional.empty();

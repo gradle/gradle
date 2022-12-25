@@ -20,7 +20,6 @@ import org.gradle.api.resources.ResourceException
 import org.gradle.util.internal.Resources
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.junit.Assert.assertNotNull
 
@@ -96,7 +95,6 @@ class ApacheDirectoryListingParserTest extends Specification {
         uris.collect { it.toString() } == ["\u0321\u0322"]
     }
 
-    @Unroll
     def "parse ignores #descr"() {
         expect:
         parser.parse(baseUrl, new ByteArrayInputStream(href.bytes), CONTENT_TYPE).isEmpty()
@@ -112,7 +110,6 @@ class ApacheDirectoryListingParserTest extends Specification {
         "<a name=\"anchorname\">headline</a>"               | "anchor definitions"
     }
 
-    @Unroll
     def "parseLink handles #urlDescr"() {
         def listingParser = new ApacheDirectoryListingParser()
         expect:
@@ -135,7 +132,6 @@ class ApacheDirectoryListingParserTest extends Specification {
         "http://192.0.0.10"    | "./directory1"               | "ipv4 host with relative URLS"
     }
 
-    @Unroll
     def "parse is compatible with #repoType"() {
         setup:
         def byte[] content = resources.getResource("${repoType}_dirlisting.html").bytes

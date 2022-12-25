@@ -61,9 +61,9 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     // For testing ComponentMetadataHandler capabilities
     def executor = new ComponentMetadataRuleExecutor(Stub(GlobalScopedCache), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), Stub(BuildCommencedTimeProvider), Stub(Serializer))
     def stringInterner = SimpleMapInterner.notThreadSafe()
-    def handler = new DefaultComponentMetadataHandler(TestUtil.instantiatorFactory().decorateLenient(), moduleIdentifierFactory, stringInterner, AttributeTestUtil.attributesFactory(), SnapshotTestUtil.valueSnapshotter(), executor, DependencyManagementTestUtil.platformSupport())
+    def handler = new DefaultComponentMetadataHandler(TestUtil.instantiatorFactory().decorateLenient(), moduleIdentifierFactory, stringInterner, AttributeTestUtil.attributesFactory(), SnapshotTestUtil.isolatableFactory(), executor, DependencyManagementTestUtil.platformSupport())
     RuleActionAdapter adapter = Mock(RuleActionAdapter)
-    def mockedHandler = new DefaultComponentMetadataHandler(TestUtil.instantiatorFactory().decorateLenient(), adapter, moduleIdentifierFactory, stringInterner, AttributeTestUtil.attributesFactory(), SnapshotTestUtil.valueSnapshotter(), executor, DependencyManagementTestUtil.platformSupport())
+    def mockedHandler = new DefaultComponentMetadataHandler(TestUtil.instantiatorFactory().decorateLenient(), adapter, moduleIdentifierFactory, stringInterner, AttributeTestUtil.attributesFactory(), SnapshotTestUtil.isolatableFactory(), executor, DependencyManagementTestUtil.platformSupport())
     def ruleAction = Stub(RuleAction)
     def mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
     def ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()

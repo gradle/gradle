@@ -18,59 +18,19 @@ package org.gradle.internal.operations;
 
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.time.Clock;
 
 import javax.annotation.Nullable;
 
 /**
- * Specialised event emitter for cross cutting type progress events not tied more deeply to operation execution.
+ * Specialised event emitter for cross-cutting type progress events not tied more deeply to operation execution.
  */
 @ServiceScope(Global.class)
-public class BuildOperationProgressEventEmitter {
+public interface BuildOperationProgressEventEmitter {
+    void emit(OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details);
 
-    private final Clock clock;
-    private final CurrentBuildOperationRef current;
-    private final BuildOperationListener listener;
+    void emitNowIfCurrent(Object details);
 
-    public BuildOperationProgressEventEmitter(Clock clock, CurrentBuildOperationRef current, BuildOperationListener listener) {
-        this.clock = clock;
-        this.current = current;
-        this.listener = listener;
-    }
+    void emitIfCurrent(long time, Object details);
 
-    public void emit(OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details) {
-        // Explicit check in case of unsafe CurrentBuildOperationRef usage
-        if (operationIdentifier == null) {
-            throw new IllegalArgumentException("operationIdentifier is null");
-        }
-        doEmit(operationIdentifier, timestamp, details);
-    }
-
-    public void emitNowIfCurrent(Object details) {
-        emitIfCurrent(clock.getCurrentTime(), details);
-    }
-
-    public void emitIfCurrent(long time, Object details) {
-        OperationIdentifier currentOperationIdentifier = current.getId();
-        if (currentOperationIdentifier != null) {
-            doEmit(currentOperationIdentifier, time, details);
-        }
-    }
-
-    public void emitNowForCurrent(Object details) {
-        emitForCurrent(clock.getCurrentTime(), details);
-    }
-
-    private void emitForCurrent(long time, Object details) {
-        OperationIdentifier currentOperationIdentifier = current.getId();
-        if (currentOperationIdentifier == null) {
-            throw new IllegalStateException("No current build operation");
-        } else {
-            doEmit(currentOperationIdentifier, time, details);
-        }
-    }
-
-    private void doEmit(OperationIdentifier operationIdentifier, long timestamp, @Nullable Object details) {
-        listener.progress(operationIdentifier, new OperationProgressEvent(timestamp, details));
-    }
+    void emitNowForCurrent(Object details);
 }

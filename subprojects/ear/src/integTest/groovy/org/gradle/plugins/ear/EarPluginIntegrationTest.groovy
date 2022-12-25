@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.util.internal.TextUtil.toPlatformLineSeparators
 
@@ -107,7 +106,6 @@ dependencies {
         modules[1].web.'web-uri'.text() == 'moduleB.war'
     }
 
-    @Unroll
     void "uses content from application xml located #location"() {
         def xsi = ["xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"", "xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd\""]
 
@@ -162,7 +160,6 @@ ear {
         ear.assertNotContainsFile("META-INF/application.xml")
     }
 
-    @Unroll
     void "uses content found in #location app folder, ignoring descriptor modification"() {
         def applicationXml = """<?xml version="1.0"?>
 <application xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" version="6">
@@ -387,7 +384,6 @@ ear {
     }
 
     @Issue("GRADLE-3497")
-    @Unroll
     def "does not fail when provided with an existing descriptor with a web module without #missing"() {
         given:
         buildScript '''

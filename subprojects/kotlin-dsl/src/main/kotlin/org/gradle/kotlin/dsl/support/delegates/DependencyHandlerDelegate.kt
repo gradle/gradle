@@ -54,7 +54,7 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
     override fun add(configurationName: String, dependencyNotation: Any): Dependency? =
         delegate.add(configurationName, dependencyNotation)
 
-    override fun add(configurationName: String, dependencyNotation: Any, configureClosure: Closure<Any>): Dependency =
+    override fun add(configurationName: String, dependencyNotation: Any, configureClosure: Closure<Any>): Dependency? =
         delegate.add(configurationName, dependencyNotation, configureClosure)
 
     override fun <T : Any, U : ExternalModuleDependency> addProvider(configurationName: String, dependencyNotation: Provider<T>, configuration: Action<in U>) =
@@ -125,10 +125,6 @@ abstract class DependencyHandlerDelegate : DependencyHandler {
 
     override fun artifactTypes(configureAction: Action<in ArtifactTypeContainer>) =
         delegate.artifactTypes(configureAction)
-
-    @Suppress("deprecation")
-    override fun registerTransform(registrationAction: Action<in org.gradle.api.artifacts.transform.VariantTransform>) =
-        delegate.registerTransform(registrationAction)
 
     override fun <T : TransformParameters?> registerTransform(actionType: Class<out TransformAction<T>>, registrationAction: Action<in TransformSpec<T>>) =
         delegate.registerTransform(actionType, registrationAction)

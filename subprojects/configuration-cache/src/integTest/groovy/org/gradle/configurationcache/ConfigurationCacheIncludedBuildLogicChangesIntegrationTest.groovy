@@ -17,11 +17,9 @@
 package org.gradle.configurationcache
 
 import org.gradle.configurationcache.fixtures.BuildLogicChangeFixture
-import spock.lang.Unroll
 
 class ConfigurationCacheIncludedBuildLogicChangesIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
-    @Unroll
     def "invalidates cache upon change to included #fixtureSpec"() {
         given:
         def configurationCache = newConfigurationCacheFixture()

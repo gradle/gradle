@@ -17,6 +17,8 @@
 package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.internal.classpath.ClassPath
+import org.gradle.kotlin.dsl.support.KotlinScriptType
+import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
 
 import org.gradle.kotlin.dsl.support.filter
 import org.gradle.kotlin.dsl.support.isGradleKotlinDslJar
@@ -32,14 +34,24 @@ object SourcePathProvider {
 
     fun sourcePathFor(
         classPath: ClassPath,
+        scriptFile: File?,
         projectDir: File,
         gradleHomeDir: File?,
         sourceDistributionResolver: SourceDistributionProvider
     ): ClassPath {
-
         val gradleKotlinDslJar = classPath.filter(::isGradleKotlinDslJar)
-        val projectBuildSrcRoots = buildSrcRootsOf(projectDir)
         val gradleSourceRoots = gradleHomeDir?.let { sourceRootsOf(it, sourceDistributionResolver) } ?: emptyList()
+
+        // If the script file is known, determine its type
+        val scriptType = scriptFile?.let {
+            KotlinScriptTypeMatch.forFile(it)?.scriptType
+        }
+        // We also add the "buildSrc" sources onto the source path.
+        // Only exception is the "settings.gradle.kts" script, which is evaluated before "buildSrc", so it shouldn't see the sources
+        val projectBuildSrcRoots = when (scriptType) {
+            KotlinScriptType.SETTINGS -> emptyList()
+            else -> buildSrcRootsOf(projectDir)
+        }
 
         return gradleKotlinDslJar + projectBuildSrcRoots + gradleSourceRoots
     }

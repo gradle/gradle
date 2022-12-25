@@ -15,9 +15,10 @@
  */
 package org.gradle.api.internal;
 
-import java.util.Collections;
+import org.gradle.internal.buildoption.FeatureFlag;
+
+import javax.annotation.Nullable;
 import java.util.EnumSet;
-import java.util.Set;
 
 public class FeaturePreviews {
 
@@ -25,12 +26,10 @@ public class FeaturePreviews {
      * Feature previews that can be turned on.
      * A feature that is no longer relevant will have the {@code active} flag set to {@code false}.
      */
-    public enum Feature {
-        GROOVY_COMPILATION_AVOIDANCE(true),
-        ONE_LOCKFILE_PER_PROJECT(false),
-        VERSION_ORDERING_V2(false),
-        VERSION_CATALOGS(true),
-        TYPESAFE_PROJECT_ACCESSORS(true);
+    public enum Feature implements FeatureFlag {
+        GROOVY_COMPILATION_AVOIDANCE(true, null),
+        TYPESAFE_PROJECT_ACCESSORS(true, null),
+        STABLE_CONFIGURATION_CACHE(true, "org.gradle.configuration-cache.stable");
 
         public static Feature withName(String name) {
             try {
@@ -41,44 +40,38 @@ public class FeaturePreviews {
             }
         }
 
-        private final boolean active;
-
-        Feature(boolean active) {
-            this.active = active;
+        /**
+         * Returns the set of active {@linkplain Feature features}.
+         */
+        private static EnumSet<Feature> activeFeatures() {
+            EnumSet<Feature> activeFeatures = EnumSet.noneOf(Feature.class);
+            for (Feature feature : Feature.values()) {
+                if (feature.isActive()) {
+                    activeFeatures.add(feature);
+                }
+            }
+            return activeFeatures;
         }
 
+        private final boolean active;
+        private final String systemPropertyName;
+
+        Feature(boolean active, @Nullable String systemPropertyName) {
+            this.active = active;
+            this.systemPropertyName = systemPropertyName;
+        }
+
+        /**
+         * Returns whether the feature is still relevant.
+         */
         public boolean isActive() {
             return active;
         }
-    }
 
-    private final Set<Feature> activeFeatures;
-    private final EnumSet<Feature> enabledFeatures = EnumSet.noneOf(Feature.class);
-
-    public FeaturePreviews() {
-        Set<Feature> tmpActiveSet = EnumSet.noneOf(Feature.class);
-        for (Feature feature : Feature.values()) {
-            if (feature.isActive()) {
-                tmpActiveSet.add(feature);
-            }
+        @Nullable
+        @Override
+        public String getSystemPropertyName() {
+            return systemPropertyName;
         }
-        activeFeatures = Collections.unmodifiableSet(tmpActiveSet);
-    }
-
-    public void enableFeature(Feature feature) {
-        if (feature.isActive()) {
-            enabledFeatures.add(feature);
-        }
-    }
-
-    public boolean isFeatureEnabled(Feature feature) {
-        return feature.isActive() && enabledFeatures.contains(feature);
-    }
-
-    /**
-     * Returns the set of active {@linkplain Feature features}.
-     */
-    public Set<Feature> getActiveFeatures() {
-        return activeFeatures;
     }
 }

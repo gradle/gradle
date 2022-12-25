@@ -18,19 +18,17 @@ package org.gradle.integtests.samples.files
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.junit.Rule
-import spock.lang.Unroll
+import spock.lang.IgnoreIf
 
 class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
     @UsesSample("files/misc")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl.*")
     def "can create a directory with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -46,9 +44,7 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("files/misc")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl.*")
     def "can move a directory with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -74,7 +70,28 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
+    @UsesSample("files/misc")
+    @IgnoreIf({ GradleContextualExecuter.isNotConfigCache() })
+    def "can move a directory with #dsl dsl with configuration cache"() {
+        given:
+        def dslDir = sample.dir.file(dsl)
+
+        expect:
+        2.times {
+            def reportsDir = dslDir.file('build/reports')
+            reportsDir.createDir().file('my-report.pdf').touch()
+            reportsDir.file('numbers.csv').touch()
+
+            executer.inDirectory(dslDir)
+            succeeds("moveReports", "--rerun-tasks")
+
+            dslDir.file("build/toArchive").deleteDir()
+        }
+
+        where:
+        dsl << ['groovy', 'kotlin']
+    }
+
     @UsesSample("files/misc")
     def "can delete a directory with #dsl dsl"() {
         given:
@@ -92,7 +109,6 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("files/misc")
     def "can delete files matching a pattern with #dsl dsl"() {
         given:
@@ -113,9 +129,7 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("files/misc")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl.*")
     def "can use the rootDir property in a child project with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)

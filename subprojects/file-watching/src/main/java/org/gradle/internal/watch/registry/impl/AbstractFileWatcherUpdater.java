@@ -25,25 +25,33 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
-import org.gradle.internal.watch.vfs.WatchMode;
+import org.gradle.internal.watch.registry.WatchMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckReturnValue;
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Stream;
 
 public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFileWatcherUpdater.class);
+
     protected final FileWatcherProbeRegistry probeRegistry;
     protected final WatchableHierarchies watchableHierarchies;
+    private final MovedDirectoryHandler movedDirectoryHandler;
     protected FileHierarchySet watchedFiles = FileHierarchySet.empty();
     private ImmutableSet<File> probedHierarchies = ImmutableSet.of();
 
     public AbstractFileWatcherUpdater(
         FileWatcherProbeRegistry probeRegistry,
-        WatchableHierarchies watchableHierarchies
+        WatchableHierarchies watchableHierarchies,
+        MovedDirectoryHandler movedDirectoryHandler
     ) {
         this.probeRegistry = probeRegistry;
         this.watchableHierarchies = watchableHierarchies;
+        this.movedDirectoryHandler = movedDirectoryHandler;
     }
 
     @Override
@@ -54,10 +62,9 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @Override
-    public final SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode) {
-        watchableHierarchies.updateUnsupportedFileSystems(watchMode);
-        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildStart(root, createInvalidator(), watchMode);
-        newRoot = doUpdateVfsOnBuildStarted(newRoot);
+    public final SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems) {
+        SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildStart(root, createInvalidator(), watchMode, unsupportedFileSystems);
+        newRoot = invalidateMovedDirectoriesOnBuildStarted(newRoot);
         if (root != newRoot) {
             update(newRoot);
         }
@@ -65,7 +72,15 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     }
 
     @CheckReturnValue
-    protected abstract SnapshotHierarchy doUpdateVfsOnBuildStarted(SnapshotHierarchy root);
+    private SnapshotHierarchy invalidateMovedDirectoriesOnBuildStarted(SnapshotHierarchy root) {
+        SnapshotHierarchy newRoot = root;
+        WatchableHierarchies.Invalidator invalidator = createInvalidator();
+        for (File movedDirectory : movedDirectoryHandler.stopWatchingMovedDirectories(root)) {
+            LOGGER.info("Dropping VFS state for moved directory {}", movedDirectory.getAbsolutePath());
+            newRoot = invalidator.invalidate(movedDirectory.getAbsolutePath(), newRoot);
+        }
+        return newRoot;
+    }
 
     @Override
     public void virtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root) {
@@ -78,12 +93,12 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     protected abstract boolean handleVirtualFileSystemContentsChanged(Collection<FileSystemLocationSnapshot> removedSnapshots, Collection<FileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy root);
 
     @Override
-    public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
+    public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
         SnapshotHierarchy newRoot = watchableHierarchies.removeUnwatchableContentOnBuildFinished(
             root,
-            watchMode,
             watchedFiles::contains,
             maximumNumberOfWatchedHierarchies,
+            unsupportedFileSystems,
             createInvalidator()
         );
 
@@ -106,8 +121,11 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     protected abstract WatchableHierarchies.Invalidator createInvalidator();
 
     private void update(SnapshotHierarchy root) {
+        FileHierarchySet oldWatchedFiles = watchedFiles;
         watchedFiles = resolveWatchedFiles(watchableHierarchies, root);
-        updateWatchesOnChangedWatchedFiles(watchedFiles);
+        if (!watchedFiles.equals(oldWatchedFiles)) {
+            updateWatchesOnChangedWatchedFiles(watchedFiles);
+        }
 
         // Probe every hierarchy that is watched, even ones nested inside others
         ImmutableSet<File> oldProbedHierarchies = probedHierarchies;
@@ -139,7 +157,7 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
             });
     }
 
-    protected abstract void updateWatchesOnChangedWatchedFiles(FileHierarchySet watchedFiles);
+    protected abstract void updateWatchesOnChangedWatchedFiles(FileHierarchySet newWatchedFiles);
 
     protected abstract void startWatchingProbeDirectory(File probeDirectory);
 
@@ -161,5 +179,21 @@ public abstract class AbstractFileWatcherUpdater implements FileWatcherUpdater {
     private static boolean isMissing(FileSystemLocationSnapshot snapshot) {
         // Missing accessed indirectly means we have a dangling symlink in the directory, and that's content we cannot ignore
         return snapshot.getType() == FileType.Missing && snapshot.getAccessType() == FileMetadata.AccessType.DIRECT;
+    }
+
+    public interface MovedDirectoryHandler {
+        /**
+         * Stop watching the moved directories that have been moved without any notifications.
+         *
+         * When a directory is moved, then under some circumstances there won't be any notifications.
+         *
+         * On Windows when watched directories are moved, the OS does not send a notification,
+         * even though the VFS should be updated.
+         *
+         * On Linux, when you move the parent directory of a watched directory, then there isn't a notification.
+         *
+         * Our best bet here is to cull any moved watched directories from the VFS at the start of every build.
+         */
+        Collection<File> stopWatchingMovedDirectories(SnapshotHierarchy vfsRoot);
     }
 }

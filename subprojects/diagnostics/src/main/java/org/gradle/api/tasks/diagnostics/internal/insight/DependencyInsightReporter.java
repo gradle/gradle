@@ -18,14 +18,12 @@ package org.gradle.api.tasks.diagnostics.internal.insight;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
-import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
@@ -41,6 +39,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RequestedVersion;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.ResolvedDependencyEdge;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.CollectionUtils;
 
@@ -55,7 +54,7 @@ public class DependencyInsightReporter {
     private final VersionComparator versionComparator;
     private final VersionParser versionParser;
 
-    private static final Transformer<DependencyEdge, DependencyResult> TO_EDGES = result -> {
+    private static final InternalTransformer<DependencyEdge, DependencyResult> TO_EDGES = result -> {
         if (result instanceof UnresolvedDependencyResult) {
             return new UnresolvedDependencyEdge((UnresolvedDependencyResult) result);
         } else {
@@ -111,8 +110,7 @@ public class DependencyInsightReporter {
         }
 
         buildFailureSection(dependency, alreadyReportedErrors, extraDetails);
-        List<ResolvedVariantResult> selectedVariants = dependency.getSelectedVariants();
-        return new DependencyReportHeader(dependency, reasonShortDescription, selectedVariants, extraDetails);
+        return new DependencyReportHeader(dependency, reasonShortDescription, extraDetails);
     }
 
     private RequestedVersion newRequestedVersion(LinkedList<RenderableDependency> out, DependencyEdge dependency) {
@@ -178,7 +176,7 @@ public class DependencyInsightReporter {
 
     private static String render(ComponentSelectionDescriptor descriptor) {
         if (((ComponentSelectionDescriptorInternal) descriptor).hasCustomDescription()) {
-            return prettyCause(descriptor.getCause()) + " : " + descriptor.getDescription();
+            return prettyCause(descriptor.getCause()) + ": " + descriptor.getDescription();
         }
         return prettyCause(descriptor.getCause());
     }

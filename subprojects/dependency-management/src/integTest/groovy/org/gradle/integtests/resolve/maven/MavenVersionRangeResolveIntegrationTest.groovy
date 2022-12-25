@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -144,7 +143,7 @@ dependencies {
             root(":", ":test:") {
                 edge("org.test:child:1.0", "org.test:child:1.0") {
                     edge("org.test:imported:[2.0,3.0)", "org.test:imported:2.1") {
-                        artifact(group: 'org.test', module: 'imported', version: '2.1', type: 'pom').byReason("didn't match version 3.0")
+                        artifact(type: 'pom').byReason("didn't match version 3.0")
                         edge("org.test:dep:2.1", "org.test:dep:2.1")
                     }
                 }
@@ -153,7 +152,6 @@ dependencies {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1898")
-    @ToBeFixedForConfigurationCache
     def "error when parent pom with specified version range cannot be found"() {
         given:
         settingsFile << "rootProject.name = 'test' "

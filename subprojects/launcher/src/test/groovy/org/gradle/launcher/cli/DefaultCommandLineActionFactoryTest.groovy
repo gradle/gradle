@@ -33,9 +33,9 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.bootstrap.CommandLineActionFactory
 import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.internal.RedirectStdOutAndErr
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.DefaultGradleVersion
+import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -49,18 +49,18 @@ class DefaultCommandLineActionFactoryTest extends Specification {
     final ExecutionListener executionListener = Mock()
     final LoggingServiceRegistry loggingServices = Mock()
     final LoggingManagerInternal loggingManager = Mock()
-    final CommandLineAction actionFactory1 = Mock()
-    final CommandLineAction actionFactory2 = Mock()
+    final CommandLineActionCreator actionFactory1 = Mock()
+    final CommandLineActionCreator actionFactory2 = Mock()
     final CommandLineActionFactory factory = new DefaultCommandLineActionFactory() {
         @Override
-        LoggingServiceRegistry createLoggingServices() {
+        protected LoggingServiceRegistry createLoggingServices() {
             return loggingServices
         }
 
         @Override
-        protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
-            actions.add(actionFactory1)
-            actions.add(actionFactory2)
+        protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, List<CommandLineActionCreator> actionCreators) {
+            actionCreators.add(actionFactory1)
+            actionCreators.add(actionFactory2)
         }
     }
 
@@ -78,35 +78,27 @@ class DefaultCommandLineActionFactoryTest extends Specification {
     }
 
     def "delegates to each action factory to configure the command-line parser and create the action"() {
-        def rawAction = Mock(Runnable)
+        def rawAction = Mock(Action<? super ExecutionListener>)
 
         when:
-        def action = factory.convert(["--some-option"])
+        def commandLineExecution = factory.convert(["--some-option"])
+        commandLineExecution.execute(executionListener)
 
         then:
-        action
-
-        when:
-        action.execute(executionListener)
-
-        then:
-        1 * actionFactory1.configureCommandLineParser(!null) >> { CommandLineParser parser -> parser.option("some-option") }
+        1 * actionFactory1.configureCommandLineParser(!null) >> {
+            CommandLineParser parser -> parser.option("some-option")
+        }
         1 * actionFactory2.configureCommandLineParser(!null)
         1 * actionFactory1.createAction(!null, !null) >> rawAction
-        1 * rawAction.run()
+        1 * rawAction.execute(executionListener)
     }
 
     def "configures logging before parsing command-line"() {
         Action<ExecutionListener> rawAction = Mock()
 
         when:
-        def action = factory.convert([])
-
-        then:
-        action
-
-        when:
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert([])
+        commandLineExecution.execute(executionListener)
 
         then:
         1 * loggingManager.start()
@@ -119,8 +111,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
     def "reports command-line parse failure"() {
         when:
-        def action = factory.convert(['--broken'])
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert(['--broken'])
+        commandLineExecution.execute(executionListener)
 
         then:
         outputs.stdErr.contains('--broken')
@@ -138,8 +130,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         def failure = new CommandLineArgumentException("<broken>")
 
         when:
-        def action = factory.convert(['--some-option'])
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert(['--some-option'])
+        commandLineExecution.execute(executionListener)
 
         then:
         outputs.stdErr.contains('<broken>')
@@ -156,8 +148,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
     def "continues on failure to parse logging configuration"() {
         when:
-        def action = factory.convert(["--logging=broken"])
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert(["--logging=broken"])
+        commandLineExecution.execute(executionListener)
 
         then:
         outputs.stdErr.contains('--logging')
@@ -175,8 +167,8 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         def failure = new RuntimeException("<broken>")
 
         when:
-        def action = factory.convert([])
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert([])
+        commandLineExecution.execute(executionListener)
 
         then:
         outputs.stdErr.contains('<broken>')
@@ -189,10 +181,11 @@ class DefaultCommandLineActionFactoryTest extends Specification {
 
     def "displays usage message"() {
         when:
-        def action = factory.convert([option])
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert([option])
+        commandLineExecution.execute(executionListener)
 
         then:
+        outputs.stdOut.contains('To see help contextual to the project, use gradle help')
         outputs.stdOut.contains('USAGE: gradle [option...] [task...]')
         outputs.stdOut.contains('--help')
         outputs.stdOut.contains('--some-option')
@@ -209,44 +202,95 @@ class DefaultCommandLineActionFactoryTest extends Specification {
         System.setProperty("org.gradle.appname", "gradle-app");
 
         when:
-        def action = factory.convert(['-?'])
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert(['-?'])
+        commandLineExecution.execute(executionListener)
 
         then:
+        outputs.stdOut.contains('To see help contextual to the project, use gradle-app help')
         outputs.stdOut.contains('USAGE: gradle-app [option...] [task...]')
     }
 
     def "displays version message"() {
         def version = DefaultGradleVersion.current()
         def expectedText = [
-            "",
-            "------------------------------------------------------------",
-            "Gradle ${version.version}",
-            "------------------------------------------------------------",
-            "",
-            "Build time:   $version.buildTimestamp",
-            "Revision:     $version.gitRevision",
-            "",
-            "Kotlin:       ${KotlinDslVersion.current().kotlinVersion}",
-            "Groovy:       $GroovySystem.version",
-            "Ant:          $Main.antVersion",
-            "JVM:          ${Jvm.current()}",
-            "OS:           ${OperatingSystem.current()}",
-            ""
+                "",
+                "------------------------------------------------------------",
+                "Gradle ${version.version}",
+                "------------------------------------------------------------",
+                "",
+                "Build time:   $version.buildTimestamp",
+                "Revision:     $version.gitRevision",
+                "",
+                "Kotlin:       ${KotlinDslVersion.current().kotlinVersion}",
+                "Groovy:       $GroovySystem.version",
+                "Ant:          $Main.antVersion",
+                "JVM:          ${Jvm.current()}",
+                "OS:           ${OperatingSystem.current()}",
+                ""
         ].join(System.lineSeparator())
 
         when:
-        def action = factory.convert([option])
-        action.execute(executionListener)
+        def commandLineExecution = factory.convert(options)
+        commandLineExecution.execute(executionListener)
 
         then:
         outputs.stdOut.contains(expectedText)
 
         and:
+        1 * actionFactory1.configureCommandLineParser(!null) >> {CommandLineParser parser -> parser.option('some-option')}
+        0 * actionFactory1.createAction(_, _)
         1 * loggingManager.start()
         0 * executionListener._
 
         where:
-        option << ['-v', '--version']
+        options << [['-v', '--version'], ['', '--some-option']].combinations().collect { it.findAll() }
+    }
+
+    def "displays version message and continues build"() {
+        def version = DefaultGradleVersion.current()
+        def expectedText = [
+                "",
+                "------------------------------------------------------------",
+                "Gradle ${version.version}",
+                "------------------------------------------------------------",
+                "",
+                "Build time:   $version.buildTimestamp",
+                "Revision:     $version.gitRevision",
+                "",
+                "Kotlin:       ${KotlinDslVersion.current().kotlinVersion}",
+                "Groovy:       $GroovySystem.version",
+                "Ant:          $Main.antVersion",
+                "JVM:          ${Jvm.current()}",
+                "OS:           ${OperatingSystem.current()}",
+                ""
+        ].join(System.lineSeparator())
+
+        when:
+        def commandLineExecution = factory.convert(options)
+        commandLineExecution.execute(executionListener)
+
+        then:
+        outputs.stdOut.contains(expectedText)
+        outputs.stdOut.contains("action1")
+        !action1Intermediary || outputs.stdOut.contains("action2")
+
+        and:
+        1 * actionFactory1.createAction(!null, !null) >> {
+            def action1 = { println "action1" }
+            action1Intermediary ? action1 as ContinuingAction<ExecutionListener> : action1 as Action<ExecutionListener>
+
+        }
+        action2Called * actionFactory2.createAction(!null, !null) >> {
+            { println "action2" } as Action<ExecutionListener>
+        }
+        1 * loggingManager.start()
+        0 * executionListener._
+
+        where:
+        options            | action1Intermediary | action2Called
+        ['-V']             | false               | 0
+        ['--show-version'] | false               | 0
+        ['-V']             | true                | 1
+        ['--show-version'] | true                | 1
     }
 }

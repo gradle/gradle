@@ -17,13 +17,14 @@
 package gradlebuild.identity.provider
 
 import gradlebuild.identity.tasks.BuildReceipt
+import org.gradle.api.Describable
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.tasks.Optional
 
 
-abstract class BuildTimestampFromBuildReceiptValueSource : ValueSource<String, BuildTimestampFromBuildReceiptValueSource.Parameters> {
+abstract class BuildTimestampFromBuildReceiptValueSource : ValueSource<String, BuildTimestampFromBuildReceiptValueSource.Parameters>, Describable {
 
     interface Parameters : ValueSourceParameters {
 
@@ -41,8 +42,17 @@ abstract class BuildTimestampFromBuildReceiptValueSource : ValueSource<String, B
             }
     }
 
+    override fun getDisplayName(): String =
+        "the build timestamp extracted from the build receipt".let {
+            when {
+                parameters.ignoreIncomingBuildReceipt.get() -> "$it (ignored)"
+                else -> it
+            }
+        }
+
     private
-    fun Parameters.buildReceiptString(): String? =
-        if (ignoreIncomingBuildReceipt.get()) null
-        else buildReceiptFileContents.orNull
+    fun Parameters.buildReceiptString(): String? = when {
+        ignoreIncomingBuildReceipt.get() -> null
+        else -> buildReceiptFileContents.orNull
+    }
 }

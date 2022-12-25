@@ -16,12 +16,11 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.InvalidPluginMetadataException
+import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
-import org.gradle.util.internal.TextUtil
 import org.slf4j.LoggerFactory
 
 import javax.annotation.Nullable
@@ -47,6 +46,13 @@ class SmokeTestGradleRunner extends GradleRunner {
     @Override
     BuildResult buildAndFail() {
         def result = delegate.buildAndFail()
+        verifyDeprecationWarnings(result)
+        return result
+    }
+
+    @Override
+    BuildResult run() throws InvalidRunnerConfigurationException {
+        def result = delegate.run()
         verifyDeprecationWarnings(result)
         return result
     }
@@ -116,11 +122,29 @@ class SmokeTestGradleRunner extends GradleRunner {
         return this
     }
 
+    def <U extends BaseDeprecations, T> SmokeTestGradleRunner deprecations(
+        @DelegatesTo.Target Class<U> deprecationClass,
+        @DelegatesTo(
+            genericTypeIndex = 0,
+            strategy=Closure.DELEGATE_FIRST)
+            Closure<T> closure) {
+        deprecationClass.newInstance(this).tap(closure)
+        return this
+    }
+
+    def <T> SmokeTestGradleRunner deprecations(
+        @DelegatesTo(
+            value = BaseDeprecations.class,
+            strategy=Closure.DELEGATE_FIRST)
+            Closure<T> closure) {
+        return deprecations(BaseDeprecations, closure)
+    }
+
     private void verifyDeprecationWarnings(BuildResult result) {
         if (ignoreDeprecationWarnings) {
             return
         }
-        def lines = normalize(result.output.readLines())
+        def lines = result.output.readLines()
         def remainingWarnings = new ArrayList<>(expectedDeprecationWarnings)
         def totalExpectedDeprecations = remainingWarnings.size()
         int foundDeprecations = 0
@@ -133,20 +157,6 @@ class SmokeTestGradleRunner extends GradleRunner {
         }
         assert remainingWarnings.empty, "Expected ${totalExpectedDeprecations} deprecation warnings, found ${foundDeprecations} deprecation warnings. Did not match the following:\n${remainingWarnings.collect { " - $it" }.join("\n")}"
         expectedDeprecationWarnings.clear()
-    }
-
-    private List<String> normalize(List<String> lines) {
-        List<String> result = new ArrayList<>()
-        String basePath = TextUtil.normaliseFileSeparators(projectDir.canonicalPath) + '/'
-        OutputScrapingExecutionResult.normalize(lines).each { line ->
-            String normalizedLine = TextUtil.normaliseFileSeparators(line)
-            if (normalizedLine.contains(basePath)) {
-                result << normalizedLine.replace(basePath, '')
-            } else {
-                result << line
-            }
-        }
-        return result
     }
 
     @Override
@@ -257,6 +267,10 @@ class SmokeTestGradleRunner extends GradleRunner {
     SmokeTestGradleRunner forwardOutput() {
         delegate.forwardOutput()
         return this
+    }
+
+    List<String> getJvmArguments() {
+        return delegate.getJvmArguments()
     }
 
     SmokeTestGradleRunner withJvmArguments(List<String> jvmArguments) {

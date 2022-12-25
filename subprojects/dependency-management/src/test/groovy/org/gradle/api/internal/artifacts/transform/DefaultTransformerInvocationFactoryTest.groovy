@@ -32,33 +32,35 @@ import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.FileNormalizer
-import org.gradle.caching.internal.controller.BuildCacheCommandFactory
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.Try
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
-import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
-import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
+import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.TestExecutionHistoryStore
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
-import org.gradle.internal.execution.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry
-import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
+import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.history.impl.DefaultOverlappingOutputDetector
+import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
+import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
+import org.gradle.internal.execution.impl.FingerprinterRegistration
+import org.gradle.internal.execution.model.InputNormalizer
+import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.execution.timeout.TimeoutHandler
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
+import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
-import org.gradle.internal.execution.fingerprint.impl.FingerprinterRegistration
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -69,7 +71,6 @@ import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.Path
 import org.gradle.work.InputChanges
-import spock.lang.Unroll
 
 import java.util.function.BiFunction
 
@@ -80,14 +81,14 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def mutableTransformsStoreDirectory = temporaryFolder.file("child/build/transforms")
 
     def classloaderHasher = Stub(ClassLoaderHierarchyHasher) {
-        getClassLoaderHash(_ as ClassLoader) >> HashCode.fromInt(1234)
+        getClassLoaderHash(_ as ClassLoader) >> TestHashCodes.hashCodeFrom(1234)
     }
-    def valueSnapshotter = new DefaultValueSnapshotter(classloaderHasher, null)
+    def valueSnapshotter = new DefaultValueSnapshotter([], classloaderHasher)
 
     def executionHistoryStore = new TestExecutionHistoryStore()
     def virtualFileSystem = TestFiles.virtualFileSystem()
     def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.fileSystem())
 
     def transformationWorkspaceServices = new TestTransformationWorkspaceServices(immutableTransformsStoreDirectory, executionHistoryStore)
 
@@ -96,7 +97,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
 
     def dependencyFingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
     def fileCollectionFingerprinterRegistry = new DefaultFileCollectionFingerprinterRegistry([FingerprinterRegistration.registration(DirectorySensitivity.DEFAULT, LineEndingSensitivity.DEFAULT, dependencyFingerprinter)])
-    def inputFingerprinter = new DefaultInputFingerprinter(fileCollectionFingerprinterRegistry, valueSnapshotter)
+    def inputFingerprinter = new DefaultInputFingerprinter(fileCollectionSnapshotter, fileCollectionFingerprinterRegistry, valueSnapshotter)
 
     def projectServiceRegistry = Stub(ServiceRegistry) {
         get(TransformationWorkspaceServices) >> new TestTransformationWorkspaceServices(mutableTransformsStoreDirectory, executionHistoryStore)
@@ -121,35 +122,33 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def buildCacheController = Stub(BuildCacheController)
     def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
     def cancellationToken = new DefaultBuildCancellationToken()
-    def buildCacheCommandFactory = Stub(BuildCacheCommandFactory)
     def outputChangeListener = { affectedOutputPaths -> fileSystemAccess.write(affectedOutputPaths, {}) } as OutputChangeListener
     def outputFilesRepository = Stub(OutputFilesRepository) {
         isGeneratedByGradle(_ as File) >> true
     }
+    def workInputListeners = Stub(WorkInputListeners)
+    def buildOutputCleanupRegistry = Mock(BuildOutputCleanupRegistry)
     def outputSnapshotter = new DefaultOutputSnapshotter(fileCollectionSnapshotter)
     def deleter = TestFiles.deleter()
+    def validationWarningRecorder = Mock(ValidateStep.ValidationWarningRecorder)
     def executionEngine = new ExecutionGradleServices().createExecutionEngine(
-        buildCacheCommandFactory,
         buildCacheController,
         cancellationToken,
         buildInvocationScopeId,
         buildOperationExecutor,
+        buildOutputCleanupRegistry,
         new GradleEnterprisePluginManager(),
         classloaderHasher,
         new CurrentBuildOperationRef(),
         deleter,
         new DefaultExecutionStateChangeDetector(),
         outputChangeListener,
+        workInputListeners,
         outputFilesRepository,
         outputSnapshotter,
         new DefaultOverlappingOutputDetector(),
         Mock(TimeoutHandler),
-        { String behavior ->
-            DeprecationLogger.deprecateBehaviour(behavior)
-                .willBeRemovedInGradle8()
-                .undocumented()
-                .nagUser()
-        },
+        validationWarningRecorder,
         virtualFileSystem,
         documentationRegistry
     )
@@ -168,7 +167,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         private final HashCode secondaryInputsHash
         private final BiFunction<File, File, List<File>> transformationAction
 
-        static TestTransformer create(HashCode secondaryInputsHash = HashCode.fromInt(1234), BiFunction<File, File, List<File>> transformationAction) {
+        static TestTransformer create(HashCode secondaryInputsHash = TestHashCodes.hashCodeFrom(1234), BiFunction<File, File, List<File>> transformationAction) {
             return new TestTransformer(secondaryInputsHash, transformationAction)
         }
 
@@ -203,8 +202,12 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         @Override
-        ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, InputChanges inputChanges) {
-            return ImmutableList.copyOf(transformationAction.apply(inputArtifactProvider.get().asFile, outputDir))
+        TransformationResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, InputChanges inputChanges) {
+            def builder = TransformationResult.builderFor(inputArtifactProvider.get().asFile, outputDir)
+            transformationAction.apply(inputArtifactProvider.get().asFile, outputDir).each {
+                builder.addOutput(it) { }
+            }
+            return builder.build()
         }
 
         @Override
@@ -213,13 +216,13 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
 
         @Override
-        Class<? extends FileNormalizer> getInputArtifactNormalizer() {
-            return AbsolutePathInputNormalizer
+        FileNormalizer getInputArtifactNormalizer() {
+            return InputNormalizer.ABSOLUTE_PATH
         }
 
         @Override
-        Class<? extends FileNormalizer> getInputArtifactDependenciesNormalizer() {
-            return AbsolutePathInputNormalizer
+        FileNormalizer getInputArtifactDependenciesNormalizer() {
+            return InputNormalizer.ABSOLUTE_PATH
         }
 
         @Override
@@ -261,7 +264,6 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         }
     }
 
-    @Unroll
     def "executes transformations in workspace (#transformationType)"(TransformationType transformationType) {
         def inputArtifact = temporaryFolder.file("input")
         inputArtifact.text = "my input"
@@ -306,8 +308,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         invoke(transformer, inputArtifact, dependencies, immutableDependency(inputArtifact), inputFingerprinter)
         then:
         transformerInvocations == 1
-        1 * artifactTransformListener.beforeTransformerInvocation(_, _)
-        1 * artifactTransformListener.afterTransformerInvocation(_, _)
+        0 * _
     }
 
     def "re-runs transform when previous execution failed"() {
@@ -371,7 +372,6 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         transformerInvocations == 2
     }
 
-    @Unroll
     def "different workspace for different secondary inputs (#transformationType)"(TransformationType transformationType) {
         def inputArtifact = temporaryFolder.file("input")
         inputArtifact.text = "my input"
@@ -382,8 +382,8 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
             outputFile.text = input.text + " transformed"
             return ImmutableList.of(outputFile)
         }
-        def transformer1 = TestTransformer.create(HashCode.fromInt(1234), transformationAction)
-        def transformer2 = TestTransformer.create(HashCode.fromInt(4321), transformationAction)
+        def transformer1 = TestTransformer.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
+        def transformer2 = TestTransformer.create(TestHashCodes.hashCodeFrom(4321), transformationAction)
 
         def subject = dependency(transformationType, inputArtifact)
         when:
@@ -397,7 +397,6 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         transformationType << TransformationType.values()
     }
 
-    @Unroll
     def "different workspace for different input artifact paths (#transformationType)"(TransformationType transformationType) {
         def inputArtifact1 = temporaryFolder.file("input1")
         inputArtifact1.text = "my input"
@@ -410,7 +409,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
             outputFile.text = input.text + " transformed"
             return ImmutableList.of(outputFile)
         }
-        def transformer = TestTransformer.create(HashCode.fromInt(1234), transformationAction)
+        def transformer = TestTransformer.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
         when:
         invoke(transformer, inputArtifact1, dependencies, dependency(transformationType, inputArtifact1), inputFingerprinter)
         then:
@@ -437,7 +436,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
             outputFile.text = input.text + " transformed"
             return ImmutableList.of(outputFile)
         }
-        def transformer = TestTransformer.create(HashCode.fromInt(1234), transformationAction)
+        def transformer = TestTransformer.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
         def subject = immutableDependency(inputArtifact)
 
         when:
@@ -463,7 +462,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
             outputFile.text = input.text + " transformed"
             return ImmutableList.of(outputFile)
         }
-        def transformer = TestTransformer.create(HashCode.fromInt(1234), transformationAction)
+        def transformer = TestTransformer.create(TestHashCodes.hashCodeFrom(1234), transformationAction)
         def subject = mutableDependency(inputArtifact)
 
         when:
@@ -519,6 +518,6 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         TransformationSubject subject,
         InputFingerprinter inputFingerprinter
     ) {
-        return invoker.createInvocation(transformer, inputArtifact, dependencies, subject, inputFingerprinter).invoke()
+        return invoker.createInvocation(transformer, inputArtifact, dependencies, subject, inputFingerprinter).completeAndGet()
     }
 }

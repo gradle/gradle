@@ -21,13 +21,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.InverseVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultResolvedVersionConstraintTest extends Specification {
     private final VersionParser versionParser = new VersionParser()
     private final DefaultVersionSelectorScheme versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator(), versionParser)
 
-    @Unroll
     def "computes the complement of strict version #strictVersion"() {
         when:
         def e = new DefaultResolvedVersionConstraint('', '', strictVersion, [], versionSelectorScheme)

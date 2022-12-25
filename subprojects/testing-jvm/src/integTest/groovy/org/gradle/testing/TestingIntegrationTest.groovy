@@ -16,25 +16,27 @@
 package org.gradle.testing
 
 import org.apache.commons.lang.RandomStringUtils
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
-import static org.gradle.testing.fixture.JUnitCoverage.*
+import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.getJUNIT_VINTAGE_JUPITER
+import static org.gradle.testing.fixture.JUnitCoverage.getNEWEST
 import static org.hamcrest.CoreMatchers.equalTo
-
 /**
  * General tests for the JVM testing infrastructure that don't deserve their own test class.
  */
 @TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE_JUPITER })
-class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
+class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec implements JavaToolchainFixture {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1948")
     def "test interrupting its own thread does not kill test execution"() {
@@ -182,7 +184,6 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2313")
-    @Unroll
     def "can clean test after extracting class file with #framework"() {
         when:
         ignoreWhenJUnitPlatform()
@@ -276,12 +277,14 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         // In a nutshell, this tests that we don't even try to load classes that are there, but that we shouldn't see.
 
         when:
-        executer.withToolchainDetectionEnabled().withToolchainDownloadEnabled()
+        executer
+            .withArgument("-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}")
+            .withToolchainDetectionEnabled()
         buildScript """
             plugins {
                 id("java")
             }
-            ${withJava11Toolchain()}
+            ${javaPluginToolchainVersion(11)}
             ${mavenCentralRepository()}
             configurations { first {}; last {} }
             dependencies {
@@ -448,14 +451,15 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Issue("https://github.com/gradle/gradle/issues/5305")
     def "test can install an irreplaceable SecurityManager"() {
         given:
-        executer.withStackTraceChecksDisabled()
+        executer
+            .withStackTraceChecksDisabled()
             .withToolchainDetectionEnabled()
-            .withToolchainDownloadEnabled()
+        withInstallations(AvailableJavaHomes.getAvailableJvms())
         buildFile << """
             plugins {
                 id("java")
             }
-            ${withJava11Toolchain()}
+            ${javaPluginToolchainVersion(11)}
             ${mavenCentralRepository()}
             dependencies { testImplementation 'junit:junit:4.13' }
         """
@@ -583,16 +587,6 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                 public void checkThreadName() {
                     assertEquals("Test worker", Thread.currentThread().getName());
                     Thread.currentThread().setName(getClass().getSimpleName());
-                }
-            }
-        """
-    }
-
-    private static String withJava11Toolchain() {
-        return """
-            java {
-                toolchain {
-                    languageVersion = JavaLanguageVersion.of(11)
                 }
             }
         """

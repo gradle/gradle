@@ -25,14 +25,13 @@ import org.gradle.internal.DisplayName
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ModelObject
 import org.gradle.util.internal.TextUtil
-import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
 abstract class PropertySpec<T> extends ProviderSpec<T> {
     @Override
     PropertyInternal<T> providerWithValue(T value) {
-        return propertyWithDefaultValue().value(value)
+        return propertyWithNoValue().value(value)
     }
 
     @Override
@@ -44,11 +43,6 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
      * Returns a property with _no_ value.
      */
     abstract PropertyInternal<T> propertyWithNoValue()
-
-    /**
-     * Returns a property with its default value.
-     */
-    abstract PropertyInternal<T> propertyWithDefaultValue()
 
     @Override
     String getDisplayName() {
@@ -152,7 +146,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "reports failure to query value from provider and property has display name"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(brokenSupplier())
         property.attachOwner(owner(), displayName("<property>"))
 
@@ -221,7 +215,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "convention value is used before value has been set"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         assert property.getOrNull() != someValue()
 
         expect:
@@ -235,7 +229,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
     }
 
     def "can use null convention value"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         assert property.getOrNull() != someValue()
 
         expect:
@@ -248,7 +242,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "convention provider is used before value has been set"() {
         def provider = supplierWithValues(someOtherValue(), someValue(), someValue())
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         when:
         property.convention(provider)
@@ -268,7 +262,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "property has no value when convention provider has no value"() {
         def provider = supplierWithNoValue()
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         when:
         property.convention(provider)
@@ -286,7 +280,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
 
     def "reports the source of convention provider when value is missing and source is known"() {
         def provider = supplierWithNoValue(Describables.of("<source>"))
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         given:
         property.convention(provider)
@@ -302,7 +296,7 @@ The value of this property is derived from: <source>""")
 
     def "can replace convention value before value has been set"() {
         def provider = supplierWithValues(someOtherValue())
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         when:
         property.convention(someValue())
@@ -330,7 +324,7 @@ The value of this property is derived from: <source>""")
     }
 
     def "convention value ignored after value has been set"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(someValue())
 
         expect:
@@ -341,7 +335,7 @@ The value of this property is derived from: <source>""")
     def "convention provider ignored after value has been set"() {
         def provider = brokenSupplier()
 
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(someValue())
 
         expect:
@@ -350,7 +344,7 @@ The value of this property is derived from: <source>""")
     }
 
     def "convention value is used after value has been set to null"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         property.convention(someOtherValue())
         setToNull(property)
@@ -367,7 +361,7 @@ The value of this property is derived from: <source>""")
     def "convention provider is used after value has been set to null"() {
         def provider = supplierWithValues(someOtherValue(), someOtherValue())
 
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.convention(provider)
         property.set(someValue())
         setToNull(property)
@@ -378,7 +372,7 @@ The value of this property is derived from: <source>""")
     }
 
     def "convention value ignored after value has been set using provider with no value"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(Providers.notDefined())
 
         expect:
@@ -390,7 +384,7 @@ The value of this property is derived from: <source>""")
     def "convention provider ignored after value has been set using provider with no value"() {
         def provider = brokenSupplier()
 
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(Providers.notDefined())
 
         expect:
@@ -605,7 +599,7 @@ The value of this provider is derived from:
     }
 
     def "can finalize value when using convention"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         when:
         property.convention(someValue())
@@ -645,7 +639,7 @@ The value of this provider is derived from:
     }
 
     def "reports failure to query provider value when finalizing and property has display name"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         given:
         property.set(brokenSupplier())
@@ -678,8 +672,8 @@ The value of this provider is derived from:
     }
 
     def "does not finalize upstream property on finalize"() {
-        def upstream = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def upstream = propertyWithNoValue()
+        def property = propertyWithNoValue()
         property.set(upstream)
         upstream.set(someValue())
 
@@ -696,7 +690,7 @@ The value of this provider is derived from:
 
     def "does not finalize upstream property with no value on finalize"() {
         def upstream = propertyWithNoValue()
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(upstream)
 
         given:
@@ -711,8 +705,8 @@ The value of this provider is derived from:
     }
 
     def "does not finalize mapped upstream property on finalize"() {
-        def upstream = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def upstream = propertyWithNoValue()
+        def property = propertyWithNoValue()
         upstream.set(someValue())
         property.set(upstream.map { someOtherValue() })
 
@@ -728,8 +722,8 @@ The value of this provider is derived from:
     }
 
     def "does not finalize flatMapped upstream property on finalize"() {
-        def upstream = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def upstream = propertyWithNoValue()
+        def property = propertyWithNoValue()
         upstream.set(someValue())
         property.set(upstream.flatMap { supplierWithValues(someOtherValue()) })
 
@@ -746,7 +740,7 @@ The value of this provider is derived from:
 
     def "does not finalize orElse upstream property on finalize"() {
         def upstream = propertyWithNoValue()
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(upstream.orElse(someValue()))
 
         given:
@@ -762,8 +756,8 @@ The value of this provider is derived from:
 
     def "does not finalize orElse upstream properties on finalize"() {
         def upstream1 = propertyWithNoValue()
-        def upstream2 = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def upstream2 = propertyWithNoValue()
+        def property = propertyWithNoValue()
         property.set(upstream1.orElse(upstream2))
         upstream2.set(someValue())
 
@@ -1022,7 +1016,7 @@ The value of this provider is derived from:
     }
 
     def "can read value while finalizing property value"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
         property.set(provider)
@@ -1048,7 +1042,7 @@ The value of this provider is derived from:
     }
 
     def "can read value while finalizing property value on read when finalize on read enabled"() {
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         def function = Mock(Callable)
         def provider = new DefaultProvider<T>(function)
         property.set(provider)
@@ -1738,7 +1732,7 @@ The value of this property is derived from:
 
     def "cannot set convention value after value finalized"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.finalizeValue()
 
         when:
@@ -1759,7 +1753,7 @@ The value of this property is derived from:
 
     def "cannot set convention value after value finalized implicitly"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(someValue())
         property.implicitFinalizeValue()
 
@@ -1781,7 +1775,7 @@ The value of this property is derived from:
 
     def "cannot set convention value after value queried and value finalized on read"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(someValue())
         property.finalizeValueOnRead()
         property.get()
@@ -1804,7 +1798,7 @@ The value of this property is derived from:
 
     def "cannot set convention value after changes disallowed"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.disallowChanges()
 
         when:
@@ -1914,7 +1908,7 @@ The value of this property is derived from:
 
     def "cannot read value until host is ready when unsafe read disallowed"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(someValue())
         property.disallowUnsafeRead()
 
@@ -1961,8 +1955,8 @@ The value of this property is derived from:
     def "cannot read value with upstream task output until host is ready and task completed when unsafe read disallowed"() {
         given:
         def producer = owner()
-        def upstream = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def upstream = propertyWithNoValue()
+        def property = propertyWithNoValue()
 
         upstream.set(someValue())
         upstream.attachOwner(owner(), displayName("<upstream>"))
@@ -2038,7 +2032,7 @@ The value of this property is derived from:
 
     def "cannot finalize a property when host is not ready and unsafe read disallowed"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.disallowUnsafeRead()
         property.set(someValue())
 
@@ -2084,7 +2078,7 @@ The value of this property is derived from:
 
     def "finalizes value after read when unsafe read disallowed"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.disallowUnsafeRead()
 
         when:
@@ -2115,7 +2109,7 @@ The value of this property is derived from:
 
     def "can finalize on next read when host is not ready when unsafe read disallowed"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.disallowUnsafeRead()
         property.set(someValue())
 
@@ -2137,7 +2131,7 @@ The value of this property is derived from:
 
     def "can disallow changes when host is not ready when unsafe read disallowed"() {
         given:
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.disallowUnsafeRead()
         property.set(someValue())
 
@@ -2157,11 +2151,10 @@ The value of this property is derived from:
         1 * host.beforeRead(null) >> null
     }
 
-    @Unroll
     def "finalizes upstream property when value read using #method and unsafe read disallowed"() {
         def b = propertyWithNoValue()
         def c = propertyWithNoValue()
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         property.set(b)
         property.disallowUnsafeRead()
@@ -2194,11 +2187,10 @@ The value of this property is derived from:
         method << ["get", "finalizeValue", "isPresent"]
     }
 
-    @Unroll
     def "finalizes upstream property with no value when value read using #method and unsafe read disallowed"() {
         def b = propertyWithNoValue()
         def c = propertyWithNoValue()
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         property.set(b)
         property.disallowUnsafeRead()
@@ -2230,11 +2222,10 @@ The value of this property is derived from:
         method << ["getOrNull", "finalizeValue", "isPresent"]
     }
 
-    @Unroll
     def "finalizes upstream mapped property when value read using #method and unsafe read disallowed"() {
-        def b = propertyWithDefaultValue()
-        def c = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def b = propertyWithNoValue()
+        def c = propertyWithNoValue()
+        def property = propertyWithNoValue()
 
         property.set(b.map { someOtherValue2() })
         property.disallowUnsafeRead()
@@ -2267,11 +2258,10 @@ The value of this property is derived from:
         method << ["get", "finalizeValue", "isPresent"]
     }
 
-    @Unroll
     def "finalizes upstream flatmapped property when value read using #method and unsafe read disallowed"() {
-        def b = propertyWithDefaultValue()
-        def c = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def b = propertyWithNoValue()
+        def c = propertyWithNoValue()
+        def property = propertyWithNoValue()
 
         property.set(b.flatMap { supplierWithValues(someOtherValue2()) })
         property.disallowUnsafeRead()
@@ -2304,11 +2294,10 @@ The value of this property is derived from:
         method << ["get", "finalizeValue", "isPresent"]
     }
 
-    @Unroll
     def "finalizes upstream orElse fixed value property when value read using #method and unsafe read disallowed"() {
         def b = propertyWithNoValue()
         def c = propertyWithNoValue()
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
 
         property.set(b.orElse(someOtherValue2()))
         property.disallowUnsafeRead()
@@ -2340,11 +2329,10 @@ The value of this property is derived from:
         method << ["get", "finalizeValue", "isPresent"]
     }
 
-    @Unroll
     def "finalizes upstream orElse properties when value read using #method and unsafe read disallowed"() {
         def b = propertyWithNoValue()
-        def c = propertyWithDefaultValue()
-        def property = propertyWithDefaultValue()
+        def c = propertyWithNoValue()
+        def property = propertyWithNoValue()
 
         property.set(b.orElse(c))
         property.disallowUnsafeRead()
@@ -2471,9 +2459,9 @@ The value of this provider is derived from:
         expect:
         assertHasNoProducer(property)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         !value.hasChangingContent()
-        value.fixedValue == someValue()
+        value.getFixedValue() == someValue()
     }
 
     def "can attach a producer task to property"() {
@@ -2533,9 +2521,9 @@ The value of this provider is derived from:
         expect:
         assertHasProducer(property, task)
         def value = property.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         value.hasChangingContent()
-        value.fixedValue == someValue()
+        value.getFixedValue() == someValue()
     }
 
     def "has producer task and changing execution time value when value is provider with producer task and changing value"() {
@@ -2549,8 +2537,8 @@ The value of this provider is derived from:
         def value = property.calculateExecutionTimeValue()
         value.isChangingValue()
         value.hasChangingContent()
-        value.changingValue.get() == someValue()
-        value.changingValue.get() == someOtherValue()
+        value.getChangingValue().get() == someValue()
+        value.getChangingValue().get() == someOtherValue()
     }
 
     def "can calculate execution time value without finalizing when finalize on read is enabled"() {
@@ -2579,14 +2567,14 @@ The value of this provider is derived from:
 
     def "mapped value has changing execution time value when producer task attached to original property"() {
         def task = Mock(Task)
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(someValue())
         def mapped = property.map { someOtherValue() }
 
         expect:
         assertHasNoProducer(mapped)
         def value = mapped.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         value.fixedValue == someOtherValue()
 
         property.attachProducer(owner(task))
@@ -2594,12 +2582,12 @@ The value of this provider is derived from:
         assertHasProducer(mapped, task)
         def value2 = mapped.calculateExecutionTimeValue()
         value2.isChangingValue()
-        value2.changingValue.get() == someOtherValue()
+        value2.getChangingValue().get() == someOtherValue()
     }
 
     def "mapped value has no execution time value when producer task attached to original property with no value"() {
         def task = Mock(Task)
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         setToNull(property)
         def mapped = property.map { it }
 
@@ -2615,14 +2603,14 @@ The value of this provider is derived from:
 
     def "chain of mapped value has value producer when producer task attached to original property"() {
         def task = Mock(Task)
-        def property = propertyWithDefaultValue()
+        def property = propertyWithNoValue()
         property.set(someValue())
         def mapped = property.map { it }.map { it }.map { someOtherValue() }
 
         expect:
         assertHasNoProducer(mapped)
         def value = mapped.calculateExecutionTimeValue()
-        value.isFixedValue()
+        value.hasFixedValue()
         value.fixedValue == someOtherValue()
 
         property.attachProducer(owner(task))
@@ -2630,7 +2618,7 @@ The value of this provider is derived from:
         assertHasProducer(mapped, task)
         def value2 = mapped.calculateExecutionTimeValue()
         value2.isChangingValue()
-        value2.changingValue.get() == someOtherValue()
+        value2.getChangingValue().get() == someOtherValue()
     }
 
     def "mapped value has value producer when value is provider with content producer"() {
@@ -2645,7 +2633,7 @@ The value of this provider is derived from:
         assertHasProducer(mapped, task)
         def value = mapped.calculateExecutionTimeValue()
         value.isChangingValue()
-        value.changingValue.get() == someOtherValue()
+        value.getChangingValue().get() == someOtherValue()
     }
 
     def "fails when property has multiple producers attached"() {
@@ -2715,6 +2703,143 @@ The value of this provider is derived from:
         property.set(someOtherValue())
         copy.getOrNull() == null
         copy2.get() == someValue()
+    }
+
+    def "runs side effect when calling '#getter' when empty property value is set via '#setter'"() {
+        given:
+        def property = providerWithNoValue()
+
+        when:
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def providerWithSideEffect = Providers.of(someValue()).withSideEffect(sideEffect)
+        // `PropertyInternal` does not directly provide these setters,
+        // but all user-facing interfaces and their implementations do.
+        property."$setter"(providerWithSideEffect)
+
+        property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        property.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when calling setter or calculated values are not unpacked
+
+        when:
+        def unpackedValue = getter(property, getter, someOtherValue())
+
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        where:
+        setter  | getter
+        "set"   | "get"
+        "set"   | "getOrNull"
+        "set"   | "getOrElse"
+        "value" | "get"
+        "value" | "getOrNull"
+        "value" | "getOrElse"
+    }
+
+    def "runs side effect when calling '#getter' when property's value is overridden via '#setter'"() {
+        given:
+        def property = providerWithValue(someOtherValue())
+
+        when:
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def providerWithSideEffect = Providers.of(someValue()).withSideEffect(sideEffect)
+        // `PropertyInternal` does not directly provide these setters,
+        // but all user-facing interfaces and their implementations do.
+        property."$setter"(providerWithSideEffect)
+
+        property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        property.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when calling setter or calculated values are not unpacked
+
+        when:
+        def unpackedValue = getter(property, getter, someOtherValue2())
+
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        where:
+        setter  | getter
+        "set"   | "get"
+        "set"   | "getOrNull"
+        "set"   | "getOrElse"
+        "value" | "get"
+        "value" | "getOrNull"
+        "value" | "getOrElse"
+    }
+
+    def "runs side effect when calling '#getter' on default property with convention with side effect"() {
+        given:
+        def property = providerWithNoValue()
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def providerWithSideEffect = Providers.of(someValue()).withSideEffect(sideEffect)
+
+        when:
+        // `PropertyInternal` does not directly provide `convention` method,
+        // but all user-facing interfaces and their implementations do.
+        property.convention(providerWithSideEffect)
+
+        property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        property.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when setting convention or calculated values are not unpacked
+
+        when:
+        def unpackedValue = getter(property, getter, someOtherValue())
+
+        then:
+        unpackedValue == someValue()
+        1 * sideEffect.execute(someValue())
+        0 * _
+
+        where:
+        getter      | _
+        "get"       | _
+        "getOrNull" | _
+        "getOrElse" | _
+    }
+
+    def "does not run side effect from convention when calling '#getter' when property's value is explicitly set"() {
+        given:
+        def sideEffect = Mock(ValueSupplier.SideEffect)
+        def providerWithSideEffect = Providers.of(someValue()).withSideEffect(sideEffect)
+        def property = providerWithNoValue()
+
+        when:
+        // `PropertyInternal` does not directly provide `convention` nor setter methods,
+        // but all user-facing interfaces and their implementations do.
+        property.convention(providerWithSideEffect)
+        property."$setter"(someOtherValue())
+
+        property.calculateValue(ValueSupplier.ValueConsumer.IgnoreUnsafeRead)
+        property.calculateExecutionTimeValue()
+
+        then:
+        0 * _ // no side effects when calling convention, setter or calculated values are not unpacked
+
+        when:
+        def unpackedValue = getter(property, getter, someOtherValue2())
+
+        then:
+        unpackedValue == someOtherValue()
+        0 * _
+
+        where:
+        setter  | getter
+        "set"   | "get"
+        "set"   | "getOrNull"
+        "set"   | "getOrElse"
+        "value" | "get"
+        "value" | "getOrNull"
+        "value" | "getOrElse"
     }
 
     ModelObject owner() {

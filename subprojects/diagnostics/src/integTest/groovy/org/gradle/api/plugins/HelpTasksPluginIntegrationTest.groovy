@@ -18,7 +18,6 @@ package org.gradle.api.plugins
 
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import spock.lang.Unroll
 
 class HelpTasksPluginIntegrationTest extends WellBehavedPluginTest {
 
@@ -27,7 +26,6 @@ class HelpTasksPluginIntegrationTest extends WellBehavedPluginTest {
         "tasks"
     }
 
-    @Unroll
     def "can fetch tasks during configuration - #task"() {
         when:
         buildScript """

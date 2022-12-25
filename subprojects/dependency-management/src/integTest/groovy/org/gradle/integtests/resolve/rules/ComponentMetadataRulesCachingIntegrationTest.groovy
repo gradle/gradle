@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
-class ComponentMetadataRulesCachingIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
+class ComponentMetadataRulesCachingIntegrationTest extends AbstractModuleDependencyResolveTest {
     String getDefaultStatus() {
         GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release'
     }
@@ -135,7 +135,6 @@ dependencies {
         succeeds 'resolve'
     }
 
-    @ToBeFixedForConfigurationCache
     def 'rule cache properly differentiates inputs'() {
         repository {
             'org.test:projectA:1.0'()
@@ -184,7 +183,6 @@ dependencies {
         outputContains('Rule B executed - saw changing true')
     }
 
-    @ToBeFixedForConfigurationCache
     def 'can cache rules with service injection'() {
         repository {
             'org.test:projectA:1.0'()
@@ -302,7 +300,6 @@ dependencies {
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForConfigurationCache
     def 'can cache rules setting custom type attributes'() {
         repository {
             'org.test:projectA:1.0'()

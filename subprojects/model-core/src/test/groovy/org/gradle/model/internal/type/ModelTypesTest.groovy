@@ -18,10 +18,8 @@ package org.gradle.model.internal.type
 
 import org.gradle.api.JavaVersion
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class ModelTypesTest extends Specification {
-    @Unroll
     def "collects type hierarchy of #types.simpleName to #closed.simpleName"() {
         expect:
         ModelTypes.collectHierarchy(types.collect { ModelType.of(it) }) == (closed.collect { ModelType.of(it) } as Set)

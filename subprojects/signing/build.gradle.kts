@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugin for cryptographic signing of publications, artifacts or files."
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
@@ -10,7 +12,8 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":file-collections"))
-    implementation(project(":plugins"))
+    implementation(project(":functional"))
+    implementation(project(":platform-base"))
     implementation(project(":dependency-management"))
     implementation(project(":publish"))
     implementation(project(":maven"))
@@ -35,7 +38,7 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/plugins/signing/**")
 }
 

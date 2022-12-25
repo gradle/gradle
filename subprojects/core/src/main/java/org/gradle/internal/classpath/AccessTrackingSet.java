@@ -16,45 +16,148 @@
 
 package org.gradle.internal.classpath;
 
-import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.ForwardingSet;
+import com.google.common.collect.Iterators;
 
-import java.util.AbstractSet;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
-class AccessTrackingSet<E> extends AbstractSet<E> {
+/**
+ * The special-cased implementation of {@link Set} that tracks all accesses to its elements.
+ *
+ * @param <E> the type of elements
+ */
+class AccessTrackingSet<E> extends ForwardingSet<E> {
+    public interface Listener {
+        void onAccess(Object o);
+
+        void onAggregatingAccess();
+
+        void onRemove(Object object);
+
+        void onClear();
+    }
+
     // TODO(https://github.com/gradle/configuration-cache/issues/337) Only a limited subset of entrySet/keySet methods are currently tracked.
-    private final Set<E> delegate;
-    private final Consumer<E> onAccess;
+    private final Set<? extends E> delegate;
+    private final Listener listener;
+    private final Function<E, E> factory;
 
-    @SuppressWarnings("unchecked")
-    public AccessTrackingSet(Set<? extends E> delegate, Consumer<? super E> onAccess) {
-        // The delegate set is not modified in this class, so it is safe to "downcast" its items to E.
-        this.delegate = (Set<E>) delegate;
-        // Consumer consumes, so upcast is safe there.
-        this.onAccess = (Consumer<E>) onAccess;
+    public AccessTrackingSet(Set<? extends E> delegate, Listener listener) {
+        this(delegate, listener, Function.identity());
+    }
+
+    public AccessTrackingSet(Set<? extends E> delegate, Listener listener, Function<E, E> factory) {
+        this.delegate = delegate;
+        this.listener = listener;
+        this.factory = factory;
+    }
+
+    @Override
+    public boolean contains(@Nullable Object o) {
+        boolean result = delegate.contains(o);
+        listener.onAccess(o);
+        return result;
+    }
+
+    @Override
+    public boolean containsAll(@Nonnull Collection<?> collection) {
+        boolean result = delegate.containsAll(collection);
+        for (Object o : collection) {
+            listener.onAccess(o);
+        }
+        return result;
+    }
+
+    @Override
+    public boolean remove(Object o) {
+        // We cannot perform modification before notifying because the listener may want to query the state of the delegate prior to that.
+        listener.onAccess(o);
+        listener.onRemove(o);
+        return delegate.remove(o);
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> collection) {
+        // We cannot perform modification before notifying because the listener may want to query the state of the delegate prior to that.
+        for (Object o : collection) {
+            listener.onAccess(o);
+            listener.onRemove(o);
+        }
+        return delegate.removeAll(collection);
+    }
+
+    @Override
+    public void clear() {
+        delegate.clear();
+        listener.onClear();
     }
 
     @Override
     public Iterator<E> iterator() {
-        return new AbstractIterator<E>() {
-            private final Iterator<E> inner = delegate.iterator();
-
-            @Override
-            protected E computeNext() {
-                if (!inner.hasNext()) {
-                    return endOfData();
-                }
-                E value = inner.next();
-                onAccess.accept(value);
-                return value;
-            }
-        };
+        reportAggregatingAccess();
+        return Iterators.transform(delegate().iterator(), factory::apply);
     }
 
     @Override
     public int size() {
+        reportAggregatingAccess();
         return delegate.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        reportAggregatingAccess();
+        return delegate.isEmpty();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object object) {
+        reportAggregatingAccess();
+        return super.equals(object);
+    }
+
+    @Override
+    public int hashCode() {
+        reportAggregatingAccess();
+        return super.hashCode();
+    }
+
+    @Override
+    public Object[] toArray() {
+        // this is basically a reimplementation of the standardToArray that doesn't call this.size()
+        // and avoids double-reporting of the aggregating access.
+        return toArray(new Object[0]);
+    }
+
+    @Override
+    @SuppressWarnings({"unchecked", "SuspiciousToArrayCall"})
+    public <T> T[] toArray(T[] array) {
+        reportAggregatingAccess();
+        T[] result = delegate().toArray(array);
+        for (int i = 0; i < result.length; ++i) {
+            // The elements of result have to be of some subtype of E because of Set's invariant,
+            // so the inner cast is safe. The outer cast might be problematic if T is a some subtype
+            // of E and the factory function returns some other subtype. However, this is unlikely
+            // to happen in our use cases. Only System.getProperties().entrySet implementation uses
+            // this conversion.
+            result[i] = (T) factory.apply((E) result[i]);
+        }
+        return result;
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected Set<E> delegate() {
+        // The entrySet/keySet disallow adding elements to the set, making it covariant, so downcast is safe there.
+        return (Set<E>) delegate;
+    }
+
+    private void reportAggregatingAccess() {
+        listener.onAggregatingAccess();
     }
 }

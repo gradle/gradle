@@ -17,8 +17,6 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
-import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
@@ -27,8 +25,10 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
-import org.gradle.api.internal.provider.AbstractProviderWithValue;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.provider.BuildableBackedSetProvider;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -36,9 +36,9 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.GUtil;
 
@@ -50,17 +50,25 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public abstract class AbstractFileCollection implements FileCollectionInternal {
+    protected final TaskDependencyFactory taskDependencyFactory;
     protected final Factory<PatternSet> patternSetFactory;
 
-    protected AbstractFileCollection(Factory<PatternSet> patternSetFactory) {
+    protected AbstractFileCollection(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+        this.taskDependencyFactory = taskDependencyFactory;
         this.patternSetFactory = patternSetFactory;
     }
 
     @SuppressWarnings("deprecation")
+    protected AbstractFileCollection(TaskDependencyFactory taskDependencyFactory) {
+        this(taskDependencyFactory, PatternSets.getNonCachingPatternSetFactory());
+    }
+
+    @SuppressWarnings("deprecation")
     public AbstractFileCollection() {
-        this.patternSetFactory = PatternSets.getNonCachingPatternSetFactory();
+        this(DefaultTaskDependencyFactory.withNoAssociatedProject());
     }
 
     /**
@@ -94,17 +102,9 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public final TaskDependency getBuildDependencies() {
         assertCanCarryBuildDependencies();
-        return new AbstractTaskDependency() {
-            @Override
-            public String toString() {
-                return "Dependencies of " + getDisplayName();
-            }
-
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                context.add(AbstractFileCollection.this);
-            }
-        };
+        DefaultTaskDependency result = taskDependencyFactory.visitingDependencies(context -> context.add(AbstractFileCollection.this));
+        result.setToStringProvider(() -> "Dependencies of " + getDisplayName());
+        return result;
     }
 
     protected void assertCanCarryBuildDependencies() {
@@ -141,11 +141,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             }
 
             @Override
-            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                addTreeContents(fileTree);
-            }
-
-            @Override
             public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                 addTreeContents(fileTree);
             }
@@ -178,7 +173,29 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public String getAsPath() {
+        showGetAsPathDeprecationWarning();
         return GUtil.asPath(this);
+    }
+
+    private void showGetAsPathDeprecationWarning() {
+        List<String> filesAsPaths = this.getFiles().stream()
+            .map(File::getPath)
+            .filter(path -> path.contains(File.pathSeparator))
+            .collect(Collectors.toList());
+        if (!filesAsPaths.isEmpty()) {
+            String displayedFilePaths = filesAsPaths.stream().map(path -> "'" + path + "'").collect(Collectors.joining(","));
+            throw DocumentedFailure.builder()
+                .withSummary(String.format(
+                    "Converting files to a classpath string when their paths contain the path separator '%s' is not supported. " +
+                        "The path separator is not a valid element of a file path.", File.pathSeparator))
+                .withContext(String.format("Problematic paths in '%s' are: %s.",
+                    getDisplayName(),
+                    displayedFilePaths
+                ))
+                .withAdvice("Add the individual files to the file collection instead.")
+                .withUpgradeGuideSection(7, "file_collection_to_classpath")
+                .build();
+        }
     }
 
     @Override
@@ -188,12 +205,36 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileCollection plus(FileCollection collection) {
-        return new UnionFileCollection(this, (FileCollectionInternal) collection);
+        return new UnionFileCollection(taskDependencyFactory, this, (FileCollectionInternal) collection);
     }
 
     @Override
     public Provider<Set<FileSystemLocation>> getElements() {
-        return new ElementsProvider(this);
+        return new BuildableBackedSetProvider<>(
+            this,
+            new FileCollectionElementsFactory(this)
+        );
+    }
+
+    private static class FileCollectionElementsFactory implements Factory<Set<FileSystemLocation>> {
+
+        private final FileCollection fileCollection;
+
+        private FileCollectionElementsFactory(FileCollection fileCollection) {
+            this.fileCollection = fileCollection;
+        }
+
+        @Override
+        public Set<FileSystemLocation> create() {
+            // TODO - visit the contents of this collection instead.
+            // This is just a super simple implementation for now
+            Set<File> files = fileCollection.getFiles();
+            ImmutableSet.Builder<FileSystemLocation> builder = ImmutableSet.builderWithExpectedSize(files.size());
+            for (File file : files) {
+                builder.add(new DefaultFileSystemLocation(file));
+            }
+            return builder.build();
+        }
     }
 
     @Override
@@ -259,16 +300,11 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             }
 
             @Override
-            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                 // Visit the contents of the tree to generate the tree
                 if (visitAll(sourceTree)) {
                     fileTrees.add(sourceTree.getMirror());
                 }
-            }
-
-            @Override
-            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                visitGenericFileTree(fileTree, sourceTree);
             }
         });
         return fileTrees;
@@ -308,7 +344,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileTreeInternal getAsFileTree() {
-        return new FileCollectionBackedFileTree(patternSetFactory, this);
+        return new FileCollectionBackedFileTree(taskDependencyFactory, patternSetFactory, this);
     }
 
     @Override
@@ -334,59 +370,4 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     protected void visitContents(FileCollectionStructureVisitor visitor) {
         visitor.visitCollection(OTHER, this);
     }
-
-    private static class ElementsProvider extends AbstractProviderWithValue<Set<FileSystemLocation>> {
-        private final AbstractFileCollection collection;
-
-        public ElementsProvider(AbstractFileCollection collection) {
-            this.collection = collection;
-        }
-
-        @Override
-        public Class<Set<FileSystemLocation>> getType() {
-            return Cast.uncheckedCast(Set.class);
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return new ValueProducer() {
-                @Override
-                public boolean isProducesDifferentValueOverTime() {
-                    return false;
-                }
-
-                @Override
-                public void visitProducerTasks(Action<? super Task> visitor) {
-                    for (Task dependency : collection.getBuildDependencies().getDependencies(null)) {
-                        visitor.execute(dependency);
-                    }
-                }
-            };
-        }
-
-        @Override
-        public ExecutionTimeValue<Set<FileSystemLocation>> calculateExecutionTimeValue() {
-            if (contentsAreBuiltByTask()) {
-                return ExecutionTimeValue.changingValue(this);
-            }
-            return ExecutionTimeValue.fixedValue(get());
-        }
-
-        private boolean contentsAreBuiltByTask() {
-            return !collection.getBuildDependencies().getDependencies(null).isEmpty();
-        }
-
-        @Override
-        protected Value<Set<FileSystemLocation>> calculateOwnValue(ValueConsumer consumer) {
-            // TODO - visit the contents of this collection instead.
-            // This is just a super simple implementation for now
-            Set<File> files = collection.getFiles();
-            ImmutableSet.Builder<FileSystemLocation> builder = ImmutableSet.builderWithExpectedSize(files.size());
-            for (File file : files) {
-                builder.add(new DefaultFileSystemLocation(file));
-            }
-            return Value.of(builder.build());
-        }
-    }
-
 }

@@ -116,6 +116,139 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         assertHasImplementationClasspath(pluginMetadata, expectedClasspath)
     }
 
+    def "configuration of test source sets by extension using the testSourceSet method is additive"() {
+        given:
+        buildFile << """
+            sourceSets {
+                integrationTest {
+                    java {
+                        srcDir 'src/integration/java'
+                    }
+                }
+
+                functionalTest {
+                    java {
+                        srcDir 'src/functional/java'
+                    }
+                }
+            }
+
+            gradlePlugin {
+                testSourceSet sourceSets.functionalTest
+            }
+
+            gradlePlugin {
+                testSourceSet sourceSets.integrationTest
+            }
+
+            task assertFunctionalTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.functionalTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+
+            task assertIntegrationTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.integrationTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+        """
+
+        expect:
+        succeeds 'assertFunctionalTestHasTestKit', 'assertIntegrationTestHasTestKit'
+    }
+
+    def "configuration of test source sets by extension using testSourceSets method is NOT additive"() {
+        given:
+        buildFile << """
+            sourceSets {
+                integrationTest {
+                    java {
+                        srcDir 'src/integration/java'
+                    }
+                }
+
+                functionalTest {
+                    java {
+                        srcDir 'src/functional/java'
+                    }
+                }
+            }
+
+            gradlePlugin {
+                testSourceSets sourceSets.functionalTest
+            }
+
+            gradlePlugin {
+                testSourceSets sourceSets.integrationTest
+            }
+
+            task assertFunctionalTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.functionalTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert !testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+
+            task assertIntegrationTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.integrationTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+        """
+
+        expect:
+        succeeds 'assertFunctionalTestHasTestKit', 'assertIntegrationTestHasTestKit'
+    }
+
+    def "usage of NON additive testSourceSets method overwrites earlier additive usage of testSourceSet"() {
+        given:
+        buildFile << """
+            def integrationTest = sourceSets.create('integrationTest') {
+                java {
+                    srcDir 'src/integration/java'
+                }
+            }
+
+            def functionalTest = sourceSets.create('functionalTest') {
+                java {
+                    srcDir 'src/functional/java'
+                }
+            }
+
+            gradlePlugin {
+                testSourceSet integrationTest
+                testSourceSets functionalTest
+            }
+
+            task assertIntegrationTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.integrationTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert !testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+
+            task assertFunctionalTestHasTestKit() {
+                def testRuntimeClasspath = project.sourceSets.functionalTest.runtimeClasspath
+                def testKit = dependencies.gradleTestKit().files
+                doLast {
+                    assert testRuntimeClasspath.files.containsAll(testKit.files)
+                }
+            }
+        """
+
+        expect:
+        succeeds 'assertIntegrationTestHasTestKit', 'assertFunctionalTestHasTestKit'
+    }
+
     private String compileDependency(String configurationName, MavenModule module) {
         """
             repositories {

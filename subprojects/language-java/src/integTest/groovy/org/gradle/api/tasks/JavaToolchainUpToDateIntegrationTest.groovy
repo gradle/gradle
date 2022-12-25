@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 
-class JavaToolchainUpToDateIntegrationTest extends AbstractPluginIntegrationTest {
+class JavaToolchainUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
     def "compile and test reacting to toolchains are up-to-date without changes"() {
-        def someJdk = AvailableJavaHomes.getDifferentJdk()
+        def someJdk = AvailableJavaHomes.differentJdk
         buildscriptWithToolchain(someJdk)
 
         file("src/main/java/Foo.java") << "public class Foo {}"
@@ -41,13 +41,13 @@ class JavaToolchainUpToDateIntegrationTest extends AbstractPluginIntegrationTest
     }
 
     def "compile and test not up-to-date once toolchain changed"() {
-        def someJdk = AvailableJavaHomes.getDifferentVersion()
+        def someJdk = AvailableJavaHomes.differentVersion
         buildscriptWithToolchain(someJdk)
         file("src/main/java/Foo.java") << """
             /** foo */
             public class Foo {
             }
-            """
+        """
 
         file("src/test/java/FooTest.java") << testClass("FooTest")
 

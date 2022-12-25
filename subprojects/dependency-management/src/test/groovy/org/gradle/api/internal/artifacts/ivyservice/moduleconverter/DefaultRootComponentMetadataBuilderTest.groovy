@@ -26,8 +26,8 @@ import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultRootComponentMetadataBuilderTest extends Specification {
 
@@ -45,14 +45,17 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
 
     def mid = DefaultModuleIdentifier.newId('foo', 'bar')
 
-    def builder = new DefaultRootComponentMetadataBuilder(
+    def builderFactory = new DefaultRootComponentMetadataBuilder.Factory(
         metaDataProvider,
         componentIdentifierFactory,
         moduleIdentifierFactory,
         configurationComponentMetaDataBuilder,
-        configurationsProvider,
         projectStateRegistry,
-        dependencyLockingProvider)
+        dependencyLockingProvider,
+        TestUtil.calculatedValueContainerFactory()
+    )
+
+    def builder = builderFactory.create(configurationsProvider)
 
     def "caches root component metadata"() {
         componentIdentifierFactory.createComponentIdentifier(_) >> {
@@ -84,7 +87,6 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         !otherRoot.is(root)
     }
 
-    @Unroll
     def "caching of component metadata when #mutationType change"() {
         componentIdentifierFactory.createComponentIdentifier(_) >> {
             new DefaultModuleComponentIdentifier(mid, '1.0')

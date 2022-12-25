@@ -25,6 +25,7 @@ import org.gradle.configurationcache.DefaultConfigurationCache
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.configurationcache.serialization.beans.BeanStateReader
 import org.gradle.configurationcache.serialization.beans.BeanStateWriter
 import org.gradle.internal.serialize.Decoder
@@ -42,6 +43,8 @@ interface WriteContext : IsolateContext, MutableIsolateContext, Encoder {
     val tracer: Tracer?
 
     val sharedIdentities: WriteIdentities
+
+    val circularReferences: CircularReferences
 
     override val isolate: WriteIsolate
 
@@ -82,6 +85,11 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
     suspend fun read(): Any?
 
     fun readClass(): Class<*>
+
+    /**
+     * Defers the given [action] until all objects have been read.
+     */
+    fun onFinish(action: () -> Unit)
 }
 
 
@@ -94,9 +102,11 @@ interface IsolateContext {
 
     val isolate: Isolate
 
-    var trace: PropertyTrace
+    val trace: PropertyTrace
 
     fun onProblem(problem: PropertyProblem)
+
+    fun onError(error: Exception, message: StructuredMessageBuilder)
 }
 
 
@@ -144,10 +154,14 @@ interface ReadIsolate : Isolate {
 }
 
 
-interface MutableIsolateContext {
+interface MutableIsolateContext : IsolateContext {
+    override var trace: PropertyTrace
+
     fun push(codec: Codec<Any?>)
     fun push(owner: IsolateOwner, codec: Codec<Any?>)
     fun pop()
+
+    suspend fun forIncompatibleType(path: String, action: suspend () -> Unit)
 }
 
 
@@ -197,14 +211,14 @@ inline fun <T : MutableIsolateContext, R> T.withCodec(codec: Codec<Any?>, block:
 
 
 internal
-inline fun <T : IsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =
+inline fun <T : MutableIsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =
     withPropertyTrace(PropertyTrace.Bean(beanType, trace)) {
         action()
     }
 
 
 internal
-inline fun <T : IsolateContext, R> T.withPropertyTrace(trace: PropertyTrace, block: T.() -> R): R {
+inline fun <T : MutableIsolateContext, R> T.withPropertyTrace(trace: PropertyTrace, block: T.() -> R): R {
     val previousTrace = this.trace
     this.trace = trace
     try {
@@ -232,8 +246,14 @@ inline fun WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, 
     if (id != null) {
         writeSmallInt(id)
     } else {
-        writeSmallInt(identities.putInstance(reference))
-        encode(reference)
+        val newId = identities.putInstance(reference)
+        writeSmallInt(newId)
+        circularReferences.enter(reference)
+        try {
+            encode(reference)
+        } finally {
+            circularReferences.leave(reference)
+        }
     }
 }
 
@@ -258,9 +278,11 @@ inline fun <T> ReadContext.decodePreservingIdentity(identities: ReadIdentities, 
     val previousValue = identities.getInstance(id)
     return when {
         previousValue != null -> previousValue.uncheckedCast()
-        else -> decode(id).also {
-            require(identities.getInstance(id) === it) {
-                "`decode(id)` should register the decoded instance"
+        else -> {
+            decode(id).also {
+                require(identities.getInstance(id) === it) {
+                    "`decode(id)` should register the decoded instance"
+                }
             }
         }
     }

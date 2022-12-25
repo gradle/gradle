@@ -35,5 +35,5 @@ public interface VisitedArtifactSet {
      * @param componentSpec Select only those artifacts source from components matching the given spec.
      * @param allowNoMatchingVariant When true, ignore those components which have no matching variants. When false, fail when any component has no matching variant.
      */
-    SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant);
+    SelectedArtifactSet select(Spec<? super Dependency> dependencySpec, AttributeContainerInternal requestedAttributes, Spec<? super ComponentIdentifier> componentSpec, boolean allowNoMatchingVariant, boolean selectFromAllVariants);
 }

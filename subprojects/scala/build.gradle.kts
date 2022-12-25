@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Plugins for building Scala code with Gradle."
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
@@ -27,7 +29,11 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.inject)
 
-    compileOnly("org.scala-sbt:zinc_2.12:1.3.5")
+    compileOnly("org.scala-sbt:zinc_2.13:1.6.1") {
+        // Because not needed and was vulnerable
+        exclude(module="log4j-core")
+        exclude(module="log4j-api")
+    }
 
     testImplementation(project(":base-services-groovy"))
     testImplementation(project(":files"))
@@ -49,7 +55,7 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-jvm"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/scala/**")
     excludePatterns.add("org/gradle/api/tasks/*")
     excludePatterns.add("org/gradle/api/tasks/scala/internal/*")

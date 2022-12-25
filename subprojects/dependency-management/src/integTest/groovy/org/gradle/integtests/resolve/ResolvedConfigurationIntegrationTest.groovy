@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Issue
-import spock.lang.Unroll
 
 @FluidDependenciesResolveTest
 class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -33,7 +32,6 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         """
     }
 
-    @Unroll
     def "resolves strictly for dependency resolve failures when #expression is used"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
@@ -66,6 +64,9 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+
         fails "validate"
         outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
         failure.assertHasCause("Could not find org.foo:unknown:1.0.")
@@ -80,7 +81,6 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         "resolvedArtifacts"                        | _
     }
 
-    @Unroll
     def "resolves strictly for artifact resolve failures when #expression is used"() {
         settingsFile << "include 'child'"
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
@@ -119,6 +119,9 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+
         fails "validate"
         outputContains("evaluating:") // ensure the failure happens when querying the resolved configuration
         failure.assertHasCause("Could not find unknown-1.0.jar (org.foo:unknown:1.0).")
@@ -190,6 +193,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.allowAll()
 
         expect:
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -266,6 +271,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         f1.allowAll()
 
         expect:
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -330,6 +337,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m4.artifact.expectGetUnauthorized()
 
         expect:
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -374,6 +383,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m2.allowAll()
 
         expect:
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 
@@ -431,6 +442,8 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         bar1.allowAll()
 
         expect:
+        //TODO: fix dependency resolution results usage in this test and remove this flag
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         succeeds "validate"
     }
 }

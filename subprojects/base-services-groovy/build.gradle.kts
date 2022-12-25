@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "A set of generic services and utilities specific for Groovy."
+
 dependencies {
     implementation(project(":base-services"))
 

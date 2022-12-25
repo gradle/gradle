@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.internal.java")
 }
 
+description = "Collection of test fixtures for both unit tests and integration tests, internal use only"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":native"))
@@ -17,6 +19,7 @@ dependencies {
     implementation(libs.asm)
     implementation(libs.asmTree)
     implementation(libs.junit)
+    implementation(libs.junit5JupiterApi)
     implementation(libs.spock)
     implementation(libs.spockJUnit4)
     implementation(libs.jsoup)

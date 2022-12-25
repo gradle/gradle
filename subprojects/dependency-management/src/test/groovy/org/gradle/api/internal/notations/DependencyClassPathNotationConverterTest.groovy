@@ -18,7 +18,7 @@ package org.gradle.api.internal.notations
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarType
@@ -33,9 +33,9 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API
-import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT
-import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.LOCAL_GROOVY
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_API
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.GRADLE_TEST_KIT
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY
 
 @UsesNativeServices
 class DependencyClassPathNotationConverterTest extends Specification {
@@ -104,6 +104,6 @@ class DependencyClassPathNotationConverterTest extends Specification {
     }
 
     def parse(def value) {
-        return NotationParserBuilder.toType(Dependency).fromType(DependencyFactory.ClassPathNotation, factory).toComposite().parseNotation(value)
+        return NotationParserBuilder.toType(Dependency).fromType(DependencyFactoryInternal.ClassPathNotation, factory).toComposite().parseNotation(value)
     }
 }

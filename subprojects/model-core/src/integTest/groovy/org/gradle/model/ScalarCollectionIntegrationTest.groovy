@@ -18,11 +18,9 @@ package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import spock.lang.Unroll
 
 @UnsupportedWithConfigurationCache(because = "software model")
 class ScalarCollectionIntegrationTest extends AbstractIntegrationSpec {
-    @Unroll
     def "can create instance of #{type.name}"() {
         given:
         buildFile << """
@@ -54,7 +52,6 @@ apply plugin: Rules
         type << [Set, List]
     }
 
-    @Unroll
     def "can view #{type.name} as ModelElement"() {
         given:
         buildFile << """

@@ -40,7 +40,6 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class S3ClientIntegrationTest extends Specification {
 
@@ -63,7 +62,6 @@ class S3ClientIntegrationTest extends Specification {
         awsCredentials.setSecretKey(secret)
     }
 
-    @Unroll
     @Requires(TestPrecondition.JDK9_OR_LATER)
     def "should perform #authenticationType put get and list on an S3 bucket"() {
         setup:

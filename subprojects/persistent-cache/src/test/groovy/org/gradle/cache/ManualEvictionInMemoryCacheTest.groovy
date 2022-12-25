@@ -18,14 +18,12 @@ package org.gradle.cache
 
 import spock.lang.Specification
 import spock.lang.Timeout
-import spock.lang.Unroll
 
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.function.Supplier
 
-@Unroll
 class ManualEvictionInMemoryCacheTest extends Specification {
 
     @Timeout(value = 5, unit = TimeUnit.SECONDS)

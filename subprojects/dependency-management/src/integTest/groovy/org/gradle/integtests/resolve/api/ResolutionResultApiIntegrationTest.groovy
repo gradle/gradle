@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
-import spock.lang.Unroll
 
 @FluidDependenciesResolveTest
 class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTest {
@@ -227,7 +226,6 @@ baz:1.0 requested
         }
     }
 
-    @Unroll
     def "constraint are not mis-showing up as a separate REQUESTED and do not overwrite selection by rule"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -291,7 +289,6 @@ baz:1.0 requested
         useReason << [true, false]
     }
 
-    @Unroll
     def "direct dependency reasons are not mis-showing up as a separate REQUESTED and do not overwrite selection by rule"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -497,8 +494,9 @@ testCompileClasspath
             }
 
             task checkDependencyAttributes {
+                def compileClasspath = configurations.compileClasspath
                 doLast {
-                    configurations.compileClasspath.incoming.resolutionResult.root.dependencies.each {
+                    compileClasspath.incoming.resolutionResult.root.dependencies.each {
                         def desugaredCategory = Attribute.of("org.gradle.category", String)
                         assert it.requested.attributes.getAttribute(desugaredCategory) == 'platform'
                     }
@@ -609,8 +607,9 @@ testRuntimeClasspath
             }
 
             task resolve {
+                def testCompileClasspath = configurations.testCompileClasspath
                 doLast {
-                    def result = configurations.testCompileClasspath.incoming.resolutionResult
+                    def result = testCompileClasspath.incoming.resolutionResult
                     def rootComponent = result.root
                     def childComponent = result.allComponents.find { it.toString() == 'project :producer' }
                     def childVariant = childComponent.variants[0]
@@ -657,8 +656,9 @@ testRuntimeClasspath
         }
 
         task resolve {
+            def compileClasspath = configurations.compileClasspath
             doLast {
-                def result = configurations.compileClasspath.incoming.resolutionResult
+                def result = compileClasspath.incoming.resolutionResult
                 result.allDependencies {
                     assert it instanceof ResolvedDependencyResult
                     assert it.resolvedVariant != null
@@ -673,10 +673,14 @@ testRuntimeClasspath
     }
 
     private void withResolutionResultDumper(String... configurations) {
+        def confCapture = configurations.collect( configuration ->
+            "def $configuration = configurations.$configuration"
+        )
+
         def confList = configurations.collect { configuration ->
             """
                 // dump variant dependencies
-                def result_$configuration = configurations.${configuration}.incoming.resolutionResult
+                def result_$configuration = ${configuration}.incoming.resolutionResult
                 dump("$configuration", result_${configuration}.root, null, 0)
 
                 // check that configuration attributes are visible and desugared
@@ -692,6 +696,7 @@ testRuntimeClasspath
         buildFile << """
 
             task resolve {
+                ${confCapture.join('\n')}
                 doLast {
                     { -> ${confList.join('\n')} }()
                     println()

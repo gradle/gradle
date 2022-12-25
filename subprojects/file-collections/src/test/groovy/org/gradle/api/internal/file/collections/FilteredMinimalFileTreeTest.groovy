@@ -18,7 +18,6 @@ package org.gradle.api.internal.file.collections
 
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
-import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
@@ -78,13 +77,13 @@ class FilteredMinimalFileTreeTest extends Specification {
         def owner = Stub(FileTreeInternal)
         def sourcePatterns = Mock(PatternSet)
         def intersectPatterns = Mock(PatternSet)
-        def visitor = Mock(FileCollectionStructureVisitor)
+        def visitor = Mock(MinimalFileTree.MinimalFileTreeStructureVisitor)
 
         when:
         tree.visitStructure(visitor, owner)
 
         then:
-        1 * source.visitStructure(_, _) >> { FileCollectionStructureVisitor nestedVisitor, FileTreeInternal o ->
+        1 * source.visitStructure(_, _) >> { MinimalFileTree.MinimalFileTreeStructureVisitor nestedVisitor, FileTreeInternal o ->
             nestedVisitor.visitFileTree(dir, sourcePatterns, o)
         }
         1 * sourcePatterns.intersect() >> intersectPatterns

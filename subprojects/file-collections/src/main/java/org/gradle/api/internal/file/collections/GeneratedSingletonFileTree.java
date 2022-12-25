@@ -21,7 +21,6 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
@@ -34,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * A generated file tree which is composed using a mapping from relative path to file source.
@@ -101,13 +99,8 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
     }
 
     @Override
-    public void visitStructure(FileCollectionStructureVisitor visitor, FileTreeInternal owner) {
-        if (visitor.prepareForVisit(this) == FileCollectionStructureVisitor.VisitType.NoContents) {
-            // Visit metadata but not contents
-            visitor.visitCollection(this, Collections.emptyList());
-        } else {
-            visitor.visitFileTree(getFile(), new PatternSet(), owner);
-        }
+    public void visitStructure(MinimalFileTreeStructureVisitor visitor, FileTreeInternal owner) {
+        visitor.visitFileTree(getFile(), new PatternSet(), owner);
     }
 
     @Override
@@ -144,6 +137,7 @@ public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, 
             if (file == null) {
                 file = createFileInstance(fileName);
                 if (!file.exists()) {
+                    fileGenerationListener.execute(file);
                     copyTo(file);
                 } else {
                     updateFileOnlyWhenGeneratedContentChanges();

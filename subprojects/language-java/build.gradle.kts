@@ -2,7 +2,7 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
-description = "Source for JavaCompile, JavaExec and Javadoc tasks. It also contains logic for incremental Java compilation."
+description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
 
 dependencies {
     implementation(project(":base-services"))
@@ -34,7 +34,8 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.fastutil)
-    implementation(libs.ant) // for 'ZipFile' and 'ZipEntry'
+    implementation(libs.ant)
+    implementation(libs.commonsCompress)
     implementation(libs.asm)
     implementation(libs.asmCommons)
     implementation(libs.inject)
@@ -61,6 +62,8 @@ dependencies {
         because("ProjectBuilder test (JavaLanguagePluginTest) loads services from a Gradle distribution.")
     }
 
+    // TODO: Make these available for all integration tests? Maybe all tests?
+    integTestImplementation(libs.jetbrainsAnnotations)
     integTestDistributionRuntimeOnly(project(":distributions-core"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
@@ -81,9 +84,9 @@ strictCompile {
     ignoreDeprecations() // this project currently uses many deprecated part from 'platform-jvm'
 }
 
-classycle {
+packageCycles {
     // These public packages have classes that are tangled with the corresponding internal package.
-    excludePatterns.add("org/gradle/api/tasks/compile/**")
+    excludePatterns.add("org/gradle/api/tasks/**")
     excludePatterns.add("org/gradle/external/javadoc/**")
 }
 

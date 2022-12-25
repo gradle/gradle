@@ -16,7 +16,6 @@
 
 package org.gradle.smoketests
 
-
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
@@ -45,8 +44,9 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
             }
 
             test {
+                def markerFile = file("marker.file")
                 doFirst {
-                    file("marker.file").delete()
+                    markerFile.delete()
                 }
 
                 useJUnitPlatform()
@@ -74,8 +74,9 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
                         targets {
                             all {
                                 testTask.configure {
+                                    def markerFile = file("marker.file")
                                     doFirst {
-                                        file("marker.file").delete()
+                                        markerFile.delete()
                                     }
                                     retry {
                                         maxRetries = 2

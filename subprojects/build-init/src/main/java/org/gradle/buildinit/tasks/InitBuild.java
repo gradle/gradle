@@ -18,7 +18,6 @@ package org.gradle.buildinit.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.provider.Property;
@@ -44,6 +43,7 @@ import org.gradle.work.DisableCachingByDefault;
 import javax.annotation.Nullable;
 import javax.lang.model.SourceVersion;
 import java.util.List;
+import java.util.Locale;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackageName;
@@ -52,7 +52,7 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
  * Generates a Gradle project structure.
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class InitBuild extends DefaultTask {
+public abstract class InitBuild extends DefaultTask {
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
@@ -116,7 +116,6 @@ public class InitBuild extends DefaultTask {
      */
     @Input
     @Optional
-    @Incubating
     @Option(option = "incubating", description = "Allow the generated build to use new features and APIs")
     public Property<Boolean> getUseIncubating() {
         return useIncubatingAPIs;
@@ -167,7 +166,6 @@ public class InitBuild extends DefaultTask {
      */
     @Input
     @Option(option = "insecure-protocol", description = "How to handle insecure URLs used for Maven Repositories.")
-    @Incubating
     public Property<InsecureProtocolOption> getInsecureProtocol() {
         return insecureProtocol;
     }
@@ -283,7 +281,7 @@ public class InitBuild extends DefaultTask {
         String packageName = this.packageName;
         if (initDescriptor.supportsPackage()) {
             if (isNullOrEmpty(packageName)) {
-                packageName = inputHandler.askQuestion("Source package", toPackageName(projectName));
+                packageName = inputHandler.askQuestion("Source package", toPackageName(projectName).toLowerCase(Locale.US));
             }
         } else if (!isNullOrEmpty(packageName)) {
             throw new GradleException("Package name is not supported for '" + initDescriptor.getId() + "' build type.");

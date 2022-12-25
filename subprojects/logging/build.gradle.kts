@@ -7,7 +7,8 @@ description = "Logging infrastructure"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(libs.slf4jApi)
+    api(project(":logging-api"))
+    api(project(":enterprise-logging"))
 
     implementation(project(":base-services"))
     implementation(project(":enterprise-workers"))
@@ -41,6 +42,7 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/internal/featurelifecycle/**")
+    excludePatterns.add("org/gradle/util/**")
 }

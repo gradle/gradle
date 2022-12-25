@@ -17,11 +17,9 @@
 package org.gradle.internal.snapshot
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.internal.snapshot.PathUtil.getFileName
 
-@Unroll
 class PathUtilTest extends Specification {
 
     def "file name of '#path' is '#name'"() {

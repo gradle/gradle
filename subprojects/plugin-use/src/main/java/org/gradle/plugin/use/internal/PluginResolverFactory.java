@@ -17,54 +17,48 @@
 package org.gradle.plugin.use.internal;
 
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.artifacts.DependencyResolutionServices;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.internal.Factory;
-import org.gradle.plugin.use.resolve.internal.ArtifactRepositoriesPluginResolver;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
+import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
 import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.DefaultInjectedClasspathPluginResolver;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class PluginResolverFactory implements Factory<PluginResolver> {
+@ServiceScope(Scopes.Build.class)
+public class PluginResolverFactory {
 
     private final PluginRegistry pluginRegistry;
     private final DocumentationRegistry documentationRegistry;
     private final ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver;
-    private final DependencyResolutionServices dependencyResolutionServices;
     private final List<PluginResolverContributor> pluginResolverContributors;
-    private final VersionSelectorScheme versionSelectorScheme;
 
     public PluginResolverFactory(
         PluginRegistry pluginRegistry,
         DocumentationRegistry documentationRegistry,
         ClientInjectedClasspathPluginResolver injectedClasspathPluginResolver,
-        DependencyResolutionServices dependencyResolutionServices,
-        List<PluginResolverContributor> pluginResolverContributors,
-        VersionSelectorScheme versionSelectorScheme) {
+        List<PluginResolverContributor> pluginResolverContributors
+    ) {
         this.pluginRegistry = pluginRegistry;
         this.documentationRegistry = documentationRegistry;
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
-        this.dependencyResolutionServices = dependencyResolutionServices;
         this.pluginResolverContributors = pluginResolverContributors;
-        this.versionSelectorScheme = versionSelectorScheme;
     }
 
-    @Override
-    public PluginResolver create() {
-        return new CompositePluginResolver(createDefaultResolvers());
+    public PluginResolver create(PluginArtifactRepositories pluginResolveContext) {
+        return new CompositePluginResolver(createDefaultResolvers(pluginResolveContext));
     }
 
-    private List<PluginResolver> createDefaultResolvers() {
+    private List<PluginResolver> createDefaultResolvers(PluginArtifactRepositories pluginResolveContext) {
         List<PluginResolver> resolvers = new LinkedList<>();
-        addDefaultResolvers(resolvers);
+        addDefaultResolvers(pluginResolveContext, resolvers);
         return resolvers;
     }
 
@@ -86,13 +80,13 @@ public class PluginResolverFactory implements Factory<PluginResolver> {
      * This order is optimized for both performance and to allow resolvers earlier in the order
      * to mask plugins which would have been found later in the order.
      */
-    private void addDefaultResolvers(List<PluginResolver> resolvers) {
+    private void addDefaultResolvers(PluginArtifactRepositories pluginResolveContext, List<PluginResolver> resolvers) {
         resolvers.add(new NoopPluginResolver(pluginRegistry));
         resolvers.add(new CorePluginResolver(documentationRegistry, pluginRegistry));
 
         injectedClasspathPluginResolver.collectResolversInto(resolvers);
 
         pluginResolverContributors.forEach(contributor -> contributor.collectResolversInto(resolvers));
-        resolvers.add(ArtifactRepositoriesPluginResolver.createWithDefaults(dependencyResolutionServices, versionSelectorScheme));
+        resolvers.add(pluginResolveContext.getPluginResolver());
     }
 }

@@ -15,19 +15,16 @@
  */
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
-import spock.lang.Unroll
 
-import static org.gradle.testing.fixture.JUnitCoverage.*
+import static org.gradle.testing.fixture.JUnitCoverage.NEWEST
 
 @IntegrationTestTimeout(240)
-@TargetCoverage({ JUNIT_4_LATEST + JUNIT_VINTAGE })
-class ParallelTestExecutionIntegrationTest extends JUnitMultiVersionIntegrationSpec {
+class ParallelTestExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     public final BlockingHttpServer blockingServer = new BlockingHttpServer()
@@ -39,14 +36,13 @@ class ParallelTestExecutionIntegrationTest extends JUnitMultiVersionIntegrationS
             ${mavenCentralRepository()}
             dependencies {
                 testImplementation localGroovy()
-                testImplementation "junit:junit:4.13"
+                testImplementation "junit:junit:${NEWEST}"
             }
         """.stripIndent()
 
         blockingServer.start()
     }
 
-    @Unroll
     def "execute #maxConcurrency tests concurrently when maxWorkers=#maxWorkers and maxParallelForks=#maxParallelForks and forkEvery=#forkEvery"() {
         given:
         int testCount = maxConcurrency * 2
@@ -105,7 +101,7 @@ class ParallelTestExecutionIntegrationTest extends JUnitMultiVersionIntegrationS
         2              | 3          | 2                | 1
     }
 
-    def "can handle parallel tests together with parallel project execution"() {
+    def "can handle parallel tests together with parallel project execution when there are limited workers"() {
         given:
         settingsFile << """
             include 'a'
@@ -116,38 +112,74 @@ class ParallelTestExecutionIntegrationTest extends JUnitMultiVersionIntegrationS
                 plugins { id "java" }
                 ${mavenCentralRepository()}
                 dependencies {
-                    testImplementation localGroovy()
-                    testImplementation "junit:junit:4.13"
+                    testImplementation "junit:junit:${NEWEST}"
                 }
                 test.maxParallelForks = 2
             """
             withNonBlockingJUnitTests(build, 200)
         }
+
         when:
-        def gradle = executer.withArguments("--parallel", "--max-workers=2").withTasks('test').start()
+        executer.withArguments("--parallel", "--max-workers=2")
+        run('test')
 
         then:
-        gradle.waitForFinish()
+        noExceptionThrown()
     }
 
-    private void withBlockingJUnitTests(int testCount) {
+    def "does not run tests from multiple tasks from the same project in parallel"() {
+        withBlockingJUnitTests(2)
+        withBlockingJUnitTests(2, "other")
+        buildScript """
+            plugins {
+                id "java"
+                id "jvm-test-suite"
+            }
+            ${mavenCentralRepository()}
+            testing.suites {
+                all {
+                    useJUnit("$NEWEST")
+                    targets.all {
+                        testTask.configure {
+                            maxParallelForks = 2
+                        }
+                    }
+                }
+                other(JvmTestSuite) {
+                }
+            }
+        """
+
+        def tests = blockingServer.concurrent("test_1", "test_2")
+        def other = blockingServer.concurrent("other_1", "other_2")
+        blockingServer.expectInAnyOrder(tests, other)
+
+        when:
+        executer.withArguments("--parallel", "--max-workers=4")
+        run('test', 'other')
+
+        then:
+        noExceptionThrown()
+    }
+
+    private void withBlockingJUnitTests(int testCount, String sourceSet = "test") {
         testIndices(testCount).each { idx ->
-            file("src/test/java/pkg/SomeTest_${idx}.java") << """
+            file("src/$sourceSet/java/pkg/SomeTest_${idx}.java") << """
                 package pkg;
                 import org.junit.Test;
                 public class SomeTest_$idx {
                     @Test
                     public void test_$idx() {
-                        ${blockingServer.callFromBuild("test_$idx")}
+                        ${blockingServer.callFromBuild("${sourceSet}_$idx")}
                     }
                 }
             """.stripIndent()
         }
     }
 
-    private void withNonBlockingJUnitTests(TestFile projectDir, int testCount) {
+    private void withNonBlockingJUnitTests(TestFile projectDir, int testCount, String sourceSet = "test") {
         testIndices(testCount).each { idx ->
-            projectDir.file("src/test/java/pkg/SomeTest_${idx}.java") << """
+            projectDir.file("src/$sourceSet/java/pkg/SomeTest_${idx}.java") << """
                 package pkg;
                 import org.junit.Test;
                 public class SomeTest_$idx {

@@ -16,7 +16,6 @@
 package org.gradle.api.initialization.dsl;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.provider.Property;
@@ -30,7 +29,6 @@ import java.util.List;
  *
  * @since 7.0
  */
-@Incubating
 @HasInternalProtocol
 public interface VersionCatalogBuilder extends Named {
 
@@ -46,9 +44,16 @@ public interface VersionCatalogBuilder extends Named {
      * A version catalog is a component published using the `version-catalog` plugin or
      * a local TOML file.
      *
-     * All imports configured by this method will be accumulated in order and executed
-     * before any other modification provided by this builder, such that "local" modifications
-     * have higher priority than any imported component.
+     * <p>
+     * This function can be called only once, further calls will result in an error.
+     * The passed notation should conform these constraints:
+     * <ul>
+     *     <li>If a file notation is passed, it should be a single file.</li>
+     *     <li>If it's a resolvable dependency, it should resolve to a single file.</li>
+     * </ul>
+     *
+     * <p>
+     * If the notation doesn't conform these constraints, an exception will be thrown at configuration time.
      *
      * @param dependencyNotation any notation supported by {@link org.gradle.api.artifacts.dsl.DependencyHandler}
      */
@@ -58,37 +63,67 @@ public interface VersionCatalogBuilder extends Named {
      * Configures a dependency version which can then be referenced using
      * the {@link VersionCatalogBuilder.LibraryAliasBuilder#versionRef(String)} )} method.
      *
-     * @param name an identifier for the version
+     * @param alias an identifier for the version
      * @param versionSpec the dependency version spec
      * @return the version alias name
      */
-    String version(String name, Action<? super MutableVersionConstraint> versionSpec);
+    String version(String alias, Action<? super MutableVersionConstraint> versionSpec);
 
     /**
      * Configures a dependency version which can then be referenced using
      * the {@link VersionCatalogBuilder.LibraryAliasBuilder#versionRef(String)} method.
      *
-     * @param name an identifier for the version
-     * @param version the version string
+     * @param alias an identifier for the version
+     * @param version the version alias name
      */
-    String version(String name, String version);
+    String version(String alias, String version);
 
     /**
-     * Entry point for registering an alias for a library
-     * @param alias the alias identifer
-     * @return a builder for this alias
+     * Entry point for registering a library alias.
+     *
+     * @param alias the alias of the library
+     * @param group the group of the library
+     * @param artifact the artifact ID of the library
+     * @return a builder for this alias, to finish the version configuration
+     * @since 7.4
      */
-    AliasBuilder alias(String alias);
+    LibraryAliasBuilder library(String alias, String group, String artifact);
+
+    /**
+     * Declare a library alias in full. This does not return a builder, as the declaration is fully complete.
+     * Use {@link #library(String, String, String)} if you need a more complex version declaration.
+     *
+     * <p>
+     * Note that declaring a classifier or extension using this method is not possible.
+     * </p>
+     *
+     * @param alias the alias of the library
+     * @param groupArtifactVersion the {@code group:artifact:version} string, all components are required
+     * @since 7.4
+     */
+    void library(String alias, String groupArtifactVersion);
+
+    /**
+     * Entry point for registering a plugin alias.
+     *
+     * @param alias the alias of the plugin
+     * @param id the ID of the plugin
+     * @return a builder for this alias, to finish the version configuration
+     * @since 7.4
+     */
+    PluginAliasBuilder plugin(String alias, String id);
 
     /**
      * Declares a bundle of dependencies. A bundle consists of a name for the bundle,
      * and a list of aliases. The aliases must correspond to aliases defined via
-     * the {@link #alias(String)} method.
+     * the {@code library()} methods.
      *
-     * @param name the name of the bundle
+     * @param alias the alias of the bundle
      * @param aliases the aliases of the dependencies included in the bundle
+     * @see #library(String, String, String)
+     * @see #library(String, String)
      */
-    void bundle(String name, List<String> aliases);
+    void bundle(String alias, List<String> aliases);
 
     /**
      * Returns the name of the extension configured by this builder
@@ -96,42 +131,10 @@ public interface VersionCatalogBuilder extends Named {
     String getLibrariesExtensionName();
 
     /**
-     * Allows configuring an alias
-     *
-     * @since 7.0
-     */
-    @Incubating
-    interface AliasBuilder {
-        /**
-         * Sets GAV coordinates for this alias
-         * @param groupArtifactVersion the GAV coordinates, in the group:artifact:version form
-         */
-        void to(String groupArtifactVersion);
-
-        /**
-         * Sets the group and name of this alias
-         * @param group the group
-         * @param name the name (or artifact id)
-         * @return a builder to configure the version
-         */
-        LibraryAliasBuilder to(String group, String name);
-
-        /**
-         * Sets the plugin id this alias will reference
-         * @param id the plugin id
-         * @return a builder to configure the plugin
-         *
-         * @since 7.2
-         */
-        PluginAliasBuilder toPluginId(String id);
-    }
-
-    /**
      * Allows configuring the version of a library
      *
      * @since 7.0
      */
-    @Incubating
     interface LibraryAliasBuilder {
         /**
          * Configures the version for this alias
@@ -164,7 +167,6 @@ public interface VersionCatalogBuilder extends Named {
      *
      * @since 7.2
      */
-    @Incubating
     interface PluginAliasBuilder {
         /**
          * Configures the version for this alias

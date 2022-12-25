@@ -76,7 +76,7 @@ class JDWPUtil implements TestRule {
         vm
     }
 
-    def listen() {
+    def listen(boolean acceptAsync = true) {
         def vmm = bootstrapClass.virtualMachineManager()
         connection = vmm.listeningConnectors().find { it.name() == "com.sun.jdi.SocketListen" }
         connectionArgs = connection.defaultArguments()
@@ -84,14 +84,43 @@ class JDWPUtil implements TestRule {
         connectionArgs.get("timeout").setValue('3000')
         connection.startListening(connectionArgs)
 
-        Thread.start {
-            while (!vm) {
-                try {
-                    vm = connection.accept(connectionArgs)
-                } catch (Exception e) {
-                }
+        if (acceptAsync) {
+            Thread.start {
+                accept()
             }
         }
+    }
+
+    def accept() {
+        while (vm == null) {
+            try {
+                vm = connection.accept(connectionArgs)
+                connection = null
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    /**
+     * This is used to resume the VM after events are triggered, which can cause the VM to be suspended.
+     *
+     * @param isAlive Whether the VM is still alive.
+     */
+    void asyncResumeWhile(Closure<Boolean> isAlive) {
+        def vmRef = vm
+        Thread.start("VM listener") {
+            while (isAlive()) {
+                def event = vmRef.eventQueue().remove(100)
+                if (event == null) {
+                    continue
+                }
+                event.resume()
+            }
+        }
+    }
+
+    void resume() {
+        vm.resume()
     }
 
     void close() {

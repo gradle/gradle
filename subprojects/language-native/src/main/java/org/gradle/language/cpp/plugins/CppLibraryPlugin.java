@@ -21,6 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
@@ -60,7 +61,7 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDe
  *
  * @since 4.1
  */
-public class CppLibraryPlugin implements Plugin<Project> {
+public abstract class CppLibraryPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;
     private final ImmutableAttributesFactory attributesFactory;
@@ -98,10 +99,10 @@ public class CppLibraryPlugin implements Plugin<Project> {
         library.getDevelopmentBinary().convention(project.provider(new Callable<CppBinary>() {
             @Override
             public CppBinary call() throws Exception {
-                return getDebugSharedHostStream().findFirst().orElse(
-                        getDebugStaticHostStream().findFirst().orElse(
-                                getDebugSharedStream().findFirst().orElse(
-                                        getDebugStaticStream().findFirst().orElse(null))));
+                return getDebugSharedHostStream().findFirst().orElseGet(
+                        () -> getDebugStaticHostStream().findFirst().orElseGet(
+                                () -> getDebugSharedStream().findFirst().orElseGet(
+                                        () -> getDebugStaticStream().findFirst().orElse(null))));
             }
 
             private Stream<CppBinary> getDebugStream() {
@@ -166,7 +167,7 @@ public class CppLibraryPlugin implements Plugin<Project> {
                     task.getArchiveClassifier().set("cpp-api-headers");
                     task.getArchiveFileName().set("cpp-api-headers.zip");
                 });
-                library.getMainPublication().addArtifact(new LazyPublishArtifact(headersZip));
+                library.getMainPublication().addArtifact(new LazyPublishArtifact(headersZip, ((ProjectInternal) project).getFileResolver(), ((ProjectInternal) project).getTaskDependencyFactory()));
             });
 
             library.getBinaries().realizeNow();

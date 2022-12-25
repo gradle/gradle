@@ -17,13 +17,15 @@
 package org.gradle.plugin.devel;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
+import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -57,12 +59,17 @@ import java.util.Set;
  * @see org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  * @since 2.13
  */
-public class GradlePluginDevelopmentExtension {
+public abstract class GradlePluginDevelopmentExtension {
 
+    private final Property<String> website;
+
+    private final Property<String> vcsUrl;
+
+    private final SourceSetContainer testSourceSets;
     private SourceSet pluginSourceSet;
-    private Set<SourceSet> testSourceSets = Collections.emptySet();
-    private final NamedDomainObjectContainer<PluginDeclaration> plugins;
     private boolean automatedPublishing = true;
+
+    private final NamedDomainObjectContainer<PluginDeclaration> plugins;
 
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet testSourceSet) {
         this(project, pluginSourceSet, new SourceSet[] {testSourceSet});
@@ -71,6 +78,9 @@ public class GradlePluginDevelopmentExtension {
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet[] testSourceSets) {
         this.plugins = project.container(PluginDeclaration.class);
         this.pluginSourceSet = pluginSourceSet;
+        this.testSourceSets = project.getObjects().newInstance(DefaultSourceSetContainer.class);
+        this.website = project.getObjects().property(String.class);
+        this.vcsUrl = project.getObjects().property(String.class);
         testSourceSets(testSourceSets);
     }
 
@@ -83,16 +93,33 @@ public class GradlePluginDevelopmentExtension {
         this.pluginSourceSet = pluginSourceSet;
     }
 
+     /**
+     * Adds some source sets to the collection which will be using TestKit.
+     *
+     * Calling this method multiple times with different source sets is <strong>additive</strong> - this method
+     * will add to the existing collection of source sets.
+     *
+     * @param testSourceSet the test source set to add
+     * @since 7.4
+     */
+    @Incubating
+    public void testSourceSet(SourceSet testSourceSet) {
+        this.testSourceSets.add(testSourceSet);
+    }
+
     /**
      * Provides the source sets executing the functional tests with TestKit.
      * <p>
-     * Calling this method multiple times with different source sets is not additive.
+     * Calling this method multiple times with different source sets is <strong>NOT</strong> additive.  Calling this
+     * method will overwrite any existing test source sets with the provided arguments.
      *
      * @param testSourceSets the test source sets
      */
     public void testSourceSets(SourceSet... testSourceSets) {
-        this.testSourceSets = Collections.unmodifiableSet(new HashSet<SourceSet>(Arrays.asList(testSourceSets)));
+        this.testSourceSets.clear();
+        this.testSourceSets.addAll(Arrays.asList(testSourceSets));
     }
+
 
     /**
      * Returns the source set that compiles the code under test. Defaults to {@code project.sourceSets.main}.
@@ -110,6 +137,26 @@ public class GradlePluginDevelopmentExtension {
      */
     public Set<SourceSet> getTestSourceSets() {
         return testSourceSets;
+    }
+
+    /**
+     * Returns the property holding the URL for the plugin's website.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public Property<String> getWebsite() {
+        return website;
+    }
+
+    /**
+     * Returns the property holding the URL for the plugin's VCS repository.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public Property<String> getVcsUrl() {
+        return vcsUrl;
     }
 
     /**

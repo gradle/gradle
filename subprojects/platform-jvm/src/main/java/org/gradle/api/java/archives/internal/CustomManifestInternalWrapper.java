@@ -62,12 +62,14 @@ public class CustomManifestInternalWrapper implements ManifestInternal {
 
     @Override
     public Manifest attributes(Map<String, ?> attributes) throws ManifestException {
-        return delegate.attributes(attributes);
+        delegate.attributes(attributes);
+        return this;
     }
 
     @Override
     public Manifest attributes(Map<String, ?> attributes, String sectionName) throws ManifestException {
-        return delegate.attributes(attributes, sectionName);
+        delegate.attributes(attributes, sectionName);
+        return this;
     }
 
     @Override
@@ -77,21 +79,25 @@ public class CustomManifestInternalWrapper implements ManifestInternal {
 
     @Override
     public Manifest writeTo(Object path) {
-        return delegate.writeTo(path);
+        delegate.writeTo(path);
+        return this;
     }
 
     @Override
     public Manifest from(Object... mergePath) {
-        return delegate.from(mergePath);
+        delegate.from(mergePath);
+        return this;
     }
 
     @Override
     public Manifest from(Object mergePath, Closure<?> closure) {
-        return delegate.from(mergePath, closure);
+        delegate.from(mergePath, closure);
+        return this;
     }
 
     @Override
     public Manifest from(Object mergePath, Action<ManifestMergeSpec> action) {
-        return delegate.from(mergePath, action);
+        delegate.from(mergePath, action);
+        return this;
     }
 }

@@ -21,8 +21,11 @@ import org.gradle.internal.service.scopes.Scopes;
 
 /**
  * <p>A {@code TaskActionListener} is notified of the actions that a task performs.</p>
+ *
+ * @deprecated This type is not supported when configuration caching is enabled.
  */
 @EventScope(Scopes.Build.class)
+@Deprecated
 public interface TaskActionListener {
     /**
      * This method is called immediately before the task starts performing its actions.

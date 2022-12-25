@@ -16,11 +16,14 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.internal.time.TimestampSuppliers
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.cache.CacheBuilder
+import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.CleanupActionFactory
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
+import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.cache.internal.SingleDepthFilesFinder
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
@@ -47,7 +50,7 @@ import java.nio.file.StandardCopyOption
 internal
 class ConfigurationCacheRepository(
     cacheRepository: BuildTreeScopedCache,
-    cacheCleanupFactory: CleanupActionFactory,
+    cleanupActionDecorator: CleanupActionDecorator,
     private val fileAccessTimeJournal: FileAccessTimeJournal,
     private val fileSystem: FileSystem
 ) : Stoppable {
@@ -56,6 +59,8 @@ class ConfigurationCacheRepository(
     }
 
     abstract class Layout {
+        abstract fun fileForRead(stateType: StateType): ConfigurationCacheStateFile
+
         abstract fun fileFor(stateType: StateType): ConfigurationCacheStateFile
     }
 
@@ -64,6 +69,8 @@ class ConfigurationCacheRepository(
         private val cacheDir: File,
         private val onFileAccess: (File) -> Unit
     ) : Layout() {
+        override fun fileForRead(stateType: StateType) = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType))
+
         override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = WriteableConfigurationCacheStateFile(cacheDir.stateFile(stateType), onFileAccess)
     }
 
@@ -71,6 +78,8 @@ class ConfigurationCacheRepository(
     inner class ReadableLayout(
         private val cacheDir: File
     ) : Layout() {
+        override fun fileForRead(stateType: StateType) = fileFor(stateType)
+
         override fun fileFor(stateType: StateType): ConfigurationCacheStateFile = ReadableConfigurationCacheStateFile(cacheDir.stateFile(stateType))
     }
 
@@ -145,8 +154,8 @@ class ConfigurationCacheRepository(
             return Files.createTempFile(baseDir.toPath(), stateType.fileBaseName, ".tmp").toFile()
         }
 
-        override fun <T> createValueStore(stateType: StateType, writerFactory: (OutputStream) -> ValueStore.Writer<T>, readerFactory: (InputStream) -> ValueStore.Reader<T>): ValueStore<T> {
-            return DefaultValueStore(baseDir, stateType.fileBaseName, writerFactory, readerFactory)
+        override fun <T> createValueStore(stateType: StateType, writer: ValueStore.Writer<T>, reader: ValueStore.Reader<T>): ValueStore<T> {
+            return DefaultValueStore(baseDir, stateType.fileBaseName, writer, reader)
         }
 
         override fun <T : Any> useForStateLoad(stateType: StateType, action: (ConfigurationCacheStateFile) -> T): T {
@@ -190,14 +199,14 @@ class ConfigurationCacheRepository(
     val cleanupDepth = 1
 
     private
-    val cleanupMaxAgeDays = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
+    val cleanupMaxAgeDays = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES
 
     private
     val cache = cacheRepository
         .crossVersionCache("configuration-cache")
         .withDisplayName("Configuration Cache")
         .withOnDemandLockMode() // Don't need to lock anything until we use the caches
-        .withLruCacheCleanup(cacheCleanupFactory)
+        .withLruCacheCleanup(cleanupActionDecorator)
         .open()
 
     private
@@ -205,13 +214,15 @@ class ConfigurationCacheRepository(
         withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
 
     private
-    fun CacheBuilder.withLruCacheCleanup(cleanupActionFactory: CleanupActionFactory): CacheBuilder =
-        withCleanup(
-            cleanupActionFactory.create(
-                LeastRecentlyUsedCacheCleanup(
-                    SingleDepthFilesFinder(cleanupDepth),
-                    fileAccessTimeJournal,
-                    cleanupMaxAgeDays
+    fun CacheBuilder.withLruCacheCleanup(cleanupActionDecorator: CleanupActionDecorator): CacheBuilder =
+        withCleanupStrategy(
+            DefaultCacheCleanupStrategy.from(
+                cleanupActionDecorator.decorate(
+                    LeastRecentlyUsedCacheCleanup(
+                        SingleDepthFilesFinder(cleanupDepth),
+                        fileAccessTimeJournal,
+                        TimestampSuppliers.daysAgo(cleanupMaxAgeDays)
+                    )
                 )
             )
         )

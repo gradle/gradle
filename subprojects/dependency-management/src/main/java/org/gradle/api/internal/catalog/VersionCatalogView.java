@@ -20,14 +20,16 @@ import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.artifacts.VersionCatalog;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.catalog.AbstractExternalDependencyFactory.BundleFactory;
 import org.gradle.api.internal.catalog.AbstractExternalDependencyFactory.PluginFactory;
 import org.gradle.api.internal.catalog.AbstractExternalDependencyFactory.VersionFactory;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.plugin.use.PluginDependency;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,36 +39,44 @@ public class VersionCatalogView implements VersionCatalog {
 
     private final DefaultVersionCatalog config;
     private final ProviderFactory providerFactory;
-    private final ExternalModuleDependencyFactory dependencyFactory;
 
-    @Inject
-    public VersionCatalogView(DefaultVersionCatalog config, ProviderFactory providerFactory) {
+    private final ExternalModuleDependencyFactory dependencyFactory;
+    private final BundleFactory bundleFactory;
+
+    public VersionCatalogView(
+        DefaultVersionCatalog config,
+        ProviderFactory providerFactory,
+        ObjectFactory objects,
+        ImmutableAttributesFactory attributesFactory,
+        CapabilityNotationParser capabilityNotationParser
+    ) {
         this.config = config;
         this.providerFactory = providerFactory;
-        this.dependencyFactory = new DefaultExternalDependencyFactory(config, providerFactory);
+        this.dependencyFactory = new DefaultExternalDependencyFactory(config, providerFactory, objects, attributesFactory, capabilityNotationParser);
+        this.bundleFactory = new BundleFactory(objects, providerFactory, config, attributesFactory, capabilityNotationParser);
     }
 
     @Override
-    public final Optional<Provider<MinimalExternalModuleDependency>> findDependency(String alias) {
+    public final Optional<Provider<MinimalExternalModuleDependency>> findLibrary(String alias) {
         String normalizedAlias = normalize(alias);
-        if (config.getDependencyAliases().contains(normalizedAlias)) {
+        if (config.getLibraryAliases().contains(normalizedAlias)) {
             return Optional.of(dependencyFactory.create(normalizedAlias));
         }
         return Optional.empty();
     }
 
     @Override
-    public final Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String bundle) {
-        String normalizedBundle = normalize(bundle);
+    public final Optional<Provider<ExternalModuleDependencyBundle>> findBundle(String alias) {
+        String normalizedBundle = normalize(alias);
         if (config.getBundleAliases().contains(normalizedBundle)) {
-            return Optional.of(new BundleFactory(providerFactory, config).createBundle(normalizedBundle));
+            return Optional.of(bundleFactory.createBundle(normalizedBundle));
         }
         return Optional.empty();
     }
 
     @Override
-    public final Optional<VersionConstraint> findVersion(String name) {
-        String normalizedName = normalize(name);
+    public final Optional<VersionConstraint> findVersion(String alias) {
+        String normalizedName = normalize(alias);
         if (config.getVersionAliases().contains(normalizedName)) {
             return Optional.of(new VersionFactory(providerFactory, config).findVersionConstraint(normalizedName));
         }
@@ -88,8 +98,8 @@ public class VersionCatalogView implements VersionCatalog {
     }
 
     @Override
-    public List<String> getDependencyAliases() {
-        return config.getDependencyAliases();
+    public List<String> getLibraryAliases() {
+        return config.getLibraryAliases();
     }
 
     @Override

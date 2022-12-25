@@ -19,6 +19,7 @@ package org.gradle.configurationcache.isolated
 import org.gradle.configurationcache.fixtures.SomeToolingModel
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.GradleBuild
+import spock.lang.Ignore
 
 class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
@@ -27,6 +28,7 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
         """
     }
 
+    @Ignore("https://github.com/gradle/gradle/issues/23196")
     def "caches creation of custom tooling model"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
@@ -75,10 +77,11 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
         model3.message == "this is the root project"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
+            modelsReused(":buildSrc")
         }
         outputContains("creating model for root project 'root'")
 

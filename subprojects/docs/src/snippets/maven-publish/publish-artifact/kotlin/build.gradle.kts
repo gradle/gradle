@@ -15,6 +15,8 @@ val rpmArtifact = artifacts.add("archives", rpmFile.get().asFile) {
 // end::custom-artifact[]
 
 tasks.register("rpm") {
+    // Reduce scope of property for compatibility with the configuration cache
+    val rpmFile = rpmFile
     outputs.file(rpmFile)
     doLast {
         // produce real RPM here

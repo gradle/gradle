@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.processing
 
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessorResult
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.Processor
@@ -38,7 +37,6 @@ class DynamicProcessorTest extends Specification {
         result.type == UNKNOWN
     }
 
-    @Unroll
     def "updates processor type from options for #type processor"() {
         given:
         delegate.getSupportedOptions() >> [type.processorOption]

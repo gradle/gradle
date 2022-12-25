@@ -22,7 +22,6 @@ import org.gradle.integtests.resolve.MetadataArtifactResolveTestFixture
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.MavenHttpModule
-import spock.lang.Unroll
 
 class MavenModuleArtifactResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
     private MetadataArtifactResolveTestFixture fixture
@@ -58,7 +57,6 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "invalid component type and artifact type (#reason)"() {
         given:
@@ -125,7 +123,6 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "updates artifacts for module #condition"() {
         given:

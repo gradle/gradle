@@ -37,6 +37,3 @@ class MavenFileRepository implements MavenRepository {
         return new MavenFileModule(rootDir, artifactDir, groupId, artifactId, version as String)
     }
 }
-
-
-

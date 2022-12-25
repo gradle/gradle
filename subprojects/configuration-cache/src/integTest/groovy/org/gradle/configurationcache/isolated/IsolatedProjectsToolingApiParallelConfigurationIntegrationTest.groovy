@@ -30,6 +30,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         server.start()
     }
 
+    @Ignore("https://github.com/gradle/gradle/issues/23196")
     def "projects are configured and models created in parallel when project scoped model is queried concurrently"() {
         withSomeToolingModelBuilderPluginInBuildSrc("""
             ${server.callFromBuildUsingExpression("'model-' + project.name")}
@@ -103,12 +104,13 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         model3[2].message == "this is project b"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertStateUpdated {
             fileChanged("a/build.gradle")
             fileChanged("b/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a", ":b")
+            modelsReused(":", ":buildSrc")
         }
 
         when:

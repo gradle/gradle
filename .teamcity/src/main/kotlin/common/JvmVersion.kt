@@ -19,8 +19,6 @@ package common
 enum class JvmVersion(val major: Int) {
     java8(8),
     java11(11),
-    java15(15),
-    java16(16),
     java17(17),
     java18(18)
 }

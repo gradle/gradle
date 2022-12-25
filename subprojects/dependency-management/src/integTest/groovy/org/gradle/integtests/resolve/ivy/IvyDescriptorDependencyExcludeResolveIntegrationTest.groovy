@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.test.fixtures.ivy.IvyModule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 /**
  * Demonstrates the use of Ivy dependency excludes.
@@ -32,7 +31,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * Dependency graph:
      * a -> b, c
      */
-    @Unroll
     def "dependency exclude having single artifact with #name"() {
         given:
         ivyRepo.module('b').publish()
@@ -67,7 +65,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      *
      * Exclude is applied to dependency a->b
      */
-    @Unroll
     def "transitive dependency exclude having single artifact with #name"() {
         given:
         ivyRepo.module('d').publish()
@@ -100,7 +97,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      *
      * 'c' is excluded on dependency a->b
      */
-    @Unroll
     def "module involved in dependency cycle with excluded #name"() {
         given:
         IvyModule moduleA = ivyRepo.module('a').dependsOn('b')
@@ -131,7 +127,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * b -> d -> f
      * c -> e
      */
-    @Unroll
     def "transitive dependency exclude having single artifact with #name does not exclude its transitive module"() {
         given:
         ivyRepo.module('f').publish()
@@ -163,7 +158,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * b -> d
      * c -> e
      */
-    @Unroll
     def "transitive dependency exclude having multiple artifacts with #name"() {
         given:
         ivyRepo.module('d')
@@ -202,7 +196,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * b -> d
      * c -> d
      */
-    @Unroll
     def "when a module is depended on via multiple paths and excluded on only one of those paths, it is not excluded (#name)"() {
         given:
         ivyRepo.module('d').publish()
@@ -261,7 +254,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * b -> d
      * c -> d
      */
-    @Unroll
     def "when a module is depended on via multiple paths and excluded on all of those paths, it is excluded (#name)"() {
         given:
         ivyRepo.module('d').publish()
@@ -294,7 +286,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * b -> d
      * c -> d
      */
-    @Unroll
     def "when a module is depended on via multiple paths, it is excluded only if excluded on each of the paths (#name)"() {
         given:
         ivyRepo.module('d').publish()
@@ -328,7 +319,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * Dependency graph:
      * a -> b -> c -> d
      */
-    @Unroll
     def "when a module is depended on via a single chained path, it is excluded if excluded on any of the links in that path (#name)"() {
         given:
         ivyRepo.module('d').publish()
@@ -366,7 +356,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
      * c -> e
      */
     @Issue("https://issues.gradle.org/browse/GRADLE-2674")
-    @Unroll
     def "transitive dependency exclude without provided group or module attribute but matching #name does not exclude its transitive module"() {
         given:
         ivyRepo.module('f')
@@ -400,7 +389,6 @@ class IvyDescriptorDependencyExcludeResolveIntegrationTest extends AbstractIvyDe
         "ext 'jar'"                     | [ext: 'jar']                   | ['a-1.0.jar', 'c-1.0.jar', 'd-1.0.war', 'd-1.0.ear', 'e-1.0.jar', 'f-1.0.war']
     }
 
-    @Unroll
     def "excludes transitive dependencies when ivy.xml has dependency declared with #name"() {
         given:
 

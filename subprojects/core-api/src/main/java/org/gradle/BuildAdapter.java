@@ -40,6 +40,7 @@ public class BuildAdapter implements BuildListener {
     public void projectsEvaluated(Gradle gradle) {
     }
 
+    @Deprecated
     @Override
     public void buildFinished(BuildResult result) {
     }

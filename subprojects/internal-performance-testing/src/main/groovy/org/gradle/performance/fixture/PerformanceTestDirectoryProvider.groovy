@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 @CompileStatic
 class PerformanceTestDirectoryProvider extends TestNameTestDirectoryProvider {
     PerformanceTestDirectoryProvider(Class<?> klass) {
-        // NOTE: the space in the directory name is intentional
+        // Java does not support spaces in GC logging location
         super(new TestFile(new File("build/tmp/performance-test-files")), klass)
     }
 }

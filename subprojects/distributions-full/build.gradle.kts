@@ -4,8 +4,12 @@ plugins {
     id("gradlebuild.install")
 }
 
+description = "The collector project for the entirety of the Gradle distribution"
+
 dependencies {
     coreRuntimeOnly(platform(project(":core-platform")))
+
+    agentsRuntimeOnly(project(":instrumentation-agent"))
 
     pluginsRuntimeOnly(platform(project(":distributions-publishing")))
     pluginsRuntimeOnly(platform(project(":distributions-jvm")))

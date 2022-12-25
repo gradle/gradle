@@ -19,174 +19,59 @@ package org.gradle.execution.plan;
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.resources.ResourceLockState;
-import org.gradle.internal.work.WorkerLeaseRegistry;
 
-import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
+import java.io.Closeable;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.function.Consumer;
 
 /**
- * Represents a graph of dependent work items, returned in execution order.
+ * Represents a mutable graph of dependent work items.
+ *
+ * <p>The methods of this interface are not thread safe.
  */
-public interface ExecutionPlan extends Describable {
-    ExecutionPlan EMPTY = new ExecutionPlan() {
-        @Override
-        public void useFilter(Spec<? super Task> filter) {
-            throw new IllegalStateException();
-        }
-
-        @Override
-        public void setContinueOnFailure(boolean continueOnFailure) {
-            throw new IllegalStateException();
-        }
-
-        @Nullable
-        @Override
-        public Node selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState) {
-            return null;
-        }
-
-        @Override
-        public void finishedExecuting(Node node) {
-            throw new IllegalStateException();
-        }
-
-        @Override
-        public void abortAllAndFail(Throwable t) {
-        }
-
-        @Override
-        public void cancelExecution() {
-        }
-
-        @Override
-        public TaskNode getNode(Task task) {
-            throw new IllegalStateException();
-        }
-
-        @Override
-        public void addNodes(Collection<? extends Node> nodes) {
-            throw new IllegalStateException();
-        }
-
-        @Override
-        public void addEntryTasks(Collection<? extends Task> tasks) {
-            throw new IllegalStateException();
-        }
-
-        @Override
-        public void determineExecutionPlan() {
-        }
-
-        @Override
-        public Set<Task> getTasks() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<Task> getRequestedTasks() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public List<Node> getScheduledNodes() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public List<Node> getScheduledNodesPlusDependencies() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Set<Task> getFilteredTasks() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public void collectFailures(Collection<? super Throwable> failures) {
-        }
-
-        @Override
-        public boolean allNodesComplete() {
-            return true;
-        }
-
-        @Override
-        public boolean hasNodesRemaining() {
-            return false;
-        }
-
-        @Override
-        public int size() {
-            return 0;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "empty";
-        }
-    };
-
-    void useFilter(Spec<? super Task> filter);
+@NotThreadSafe
+public interface ExecutionPlan extends Describable, Closeable {
+    void addFilter(Spec<? super Task> filter);
 
     void setContinueOnFailure(boolean continueOnFailure);
 
-    /**
-     * Selects a work item to run, returns null if there is no work remaining _or_ if no queued work is ready to run.
-     */
-    @Nullable
-    Node selectNext(WorkerLeaseRegistry.WorkerLease workerLease, ResourceLockState resourceLockState);
-
-    void finishedExecuting(Node node);
-
-    void abortAllAndFail(Throwable t);
-
-    void cancelExecution();
+    void setScheduledNodes(Collection<? extends Node> nodes);
 
     /**
-     * Returns the node for the supplied task that is part of this execution plan.
+     * Adds an entry task to the execution plan. If called multiple times then execution plan follows the method invocation order.
      *
-     * @throws IllegalStateException When no node for the supplied task is part of this execution plan.
      */
-    TaskNode getNode(Task task);
+    void addEntryTask(Task task);
 
-    void addNodes(Collection<? extends Node> nodes);
-
+    /**
+     * Adds entry tasks to the execution plan. No ordering can be assumed between the elements of the target collection. If called multiple times then execution plan follows the method invocation order.
+     */
     void addEntryTasks(Collection<? extends Task> tasks);
 
+    /**
+     * Returns a snapshot of the current contents of this plan. Note that this plan is mutable, so the contents may later change.
+     */
+    QueryableExecutionPlan getContents();
+
+    /**
+     * Calculates the execution plan for the current entry tasks. May be called multiple times.
+     */
     void determineExecutionPlan();
 
     /**
-     * @return The set of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
+     * Finalizes this plan once all nodes have been added. Must be called after {@link #determineExecutionPlan()}.
      */
-    Set<Task> getTasks();
-
-    Set<Task> getRequestedTasks();
-
-    List<Node> getScheduledNodes();
-
-    List<Node> getScheduledNodesPlusDependencies();
+    FinalizedExecutionPlan finalizePlan();
 
     /**
-     * @return The set of all filtered tasks that don't get executed.
+     * Invokes the given action when a task completes (as per {@link Node#isComplete()}). Does nothing for tasks that have already completed.
      */
-    Set<Task> getFilteredTasks();
+    void onComplete(Consumer<LocalTaskNode> handler);
 
     /**
-     * Collects the current set of task failures into the given collection.
+     * Overridden to remove IOException.
      */
-    void collectFailures(Collection<? super Throwable> failures);
-
-    boolean allNodesComplete();
-
-    boolean hasNodesRemaining();
-
-    /**
-     * Returns the number of work items in the plan.
-     */
-    int size();
+    @Override
+    void close();
 }

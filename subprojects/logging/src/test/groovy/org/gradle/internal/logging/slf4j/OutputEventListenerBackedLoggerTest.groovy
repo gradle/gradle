@@ -27,7 +27,6 @@ import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.time.Clock
 import org.slf4j.Marker
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.concurrent.TimeUnit
 
@@ -39,7 +38,6 @@ import static org.gradle.api.logging.LogLevel.QUIET
 import static org.gradle.api.logging.LogLevel.WARN
 import static org.slf4j.Logger.ROOT_LOGGER_NAME
 
-@Unroll
 class OutputEventListenerBackedLoggerTest extends Specification {
 
     final List<LogEvent> events = []

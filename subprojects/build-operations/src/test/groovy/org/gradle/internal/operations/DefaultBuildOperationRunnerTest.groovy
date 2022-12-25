@@ -17,7 +17,6 @@
 package org.gradle.internal.operations
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import javax.annotation.Nullable
 
@@ -26,7 +25,6 @@ import static org.gradle.internal.operations.DefaultBuildOperationRunner.BuildOp
 import static org.gradle.internal.operations.DefaultBuildOperationRunner.ReadableBuildOperationContext
 import static org.gradle.internal.operations.DefaultBuildOperationRunner.TimeSupplier
 
-@Unroll
 class DefaultBuildOperationRunnerTest extends Specification {
 
     def timeProvider = Mock(TimeSupplier)

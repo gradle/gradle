@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import spock.lang.Unroll
 
 class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -30,16 +29,18 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
     @SuppressWarnings("GroovyUnusedDeclaration")
     def operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
-    @Unroll
     def "repositories used when resolving project configurations are exposed via build operation (repo: #repo)"() {
         setup:
-        disablePluginRepoMirror()
+        executer.beforeExecute { executer.withPluginRepositoryMirrorDisabled() }
         m2.generateUserSettingsFile(m2.mavenRepo())
         using m2
         buildFile << """
             apply plugin: 'java'
             ${repoBlock.replaceAll('<<URL>>', mavenHttpRepo.uri.toString())}
-            task resolve { doLast { configurations.compileClasspath.resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
         if (deprecationWarning) {
             executer.expectDocumentedDeprecationWarning(deprecationWarning)
@@ -68,7 +69,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         'flat-dir'             | flatDirRepoBlock()            | expectedFlatDirRepo()            | null
         'local maven'          | mavenLocalRepoBlock()         | expectedMavenLocalRepo()         | null
         'maven central'        | mavenCentralRepoBlock()       | expectedMavenCentralRepo()       | null
-        'jcenter'              | jcenterRepoBlock()            | expectedJcenterRepo()            | "The RepositoryHandler.jcenter() method has been deprecated. This is scheduled to be removed in Gradle 8.0. JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#jcenter_deprecation"
+        'jcenter'              | jcenterRepoBlock()            | expectedJcenterRepo()            | "The RepositoryHandler.jcenter() method has been deprecated. This is scheduled to be removed in Gradle 9.0. JFrog announced JCenter's sunset in February 2021. Use mavenCentral() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#jcenter_deprecation"
         'google'               | googleRepoBlock()             | expectedGoogleRepo()             | null
         'gradle plugin portal' | gradlePluginPortalRepoBlock() | expectedGradlePluginPortalRepo() | null
     }
@@ -163,7 +164,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             }
             apply plugin: 'org.example.plugin2'
             repositories { maven { url = '$mavenRepo.uri' } }
-            task resolve { doLast { configurations.compileClasspath.resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -184,7 +188,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
             allprojects {
                 apply plugin: 'java'
                 ${mavenCentralRepoBlock()}
-                task resolve { doLast { configurations.compileClasspath.resolve() } }
+                task resolve {
+                    def files = configurations.compileClasspath
+                    doLast { files.files }
+                }
             }
         """
 
@@ -216,7 +223,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     }
                 }
             }
-            task resolve { doLast { configurations.compileClasspath. resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -247,7 +257,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     name = 'custom repo'
                 }
             }
-            task resolve { doLast { configurations.compileClasspath. resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -284,7 +297,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     }
                 }
             }
-            task resolve { doLast { configurations.compileClasspath. resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -326,7 +342,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     ${definition}
                 }
             }
-            task resolve { doLast { configurations.compileClasspath.resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:
@@ -388,7 +407,10 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
                     dirs 'lib1', 'lib2'
                 }
             }
-            task resolve { doLast { configurations.compileClasspath. resolve() } }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
         """
 
         when:

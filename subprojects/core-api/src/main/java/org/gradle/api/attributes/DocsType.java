@@ -52,5 +52,4 @@ public interface DocsType extends Named {
      * The typical documentation for native APIs
      */
     String DOXYGEN = "doxygen";
-
 }

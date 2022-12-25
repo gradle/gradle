@@ -21,21 +21,43 @@ import org.gradle.BuildResult
 import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.artifacts.component.BuildIdentifier
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.services.BuildServiceRegistry
+import org.gradle.api.services.ServiceReference
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.service.scopes.Scopes
-import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
+import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultBuildServicesRegistryTest extends Specification {
     def listenerManager = new DefaultListenerManager(Scopes.Build)
-    def isolatableFactory = new DefaultValueSnapshotter(null, TestUtil.managedFactoryRegistry())
+    def isolatableFactory = new DefaultIsolatableFactory(null, TestUtil.managedFactoryRegistry())
     def leaseRegistry = Stub(SharedResourceLeaseRegistry)
     def buildIdentifier = Mock(BuildIdentifier)
-    def registry = new DefaultBuildServicesRegistry(buildIdentifier, TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager, isolatableFactory, leaseRegistry)
+    def services = TestUtil.createTestServices { registrations ->
+        registrations.addProvider(new Object() {
+            BuildServiceRegistry createBuildServiceRegistry() {
+                return new DefaultBuildServicesRegistry(
+                    buildIdentifier,
+                    services.get(DomainObjectCollectionFactory),
+                    services.get(InstantiatorFactory),
+                    services,
+                    listenerManager,
+                    isolatableFactory,
+                    leaseRegistry,
+                    BuildServiceProvider.Listener.EMPTY
+                )
+            }
+        })
+    }
+    def registry = services.get(BuildServiceRegistry)
 
     def setup() {
         ServiceImpl.reset()
@@ -137,6 +159,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
     }
 
     def "service can take no parameters"() {
+        given:
         def action = Mock(Action)
 
         when:
@@ -231,6 +254,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
     }
 
     def "stops service at end of build if it implements AutoCloseable"() {
+        given:
         def provider1 = registry.registerIfAbsent("one", ServiceImpl) {}
         def provider2 = registry.registerIfAbsent("two", StoppableServiceImpl) {}
         def provider3 = registry.registerIfAbsent("three", StoppableServiceImpl) {}
@@ -261,6 +285,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
     }
 
     def "reports failure to stop service"() {
+        given:
         def provider = registry.registerIfAbsent("service", BrokenStopServiceImpl) {}
         provider.get()
 
@@ -301,6 +326,20 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
         and:
         registry.forService(service).maxUsages == 42
+    }
+
+    def "applies built-in convention to service references"() {
+        given:
+        def bean = services.get(ObjectFactory).newInstance(BeanWithBuildServiceProperty)
+
+        expect:
+        bean.getHello().getOrNull() == null
+
+        when:
+        registry.registerIfAbsent("helloService", NoParamsServiceImpl) {}
+
+        then:
+        bean.getHello().getOrNull() != null
     }
 
     private buildFinished() {
@@ -359,5 +398,10 @@ class DefaultBuildServicesRegistryTest extends Specification {
             attempts++
             throw failure
         }
+    }
+
+    static abstract class BeanWithBuildServiceProperty {
+        @ServiceReference("helloService")
+        abstract Property<NoParamsServiceImpl> getHello();
     }
 }

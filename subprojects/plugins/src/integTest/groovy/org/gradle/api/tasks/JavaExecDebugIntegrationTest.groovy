@@ -16,21 +16,32 @@
 
 package org.gradle.api.tasks
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.Flaky
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import org.junit.Assume
 import org.junit.Rule
-import spock.lang.Ignore
-import spock.lang.Unroll
+import spock.lang.Issue
 
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3612")
 class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     JDWPUtil debugClient = new JDWPUtil()
 
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
+    def setup() {
+        executer.beforeExecute {
+            // When waiting for debugger/target JVM, there might be:
+            // com.sun.jdi.connect.TransportTimeoutException: timeout waiting for connection
+            // it's fine to ignore them because we're waiting in a loop.
+            executer.withStackTraceChecksDisabled()
+        }
+    }
+
     def "debug is disabled by default with task :#taskName"() {
         setup:
         sampleProject """
@@ -42,11 +53,9 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         succeeds(taskName)
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
+        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
     def "debug session fails without debugger with task :#taskName"() {
         setup:
         sampleProject """
@@ -58,14 +67,12 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         def failure = executer.withTasks(taskName).withStackTraceChecksDisabled().runWithFailure()
-        failure.assertHasErrorOutput('ERROR: transport error 202: connect failed:')
+        failure.error.contains('ERROR: transport error 202: connect failed:') || failure.error.contains('ERROR: transport error 202: handshake failed')
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
+        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
     def "can debug Java exec with socket listen type debugger (server = false) with task :#taskName"() {
         setup:
         sampleProject """
@@ -82,19 +89,23 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         succeeds(taskName)
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
+        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @Ignore
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
-    def "can debug Java exec with socket attach type debugger (server = true) with task :#taskName"() {
-        setup:
+    @Issue("https://github.com/gradle/gradle/issues/20644")
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "can debug Java exec with socket server debugger (server = true) on explicitly any host with task :#taskName"() {
+        def jdwpHost = nonLoopbackAddress()
+        Assume.assumeNotNull(jdwpHost)
+
+        debugClient.host = jdwpHost
+
         sampleProject """
             debugOptions {
                 enabled = true
                 server = true
                 suspend = true
+                host = '*'
                 port = $debugClient.port
             }
         """
@@ -112,11 +123,53 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         handle.waitForFinish()
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
+        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
+    @Issue("https://github.com/gradle/gradle/issues/20644")
+    def "can debug Java exec with socket server debugger (server = true) on via host with task :#taskName"() {
+        def jdwpHost = nonLoopbackAddress()
+        Assume.assumeNotNull(jdwpHost)
+
+        debugClient.host = jdwpHost
+
+        sampleProject """
+            debugOptions {
+                enabled = true
+                server = true
+                suspend = true
+                host = '$jdwpHost'
+                port = $debugClient.port
+            }
+        """
+
+        when:
+        def handle = executer.withTasks(taskName).start()
+        ConcurrentTestUtil.poll(60) {
+            assert handle.standardOutput.contains('Listening for transport dt_socket at address')
+        }
+
+        then:
+        debugClient.connect().dispose()
+
+        then:
+        handle.waitForFinish()
+
+        where:
+        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test']
+    }
+
+    /** To test attaching the debugger via a non-loopback network interface, we need to choose an IP address of such an interface. */
+    private static final String nonLoopbackAddress() {
+        println("Looking at network interfaces")
+        def address = Collections.list(NetworkInterface.getNetworkInterfaces())
+            .collectMany { it.isLoopback() ? [] : Collections.list(it.inetAddresses) }
+            .find { it instanceof Inet4Address && !it.isLoopbackAddress() }
+            ?.hostAddress
+        println("using address=$address")
+        return address
+    }
+
     def "debug options overrides debug property with task :#taskName"() {
         setup:
         sampleProject """
@@ -132,11 +185,9 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         succeeds(taskName)
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
+        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
-    @Unroll
-    @UnsupportedWithConfigurationCache(iterationMatchers = ".* :runProjectJavaExec")
     def "if custom debug argument is passed to the build then debug options is ignored with task :#taskName"() {
         setup:
         sampleProject """
@@ -156,7 +207,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Debug configuration ignored in favor of the supplied JVM arguments: [-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=$debugClient.port]"
 
         where:
-        taskName << ['runJavaExec', 'runProjectJavaExec', 'runExecOperationsJavaExec', 'test']
+        taskName << ['runJavaExec', 'runExecOperationsJavaExec', 'test']
     }
 
     private def sampleProject(String javaExecConfig) {
@@ -201,23 +252,12 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
                 $javaExecConfig
             }
 
-            task runProjectJavaExec {
-                doLast {
-                    project.javaexec {
-                        classpath = sourceSets.main.runtimeClasspath
-                        mainClass = "driver.Driver"
-
-                        $javaExecConfig
-                    }
-                }
-                dependsOn sourceSets.main.runtimeClasspath
-            }
-
             task runExecOperationsJavaExec {
                 def runClasspath = sourceSets.main.runtimeClasspath
                 dependsOn runClasspath
                 def execOps = services.get(ExecOperations)
                 doLast {
+                    // this is the same as project.javaexec
                     execOps.javaexec {
                         classpath = runClasspath
                         mainClass = "driver.Driver"

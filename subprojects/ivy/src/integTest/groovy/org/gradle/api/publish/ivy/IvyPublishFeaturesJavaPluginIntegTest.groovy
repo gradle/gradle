@@ -16,11 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Unroll
-
 class IvyPublishFeaturesJavaPluginIntegTest extends AbstractIvyPublishFeaturesJavaIntegTest {
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with feature using extension"() {
         ivyRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -32,6 +28,8 @@ class IvyPublishFeaturesJavaPluginIntegTest extends AbstractIvyPublishFeaturesJa
                     usingSourceSet(sourceSets.main)
                 }
             }
+
+            ${ivyTestRepository()}
 
             dependencies {
                 featureImplementation 'org:optionaldep:1.0'
@@ -76,8 +74,6 @@ class IvyPublishFeaturesJavaPluginIntegTest extends AbstractIvyPublishFeaturesJa
         }
     }
 
-    @Unroll
-    @ToBeFixedForConfigurationCache
     def "can update #prop after feature has been registered"() {
         ivyRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -89,6 +85,8 @@ class IvyPublishFeaturesJavaPluginIntegTest extends AbstractIvyPublishFeaturesJa
                     usingSourceSet(sourceSets.main)
                 }
             }
+
+            ${ivyTestRepository()}
 
             dependencies {
                 featureImplementation 'org:optionaldep:1.0'

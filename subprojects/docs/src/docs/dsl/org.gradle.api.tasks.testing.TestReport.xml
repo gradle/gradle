@@ -8,10 +8,10 @@
                 </tr>
             </thead>
             <tr>
-                <td>destinationDir</td>
+                <td>destinationDirectory</td>
             </tr>
             <tr>
-                <td>testResultDirs</td>
+                <td>testResults</td>
             </tr>
         </table>
     </section>
@@ -23,9 +23,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>reportOn</td>
-            </tr>
         </table>
     </section>
 </section>

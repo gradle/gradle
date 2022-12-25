@@ -25,6 +25,7 @@ import org.gradle.api.credentials.Credentials
 import org.gradle.api.credentials.HttpHeaderCredentials
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor
 import org.gradle.authentication.Authentication
 import org.gradle.internal.authentication.DefaultAuthenticationContainer
@@ -34,7 +35,6 @@ import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.internal.ClosureBackedAction
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class AbstractAuthenticationSupportedRepositoryTest extends Specification {
 
@@ -92,7 +92,6 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
     }
 
 
-    @Unroll
     def "getCredentials(Class) instantiates the correct credential types "() {
         Instantiator instantiator = Mock()
         AuthenticationContainer authenticationContainer = Mock()
@@ -226,7 +225,7 @@ class AbstractAuthenticationSupportedRepositoryTest extends Specification {
 
     class AuthSupportedRepository extends AbstractAuthenticationSupportedRepository {
         AuthSupportedRepository(Instantiator instantiator, AuthenticationContainer authenticationContainer) {
-            super(instantiator, authenticationContainer, TestUtil.objectFactory(), null)
+            super(instantiator, authenticationContainer, TestUtil.objectFactory(), null, new VersionParser())
         }
 
         @Override

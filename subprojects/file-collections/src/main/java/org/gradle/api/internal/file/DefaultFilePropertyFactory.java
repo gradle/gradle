@@ -25,8 +25,8 @@ import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.provider.AbstractCombiningProvider;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
+import org.gradle.api.internal.provider.BiProvider;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.MappingProvider;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -40,6 +40,8 @@ import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nullable;
 import java.io.File;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 @ServiceScope(Scope.Global.class)
 public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFactory {
@@ -200,7 +202,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
 
         @Override
-        public THIS value(T value) {
+        public THIS value(@Nullable T value) {
             super.value(value);
             return Cast.uncheckedNonnullCast(this);
         }
@@ -212,7 +214,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
 
         @Override
-        public void set(File file) {
+        public void set(@Nullable File file) {
             if (file == null) {
                 set((T) null);
                 return;
@@ -238,7 +240,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
 
         @Override
-        public THIS convention(T value) {
+        public THIS convention(@Nullable T value) {
             super.convention(value);
             return Cast.uncheckedNonnullCast(this);
         }
@@ -346,12 +348,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public Provider<Directory> dir(final Provider<? extends CharSequence> path) {
-            return new AbstractCombiningProvider<Directory, Directory, CharSequence>(Directory.class, this, Providers.internal(path)) {
-                @Override
-                protected Directory map(Directory b, CharSequence v) {
-                    return b.dir(v.toString());
-                }
-            };
+            return new BiProvider<>(Directory.class, this, path, (dir, relativePath) -> dir.dir(relativePath.toString()));
         }
 
         @Override
@@ -361,17 +358,12 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public Provider<RegularFile> file(final Provider<? extends CharSequence> path) {
-            return new AbstractCombiningProvider<RegularFile, Directory, CharSequence>(RegularFile.class, this, Providers.internal(path)) {
-                @Override
-                protected RegularFile map(Directory b, CharSequence v) {
-                    return b.file(v.toString());
-                }
-            };
+            return new BiProvider<>(RegularFile.class, this, path, (dir, relativePath) -> dir.file(relativePath.toString()));
         }
 
         @Override
         public FileCollection files(Object... paths) {
-            return fileCollectionFactory.withResolver(resolver).resolving(paths);
+            return fileCollectionFactory.withResolver(new DirectoryProviderPathToFileResolver(this, resolver)).resolving(paths);
         }
 
     }
@@ -406,6 +398,39 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         @Override
         public File transform(FileSystemLocation location) {
             return location.getAsFile();
+        }
+    }
+
+    private static class DirectoryProviderPathToFileResolver implements PathToFileResolver {
+        private final Provider<Directory> directoryProvider;
+        private final PathToFileResolver parentResolver;
+
+        public DirectoryProviderPathToFileResolver(Provider<Directory> directoryProvider, PathToFileResolver parentResolver) {
+            this.directoryProvider = directoryProvider;
+            this.parentResolver = parentResolver;
+        }
+
+        private PathToFileResolver createResolver() {
+            File resolved = directoryProvider.get().getAsFile();
+            return parentResolver.newResolver(resolved);
+        }
+
+        @Override
+        public File resolve(Object path) {
+            return createResolver().resolve(path);
+        }
+
+        @Override
+        public PathToFileResolver newResolver(File baseDir) {
+            return new DirectoryProviderPathToFileResolver(
+                directoryProvider.map(transformer(dir -> dir.dir(baseDir.getPath()))),
+                parentResolver
+            );
+        }
+
+        @Override
+        public boolean canResolveRelativePath() {
+            return true;
         }
     }
 }

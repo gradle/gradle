@@ -17,7 +17,6 @@
 package org.gradle.java.dependencies
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
 
@@ -41,7 +40,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         !(alternatives in [VALID, FORBIDDEN, DOES_NOT_EXIST])
     }
 
-    @Unroll
     def "the #configuration configuration is setup correctly for dependency declaration in the #plugin plugin"() {
         given:
         buildFile << """
@@ -65,6 +63,7 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         !deprecated(alternatives)   || output.contains("The $configuration configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 8.0. Please use the $alternatives configuration instead.")
         !valid(alternatives)        || !output.contains("> Configure project :")
         !doesNotExist(alternatives) || errorOutput.contains("Could not find method $configuration() for arguments [some:module:1.0] on object of type org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler")
+        !forbidden(alternatives)    || failure.hasErrorOutput("Dependencies can not be declared against the `$configuration` configuration.")
 
         where:
         plugin         | configuration                  | alternatives
@@ -72,10 +71,10 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java'         | 'compileOnly'                  | VALID
         'java'         | 'runtimeOnly'                  | VALID
         'java'         | 'implementation'               | VALID
-        'java'         | 'apiElements'                  | "implementation or compileOnly"
-        'java'         | 'runtimeElements'              | "implementation or compileOnly or runtimeOnly"
-        'java'         | 'compileClasspath'             | "implementation or compileOnly"
-        'java'         | 'runtimeClasspath'             | "implementation or compileOnly or runtimeOnly"
+        'java'         | 'apiElements'                  | FORBIDDEN
+        'java'         | 'runtimeElements'              | FORBIDDEN
+        'java'         | 'compileClasspath'             | FORBIDDEN
+        'java'         | 'runtimeClasspath'             | FORBIDDEN
         'java'         | 'annotationProcessor'          | VALID
         'java'         | 'api'                          | DOES_NOT_EXIST
         'java'         | 'compileOnlyApi'               | DOES_NOT_EXIST
@@ -83,16 +82,15 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java-library' | 'compileOnly'                  | VALID
         'java-library' | 'runtimeOnly'                  | VALID
         'java-library' | 'implementation'               | VALID
-        'java-library' | 'apiElements'                  | "implementation or api or compileOnly"
-        'java-library' | 'runtimeElements'              | "implementation or api or compileOnly or runtimeOnly"
-        'java-library' | 'compileClasspath'             | "implementation or api or compileOnly"
-        'java-library' | 'runtimeClasspath'             | "implementation or api or compileOnly or runtimeOnly"
+        'java-library' | 'apiElements'                  | FORBIDDEN
+        'java-library' | 'runtimeElements'              | FORBIDDEN
+        'java-library' | 'compileClasspath'             | FORBIDDEN
+        'java-library' | 'runtimeClasspath'             | FORBIDDEN
         'java-library' | 'annotationProcessor'          | VALID
         'java-library' | 'api'                          | VALID
         'java-library' | 'compileOnlyApi'               | VALID
     }
 
-    @Unroll
     def "the #configuration configuration is setup correctly for consumption in the #plugin plugin"() {
         when:
         settingsFile.text = "include 'sub'"
@@ -103,8 +101,8 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
                 root project(path: ':sub', configuration: '$configuration')
             }
             task resolve {
+                inputs.files(configurations.root)
                 doLast {
-                    configurations.root.files
                 }
             }
         """
@@ -149,19 +147,20 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java-library' | 'compileOnlyApi'               | FORBIDDEN
     }
 
-    @Unroll
     def "the #configuration configuration is setup correctly for resolution in the #plugin plugin"() {
         given:
         buildFile << """
             plugins { id '$plugin' }
             task resolve {
+                def conf = configurations.${configuration}
                 doLast {
-                    configurations.${configuration}.files
+                    conf.files
                 }
             }
         """
 
         when:
+        executer.withStacktraceEnabled()
         if (deprecated(alternatives)) {
             executer.expectDeprecationWarning()
         }
@@ -203,7 +202,6 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
         'java-library' | 'compileOnlyApi'               | FORBIDDEN
     }
 
-    @Unroll
     def "compileOnyApi dependency is part of #configuration"() {
         given:
         mavenRepo.module("org", "a").publish()
@@ -222,7 +220,8 @@ class JavaConfigurationSetupIntegrationTest extends AbstractIntegrationSpec {
                extendsFrom(configurations.$configuration)
             }
             tasks.register('resolvePath') {
-              doLast { println(configurations.path.collect { it.name }) }
+              def path = configurations.path
+              doLast { println(path.collect { it.name }) }
             }
         """
 

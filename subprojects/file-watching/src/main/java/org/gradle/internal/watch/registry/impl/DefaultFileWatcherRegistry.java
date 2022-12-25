@@ -18,13 +18,13 @@ package org.gradle.internal.watch.registry.impl;
 
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.file.FileWatcher;
-import net.rubygrapefruit.platform.internal.jni.AbstractFileEventFunctions;
+import net.rubygrapefruit.platform.internal.jni.AbstractNativeFileEventFunctions;
 import net.rubygrapefruit.platform.internal.jni.NativeLogger;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherUpdater;
-import org.gradle.internal.watch.vfs.WatchMode;
+import org.gradle.internal.watch.registry.WatchMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +50,7 @@ import static org.gradle.internal.watch.registry.FileWatcherRegistry.Type.REMOVE
 public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileWatcherRegistry.class);
 
-    private final AbstractFileEventFunctions<?> fileEventFunctions;
+    private final AbstractNativeFileEventFunctions<?> fileEventFunctions;
     private final FileWatcher watcher;
     private final BlockingQueue<FileWatchEvent> fileEvents;
     private final Thread eventConsumerThread;
@@ -60,7 +61,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     private volatile boolean stopping = false;
 
     public DefaultFileWatcherRegistry(
-        AbstractFileEventFunctions<?> fileEventFunctions,
+        AbstractNativeFileEventFunctions<?> fileEventFunctions,
         FileWatcher watcher,
         ChangeHandler handler,
         FileWatcherUpdater fileWatcherUpdater,
@@ -138,6 +139,11 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
+    public boolean isWatchingAnyLocations() {
+        return !fileWatcherUpdater.getWatchedFiles().isEmpty();
+    }
+
+    @Override
     public void registerWatchableHierarchy(File watchableHierarchy, SnapshotHierarchy root) {
         fileWatcherUpdater.registerWatchableHierarchy(watchableHierarchy, root);
     }
@@ -148,13 +154,13 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     }
 
     @Override
-    public SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode) {
-        return fileWatcherUpdater.updateVfsOnBuildStarted(root, watchMode);
+    public SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems) {
+        return fileWatcherUpdater.updateVfsOnBuildStarted(root, watchMode, unsupportedFileSystems);
     }
 
     @Override
-    public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies) {
-        return fileWatcherUpdater.updateVfsOnBuildFinished(root, watchMode, maximumNumberOfWatchedHierarchies);
+    public SnapshotHierarchy updateVfsOnBuildFinished(SnapshotHierarchy root, WatchMode watchMode, int maximumNumberOfWatchedHierarchies, List<File> unsupportedFileSystems) {
+        return fileWatcherUpdater.updateVfsOnBuildFinished(root, watchMode, maximumNumberOfWatchedHierarchies, unsupportedFileSystems);
     }
 
     private static Type convertType(FileWatchEvent.ChangeType type) {
@@ -176,7 +182,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
     public FileWatchingStatistics getAndResetStatistics() {
         MutableFileWatchingStatistics currentStatistics = fileWatchingStatistics;
         fileWatchingStatistics = new MutableFileWatchingStatistics();
-        AtomicInteger numberOfWatchedHierarchies = new AtomicInteger(0);
+        AtomicInteger numberOfWatchedHierarchies = new AtomicInteger();
         fileWatcherUpdater.getWatchedFiles().visitRoots(root -> numberOfWatchedHierarchies.incrementAndGet());
         return new FileWatchingStatistics() {
             @Override

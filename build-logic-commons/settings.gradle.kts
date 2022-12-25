@@ -20,6 +20,12 @@ dependencyResolutionManagement {
     }
 }
 
-include("code-quality")
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.3.0")
+}
+
+include("commons")
 include("code-quality-rules")
 include("gradle-plugin")
+
+rootProject.name = "build-logic-commons"

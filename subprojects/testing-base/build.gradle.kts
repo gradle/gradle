@@ -4,6 +4,13 @@ plugins {
 
 gradlebuildJava.usedInWorkers()
 
+description = """Basic testing related plugins, which establish conventions for testing output directories,
+and setup basic testing-related features lik a testSuites container and the testing extension.  It provides most of the
+testing-related abstract base types and interfaces for things like Test tasks, listeners and filters.
+
+This project is a implementation dependency of many other testing-related subprojects in the Gradle build.
+"""
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))
@@ -51,7 +58,7 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API (org.gradle.api.tasks.testing.AbstractTestTask)
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/internal/tasks/testing/**")
 }
 

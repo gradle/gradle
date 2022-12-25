@@ -2,8 +2,12 @@ plugins {
     id("gradlebuild.distribution.packaging")
 }
 
+description = "The collector project for the 'core' portion of the Gradle distribution"
+
 dependencies {
     coreRuntimeOnly(platform(project(":core-platform")))
+
+    agentsRuntimeOnly(project(":instrumentation-agent"))
 
     pluginsRuntimeOnly(project(":plugin-use")) {
         because("This is a core extension module (see DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES)")

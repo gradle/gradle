@@ -8,7 +8,7 @@ The following is some help for working with the docs, all file paths are relativ
 
 The release notes are generated from `src/docs/release/notes.md`.
 
-### Schema 
+### Schema
 
 Every `h2` tag and `h3` will be listed in the generated TOC.
 
@@ -52,7 +52,7 @@ Alternatively, if you want to serve the docs in a built-in webserver, you can us
 
     ./gradlew serveDocs -PquickDocs
 
-The flag -PquickDocs disables some slow documentation tasks, like creating the DSL reference or the single page user manual PDF or HTML.
+The flag `-PquickDocs` disables some slow documentation tasks, like creating the DSL reference or the single page user manual PDF or HTML.
 
 If you really want to generate just the user manual, you can run:
 
@@ -110,32 +110,33 @@ Note here that there are 2 sample projects under `initScripts/customLogger/`: on
 ```asciidoc
 .Customizing what Gradle logs
 ====
-include::sample[dir="snippets/initScripts/customLogger/groovy",files="init.gradle[]"]
-
 include::sample[dir="snippets/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
+include::sample[dir="snippets/initScripts/customLogger/groovy",files="init.gradle[]"]
 ====
 
-[.multi-language-text.lang-groovy]
-----
-$ gradle -I init.gradle build
-include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
-----
 [.multi-language-text.lang-kotlin]
 ----
 $ gradle -I customLogger.init.gradle.kts build
+include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
+----
+[.multi-language-text.lang-groovy]
+----
+$ gradle -I init.gradle build
 include::{snippetsPath}/initScripts/customLogger/tests/customLogger.out[]
 ----
 ```
 
 Let's break down this example to explain:
 
-* Enclosing `====` around the sample includes groups these samples and collapses them 
+* Enclosing `====` around the sample includes groups these samples and collapses them
 * `include::sample`: invokes the `SampleIncludeProcessor` asciidoctor extension, with a `dir` relative to `src/snippets/`, and a list of `files` separated by `;` (only 1 in this example), each with optional `tags=...` (like Asciidoctor's tags mechanism). We write this once for each DSL dialect. This notes to our front-end code to group these 2 samples and show them with selector tabs.
 * `[.multi-language-text.lang-groovy]`: Most times the gradle command is identical between Groovy and Kotlin samples, but in this case we need to use `[.multi-language-text.lang-*]` that our CSS will collapse and switch for the DSL of choice. This is case-sensitive. You can use this construct for any 2 sibling blocks!
 
 It is possible to embed sample sources, commands, and expected output directly in the Asciidoc (or a mixture of embedded and `include`d), but we don't use this for the user manual yet. See the [Exemplar documentation](https://github.com/gradle/exemplar/#configuring-embedded-samples) if you're interested in this.
 
-### Code Samples
+### Testing samples and snippets
+
+#### Code samples
 
 Samples and output belong under `src/samples` and are published beside the user manual. See the `org.gradle.samples` plugin.
 
@@ -149,21 +150,31 @@ To run tests for a single sample, let's say from `samples/java/application`:
 ./gradlew :docs:docsTest --tests "org.gradle.docs.samples.DependencyManagementSnippetsTest.java-application*"
 ```
 
-To run tests for a single snippet:
+#### Code snippets
 
-Let's say you want to run the snippet found at `src/snippets/dependencyManagement/customizingResolution-consistentResolution`.
+Snippets live under `src/snippets`.
 
-then you can run the following command line:
-
+As an example, you can run Kotlin and Groovy snippets tests from [`src/snippets/java/toolchain-task/`](src/snippets/java/toolchain-task) using:
 ```
-   ./gradlew :docs:docsTest --tests "*.snippet-dependency-management-customizing-resolution-consistent-resolution*"
+./gradlew :docs:docsTest --tests "*.snippet-java-toolchain-task_*"
 ```
 
-which would run both Groovy and Kotlin tests.
+You can also filter the tests for a specific DSL like this:
+```
+./gradlew :docs:docsTest --tests "*.snippet-java-toolchain-task_kotlin_*"
+```
+
+#### Testing with configuration cache
+
+It is possible to run samples and snippets with the configuration cache enabled to ensure compatibility.
+You can do that by setting the Gradle property `enableConfigurationCacheForDocsTests` in the command line or in the `gradle.properties` file.
+```
+./gradlew :docs:docsTest --tests "*.snippet-java-toolchain-task_*" -PenableConfigurationCacheForDocsTests=true
+```
 
 ## Groovy DSL Reference
 
-The DSL reference is authored in Docbook syntax, with sources under `src/docs/dsl`. 
+The DSL reference is authored in Docbook syntax, with sources under `src/docs/dsl`.
 Much of the content is extracted from code doc comments.
 
 To build it, run:

@@ -18,6 +18,7 @@ package org.gradle.vcs.internal
 
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
+import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -28,7 +29,6 @@ import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
-import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
@@ -37,7 +37,6 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
     GitFileRepository repo = new GitFileRepository('buildB', temporaryFolder.getTestDirectory())
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "generates configure, task graph and run tasks operations for source dependency build with #display"() {
         given:
@@ -85,6 +84,11 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
         loadOps[1].displayName == "Load build (:buildB)"
         loadOps[1].details.buildPath == ":buildB"
         loadOps[1].parentId == resolve.id
+
+        def buildIdentifiedEvents = operations.progress(BuildIdentifiedProgressDetails)
+        buildIdentifiedEvents.size() == 2
+        buildIdentifiedEvents[0].details.buildPath == ':'
+        buildIdentifiedEvents[1].details.buildPath == ':buildB'
 
         def configureOps = operations.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2

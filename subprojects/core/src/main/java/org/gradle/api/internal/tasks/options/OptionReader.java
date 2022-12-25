@@ -16,30 +16,63 @@
 
 package org.gradle.api.internal.tasks.options;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.util.internal.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class OptionReader {
     private final ListMultimap<Class<?>, OptionElement> cachedOptionElements = ArrayListMultimap.create();
     private final Map<OptionElement, JavaMethod<Object, Collection>> cachedOptionValueMethods = new HashMap<OptionElement, JavaMethod<Object, Collection>>();
     private final OptionValueNotationParserFactory optionValueNotationParserFactory = new OptionValueNotationParserFactory();
 
+    @VisibleForTesting
+    static final Map<String, BuiltInOptionElement> BUILT_IN_OPTIONS = Stream.of(
+        new BuiltInOptionElement(
+            "Causes the task to be re-run even if up-to-date.",
+            "rerun",
+            task -> task.getOutputs().upToDateWhen(Specs.satisfyNone())
+        )
+    ).collect(Collectors.toMap(BuiltInOptionElement::getOptionName, Function.identity(), (a, b) -> a, LinkedHashMap::new));
+
+    /**
+     * Builds a list of implicit built-in options available for every task.
+     */
+    private List<OptionDescriptor> buildBuiltInOptions(Object target, Collection<String> reserved) {
+        return BUILT_IN_OPTIONS.values().stream().map(optionElement ->
+            new InstanceOptionDescriptor(target, optionElement, null, reserved.contains(optionElement.getOptionName()))
+        ).collect(Collectors.toList());
+    }
+
     public List<OptionDescriptor> getOptions(Object target) {
+        return getOptions(target, true);
+    }
+
+    public List<OptionDescriptor> getOptions(Object target, boolean validOnly) {
         final Class<?> targetClass = target.getClass();
         Map<String, OptionDescriptor> options = new HashMap<String, OptionDescriptor>();
         if (!cachedOptionElements.containsKey(targetClass)) {
@@ -49,19 +82,34 @@ public class OptionReader {
             JavaMethod<Object, Collection> optionValueMethod = cachedOptionValueMethods.get(optionElement);
             options.put(optionElement.getOptionName(), new InstanceOptionDescriptor(target, optionElement, optionValueMethod));
         }
-        return CollectionUtils.sort(options.values());
+        List<OptionDescriptor> taskOptions = CollectionUtils.sort(options.values());
+        for (OptionDescriptor builtInOption : buildBuiltInOptions(target, options.keySet())) {
+            // built-in options only enabled if they do not clash with task-declared ones
+            if (!validOnly || !builtInOption.isClashing()) {
+                taskOptions.add(builtInOption);
+            }
+        }
+
+        return taskOptions;
     }
 
     private void loadClassDescriptorInCache(Object target) {
-        final Collection<OptionElement> optionElements = getOptionElements(target);
+        final Collection<OptionElementAndSignature> optionElements = getOptionElements(target);
         List<JavaMethod<Object, Collection>> optionValueMethods = loadValueMethodForOption(target.getClass());
-        Set<String> processedOptionElements = new HashSet<String>();
-        for (OptionElement optionElement : optionElements) {
-            if (processedOptionElements.contains(optionElement.getOptionName())) {
-                throw new OptionValidationException(String.format("@Option '%s' linked to multiple elements in class '%s'.",
+        Map<String, MethodSignature> processedOptionElements = new HashMap<>();
+        for (OptionElementAndSignature optionElementAndSignature : optionElements) {
+            OptionElement optionElement = optionElementAndSignature.element;
+            MethodSignature signature = optionElementAndSignature.signature;
+
+            if (processedOptionElements.containsKey(optionElement.getOptionName())) {
+                MethodSignature existingSignature = processedOptionElements.get(optionElement.getOptionName());
+                if (!Objects.equals(signature, existingSignature)) {
+                    throw new OptionValidationException(String.format("@Option '%s' linked to multiple elements in class '%s'.",
                         optionElement.getOptionName(), target.getClass().getName()));
+                }
+                continue;
             }
-            processedOptionElements.add(optionElement.getOptionName());
+            processedOptionElements.put(optionElement.getOptionName(), signature);
             JavaMethod<Object, Collection> optionValueMethodForOption = getOptionValueMethodForOption(optionValueMethods, optionElement);
 
             cachedOptionElements.put(target.getClass(), optionElement);
@@ -92,11 +140,41 @@ public class OptionReader {
         return optionValues.value();
     }
 
-    private Collection<OptionElement> getOptionElements(Object target) {
-        List<OptionElement> allOptionElements = new ArrayList<OptionElement>();
+    private static final class OptionElementAndSignature {
+        final OptionElement element;
+        @Nullable
+        final MethodSignature signature;
+
+        OptionElementAndSignature(OptionElement element, @Nullable MethodSignature signature) {
+            this.element = element;
+            this.signature = signature;
+        }
+    }
+
+    private Collection<OptionElementAndSignature> getOptionElements(Object target) {
+        List<OptionElementAndSignature> allOptionElements = new ArrayList<>();
+        Set<Class<?>> visitedInterfaces = new HashSet<>();
+        Deque<Class<?>> interfacesToCheck = new ArrayDeque<>();
+
         for (Class<?> type = target.getClass(); type != Object.class && type != null; type = type.getSuperclass()) {
+            interfacesToCheck.addAll(Arrays.asList(type.getInterfaces()));
+
             allOptionElements.addAll(getMethodAnnotations(type));
-            allOptionElements.addAll(getFieldAnnotations(type));
+            for (OptionElement element : getFieldAnnotations(type)) {
+                allOptionElements.add(new OptionElementAndSignature(element, null));
+            }
+        }
+
+        while (interfacesToCheck.size() > 0) {
+            Class<?> type = interfacesToCheck.pop();
+
+            if (!visitedInterfaces.add(type)) {
+                continue;
+            }
+
+            interfacesToCheck.addAll(Arrays.asList(type.getInterfaces()));
+
+            allOptionElements.addAll(getMethodAnnotations(type));
         }
 
         return allOptionElements;
@@ -124,14 +202,14 @@ public class OptionReader {
         return option;
     }
 
-    private List<OptionElement> getMethodAnnotations(Class<?> type) {
-        List<OptionElement> methodOptionElements = new ArrayList<OptionElement>();
+    private List<OptionElementAndSignature> getMethodAnnotations(Class<?> type) {
+        List<OptionElementAndSignature> methodOptionElements = new ArrayList<>();
         for (Method method : type.getDeclaredMethods()) {
             Option option = findOption(method);
             if (option != null) {
                 OptionElement methodOptionDescriptor = MethodOptionElement.create(option, method,
                     optionValueNotationParserFactory);
-                methodOptionElements.add(methodOptionDescriptor);
+                methodOptionElements.add(new OptionElementAndSignature(methodOptionDescriptor, MethodSignature.from(method)));
             }
         }
         return methodOptionElements;

@@ -19,7 +19,6 @@ import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 @CleanupTestDirectory
 class UserHomeInitScriptFinderTest extends Specification {
@@ -31,7 +30,6 @@ class UserHomeInitScriptFinderTest extends Specification {
         finder = new UserHomeInitScriptFinder(temporaryFolder.getTestDirectory())
     }
 
-    @Unroll
     def "adds user #initScriptName init script when it exits"() {
         given:
         def initScript = temporaryFolder.createFile(initScriptName)

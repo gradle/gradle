@@ -10,6 +10,14 @@ plugins {
 group = 'org.example'
 version = '1.0-SNAPSHOT'
 
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13'
+}
+
 // tag::use-and-configure-plugin[]
 gradlePlugin {
     plugins {
@@ -23,8 +31,9 @@ gradlePlugin {
 
 publishing {
     repositories {
+        def repoDir = layout.buildDirectory.dir("repo")
         maven {
-            url = uri(layout.buildDirectory.dir("repo"))
+            url = uri(repoDir)
         }
     }
 }

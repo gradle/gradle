@@ -18,6 +18,7 @@ package org.gradle.kotlin.dsl.execution
 
 import com.google.common.annotations.VisibleForTesting
 import org.gradle.api.GradleScriptException
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.initialization.Settings
@@ -25,8 +26,10 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
@@ -112,6 +115,7 @@ class Interpreter(val host: Host) {
         fun loadClassInChildScopeOf(
             classLoaderScope: ClassLoaderScope,
             childScopeId: String,
+            origin: ClassLoaderScopeOrigin,
             location: File,
             className: String,
             accessorsClassPath: ClassPath
@@ -122,7 +126,7 @@ class Interpreter(val host: Host) {
             pluginRequests: PluginRequests
         )
 
-        fun applyBasePluginsTo(project: Project)
+        fun applyBasePluginsTo(project: ProjectInternal)
 
         fun setupEmbeddedKotlinFor(scriptHost: KotlinScriptHost<*>)
 
@@ -135,6 +139,8 @@ class Interpreter(val host: Host) {
         fun onScriptClassLoaded(scriptSource: ScriptSource, specializedProgram: Class<*>)
 
         val implicitImports: List<String>
+
+        val jvmTarget: JavaVersion
 
         fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry = when (programTarget) {
             ProgramTarget.Project -> serviceRegistryOf(target as Project)
@@ -315,6 +321,7 @@ class Interpreter(val host: Host) {
             scriptSource.withLocationAwareExceptionHandling {
                 ResidualProgramCompiler(
                     outputDir = cachedDir,
+                    jvmTarget = host.jvmTarget,
                     classPath = compilationClassPath,
                     originalSourceHash = sourceHash,
                     programKind = programKind,
@@ -365,6 +372,7 @@ class Interpreter(val host: Host) {
         return host.loadClassInChildScopeOf(
             baseScope,
             childScopeId = classLoaderScopeIdFor(scriptPath, scriptTemplateId),
+            origin = ClassLoaderScopeOrigin.Script(scriptSource.fileName, scriptSource.displayName),
             accessorsClassPath = accessorsClassPath,
             location = classesDir,
             className = "Program"
@@ -398,7 +406,7 @@ class Interpreter(val host: Host) {
         }
 
         override fun applyBasePluginsTo(project: Project) {
-            host.applyBasePluginsTo(project)
+            host.applyBasePluginsTo(project as ProjectInternal)
         }
 
         override fun handleScriptException(
@@ -497,6 +505,7 @@ class Interpreter(val host: Host) {
 
                                 ResidualProgramCompiler(
                                     outputDir,
+                                    host.jvmTarget,
                                     compilationClassPath,
                                     sourceHash,
                                     programKind,

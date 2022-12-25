@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.gradle.api.Describable;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.internal.Describables;
@@ -30,39 +29,38 @@ public class CachingComponentSelectionDescriptorFactory implements ComponentSele
         .build();
 
     @Override
-    public ComponentSelectionDescriptor newDescriptor(ComponentSelectionCause cause, Describable description) {
-        return getOrCreate(cause, description);
-    }
-
-    @Override
     public ComponentSelectionDescriptor newDescriptor(ComponentSelectionCause cause, String reason) {
-        return getOrCreate(cause, Describables.of(reason));
+        return getOrCreate(cause, reason);
     }
 
     @Override
     public ComponentSelectionDescriptor newDescriptor(ComponentSelectionCause cause) {
         try {
-            return descriptors.get(new Key(cause, Describables.of(cause.getDefaultReason())), () -> new DefaultComponentSelectionDescriptor(cause));
+            return descriptors.get(new Key(cause, cause.getDefaultReason()), () -> new DefaultComponentSelectionDescriptor(cause));
         } catch (ExecutionException e) {
             return new DefaultComponentSelectionDescriptor(cause);
         }
     }
 
-    private ComponentSelectionDescriptor getOrCreate(ComponentSelectionCause cause, Describable description) {
+    private ComponentSelectionDescriptor getOrCreate(ComponentSelectionCause cause, String description) {
         try {
-            return descriptors.get(new Key(cause, description), () -> new DefaultComponentSelectionDescriptor(cause, description));
+            return descriptors.get(new Key(cause, description), () -> newDescriptorInstance(cause, description));
         } catch (ExecutionException e) {
-            return new DefaultComponentSelectionDescriptor(cause, description);
+            return newDescriptorInstance(cause, description);
         }
+    }
+
+    private ComponentSelectionDescriptor newDescriptorInstance(ComponentSelectionCause cause, String description) {
+        return new DefaultComponentSelectionDescriptor(cause, Describables.of(description));
     }
 
     private static class Key {
         private final ComponentSelectionCause cause;
-        private final Describable describable;
+        private final String description;
 
-        private Key(ComponentSelectionCause cause, Describable describable) {
+        private Key(ComponentSelectionCause cause, String description) {
             this.cause = cause;
-            this.describable = describable;
+            this.description = description;
         }
 
         @Override
@@ -79,13 +77,13 @@ public class CachingComponentSelectionDescriptorFactory implements ComponentSele
             if (cause != key.cause) {
                 return false;
             }
-            return describable.equals(key.describable);
+            return description.equals(key.description);
         }
 
         @Override
         public int hashCode() {
             int result = cause.hashCode();
-            result = 31 * result + describable.hashCode();
+            result = 31 * result + description.hashCode();
             return result;
         }
     }

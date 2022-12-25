@@ -15,17 +15,15 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache
     def "signs with default signatory"() {
         given:
         buildFile << """
             signing {
-                useInMemoryPgpKeys(project.properties['secretKey'], project.properties['password'])
+                useInMemoryPgpKeys(project.property('secretKey'), project.property('password'))
                 sign(jar)
             }
         """
@@ -42,14 +40,13 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
         file("build", "libs", "sign-1.0.jar.asc").exists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "signs with custom signatory"() {
         given:
         buildFile << """
             signing {
                 useInMemoryPgpKeys('foo', 'bar')
                 signatories {
-                    custom(project.properties['secretKey'], project.properties['password'])
+                    custom(project.property('secretKey'), project.property('password'))
                 }
                 sign(jar)*.signatory = signatories.custom
             }
@@ -67,12 +64,11 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
         file("build", "libs", "sign-1.0.jar.asc").exists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "supports keys without passwords"() {
         given:
         buildFile << """
             signing {
-                useInMemoryPgpKeys(project.properties['secretKey'], '')
+                useInMemoryPgpKeys(project.property('secretKey'), '')
                 sign(jar)
             }
         """
@@ -89,12 +85,11 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
     }
 
     @Issue("gradle/gradle#10363")
-    @ToBeFixedForConfigurationCache
     def "supports signing subkeys"() {
         given:
         buildFile << """
             signing {
-                useInMemoryPgpKeys(project.properties['keyId'], project.properties['secretKey'], project.properties['password'])
+                useInMemoryPgpKeys(project.property('keyId'), project.property('secretKey'), project.property('password'))
                 sign(jar)
             }
         """

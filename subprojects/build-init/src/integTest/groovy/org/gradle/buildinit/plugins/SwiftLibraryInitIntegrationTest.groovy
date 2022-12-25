@@ -16,7 +16,6 @@
 
 package org.gradle.buildinit.plugins
 
-
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
@@ -24,9 +23,11 @@ import org.gradle.nativeplatform.fixtures.AvailableToolChains.InstalledToolChain
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
-import spock.lang.Unroll
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@Requires(TestPrecondition.NOT_MAC_OS_X_M1) // M1 Macs need modern Xcode to compile aarch64 binaries
 class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "Hello.swift"
@@ -46,7 +47,6 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Override
     String subprojectName() { 'lib' }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "swift-library plugin")
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
@@ -73,7 +73,6 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "swift-library plugin")
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
@@ -101,7 +100,6 @@ class SwiftLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "swift-library plugin")
     def "source generation is skipped when cpp sources detected with #scriptDsl build scripts"() {
         setup:

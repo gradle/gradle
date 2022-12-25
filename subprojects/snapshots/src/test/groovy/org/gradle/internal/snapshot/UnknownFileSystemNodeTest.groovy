@@ -16,11 +16,9 @@
 
 package org.gradle.internal.snapshot
 
-import spock.lang.Unroll
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
-@Unroll
 class UnknownFileSystemNodeTest extends AbstractIncompleteFileSystemNodeTest<UnknownFileSystemNode> {
 
     @Override

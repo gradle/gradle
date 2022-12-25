@@ -16,10 +16,7 @@
 
 package org.gradle.api
 
-import spock.lang.Unroll
-
 abstract class MutationFailureFromProviderConfigureRealizedDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
-    @Unroll
     def "cannot execute mutation method #mutationMethod.key from Provider.configure (realized)"() {
         buildFile << """
             realized.configure {

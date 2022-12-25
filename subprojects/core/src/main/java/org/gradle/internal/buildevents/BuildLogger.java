@@ -24,10 +24,12 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.InternalBuildListener;
+import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.time.Clock;
@@ -44,14 +46,15 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
     public BuildLogger(
         Logger logger,
         StyledTextOutputFactory textOutputFactory,
-        StartParameter startParameter,
+        LoggingConfiguration loggingConfiguration,
         BuildRequestMetaData requestMetaData,
         BuildStartedTime buildStartedTime,
         Clock clock,
-        WorkValidationWarningReporter workValidationWarningReporter
+        WorkValidationWarningReporter workValidationWarningReporter,
+        GradleEnterprisePluginManager gradleEnterprisePluginManager
     ) {
         this.logger = logger;
-        exceptionReporter = new BuildExceptionReporter(textOutputFactory, startParameter, requestMetaData.getClient());
+        exceptionReporter = new BuildExceptionReporter(textOutputFactory, loggingConfiguration, requestMetaData.getClient(), gradleEnterprisePluginManager);
         resultLogger = new BuildResultLogger(textOutputFactory, buildStartedTime, clock, new TersePrettyDurationFormatter(), workValidationWarningReporter);
     }
 
@@ -100,6 +103,7 @@ public class BuildLogger implements InternalBuildListener, TaskExecutionGraphLis
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void buildFinished(BuildResult result) {
         this.action = result.getAction();

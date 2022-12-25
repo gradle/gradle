@@ -112,10 +112,10 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         skipped(":${language.compileTaskName}")
 
         when:
-        file("src/main/${languageName}/some/dir/B.${languageName}").text = """package some.dir;
+        source( """package some.dir;
         public class B {
             public static class NewInner { }
-        }""" // in B.java/B.groovy
+        }""") // in B.java/B.groovy
         run language.compileTaskName
 
         then:
@@ -316,7 +316,7 @@ sourceSets {
 
         buildFile << """
             ${mavenCentralRepository()}
-            if (providers.gradleProperty("withIcu").forUseAtConfigurationTime().isPresent()) {
+            if (providers.gradleProperty("withIcu").isPresent()) {
                 dependencies { implementation 'com.ibm.icu:icu4j:2.6.1' }
             }
 
@@ -410,20 +410,22 @@ sourceSets {
 
     def "recompiles all classes in a package if the package-info file changes"() {
         given:
-        file("src/main/${languageName}/annotations/Anno.${languageName}").text = """
+        source("""
             package annotations;
             import java.lang.annotation.*;
             @Retention(RetentionPolicy.RUNTIME)
             @Target(ElementType.PACKAGE)
             public @interface Anno {}
-        """
+        """)
         def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
         packageFile.text = """@Deprecated package foo;"""
-        file("src/main/${languageName}/foo/A.${languageName}").text = "package foo; class A {}"
-        file("src/main/${languageName}/foo/B.${languageName}").text = "package foo; public class B {}"
-        file("src/main/${languageName}/foo/bar/C.${languageName}").text = "package foo.bar; class C {}"
-        file("src/main/${languageName}/baz/D.${languageName}").text = "package baz; class D {}"
-        file("src/main/${languageName}/baz/E.${languageName}").text = "package baz; import foo.B; class E extends B {}"
+        source(
+            "package foo; class A {}",
+            "package foo; public class B {}",
+            "package foo.bar; class C {}",
+            "package baz; class D {}",
+            "package baz; import foo.B; class E extends B {}"
+        )
 
         outputs.snapshot { succeeds language.compileTaskName }
 
@@ -438,11 +440,13 @@ sourceSets {
     def "recompiles all classes in a package if the package-info file is added"() {
         given:
         def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
-        file("src/main/${languageName}/foo/A.${languageName}").text = "package foo; class A {}"
-        file("src/main/${languageName}/foo/B.${languageName}").text = "package foo; public class B {}"
-        file("src/main/${languageName}/foo/bar/C.${languageName}").text = "package foo.bar; class C {}"
-        file("src/main/${languageName}/baz/D.${languageName}").text = "package baz; class D {}"
-        file("src/main/${languageName}/baz/E.${languageName}").text = "package baz; import foo.B; class E extends B {}"
+        source(
+            "package foo; class A {}",
+            "package foo; public class B {}",
+            "package foo.bar; class C {}",
+            "package baz; class D {}",
+            "package baz; import foo.B; class E extends B {}"
+        )
 
         outputs.snapshot { succeeds language.compileTaskName }
 
@@ -458,11 +462,13 @@ sourceSets {
         given:
         def packageFile = file("src/main/${languageName}/foo/package-info.${languageName}")
         packageFile.text = """@Deprecated package foo;"""
-        file("src/main/${languageName}/foo/A.${languageName}").text = "package foo; class A {}"
-        file("src/main/${languageName}/foo/B.${languageName}").text = "package foo; public class B {}"
-        file("src/main/${languageName}/foo/bar/C.${languageName}").text = "package foo.bar; class C {}"
-        file("src/main/${languageName}/baz/D.${languageName}").text = "package baz; class D {}"
-        file("src/main/${languageName}/baz/E.${languageName}").text = "package baz; import foo.B; class E extends B {}"
+        source(
+            "package foo; class A {}",
+            "package foo; public class B {}",
+            "package foo.bar; class C {}",
+            "package baz; class D {}",
+            "package baz; import foo.B; class E extends B {}"
+        )
 
         outputs.snapshot { succeeds language.compileTaskName }
 
@@ -491,5 +497,22 @@ sourceSets {
 
         then:
         failureCauseContains('Compilation failed')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19257")
+    def "recompiles classes with \$ in class name after rename"() {
+        def firstSource = source "class Class\$Name {}"
+        source "class Main { public static void main(String[] args) { new Class\$Name(); } }"
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        firstSource.delete()
+        source "class Class\$Name1 {}",
+            "class Main { public static void main(String[] args) { new Class\$Name1(); } }"
+        run language.compileTaskName
+
+        then:
+        outputs.deletedClasses("Class\$Name")
+        outputs.recompiledClasses("Class\$Name1", "Main")
     }
 }

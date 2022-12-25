@@ -38,7 +38,6 @@ import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ProjectDescriptorRegistry;
-import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.Pair;
 import org.gradle.internal.SystemProperties;
@@ -65,7 +64,6 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.session.BuildSessionState;
 import org.gradle.internal.session.CrossBuildSessionState;
 import org.gradle.internal.time.Time;
-import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.Path;
@@ -81,17 +79,17 @@ import static org.gradle.internal.concurrent.CompositeStoppable.stoppable;
 public class ProjectBuilderImpl {
     private static ServiceRegistry globalServices;
 
-    public Project createChildProject(String name, Project parent, File projectDir) {
+    public Project createChildProject(String name, Project parent, @Nullable File projectDir) {
         ProjectInternal parentProject = (ProjectInternal) parent;
         ProjectDescriptorRegistry descriptorRegistry = parentProject.getServices().get(ProjectDescriptorRegistry.class);
         DefaultProjectDescriptor parentDescriptor = descriptorRegistry.getProject(parentProject.getPath());
 
         projectDir = (projectDir != null) ? projectDir.getAbsoluteFile() : new File(parentProject.getProjectDir(), name);
+        // Descriptor is added to registry as a side effect
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(parentDescriptor, name, projectDir, descriptorRegistry, parentProject.getServices().get(FileResolver.class));
-        descriptorRegistry.addProject(projectDescriptor);
 
         ProjectState projectState = parentProject.getServices().get(ProjectStateRegistry.class).registerProject(parentProject.getServices().get(BuildState.class), projectDescriptor);
-        projectState.createMutableModel(parentProject.getClassLoaderScope().createChild("project-" + name), parentProject.getBaseClassLoaderScope());
+        projectState.createMutableModel(parentProject.getClassLoaderScope().createChild("project-" + name, null), parentProject.getBaseClassLoaderScope());
         ProjectInternal project = projectState.getMutableModel();
 
         // Lock the project, these won't ever be released as ProjectBuilder has no lifecycle
@@ -101,7 +99,7 @@ public class ProjectBuilderImpl {
         return project;
     }
 
-    public ProjectInternal createProject(String name, File inputProjectDir, File gradleUserHomeDir) {
+    public ProjectInternal createProject(String name, File inputProjectDir, @Nullable File gradleUserHomeDir) {
 
         final File projectDir = prepareProjectDir(inputProjectDir);
         File userHomeDir = gradleUserHomeDir == null ? new File(projectDir, "userHome") : FileUtils.canonicalize(gradleUserHomeDir);
@@ -122,15 +120,20 @@ public class ProjectBuilderImpl {
         BuildScopeServices buildServices = build.getBuildServices();
         buildServices.get(BuildStateRegistry.class).attachRootBuild(build);
 
+        // Take a root worker lease; this won't ever be released as ProjectBuilder has no lifecycle
+        ResourceLockCoordinationService coordinationService = buildServices.get(ResourceLockCoordinationService.class);
+        WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
+        WorkerLeaseRegistry.WorkerLeaseCompletion workerLease = workerLeaseService.maybeStartWorker();
+
         GradleInternal gradle = build.getMutableModel();
         gradle.setIncludedBuilds(Collections.emptyList());
 
         ProjectDescriptorRegistry projectDescriptorRegistry = buildServices.get(ProjectDescriptorRegistry.class);
+        // Registers project as a side effect
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, name, projectDir, projectDescriptorRegistry, buildServices.get(FileResolver.class));
-        projectDescriptorRegistry.addProject(projectDescriptor);
 
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
-        ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
+        ClassLoaderScope rootProjectScope = baseScope.createChild("root-project", null);
 
         ProjectStateRegistry projectStateRegistry = buildServices.get(ProjectStateRegistry.class);
         ProjectState projectState = projectStateRegistry.registerProject(build, projectDescriptor);
@@ -140,17 +143,14 @@ public class ProjectBuilderImpl {
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
 
-        // Take a root worker lease and lock the project, these won't ever be released as ProjectBuilder has no lifecycle
-        ResourceLockCoordinationService coordinationService = buildServices.get(ResourceLockCoordinationService.class);
-        WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
-        WorkerLeaseRegistry.WorkerLease workerLease = workerLeaseService.getWorkerLease();
-        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(workerLease, project.getOwner().getAccessLock()));
+        // Lock root project; this won't ever be released as ProjectBuilder has no lifecycle
+        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(project.getOwner().getAccessLock()));
 
         project.getExtensions().getExtraProperties().set(
             "ProjectBuilder.stoppable",
             stoppable(
                 (Stoppable) workerLeaseService::runAsIsolatedTask,
-                (Stoppable) ((DefaultWorkerLeaseService) workerLeaseService)::releaseCurrentResourceLocks,
+                (Stoppable) workerLease::leaseFinish,
                 buildServices,
                 buildTreeState,
                 buildSessionState,
@@ -198,17 +198,14 @@ public class ProjectBuilderImpl {
             return FileUtils.canonicalize(projectDir);
         }
 
-        TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(new Factory<File>() {
-            @Override
-            public File create() {
-                String rootTmpDir = SystemProperties.getInstance().getWorkerTmpDir();
-                if (rootTmpDir == null) {
-                    @SuppressWarnings("deprecation")
-                    String javaIoTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
-                    rootTmpDir = javaIoTmpDir;
-                }
-                return FileUtils.canonicalize(new File(rootTmpDir));
+        TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider(() -> {
+            String rootTmpDir = SystemProperties.getInstance().getWorkerTmpDir();
+            if (rootTmpDir == null) {
+                @SuppressWarnings("deprecation")
+                String javaIoTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
+                rootTmpDir = javaIoTmpDir;
             }
+            return FileUtils.canonicalize(new File(rootTmpDir));
         });
         File tempDirectory = temporaryFileProvider.createTemporaryDirectory("gradle", "projectDir");
         // TODO deleteOnExit won't clean up non-empty directories (and it leaks memory for long-running processes).

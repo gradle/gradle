@@ -41,6 +41,11 @@ class LocalPluginResolution implements PluginResolution {
     }
 
     @Override
+    public String getPluginVersion() {
+        return producingProject.getVersion().toString();
+    }
+
+    @Override
     public void execute(PluginResolveContext context) {
         context.addLegacy(pluginId, producingProject.getDependencies().create(producingProject));
     }

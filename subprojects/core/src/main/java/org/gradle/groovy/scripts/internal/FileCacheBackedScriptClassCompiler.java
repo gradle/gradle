@@ -41,6 +41,7 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -338,7 +339,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             if (RuleVisitor.SOURCE_DESC_TOKEN.equals(name)) {
                 return scriptSource.getDisplayName();
             }
-            return name.replaceAll(RemappingScriptSource.MAPPED_SCRIPT, scriptSource.getClassName());
+            return name.replace(RemappingScriptSource.MAPPED_SCRIPT, scriptSource.getClassName());
         }
 
         private Object remap(Object o) {
@@ -410,6 +411,11 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             @Override
             public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean intf) {
                 mv.visitMethodInsn(opcode, remap(owner), name, remap(desc), intf);
+            }
+
+            @Override
+            public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+                mv.visitInvokeDynamicInsn(remap(name), remap(descriptor), bootstrapMethodHandle, bootstrapMethodArguments);
             }
 
             @Override

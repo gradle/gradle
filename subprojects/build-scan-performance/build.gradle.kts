@@ -3,12 +3,17 @@ plugins {
     id("gradlebuild.performance-test")
 }
 
+description = """Performance tests for the build scan plugin
+    | Run as part of the GE pipeline.
+    | """.trimMargin()
+
 dependencies {
     testFixturesApi(project(":internal-performance-testing"))
     testFixturesApi(libs.commonsIo)
     testFixturesApi(project(":base-services"))
     testFixturesImplementation(project(":internal-testing"))
     testFixturesImplementation(project(":internal-integ-testing"))
+    testFixturesImplementation(project(":logging"))
     testFixturesImplementation(libs.groovyJson)
 
     performanceTestDistributionRuntimeOnly(project(":distributions-full")) {

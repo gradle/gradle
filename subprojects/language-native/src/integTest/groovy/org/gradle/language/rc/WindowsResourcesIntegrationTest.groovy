@@ -26,7 +26,6 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkInstall
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.WindowsSdkLocator
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.internal.TextUtil
-import spock.lang.Unroll
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 import static org.gradle.util.Matchers.containsText
@@ -36,7 +35,6 @@ class WindowsResourcesIntegrationTest extends AbstractNativeLanguageIntegrationT
     static final List<WindowsSdkInstall> NON_DEFAULT_SDKS = getNonDefaultSdks()
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
 
-    @Unroll
     def "compile and link executable with #sdk.name (#sdk.version.toString()) [#tc.displayName]"() {
         given:
         buildFile << """

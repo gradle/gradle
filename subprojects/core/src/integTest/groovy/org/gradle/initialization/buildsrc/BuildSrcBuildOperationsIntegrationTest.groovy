@@ -19,6 +19,7 @@ package org.gradle.initialization.buildsrc
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
+import org.gradle.initialization.BuildIdentifiedProgressDetails
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -26,7 +27,6 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.internal.taskgraph.CalculateTreeTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
-import spock.lang.Unroll
 
 import java.util.regex.Pattern
 
@@ -37,7 +37,6 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/src/main/java/Thing.java") << "class Thing { }"
     }
 
-    @Unroll
     def "includes build identifier in build operations with #display"() {
         when:
         file("buildSrc/settings.gradle") << settings << "\n"
@@ -59,6 +58,11 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         loadOps[1].displayName == "Load build (:buildSrc)"
         loadOps[1].details.buildPath == ':buildSrc'
         loadOps[1].parentId == buildSrcOps[0].id
+
+        def buildIdentifiedEvents = ops.progress(BuildIdentifiedProgressDetails)
+        buildIdentifiedEvents.size() == 2
+        buildIdentifiedEvents[0].details.buildPath == ':'
+        buildIdentifiedEvents[1].details.buildPath == ':buildSrc'
 
         def configureOps = ops.all(ConfigureBuildBuildOperationType)
         configureOps.size() == 2
@@ -117,7 +121,6 @@ class BuildSrcBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @Unroll
     def "does not resolve configurations when configuring buildSrc build"() {
         when:
         succeeds()

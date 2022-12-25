@@ -17,7 +17,6 @@
 package org.gradle.cache.internal.locklistener
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.cache.internal.locklistener.FileLockPacketType.LOCK_RELEASE_CONFIRMATION
 import static org.gradle.cache.internal.locklistener.FileLockPacketType.UNKNOWN
@@ -42,7 +41,6 @@ class FileLockPacketPayloadTest extends Specification {
         payload.type == UNKNOWN
     }
 
-    @Unroll
     def "decodes payloads with type #type"() {
         when:
         def payload = FileLockPacketPayload.decode([1, 0, 0, 0, 0, 0, 0, 0, 42, type.ordinal()] as byte[], 10)

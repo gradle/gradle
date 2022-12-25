@@ -16,7 +16,6 @@
 package org.gradle.profile;
 
 import org.gradle.BuildResult;
-import org.gradle.StartParameter;
 import org.gradle.api.Describable;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
@@ -29,26 +28,23 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
-import org.gradle.initialization.BuildCompletionListener;
 import org.gradle.internal.InternalBuildListener;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.time.Clock;
 
 /**
- * Adapts various events to build a {@link BuildProfile} model, and then notifies a {@link ReportGeneratingProfileListener} when the model is ready.
+ * Adapts various events to build a {@link BuildProfile} model.
  */
-public class ProfileEventAdapter implements InternalBuildListener, ProjectEvaluationListener, TaskListenerInternal, DependencyResolutionListener, BuildCompletionListener, ArtifactTransformListener {
+public class ProfileEventAdapter implements InternalBuildListener, ProjectEvaluationListener, TaskListenerInternal, DependencyResolutionListener, ArtifactTransformListener {
     private final BuildStartedTime buildStartedTime;
     private final Clock clock;
-    private final ProfileListener listener;
     private final ThreadLocal<ContinuousOperation> currentTransformation = new ThreadLocal<ContinuousOperation>();
-    private BuildProfile buildProfile;
+    private final BuildProfile buildProfile;
 
-    public ProfileEventAdapter(BuildStartedTime buildStartedTime, Clock clock, ProfileListener listener, StartParameter startParameter) {
+    public ProfileEventAdapter(BuildProfile buildProfile, BuildStartedTime buildStartedTime, Clock clock) {
+        this.buildProfile = buildProfile;
         this.buildStartedTime = buildStartedTime;
         this.clock = clock;
-        this.listener = listener;
-        this.buildProfile = new BuildProfile(startParameter);
     }
 
     // BuildListener
@@ -71,24 +67,14 @@ public class ProfileEventAdapter implements InternalBuildListener, ProjectEvalua
 
     @Override
     public void projectsEvaluated(Gradle gradle) {
+        buildProfile.setBuildDir(gradle.getRootProject().getBuildDir());
         buildProfile.setProjectsEvaluated(clock.getCurrentTime());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void buildFinished(BuildResult result) {
         buildProfile.setSuccessful(result.getFailure() == null);
-    }
-
-    @Override
-    public void completed() {
-        if (buildProfile != null) {
-            buildProfile.setBuildFinished(clock.getCurrentTime());
-            try {
-                listener.buildFinished(buildProfile);
-            } finally {
-                buildProfile = null;
-            }
-        }
     }
 
     // ProjectEvaluationListener

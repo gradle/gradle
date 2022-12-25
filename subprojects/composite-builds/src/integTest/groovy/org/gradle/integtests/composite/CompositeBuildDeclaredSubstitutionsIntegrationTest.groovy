@@ -16,11 +16,9 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
-import spock.lang.Unroll
 
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
@@ -70,11 +68,11 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         expect:
         resolvedGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
                 configuration = "runtimeElements"
             }
-            edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:2.0") {
+            edge("org.test:b1:1.0", ":buildB:b1", "org.test:b1:2.0") {
                 compositeSubstitute()
                 configuration = "runtimeElements"
             }
@@ -94,11 +92,11 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         expect:
         resolvedGraph {
-            edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:2.0") {
+            edge("org.test:b1:1.0", ":buildB:b1", "org.test:b1:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
-            edge("org.test:XXX:1.0", "project :buildC", "org.test:buildC:1.0") {
+            edge("org.test:XXX:1.0", ":buildC", "org.test:buildC:1.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
@@ -119,10 +117,10 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         expect:
         resolvedGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
-                edge("org.test:XXX:1.0", "project :buildC", "org.test:buildC:1.0") {
+                edge("org.test:XXX:1.0", ":buildC", "org.test:buildC:1.0") {
                     configuration = "runtimeElements"
                     compositeSubstitute()
                 }
@@ -172,7 +170,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         then:
         resolvedGraph {
-            edge("org.test:buildX:1.0", "project :buildB:b1", "org.test:b1:2.0") {
+            edge("org.test:buildX:1.0", ":buildB:b1", "org.test:b1:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
@@ -201,7 +199,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         then:
         resolvedGraph {
-            edge("org.gradle:buildX:1.0", "project :buildB", "org.test:buildB2:1.0") {
+            edge("org.gradle:buildX:1.0", ":buildB", "org.test:buildB2:1.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }
@@ -221,10 +219,10 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         then:
         resolvedGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
-                edge("org.test:b2:1.0", "project :buildB:b2", "org.test:b2:2.0") {
+                edge("org.test:b2:1.0", ":buildB:b2", "org.test:b2:2.0") {
                     configuration = "runtimeElements"
                     compositeSubstitute()
                 }
@@ -254,7 +252,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         then:
         resolvedGraph {
-            edge("org.test:platform:1.0", "project :platform", "org.test:platform:2.0") {
+            edge("org.test:platform:1.0", ":platform", "org.test:platform:2.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
                 noArtifacts()
@@ -263,7 +261,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
     }
 
-    @Unroll
     def "preserves the requested attributes when performing a composite substitution using mapping"() {
         platformDependency 'org.test:platform:1.0'
 
@@ -285,7 +282,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         then:
         resolvedGraph {
-            edge("org.test:platform:1.0", "project :platform", ":platform:") {
+            edge("org.test:platform:1.0", ":platform", ":platform:") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
                 noArtifacts()
@@ -320,7 +317,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         then:
         resolvedGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 configuration = "testFixturesRuntimeElements"
                 compositeSubstitute()
                 artifact name: 'buildB'
@@ -354,7 +351,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         then:
         resolvedGraph {
-            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 configuration = "testFixturesRuntimeElements"
                 compositeSubstitute()
                 artifact name: 'buildB'
@@ -372,7 +369,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15659")
-    @ToBeFixedForConfigurationCache(because = "uses dependencies task")
     def "resolves dependencies of included build with dependency substitution when substitution build contains buildSrc"() {
         given:
         includeBuild(buildB, """
@@ -414,7 +410,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         execute(buildA, ":buildC:build")
     }
 
-    @ToBeFixedForConfigurationCache(because = "uses dependencies tasks")
     @Issue("https://github.com/gradle/gradle/issues/15659")
     def "resolves dependencies of included build with dependency substitution when substitution build uses a plugin from its build-logic build"() {
         given:

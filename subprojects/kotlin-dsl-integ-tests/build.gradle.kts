@@ -11,6 +11,7 @@ dependencies {
     integTestImplementation(project(":core-api"))
     integTestImplementation(project(":core"))
     integTestImplementation(project(":internal-testing"))
+    integTestImplementation(project(":logging"))
     integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
 
     integTestRuntimeOnly(project(":kotlin-dsl-plugins")) {
@@ -18,8 +19,13 @@ dependencies {
     }
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
-
     integTestLocalRepository(project(":kotlin-dsl-plugins"))
+
+    crossVersionTestImplementation(project(":core-api"))
+    crossVersionTestImplementation(project(":logging"))
+
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
+    crossVersionTestLocalRepository(project(":kotlin-dsl-plugins"))
 }
 
 testFilesCleanup.reportOnly.set(true)

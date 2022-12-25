@@ -34,20 +34,13 @@ import org.gradle.plugins.ide.internal.configurer.EclipseModelAwareUniqueProject
 import org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder
 import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
-import spock.lang.Unroll
 
-@UsesNativeServices
-@CleanupTestDirectory
 class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
     Project child1
     Project child2
 
     def setup() {
-        project = TestUtil.builder(temporaryFolder.testDirectory).withName("project").build()
         child1 = ProjectBuilder.builder().withName("child1").withParent(project).build()
         child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
         [project, child1, child2].each { it.pluginManager.apply(EclipsePlugin.class) }
@@ -131,7 +124,6 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         eclipseModel.javaSourceSettings == null
     }
 
-    @Unroll
     def "default #type language level are set for #projectType projects if compatibility setting not specified"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
@@ -171,7 +163,6 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         pluginType << [JavaPlugin, GroovyPlugin, ScalaPlugin]
     }
 
-    @Unroll
     def "custom #type language level derived Java plugin convention"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
@@ -190,7 +181,6 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         "target" | "targetCompatibility" | "targetBytecodeVersion"
     }
 
-    @Unroll
     def "#type language level derived from eclipse jdt overrules java plugin convention configuration"() {
         given:
         def modelBuilder = createEclipseModelBuilder()
@@ -211,7 +201,6 @@ class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
         "target" | "targetCompatibility" | "targetBytecodeVersion"
     }
 
-    @Unroll
     def "multi-project build can have different #type language level per project"() {
         given:
         def modelBuilder = createEclipseModelBuilder()

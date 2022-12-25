@@ -18,18 +18,18 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.util.internal.VersionNumber
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 
+@IgnoreIf({ VersionNumber.parse(GroovySystem.version).major >= 4}) // FIXME if Groovy 4 is bundled, cannot run without regenerating library-versions.properties
 class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Override
     String subprojectName() { 'plugin' }
 
-    @Unroll
     def "defaults to Groovy build scripts"() {
         when:
         run ('init', '--type', 'groovy-gradle-plugin')
@@ -38,7 +38,6 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         dslFixtureFor(GROOVY).assertGradleFilesGenerated()
     }
 
-    @Unroll
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         def dslFixture = dslFixtureFor(scriptDsl)
@@ -66,7 +65,6 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
     }
 
-    @Unroll
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs a build in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
     def "creates build using test suites with #scriptDsl build scripts when using --incubating"() {
         def dslFixture = dslFixtureFor(scriptDsl)
@@ -96,7 +94,6 @@ class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
     }
 
     @Issue("https://github.com/gradle/gradle/issues/18206")
-    @Unroll
     @IgnoreIf({ GradleContextualExecuter.embedded }) // This test runs a build that itself runs builds in a test worker with 'gradleApi()' dependency, which needs to pick up Gradle modules from a real distribution
     def "re-running check succeeds"() {
         given:

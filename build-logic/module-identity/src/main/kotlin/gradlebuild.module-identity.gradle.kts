@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.BuildEnvironment
-import gradlebuild.basics.currentGitBranch
-import gradlebuild.basics.currentGitCommit
+import gradlebuild.basics.buildFinalRelease
+import gradlebuild.basics.buildMilestoneNumber
+import gradlebuild.basics.buildRcNumber
+import gradlebuild.basics.buildRunningOnCi
+import gradlebuild.basics.buildTimestamp
+import gradlebuild.basics.buildVersionQualifier
+import gradlebuild.basics.ignoreIncomingBuildReceipt
+import gradlebuild.basics.isPromotionBuild
+import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
 import gradlebuild.identity.extension.ModuleIdentityExtension
 import gradlebuild.identity.extension.ReleasedVersionsDetails
 import gradlebuild.identity.provider.BuildTimestampFromBuildReceiptValueSource
 import gradlebuild.identity.provider.BuildTimestampValueSource
 import gradlebuild.identity.tasks.BuildReceipt
-import org.gradle.util.GradleVersion
 
 plugins {
     `java-base`
@@ -39,19 +44,19 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
 
     val baseVersion = trimmedContentsOfFile("version.txt")
 
-    val finalRelease = gradleProperty("finalRelease")
-    val rcNumber = gradleProperty("rcNumber")
-    val milestoneNumber = gradleProperty("milestoneNumber")
+    val finalRelease = buildFinalRelease
+    val rcNumber = buildRcNumber
+    val milestoneNumber = buildMilestoneNumber
 
     if (
-        (finalRelease.isPresent && rcNumber.isPresent) ||
-        (finalRelease.isPresent && milestoneNumber.isPresent) ||
-        (rcNumber.isPresent && milestoneNumber.isPresent)
+        (buildFinalRelease.isPresent && buildRcNumber.isPresent) ||
+        (buildFinalRelease.isPresent && buildMilestoneNumber.isPresent) ||
+        (buildRcNumber.isPresent && buildMilestoneNumber.isPresent)
     ) {
         throw InvalidUserDataException("Cannot set any combination of milestoneNumber, rcNumber and finalRelease at the same time")
     }
 
-    val versionQualifier = gradleProperty("versionQualifier")
+    val versionQualifier = buildVersionQualifier
     val isFinalRelease = finalRelease.isPresent
 
     val buildTimestamp = buildTimestamp()
@@ -78,21 +83,13 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
     moduleIdentity.version.convention(GradleVersion.version(versionNumber))
     moduleIdentity.snapshot.convention(isSnapshot)
     moduleIdentity.buildTimestamp.convention(buildTimestamp)
-    moduleIdentity.promotionBuild.convention(isPromotionBuild())
-
-    moduleIdentity.gradleBuildBranch.convention(environmentVariable(BuildEnvironment.BUILD_BRANCH).orElse(currentGitBranch()))
-    moduleIdentity.gradleBuildCommitId.convention(
-        environmentVariable(BuildEnvironment.BUILD_COMMIT_ID)
-            .orElse(gradleProperty("promotionCommitId"))
-            .orElse(environmentVariable(BuildEnvironment.BUILD_VCS_NUMBER))
-            .orElse(currentGitCommit())
-    )
+    moduleIdentity.promotionBuild.convention(isPromotionBuild)
 
     moduleIdentity.releasedVersions.set(
         provider {
             ReleasedVersionsDetails(
-                moduleIdentity.version.forUseAtConfigurationTime().get().baseVersion,
-                repoRoot().file("released-versions.json")
+                moduleIdentity.version.get().baseVersion,
+                releasedVersionsFile()
             )
         }
     )
@@ -101,60 +98,42 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
 }
 
 /**
- * Is a promotion build task called?
- */
-fun isPromotionBuild(): Boolean = gradle.startParameter.taskNames.contains("promotionBuild")
-
-/**
  * Returns the trimmed contents of the file at the given [path] after
  * marking the file as a build logic input.
  */
 fun Project.trimmedContentsOfFile(path: String): String =
-    providers.fileContents(repoRoot().file(path)).asText.forUseAtConfigurationTime().get().trim()
-
-fun Project.environmentVariable(variableName: String): Provider<String> =
-    providers.environmentVariable(variableName).forUseAtConfigurationTime()
-
-fun Project.gradleProperty(propertyName: String): Provider<String> =
-    providers.gradleProperty(propertyName).forUseAtConfigurationTime()
+    providers.fileContents(repoRoot().file(path)).asText.get().trim()
 
 // TODO Simplify the buildTimestamp() calculation if possible
 fun Project.buildTimestamp(): Provider<String> =
     providers.of(BuildTimestampValueSource::class) {
         parameters {
-            buildTimestampFromBuildReceipt.set(
-                buildTimestampFromBuildReceipt()
-            )
-            buildTimestampFromGradleProperty.set(
-                gradleProperty("buildTimestamp")
-            )
-            runningOnCi.set(
-                environmentVariable(BuildEnvironment.CI_ENVIRONMENT_VARIABLE).presence()
-            )
+            buildTimestampFromBuildReceipt.set(buildTimestampFromBuildReceipt())
+            buildTimestampFromGradleProperty.set(buildTimestamp)
+            runningOnCi.set(buildRunningOnCi)
             runningInstallTask.set(
                 provider { isRunningInstallTask() }
             )
+            runningDocsTestTask.set(
+                provider { isRunningDocsTestTask() }
+            )
         }
-    }.forUseAtConfigurationTime()
+    }
 
 
 fun Project.buildTimestampFromBuildReceipt(): Provider<String> =
     providers.of(BuildTimestampFromBuildReceiptValueSource::class) {
         parameters {
-            ignoreIncomingBuildReceipt.set(
-                gradleProperty("ignoreIncomingBuildReceipt")
-                    .presence()
-            )
+            ignoreIncomingBuildReceipt.set(project.ignoreIncomingBuildReceipt)
             buildReceiptFileContents.set(
                 repoRoot()
                     .dir("incoming-distributions")
                     .file(BuildReceipt.buildReceiptFileName)
                     .let(providers::fileContents)
                     .asText
-                    .forUseAtConfigurationTime()
             )
         }
-    }.forUseAtConfigurationTime()
+    }
 
 
 fun isRunningInstallTask() =
@@ -162,10 +141,6 @@ fun isRunningInstallTask() =
         .flatMap { listOf(":distributions-full:$it", "distributions-full:$it", it) }
         .any(gradle.startParameter.taskNames::contains)
 
-/**
- * Creates a [Provider] that returns `true` when this [Provider] has a value
- * and `false` otherwise. The returned [Provider] always has a value.
- * @see Provider.isPresent
- */
-fun <T> Provider<T>.presence(): Provider<Boolean> =
-    map { true }.orElse(false)
+fun isRunningDocsTestTask() =
+    setOf(":docs:docsTest", "docs:docsTest")
+        .any(gradle.startParameter.taskNames::contains)

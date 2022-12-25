@@ -19,7 +19,6 @@ package org.gradle.performance.regression.corefeature
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import spock.lang.Ignore
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -27,14 +26,9 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 
 
 class ArchiveTreePerformanceTest extends AbstractCrossVersionPerformanceTest {
-    def setup() {
-        runner.targetVersions = ["7.3-20211022000247+0000"]
-    }
-
     @RunFor(
         @Scenario(type = PER_COMMIT, operatingSystems = [LINUX], testProjects = ["archivePerformanceProject"])
     )
-    @Ignore("TODO Rebaseline")
     def "visiting zip trees"() {
         given:
         runner.tasksToRun = ['visitZip']

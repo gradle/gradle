@@ -48,6 +48,9 @@
                 <td>dependencySubstitution</td>
             </tr>
             <tr>
+                <td>getUseGlobalDependencySubstitutionRules</td>
+            </tr>
+            <tr>
                 <td>componentSelection</td>
             </tr>
             <tr>

@@ -16,11 +16,9 @@
 
 package org.gradle.internal.normalization.java
 
-import spock.lang.Unroll
 
 class ApiClassExtractorTestSupportTest extends ApiClassExtractorTestSupport {
 
-    @Unroll
     def "should create implementation class for #fqn"() {
         given:
         def clazz = toClass(fqn, src).clazz

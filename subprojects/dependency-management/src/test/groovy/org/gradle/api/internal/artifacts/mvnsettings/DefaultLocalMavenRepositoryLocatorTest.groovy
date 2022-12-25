@@ -23,7 +23,6 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultLocalMavenRepositoryLocatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -32,6 +31,7 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
     DefaultLocalMavenRepositoryLocator locator
 
     def system = Mock(DefaultLocalMavenRepositoryLocator.SystemPropertyAccess)
+    def mavenFileLocations = Mock(MavenFileLocations)
 
     File repo1 = tmpDir.file("repo1")
     File repo2 = tmpDir.file("repo2")
@@ -40,19 +40,19 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
 
     def setup() {
         locations = new SimpleMavenFileLocations()
-        locator = new DefaultLocalMavenRepositoryLocator(new DefaultMavenSettingsProvider(locations), system)
+        locator = new DefaultLocalMavenRepositoryLocator(new DefaultMavenSettingsProvider(locations), mavenFileLocations, system)
     }
 
     def "returns default location if no settings file exists"() {
         when:
-        1 * system.getProperty("user.home") >> userHome1.absolutePath
+        1 * mavenFileLocations.getUserMavenDir() >> new File(userHome1, ".m2")
         then:
         locator.localMavenRepository == defaultM2Repo
 
         // Ensure that modified user.home is honoured (see http://forums.gradle.org/gradle/topics/override_location_of_the_local_maven_repo)
         when:
         File userHome2 = tmpDir.file("user_home_2")
-        1 * system.getProperty("user.home") >> userHome2.absolutePath
+        1 * mavenFileLocations.getUserMavenDir() >> new File(userHome2, ".m2")
         then:
         locator.localMavenRepository == new File(userHome2, ".m2/repository")
     }
@@ -111,7 +111,7 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
     def "returns default location if user settings file specifies empty local repository"() {
         when:
         writeSettingsFile(locations.userSettingsFile, localRepository)
-        1 * system.getProperty("user.home") >> userHome1.absolutePath
+        1 * mavenFileLocations.getUserMavenDir() >> new File(userHome1, ".m2")
 
         then:
         locator.localMavenRepository == defaultM2Repo
@@ -123,7 +123,7 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
     def "returns default location if global settings file specifies empty local repository"() {
         when:
         writeSettingsFile(locations.globalSettingsFile, localRepository)
-        1 * system.getProperty("user.home") >> userHome1.absolutePath
+        1 * mavenFileLocations.getUserMavenDir() >> new File(userHome1, ".m2")
 
         then:
         locator.localMavenRepository == defaultM2Repo
@@ -170,7 +170,7 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         locations.globalSettingsFile = null
 
         when:
-        system.getProperty("user.home") >> userHome1.absolutePath
+        mavenFileLocations.getUserMavenDir() >> new File(userHome1, ".m2")
 
         then:
         locator.localMavenRepository == defaultM2Repo
@@ -194,7 +194,6 @@ class DefaultLocalMavenRepositoryLocatorTest extends Specification {
         locator.localMavenRepository == tmpDir.file("sys/prop/value/env/var/value")
     }
 
-    @Unroll
     def "unresolvable placeholder for #propType throws exception with decent error message"() {
         TestFile repoPath = tmpDir.file("\${$prop}")
         writeSettingsFile(locations.userSettingsFile, repoPath)

@@ -49,6 +49,11 @@ public abstract class FileHierarchySet {
     public abstract boolean contains(String path);
 
     /**
+     * Whether this hierarchy is empty, i.e. contains no directories.
+     */
+    public abstract boolean isEmpty();
+
+    /**
      * Returns a set that contains the union of this set and the given path. If the given path is a directory, the set will contain the directory itself, plus all its descendants.
      */
     @CheckReturnValue
@@ -85,6 +90,11 @@ public abstract class FileHierarchySet {
         @Override
         public boolean contains(String path) {
             return false;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
         }
 
         @Override
@@ -146,6 +156,11 @@ public abstract class FileHierarchySet {
         }
 
         @Override
+        public boolean isEmpty() {
+            return false;
+        }
+
+        @Override
         public boolean contains(File file) {
             return rootNode.contains(file.getPath(), 0);
         }
@@ -202,6 +217,25 @@ public abstract class FileHierarchySet {
                     }
                 }
             });
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            PrefixFileSet that = (PrefixFileSet) o;
+
+            return rootNode.equals(that.rootNode);
+        }
+
+        @Override
+        public int hashCode() {
+            return rootNode.hashCode();
         }
 
         @Override
@@ -334,6 +368,30 @@ public abstract class FileHierarchySet {
             for (Node child : children) {
                 child.visitHierarchy(depth + 1, visitor);
             }
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Node node = (Node) o;
+
+            if (!prefix.equals(node.prefix)) {
+                return false;
+            }
+            return children.equals(node.children);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = prefix.hashCode();
+            result = 31 * result + children.hashCode();
+            return result;
         }
 
         @Override

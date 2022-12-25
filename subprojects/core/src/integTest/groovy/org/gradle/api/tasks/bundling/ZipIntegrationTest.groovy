@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
@@ -47,7 +46,6 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         theZip.hasDescendants('file1.txt', 'file2.txt')
     }
 
-    @Unroll
     def "can create Zip file with #metadataCharset metadata charset"() {
         given:
         createTestFilesWithEncoding(filename, metadataCharset)
@@ -100,7 +98,6 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         theZip.hasDescendants("${garbledFileName}1.txt", "${garbledFileName}2.txt", "${garbledFileName}3.txt")
     }
 
-    @Unroll
     def "reports error for #metadataCharset metadata charset"() {
         given:
         createTestFiles()

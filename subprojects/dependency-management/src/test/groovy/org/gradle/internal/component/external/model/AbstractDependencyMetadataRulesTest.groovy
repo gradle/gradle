@@ -31,22 +31,19 @@ import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyM
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
-import org.gradle.api.specs.Spec
-import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
 import org.gradle.internal.component.model.ComponentAttributeMatcher
+import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata
-import org.gradle.internal.component.model.VariantResolveMetadata
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.SimpleMapInterner
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
@@ -64,12 +61,11 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
     @Shared defaultVariant
 
     protected static <T> VariantMetadataRules.VariantAction<T> variantAction(String variantName, Action<? super T> action) {
-        Spec<VariantResolveMetadata> spec = variantName ? { it.name == variantName } as Spec<VariantResolveMetadata> : Specs.satisfyAll()
-        new VariantMetadataRules.VariantAction<T>(spec, action)
+        new VariantMetadataRules.VariantAction<T>(variantName, action)
     }
 
     private DefaultAttributesSchema createSchema() {
-        def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
+        def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.isolatableFactory())
         DependencyManagementTestUtil.platformSupport().configureSchema(schema)
         GradlePluginVariantsSupport.configureSchema(schema)
         JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
@@ -116,7 +112,6 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         metadata
     }
 
-    @Unroll
     def "dependency metadata rules are evaluated once and lazily for #metadataType metadata"() {
         given:
         def rule = Mock(Action)
@@ -149,7 +144,6 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata()
     }
 
-    @Unroll
     def "dependency metadata rules are not evaluated if their variant is not selected for #metadataType metadata"() {
         given:
         def rule = Mock(Action)
@@ -168,7 +162,6 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata()
     }
 
-    @Unroll
     def "dependencies of selected variant are accessible in dependency metadata rule for #metadataType metadata"() {
         given:
         def rule = { dependencies ->
@@ -201,7 +194,6 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata("dep1", "dep2")
     }
 
-    @Unroll
     def "dependencies of selected variant are modifiable in dependency metadata rule for #metadataType metadata"() {
         given:
         def rule = { dependencies ->
@@ -237,7 +229,6 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata("toModify")
     }
 
-    @Unroll
     def "dependencies added in dependency metadata rules are added to dependency list for #metadataType metadata"() {
         given:
         def rule = { dependencies ->
@@ -258,7 +249,6 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         "gradle"     | gradleComponentMetadata()
     }
 
-    @Unroll
     def "dependencies removed in dependency metadata rules are removed from dependency list for #metadataType metadata"() {
         given:
         def rule = { dependencies ->
@@ -289,7 +279,9 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         def consumerIdentifier = DefaultModuleVersionIdentifier.newId(componentIdentifier)
         def componentSelector = newSelector(consumerIdentifier.module, new DefaultMutableVersionConstraint(consumerIdentifier.version))
         def consumer = new LocalComponentDependencyMetadata(componentIdentifier, componentSelector, "default", attributes, ImmutableAttributes.EMPTY, null, [] as List, [], false, false, true, false, false, null)
+        def state = Stub(ComponentGraphResolveState)
+        state.metadata >> immutable
 
-        consumer.selectConfigurations(attributes, immutable, schema, [] as Set)[0]
+        consumer.selectVariants(attributes, state, schema, [] as Set).variants[0]
     }
 }

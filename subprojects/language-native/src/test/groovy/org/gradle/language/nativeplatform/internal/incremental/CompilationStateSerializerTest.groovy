@@ -19,6 +19,7 @@ package org.gradle.language.nativeplatform.internal.incremental
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.SerializerSpec
 
 class CompilationStateSerializerTest extends SerializerSpec {
@@ -38,10 +39,10 @@ class CompilationStateSerializerTest extends SerializerSpec {
         when:
         def fileEmpty = new File("empty")
         def fileStates = [:]
-        fileStates.put(fileEmpty, compilationFileState(HashCode.fromInt(0x12345678), []))
+        fileStates.put(fileEmpty, compilationFileState(TestHashCodes.hashCodeFrom(0x12345678), []))
 
         def fileTwo = new File("two")
-        def stateTwo = compilationFileState(HashCode.fromInt(0x23456789), ["ONE","TWO"])
+        def stateTwo = compilationFileState(TestHashCodes.hashCodeFrom(0x23456789), ["ONE", "TWO"])
         fileStates.put(fileTwo, stateTwo)
         def state = compilationState(fileStates)
 
@@ -50,11 +51,11 @@ class CompilationStateSerializerTest extends SerializerSpec {
         newState.fileStates.size() == 2
 
         def emptyCompileState = newState.getState(fileEmpty)
-        emptyCompileState.hash == HashCode.fromInt(0x12345678)
+        emptyCompileState.hash == TestHashCodes.hashCodeFrom(0x12345678)
         emptyCompileState.edges.empty
 
         def otherCompileState = newState.getState(fileTwo)
-        otherCompileState.hash == HashCode.fromInt(0x23456789)
+        otherCompileState.hash == TestHashCodes.hashCodeFrom(0x23456789)
         otherCompileState.edges == stateTwo.edges
     }
 
@@ -62,11 +63,11 @@ class CompilationStateSerializerTest extends SerializerSpec {
         when:
         def fileOne = new File("one")
         def fileStates = [:]
-        def stateOne = compilationFileState(HashCode.fromInt(0x12345678), ["ONE", "TWO"])
+        def stateOne = compilationFileState(TestHashCodes.hashCodeFrom(0x12345678), ["ONE", "TWO"])
         fileStates.put(fileOne, stateOne)
 
         def fileTwo = new File("two")
-        def stateTwo = compilationFileState(HashCode.fromInt(0x23456789), ["TWO", "THREE"])
+        def stateTwo = compilationFileState(TestHashCodes.hashCodeFrom(0x23456789), ["TWO", "THREE"])
         fileStates.put(fileTwo, stateTwo)
         def state = compilationState(fileStates)
 
@@ -75,16 +76,16 @@ class CompilationStateSerializerTest extends SerializerSpec {
         newState.fileStates.size() == 2
 
         def emptyCompileState = newState.getState(fileOne)
-        emptyCompileState.hash == HashCode.fromInt(0x12345678)
+        emptyCompileState.hash == TestHashCodes.hashCodeFrom(0x12345678)
         emptyCompileState.edges == stateOne.edges
 
         def otherCompileState = newState.getState(fileTwo)
-        otherCompileState.hash == HashCode.fromInt(0x23456789)
+        otherCompileState.hash == TestHashCodes.hashCodeFrom(0x23456789)
         otherCompileState.edges == stateTwo.edges
     }
 
     private SourceFileState compilationFileState(HashCode hash, Collection<String> includes) {
-        return new SourceFileState(hash, true, ImmutableSet.copyOf(includes.collect { new IncludeFileEdge(it, null, HashCode.fromInt(123) )}))
+        return new SourceFileState(hash, true, ImmutableSet.copyOf(includes.collect { new IncludeFileEdge(it, null, TestHashCodes.hashCodeFrom(123) )}))
     }
 
     private CompilationState compilationState(Map<File, SourceFileState> states) {

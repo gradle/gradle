@@ -43,6 +43,7 @@ import org.gradle.internal.component.external.model.VariantDerivationStrategy
 import org.gradle.internal.component.model.MutableModuleSources
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.snapshot.ValueSnapshot
@@ -104,7 +105,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
     @Unroll("Cache expiry check refresh = #mustRefresh - #scenario - #ruleClass")
     def "expires entry when cache policy tells us to"() {
         def id = DefaultModuleVersionIdentifier.newId('org', 'foo', '1.0')
-        def hashValue = HashCode.fromInt(42)
+        def hashValue = TestHashCodes.hashCodeFrom(42)
         def key = Mock(ModuleComponentResolveMetadata)
         def inputsSnapshot = new StringValueSnapshot("1")
         def hasher = Hashing.newHasher()
@@ -138,14 +139,14 @@ class ComponentMetadataRuleExecutorTest extends Specification {
         if (expired) {
             // should check that the recorded service call returns the same value
             1 * record.getInput() >> '124'
-            1 * record.getOutput() >> HashCode.fromInt(10000)
+            1 * record.getOutput() >> TestHashCodes.hashCodeFrom(10000)
             1 * cachedResult.isChanging() >> changing
             1 * cachedResult.getModuleVersionId() >> id
             1 * cachePolicy.moduleExpiry({ it.id == id }, Duration.ZERO, changing) >> Stub(Expiry) {
                 isMustCheck() >> false
             }
             // we make it return false, this should invalidate the cache
-            1 * someService.isUpToDate('124', HashCode.fromInt(10000)) >> false
+            1 * someService.isUpToDate('124', TestHashCodes.hashCodeFrom(10000)) >> false
         } else {
             1 * cachedResult.isChanging() >> changing
             1 * cachedResult.getModuleVersionId() >> id

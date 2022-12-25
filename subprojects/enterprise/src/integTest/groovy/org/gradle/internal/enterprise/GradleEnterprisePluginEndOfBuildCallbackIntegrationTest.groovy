@@ -61,4 +61,20 @@ class GradleEnterprisePluginEndOfBuildCallbackIntegrationTest extends AbstractIn
         plugin.assertEndOfBuildWithFailure(output, "org.gradle.internal.exceptions.LocationAwareException")
     }
 
+    def "end of build listener may fail with an exception"() {
+        when:
+        fails "t", "-Dbuild-listener-failure"
+
+        then:
+        plugin.assertEndOfBuildWithFailure(output, null)
+        failure.assertHasDescription("broken")
+
+        when:
+        fails "t", "-Dbuild-listener-failure"
+
+        then:
+        plugin.assertEndOfBuildWithFailure(output, null)
+        failure.assertHasDescription("broken")
+    }
+
 }

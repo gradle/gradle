@@ -47,7 +47,6 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
 
     @Override
     public void visitSelector(DependencyGraphSelector selector) {
-
     }
 
     @Override

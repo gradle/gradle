@@ -29,7 +29,6 @@ import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
@@ -955,7 +954,6 @@ model {
         solutionFile("app.sln").assertHasProjects("bothDll", "bothLib", "staticOnlyLib")
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can detect the language standard for Visual Studio IntelliSense [#expectedLanguageStandard] #uniqueIndex"() {
         given:

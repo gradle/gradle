@@ -144,11 +144,12 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
 
     @ToBeFixedForConfigurationCache
     def "compiling project variant doesn't imply execution of other variants build tasks"() {
+        testDirectory.mkdirs()
         def projectDir = new FileTreeBuilder(testDirectory)
         given:
         projectDir {
-            withVariants(buildFile)
-            withExternalDependencies(buildFile, '''
+            VariantAwareResolutionWithConfigurationAttributesIntegrationTest.withVariants(buildFile)
+            VariantAwareResolutionWithConfigurationAttributesIntegrationTest.withExternalDependencies(buildFile, '''
                 implementationFreeDebug 'org.apache.commons:commons-lang3:3.5'
             ''')
             src {
@@ -182,8 +183,8 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         given:
         subproject('core') {
             def buildDotGradle = file('build.gradle')
-            withVariants(buildDotGradle)
-            withExternalDependencies(buildDotGradle, '''
+            VariantAwareResolutionWithConfigurationAttributesIntegrationTest.withVariants(buildDotGradle)
+            VariantAwareResolutionWithConfigurationAttributesIntegrationTest.withExternalDependencies(buildDotGradle, '''
                 implementationFreeDebug 'org.apache.commons:commons-lang3:3.5'
             ''')
             src {
@@ -215,8 +216,8 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         }
         subproject('client') {
             def buildDotGradle = file('build.gradle')
-            withVariants(buildDotGradle)
-            withDependencies(buildDotGradle, 'implementation project(":core")')
+            VariantAwareResolutionWithConfigurationAttributesIntegrationTest.withVariants(buildDotGradle)
+            VariantAwareResolutionWithConfigurationAttributesIntegrationTest.withDependencies(buildDotGradle, 'implementation project(":core")')
             src {
                 main {
                     resources {

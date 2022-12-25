@@ -23,7 +23,6 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
-import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
@@ -40,19 +39,21 @@ import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.exceptions.MultiCauseException
+import org.gradle.internal.execution.BuildOutputCleanupRegistry
+import org.gradle.internal.execution.FileCollectionFingerprinterRegistry
 import org.gradle.internal.execution.OutputChangeListener
+import org.gradle.internal.execution.WorkInputListeners
 import org.gradle.internal.execution.WorkValidationContext
-import org.gradle.internal.execution.fingerprint.FileCollectionFingerprinterRegistry
-import org.gradle.internal.execution.fingerprint.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.history.OutputsCleaner
 import org.gradle.internal.execution.history.OverlappingOutputDetector
 import org.gradle.internal.execution.history.PreviousExecutionState
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector
 import org.gradle.internal.execution.impl.DefaultExecutionEngine
+import org.gradle.internal.execution.impl.DefaultInputFingerprinter
 import org.gradle.internal.execution.impl.DefaultOutputSnapshotter
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext
 import org.gradle.internal.execution.steps.AssignWorkspaceStep
-import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep
 import org.gradle.internal.execution.steps.CancelExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateAfterExecutionStep
 import org.gradle.internal.execution.steps.CaptureStateBeforeExecutionStep
@@ -67,6 +68,7 @@ import org.gradle.internal.execution.steps.ResolveInputChangesStep
 import org.gradle.internal.execution.steps.SkipEmptyWorkStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.ValidateStep
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher
@@ -74,12 +76,14 @@ import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprin
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.snapshot.impl.ClassImplementationSnapshot
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.internal.work.AsyncWorkTracker
@@ -88,6 +92,11 @@ import spock.lang.Specification
 import java.util.function.Supplier
 
 import static java.util.Collections.emptyList
+import static org.gradle.api.internal.file.TestFiles.deleter
+import static org.gradle.api.internal.file.TestFiles.fileCollectionFactory
+import static org.gradle.api.internal.file.TestFiles.fileSystem
+import static org.gradle.api.internal.file.TestFiles.fileSystemAccess
+import static org.gradle.api.internal.file.TestFiles.virtualFileSystem
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS
 
@@ -96,20 +105,20 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def task = Mock(TaskInternal)
     def taskOutputs = Mock(TaskOutputsInternal)
     def action1 = Mock(InputChangesAwareTaskAction) {
-        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action1", HashCode.fromInt(1234))
+        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action1", TestHashCodes.hashCodeFrom(1234))
     }
     def action2 = Mock(InputChangesAwareTaskAction) {
-        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action2", HashCode.fromInt(1234))
+        getActionImplementation(_ as ClassLoaderHierarchyHasher) >> ImplementationSnapshot.of("Action2", TestHashCodes.hashCodeFrom(1234))
     }
     def state = new TaskStateInternal()
     def taskProperties = Stub(TaskProperties) {
-        getInputPropertyValues() >> { { -> ImmutableSortedMap.of() } as Supplier }
         getInputFileProperties() >> ImmutableSortedSet.of()
         getOutputFileProperties() >> ImmutableSortedSet.of()
     }
     def previousState = Stub(PreviousExecutionState) {
         getInputProperties() >> ImmutableSortedMap.of()
         getInputFileProperties() >> ImmutableSortedMap.of()
+        getImplementation() >> Stub(ClassImplementationSnapshot)
 
         getOutputFilesProducedByWork() >> ImmutableSortedMap.of()
     }
@@ -121,9 +130,9 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def asyncWorkTracker = Mock(AsyncWorkTracker)
 
-    def virtualFileSystem = TestFiles.virtualFileSystem()
-    def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
+    def virtualFileSystem = virtualFileSystem()
+    def fileSystemAccess = fileSystemAccess(virtualFileSystem)
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, fileSystem())
     def outputSnapshotter = new DefaultOutputSnapshotter(fileCollectionSnapshotter)
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
     def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {
@@ -134,6 +143,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
 
     def actionListener = Stub(TaskActionListener)
     def outputChangeListener = Stub(OutputChangeListener)
+    def inputListeners = Stub(WorkInputListeners)
     def cancellationToken = new DefaultBuildCancellationToken()
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def taskCacheabilityResolver = Mock(TaskCacheabilityResolver)
@@ -142,38 +152,37 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def classloaderHierarchyHasher = new ClassLoaderHierarchyHasher() {
         @Override
         HashCode getClassLoaderHash(ClassLoader classLoader) {
-            return HashCode.fromInt(1234)
+            return TestHashCodes.hashCodeFrom(1234)
         }
     }
-    def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
-    def inputFingerprinter = new DefaultInputFingerprinter(fingerprinterRegistry, valueSnapshotter)
+    def valueSnapshotter = new DefaultValueSnapshotter([], classloaderHierarchyHasher)
+    def inputFingerprinter = new DefaultInputFingerprinter(fileCollectionSnapshotter, fingerprinterRegistry, valueSnapshotter)
     def reservedFileSystemLocationRegistry = Stub(ReservedFileSystemLocationRegistry)
-    def emptySourceTaskSkipper = Stub(EmptySourceTaskSkipper)
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)
-    def fileCollectionFactory = TestFiles.fileCollectionFactory()
-    def fileOperations = Stub(FileOperations)
-    def deleter = TestFiles.deleter()
+    def fileCollectionFactory = fileCollectionFactory()
+    def deleter = deleter()
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningRecorder)
+    def buildOutputCleanupRegistry = Stub(BuildOutputCleanupRegistry)
+    def outputsCleanerFactory = { new OutputsCleaner(deleter, buildOutputCleanupRegistry.&isOutputOwnedByBuild, buildOutputCleanupRegistry.&isOutputOwnedByBuild) } as Supplier<OutputsCleaner>
 
     // @formatter:off
     def executionEngine = new DefaultExecutionEngine(documentationRegistry,
-        new IdentifyStep<>(
+        new IdentifyStep<>(buildOperationExecutor,
         new IdentityCacheStep<>(
         new AssignWorkspaceStep<>(
         new LoadPreviousExecutionStateStep<>(
-        new SkipEmptyWorkStep<>(
+        new SkipEmptyWorkStep(outputChangeListener, inputListeners, outputsCleanerFactory,
         new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
         new ValidateStep<>(virtualFileSystem, validationWarningReporter,
         new ResolveCachingStateStep<>(buildCacheController, false,
         new ResolveChangesStep<>(changeDetector,
         new SkipUpToDateStep<>(
-        new BroadcastChangingOutputsStep<>(outputChangeListener,
-        new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter,
-        new CancelExecutionStep<>(cancellationToken,
         new ResolveInputChangesStep<>(
+        new CaptureStateAfterExecutionStep<>(buildOperationExecutor, buildId, outputSnapshotter, outputChangeListener,
+        new CancelExecutionStep<>(cancellationToken,
         new RemovePreviousOutputsStep<>(deleter, outputChangeListener,
         new ExecuteStep<>(buildOperationExecutor
-    )))))))))))))))))
+    ))))))))))))))))
     // @formatter:on
 
     def executer = new ExecuteActionsTaskExecuter(
@@ -189,9 +198,9 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         inputFingerprinter,
         listenerManager,
         reservedFileSystemLocationRegistry,
-        emptySourceTaskSkipper,
         fileCollectionFactory,
-        fileOperations
+        TestFiles.taskDependencyFactory(),
+        Stub(PathToFileResolver)
     )
 
     def setup() {
@@ -206,7 +215,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         executionContext.getTaskExecutionMode() >> TaskExecutionMode.INCREMENTAL
         executionContext.getTaskProperties() >> taskProperties
         executionContext.getValidationContext() >> validationContext
-        executionContext.getValidationAction() >> { { historyMaintained, c -> } as TaskExecutionContext.ValidationAction }
+        executionContext.getValidationAction() >> { { c -> } as TaskExecutionContext.ValidationAction }
         executionHistoryStore.load("task") >> Optional.of(previousState)
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
     }

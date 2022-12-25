@@ -22,12 +22,13 @@ gradlePlugin {
 }
 
 publishing {
+    def buildDirectory = layout.buildDirectory
     repositories {
         maven {
-            url '../../consuming/maven-repo'
+            url buildDirectory.dir("maven-repo")
         }
         ivy {
-            url '../../consuming/ivy-repo'
+            url buildDirectory.dir("ivy-repo")
         }
     }
 }

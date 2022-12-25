@@ -24,7 +24,6 @@ import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 import java.time.Duration
 
@@ -179,7 +178,6 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
     @LeaksFileHandles
     // TODO https://github.com/gradle/gradle-private/issues/1532
-    @Unroll
     def "timeout stops long running work items with #isolationMode isolation"() {
         given:
         if (isolationMode == 'process') {
@@ -286,7 +284,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
 
     List<String> taskLogging(String taskPath) {
         def taskExecutionOp = operations.only("Task $taskPath")
-        def logging = taskExecutionOp.progress.findAll { it.hasDetailsOfType(LogEventBuildOperationProgressDetails) }*.details
+        def logging = taskExecutionOp.progress(LogEventBuildOperationProgressDetails)*.details
         def timeoutLogging = logging.findAll { it.category == DefaultTimeoutHandler.name }
         timeoutLogging.collect { it.message } as List<String>
     }

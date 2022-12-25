@@ -26,25 +26,24 @@ import org.gradle.process.internal.ExecActionFactory;
 public class JavadocToolAdapter implements JavadocTool {
 
     private final JavadocGenerator generator;
-    private final JavaToolchain toolchain;
+    private final JavaToolchain javaToolchain;
 
-    public JavadocToolAdapter(ExecActionFactory execActionFactory, JavaToolchain toolchain) {
+    public JavadocToolAdapter(ExecActionFactory execActionFactory, JavaToolchain javaToolchain) {
         this.generator = new JavadocGenerator(execActionFactory);
-        this.toolchain = toolchain;
+        this.javaToolchain = javaToolchain;
     }
 
     public WorkResult execute(JavadocSpec spec) {
-        spec.setExecutable(getExecutablePath().toString());
         return generator.execute(spec);
     }
 
     @Override
     public JavaInstallationMetadata getMetadata() {
-        return toolchain;
+        return javaToolchain;
     }
 
     @Override
     public RegularFile getExecutablePath() {
-        return toolchain.findExecutable("javadoc");
+        return javaToolchain.findExecutable("javadoc");
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures.executer
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
+import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -113,8 +114,16 @@ class AbstractGradleExecuterTest extends Specification {
         def allArgs = executer.getAllArgs()
 
         then:
-        !allArgs.toString().contains("-Porg.gradle.java.installations.auto-detect")
         !allArgs.toString().contains("-Porg.gradle.java.installations.auto-download")
     }
 
+    def "does not allow you to use startBuildProcessInDebugger on CI"() {
+        Assume.assumeTrue(System.getenv().containsKey("CI"))
+        when:
+        executer.startBuildProcessInDebugger(true)
+        executer.getAllArgs()
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("Builds cannot be started with the debugger enabled on CI")
+    }
 }

@@ -16,43 +16,29 @@
 
 package org.gradle.internal.hash
 
+import org.gradle.internal.hash.HashCode.ByteArrayBackedHashCode
+import org.gradle.internal.hash.HashCode.HashCode128
 import spock.lang.Specification
-import spock.lang.Unroll
 
-@Unroll
 class HashCodeTest extends Specification {
     def "can parse hex string #input"() {
         def hash = HashCode.fromString(input)
 
         expect:
-        hash.toString() == toString
+        hash.toString() == input.toLowerCase(Locale.ROOT)
         hash.toByteArray() == bytes
         hash.length() == length
         hash.hashCode() == (int) hashCode
+        type.isInstance(hash)
 
         where:
-        input          | length | toString       | hashCode   | bytes
-        "12345678"     | 4      | "12345678"     | 0x78563412 | toBytes(0x12, 0x34, 0x56, 0x78)
-        "CAFEBABE"     | 4      | "cafebabe"     | 0xBEBAFECA | toBytes(0xCA, 0xFE, 0xBA, 0xBE)
-        "abbaabba"     | 4      | "abbaabba"     | 0xBAABBAAB | toBytes([0xAB, 0xBA] * 2)
-        "abbaabbaabba" | 6      | "abbaabbaabba" | 0xBAABBAAB | toBytes([0xAB, 0xBA] * 3)
-        "aB" * 255     | 255    | "ab" * 255     | 0xABABABAB | toBytes([0xAB] * 255)
-    }
-
-    def "can parse int: #input"() {
-        def hash = HashCode.fromInt((int) input)
-
-        expect:
-        hash.toString() == toString
-        hash.toByteArray() == bytes
-        hash.length() == length
-        hash.hashCode() == (int) hashCode
-
-        where:
-        input          | length | toString       | hashCode   | bytes
-        0x12345678     | 4      | "12345678"     | 0x78563412 | toBytes(0x12, 0x34, 0x56, 0x78)
-        0xCAFEBABE     | 4      | "cafebabe"     | 0xBEBAFECA | toBytes(0xCA, 0xFE, 0xBA, 0xBE)
-        0xabbaabba     | 4      | "abbaabba"     | 0xBAABBAAB | toBytes([0xAB, 0xBA] * 2)
+        input                              | type                    | length | hashCode   | bytes
+        "12345678"                         | ByteArrayBackedHashCode | 4      | 0x78563412 | toBytes(0x12, 0x34, 0x56, 0x78)
+        "CAFEBABE"                         | ByteArrayBackedHashCode | 4      | 0xBEBAFECA | toBytes(0xCA, 0xFE, 0xBA, 0xBE)
+        "abbaabba"                         | ByteArrayBackedHashCode | 4      | 0xBAABBAAB | toBytes([0xAB, 0xBA] * 2)
+        "abbaabbaabba"                     | ByteArrayBackedHashCode | 6      | 0xBAABBAAB | toBytes([0xAB, 0xBA] * 3)
+        "aB" * 255                         | ByteArrayBackedHashCode | 255    | 0xABABABAB | toBytes([0xAB] * 255)
+        "e5b7d1919156335a9c453a4956bbe775" | HashCode128             | 16     | 0x91D1B7E5 | toBytes([0xE5, 0xB7, 0xD1, 0x91, 0x91, 0x56, 0x33, 0x5A, 0x9C, 0x45, 0x3A, 0x49, 0x56, 0xBB, 0xE7, 0x75])
     }
 
     def "can parse bytes: #input"() {
@@ -60,16 +46,18 @@ class HashCodeTest extends Specification {
 
         expect:
         hash.toString() == toString
-        hash.toByteArray() == bytes
+        hash.toByteArray() == input
         hash.length() == length
         hash.hashCode() == (int) hashCode
+        type.isInstance(hash)
 
         where:
-        input                           | length | toString       | hashCode   | bytes
-        toBytes(0x12, 0x34, 0x56, 0x78) | 4      | "12345678"     | 0x78563412 | toBytes(0x12, 0x34, 0x56, 0x78)
-        toBytes(0xCA, 0xFE, 0xBA, 0xBE) | 4      | "cafebabe"     | 0xBEBAFECA | toBytes(0xCA, 0xFE, 0xBA, 0xBE)
-        toBytes([0xAB, 0xBA] * 3)       | 6      | "abbaabbaabba" | 0xBAABBAAB | toBytes([0xAB, 0xBA] * 3)
-        toBytes([0xAB] * 255)           | 255    | "ab" * 255     | 0xABABABAB | toBytes([0xAB] * 255)
+        input                                                                                                     | type                    | length | toString                           | hashCode
+        toBytes(0x12, 0x34, 0x56, 0x78)                                                                           | ByteArrayBackedHashCode | 4      | "12345678"                         | 0x78563412
+        toBytes(0xCA, 0xFE, 0xBA, 0xBE)                                                                           | ByteArrayBackedHashCode | 4      | "cafebabe"                         | 0xBEBAFECA
+        toBytes([0xAB, 0xBA] * 3)                                                                                 | ByteArrayBackedHashCode | 6      | "abbaabbaabba"                     | 0xBAABBAAB
+        toBytes([0xAB] * 255)                                                                                     | ByteArrayBackedHashCode | 255    | "ab" * 255                         | 0xABABABAB
+        toBytes([0xE5, 0xB7, 0xD1, 0x91, 0x91, 0x56, 0x33, 0x5A, 0x9C, 0x45, 0x3A, 0x49, 0x56, 0xBB, 0xE7, 0x75]) | HashCode128             | 16     | "e5b7d1919156335a9c453a4956bbe775" | 0x91D1B7E5
     }
 
     def "#a == #b: #equals"() {
@@ -81,10 +69,13 @@ class HashCodeTest extends Specification {
         (hashB == hashA) == equals
 
         where:
-        a            | b            | equals
-        "abcdef12"   | "abcdef12"   | true
-        "abcdef12"   | "abcdef1234" | false
-        "abcdef1234" | "abcdef12"   | false
+        a                                  | b                                  | equals
+        "abcdef12"                         | "abcdef12"                         | true
+        "abcdef12"                         | "abcdef1234"                       | false
+        "abcdef1234"                       | "abcdef12"                         | false
+        "e5b7d1919156335a9c453a4956bbe775" | "e5b7d1919156335a9c453a4956bbe775" | true
+        "e5b7d1919156335a9c453a4956bbe775" | "f5b7d1919156335a9c453a4956bbe775" | false
+        "e5b7d1919156335a9c453a4956bbe775" | "f5b7d191"                         | false
     }
 
     def "#a <=> #b: #expected"() {
@@ -98,18 +89,25 @@ class HashCodeTest extends Specification {
         Math.signum(compareBA) == -expected
 
         where:
-        a            | b            | expected
-        "abcdef12"   | "abcdef12"   | 0
-        "abcdef12"   | "abcdef1234" | -1
-        "abcdef1234" | "abcdef12"   | 1
-        "abcdef1234" | "bcdef123"   | -1
-        "bcdef123"   | "abcdef12"   | 1
+        a                                    | b                                    | expected
+        "abcdef12"                           | "abcdef12"                           | 0
+        "abcdef12"                           | "abcdef1234"                         | -1
+        "abcdef1234"                         | "abcdef12"                           | 1
+        "abcdef1234"                         | "bcdef123"                           | -1
+        "bcdef123"                           | "abcdef12"                           | 1
+        "e5b7d1919156335a9c453a4956bbe775"   | "e5b7d1919156335a9c453a4956bbe775"   | 0
+        "e5b7d1919156335a9c453a4956bbe775"   | "f5b7d1919156335a9c453a4956bbe775"   | -1
+        "e5b7d1919156335a9c453a4956bbe775"   | "f5b7d1919156335a9c453a4956bbe77512" | -1
+        "e5b7d1919156335a9c453a4956bbe775"   | "f5b7d191"                           | -1
+        "f5b7d1919156335a9c453a4956bbe775"   | "e5b7d1919156335a9c453a4956bbe775"   | 1
+        "f5b7d1919156335a9c453a4956bbe77512" | "e5b7d1919156335a9c453a4956bbe775"   | 1
+        "f5b7d191"                           | "e5b7d1919156335a9c453a4956bbe775"   | 1
     }
 
     def "not equals with null"() {
         expect:
-        HashCode.fromInt(0x12345678) != null
-        null != HashCode.fromInt(0x12345678)
+        TestHashCodes.hashCodeFrom(0x12345678) != null
+        null != TestHashCodes.hashCodeFrom(0x12345678)
     }
 
     def "won't parse string with odd length"() {
@@ -183,6 +181,7 @@ class HashCodeTest extends Specification {
         HashCode.fromString("12345678").toZeroPaddedString(0) == "12345678"
         HashCode.fromString("12345678").toZeroPaddedString(9) == "012345678"
         HashCode.fromString("12345678").toZeroPaddedString(16) == "0000000012345678"
+        Hashing.md5().hashString("").toZeroPaddedString(40) == "00000000d41d8cd98f00b204e9800998ecf8427e"
     }
 
     private static byte[] toBytes(int ... elements) {

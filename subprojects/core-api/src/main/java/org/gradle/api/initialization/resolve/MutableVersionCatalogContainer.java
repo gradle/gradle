@@ -15,7 +15,6 @@
  */
 package org.gradle.api.initialization.resolve;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 
@@ -24,6 +23,5 @@ import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
  *
  * @since 7.0
  */
-@Incubating
 public interface MutableVersionCatalogContainer extends NamedDomainObjectContainer<VersionCatalogBuilder> {
 }

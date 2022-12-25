@@ -18,6 +18,7 @@ package org.gradle.configurationcache.problems
 
 import org.apache.groovy.json.internal.CharBuf
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.configurationcache.extensions.documentationLinkFor
 import java.io.Writer
 
 
@@ -44,7 +45,7 @@ class JsonModelWriter(val writer: Writer) {
         beginArray()
     }
 
-    fun endModel(cacheAction: String, totalProblemCount: Int) {
+    fun endModel(cacheAction: String, requestedTasks: String, totalProblemCount: Int) {
         endArray()
 
         comma()
@@ -53,6 +54,8 @@ class JsonModelWriter(val writer: Writer) {
         }
         comma()
         property("cacheAction", cacheAction)
+        comma()
+        property("requestedTasks", requestedTasks)
         comma()
         property("documentationLink", documentationRegistry.getDocumentationFor("configuration_cache"))
 
@@ -110,6 +113,13 @@ class JsonModelWriter(val writer: Writer) {
                         comma()
                         property("declaringType", firstTypeFrom(trace.trace).name)
                     }
+                    PropertyKind.PropertyUsage -> {
+                        property("kind", trace.kind.name)
+                        comma()
+                        property("name", trace.name)
+                        comma()
+                        property("from", projectPathFrom(trace.trace))
+                    }
                     else -> {
                         property("kind", trace.kind.name)
                         comma()
@@ -118,6 +128,11 @@ class JsonModelWriter(val writer: Writer) {
                         property("task", taskPathFrom(trace.trace))
                     }
                 }
+            }
+            is PropertyTrace.SystemProperty -> {
+                property("kind", "SystemProperty")
+                comma()
+                property("name", trace.name)
             }
             is PropertyTrace.Task -> {
                 property("kind", "Task")
@@ -130,6 +145,11 @@ class JsonModelWriter(val writer: Writer) {
                 property("kind", "Bean")
                 comma()
                 property("type", trace.type.name)
+            }
+            is PropertyTrace.Project -> {
+                property("kind", "Project")
+                comma()
+                property("path", trace.path)
             }
             is PropertyTrace.BuildLogic -> {
                 property("kind", "BuildLogic")
@@ -237,7 +257,7 @@ class JsonModelWriter(val writer: Writer) {
 
     private
     fun documentationLinkFor(section: DocumentationSection) =
-        documentationRegistry.getDocumentationFor("configuration_cache", section.anchor)
+        documentationRegistry.documentationLinkFor(section)
 
     private
     fun stackTraceStringOf(problem: PropertyProblem): String? =

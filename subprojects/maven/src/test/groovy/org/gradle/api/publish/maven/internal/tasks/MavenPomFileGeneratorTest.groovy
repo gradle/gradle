@@ -44,7 +44,6 @@ import org.gradle.util.internal.CollectionUtils
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class MavenPomFileGeneratorTest extends Specification {
     @Rule
@@ -69,7 +68,6 @@ class MavenPomFileGeneratorTest extends Specification {
 """))
     }
 
-    @Unroll
     def "writes Gradle metadata marker"() {
         generator = new MavenPomFileGenerator(projectIdentity, rangeMapper, strategy, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, markerPresent)
 
@@ -191,7 +189,6 @@ class MavenPomFileGeneratorTest extends Specification {
         return property
     }
 
-    @Unroll
     def "encodes coordinates for XML and unicode"() {
         when:
         def groupId = 'group-ぴ₦ガき∆ç√∫'

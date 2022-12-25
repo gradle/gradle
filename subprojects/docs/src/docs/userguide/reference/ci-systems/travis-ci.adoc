@@ -1,7 +1,7 @@
 [[build_travis]]
 = Executing Gradle builds on Travis CI
 
-TIP: Top engineering teams using Travis CI have been able to reduce CI build time by up to 90% by using the Gradle Build Cache. https://gradle.com/training/build-cache-deep-dive/?bid=guides-execute-travisci[Register here] for our Build Cache training session to learn how your team can achieve similar results.
+TIP: Top engineering teams using Travis CI have been able to reduce CI build time by up to 90% by using the Gradle Build Cache. https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how your team can achieve similar results.
 
 Building Gradle projects doesn't stop with the developer's machine.
 https://en.wikipedia.org/wiki/Continuous_integration[Continuous Integration] (CI) has been a long-established practice for running a build for every single change committed to version control to tighten the feedback loop.
@@ -13,7 +13,6 @@ In this guide, we'll discuss how to configure link:https://travis-ci.org/[Travis
 * A text editor
 * A command prompt
 * The Java Development Kit (JDK), version 1.8 or higher
-* A https://gradle.org/install[Gradle distribution], version {gradle-version} or better
 
 == Setup a typical project
 
@@ -44,7 +43,7 @@ BUILD SUCCESSFUL
 14 actionable tasks: 14 executed
 ----
 
-The project provides the link:{user-manual}gradle_wrapper.html[Gradle Wrapper] as part of the repository.
+The project provides the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper>> as part of the repository.
 It is a recommended practice for any Gradle project as it enables your project to built on CI without having to install the Gradle runtime.
 
 === Build scan integration
@@ -64,7 +63,7 @@ The following section will describe how to build the project with the help of Tr
 == Configure Travis CI
 
 Travis CI is a free, cloud-based CI solution provider making it an excellent choice for open source projects.
-You can build any project as long as it is hosted on GitHub as public repository.
+You can build any project as long as it is hosted on GitHub as a public repository.
 Travis CI doesn't not provide built-in options to post-process produced artifacts of the build e.g. host the JAR file or the HTML test reports.
 You will have to use external services (like S3) to https://docs.travis-ci.com/user/uploading-artifacts/[transfer the files].
 

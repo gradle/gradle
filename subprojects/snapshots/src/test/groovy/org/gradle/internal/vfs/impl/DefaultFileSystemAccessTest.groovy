@@ -18,9 +18,7 @@ package org.gradle.internal.vfs.impl
 
 import org.gradle.internal.snapshot.SnapshotVisitorUtil
 import org.gradle.test.fixtures.file.TestFile
-import spock.lang.Unroll
 
-@Unroll
 class DefaultFileSystemAccessTest extends AbstractFileSystemAccessTest {
 
     def "can read a file"() {

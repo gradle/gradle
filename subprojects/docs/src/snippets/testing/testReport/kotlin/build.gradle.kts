@@ -1,3 +1,8 @@
+plugins {
+    // because this snippet is used in TestReportIntegrationTest which rewrites build files for different JUnit flavors
+    java
+}
+
 // tag::test-report[]
 val testReportData by configurations.creating {
     isCanBeResolved = true
@@ -14,8 +19,8 @@ dependencies {
 }
 
 tasks.register<TestReport>("testReport") {
-    destinationDir = layout.buildDirectory.dir("reports/allTests").get().asFile
+    destinationDirectory.set(reporting.baseDirectory.dir("allTests"))
     // Use test results from testReportData configuration
-    (getTestResultDirs() as ConfigurableFileCollection).from(testReportData)
+    testResults.from(testReportData)
 }
 // end::test-report[]

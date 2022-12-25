@@ -19,7 +19,6 @@ package org.gradle.performance.regression.corefeature
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
@@ -36,13 +35,11 @@ class RichConsolePerformanceTest extends AbstractCrossVersionPerformanceTest {
         @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["largeJavaMultiProject", "bigNative"], iterationMatcher = "^clean assemble.*"),
         @Scenario(type = PER_DAY, operatingSystems = [LINUX], testProjects = ["withVerboseJUnit"], iterationMatcher = "^cleanTest.*")
     ])
-    @Unroll
     def "#tasks with rich console"() {
         given:
         runner.tasksToRun = tasks.split(' ')
         runner.warmUpRuns = 5
         runner.runs = 8
-        runner.targetVersions = ["7.3-20211022000247+0000"]
 
         when:
         def result = runner.run()

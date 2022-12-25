@@ -27,7 +27,6 @@ import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUPITER
@@ -48,7 +47,7 @@ class TestReportIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         buildFile << """
 $junitSetup
 test {
-    def logLessStuff = providers.systemProperty('LogLessStuff').forUseAtConfigurationTime()
+    def logLessStuff = providers.systemProperty('LogLessStuff')
     systemProperty 'LogLessStuff', logLessStuff.orNull
 }
 """
@@ -105,7 +104,8 @@ public class LoggingTest {
         ignoreWhenJupiter()
         buildFile << """
 $junitSetup
-test {
+def test = tasks.named('test', Test)
+test.configure {
     ignoreFailures true
     useJUnit {
         excludeCategories 'org.gradle.testing.SuperClassTests'
@@ -113,7 +113,7 @@ test {
     }
 }
 
-task superTest(type: Test) {
+def superTest = tasks.register('superTest', Test) {
     ignoreFailures true
     systemProperty 'category', 'super'
     useJUnit {
@@ -121,7 +121,7 @@ task superTest(type: Test) {
     }
 }
 
-task subTest(type: Test) {
+def subTest = tasks.register('subTest', Test) {
     ignoreFailures true
     systemProperty 'category', 'sub'
     useJUnit {
@@ -129,11 +129,12 @@ task subTest(type: Test) {
     }
 }
 
-task testReport(type: TestReport) {
-    destinationDir = file("\$buildDir/reports/allTests")
-    reportOn test, superTest, subTest
-    tasks.build.dependsOn testReport
+def testReport = tasks.register('testReport', TestReport) {
+    destinationDirectory = reporting.baseDirectory.dir('allTests')
+    testResults.from(test, superTest, subTest)
 }
+
+tasks.named('build').configure { it.dependsOn testReport }
 """
 
         and:
@@ -196,7 +197,6 @@ public class SubClassTests extends SuperClassTests {
                 containsString('org.gradle.testing.SubTest#onlySub super\n')))
     }
 
-    @Issue("https://issues.gradle.org//browse/GRADLE-2821")
     def "test report task can handle test tasks that did not run tests"() {
         given:
         buildScript """
@@ -204,12 +204,43 @@ public class SubClassTests extends SuperClassTests {
 
              $junitSetup
 
-            task otherTests(type: Test) {
+            def test = tasks.named('test', Test)
+
+            def otherTests = tasks.register('otherTests', Test) {
                 binaryResultsDirectory = file("bin")
                 testClassesDirs = files("blah")
             }
 
-            task testReport(type: TestReport) {
+            tasks.register('testReport', TestReport) {
+                testResults.from(test, otherTests)
+                destinationDirectory = reporting.baseDirectory.dir('tr')
+            }
+        """
+
+        and:
+        testClass("Thing")
+
+        when:
+        succeeds "testReport"
+
+        then:
+        skipped(":otherTests")
+        executedAndNotSkipped(":test")
+        new HtmlTestExecutionResult(testDirectory, "build/reports/tr").assertTestClassesExecuted("Thing")
+    }
+
+
+    // TODO: remove in Gradle 9.0
+    def "nag with deprecation warnings when using legacy TestReport APIs"() {
+        given:
+        buildScript """
+            apply plugin: 'java'
+             $junitSetup
+            tasks.register('otherTests', Test) {
+                binaryResultsDirectory = file("bin")
+                testClassesDirs = files("blah")
+            }
+            tasks.register('testReport', TestReport) {
                 reportOn test, otherTests
                 destinationDir reporting.file("tr")
             }
@@ -219,6 +250,8 @@ public class SubClassTests extends SuperClassTests {
         testClass("Thing")
 
         when:
+        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the testResults method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.')
+        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.')
         succeeds "testReport"
 
         then:
@@ -235,9 +268,9 @@ public class SubClassTests extends SuperClassTests {
 
              $junitSetup
 
-            task testReport(type: TestReport) {
-                testResultDirs = [test.binaryResultsDirectory.asFile.get()]
-                destinationDir reporting.file("tr")
+            tasks.register('testReport', TestReport) {
+                testResults.from(tasks.named('test', Test))
+                destinationDirectory = reporting.baseDirectory.dir("tr")
             }
         """
 
@@ -246,7 +279,10 @@ public class SubClassTests extends SuperClassTests {
 
         then:
         succeeds "testReport"
+
+        // verify incremental behavior on 2nd invocation
         succeeds "testReport"
+        skipped ":testReport"
     }
 
     def "test report task is skipped when there are no results"() {
@@ -254,9 +290,9 @@ public class SubClassTests extends SuperClassTests {
         buildScript """
             apply plugin: 'java'
 
-            task testReport(type: TestReport) {
-                reportOn test
-                destinationDir reporting.file("tr")
+            tasks.register('testReport', TestReport) {
+                testResults.from(tasks.named('test', Test))
+                destinationDirectory = reporting.baseDirectory.dir('tr')
             }
         """
 
@@ -268,8 +304,7 @@ public class SubClassTests extends SuperClassTests {
         skipped(":testReport")
     }
 
-    @Unroll
-    "#type report files are considered outputs"() {
+    def "#type report files are considered outputs"() {
         given:
         buildScript """
             $junitSetup
@@ -546,7 +581,30 @@ public class SubClassTests extends SuperClassTests {
             .assertStderr(containsString("System.err from ThrowingListener"))
     }
 
-    String getJunitSetup() {
+    // TODO: remove in Gradle 9.0
+    def "using deprecated testReport elements emits deprecation warnings"() {
+        when:
+        buildScript """
+            apply plugin: 'java'
+            $junitSetup
+            // Need a second test task to reportOn
+            tasks.register('otherTests', Test) {
+                binaryResultsDirectory = file('otherBin')
+                testClassesDirs = files('otherClasses')
+            }
+            tasks.register('testReport', TestReport) {
+                reportOn test, otherTests
+                destinationDir reporting.file("myTestReports")
+            }
+        """
+
+        then:
+        executer.expectDocumentedDeprecationWarning('The TestReport.reportOn(Object...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the testResults method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:testResults for more details.')
+        executer.expectDocumentedDeprecationWarning('The TestReport.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.TestReport.html#org.gradle.api.tasks.testing.TestReport:destinationDir for more details.')
+        succeeds "testReport"
+    }
+
+    private String getJunitSetup() {
         """
         apply plugin: 'java'
         ${mavenCentralRepository()}
@@ -554,7 +612,7 @@ public class SubClassTests extends SuperClassTests {
         """
     }
 
-    String getTestFilePrelude() {
+    private String getTestFilePrelude() {
         """
 package org.gradle.testing;
 
@@ -564,11 +622,11 @@ import org.junit.experimental.categories.Category;
 """
     }
 
-    void failingTestClass(String name) {
+    private void failingTestClass(String name) {
         testClass(name, true)
     }
 
-    void testClass(String name, boolean failing = false) {
+    private void testClass(String name, boolean failing = false) {
         file("src/test/java/${name}.java") << """
             public class $name {
                 @org.junit.Test
@@ -578,5 +636,4 @@ import org.junit.experimental.categories.Category;
             }
         """
     }
-
 }

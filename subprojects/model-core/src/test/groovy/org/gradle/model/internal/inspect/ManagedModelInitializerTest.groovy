@@ -28,7 +28,6 @@ import org.gradle.model.internal.manage.binding.StructBindingsStore
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.manage.schema.extract.ScalarTypes
 import org.gradle.util.internal.TextUtil
-import spock.lang.Unroll
 
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -158,7 +157,6 @@ It must be one of:
         failWhenRealized OnlyGetter, "read only property 'name' has non managed type java.lang.String, only managed types can be used"
     }
 
-    @Unroll
     def "only selected unmanaged property types are allowed #type"() {
         expect:
         failWhenRealized(type,
@@ -186,7 +184,6 @@ It must be one of:
         )
     }
 
-    @Unroll
     def "should enforce properties of #type are managed"() {
         when:
         Class<?> generatedClass = readOnlyManagedClass(type)
@@ -223,7 +220,6 @@ interface Managed${typeName} {
 """)
     }
 
-    @Unroll
     def "must have a setter - #managedType.simpleName"() {
         expect:
         failWhenRealized(managedType, "Invalid managed model type '${fullyQualifiedNameOf(managedType)}': read only property 'thing' has non managed type boolean, only managed types can be used")
@@ -232,7 +228,6 @@ interface Managed${typeName} {
         managedType << [OnlyIsGetter, OnlyGetGetter]
     }
 
-    @Unroll
     def "throws an error if we use unsupported collection type #collectionType.simpleName"() {
         when:
         def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
@@ -252,7 +247,6 @@ interface Managed${typeName} {
     }
 
 
-    @Unroll
     def "can initialize a model node with a managed collection property of type #collectionType"() {
         when:
         def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """
@@ -271,7 +265,6 @@ interface Managed${typeName} {
         collectionType << [Set, List]
     }
 
-    @Unroll
     def "throws an error if we use unsupported type #innerType.simpleName as element type of a scalar collection"() {
         when:
         def managedType = new GroovyClassLoader(getClass().classLoader).parseClass """

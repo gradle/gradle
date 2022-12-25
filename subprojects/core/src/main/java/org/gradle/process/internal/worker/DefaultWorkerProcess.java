@@ -86,6 +86,10 @@ public class DefaultWorkerProcess implements WorkerProcess {
         this.execHandle = execHandle;
         execHandle.addListener(new ExecHandleListener() {
             @Override
+            public void beforeExecutionStarted(ExecHandle execHandle) {
+            }
+
+            @Override
             public void executionStarted(ExecHandle execHandle) {
             }
 

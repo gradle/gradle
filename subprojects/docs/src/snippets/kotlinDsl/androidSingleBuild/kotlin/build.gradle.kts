@@ -1,9 +1,9 @@
 // tag::android[]
 plugins {
-    id("com.android.application") version "4.1.2"
+    id("com.android.application") version "7.3.0"
 // end::android[]
-    kotlin("android") version "1.5.31"
-    kotlin("android.extensions") version "1.5.31"
+    kotlin("android") version "1.8.0-RC2"
+    kotlin("android.extensions") version "1.8.0-RC2"
 // tag::android[]
 }
 
@@ -31,7 +31,7 @@ android {
 
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    implementation(kotlin("stdlib-jdk7", "1.2.71"))
+    implementation(kotlin("stdlib-jdk7"))
     implementation("com.android.support:appcompat-v7:27.1.1")
     implementation("com.android.support.constraint:constraint-layout:1.1.0")
     testImplementation("junit:junit:4.13")

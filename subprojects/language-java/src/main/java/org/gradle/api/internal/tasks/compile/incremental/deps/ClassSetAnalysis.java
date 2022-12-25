@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.Genera
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -143,10 +144,14 @@ public class ClassSetAnalysis {
      * - Classes and resources that were generated from this class
      */
     private DependentsSet findDirectDependents(String className) {
+        DependentsSet annotationProcessingDependentsSet = getAnnotationProcessingDependentsSet(className);
+        return DependentsSet.merge(Arrays.asList(classAnalysis.getDependents(className), compilerApiData.getConstantDependentsForClass(className), annotationProcessingDependentsSet));
+    }
+
+    public DependentsSet getAnnotationProcessingDependentsSet(String className) {
         Set<String> generatedClasses = annotationProcessingData.getGeneratedTypesByOrigin().getOrDefault(className, Collections.emptySet());
         Set<GeneratedResource> generatedResources = annotationProcessingData.getGeneratedResourcesByOrigin().getOrDefault(className, Collections.emptySet());
-        DependentsSet generatedDeps = DependentsSet.dependents(Collections.emptySet(), generatedClasses, generatedResources);
-        return DependentsSet.merge(Arrays.asList(classAnalysis.getDependents(className), compilerApiData.getConstantDependentsForClass(className), generatedDeps));
+        return DependentsSet.dependents(Collections.emptySet(), generatedClasses, generatedResources);
     }
 
     /**
@@ -156,11 +161,17 @@ public class ClassSetAnalysis {
      * - the originating types of generated classes that need to be recompiled, since they wouldn't exist if the originating type is not reprocessed
      */
     public Set<String> getTypesToReprocess(Set<String> compiledClasses) {
+        if (compiledClasses.isEmpty()) {
+            return Collections.emptySet();
+        }
         Set<String> typesToReprocess = new HashSet<>(annotationProcessingData.getAggregatedTypes());
         for (Map.Entry<String, Set<String>> entry : annotationProcessingData.getGeneratedTypesByOrigin().entrySet()) {
             if (entry.getValue().stream().anyMatch(compiledClasses::contains)) {
                 typesToReprocess.add(entry.getKey());
             }
+        }
+        for (String toReprocess : new ArrayList<>(typesToReprocess)) {
+            typesToReprocess.removeAll(annotationProcessingData.getGeneratedTypesByOrigin().getOrDefault(toReprocess, Collections.emptySet()));
         }
         return typesToReprocess;
     }

@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
@@ -27,7 +28,6 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
-import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
@@ -63,10 +63,11 @@ class DefaultMavenLocalRepositoryTest extends Specification {
             authenticationContainer,
             fileResourceRepository,
             mavenMetadataFactory,
-            (IsolatableFactory) SnapshotTestUtil.valueSnapshotter(),
+            SnapshotTestUtil.isolatableFactory(),
             TestUtil.objectFactory(),
             urlArtifactRepositoryFactory,
-            TestUtil.checksumService
+            TestUtil.checksumService,
+            new VersionParser()
 
         )
     }
@@ -83,7 +84,7 @@ class DefaultMavenLocalRepositoryTest extends Specification {
         repository.url = 'repo-dir'
 
         when:
-        def repo = repository.createRealResolver()
+        def repo = repository.createResolver()
 
         then:
         repo.root == uri

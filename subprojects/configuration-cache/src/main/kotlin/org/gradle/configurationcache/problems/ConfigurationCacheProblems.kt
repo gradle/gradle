@@ -16,10 +16,12 @@
 
 package org.gradle.configurationcache.problems
 
+import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
 import org.gradle.configurationcache.ConfigurationCacheAction.STORE
+import org.gradle.configurationcache.ConfigurationCacheAction.UPDATE
 import org.gradle.configurationcache.ConfigurationCacheKey
 import org.gradle.configurationcache.ConfigurationCacheProblemsException
 import org.gradle.configurationcache.TooManyConfigurationCacheProblemsException
@@ -34,6 +36,7 @@ import java.util.function.Consumer
 
 
 @ServiceScope(Scopes.BuildTree::class)
+internal
 class ConfigurationCacheProblems(
 
     private
@@ -49,7 +52,6 @@ class ConfigurationCacheProblems(
     val listenerManager: ListenerManager
 
 ) : ProblemsListener, ProblemReporter, AutoCloseable {
-
     private
     val summarizer = ConfigurationCacheProblemsSummary()
 
@@ -63,10 +65,28 @@ class ConfigurationCacheProblems(
     var isFailingBuildDueToSerializationError = false
 
     private
-    var cacheAction: ConfigurationCacheAction? = null
+    var reusedProjects = 0
 
     private
-    var invalidateStoredState: (() -> Unit)? = null
+    var updatedProjects = 0
+
+    private
+    var incompatibleTasks = newConcurrentHashSet<String>()
+
+    private
+    lateinit var cacheAction: ConfigurationCacheAction
+
+    val shouldDiscardEntry: Boolean
+        get() {
+            if (cacheAction == LOAD) {
+                return false
+            }
+            if (isFailingBuildDueToSerializationError) {
+                return true
+            }
+            val summary = summarizer.get()
+            return discardStateDueToProblems(summary) || hasTooManyProblems(summary)
+        }
 
     init {
         listenerManager.addListener(postBuildHandler)
@@ -76,13 +96,8 @@ class ConfigurationCacheProblems(
         listenerManager.removeListener(postBuildHandler)
     }
 
-    fun storing(invalidateState: () -> Unit) {
-        cacheAction = STORE
-        invalidateStoredState = invalidateState
-    }
-
-    fun loading() {
-        cacheAction = LOAD
+    fun action(action: ConfigurationCacheAction) {
+        cacheAction = action
     }
 
     fun failingBuildDueToSerializationError() {
@@ -90,8 +105,31 @@ class ConfigurationCacheProblems(
         isFailOnProblems = false
     }
 
+    fun projectStateStats(reusedProjects: Int, updatedProjects: Int) {
+        this.reusedProjects = reusedProjects
+        this.updatedProjects = updatedProjects
+    }
+
+    override fun forIncompatibleTask(path: String): ProblemsListener {
+        incompatibleTasks.add(path)
+        return object : ProblemsListener {
+            override fun onProblem(problem: PropertyProblem) {
+                onProblem(problem, ProblemSeverity.Suppressed)
+            }
+
+            override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error))
+            }
+        }
+    }
+
     override fun onProblem(problem: PropertyProblem) {
-        if (summarizer.onProblem(problem)) {
+        onProblem(problem, ProblemSeverity.Failure)
+    }
+
+    private
+    fun onProblem(problem: PropertyProblem, severity: ProblemSeverity) {
+        if (summarizer.onProblem(problem, severity)) {
             report.onProblem(problem)
         }
     }
@@ -106,27 +144,20 @@ class ConfigurationCacheProblems(
      */
     override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
         val summary = summarizer.get()
-        val problemCount = summary.problemCount
-        val hasProblems = problemCount > 0
-        val hasFailedOnProblems = hasProblems && isFailOnProblems
-        val hasTooManyProblems = problemCount > startParameter.maxProblems
-        val failed = hasFailedOnProblems || hasTooManyProblems
-        if (cacheAction == STORE && failed) {
-            // Invalidate stored state if problems fail the build
-            requireNotNull(invalidateStoredState).invoke()
-        }
-
+        val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
+        val hasTooManyProblems = hasTooManyProblems(summary)
         val outputDirectory = outputDirectoryFor(reportDir)
         val cacheActionText = cacheAction.summaryText()
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, problemCount)
+        val requestedTasks = startParameter.requestedTasksOrDefault()
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, cacheActionText, requestedTasks, summary.problemCount)
         if (htmlReportFile == null) {
             // there was nothing to report
-            require(!failed)
+            require(summary.problemCount == 0)
             return
         }
 
         when {
-            hasFailedOnProblems -> {
+            failDueToProblems -> {
                 // TODO - always include this as a build failure;
                 //  currently it is disabled when a serialization problem happens
                 validationFailures.accept(
@@ -135,6 +166,7 @@ class ConfigurationCacheProblems(
                     }
                 )
             }
+
             hasTooManyProblems -> {
                 validationFailures.accept(
                     TooManyConfigurationCacheProblemsException(summary.causes) {
@@ -142,6 +174,7 @@ class ConfigurationCacheProblems(
                     }
                 )
             }
+
             else -> {
                 logger.warn(summary.textForConsole(cacheActionText, htmlReportFile))
             }
@@ -149,12 +182,16 @@ class ConfigurationCacheProblems(
     }
 
     private
-    fun ConfigurationCacheAction?.summaryText() =
+    fun ConfigurationCacheAction.summaryText() =
         when (this) {
-            null -> "storing"
             LOAD -> "reusing"
             STORE -> "storing"
+            UPDATE -> "updating"
         }
+
+    private
+    fun ConfigurationCacheStartParameter.requestedTasksOrDefault() =
+        requestedTaskNames.takeIf { it.isNotEmpty() }?.joinToString(" ") ?: "default tasks"
 
     private
     fun outputDirectoryFor(buildDir: File): File =
@@ -166,17 +203,24 @@ class ConfigurationCacheProblems(
         override fun afterStart() = Unit
 
         override fun beforeComplete() {
-            val problemCount = summarizer.get().problemCount
+            val summary = summarizer.get()
+            val problemCount = summary.problemCount
             val hasProblems = problemCount > 0
-            val hasTooManyProblems = problemCount > startParameter.maxProblems
-            val problemCountString = if (problemCount == 1) "1 problem" else "$problemCount problems"
+            val discardStateDueToProblems = discardStateDueToProblems(summary)
+            val hasTooManyProblems = hasTooManyProblems(summary)
+            val problemCountString = problemCount.counter("problem")
+            val reusedProjectsString = reusedProjects.counter("project")
+            val updatedProjectsString = updatedProjects.counter("project")
             when {
-                isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded.")
+                isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded due to serialization error.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == STORE && isFailOnProblems && hasProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
+                cacheAction == STORE && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
+                cacheAction == STORE && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == STORE && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
                 cacheAction == STORE && !hasProblems -> log("Configuration cache entry stored.")
                 cacheAction == STORE -> log("Configuration cache entry stored with {}.", problemCountString)
+                cacheAction == UPDATE && !hasProblems -> log("Configuration cache entry updated for {}, {} up-to-date.", updatedProjectsString, reusedProjectsString)
+                cacheAction == UPDATE -> log("Configuration cache entry updated for {} with {}, {} up-to-date.", updatedProjectsString, problemCountString, reusedProjectsString)
                 cacheAction == LOAD && !hasProblems -> log("Configuration cache entry reused.")
                 cacheAction == LOAD -> log("Configuration cache entry reused with {}.", problemCountString)
                 hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
@@ -187,10 +231,33 @@ class ConfigurationCacheProblems(
     }
 
     private
+    fun incompatibleTasksSummary() = when {
+        incompatibleTasks.isNotEmpty() -> " because incompatible ${if (incompatibleTasks.size > 1) "tasks were" else "task was"} found: ${incompatibleTasks.joinToString(", ") { "'$it'" }}."
+        else -> "."
+    }
+
+    private
+    fun discardStateDueToProblems(summary: Summary) =
+        (summary.problemCount > 0 || incompatibleTasks.isNotEmpty()) && isFailOnProblems
+
+    private
+    fun hasTooManyProblems(summary: Summary) =
+        summary.nonSuppressedProblemCount > startParameter.maxProblems
+
+    private
     fun log(msg: String, vararg args: Any = emptyArray()) {
         logger.warn(msg, *args)
     }
 
     private
     val logger = Logging.getLogger(ConfigurationCacheProblems::class.java)
+
+    private
+    fun Int.counter(singular: String, plural: String = "${singular}s"): String {
+        return when (this) {
+            0 -> "no $plural"
+            1 -> "1 $singular"
+            else -> "$this $plural"
+        }
+    }
 }

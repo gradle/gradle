@@ -35,6 +35,8 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency
+
 @TargetCoverage({ GroovyCoverage.SUPPORTED_BY_JDK })
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec implements ValidationMessageChecker {
     @Rule
@@ -46,19 +48,19 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         version.split(":", 2)[0]
     }
 
-    def getGroovyJarVariants() {
-        ["groovy-all", "groovy"]
-    }
-
     def setup() {
         // necessary for picking up some of the output/errorOutput when forked executer is used
         executer.withArgument("-i")
         executer.withRepositoryMirrors()
-        groovyDependency = "org.codehaus.groovy:groovy:$version"
+        groovyDependency = groovyModuleDependency("groovy", versionNumber)
     }
 
     def "compileGoodCode"() {
-        groovyDependency = "org.codehaus.groovy:$module:$version"
+        if (module == "groovy-all") {
+            // No groovy-all for indy variant
+            Assume.assumeTrue(versionClassifier != "indy")
+        }
+        groovyDependency = groovyModuleDependency(module, versionNumber)
 
         expect:
         succeeds("compileGroovy")
@@ -66,7 +68,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         groovyClassFile("Address.class").exists()
 
         where:
-        module << groovyJarVariants
+        module << ["groovy", "groovy-all"]
     }
 
     def "compileWithAnnotationProcessor"() {
@@ -364,7 +366,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         failure.assertHasErrorOutput('unable to resolve class groovy.ant.AntBuilder')
 
         when:
-        buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-ant:${version}' }"
+        buildFile << "dependencies { implementation '${groovyModuleDependency("groovy-ant", versionNumber)}' }"
 
         then:
         succeeds("compileGroovy")
@@ -389,7 +391,7 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     def "canCompileAgainstGroovyClassThatDependsOnExternalClass"() {
         Assume.assumeFalse(versionLowerThan("3.0"))
 
-        buildFile << "dependencies { implementation 'org.codehaus.groovy:groovy-test:${version}' }"
+        buildFile << "dependencies { implementation '${groovyModuleDependency("groovy-test", versionNumber)}' }"
         expect:
         succeeds("test")
     }
@@ -444,7 +446,8 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
     }
 
     // JavaFx was removed in JDK 10
-    @Requires(TestPrecondition.JDK9_OR_EARLIER)
+    // We don't have Oracle Java 8 on Windows any more
+    @Requires([TestPrecondition.JDK9_OR_EARLIER, TestPrecondition.NOT_WINDOWS])
     def "compileJavaFx8Code"() {
         Assume.assumeFalse("Setup invalid with toolchains", getClass().name.contains('Toolchain') && !getClass().name.contains('SameToolchain'))
 

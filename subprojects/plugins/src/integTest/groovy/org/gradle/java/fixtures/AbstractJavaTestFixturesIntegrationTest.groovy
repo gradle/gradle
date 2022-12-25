@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenPom
-import spock.lang.Unroll
 
 abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrationSpec {
     abstract String getPluginName()
@@ -53,7 +52,6 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         }
     }
 
-    @Unroll
     def "can compile test fixtures [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
         buildFile << """
@@ -110,7 +108,6 @@ hamcrest-core-1.3.jar
         true                      | _
     }
 
-    @Unroll
     def "test fixtures can use their own dependencies [compileClasspathPackaging=#compileClasspathPackaging]"() {
         toggleCompileClasspathPackaging(compileClasspathPackaging)
         buildFile << """
@@ -405,9 +402,9 @@ hamcrest-core-1.3.jar
                     firstLevelConfigurations = ['testFixturesApiElements']
                     module('com.acme:external-module:1.3') {
                         variant("api", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
-                        artifact(name: 'external-module', version: '1.3')
+                        artifact(name: 'external-module')
                     }
-                    artifact(name: 'external-module', version: '1.3', classifier: 'test-fixtures')
+                    artifact(name: 'external-module', classifier: 'test-fixtures')
                 }
             }
         }
@@ -431,12 +428,12 @@ hamcrest-core-1.3.jar
                     firstLevelConfigurations = ['testFixturesRuntimeElements']
                     module('com.acme:external-module:1.3') {
                         variant("runtime", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
-                        artifact(name: 'external-module', version: '1.3')
+                        artifact(name: 'external-module')
                     }
                     module("org.apache.commons:commons-lang3:3.9") {
                         configuration = 'runtime' // external POM
                     }
-                    artifact(name: 'external-module', version: '1.3', classifier: 'test-fixtures')
+                    artifact(name: 'external-module', classifier: 'test-fixtures')
                 }
             }
         }

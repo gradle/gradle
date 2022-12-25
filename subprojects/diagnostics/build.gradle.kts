@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Contains project diagnostics or report tasks, e.g. help, project report, dependency report and similar"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":functional"))
@@ -33,7 +35,9 @@ dependencies {
     integTestImplementation(libs.jetty)
 
     testFixturesApi(testFixtures(project(":platform-native")))
+    testFixturesApi(testFixtures(project(":logging")))
     testFixturesImplementation(project(":base-services"))
+    testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":internal-integ-testing"))
     testFixturesImplementation(libs.guava)
 
@@ -45,7 +49,7 @@ dependencies {
     }
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/reporting/model/internal/*")
     excludePatterns.add("org/gradle/api/reporting/dependencies/internal/*")
     excludePatterns.add("org/gradle/api/plugins/internal/*")

@@ -18,15 +18,14 @@ package org.gradle.integtests.fixtures.compatibility;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.api.specs.Spec;
 import org.gradle.integtests.fixtures.VersionedTool;
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor;
-import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.collect.Iterators.getLast;
 
@@ -76,14 +75,7 @@ public abstract class AbstractContextualMultiVersionTestInterceptor<T extends Ve
     }
 
     private Collection<T> getAvailableVersions() {
-        Set<T> allAvailable = Sets.newHashSet();
-        CollectionUtils.filter(getAllVersions(), allAvailable, new Spec<T>() {
-            @Override
-            public boolean isSatisfiedBy(T version) {
-                return isAvailable(version);
-            }
-        });
-        return allAvailable;
+        return getAllVersions().stream().filter(this::isAvailable).collect(Collectors.toSet());
     }
 
     private T getFirstAvailable(Collection<T> versions) {

@@ -16,19 +16,14 @@
 
 package org.gradle.integtests
 
-import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.MissingTaskDependenciesFixture
-import org.gradle.internal.reflect.problems.ValidationProblemId
-import org.gradle.internal.reflect.validation.ValidationTestFor
+import org.gradle.internal.execution.steps.CleanupStaleOutputsStep
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
-import spock.lang.Unroll
 
-@Unroll
-class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements MissingTaskDependenciesFixture {
+class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue(['GRADLE-2440', 'GRADLE-2579'])
     def 'stale output file is removed after input source directory is emptied.'() {
@@ -294,7 +289,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Miss
 
         then:
         fixture.staleFilesHaveBeenRemoved()
-        operations.hasOperation(CleanupStaleOutputsExecuter.CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
+        operations.hasOperation(CleanupStaleOutputsStep.CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
     }
 
     def "no build operations are created for stale outputs cleanup if no files are removed"() {
@@ -308,7 +303,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Miss
 
         then:
         executedAndNotSkipped(fixture.taskPath)
-        !operations.first(CleanupStaleOutputsExecuter.CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
+        !operations.first(CleanupStaleOutputsStep.CLEAN_STALE_OUTPUTS_DISPLAY_NAME)
     }
 
     def "overlapping outputs between 'build/outputs' and '#overlappingOutputDir' are not cleaned up"() {
@@ -439,9 +434,6 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Miss
         skipped(taskWithLocalState.taskPath)
     }
 
-    @ValidationTestFor(
-        ValidationProblemId.IMPLICIT_DEPENDENCY
-    )
     def "up-to-date checks detect removed stale outputs"() {
 
         given:
@@ -475,12 +467,14 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Miss
         }
 
         when:
-        expectMissingDependencyDeprecation(":restore", ":backup", file('build/original'))
-        expectMissingDependencyDeprecation(":backup", ":restore", file('backup'))
-        run 'backup', 'restore'
-
+        succeeds "backup"
         then:
         executedAndNotSkipped(':backup')
+
+        when:
+        succeeds "restore"
+
+        then:
         executedAndNotSkipped(':restore')
         original.text == backup.text
         original.text == "Original"
@@ -493,13 +487,14 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec implements Miss
         //
         // If cleaning up stale output files does not invalidate the file system mirror, then the restore task would be up-to-date.
         invalidateBuildOutputCleanupState()
-        expectMissingDependencyDeprecation(":restore", ":backup", file('build/original'))
-        expectMissingDependencyDeprecation(":backup", ":restore", file('backup'))
-        run 'backup', 'restore', '--info'
+        succeeds 'backup'
+        then:
+        skipped ':backup'
 
+        when:
+        succeeds 'restore', '--info'
         then:
         output.contains("Deleting stale output file: ${original.parentFile.absolutePath}")
-        skipped ':backup'
         executedAndNotSkipped(':restore')
         original.text == backup.text
         original.text == "Original"

@@ -16,7 +16,7 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 @LeaksFileHandles
-class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPluginIntegrationTest implements DirectoryBuildCacheFixture {
+class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     @Override
     protected String getDefaultBuildFileName() {
@@ -133,10 +133,10 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         project2.file('build/tmp/myTask/output.txt').text == "hello"
     }
 
-    def "task action defined in Kotlin 1.5 can be tracked when using language version 1.4"() {
+    def "task action defined in latest Kotlin can be tracked when using language version #kotlinVersion"() {
         file("buildSrc/build.gradle.kts") << """
             plugins {
-                kotlin("jvm") version("1.5.31")
+                kotlin("jvm") version("1.8.0-RC2")
                 `java-gradle-plugin`
             }
 
@@ -157,8 +157,8 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
 
             tasks.withType<KotlinCompile>().configureEach {
                 kotlinOptions {
-                    apiVersion = "1.4"
-                    languageVersion = "1.4"
+                    apiVersion = "${kotlinVersion}"
+                    languageVersion = "${kotlinVersion}"
                 }
             }
         """
@@ -184,9 +184,22 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         """
 
         when:
+        if (kotlinVersion == "1.4") {
+            executer.expectDeprecationWarning("w: Language version 1.4 is deprecated and its support will be removed in a future version of Kotlin")
+        }
         run "myTask"
+
         then:
         executedAndNotSkipped(":myTask")
+
+        where:
+        kotlinVersion << [
+            "1.4",
+            "1.5",
+            "1.6",
+            "1.7",
+            "1.8",
+        ]
     }
 
     private void setupTaskWithNestedAction(String actionType, String actionInvocation, TestFile projectDir = temporaryFolder.testDirectory) {

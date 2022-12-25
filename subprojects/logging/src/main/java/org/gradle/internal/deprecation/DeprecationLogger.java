@@ -29,18 +29,25 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Provides entry points for constructing and emitting deprecation messages.
  * The basic deprecation message structure is "Summary. DeprecationTimeline. Context. Advice. Documentation."
- *
+ * <p>
  * The deprecateX methods in this class return a builder that guides creation of the deprecation message.
  * Summary is populated by the deprecateX methods in this class.
  * Context can be added in free text using {@link DeprecationMessageBuilder#withContext(String)}.
- * Advice is constructed contextually using {@link DeprecationMessageBuilder.WithReplacement#replaceWith(Object)} methods based on the thing being deprecated. Alternatively, it can be populated using {@link DeprecationMessageBuilder#withAdvice(String)}.
+ * Advice is constructed contextually using {@link DeprecationMessageBuilder.WithReplacement#replaceWith(Object)} methods based on the thing being deprecated.
+ * Alternatively, it can be populated using {@link DeprecationMessageBuilder#withAdvice(String)}.
+ * <p>
  * DeprecationTimeline is mandatory and is added using one of:
- * - ${@link DeprecationMessageBuilder#willBeRemovedInGradle8()}
- * - ${@link DeprecationMessageBuilder#willBecomeAnErrorInGradle8()}
+ * <ul>
+ *   <li>{@link DeprecationMessageBuilder#willBeRemovedInGradle9()}
+ *   <li>{@link DeprecationMessageBuilder#willBecomeAnErrorInGradle9()}
+ * </ul>
+ * <p>
  * After DeprecationTimeline is set, Documentation reference must be added using one of:
- * - {@link DeprecationMessageBuilder.WithDeprecationTimeline#withUpgradeGuideSection(int, String)}
- * - {@link DeprecationMessageBuilder.WithDeprecationTimeline#withDslReference(Class, String)}
- * - {@link DeprecationMessageBuilder.WithDeprecationTimeline#withUserManual(String, String)}
+ * <ul>
+ *   <li>{@link DeprecationMessageBuilder.WithDeprecationTimeline#withUpgradeGuideSection(int, String)}
+ *   <li>{@link DeprecationMessageBuilder.WithDeprecationTimeline#withDslReference(Class, String)}
+ *   <li>{@link DeprecationMessageBuilder.WithDeprecationTimeline#withUserManual(String, String)}
+ * </ul>
  *
  * In order for the deprecation message to be emitted, terminal operation {@link DeprecationMessageBuilder.WithDocumentation#nagUser()} has to be called after one of the documentation providing methods.
  */
@@ -84,7 +91,7 @@ public class DeprecationLogger {
         return new DeprecationMessageBuilder() {
             @Override
             DeprecationMessage build() {
-                setSummary(xHasBeenDeprecated(feature));
+                setSummary(feature + " has been deprecated.");
                 return super.build();
             }
         };
@@ -114,7 +121,7 @@ public class DeprecationLogger {
     }
 
     /**
-     * Output: ${behaviour}.
+     * Output: ${behaviour}. This behavior is deprecated.
      */
     @CheckReturnValue
     public static DeprecationMessageBuilder.DeprecateBehaviour deprecateBehaviour(String behaviour) {
@@ -122,7 +129,7 @@ public class DeprecationLogger {
     }
 
     /**
-     * Output: ${behaviour} ${advice}
+     * Output: ${behaviour}. This behavior is deprecated. ${advice}
      */
     @CheckReturnValue
     @SuppressWarnings("rawtypes")
@@ -130,7 +137,7 @@ public class DeprecationLogger {
         return new DeprecationMessageBuilder.WithDeprecationTimeline(new DeprecationMessageBuilder() {
             @Override
             DeprecationMessage build() {
-                return new DeprecationMessage(behaviour, "", advice, null, Documentation.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
+                return new DeprecationMessage(behaviour + ". This behavior is deprecated.", "", advice, null, Documentation.NO_DOCUMENTATION, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
             }
         });
     }
@@ -141,13 +148,7 @@ public class DeprecationLogger {
     @CheckReturnValue
     @SuppressWarnings("rawtypes")
     public static DeprecationMessageBuilder<?> deprecateAction(final String action) {
-        return new DeprecationMessageBuilder() {
-            @Override
-            DeprecationMessage build() {
-                setSummary(xHasBeenDeprecated(action));
-                return super.build();
-            }
-        };
+        return new DeprecationMessageBuilder.DeprecateAction(action);
     }
 
     /**
@@ -188,6 +189,11 @@ public class DeprecationLogger {
     @CheckReturnValue
     public static DeprecationMessageBuilder.DeprecateInvocation deprecateInvocation(String methodWithParams) {
         return new DeprecationMessageBuilder.DeprecateInvocation(methodWithParams);
+    }
+
+    @CheckReturnValue
+    public static DeprecationMessageBuilder.DeprecateType deprecateType(Class<?> type) {
+        return new DeprecationMessageBuilder.DeprecateType(type.getCanonicalName());
     }
 
     /**
@@ -233,7 +239,12 @@ public class DeprecationLogger {
     static void nagUserWith(DeprecationMessageBuilder<?> deprecationMessageBuilder, Class<?> calledFrom) {
         if (isEnabled()) {
             DeprecationMessage deprecationMessage = deprecationMessageBuilder.build();
-            nagUserWith(deprecationMessage.toDeprecatedFeatureUsage(calledFrom));
+            DeprecatedFeatureUsage featureUsage = deprecationMessage.toDeprecatedFeatureUsage(calledFrom);
+            nagUserWith(featureUsage);
+
+            if (!featureUsage.formattedMessage().contains("deprecated")) {
+                throw new RuntimeException("Deprecation message does not contain the word 'deprecated'. Message: \n" + featureUsage.formattedMessage());
+            }
         }
     }
 
@@ -256,6 +267,36 @@ public class DeprecationLogger {
         }
     }
 
+    public static <T, E extends Exception> T whileDisabledThrowing(ThrowingFactory<T, E> factory) {
+        ENABLED.set(false);
+        try {
+            return toUncheckedThrowingFactory(factory).create();
+        } finally {
+            ENABLED.set(true);
+        }
+    }
+
+    public interface ThrowingFactory<T, E extends Exception> {
+        T create() throws E;
+    }
+
+    /**
+     * Turns a {@link ThrowingFactory} into a {@link Factory}.
+     * The compiler is happy with the casting that allows to hide the checked exception.
+     * The runtime is happy with the casting because the checked exception type information is captured in a generic type parameter which gets erased.
+     */
+    private static <T, E extends Exception> Factory<T> toUncheckedThrowingFactory(final ThrowingFactory<T, E> throwingFactory) {
+        return new Factory<T>() {
+            @Nullable
+            @Override
+            public T create() {
+                @SuppressWarnings("unchecked")
+                ThrowingFactory<T, RuntimeException> factory = (ThrowingFactory<T, RuntimeException>) throwingFactory;
+                return factory.create();
+            }
+        };
+    }
+
     private static boolean isEnabled() {
         return ENABLED.get();
     }
@@ -263,9 +304,4 @@ public class DeprecationLogger {
     private synchronized static void nagUserWith(DeprecatedFeatureUsage usage) {
         DEPRECATED_FEATURE_HANDLER.featureUsed(usage);
     }
-
-    private static String xHasBeenDeprecated(String x) {
-        return String.format("%s has been deprecated.", x);
-    }
-
 }

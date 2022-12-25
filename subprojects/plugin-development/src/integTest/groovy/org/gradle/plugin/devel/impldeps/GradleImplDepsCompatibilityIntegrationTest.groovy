@@ -23,7 +23,6 @@ import org.gradle.internal.ErroringAction
 import org.gradle.internal.IoActions
 import org.gradle.util.internal.TextUtil
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -61,7 +60,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
 
     def "Gradle API dependency does not contain any of TestKit dependency classes and vice versa"() {
         given:
-        def outputDirName = 'build'
+        def outputDirPath = 'build/output'
         buildFile << """
             configurations {
                 gradleApi
@@ -76,7 +75,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
             task resolveDependencyArtifacts {
                 doLast {
                     copy {
-                        into '$outputDirName'
+                        into '$outputDirPath'
                         from configurations.gradleApi.resolve().find { it.name.startsWith('gradle-api-') }
                         from configurations.testKit.resolve().find { it.name.startsWith('gradle-test-kit-') }
                     }
@@ -88,13 +87,13 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         succeeds 'resolveDependencyArtifacts'
 
         then:
-        def outputDir = temporaryFolder.testDirectory.file(outputDirName)
+        def outputDir = temporaryFolder.testDirectory.file(outputDirPath)
         def jarFiles = outputDir.listFiles()
         jarFiles.size() == 2
         def gradleApiJar = jarFiles.find { it.name.startsWith('gradle-api-') }
         def testKitJar = jarFiles.find { it.name.startsWith('gradle-test-kit-') }
-        File gradleApiClassNamesTextFile = temporaryFolder.testDirectory.file("$outputDirName/gradle-api-classes.txt")
-        File testKitClassNamesTextFile = temporaryFolder.testDirectory.file("$outputDirName/testkit-classes.txt")
+        File gradleApiClassNamesTextFile = temporaryFolder.testDirectory.file("$outputDirPath/gradle-api-classes.txt")
+        File testKitClassNamesTextFile = temporaryFolder.testDirectory.file("$outputDirPath/testkit-classes.txt")
         writeClassesInZipFileToTextFile(gradleApiJar, gradleApiClassNamesTextFile)
         writeClassesInZipFileToTextFile(testKitJar, testKitClassNamesTextFile)
         assert gradleApiClassNamesTextFile.size() > 0
@@ -103,14 +102,19 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         verifyNoDuplicateEntries(testKitClassNamesTextFile, gradleApiClassNamesTextFile)
     }
 
-    @Unroll
     def "Gradle API and TestKit are compatible regardless of order #dependencyPermutations"() {
         when:
         buildFile << applyGroovyPlugin()
         buildFile << mavenCentralRepository()
-        buildFile << spockDependency()
-        buildFile << junitDependency()
         buildFile << """
+            testing {
+                suites {
+                    test {
+                        useSpock()
+                    }
+                }
+            }
+
             repositories {
                 maven { url '${buildContext.localRepository.toURI().toURL()}' }
             }
@@ -130,16 +134,15 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
         file('src/test/groovy/BuildLogicFunctionalTest.groovy') << """
             import org.gradle.testkit.runner.GradleRunner
             import static org.gradle.testkit.runner.TaskOutcome.*
-            import org.junit.Rule
-            import org.junit.rules.TemporaryFolder
             import spock.lang.Specification
+            import spock.lang.TempDir
 
             class BuildLogicFunctionalTest extends Specification {
-                @Rule TemporaryFolder testProjectDir = new TemporaryFolder()
+                @TempDir File testProjectDir
                 File buildFile
 
                 def setup() {
-                    buildFile = testProjectDir.newFile('build.gradle')
+                    buildFile = new File(testProjectDir, 'build.gradle')
                 }
 
                 def "hello world task prints hello world"() {
@@ -154,7 +157,7 @@ class GradleImplDepsCompatibilityIntegrationTest extends BaseGradleImplDepsInteg
 
                     when:
                     def result = GradleRunner.create()
-                        .withProjectDir(testProjectDir.root)
+                        .withProjectDir(testProjectDir)
                         .withArguments('helloWorld')
                         .withTestKitDir(new java.io.File("${TextUtil.normaliseFileSeparators(executer.gradleUserHomeDir.absolutePath)}"))
                         .build()

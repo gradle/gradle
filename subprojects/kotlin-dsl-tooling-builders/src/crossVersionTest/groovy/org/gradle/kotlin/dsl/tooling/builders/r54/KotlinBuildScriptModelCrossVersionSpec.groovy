@@ -17,26 +17,22 @@
 package org.gradle.kotlin.dsl.tooling.builders.r54
 
 import groovy.transform.CompileStatic
-
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
-
+import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.Flaky
 import org.hamcrest.Matcher
-import spock.lang.Ignore
 
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.CoreMatchers.hasItem
 import static org.hamcrest.CoreMatchers.hasItems
+import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
 
-
 @TargetGradleVersion(">=5.4")
-@Ignore('https://github.com/gradle/gradle-private/issues/3414')
+@Flaky(because = 'https://github.com/gradle/gradle-private/issues/3414')
 class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "can fetch buildSrc classpath in face of compilation errors"() {
@@ -547,8 +543,7 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
             rootProjectScript,
             subProjectScript,
             hasItems(
-                equalTo("kotlin-gradle-plugin-${targetKotlinVersion}-sources.jar".toString()),
-                matching("annotations-[0-9.]+-sources\\.jar")
+                equalTo("kotlin-gradle-plugin-${targetKotlinVersion}-sources.jar".toString())
             )
         )
     }

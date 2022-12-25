@@ -26,7 +26,6 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.operations.OperationIdentifier
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class LoggingBuildOperationProgressBroadcasterTest extends Specification {
 
@@ -45,7 +44,6 @@ class LoggingBuildOperationProgressBroadcasterTest extends Specification {
         bridge.rootBuildOperation = fallbackOperationId
     }
 
-    @Unroll
     def "forwards #eventType with operationId"() {
         when:
         bridge.onOutput(eventWithBuildOperationId)

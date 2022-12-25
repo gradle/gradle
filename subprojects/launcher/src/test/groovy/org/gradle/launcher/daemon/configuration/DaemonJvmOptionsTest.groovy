@@ -19,11 +19,9 @@ package org.gradle.launcher.daemon.configuration
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.process.internal.JvmOptions
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DaemonJvmOptionsTest extends Specification {
 
-    @Unroll
     def "#propDescr is immutable system property"() {
         when:
         def opts = createOpts()
@@ -44,7 +42,6 @@ class DaemonJvmOptionsTest extends Specification {
         "ssl truststore type"     | DaemonJvmOptions.SSL_TRUSTSTORETYPE_KEY   | "-D${DaemonJvmOptions.SSL_TRUSTSTORETYPE_KEY}=jks"
     }
 
-    @Unroll
     def "#propDescr can be set as systemproperty"() {
         JvmOptions opts = createOpts()
         when:
@@ -59,6 +56,14 @@ class DaemonJvmOptionsTest extends Specification {
         "ssl truststore path"     | DaemonJvmOptions.SSL_TRUSTSTORE_KEY       | "truststore/path"
         "ssl truststore password" | DaemonJvmOptions.SSL_TRUSTPASSWORD_KEY    | "secret"
         "ssl truststore type"     | DaemonJvmOptions.SSL_TRUSTSTORETYPE_KEY   | "jks"
+    }
+
+    def "all single use immutable jvm args has 4 elements" () {
+        when:
+        def opts = createOpts()
+
+        then:
+        opts.allSingleUseImmutableJvmArgs.size() == 4;
     }
 
     private DaemonJvmOptions createOpts() {

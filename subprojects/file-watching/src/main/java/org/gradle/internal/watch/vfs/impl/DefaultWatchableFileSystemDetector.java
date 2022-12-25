@@ -23,12 +23,13 @@ import org.gradle.internal.watch.vfs.WatchableFileSystemDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.stream.Stream;
 
 public class DefaultWatchableFileSystemDetector implements WatchableFileSystemDetector {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWatchableFileSystemDetector.class);
 
-    // !IMPORTANT! If changed, make sure to update the documentation in gradle_damon.adoc
+    // !IMPORTANT! If changed, make sure to update the documentation in gradle_daemon.adoc
     private static final ImmutableSet<String> SUPPORTED_FILE_SYSTEM_TYPES = ImmutableSet.of(
         // APFS on macOS
         "apfs",
@@ -37,6 +38,7 @@ public class DefaultWatchableFileSystemDetector implements WatchableFileSystemDe
         "ext3",
         "ext4",
         "btrfs",
+        "xfs",
         // NTFS on macOS
         "ntfs",
         // NTFS on Windows
@@ -56,7 +58,7 @@ public class DefaultWatchableFileSystemDetector implements WatchableFileSystemDe
     }
 
     @Override
-    public Stream<FileSystemInfo> detectUnsupportedFileSystems() {
+    public Stream<File> detectUnsupportedFileSystems() {
         return fileSystems.getFileSystems().stream()
             .filter(fileSystem -> {
                 LOGGER.debug("Detected {}: {} from {} (remote: {})",
@@ -70,6 +72,7 @@ public class DefaultWatchableFileSystemDetector implements WatchableFileSystemDe
                     return true;
                 }
                 return !SUPPORTED_FILE_SYSTEM_TYPES.contains(fileSystem.getFileSystemType());
-            });
+            })
+            .map(FileSystemInfo::getMountPoint);
     }
 }

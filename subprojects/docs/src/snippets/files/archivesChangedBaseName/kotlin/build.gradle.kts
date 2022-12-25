@@ -23,9 +23,12 @@ val myOtherZip by tasks.registering(Zip::class) {
 }
 
 tasks.register("echoNames") {
+    val projectNameString = project.name
+    val archiveFileName = myZip.flatMap { it.archiveFileName }
+    val myOtherArchiveFileName = myOtherZip.flatMap { it.archiveFileName }
     doLast {
-        println("Project name: ${project.name}")
-        println(myZip.get().archiveFileName.get())
-        println(myOtherZip.get().archiveFileName.get())
+        println("Project name: $projectNameString")
+        println(archiveFileName.get())
+        println(myOtherArchiveFileName.get())
     }
 }

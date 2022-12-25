@@ -16,8 +16,10 @@
 
 package org.gradle.internal.watch
 
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 
+@LocalOnly
 class ChangesByGradleFileWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest implements DirectoryBuildCacheFixture {
 
     def "detects when outputs are removed for tasks without sources"() {
@@ -141,7 +143,7 @@ class ChangesByGradleFileWatchingIntegrationTest extends AbstractFileSystemWatch
 
             task incremental(type: IncrementalTask) {
                 sources = file("sources")
-                input = providers.systemProperty("outputDir").forUseAtConfigurationTime()
+                input = providers.systemProperty("outputDir")
                 outputDir = file("build/\${input.get()}")
             }
         """
@@ -234,6 +236,7 @@ class ChangesByGradleFileWatchingIntegrationTest extends AbstractFileSystemWatch
 
             task outputFileTask(type: WithOutputFile) {
                 outputFile = file("build/overlap/outputFile.txt")
+                mustRunAfter localStateTask
             }
         """
         def localStateOutputFile = file("build/localStateOutput.txt")

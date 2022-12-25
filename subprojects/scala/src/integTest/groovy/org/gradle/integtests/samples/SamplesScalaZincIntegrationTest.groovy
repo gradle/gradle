@@ -20,13 +20,11 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
 
 class SamplesScalaZincIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule Sample sample = new Sample(temporaryFolder, 'scala/zinc')
 
-    @Unroll
     def "can build jar with #dsl dsl"() {
         given:
         def projectDir = sample.dir.file(dsl)

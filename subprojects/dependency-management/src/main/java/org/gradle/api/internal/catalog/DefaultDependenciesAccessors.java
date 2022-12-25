@@ -30,7 +30,9 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -38,18 +40,16 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.ClasspathNormalizer;
+import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.internal.Cast;
+import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.execution.ExecutionEngine;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.FileValueSupplier;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputPropertyType;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter.InputVisitor;
+import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -60,9 +60,12 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
+import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.util.internal.IncubationLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -77,6 +80,8 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static org.gradle.internal.execution.ExecutionEngine.Execution;
+
 public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static String SUPPORTED_PROJECT_NAMES = "[a-zA-Z]([A-Za-z0-9\\-_])*";
     private final static Pattern SUPPORTED_PATTERN = Pattern.compile(SUPPORTED_PROJECT_NAMES);
@@ -84,13 +89,18 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     private final static String ACCESSORS_CLASSNAME_PREFIX = "LibrariesFor";
     private final static String ROOT_PROJECT_ACCESSOR_FQCN = ACCESSORS_PACKAGE + "." + RootProjectAccessorSourceGenerator.ROOT_PROJECT_ACCESSOR_CLASSNAME;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultDependenciesAccessors.class);
+
     private final ClassPath classPath;
     private final DependenciesAccessorsWorkspaceProvider workspace;
     private final DefaultProjectDependencyFactory projectDependencyFactory;
-    private final FeaturePreviews featurePreviews;
+    private final FeatureFlags featureFlags;
     private final ExecutionEngine engine;
     private final FileCollectionFactory fileCollectionFactory;
     private final InputFingerprinter inputFingerprinter;
+    private final ImmutableAttributesFactory attributesFactory;
+    private final CapabilityNotationParser capabilityNotationParser;
+
     private final List<DefaultVersionCatalog> models = Lists.newArrayList();
     private final Map<String, Class<? extends ExternalModuleDependencyFactory>> factories = Maps.newHashMap();
 
@@ -102,17 +112,22 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
     public DefaultDependenciesAccessors(ClassPathRegistry registry,
                                         DependenciesAccessorsWorkspaceProvider workspace,
                                         DefaultProjectDependencyFactory projectDependencyFactory,
-                                        FeaturePreviews featurePreview,
+                                        FeatureFlags featureFlags,
                                         ExecutionEngine engine,
                                         FileCollectionFactory fileCollectionFactory,
-                                        InputFingerprinter inputFingerprinter) {
+                                        InputFingerprinter inputFingerprinter,
+                                        ImmutableAttributesFactory attributesFactory,
+                                        CapabilityNotationParser capabilityNotationParser
+    ) {
         this.classPath = registry.getClassPath("DEPENDENCIES-EXTENSION-COMPILER");
         this.workspace = workspace;
         this.projectDependencyFactory = projectDependencyFactory;
-        this.featurePreviews = featurePreview;
+        this.featureFlags = featureFlags;
         this.engine = engine;
         this.fileCollectionFactory = fileCollectionFactory;
         this.inputFingerprinter = inputFingerprinter;
+        this.attributesFactory = attributesFactory;
+        this.capabilityNotationParser = capabilityNotationParser;
     }
 
     @Override
@@ -125,14 +140,13 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                 models.add(model);
             }
             if (models.stream().anyMatch(DefaultVersionCatalog::isNotEmpty)) {
-                IncubationLogger.incubatingFeatureUsed("Type-safe dependency accessors");
                 for (DefaultVersionCatalog model : models) {
                     if (model.isNotEmpty()) {
                         writeDependenciesAccessors(model);
                     }
                 }
             }
-            if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
+            if (featureFlags.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
                 IncubationLogger.incubatingFeatureUsed("Type-safe project accessors");
                 writeProjectAccessors(((SettingsInternal) settings).getProjectRegistry());
             }
@@ -149,12 +163,24 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
         if (!assertCanGenerateAccessors(projectRegistry)) {
             return;
         }
+        warnIfRootProjectNameNotSetExplicitly(projectRegistry.getRootProject());
         executeWork(new ProjectAccessorUnitOfWork(projectRegistry));
+    }
+
+    private static void warnIfRootProjectNameNotSetExplicitly(@Nullable ProjectDescriptor project) {
+        if (!(project instanceof DefaultProjectDescriptor)) {
+            return;
+        }
+        DefaultProjectDescriptor descriptor = (DefaultProjectDescriptor) project;
+        if (!descriptor.isExplicitName()) {
+            LOGGER.warn("Project accessors enabled, but root project name not explicitly set for '" + project.getName() +
+                    "'. Checking out the project in different folders will impact the generated code and implicitly the buildscript classpath, breaking caching.");
+        }
     }
 
     private void executeWork(UnitOfWork work) {
         ExecutionEngine.Result result = engine.createRequest(work).execute();
-        ExecutionResult er = result.getExecutionResult().get();
+        Execution er = result.getExecution().get();
         GeneratedAccessors accessors = (GeneratedAccessors) er.getOutput();
         ClassPath generatedClasses = DefaultClassPath.of(accessors.classesDir);
         sources = sources.plus(DefaultClassPath.of(accessors.sourcesDir));
@@ -223,14 +249,14 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
                         }
                         if (factory != null) {
                             container.create(model.getName(), factory, model);
-                            catalogs.put(model.getName(), new VersionCatalogView(model, providerFactory));
+                            catalogs.put(model.getName(), new VersionCatalogView(model, providerFactory, project.getObjects(), attributesFactory, capabilityNotationParser));
                         }
                     }
                 }
                 container.create(VersionCatalogsExtension.class, "versionCatalogs", DefaultVersionCatalogsExtension.class, catalogs.build());
             }
         } finally {
-            if (featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
+            if (featureFlags.isEnabled(FeaturePreviews.Feature.TYPESAFE_PROJECT_ACCESSORS)) {
                 ServiceRegistry services = project.getServices();
                 DependencyResolutionManagementInternal drm = services.get(DependencyResolutionManagementInternal.class);
                 ProjectFinder projectFinder = services.get(ProjectFinder.class);
@@ -302,13 +328,13 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
                 @Override
                 public Object getOutput() {
-                    return loadRestoredOutput(workspace);
+                    return loadAlreadyProducedOutput(workspace);
                 }
             };
         }
 
         @Override
-        public Object loadRestoredOutput(File workspace) {
+        public Object loadAlreadyProducedOutput(File workspace) {
             File srcDir = new File(workspace, OUT_SOURCES);
             File dstDir = new File(workspace, OUT_CLASSES);
             return new GeneratedAccessors(srcDir, dstDir);
@@ -322,12 +348,12 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         private void visitOutputDir(OutputVisitor visitor, File workspace, String propertyName) {
             File dir = new File(workspace, propertyName);
-            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, dir, fileCollectionFactory.fixed(dir));
+            visitor.visitOutputProperty(propertyName, TreeType.DIRECTORY, OutputFileValueSupplier.fromStatic(dir, fileCollectionFactory.fixed(dir)));
         }
     }
 
     private class DependencyAccessorUnitOfWork extends AbstractAccessorUnitOfWork {
-        private static final String IN_DEPENDENCY_ALIASES = "dependencyAliases";
+        private static final String IN_LIBRARIES = "libraries";
         private static final String IN_BUNDLES = "bundles";
         private static final String IN_PLUGINS = "plugins";
         private static final String IN_VERSIONS = "versions";
@@ -347,15 +373,15 @@ public class DefaultDependenciesAccessors implements DependenciesAccessors {
 
         @Override
         public void visitIdentityInputs(InputVisitor visitor) {
-            visitor.visitInputProperty(IN_DEPENDENCY_ALIASES, model::getDependencyAliases);
+            visitor.visitInputProperty(IN_LIBRARIES, model::getLibraryAliases);
             visitor.visitInputProperty(IN_BUNDLES, model::getBundleAliases);
             visitor.visitInputProperty(IN_VERSIONS, model::getVersionAliases);
             visitor.visitInputProperty(IN_PLUGINS, model::getPluginAliases);
             visitor.visitInputProperty(IN_MODEL_NAME, model::getName);
-            visitor.visitInputFileProperty(IN_CLASSPATH, InputPropertyType.NON_INCREMENTAL,
-                new FileValueSupplier(
+            visitor.visitInputFileProperty(IN_CLASSPATH, InputBehavior.NON_INCREMENTAL,
+                new InputFileValueSupplier(
                     classPath,
-                    ClasspathNormalizer.class,
+                    InputNormalizer.RUNTIME_CLASSPATH,
                     DirectorySensitivity.IGNORE_DIRECTORIES,
                     LineEndingSensitivity.DEFAULT,
                     () -> fileCollectionFactory.fixed(classPath.getAsFiles())));

@@ -19,6 +19,7 @@ package org.gradle.configurationcache.fingerprint
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import java.io.File
 
@@ -28,31 +29,42 @@ sealed class ConfigurationCacheFingerprint {
 
     data class GradleEnvironment(
         val gradleUserHomeDir: File,
-        val jvm: String
+        val jvm: String,
+        val startParameterProperties: Map<String, Any?>,
+        /**
+         * Whether the instrumentation agent was used when computing the cache.
+         * With the agent, the class paths may be stored differently, making the caches incompatible with one another.
+         */
+        val instrumentationAgentUsed: Boolean
     ) : ConfigurationCacheFingerprint()
 
     data class InitScripts(
         val fingerprints: List<InputFile>
     ) : ConfigurationCacheFingerprint()
 
-    data class TaskInputs(
-        val taskPath: String,
+    data class WorkInputs(
+        val workDisplayName: String,
         val fileSystemInputs: FileCollectionInternal,
         val fileSystemInputsFingerprint: HashCode
     ) : ConfigurationCacheFingerprint()
 
     data class InputFile(
         val file: File,
-        val hash: HashCode?
+        val hash: HashCode
+    ) : ConfigurationCacheFingerprint()
+
+    data class DirectoryChildren(
+        val file: File,
+        val hash: HashCode
+    ) : ConfigurationCacheFingerprint()
+
+    data class InputFileSystemEntry(
+        val file: File,
+        val fileType: FileType
     ) : ConfigurationCacheFingerprint()
 
     data class ValueSource(
         val obtainedValue: ObtainedValue
-    ) : ConfigurationCacheFingerprint()
-
-    data class UndeclaredGradleProperty(
-        val key: String,
-        val value: String?
     ) : ConfigurationCacheFingerprint()
 
     data class UndeclaredSystemProperty(
@@ -87,12 +99,32 @@ sealed class ConfigurationCacheFingerprint {
             get() = "cached artifact information for $displayName has expired"
     }
 
-    data class ProjectSpecificInput(
-        val projectPath: String,
-        val value: ConfigurationCacheFingerprint
+    class SystemPropertiesPrefixedBy(
+        val prefix: String,
+        val snapshot: Map<String, Any?>
+    ) : ConfigurationCacheFingerprint() {
+        companion object {
+            /**
+             * The placeholder for system properties modified by the build logic at the time of
+             * reading. Such properties shouldn't be taken into account when comparing snapshots.
+             */
+            val IGNORED: Any = Ignored.INSTANCE
+
+            // Enum ensures that only one instance of INSTANCE exists and even deserialization
+            // doesn't create a new one. The `object` has no such guarantee.
+            private
+            enum class Ignored {
+                INSTANCE
+            }
+        }
+    }
+
+    class EnvironmentVariablesPrefixedBy(
+        val prefix: String,
+        val snapshot: Map<String, String?>
     ) : ConfigurationCacheFingerprint()
 }
 
 
 internal
-typealias ObtainedValue = ValueSourceProviderFactory.Listener.ObtainedValue<Any, ValueSourceParameters>
+typealias ObtainedValue = ValueSourceProviderFactory.ValueListener.ObtainedValue<Any, ValueSourceParameters>

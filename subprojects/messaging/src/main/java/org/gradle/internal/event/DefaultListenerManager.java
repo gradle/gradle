@@ -143,9 +143,7 @@ public class DefaultListenerManager implements ListenerManager, AnnotatedService
     @Override
     public <T> AnonymousListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass) {
         assertCanBroadcast(listenerClass);
-        AnonymousListenerBroadcast<T> broadcast = new AnonymousListenerBroadcast<T>(listenerClass);
-        broadcast.add(getBroadcasterInternal(listenerClass).getDispatch(true));
-        return broadcast;
+        return new AnonymousListenerBroadcast<T>(listenerClass, getBroadcasterInternal(listenerClass).getDispatch(true));
     }
 
     private <T> EventBroadcast<T> getBroadcasterInternal(Class<T> listenerClass) {
@@ -430,9 +428,7 @@ public class DefaultListenerManager implements ListenerManager, AnnotatedService
             public void dispatch(MethodInvocation invocation) {
                 List<Dispatch<MethodInvocation>> dispatchers = startNotification(includeLogger);
                 try {
-                    if (!dispatchers.isEmpty()) {
-                        dispatch(invocation, dispatchers.iterator());
-                    }
+                    dispatch(invocation, dispatchers);
                 } finally {
                     endNotification(dispatchers);
                 }

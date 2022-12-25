@@ -17,7 +17,6 @@
 package org.gradle.util.internal
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class TextUtilTest extends Specification {
     private static String sep = "separator"
@@ -82,7 +81,6 @@ class TextUtilTest extends Specification {
         "abc\nde" | true
     }
 
-    @Unroll
     def indent() {
         expect:
         TextUtil.indent(text, indent) == result
@@ -105,8 +103,7 @@ class TextUtilTest extends Specification {
         TextUtil.shorterOf("", "") == ""
     }
 
-    @Unroll("#camelCase to kebab = #kebabCase")
-    def kebabCase() {
+    def "#camelCase to kebab = #kebabCase"() {
         expect:
         TextUtil.camelToKebabCase(camelCase) == kebabCase
 

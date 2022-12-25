@@ -22,7 +22,6 @@ import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
-import spock.lang.Unroll
 
 import java.lang.reflect.Modifier
 
@@ -247,7 +246,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         ex.message =~ /You tried to call a method on an API class/
     }
 
-    @Unroll
     void "constant initial value for #type is #expected"() {
         given:
         def api = toApi 'com.acme.A': """

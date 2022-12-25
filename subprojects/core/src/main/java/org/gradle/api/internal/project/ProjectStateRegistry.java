@@ -25,9 +25,9 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Collection;
-import java.util.function.Consumer;
 
 /**
  * A registry of all projects present in a build tree.
@@ -56,9 +56,15 @@ public interface ProjectStateRegistry {
     BuildProjectRegistry projectsFor(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
 
     /**
+     * Locates the state objects for all projects of the given build, or {@code null} if these are not available yet.
+     */
+    @Nullable
+    BuildProjectRegistry findProjectsFor(BuildIdentifier buildIdentifier);
+
+    /**
      * Registers the projects of a build.
      */
-    void registerProjects(BuildState build, ProjectRegistry<DefaultProjectDescriptor> projectRegistry);
+    void registerProjects(BuildState owner, ProjectRegistry<DefaultProjectDescriptor> projectRegistry);
 
     /**
      * Registers a single project.
@@ -66,23 +72,14 @@ public interface ProjectStateRegistry {
     ProjectState registerProject(BuildState owner, DefaultProjectDescriptor projectDescriptor);
 
     /**
-     * Allows a section of code to run against the mutable state of all projects. No other thread will be able to access the state of any project while the given action is running.
-     *
-     * <p>Any attempt to lock a project by some other thread will block while the given action is running. This includes calls to {@link ProjectState#applyToMutableState(Consumer)}.
-     */
-    void withMutableStateOfAllProjects(Runnable runnable);
-
-    /**
-     * Allows a section of code to run against the mutable state of all projects. No other thread will be able to access the state of any project while the given action is running.
-     *
-     * <p>Any attempt to lock a project by some other thread will block while the given action is running. This includes calls to {@link ProjectState#applyToMutableState(Consumer)}.
-     */
-    <T> T withMutableStateOfAllProjects(Factory<T> factory);
-
-    /**
-     * Allows the given code to access the mutable state of any project, regardless of which other threads may be accessing the project.
+     * Allows the given code to access the mutable state of any project in the tree, regardless of which other threads may be accessing the project.
      *
      * DO NOT USE THIS METHOD. It is here to allow some very specific backwards compatibility.
      */
     <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory);
+
+    /**
+     * Discards all projects for the given build.
+     */
+    void discardProjectsFor(BuildState build);
 }

@@ -23,6 +23,7 @@ import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.Set;
 import javax.annotation.Nullable;
 
 @ServiceScope(Scopes.Build.class)
@@ -41,4 +42,14 @@ public interface BuildCacheConfigurationInternal extends BuildCacheConfiguration
      * Replaces remote build cache.
      */
     void setRemote(@Nullable BuildCache remote);
+
+    /**
+     * Gets build cache service registrations
+     */
+    Set<BuildCacheServiceRegistration> getRegistrations();
+
+    /**
+     * Replaces build cache service registrations
+     */
+    void setRegistrations(Set<BuildCacheServiceRegistration> registrations);
 }

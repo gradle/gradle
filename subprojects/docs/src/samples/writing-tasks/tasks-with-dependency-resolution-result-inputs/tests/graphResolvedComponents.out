@@ -1,0 +1,6 @@
+project :
+  org.apache.commons:commons-text -> org.apache.commons:commons-text:1.9
+    org.apache.commons:commons-lang3:3.11 -> org.apache.commons:commons-lang3:3.11
+  project :utilities -> project :utilities
+    project :list -> project :list
+  org.apache.commons:commons-text:1.9 -> org.apache.commons:commons-text:1.9 (already seen)

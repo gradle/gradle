@@ -18,7 +18,6 @@ package org.gradle.plugin.repository
 
 import com.google.common.base.Splitter
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -28,7 +27,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Shared
-import spock.lang.Unroll
 
 @LeaksFileHandles
 class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependencyResolutionTest {
@@ -88,7 +86,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         """
     }
 
-    @Unroll
     def "#repoType repositories are queried in declaration order"() {
         given:
         publishPlugins(repoType)
@@ -109,7 +106,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         repoType << [IVY, MAVEN]
     }
 
-    @Unroll
     def "Tries next #repoType repository if first didn't match"() {
         given:
         publishPlugins(repoType)
@@ -130,7 +126,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         repoType << [IVY, MAVEN]
     }
 
-    @Unroll
     def "Order of plugin requests does not affect order of #repoType repositories queried"() {
         given:
         publishPlugins(repoType)
@@ -152,7 +147,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         repoType << [IVY, MAVEN]
     }
 
-    @Unroll
     def "Resolution failures for #repoType are reported in declaration order"() {
         given:
         publishPlugins(repoType)
@@ -183,7 +177,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         repoType << [IVY, MAVEN]
     }
 
-    @Unroll
     def "Does not fall through to plugin portal if custom #repoType repos are defined"(String repoType) {
         given:
         publishPlugins(repoType)
@@ -268,7 +261,6 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Issue("gradle/gradle#3210")
-    @ToBeFixedForConfigurationCache(because = ":buildEnvironment")
     def "all plugin repositories are considered when resolving plugins transitive dependencies"() {
         given:
         requireOwnGradleUserHomeDir()

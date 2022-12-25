@@ -20,11 +20,11 @@ package org.gradle.catalog
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.test.fixtures.file.TestFile
 
+
 class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements VersionCatalogSupport {
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
-            enableFeaturePreview('VERSION_CATALOGS')
         """
         buildFile << """
             plugins {
@@ -35,8 +35,9 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
             version = '1.0'
 
             task checkDeps {
+                def runtimeClasspath = configurations.runtimeClasspath
                 doLast {
-                    println("Resolved: \${configurations.runtimeClasspath.files.name.join(', ')}")
+                    println("Resolved: \${runtimeClasspath.files.name.join(', ')}")
                 }
             }
         """
@@ -45,7 +46,7 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
     def "can consume versions from a published Gradle platform"() {
         def platformProject = preparePlatformProject '''
             versionCatalog {
-                alias('my-lib'). to 'org.test:lib:1.1'
+                library('my-lib', 'org.test:lib:1.1')
             }
         '''
         executer.inDirectory(platformProject).withTasks('publish').run()
@@ -81,8 +82,8 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
         def platformProject = preparePlatformProject '''
             versionCatalog {
                 def v = version('lib', '1.0')
-                alias('my-lib-core').to('org.test', 'lib').versionRef(v)
-                alias('my-lib-json').to('org.test', 'lib-json').versionRef(v)
+                library('my-lib-core', 'org.test', 'lib').versionRef(v)
+                library('my-lib-json', 'org.test', 'lib-json').versionRef(v)
             }
         '''
         executer.inDirectory(platformProject).withTasks('publish').run()
@@ -121,14 +122,14 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
     def "can use dependency locking to resolve platform in settings"() {
         def platformProject = preparePlatformProject '''
             versionCatalog {
-                alias('my-lib').to('org.test:lib:1.0')
+                library('my-lib', 'org.test:lib:1.0')
             }
         '''
         executer.inDirectory(platformProject).withTasks('publish').run()
 
         platformProject = preparePlatformProject '''
             versionCatalog {
-                alias('my-lib').to('org.test:lib:1.1')
+                library('my-lib', 'org.test:lib:1.1')
             }
         ''', '1.1'
         executer.inDirectory(platformProject).withTasks('publish').run()
@@ -145,8 +146,8 @@ class VersionCatalogResolveIntegrationTest extends AbstractHttpDependencyResolut
                 }
             }
         """
-        file("gradle/dependency-locks/settings-incomingCatalogForLibs0.lockfile") << """
-org.gradle.test:my-platform:1.0
+        file("settings-gradle.lockfile") << """
+org.gradle.test:my-platform:1.0=incomingCatalogForLibs0
 """
 
         buildFile << """
@@ -208,7 +209,7 @@ org.gradle.test:my-platform:1.0
 
         def platformProject = preparePlatformProject '''
             versionCatalog {
-                alias('my-lib').to('org.test:lib:1.1')
+                library('my-lib', 'org.test:lib:1.1')
             }
         '''
         executer.inDirectory(platformProject).withTasks('publish').run()
@@ -233,7 +234,7 @@ org.gradle.test:my-platform:1.0
             catalog {
                 versionCatalog {
                     from('org.gradle.test:my-platform:1.0')
-                    alias('other').to('org:other:1.5')
+                    library('other', 'org:other:1.5')
                 }
             }
 

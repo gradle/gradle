@@ -21,10 +21,6 @@ plugins {
 // end::use-codenarc-plugin[]
 // end::use-pmd-plugin[]
 
-codenarc {
-    toolVersion = "2.0.0"
-}
-
 repositories {
     mavenCentral()
 }
@@ -33,6 +29,13 @@ dependencies {
     implementation localGroovy()
     testImplementation 'junit:junit:4.13'
 }
+
+// tag::customize-checkstyle-memory[]
+tasks.withType(Checkstyle) {
+    minHeapSize = "200m"
+    maxHeapSize = "1g"
+}
+// end::customize-checkstyle-memory[]
 
 // tag::customize-checkstyle-report[]
 tasks.withType(Checkstyle) {
@@ -52,3 +55,9 @@ pmd {
     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
 }
 // end::customize-pmd[]
+
+// tag::pmd-threads[]
+pmd {
+    threads = 4
+}
+// end::pmd-threads[]

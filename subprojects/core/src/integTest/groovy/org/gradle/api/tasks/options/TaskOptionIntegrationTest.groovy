@@ -16,12 +16,10 @@
 
 package org.gradle.api.tasks.options
 
-
-import spock.lang.Unroll
+import spock.lang.Issue
 
 class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {
 
-    @Unroll
     def "can evaluate option value of type #optionType when #description for Java task on command line"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithSingleOption(optionType)
@@ -55,7 +53,6 @@ class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {
         'List<TestEnum>' | []                                   | 'null'              | 'not provided'
     }
 
-    @Unroll
     def "can evaluate option value of type #optionType when #description for Groovy task on command line"() {
         given:
         buildFile << groovyTaskWithSingleOption(optionType)
@@ -89,7 +86,6 @@ class TaskOptionIntegrationTest extends AbstractOptionIntegrationSpec {
         'List<TestEnum>' | []                                   | 'null'              | 'not provided'
     }
 
-    @Unroll
     def "can set boolean option using no-args method when #description for Java task on command line"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithFlagMethod()
@@ -191,7 +187,7 @@ Options
                     sample.myProp = "fromConfigureTask"
                 }
             }
-            
+
             sample.dependsOn(configureTask)
         """
 
@@ -202,7 +198,6 @@ Options
         outputContains("Value of myProp: fromConfigureTask")
     }
 
-    @Unroll
     def "set value of property of type Property of type #optionType when #description for Java task"() {
         given:
         file('buildSrc/src/main/java/SampleTask.java') << taskWithSinglePropertyOption(optionType)
@@ -226,7 +221,6 @@ Options
         'TestEnum' | []                             | 'null'              | 'not provided'
     }
 
-    @Unroll
     def "set value of property of type Property of type #optionType when #description for Groovy task"() {
         given:
         buildFile << groovyTaskWithSinglePropertyOption(optionType)
@@ -256,4 +250,205 @@ Options
         """
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/18496")
+    def "considers options from interfaces"() {
+        given:
+        buildFile << '''
+            interface MyInterface {
+              @Option(
+                option = 'serial',
+                description = 'Target the device with given serial'
+              )
+              @Optional
+              @Input
+              Property<String> getSerial()
+            }
+
+            abstract class MyTask extends DefaultTask implements MyInterface{
+              @TaskAction
+              void action() {
+                println "Serial: ${serial.getOrElse('-')}"
+              }
+            }
+
+            tasks.register("myTask", MyTask.class)
+        '''
+
+        when:
+        succeeds('myTask', '--serial=1234')
+
+        then:
+        result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 1234')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18496")
+    def "options from interfaces with same method defined twice should use last defined value"() {
+        given:
+        buildFile << '''
+            interface MyInterface {
+              @Option(
+                option = 'serial',
+                description = 'Target the device with given serial'
+              )
+              @Optional
+              @Input
+              Property<String> getSerial()
+            }
+
+            interface MyInterface1 {
+              @Option(
+                option = 'serialNumber',
+                description = 'Target the device with given serial'
+              )
+              @Optional
+              @Input
+              Property<String> getSerial()
+            }
+
+            abstract class MyTask extends DefaultTask implements MyInterface, MyInterface1{
+              @TaskAction
+              void action() {
+                println "Serial: ${serial.getOrElse('-')}"
+              }
+            }
+
+            tasks.register("myTask", MyTask.class)
+        '''
+
+        when:
+        succeeds('myTask', '--serial=1234', '--serialNumber=4321')
+
+        then:
+        result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 4321')
+    }
+
+    def "options from interfaces with same method defined in class should use overridden value"() {
+        given:
+        buildFile << '''
+            interface MyInterface {
+              @Option(
+                option = 'serial',
+                description = 'Target the device with given serial'
+              )
+              @Optional
+              @Input
+              Property<String> getSerial()
+            }
+
+            abstract class MyTask extends DefaultTask implements MyInterface {
+              @Option(
+                option = 'serialNumber',
+                description = 'Target the device with given serial'
+              )
+              @Optional
+              @Input
+              abstract Property<String> getSerial()
+
+              @TaskAction
+              void action() {
+                println "Serial: ${serial.getOrElse('-')}"
+              }
+            }
+
+            tasks.register("myTask", MyTask.class)
+        '''
+
+        when:
+        succeeds('myTask', '--serial=1234', '--serialNumber=4321')
+
+        then:
+        result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 4321')
+
+        when:
+        succeeds('myTask', '--serialNumber=4321', '--serial=1234')
+
+        then:
+        result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 4321')
+    }
+
+    def "options from interfaces with same method defined twice with same name should work"() {
+        given:
+        buildFile << '''
+            interface MyInterface {
+              @Option(
+                option = 'serial',
+                description = 'Target the device with given serial (this is the first)'
+              )
+              @Optional
+              @Input
+              Property<String> getSerial()
+            }
+
+            interface MyInterface1 {
+              @Option(
+                option = 'serial',
+                description = 'Target the device with given serial (this is the second)'
+              )
+              @Optional
+              @Input
+              Property<String> getSerial()
+            }
+
+            abstract class MyTask extends DefaultTask implements MyInterface, MyInterface1{
+              @TaskAction
+              void action() {
+                println "Serial: ${serial.getOrElse('-')}"
+              }
+            }
+
+            tasks.register("myTask", MyTask.class)
+        '''
+
+        when:
+        succeeds('myTask', '--serial=1234')
+
+        then:
+        result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 1234')
+
+        when:
+        succeeds('help', '--task', 'myTask')
+
+        then:
+        outputContains("this is the first")
+        outputDoesNotContain("this is the second")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19868")
+    def "options from interfaces with same method defined in class with same name should work"() {
+        given:
+        buildFile << '''
+            interface MyInterface {
+              @Option(
+                option = 'serial',
+                description = 'Target the device with given serial'
+              )
+              @Optional
+              @Input
+              Property<String> getSerial()
+            }
+
+            abstract class MyTask extends DefaultTask implements MyInterface {
+              @Option(
+                option = 'serial',
+                description = 'Target the device with given serial'
+              )
+              @Optional
+              @Input
+              abstract Property<String> getSerial()
+
+              @TaskAction
+              void action() {
+                println "Serial: ${serial.getOrElse('-')}"
+              }
+            }
+
+            tasks.register("myTask", MyTask.class)
+        '''
+
+        when:
+        succeeds('myTask', '--serial=1234')
+
+        then:
+        result.assertTaskExecuted(':myTask').assertOutputContains('Serial: 1234')
+    }
 }

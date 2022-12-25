@@ -16,22 +16,33 @@
 
 package gradlebuild.basics
 
+import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
+import gradlebuild.toLowerCase
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.os.OperatingSystem
-import java.io.ByteArrayOutputStream
-import java.net.InetAddress
+import org.gradle.kotlin.dsl.*
 
 
-fun Project.testDistributionEnabled() = providers.systemProperty("enableTestDistribution").forUseAtConfigurationTime().orNull?.toBoolean() == true
+abstract class BuildEnvironmentExtension {
+    abstract val gitCommitId: Property<String>
+    abstract val gitBranch: Property<String>
+    abstract val repoRoot: DirectoryProperty
+}
 
 
-fun Project.repoRoot() = layout.projectDirectory.parentOrRoot()
-
-
+// `generatePrecompiledScriptPluginAccessors` task invokes this method without `gradle.build-environment` applied
 private
+fun Project.getBuildEnvironmentExtension(): BuildEnvironmentExtension? = rootProject.extensions.findByType(BuildEnvironmentExtension::class.java)
+
+
+fun Project.repoRoot(): Directory = getBuildEnvironmentExtension()?.repoRoot?.get() ?: layout.projectDirectory.parentOrRoot()
+
+
 fun Directory.parentOrRoot(): Directory = if (this.file("version.txt").asFile.exists()) {
     this
 } else {
@@ -44,37 +55,31 @@ fun Directory.parentOrRoot(): Directory = if (this.file("version.txt").asFile.ex
 }
 
 
+fun Project.releasedVersionsFile() = repoRoot().file("released-versions.json")
+
+
 /**
- * We use command line Git instead of JGit, because JGit's [Repository.resolve] does not work with worktrees.
+ * We use command line Git instead of JGit, because JGit's `Repository.resolve` does not work with worktrees.
  */
-fun Project.currentGitBranch() = git(layout.projectDirectory, "rev-parse", "--abbrev-ref", "HEAD")
+fun Project.currentGitBranchViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtension()?.gitBranch ?: objects.property(String::class.java)
 
 
-fun Project.currentGitCommit() = git(layout.projectDirectory, "rev-parse", "HEAD")
+fun Project.currentGitCommitViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtension()?.gitCommitId ?: objects.property(String::class.java)
 
 
-private
-fun Project.git(checkoutDir: Directory, vararg args: String): Provider<String> = provider {
-    val execOutput = ByteArrayOutputStream()
-    val execResult = exec {
-        workingDir = checkoutDir.asFile
+@Suppress("UnstableApiUsage")
+fun Project.git(vararg args: String): String {
+    val projectDir = layout.projectDirectory.asFile
+    val execOutput = providers.exec {
+        workingDir = projectDir
         isIgnoreExitValue = true
         commandLine = listOf("git", *args)
         if (OperatingSystem.current().isWindows) {
             commandLine = listOf("cmd", "/c") + commandLine
         }
-        standardOutput = execOutput
     }
-    when {
-        execResult.exitValue == 0 -> String(execOutput.toByteArray()).trim()
-        checkoutDir.asFile.resolve(".git/HEAD").exists() -> {
-            // Read commit id directly from filesystem
-            val headRef = checkoutDir.asFile.resolve(".git/HEAD").readText()
-                .replace("ref: ", "").trim()
-            checkoutDir.asFile.resolve(".git/$headRef").readText().trim()
-        }
-        else -> "<unknown>" // It's a source distribution, we don't know.
-    }
+    return if (execOutput.result.get().exitValue == 0) execOutput.standardOutput.asText.get().trim()
+    else "<unknown>" // It's a source distribution, we don't know.
 }
 
 
@@ -88,20 +93,38 @@ fun toPreTestedCommitBaseBranch(actualBranch: String): String = when {
 
 object BuildEnvironment {
 
-    const val CI_ENVIRONMENT_VARIABLE = "CI"
-    const val BUILD_BRANCH = "BUILD_BRANCH"
-    const val BUILD_COMMIT_ID = "BUILD_COMMIT_ID"
-    const val BUILD_VCS_NUMBER = "BUILD_VCS_NUMBER"
+    /**
+     * A selection of environment variables injected into the environment by the `codeql-env.sh` script.
+     */
+    private
+    val CODEQL_ENVIRONMENT_VARIABLES = arrayOf(
+        "CODEQL_JAVA_HOME",
+        "CODEQL_EXTRACTOR_JAVA_SCRATCH_DIR",
+        "CODEQL_ACTION_RUN_MODE",
+        "CODEQL_ACTION_VERSION",
+        "CODEQL_DIST",
+        "CODEQL_PLATFORM",
+        "CODEQL_RUNNER"
+    )
+
+    private
+    val architecture = System.getProperty("os.arch").toLowerCase()
 
     val isCiServer = CI_ENVIRONMENT_VARIABLE in System.getenv()
-    val isEc2Agent = InetAddress.getLocalHost().hostName.startsWith("ip-")
-    val isIntelliJIDEA by lazy { System.getProperty("idea.version") != null }
     val isTravis = "TRAVIS" in System.getenv()
-    val isJenkins = "JENKINS_HOME" in System.getenv()
     val isGhActions = "GITHUB_ACTIONS" in System.getenv()
+    val isTeamCity = "TEAMCITY_VERSION" in System.getenv()
+    val isCodeQl: Boolean by lazy {
+        // This logic is kept here instead of `codeql-analysis.init.gradle` because that file will hopefully be removed in the future.
+        // Removing that file is waiting on the GitHub team fixing an issue in Autobuilder logic.
+        CODEQL_ENVIRONMENT_VARIABLES.any { it in System.getenv() }
+    }
     val jvm = org.gradle.internal.jvm.Jvm.current()
     val javaVersion = JavaVersion.current()
     val isWindows = OperatingSystem.current().isWindows
+    val isLinux = OperatingSystem.current().isLinux
+    val isMacOsX = OperatingSystem.current().isMacOsX
+    val isIntel: Boolean = architecture == "x86_64" || architecture == "x86"
     val isSlowInternetConnection
         get() = System.getProperty("slow.internet.connection", "false")!!.toBoolean()
     val agentNum: Int

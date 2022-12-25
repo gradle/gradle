@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.history.BeforeExecutionState;
@@ -35,7 +34,7 @@ import java.util.Set;
 /**
  * When executed non-incrementally remove previous outputs owned by the work unit.
  */
-public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends Result> implements Step<C, R> {
+public class RemovePreviousOutputsStep<C extends ChangingOutputsContext, R extends Result> implements Step<C, R> {
 
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
@@ -73,7 +72,8 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
             work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
                 @Override
-                public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+                public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+                    File root = value.getValue();
                     switch (type) {
                         case FILE:
                             File parentFile = root.getParentFile();
@@ -97,7 +97,7 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
             for (FileSystemSnapshot snapshot : previousOutputs.getOutputFilesProducedByWork().values()) {
                 try {
                     // Previous outputs can be in a different place than the current outputs
-                    outputChangeListener.beforeOutputChange(SnapshotUtil.rootIndex(snapshot).keySet());
+                    outputChangeListener.invalidateCachesFor(SnapshotUtil.rootIndex(snapshot).keySet());
                     cleaner.cleanupOutputs(snapshot);
                 } catch (IOException e) {
                     throw new UncheckedIOException("Failed to clean up output files for " + work.getDisplayName(), e);
@@ -109,7 +109,8 @@ public class RemovePreviousOutputsStep<C extends InputChangesContext, R extends 
     private void cleanupExclusivelyOwnedOutputs(BeforeExecutionContext context, UnitOfWork work) {
         work.visitOutputs(context.getWorkspace(), new UnitOfWork.OutputVisitor() {
             @Override
-            public void visitOutputProperty(String propertyName, TreeType type, File root, FileCollection contents) {
+            public void visitOutputProperty(String propertyName, TreeType type, UnitOfWork.OutputFileValueSupplier value) {
+                File root = value.getValue();
                 if (root.exists()) {
                     try {
                         switch (type) {

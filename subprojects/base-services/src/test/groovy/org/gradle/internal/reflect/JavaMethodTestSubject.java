@@ -17,7 +17,7 @@
 package org.gradle.internal.reflect;
 
 @SuppressWarnings("UnusedDeclaration")
-public class JavaMethodTestSubject {
+public class JavaMethodTestSubject implements JavaMethodTestSubjectInterface {
     private static String myStaticProperty;
 
     final IllegalStateException failure = new IllegalStateException();

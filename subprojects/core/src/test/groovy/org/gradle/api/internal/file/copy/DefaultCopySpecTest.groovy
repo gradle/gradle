@@ -31,7 +31,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
@@ -402,7 +401,6 @@ class DefaultCopySpecTest extends Specification {
         spec.filteringCharset == 'UTF8'
     }
 
-    @Unroll
     def 'properties accessed directly on specs created using #method inherit from parents'() {
         when: //set non defaults on root
         spec.caseSensitive = false

@@ -17,10 +17,8 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -365,27 +363,6 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Override
     public boolean isIgnoreExitValue() {
         return execSpec.isIgnoreExitValue();
-    }
-
-    /**
-     * Returns the result for the command run by this task. Returns {@code null} if this task has not been executed yet.
-     *
-     * @return The result. Returns {@code null} if this task has not been executed yet.
-     * @see #getExecutionResult() for the preferred way of accessing this property.
-     *
-     * @deprecated Use {@link #getExecutionResult()} instead. This method will be removed in Gradle 8.0.
-     */
-    @Deprecated
-    @ReplacedBy("executionResult")
-    @Nullable
-    public ExecResult getExecResult() {
-        DeprecationLogger.deprecateProperty(AbstractExecTask.class, "execResult")
-            .replaceWith("executionResult")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
-
-        return execResult.getOrNull();
     }
 
     /**

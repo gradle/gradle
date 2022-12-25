@@ -34,20 +34,16 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.model.ComponentArtifactMetadata
-import org.gradle.internal.component.model.ComponentArtifacts
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
-import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
+import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
-import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
 import org.gradle.util.internal.BuildCommencedTimeProvider
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.time.Duration
 
@@ -69,7 +65,6 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def caches = new ModuleRepositoryCaches(moduleResolutionCache, moduleDescriptorCache, moduleArtifactsCache, artifactAtRepositoryCache)
     def repo = new CachingModuleComponentRepository(realRepo, caches, cachePolicy, Stub(BuildCommencedTimeProvider), metadataProcessor, listener)
 
-    @Unroll
     def "artifact last modified date is cached - lastModified = #lastModified"() {
         given:
         def artifactId = Stub(ModuleComponentArtifactIdentifier)
@@ -78,7 +73,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         }
 
         def file = new File("local")
-        def result = Stub(BuildableArtifactResolveResult) {
+        def result = Stub(BuildableArtifactFileResolveResult) {
             getFile() >> file
             getFailure() >> null
         }
@@ -145,22 +140,6 @@ class CachingModuleComponentRepositoryTest extends Specification {
         0 * _
     }
 
-    def "does not use cache when component artifacts can be determined locally"() {
-        def component = Mock(ComponentResolveMetadata)
-        def variant = Mock(ConfigurationMetadata)
-        def result = new DefaultBuildableComponentArtifactsResolveResult()
-
-        when:
-        repo.localAccess.resolveArtifacts(component, variant, result)
-
-        then:
-        realLocalAccess.resolveArtifacts(component, variant, result) >> {
-            result.resolved(Stub(ComponentArtifacts))
-        }
-        0 * _
-    }
-
-    @Unroll
     def "delegates estimates for fetching metadata to remote when not found in cache (remote says #remoteAnswer)"() {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess
@@ -176,7 +155,6 @@ class CachingModuleComponentRepositoryTest extends Specification {
         remoteAnswer << MetadataFetchingCost.values()
     }
 
-    @Unroll
     def "estimates cost for missing metadata is correct (remote says #remoteAnswer, must refresh = #mustRefreshMissingModule)"() {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess
@@ -205,7 +183,6 @@ class CachingModuleComponentRepositoryTest extends Specification {
         true                     | MetadataFetchingCost.EXPENSIVE | MetadataFetchingCost.EXPENSIVE
     }
 
-    @Unroll
     def "estimates cost for changing metadata is correct (remote says #remoteAnswer, must refresh = #mustRefreshChangingModule)"() {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess
@@ -236,7 +213,6 @@ class CachingModuleComponentRepositoryTest extends Specification {
         true                      | MetadataFetchingCost.EXPENSIVE | MetadataFetchingCost.EXPENSIVE
     }
 
-    @Unroll
     def "estimates cost for stable metadata is correct (remote says #remoteAnswer, must refresh = #mustRefreshModule)"() {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess

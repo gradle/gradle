@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModu
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.repositories.descriptor.IvyRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.layout.AbstractRepositoryLayout;
@@ -78,7 +79,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
+public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository {
     private Set<String> schemes = null;
     private AbstractRepositoryLayout layout;
     private final DefaultUrlArtifactRepository urlArtifactRepository;
@@ -116,8 +117,10 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         ObjectFactory objectFactory,
                                         DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
                                         ChecksumService checksumService,
-                                        ProviderFactory providerFactory) {
-        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, providerFactory);
+                                        ProviderFactory providerFactory,
+                                        VersionParser versionParser
+    ) {
+        super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory, providerFactory, versionParser);
         this.fileResolver = fileResolver;
         this.urlArtifactRepository = urlArtifactRepositoryFactory.create("Ivy", this::getDisplayName);
         this.transportFactory = transportFactory;
@@ -148,7 +151,6 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         return super.getDisplayName() + '(' + url + ')';
     }
 
-    @Override
     public IvyResolver createPublisher() {
         return createRealResolver();
     }
@@ -360,9 +362,17 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         config.execute(layout);
     }
 
+    public AbstractRepositoryLayout getLayout() {
+        return layout;
+    }
+
     @Override
     public IvyArtifactRepositoryMetaDataProvider getResolve() {
         return metaDataProvider;
+    }
+
+    public void setLayout(AbstractRepositoryLayout layout) {
+        this.layout = layout;
     }
 
     /**

@@ -27,6 +27,8 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.PluginAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.toolchain.management.ToolchainManagement;
+import org.gradle.api.cache.CacheConfigurations;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.management.PluginManagementSpec;
@@ -166,12 +168,26 @@ public interface Settings extends PluginAware, ExtensionAware {
      * {@code $rootDir/../a}.</p>
      *
      * @param projectNames the projects to add.
-     * @deprecated Using a flat project structure is discouraged. For one thing it causes inefficiencies in file-system watching.
-     * Clients should always use a hierarchical project layout and define the structure with {@link #include(String...)}
-     * This method is scheduled for removal in Gradle 8.0.
      */
-    @Deprecated
-    void includeFlat(String... projectNames);
+    default void includeFlat(String... projectNames) {
+        includeFlat(Arrays.asList(projectNames));
+    }
+
+    /**
+     * <p>Adds the given projects to the build. Each name in the supplied list is treated as the name of a project to
+     * add to the build.</p>
+     *
+     * <p>The supplied name is converted to a project directory relative to the <em>parent</em> directory of the root
+     * project directory.</p>
+     *
+     * <p>As an example, the name {@code a} add a project with path {@code :a}, name {@code a} and project directory
+     * {@code $rootDir/../a}.</p>
+     *
+     * @param projectNames the projects to add.
+     *
+     * @since 7.4
+     */
+    void includeFlat(Iterable<String> projectNames);
 
     /**
      * <p>Returns this settings object.</p>
@@ -260,7 +276,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
-    @Incubating
     ProviderFactory getProviders();
 
     /**
@@ -344,7 +359,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
-    @Incubating
     void dependencyResolutionManagement(Action<? super DependencyResolutionManagement> dependencyResolutionConfiguration);
 
     /**
@@ -352,6 +366,39 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
-    @Incubating
     DependencyResolutionManagement getDependencyResolutionManagement();
+
+    /**
+     * Configures toolchain management.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    void toolchainManagement(Action<? super ToolchainManagement> toolchainManagementConfiguration);
+
+    /**
+     * Returns the toolchain management configuration.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    ToolchainManagement getToolchainManagement();
+
+    /**
+     * Returns the configuration for caches stored in the user home directory.
+     *
+     * @since 8.0
+     */
+    @Incubating
+    CacheConfigurations getCaches();
+
+    /**
+     * Configures the settings for caches stored in the user home directory.
+     *
+     * @param cachesConfiguration the configuration
+     *
+     * @since 8.0
+     */
+    @Incubating
+    void caches(Action<? super CacheConfigurations> cachesConfiguration);
 }

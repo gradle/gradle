@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class DefaultWorkValidationContext implements WorkValidationContext {
     private final Set<Class<?>> types = new HashSet<>();
@@ -45,8 +46,8 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
     @Override
     public TypeValidationContext forType(Class<?> type, boolean cacheable) {
         types.add(type);
-        Optional<PluginId> pluginId = typeOriginInspector.findPluginDefining(type);
-        return new ProblemRecordingTypeValidationContext(documentationRegistry, type, pluginId.orElse(null)) {
+        Supplier<Optional<PluginId>> pluginId = () -> typeOriginInspector.findPluginDefining(type);
+        return new ProblemRecordingTypeValidationContext(documentationRegistry, type, pluginId) {
 
             @Override
             protected void recordProblem(TypeValidationProblem problem) {

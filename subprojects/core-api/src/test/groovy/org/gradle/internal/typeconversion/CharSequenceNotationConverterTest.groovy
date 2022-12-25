@@ -17,7 +17,6 @@
 package org.gradle.internal.typeconversion
 
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class CharSequenceNotationConverterTest extends Specification {
     def target = Mock(NotationConverter)
@@ -32,7 +31,6 @@ class CharSequenceNotationConverterTest extends Specification {
         0 * _._
     }
 
-    @Unroll
     def "delegates to target converter when notation is an instance of #type"() {
         when:
         converter.convert(value, result)

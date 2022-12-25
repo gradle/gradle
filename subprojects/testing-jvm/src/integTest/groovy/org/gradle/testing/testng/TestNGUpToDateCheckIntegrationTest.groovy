@@ -19,7 +19,6 @@ package org.gradle.testing.testng
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
 
@@ -43,11 +42,29 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         '''.stripIndent()
     }
 
-    @Unroll
     @Issue('https://github.com/gradle/gradle/issues/4924')
     def 'test task is up-to-date when #property is changed because it should not impact output'() {
         given:
-        TestNGCoverage.enableTestNG(buildFile)
+        buildScript """
+            apply plugin: "java"
+            ${mavenCentralRepository()}
+            testing {
+                suites {
+                    test {
+                        useTestNG('${TestNGCoverage.NEWEST}')
+                        targets {
+                            all {
+                                testTask.configure {
+                                    options {
+                                        /* left empty */
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
 
         when:
         succeeds ':test'
@@ -91,16 +108,34 @@ class TestNGUpToDateCheckIntegrationTest extends AbstractIntegrationSpec {
         'threadCount'         | '= 2'
         'listeners'           | '= ["org.testng.reporters.FailedReporter"]'
         'useDefaultListeners' | '= true'
-        //'configFailurePolicy' | '= "continue"' // See https://github.com/gradle/gradle/issues/10507; API removed in TestNG v7
+        'configFailurePolicy' | '= "continue"'
         'preserveOrder'       | '= true'
         'groupByInstances'    | '= true'
     }
 
-    @Unroll
     @Issue('https://github.com/gradle/gradle/issues/4924')
     def "re-executes test when #property is changed"() {
         given:
-        TestNGCoverage.enableTestNG(buildFile)
+        buildScript """
+            apply plugin: "java"
+            ${mavenCentralRepository()}
+            testing {
+                suites {
+                    test {
+                        useTestNG('${TestNGCoverage.NEWEST}')
+                        targets {
+                            all {
+                                testTask.configure {
+                                    options {
+                                        /* left empty */
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """
 
         when:
         succeeds ':test'

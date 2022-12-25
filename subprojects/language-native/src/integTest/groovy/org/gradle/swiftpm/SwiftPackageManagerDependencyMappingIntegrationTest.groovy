@@ -18,11 +18,9 @@ package org.gradle.swiftpm
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.vcs.fixtures.GitFileRepository
-import spock.lang.Unroll
 
 
 class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
-    @ToBeFixedForConfigurationCache
     def "export fails when external dependency cannot be mapped to a git url"() {
         given:
         buildFile << """
@@ -42,7 +40,6 @@ class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftP
         failure.assertHasCause("Cannot determine the Git URL for dependency on dep:dep.")
     }
 
-    @ToBeFixedForConfigurationCache
     def "export fails when file dependency is present"() {
         given:
         buildFile << """
@@ -332,7 +329,6 @@ let package = Package(
         lib2Repo?.close()
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def "maps dependency on #src to #mapped"() {
         given:
@@ -406,7 +402,6 @@ let package = Package(
     }
 
     @ToBeFixedForConfigurationCache
-    @Unroll
     def "cannot map dependency #src"() {
         given:
         settingsFile << """

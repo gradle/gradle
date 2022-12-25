@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.MavenDependencyKey
 import org.xml.sax.SAXParseException
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class PomReaderTest extends AbstractPomReaderTest {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
@@ -796,7 +795,6 @@ class PomReaderTest extends AbstractPomReaderTest {
     }
 
     @Issue("GRADLE-3074")
-    @Unroll
     def "can define #packaging packaging with custom property"() {
         when:
         pomFile << """
@@ -1017,6 +1015,46 @@ class PomReaderTest extends AbstractPomReaderTest {
         then:
         def excluded = pomReader.dependencies[keyGroupTwo].excludedModules
         excluded == [DefaultModuleIdentifier.newId('*', '*')]
+    }
+
+    @Issue("gradle/gradle#22370")
+    def 'can parse an exclusion block with properties'() {
+        when:
+        pomFile << """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group</groupId>
+    <artifactId>artifact</artifactId>
+    <version>version</version>
+
+    <properties>
+        <excludedGroupId>excluded-group-id</excludedGroupId>
+        <excludedArtifactId>excluded-artifact-id</excludedArtifactId>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>group-two</groupId>
+            <artifactId>artifact-two</artifactId>
+            <version>version-two</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>\${excludedGroupId}</groupId>
+                    <artifactId>\${excludedArtifactId}</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
+        def keyGroupTwo = new MavenDependencyKey('group-two', 'artifact-two', 'jar', null)
+        moduleIdentifierFactory.module('excluded-group-id', 'excluded-artifact-id')
+            >> DefaultModuleIdentifier.newId('excluded-group-id', 'excluded-artifact-id')
+
+        then:
+        def excluded = pomReader.dependencies[keyGroupTwo].excludedModules
+        excluded == [DefaultModuleIdentifier.newId('excluded-group-id', 'excluded-artifact-id')]
     }
 
     def 'parses old gradle module metadata marker'() {

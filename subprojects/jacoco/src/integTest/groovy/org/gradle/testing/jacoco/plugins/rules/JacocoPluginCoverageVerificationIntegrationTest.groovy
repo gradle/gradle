@@ -19,7 +19,6 @@ package org.gradle.testing.jacoco.plugins.rules
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.jacoco.plugins.JacocoMultiVersionIntegrationTest
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
-import spock.lang.Unroll
 
 import static org.gradle.testing.jacoco.plugins.rules.JacocoViolationRulesLimit.Insufficient
 import static org.gradle.testing.jacoco.plugins.rules.JacocoViolationRulesLimit.Sufficient
@@ -130,7 +129,6 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         executedAndNotSkipped(TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS)
     }
 
-    @Unroll
     def "can define rule with sufficient coverage for #description"() {
         given:
         buildFile << """
@@ -157,7 +155,6 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
          Sufficient.CLASS_METRIC_MISSED_COUNT]               | 'line and class metric'
     }
 
-    @Unroll
     def "can define rule with insufficient coverage for #description"() {
         given:
         buildFile << """
@@ -279,7 +276,6 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         result.assertHasErrorOutput("Rule violated for bundle $testDirectory.name: lines covered ratio is 1.0, but expected maximum is 0.5")
     }
 
-    @Unroll
     def "can define same rules for multiple report tasks #tasksPaths"() {
         given:
         javaProjectUnderTest.writeIntegrationTestSourceFiles()
@@ -305,7 +301,6 @@ class JacocoPluginCoverageVerificationIntegrationTest extends JacocoMultiVersion
         tasksPaths << [TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS, INTEG_TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS]
     }
 
-    @Unroll
     def "can define different rules for multiple report tasks #tasksPaths"() {
         given:
         javaProjectUnderTest.writeIntegrationTestSourceFiles()

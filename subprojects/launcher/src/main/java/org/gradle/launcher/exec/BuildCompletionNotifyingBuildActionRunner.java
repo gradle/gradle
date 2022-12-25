@@ -39,14 +39,14 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
         Result result;
         try {
             result = delegate.run(action, buildController);
-            notifyEnterprisePluginManager(result);
-            return result;
         } catch (Throwable t) {
             // Note: throw the failure rather than returning a result object containing the failure, as console failure logging based on the _result_ happens down in the root build scope
             // whereas console failure logging based on the _thrown exception_ happens up outside session scope. It would be better to refactor so that a result can be returned from here
             notifyEnterprisePluginManager(Result.failed(t));
             throw UncheckedException.throwAsUncheckedException(t);
         }
+        notifyEnterprisePluginManager(result);
+        return result;
     }
 
     private void notifyEnterprisePluginManager(Result result) {

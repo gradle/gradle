@@ -16,11 +16,11 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
@@ -28,25 +28,27 @@ import java.util.stream.Collectors;
 
 public class LocationListInstallationSupplier implements InstallationSupplier {
 
-    private static final String PROPERTY_NAME = "org.gradle.java.installations.paths";
+    private static final String JAVA_INSTALLATIONS_PATHS_PROPERTY = "org.gradle.java.installations.paths";
 
     private final ProviderFactory factory;
+    private final FileResolver fileResolver;
 
     @Inject
-    public LocationListInstallationSupplier(ProviderFactory factory) {
+    public LocationListInstallationSupplier(ProviderFactory factory, FileResolver fileResolver) {
         this.factory = factory;
+        this.fileResolver = fileResolver;
     }
 
     @Override
     public Set<InstallationLocation> get() {
-        final Provider<String> property = factory.gradleProperty(PROPERTY_NAME);
+        final Provider<String> property = factory.gradleProperty(JAVA_INSTALLATIONS_PATHS_PROPERTY);
         return property.map(paths -> asInstallations(paths)).orElse(Collections.emptySet()).get();
     }
 
     private Set<InstallationLocation> asInstallations(String listOfDirectories) {
         return Arrays.stream(listOfDirectories.split(","))
             .filter(path -> !path.trim().isEmpty())
-            .map(path -> new InstallationLocation(new File(path), "system property '" + PROPERTY_NAME + "'"))
+            .map(path -> new InstallationLocation(fileResolver.resolve(path), "system property '" + JAVA_INSTALLATIONS_PATHS_PROPERTY + "'"))
             .collect(Collectors.toSet());
     }
 

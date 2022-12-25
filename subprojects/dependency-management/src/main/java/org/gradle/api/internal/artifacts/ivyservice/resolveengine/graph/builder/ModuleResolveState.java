@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -66,6 +67,7 @@ class ModuleResolveState implements CandidateModule {
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<>();
     private final ModuleSelectors<SelectorState> selectors;
     private final ConflictResolution conflictResolution;
+    private final AttributeDesugaring attributeDesugaring;
     private final ImmutableAttributesFactory attributesFactory;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
@@ -84,16 +86,19 @@ class ModuleResolveState implements CandidateModule {
     private boolean changingSelection;
     private int selectionChangedCounter;
 
-    ModuleResolveState(IdGenerator<Long> idGenerator,
-                       ModuleIdentifier id,
-                       ComponentMetaDataResolver metaDataResolver,
-                       ImmutableAttributesFactory attributesFactory,
-                       Comparator<Version> versionComparator,
-                       VersionParser versionParser,
-                       SelectorStateResolver<ComponentState> selectorStateResolver,
-                       ResolveOptimizations resolveOptimizations,
-                       boolean rootModule,
-                       ConflictResolution conflictResolution) {
+    ModuleResolveState(
+        IdGenerator<Long> idGenerator,
+        ModuleIdentifier id,
+        ComponentMetaDataResolver metaDataResolver,
+        ImmutableAttributesFactory attributesFactory,
+        Comparator<Version> versionComparator,
+        VersionParser versionParser,
+        SelectorStateResolver<ComponentState> selectorStateResolver,
+        ResolveOptimizations resolveOptimizations,
+        boolean rootModule,
+        ConflictResolution conflictResolution,
+        AttributeDesugaring attributeDesugaring
+    ) {
         this.idGenerator = idGenerator;
         this.id = id;
         this.metaDataResolver = metaDataResolver;
@@ -104,8 +109,9 @@ class ModuleResolveState implements CandidateModule {
         this.rootModule = rootModule;
         this.pendingDependencies = new PendingDependencies(id);
         this.selectorStateResolver = selectorStateResolver;
-        this.selectors = new ModuleSelectors<>(versionComparator);
+        this.selectors = new ModuleSelectors<>(versionComparator, versionParser);
         this.conflictResolution = conflictResolution;
+        this.attributeDesugaring = attributeDesugaring;
     }
 
     void setSelectorStateResolver(SelectorStateResolver<ComponentState> selectorStateResolver) {
@@ -298,7 +304,7 @@ class ModuleResolveState implements CandidateModule {
     public ComponentState getVersion(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
         ComponentState moduleRevision = versions.get(id);
         if (moduleRevision == null) {
-            moduleRevision = new ComponentState(idGenerator.generateId(), this, id, componentIdentifier, metaDataResolver);
+            moduleRevision = new ComponentState(idGenerator.generateId(), this, id, componentIdentifier, metaDataResolver, attributeDesugaring);
             versions.put(id, moduleRevision);
         }
         return moduleRevision;
@@ -313,7 +319,7 @@ class ModuleResolveState implements CandidateModule {
         }
     }
 
-    void removeSelector(SelectorState selector) {
+    void removeSelector(SelectorState selector, ResolutionConflictTracker conflictTracker) {
         selectors.remove(selector);
         boolean alreadyReused = selector.markForReuse();
         mergedConstraintAttributes = ImmutableAttributes.EMPTY;
@@ -321,7 +327,7 @@ class ModuleResolveState implements CandidateModule {
             mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selectorState);
         }
         if (!alreadyReused && selectors.size() != 0 && selected != null) {
-            maybeUpdateSelection();
+            maybeUpdateSelection(conflictTracker);
         }
     }
 
@@ -409,7 +415,7 @@ class ModuleResolveState implements CandidateModule {
         pendingDependencies.unregisterConstraintProvider(nodeState);
     }
 
-    public void maybeUpdateSelection() {
+    public void maybeUpdateSelection(ResolutionConflictTracker conflictTracker) {
         if (replaced) {
             // Never update selection for a replaced module
             return;
@@ -421,7 +427,10 @@ class ModuleResolveState implements CandidateModule {
         ComponentState newSelected = selectorStateResolver.selectBest(getId(), selectors);
         newSelected.setSelectors(selectors);
         if (selected == null) {
-            select(newSelected);
+            // In some cases we should ignore this because the selection happens to be a known conflict
+            if (!conflictTracker.hasKnownConflict(newSelected.getId())) {
+                select(newSelected);
+            }
         } else if (newSelected != selected) {
             if (++selectionChangedCounter > MAX_SELECTION_CHANGE) {
                 // Let's ignore modules that are changing selection way too much, by keeping the highest version
@@ -453,9 +462,9 @@ class ModuleResolveState implements CandidateModule {
 
     void maybeCreateVirtualMetadata(ResolveState resolveState) {
         for (ComponentState componentState : versions.values()) {
-            if (componentState.getMetadata() == null) {
+            if (componentState.getMetadataOrNull() == null) {
                 // TODO LJA Using the root as the NodeState here is a bit of a cheat, investigate if we can track the proper NodeState
-                componentState.setMetadata(new LenientPlatformResolveMetadata((ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState));
+                componentState.setState(LenientPlatformGraphResolveState.of((ModuleComponentIdentifier) componentState.getComponentId(), componentState.getId(), platformState, resolveState.getRoot(), resolveState));
             }
         }
     }

@@ -24,7 +24,6 @@ import org.gradle.internal.reflect.validation.ValidationTestFor
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.util.jar.JarFile
 import java.util.jar.Manifest
@@ -563,7 +562,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
     }
 
     @Issue('GRADLE-3374')
-    @Unroll
     def "can merge manifests containing split multi-byte chars using #taskType task"() {
         // Note that there's no need to cover this case with merge read charsets
         // other than UTF-8 because it's not supported by the JVM.
@@ -614,7 +612,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
     }
 
     @Issue('GRADLE-3374')
-    @Unroll
     def "reports error for unsupported manifest content charsets, write #writeCharset, read #readCharset"() {
         given:
         settingsFile << "rootProject.name = 'root'"

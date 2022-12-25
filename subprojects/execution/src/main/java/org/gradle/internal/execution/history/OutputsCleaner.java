@@ -28,11 +28,21 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.function.Predicate;
 
+/**
+ * Cleans outputs, removing empty directories.
+ *
+ * This class should be used when cleaning output directories when only a subset of the files can be deleted.
+ * After cleaning up a few output directories, the method {@link #cleanupDirectories()} cleans the directories which became empty.
+ *
+ * IMPORTANT: This class is stateful, so it can't be used as a service.
+ */
 public class OutputsCleaner {
     private static final Logger LOGGER = LoggerFactory.getLogger(OutputsCleaner.class);
 
@@ -50,14 +60,25 @@ public class OutputsCleaner {
         this.directoriesToDelete = new PriorityQueue<>(10, Ordering.natural().reverse());
     }
 
+    /**
+     * Cleans up all locations {@link FileSystemSnapshot}, possible spanning multiple root directories.
+     *
+     * After cleaning up the files, the empty directories are removed as well.
+     */
     public void cleanupOutputs(FileSystemSnapshot snapshot) throws IOException {
         // TODO We could make this faster by visiting the snapshot
-        for (Map.Entry<String, FileSystemLocationSnapshot> entry : SnapshotUtil.index(snapshot).entrySet()) {
+        for (Map.Entry<String, FileSystemLocationSnapshot> entry : SnapshotUtil.indexByAbsolutePath(snapshot).entrySet()) {
             cleanupOutput(new File(entry.getKey()), entry.getValue().getType());
         }
         cleanupDirectories();
     }
 
+    /**
+     * Cleans up a single location.
+     *
+     * Does not clean up directories, yet, though remembers them for deletion.
+     * You should call {@link #cleanupDirectories()} after you are finished with the calls this method.
+     */
     public void cleanupOutput(File file, FileType fileType) throws IOException {
         switch (fileType) {
             case Directory:
@@ -81,6 +102,9 @@ public class OutputsCleaner {
         }
     }
 
+    /**
+     * Whether some actual deletion happened.
+     */
     public boolean getDidWork() {
         return didWork;
     }
@@ -95,13 +119,16 @@ public class OutputsCleaner {
         }
     }
 
+    /**
+     * Cleans up empty directories marked for deletion in {@link #cleanupOutput(File, FileType)}.
+     */
     public void cleanupDirectories() throws IOException {
         while (true) {
             File directory = directoriesToDelete.poll();
             if (directory == null) {
                 break;
             }
-            if (isEmpty(directory)) {
+            if (existsAndIsEmpty(directory)) {
                 LOGGER.debug("Deleting stale empty output directory '{}'.", directory);
                 Files.delete(directory.toPath());
                 didWork = true;
@@ -110,8 +137,12 @@ public class OutputsCleaner {
         }
     }
 
-    private boolean isEmpty(File parentDir) {
-        String[] children = parentDir.list();
-        return children != null && children.length == 0;
+    private boolean existsAndIsEmpty(File parentDir) throws IOException {
+        if (!parentDir.exists()) {
+            return false;
+        }
+        try (DirectoryStream<Path> directory = Files.newDirectoryStream(parentDir.toPath())) {
+            return !directory.iterator().hasNext();
+        }
     }
 }

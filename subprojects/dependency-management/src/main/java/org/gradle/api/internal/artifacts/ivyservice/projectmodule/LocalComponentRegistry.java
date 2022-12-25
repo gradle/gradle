@@ -16,19 +16,22 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A registry of all dependency resolution metadata for locally produced components.
+ * A registry of all dependency resolution state for locally produced components.
  * These components may be produced within the same project, another project in the same multi-project build,
  * or in another build within a composite.
  */
 @ThreadSafe
+@ServiceScope(Scopes.Build.class)
 public interface LocalComponentRegistry {
     /**
      * @return The component metadata for the supplied identifier.
      */
-    LocalComponentMetadata getComponent(ProjectComponentIdentifier projectIdentifier);
+    LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier);
 }

@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.specs.Spec;
@@ -39,9 +40,11 @@ import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.InstallationLocation;
 import org.gradle.jvm.toolchain.internal.InstallationSupplier;
+import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
@@ -50,6 +53,7 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -137,8 +141,14 @@ public abstract class AvailableJavaHomes {
         return result;
     }
 
+    @Nullable
     public static Jvm getAvailableJdk(final Spec<? super JvmInstallationMetadata> filter) {
         return Iterables.getFirst(getAvailableJdks(filter), null);
+    }
+
+    @Nullable
+    private static Jvm getSupportedJdk(final Spec<? super JvmInstallationMetadata> filter) {
+        return getAvailableJdk(it -> isSupportedVersion(it) && filter.isSatisfiedBy(it));
     }
 
     private static boolean isSupportedVersion(JvmInstallationMetadata jvmInstallation) {
@@ -146,28 +156,56 @@ public abstract class AvailableJavaHomes {
     }
 
     /**
-     * Returns a JDK is that has a different Java home to the current one, and which is supported by the Gradle version under test.
+     * Returns a JDK that has a different Java home than the current one, and which is supported by the Gradle version under test.
      */
     @Nullable
     public static Jvm getDifferentJdk() {
-        return getAvailableJdk(element -> !element.getJavaHome().toFile().equals(Jvm.current().getJavaHome()) && isSupportedVersion(element));
+        return getSupportedJdk(element -> !isCurrentJavaHome(element));
     }
 
     /**
-     * Returns a JDK is that has a different Java version to the current one, and which is supported by the Gradle version under test.
+     * Returns a JDK that has a different Java home than the current one, and which is supported by the Gradle version under test.
+     */
+    @Nullable
+    public static Jvm getDifferentJdk(final Spec<? super JvmInstallationMetadata> filter) {
+        return getSupportedJdk(element -> !isCurrentJavaHome(element) && filter.isSatisfiedBy(element));
+    }
+
+    /**
+     * Returns a JDK that has a different Java version to the current one, and which is supported by the Gradle version under test.
      */
     @Nullable
     public static Jvm getDifferentVersion() {
-        return getAvailableJdk(element -> !element.getLanguageVersion().equals(Jvm.current().getJavaVersion()) && isSupportedVersion(element));
+        return getSupportedJdk(element -> !element.getLanguageVersion().equals(Jvm.current().getJavaVersion()));
+    }
+
+    /**
+     * Returns a JDK that has a different Java version to the current one, and which is supported by the Gradle version under test.
+     */
+    @Nullable
+    public static Jvm getDifferentVersion(final Spec<? super JvmInstallationMetadata> filter) {
+        return getSupportedJdk(element -> !element.getLanguageVersion().equals(Jvm.current().getJavaVersion()) && filter.isSatisfiedBy(element));
+    }
+
+    /**
+     * Returns a JDK that has a different Java version to the current one and to the provided one,
+     * and which is supported by the Gradle version under test.
+     */
+    @Nullable
+    public static Jvm getDifferentVersion(JavaVersion excludeVersion) {
+        return getSupportedJdk(element -> !element.getLanguageVersion().equals(Jvm.current().getJavaVersion()) && !element.getLanguageVersion().equals(excludeVersion));
     }
 
     /**
      * Returns a JDK that has a different Java home to the current one, is supported by the Gradle version under tests and has a valid JRE.
      */
     public static Jvm getDifferentJdkWithValidJre() {
-        return AvailableJavaHomes.getAvailableJdk(jvm -> !jvm.getJavaHome().equals(Jvm.current().getJavaHome().toPath())
-            && isSupportedVersion(jvm)
+        return getSupportedJdk(jvm -> !isCurrentJavaHome(jvm)
             && Jvm.discovered(jvm.getJavaHome().toFile(), null, jvm.getLanguageVersion()).getJre() != null);
+    }
+
+    private static boolean isCurrentJavaHome(JvmInstallationMetadata metadata) {
+        return metadata.getJavaHome().toFile().equals(Jvm.current().getJavaHome());
     }
 
     /**
@@ -189,8 +227,16 @@ public abstract class AvailableJavaHomes {
         return jvm.getJavaHome();
     }
 
+    public static JvmInstallationMetadata getJvmInstallationMetadata(Jvm jvm) {
+        Path targetJavaHome = jvm.getJavaHome().toPath();
+        return INSTALLATIONS.get().stream()
+            .filter(it -> it.getJavaHome().equals(targetJavaHome))
+            .findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("No JVM installation found for " + jvm));
+    }
+
     private static Jvm jvmFromMetadata(JvmInstallationMetadata metadata) {
-        return Jvm.discovered(metadata.getJavaHome().toFile(), metadata.getImplementationVersion(), metadata.getLanguageVersion());
+        return Jvm.discovered(metadata.getJavaHome().toFile(), metadata.getJavaVersion(), metadata.getLanguageVersion());
     }
 
     private static List<JvmInstallationMetadata> getJvms() {
@@ -205,7 +251,6 @@ public abstract class AvailableJavaHomes {
         JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
         final List<JvmInstallationMetadata> jvms = new JavaInstallationRegistry(defaultInstallationSuppliers(), new TestBuildOperationExecutor(), OperatingSystem.current())
             .listInstallations().stream()
-            .map(InstallationLocation::getLocation)
             .map(metadataDetector::getMetadata)
             .filter(JvmInstallationMetadata::isValidInstallation)
             .sorted(Comparator.comparing(JvmInstallationMetadata::getDisplayName).thenComparing(JvmInstallationMetadata::getLanguageVersion))
@@ -213,7 +258,7 @@ public abstract class AvailableJavaHomes {
 
         System.out.println("Found the following JVMs:");
         for (JvmInstallationMetadata jvm : jvms) {
-            String name = jvm.getDisplayName() + " " + jvm.getImplementationVersion() + " ";
+            String name = jvm.getDisplayName() + " " + jvm.getJavaVersion() + " ";
             System.out.println("    " + name + " - " + jvm.getJavaHome());
         }
         return jvms;
@@ -229,8 +274,10 @@ public abstract class AvailableJavaHomes {
             new BaseDirJvmLocator(SystemProperties.getInstance().getUserHome()),
             new CurrentInstallationSupplier(providerFactory()),
             new EnvVariableJvmLocator(),
+            new IntellijInstallationSupplier(providerFactory(), new IdentityFileResolver()),
             new JabbaInstallationSupplier(providerFactory()),
             new LinuxInstallationSupplier(providerFactory()),
+            new MavenToolchainsInstallationSupplier(providerFactory(), new IdentityFileResolver()),
             new OsXInstallationSupplier(TestFiles.execHandleFactory(), providerFactory(), OperatingSystem.current()),
             new SdkmanInstallationSupplier(providerFactory()),
             new WindowsInstallationSupplier(windowsRegistry, OperatingSystem.current(), providerFactory())

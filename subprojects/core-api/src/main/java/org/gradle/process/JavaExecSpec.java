@@ -23,6 +23,7 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -46,7 +47,6 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * <p>
      * This does not need to be set if using an <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/appman.html">Executable Jar</a> with a {@code Main-Class} attribute.
      * <p>
-     * Use this property instead of {@link #getMain()} and {@link #setMain(String)}.
      *
      * @since 6.4
      */
@@ -55,30 +55,26 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     Property<String> getMainClass();
 
     /**
-     * Returns the fully qualified name of the Main class to be executed.
-     * <p>
-     * This does not need to be set if using an <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/appman.html">Executable Jar</a> with a {@code Main-Class} attribute.
-     * </p>
-     *
-     * @deprecated Use {@link #getMainClass()} instead. This method will be removed in Gradle 8.0.
-     */
-    @Deprecated
-    @Nullable @Optional
-    @ReplacedBy("mainClass")
-    String getMain();
-
-    /**
      * Sets the fully qualified name of the main class to be executed.
      *
      * @param main the fully qualified name of the main class to be executed.
      *
      * @return this
      *
-     * @deprecated Use {@link #getMainClass()}.set(main) instead. This method will be removed in Gradle 8.0.
+     * @deprecated Use {@link #getMainClass()}.set(main) instead. This method will be removed in Gradle 9.0.
      */
     @Deprecated
     @ReplacedBy("mainClass")
-    JavaExecSpec setMain(@Nullable String main);
+    default JavaExecSpec setMain(@Nullable String main) {
+        DeprecationLogger.deprecateProperty(JavaExecSpec.class, "main")
+                .replaceWith("mainClass")
+                .willBeRemovedInGradle9()
+                .withDslReference()
+                .nagUser();
+
+        getMainClass().set(main);
+        return this;
+    }
 
     /**
      * Returns the arguments passed to the main class to be executed.

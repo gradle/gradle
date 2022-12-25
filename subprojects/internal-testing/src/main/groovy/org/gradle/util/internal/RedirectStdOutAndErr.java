@@ -36,8 +36,8 @@ public class RedirectStdOutAndErr implements MethodRule {
     private PrintStream originalStdErr;
     private ByteArrayOutputStream stdoutContent = new ByteArrayOutputStream();
     private ByteArrayOutputStream stderrContent = new ByteArrayOutputStream();
-    private RedirectingOutputStream stdOutRouter = new RedirectingOutputStream(new NullOutputStream());
-    private RedirectingOutputStream stdErrRouter = new RedirectingOutputStream(new NullOutputStream());
+    private RedirectingOutputStream stdOutRouter = new RedirectingOutputStream(NullOutputStream.NULL_OUTPUT_STREAM);
+    private RedirectingOutputStream stdErrRouter = new RedirectingOutputStream(NullOutputStream.NULL_OUTPUT_STREAM);
     private PrintStream stdOutPrintStream = new PrintStream(new TeeOutputStream(stdoutContent, stdOutRouter));
     private PrintStream stdErrPrintStream = new PrintStream(new TeeOutputStream(stderrContent, stdErrRouter));
 

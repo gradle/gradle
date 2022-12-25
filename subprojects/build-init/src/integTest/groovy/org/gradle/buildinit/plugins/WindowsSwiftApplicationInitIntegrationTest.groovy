@@ -20,7 +20,6 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
 import static org.gradle.buildinit.plugins.SwiftApplicationInitIntegrationTest.LINUX_MAIN_DOT_SWIFT
 import static org.gradle.buildinit.plugins.SwiftApplicationInitIntegrationTest.SAMPLE_APPLICATION_CLASS
@@ -32,7 +31,6 @@ class WindowsSwiftApplicationInitIntegrationTest extends AbstractInitIntegration
     @Override
     String subprojectName() { 'app' }
 
-    @Unroll
     def "creates sample application source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'swift-application', '--dsl', scriptDsl.id)

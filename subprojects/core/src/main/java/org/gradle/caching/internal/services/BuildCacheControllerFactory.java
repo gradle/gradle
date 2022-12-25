@@ -19,6 +19,7 @@ package org.gradle.caching.internal.services;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.GeneratedSubclasses;
+import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.caching.BuildCacheService;
 import org.gradle.caching.BuildCacheServiceFactory;
@@ -30,6 +31,8 @@ import org.gradle.caching.internal.controller.DefaultBuildCacheController;
 import org.gradle.caching.internal.controller.NoOpBuildCacheController;
 import org.gradle.caching.internal.controller.service.BuildCacheServiceRole;
 import org.gradle.caching.internal.controller.service.BuildCacheServicesConfiguration;
+import org.gradle.caching.internal.origin.OriginMetadataFactory;
+import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.caching.local.DirectoryBuildCache;
 import org.gradle.caching.local.internal.DirectoryBuildCacheService;
 import org.gradle.internal.Cast;
@@ -38,6 +41,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.vfs.FileSystemAccess;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,7 +75,11 @@ public final class BuildCacheControllerFactory {
         final RemoteAccessMode remoteAccessMode,
         final boolean logStackTraces,
         final boolean emitDebugLogging,
-        final Instantiator instantiator
+        final Instantiator instantiator,
+        final FileSystemAccess fileSystemAccess,
+        final BuildCacheEntryPacker packer,
+        final OriginMetadataFactory originMetadataFactory,
+        final StringInterner stringInterner
     ) {
         return buildOperationExecutor.call(new CallableBuildOperation<BuildCacheController>() {
             @Override
@@ -123,7 +131,11 @@ public final class BuildCacheControllerFactory {
                         temporaryFileProvider,
                         logStackTraces,
                         emitDebugLogging,
-                        !Boolean.getBoolean(REMOTE_CONTINUE_ON_ERROR_PROPERTY)
+                        !Boolean.getBoolean(REMOTE_CONTINUE_ON_ERROR_PROPERTY),
+                        fileSystemAccess,
+                        packer,
+                        originMetadataFactory,
+                        stringInterner
                     );
                 }
             }

@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.junit.Assume
 import spock.lang.Issue
-import spock.lang.Unroll
 
 @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
 @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -48,59 +47,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
     def setup() {
         Assume.assumeTrue(GradleContextualExecuter.embedded)
         repoSpec.metaClass.platform = this.&platform.curry(repoSpec)
-    }
-
-    def "can force a virtual platform version by forcing one of its leaves"() {
-        repository {
-            ['2.7.9', '2.9.4', '2.9.4.1'].each {
-                path "databind:$it -> core:$it"
-                path "databind:$it -> annotations:$it"
-                path "kotlin:$it -> core:$it"
-                path "kotlin:$it -> annotations:$it"
-            }
-        }
-
-        given:
-        buildFile << """
-            dependencies {
-                conf("org:core:2.9.4")
-                conf("org:databind:2.7.9") {
-                  force = true
-                }
-                conf("org:kotlin:2.9.4.1")
-            }
-        """
-
-        and:
-        "a rule which infers module set from group and version"()
-
-        when:
-        executer.expectDeprecationWarning()
-        expectAlignment {
-            module('core') tries('2.9.4') alignsTo('2.7.9') byVirtualPlatform()
-            module('databind') alignsTo('2.7.9') byVirtualPlatform()
-            module('kotlin') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
-            module('annotations') tries('2.9.4.1') alignsTo('2.7.9') byVirtualPlatform()
-        }
-        run ':checkDeps'
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org:core:2.9.4", "org:core:2.7.9") {
-                    forced()
-                }
-                module("org:databind:2.7.9") {
-                    module('org:annotations:2.7.9')
-                    module('org:core:2.7.9')
-                }
-                edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
-                    forced()
-                    module('org:core:2.7.9')
-                    module('org:annotations:2.7.9')
-                }
-            }
-        }
     }
 
     def "can force a virtual platform version by forcing one of its leaves through resolutionStrategy.force"() {
@@ -213,48 +159,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         }
     }
 
-    @Unroll
-    def "fails if forcing a virtual platform version by forcing multiple leaves with different versions"() {
-        repository {
-            ['2.7.9', '2.9.4', '2.9.4.1'].each {
-                path "databind:$it -> core:$it"
-                path "databind:$it -> annotations:$it"
-                path "kotlin:$it -> core:$it"
-                path "kotlin:$it -> annotations:$it"
-            }
-        }
-
-        given:
-        buildFile << """
-            dependencies {
-                conf("$dep1") {
-                    force = true
-                }
-                conf("org:kotlin:2.9.4.1")
-
-                conf("$dep2") {
-                    force = true
-                }
-            }
-        """
-
-        and:
-        "a rule which infers module set from group and version"()
-
-        when:
-        executer.expectDeprecationWarning()
-        allowAllRepositoryInteractions()
-        fails ':checkDeps'
-
-        then:
-        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
-
-        where:
-        dep1                 | dep2
-        'org:core:2.9.4'     | 'org:databind:2.7.9'
-        'org:databind:2.7.9' | 'org:core:2.9.4'
-    }
-
     def "fails if forcing a virtual platform version by forcing multiple leaves with different versions through resolutionStrategy"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -329,44 +233,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
     }
 
-    def "fails if forcing a virtual platform version and forcing a leaf with different version"() {
-        repository {
-            ['2.7.9', '2.9.4', '2.9.4.1'].each {
-                path "databind:$it -> core:$it"
-                path "databind:$it -> annotations:$it"
-                path "kotlin:$it -> core:$it"
-                path "kotlin:$it -> annotations:$it"
-            }
-        }
-
-        given:
-        buildFile << """
-            dependencies {
-                conf("org:core:2.9.4")
-
-                conf enforcedPlatform("org:platform:2.9.4")
-
-                conf("org:kotlin:2.9.4.1")
-
-                conf("org:databind:2.7.9") {
-                    force = true
-                }
-            }
-        """
-
-        and:
-        "a rule which infers module set from group and version"()
-
-        when:
-        executer.expectDeprecationWarning()
-        allowAllRepositoryInteractions()
-        fails ':checkDeps'
-
-        then:
-        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
-    }
-
-    def "fails if forcing a virtual platform version and forcing a leaf with different version through resolutionStrategy"() {
+    def "succeeds if using a virtual platform version and forcing a leaf with different version through resolutionStrategy"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
                 path "databind:$it -> core:$it"
@@ -399,92 +266,9 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
 
         when:
         allowAllRepositoryInteractions()
-        fails ':checkDeps'
 
         then:
-        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
-    }
-
-    def "fails if forcing a virtual platform version by forcing multiple leaves with different versions, including transitively"() {
-        repository {
-            ['2.7.9', '2.9.4', '2.9.4.1'].each {
-                path "databind:$it -> core:$it"
-                path "databind:$it -> annotations:$it"
-                path "kotlin:$it -> core:$it"
-                path "kotlin:$it -> annotations:$it"
-            }
-        }
-
-        given:
-        settingsFile << """
-include 'other'
-"""
-        buildFile << """
-            dependencies {
-                conf project(path: ':other', configuration: 'conf')
-                conf("org:kotlin:2.9.4.1")
-
-                conf("org:databind:2.7.9") {
-                    force = true
-                }
-            }
-
-            project(':other') {
-                configurations {
-                    conf
-                }
-                dependencies {
-                    conf("org:core:2.9.4") {
-                        force = true
-                    }
-                    components.all(InferModuleSetFromGroupAndVersion)
-                }
-            }
-        """
-
-        and:
-        "a rule which infers module set from group and version"()
-
-        when:
-        executer.expectDeprecationWarning()
-        allowAllRepositoryInteractions()
-        fails ':checkDeps'
-
-        then:
-        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
-    }
-
-    def "succeeds if forcing a virtual platform version by forcing multiple leaves with same version"() {
-        repository {
-            ['2.7.9', '2.9.4', '2.9.4.1'].each {
-                path "databind:$it -> core:$it"
-                path "databind:$it -> annotations:$it"
-                path "kotlin:$it -> core:$it"
-                path "kotlin:$it -> annotations:$it"
-            }
-        }
-
-        given:
-        buildFile << """
-            dependencies {
-                conf("org:core:2.7.9") {
-                    force = true
-                }
-                conf("org:kotlin:2.9.4.1")
-
-                conf("org:databind:2.7.9") {
-                    force = true
-                }
-            }
-        """
-
-        and:
-        "a rule which infers module set from group and version"()
-
-        expect:
-        executer.expectDeprecationWarning()
-        allowAllRepositoryInteractions()
-        succeeds ':checkDeps'
+        succeeds(':checkDeps')
     }
 
     def "succeeds if forcing a virtual platform version by forcing multiple leaves with same version through resolutionStrategy"() {
@@ -517,40 +301,6 @@ include 'other'
         "a rule which infers module set from group and version"()
 
         expect:
-        allowAllRepositoryInteractions()
-        succeeds ':checkDeps'
-    }
-
-    def "succeeds if forcing a virtual platform version and forcing a leaf with same version"() {
-        repository {
-            ['2.7.9', '2.9.4', '2.9.4.1'].each {
-                path "databind:$it -> core:$it"
-                path "databind:$it -> annotations:$it"
-                path "kotlin:$it -> core:$it"
-                path "kotlin:$it -> annotations:$it"
-            }
-        }
-
-        given:
-        buildFile << """
-            dependencies {
-                conf("org:core:2.9.4")
-
-                conf enforcedPlatform("org:platform:2.7.9")
-
-                conf("org:kotlin:2.9.4.1")
-
-                conf("org:databind:2.7.9") {
-                    force = true
-                }
-            }
-        """
-
-        and:
-        "a rule which infers module set from group and version"()
-
-        expect:
-        executer.expectDeprecationWarning()
         allowAllRepositoryInteractions()
         succeeds ':checkDeps'
     }
@@ -665,7 +415,6 @@ include 'other'
 
     }
 
-    @Unroll("can force a virtual platform version by forcing the platform itself via a dependency")
     def "can force a virtual platform version by forcing the platform itself via a dependency"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -717,7 +466,6 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll("can force a virtual platform version by forcing the platform itself via a constraint")
     def "can force a virtual platform version by forcing the platform itself via a constraint"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -770,7 +518,6 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll("can force a virtual platform version by forcing the platform itself via a constraint using a strict version")
     def "can force a virtual platform version by forcing the platform itself via a constraint using a strict version"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -816,15 +563,14 @@ include 'other'
 
         where: "order of dependencies doesn't matter"
         dependencies << [
-            'conf("org:core:2.9.4")',
-            'conf("org:databind:2.7.9")',
-            'conf("org:kotlin:2.9.4.1")',
-            'constraints { conf ("org:platform") { version { strictly("2.7.9") } } }'
+                'conf("org:core:2.9.4")',
+                'conf("org:databind:2.7.9")',
+                'conf("org:kotlin:2.9.4.1")',
+                'constraints { conf ("org:platform") { version { strictly("2.7.9") } } }'
         ].permutations()*.join("\n")
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    @Unroll("can constrain a virtual platforms components by adding the platform itself via a constraint")
     def "can constrain a virtual platforms components by adding the platform itself via a constraint"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {
@@ -869,7 +615,6 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @Unroll("can force a published platform version by forcing the platform itself via a dependency")
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def "can force a published platform version by forcing the platform itself via a dependency"() {
         repository {
@@ -924,7 +669,8 @@ include 'other'
                     module("org:platform:2.7.9")
                 }
                 String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataPublished() ? 'enforcedRuntimeElements' : 'enforced-platform-runtime'
-                module("org:platform:2.7.9:$expectedVariant") {
+                edge("org:platform:{strictly 2.7.9}", "org:platform:2.7.9") {
+                    configuration(expectedVariant)
                     constraint('org:core:2.7.9')
                     constraint('org:databind:2.7.9')
                     constraint('org:annotations:2.7.9')
@@ -987,8 +733,7 @@ include 'other'
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
-    @Unroll("force to higher patch version should bring the rest of aligned group up (notation=#forceNotation)")
-    def "force to higher patch version should bring the rest of aligned group up"() {
+    def "force to higher patch version should bring the rest of aligned group up (notation=#forceNotation)"() {
         given:
         "repository simulating Jackson situation" {
             path 'com.amazonaws:aws-java-sdk-core:1.11.438 -> org:cbor:2.6.7'
@@ -1037,14 +782,12 @@ include 'other'
         forceNotation << [
                 "configurations.all { resolutionStrategy { force 'org:databind:2.8.11.1' } }",
                 "dependencies { conf enforcedPlatform('org:platform:2.8.11.1') }",
-                "dependencies { conf('org:databind:2.8.11.1') { force = true } }",
         ]
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
-    @Unroll("force to lower patch version should bring the rest of aligned group up (notation=#forceNotation)")
-    def "force to lower patch version should bring the rest of aligned group up"() {
+    def "force to lower patch version should bring the rest of aligned group up (notation=#forceNotation)"() {
         given:
         "repository simulating Jackson situation" {
             path 'com.amazonaws:aws-java-sdk-core:1.11.438 -> org:cbor:2.6.7'
@@ -1094,7 +837,6 @@ include 'other'
         forceNotation << [
                 "configurations.all { resolutionStrategy { force 'org:databind:2.6.7.1' } }",
                 "dependencies { conf enforcedPlatform('org:platform:2.6.7.1') }",
-                "dependencies { conf('org:databind:2.6.7.1') { force = true } }",
         ]
     }
 

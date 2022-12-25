@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
 
 class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -34,7 +33,6 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         executer.withRepositoryMirrors()
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/managingTransitiveDependencies-versionsWithConstraints")
     def "respects dependency constraints for direct and transitive dependencies with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
@@ -51,14 +49,12 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/managingTransitiveDependencies-forceForDependency")
     def "can force a dependency version for #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
 
         when:
-        executer.expectDeprecationWarning()
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
@@ -70,7 +66,6 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/managingTransitiveDependencies-forceForConfiguration")
     def "can force a dependency version for particular configuration for #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
@@ -88,7 +83,6 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/managingTransitiveDependencies-disableForDependency")
     def "can disable transitive dependency resolution for dependency for #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
@@ -104,7 +98,6 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/managingTransitiveDependencies-disableForConfiguration")
     def "can disable transitive dependency resolution for particular configuration for #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
@@ -120,7 +113,6 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/managingTransitiveDependencies-constraintsFromBOM")
     def "can import dependency versions from a bom for #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)

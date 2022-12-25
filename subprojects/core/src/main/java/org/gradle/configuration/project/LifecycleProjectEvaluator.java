@@ -16,10 +16,12 @@
 package org.gradle.configuration.project;
 
 import org.gradle.api.Action;
+import org.gradle.api.BuildCancelledException;
 import org.gradle.api.ProjectConfigurationException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateInternal;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -53,15 +55,20 @@ import java.io.File;
 public class LifecycleProjectEvaluator implements ProjectEvaluator {
     private final BuildOperationExecutor buildOperationExecutor;
     private final ProjectEvaluator delegate;
+    private final BuildCancellationToken cancellationToken;
 
-    public LifecycleProjectEvaluator(BuildOperationExecutor buildOperationExecutor, ProjectEvaluator delegate) {
+    public LifecycleProjectEvaluator(BuildOperationExecutor buildOperationExecutor, ProjectEvaluator delegate, BuildCancellationToken cancellationToken) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.delegate = delegate;
+        this.cancellationToken = cancellationToken;
     }
 
     @Override
     public void evaluate(final ProjectInternal project, final ProjectStateInternal state) {
         if (state.isUnconfigured()) {
+            if (cancellationToken.isCancellationRequested()) {
+                throw new BuildCancelledException();
+            }
             buildOperationExecutor.run(new EvaluateProject(project, state));
         }
     }

@@ -18,30 +18,27 @@ package org.gradle.execution.plan;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.plan.ValuedVfsHierarchy.ValueVisitor;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.internal.snapshot.EmptyChildMap;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
+
+@ThreadSafe
 public class ExecutionNodeAccessHierarchy {
     private volatile ValuedVfsHierarchy<NodeAccess> root;
-    private final Stat stat;
+    private final SingleFileTreeElementMatcher matcher;
 
     public ExecutionNodeAccessHierarchy(CaseSensitivity caseSensitivity, Stat stat) {
-        this.root = new ValuedVfsHierarchy<>(PersistentList.of(), EmptyChildMap.getInstance(), caseSensitivity);
-        this.stat = stat;
+        this.root = ValuedVfsHierarchy.emptyHierarchy(caseSensitivity);
+        this.matcher = new SingleFileTreeElementMatcher(stat);
     }
 
     /**
@@ -50,10 +47,26 @@ public class ExecutionNodeAccessHierarchy {
      * That includes node which access ancestors or children of the location.
      */
     public ImmutableSet<Node> getNodesAccessing(String location) {
-        return visitValues(location, new AbstractNodeAccessVisitor() {
+        return visitValues(location, new CollectingNodeAccessVisitor());
+    }
+
+    /**
+     * Visits all nodes which access the location.
+     *
+     * That includes node which access ancestors or children of the location.
+     */
+    public <T> T visitNodesAccessing(String location, T initialValue, BiFunction<T, ? super Node, T> visitor) {
+        return visitValues(location, new AbstractNodeAccessVisitor<T>() {
+            T currentValue = initialValue;
+
             @Override
-            public void visitChildren(PersistentList<NodeAccess> values, Supplier<String> relativePathSupplier) {
-                values.forEach(this::addNode);
+            void visit(NodeAccess value) {
+                currentValue = visitor.apply(currentValue, value.getNode());
+            }
+
+            @Override
+            T getResult() {
+                return currentValue;
             }
         });
     }
@@ -65,36 +78,13 @@ public class ExecutionNodeAccessHierarchy {
      * Nodes accessing children of the location are only included if the children match the filter.
      */
     public ImmutableSet<Node> getNodesAccessing(String location, Spec<FileTreeElement> filter) {
-        return visitValues(location, new AbstractNodeAccessVisitor() {
+        return visitValues(location, new CollectingNodeAccessVisitor() {
             @Override
-            public void visitChildren(PersistentList<NodeAccess> values, Supplier<String> relativePathSupplier) {
+            boolean acceptChildren(Supplier<String> relativePathSupplier) {
                 String relativePathFromLocation = relativePathSupplier.get();
-                if (relativePathMatchesSpec(filter, new File(location, relativePathFromLocation), relativePathFromLocation)) {
-                    values.forEach(this::addNode);
-                }
+                return matcher.elementWithRelativePathMatches(filter, new File(location, relativePathFromLocation), relativePathFromLocation);
             }
         });
-    }
-
-    private boolean relativePathMatchesSpec(Spec<FileTreeElement> filter, File element, String relativePathString) {
-        // A better solution for output files would be to record the type of the output file and then using this type here instead of looking at the disk.
-        // Though that is more involved and as soon as the file has been produced, the right file type will be detected here as well.
-        boolean elementIsFile = !element.isDirectory();
-        RelativePath relativePath = RelativePath.parse(elementIsFile, relativePathString);
-        if (!filter.isSatisfiedBy(new ReadOnlyFileTreeElement(element, relativePath, stat))) {
-            return false;
-        }
-        // All parent paths need to match the spec as well, since this is how we implement the file system walking for file tree.
-        RelativePath parentRelativePath = relativePath.getParent();
-        File parentFile = element.getParentFile();
-        while (parentRelativePath != null && parentRelativePath != RelativePath.EMPTY_ROOT) {
-            if (!filter.isSatisfiedBy(new ReadOnlyFileTreeElement(parentFile, parentRelativePath, stat))) {
-                return false;
-            }
-            parentRelativePath = parentRelativePath.getParent();
-            parentFile = parentFile.getParentFile();
-        }
-        return true;
     }
 
     /**
@@ -125,43 +115,57 @@ public class ExecutionNodeAccessHierarchy {
         root = root.empty();
     }
 
-    private ImmutableSet<Node> visitValues(String location, AbstractNodeAccessVisitor visitor) {
-        VfsRelativePath relativePath = VfsRelativePath.of(location);
-        if (relativePath.length() == 0) {
-            root.visitAllValues(visitor);
-        } else {
-            root.visitValuesRelatedTo(relativePath, visitor);
-        }
+    private <T> T visitValues(String location, AbstractNodeAccessVisitor<T> visitor) {
+        root.visitValues(location, visitor);
         return visitor.getResult();
     }
 
-    private abstract static class AbstractNodeAccessVisitor implements ValueVisitor<NodeAccess> {
-
-        private final ImmutableSet.Builder<Node> builder = ImmutableSet.builder();
-
-        public void addNode(NodeAccess value) {
-            builder.add(value.getNode());
-        }
-
+    private abstract static class AbstractNodeAccessVisitor<T> implements ValueVisitor<NodeAccess> {
         @Override
         public void visitExact(NodeAccess value) {
-            addNode(value);
+            visit(value);
         }
 
         @Override
         public void visitAncestor(NodeAccess value, VfsRelativePath pathToVisitedLocation) {
             if (value.accessesChild(pathToVisitedLocation)) {
-                addNode(value);
+                visit(value);
             }
         }
 
-        public ImmutableSet<Node> getResult() {
+        @Override
+        public void visitChildren(PersistentList<NodeAccess> values, Supplier<String> relativePathSupplier) {
+            if (acceptChildren(relativePathSupplier)) {
+                values.forEach(this::visit);
+            }
+        }
+
+        boolean acceptChildren(Supplier<String> relativePathSupplier) {
+            return true;
+        }
+
+        abstract void visit(NodeAccess value);
+
+        abstract T getResult();
+    }
+
+    private static class CollectingNodeAccessVisitor extends AbstractNodeAccessVisitor<ImmutableSet<Node>> {
+        private final ImmutableSet.Builder<Node> builder = ImmutableSet.builder();
+
+        @Override
+        void visit(NodeAccess value) {
+            builder.add(value.getNode());
+        }
+
+        @Override
+        ImmutableSet<Node> getResult() {
             return builder.build();
         }
     }
 
     private interface NodeAccess {
         Node getNode();
+
         boolean accessesChild(VfsRelativePath childPath);
     }
 
@@ -200,78 +204,7 @@ public class ExecutionNodeAccessHierarchy {
 
         @Override
         public boolean accessesChild(VfsRelativePath childPath) {
-            return relativePathMatchesSpec(spec, new File(childPath.getAbsolutePath()), childPath.getAsString());
-        }
-    }
-
-    private static class ReadOnlyFileTreeElement implements FileTreeElement {
-        private final File file;
-        private final RelativePath relativePath;
-        private final Stat stat;
-
-        public ReadOnlyFileTreeElement(File file, RelativePath relativePath, Stat stat) {
-            this.file = file;
-            this.relativePath = relativePath;
-            this.stat = stat;
-        }
-
-        @Override
-        public File getFile() {
-            return file;
-        }
-
-        @Override
-        public boolean isDirectory() {
-            return !relativePath.isFile();
-        }
-
-        @Override
-        public long getLastModified() {
-            return file.lastModified();
-        }
-
-        @Override
-        public long getSize() {
-            return file.length();
-        }
-
-        @Override
-        public InputStream open() {
-            try {
-                return Files.newInputStream(file.toPath());
-            } catch (IOException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
-
-        @Override
-        public void copyTo(OutputStream output) {
-            throw new UnsupportedOperationException("Copy to not supported for filters");
-        }
-
-        @Override
-        public boolean copyTo(File target) {
-            throw new UnsupportedOperationException("Copy to not supported for filters");
-        }
-
-        @Override
-        public String getName() {
-            return file.getName();
-        }
-
-        @Override
-        public String getPath() {
-            return relativePath.getPathString();
-        }
-
-        @Override
-        public RelativePath getRelativePath() {
-            return relativePath;
-        }
-
-        @Override
-        public int getMode() {
-            return stat.getUnixMode(file);
+            return matcher.elementWithRelativePathMatches(spec, new File(childPath.getAbsolutePath()), childPath.getAsString());
         }
     }
 }

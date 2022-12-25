@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.hamcrest.CoreMatchers
 import org.junit.Assume
-import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
 
@@ -90,10 +89,13 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
         buildFile << """
             task verifyTestResultConventions {
+                def junitXmlOutputLocation = provider { ${testTaskName}.reports.junitXml.outputLocation }
+                def htmlOutputLocation = provider { ${testTaskName}.reports.html.outputLocation }
+                def binaryResultsDirectory = provider { ${testTaskName}.binaryResultsDirectory }
                 doLast {
-                    assert ${testTaskName}.reports.junitXml.outputLocation.asFile.get() == file('build/test-results/${testTaskName}')
-                    assert ${testTaskName}.reports.html.outputLocation.asFile.get() == file('build/reports/tests/${testTaskName}')
-                    assert ${testTaskName}.binaryResultsDirectory.asFile.get() == file('build/test-results/${testTaskName}/binary')
+                    assert junitXmlOutputLocation.flatMap { it.asFile }.get() == file('build/test-results/${testTaskName}')
+                    assert htmlOutputLocation.flatMap { it.asFile }.get() == file('build/reports/tests/${testTaskName}')
+                    assert binaryResultsDirectory.flatMap { it.asFile }.get() == file('build/test-results/${testTaskName}/binary')
                 }
             }
         """
@@ -250,7 +252,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass("SomeTest").assertTestsExecuted(passingTestCaseName)
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "can select multiple tests from command line #scenario"() {
         given:
@@ -284,7 +285,6 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         return command.toArray()
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache(bottomSpecs = "XCTestTestFrameworkIntegrationTest")
     def "can deduplicate test filters when #scenario"() {
         given:

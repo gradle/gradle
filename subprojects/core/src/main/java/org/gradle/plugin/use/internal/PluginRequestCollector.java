@@ -18,13 +18,13 @@ package org.gradle.plugin.use.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.internal.InvalidPluginIdException;
 import org.gradle.plugin.internal.InvalidPluginVersionException;
+import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -72,19 +72,9 @@ public class PluginRequestCollector {
 
     @VisibleForTesting
     List<PluginRequestInternal> listPluginRequests() {
-        List<PluginRequestInternal> pluginRequests = collect(specs, new Transformer<PluginRequestInternal, PluginDependencySpecImpl>() {
-            @Override
-            public PluginRequestInternal transform(PluginDependencySpecImpl original) {
-                return new DefaultPluginRequest(original.id, original.version, original.apply, original.lineNumber, scriptSource);
-            }
-        });
+        List<PluginRequestInternal> pluginRequests = collect(specs, original -> new DefaultPluginRequest(original.id, original.version, original.apply, original.lineNumber, scriptSource));
 
-        Map<PluginId, Collection<PluginRequestInternal>> groupedById = CollectionUtils.groupBy(pluginRequests, new Transformer<PluginId, PluginRequestInternal>() {
-            @Override
-            public PluginId transform(PluginRequestInternal pluginRequest) {
-                return pluginRequest.getId();
-            }
-        });
+        Map<PluginId, Collection<PluginRequestInternal>> groupedById = CollectionUtils.groupBy(pluginRequests, PluginRequest::getId);
 
         // Check for duplicates
         for (PluginId key : groupedById.keySet()) {

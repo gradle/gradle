@@ -23,7 +23,6 @@ import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.SetSystemProperties
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
-import spock.lang.Unroll
 
 abstract class AbstractProxyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
@@ -50,8 +49,9 @@ abstract class AbstractProxyResolveIntegrationTest extends AbstractHttpDependenc
 configurations { compile }
 dependencies { compile 'org.gradle.test:some-lib:1.2.17' }
 task listJars {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile.collect { it.name } == ['some-lib-1.2.17.jar']
+        assert files*.name == ['some-lib-1.2.17.jar']
     }
 }
 """
@@ -207,7 +207,6 @@ repositories {
         proxyServer.requestCount == 0
     }
 
-    @Unroll
     def "passes target credentials to #authScheme authenticated server via proxy"() {
         given:
         def (proxyUserName, proxyPassword) = ['proxyUser', 'proxyPassword']

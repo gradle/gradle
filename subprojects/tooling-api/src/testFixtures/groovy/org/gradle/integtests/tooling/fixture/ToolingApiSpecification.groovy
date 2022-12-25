@@ -61,8 +61,8 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
  */
 @ToolingApiTest
 @CleanupTestDirectory
-@ToolingApiVersion('>=3.0')
-@TargetGradleVersion('>=2.6')
+@ToolingApiVersion('>=7.0') // The lowest tested version should be the first release of the previous major.
+@TargetGradleVersion('>=3.0')
 @Retry(condition = { onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class ToolingApiSpecification extends Specification {
     /**
@@ -216,7 +216,9 @@ abstract class ToolingApiSpecification extends Specification {
      * Returns the set of implicit task names expected for any project for the target Gradle version.
      */
     Set<String> getImplicitTasks() {
-        if (targetVersion >= GradleVersion.version("6.8")) {
+        if (targetVersion >= GradleVersion.version("7.5")) {
+            return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants', 'resolvableConfigurations']
+        } else if (targetVersion >= GradleVersion.version("6.8")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'javaToolchains', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants']
         } else if (targetVersion >= GradleVersion.version("6.5")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants']

@@ -65,4 +65,8 @@ public class OpaqueComponentArtifactIdentifier implements ComponentArtifactIdent
     public int hashCode() {
         return file.hashCode();
     }
+
+    public File getFile() {
+        return file;
+    }
 }

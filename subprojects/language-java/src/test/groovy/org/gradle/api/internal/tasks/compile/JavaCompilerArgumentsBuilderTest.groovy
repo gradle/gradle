@@ -24,7 +24,6 @@ import org.gradle.util.internal.GUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder.USE_UNSHARED_COMPILER_TABLE_OPTION
 
@@ -40,7 +39,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def setup() {
         spec.tempDir = tempDir.file("tmp")
-        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
+        spec.compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
     }
 
     def "generates options for an unconfigured spec"() {
@@ -181,7 +180,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     }
 
     def "generates -bootclasspath option"() {
-        def compileOptions = new CompileOptions(TestUtil.objectFactory())
+        def compileOptions = TestUtil.newInstance(CompileOptions, TestUtil.objectFactory())
         compileOptions.bootstrapClasspath = TestFiles.fixed(new File("lib1.jar"), new File("lib2.jar"))
         spec.compileOptions = compileOptions
 
@@ -347,7 +346,6 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.noEmptySourcePath().build() == expected
     }
 
-    @Unroll
     def "prohibits setting #option as compiler argument"() {
         given:
         def userProvidedPath = ['/libs/lib3.jar', '/libs/lib4.jar'].join(File.pathSeparator)

@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Implementation for interacting with Google Cloud Storage (GCS) repositories"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
@@ -29,4 +31,8 @@ dependencies {
     integTestImplementation(libs.joda)
 
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
+}
+
+strictCompile {
+    ignoreDeprecations()
 }

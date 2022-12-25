@@ -21,7 +21,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.nio.file.Files
 import java.util.function.Function
@@ -159,7 +158,6 @@ class DefaultDeleterTest extends Specification {
         !didWork
     }
 
-    @Unroll
     def "reports reasonable help message when failing to delete single #description"() {
 
         if (isSymlink) {

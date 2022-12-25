@@ -69,7 +69,7 @@ public class LineEndingNormalizingInputStreamHasher {
 
         hasher.putHash(SIGNATURE);
 
-        try (BufferedInputStream input = new BufferedInputStream(new CloseShieldInputStream(inputStream), BUFFER_SIZE)) {
+        try (BufferedInputStream input = new BufferedInputStream(CloseShieldInputStream.wrap(inputStream), BUFFER_SIZE)) {
             int peekAhead = -1;
 
             while (true) {

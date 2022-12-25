@@ -28,7 +28,6 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
-import org.gradle.api.plugins.jvm.internal.DefaultJvmTestSuite;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Cast;
@@ -772,7 +771,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
-            printer.println(printer.syntax.dependencySpec(configuration, "project"));
+            printer.println(printer.syntax.dependencySpec(configuration, "project()"));
         }
     }
 
@@ -1243,7 +1242,7 @@ public class BuildScriptBuilder {
 
         @Override
         public SuiteSpec kotlinTestSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, null,  builder);
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, libraryVersionProvider.getVersion("kotlin"),  builder);
             suites.add(spec);
             return spec;
         }
@@ -1337,19 +1336,17 @@ public class BuildScriptBuilder {
         }
 
         public enum TestSuiteFramework {
-            JUNIT(new MethodInvocationExpression("useJUnit"), DefaultJvmTestSuite.Frameworks.JUNIT4, "JUnit4"),
-            JUNIT_PLATFORM(new MethodInvocationExpression("useJUnitJupiter"), DefaultJvmTestSuite.Frameworks.JUNIT_JUPITER, "JUnit Jupiter"),
-            SPOCK(new MethodInvocationExpression("useSpock"), DefaultJvmTestSuite.Frameworks.SPOCK, "Spock"),
-            KOTLIN_TEST(new MethodInvocationExpression("useKotlinTest"), DefaultJvmTestSuite.Frameworks.KOTLIN_TEST, "Kotlin Test"),
-            TEST_NG(new MethodInvocationExpression("useTestNG"), DefaultJvmTestSuite.Frameworks.TESTNG, "TestNG");
+            JUNIT(new MethodInvocationExpression("useJUnit"), "JUnit4"),
+            JUNIT_PLATFORM(new MethodInvocationExpression("useJUnitJupiter"), "JUnit Jupiter"),
+            SPOCK(new MethodInvocationExpression("useSpock"), "Spock"),
+            KOTLIN_TEST(new MethodInvocationExpression("useKotlinTest"), "Kotlin Test"),
+            TEST_NG(new MethodInvocationExpression("useTestNG"), "TestNG");
 
             final String displayName;
             final MethodInvocationExpression method;
-            final DefaultJvmTestSuite.Frameworks framework;
 
-            TestSuiteFramework(MethodInvocationExpression method, DefaultJvmTestSuite.Frameworks framework, String displayName) {
+            TestSuiteFramework(MethodInvocationExpression method, String displayName) {
                 this.method = method;
-                this.framework = framework;
                 this.displayName = displayName;
             }
 
@@ -1583,20 +1580,21 @@ public class BuildScriptBuilder {
         }
 
         public List<String> extractComments() {
-            List<String> comments = new ArrayList<>();
-            collectComments(plugins.body, comments);
-            collectComments(repositories.body, comments);
-            collectComments(dependencies, comments);
+            final List<String> comments = new ArrayList<>();
+            collectComments(plugins.body.getStatements(), comments);
+            collectComments(repositories.body.getStatements(), comments);
+            collectComments(dependencies.getStatements(), comments);
             for (Statement otherBlock : getStatements()) {
                 if (otherBlock instanceof BlockStatement) {
-                    collectComments(((BlockStatement) otherBlock).body, comments);
+                    collectComments(((BlockStatement) otherBlock).body.getStatements(), comments);
                 }
             }
+            collectComments(tasks.blocks.values(), comments);
             return comments;
         }
 
-        private void collectComments(BlockBody body, List<String> comments) {
-            for (Statement statement : body.getStatements()) {
+        private void collectComments(Collection<Statement> statements, List<String> comments) {
+            for (Statement statement : statements) {
                 if (statement.getComment() != null) {
                     comments.add(statement.getComment());
                 }
@@ -1962,7 +1960,14 @@ public class BuildScriptBuilder {
     private static final class KotlinSyntax implements Syntax {
         @Override
         public String string(String string) {
-            return '"' + string + '"';
+            return '"' + escapeKotlinStringLiteral(string) + '"';
+        }
+
+        private String escapeKotlinStringLiteral(String string) {
+            return string
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("$", "\\$");
         }
 
         @Override
@@ -2132,7 +2137,11 @@ public class BuildScriptBuilder {
     private static final class GroovySyntax implements Syntax {
         @Override
         public String string(String string) {
-            return "'" + string + "'";
+            return "'" + escapeGroovyStringLiteral(string) + "'";
+        }
+
+        private String escapeGroovyStringLiteral(String string) {
+            return string.replace("\\", "\\\\").replace("'", "\\'");
         }
 
         @Override

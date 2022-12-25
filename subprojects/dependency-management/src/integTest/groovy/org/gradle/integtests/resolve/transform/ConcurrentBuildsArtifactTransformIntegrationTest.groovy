@@ -64,7 +64,7 @@ dependencies {
     }
 }
 
-configurations { 
+configurations {
     compile
 }
 dependencies {
@@ -74,27 +74,27 @@ dependencies {
 }
 
 task redThings {
+    def files = configurations.compile.incoming.artifactView {
+        attributes {
+            attribute(type, "red")
+        }
+    }.files
     doLast {
-        configurations.compile.incoming.artifactView {
-            attributes { 
-                attribute(type, "red") 
-            }
-        }.files.files
+        files*.name
     }
 }
 
 task blueThings {
+    def files = configurations.compile.incoming.artifactView {
+        attributes {
+            attribute(type, "blue")
+        }
+    }.files
     doLast {
-        configurations.compile.incoming.artifactView {
-            attributes { 
-                attribute(type, "blue") 
-            }
-        }.files.files
+        files*.name
     }
 }
-
 """
-
     }
 
     def "multiple build processes share transform output cache"() {

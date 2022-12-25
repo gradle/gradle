@@ -20,7 +20,6 @@ import org.gradle.api.Task
 import org.gradle.api.provider.Provider
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.api.internal.provider.ProviderTestUtil.withProducer
 import static org.gradle.api.internal.provider.ProviderTestUtil.withValues
@@ -41,7 +40,6 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
         t.message == 'Value cannot be null'
     }
 
-    @Unroll
     def "can create provider for #type"() {
         when:
         def provider = providerFactory.provider({ value })
@@ -79,6 +77,38 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
         zipped.get() == 'Big black cat'
     }
 
+    def "can zip two providers and use null to remove the value"() {
+        def not = providerFactory.provider { "not" }
+        def important = providerFactory.provider { "important" }
+
+        when:
+        def zipped = providerFactory.zip(not, important) { s1, s2 -> null }
+
+        then:
+        zipped instanceof Provider
+        !zipped.isPresent()
+        zipped.getOrNull() == null
+    }
+
+    def "can zip two providers and use null to remove the value, and it is live"() {
+        def provider = withValues("accepted", "accepted", "rejected", "rejected")
+        def second = providerFactory.provider { "value" }
+
+        when:
+        def zipped = providerFactory.zip(provider, second) { s1, s2 ->
+            s1 == "accepted" ? "$s1 $s2" : null
+        }
+
+        then:
+        zipped instanceof Provider
+        zipped.isPresent()
+        zipped.get() == "accepted value"
+
+        then:
+        !zipped.isPresent()
+        zipped.getOrNull() == null
+    }
+
     def "can zip two providers of arbitrary types"() {
         def a = withValues("big")
         def b = withValues(123L)
@@ -98,7 +128,7 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
         def b = withProducer(String, task2, "Hello")
 
         when:
-        def zipped = providerFactory.zip(a, b) { i, s -> s.length() == i }
+        def zipped = providerFactory.zip(a, b) { i, s -> s.length() == i } as ProviderInternal<Boolean>
 
         then:
         assertHasProducer(zipped, task1, task2)

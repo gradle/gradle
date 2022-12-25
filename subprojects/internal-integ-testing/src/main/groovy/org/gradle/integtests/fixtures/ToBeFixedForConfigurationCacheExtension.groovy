@@ -77,7 +77,7 @@ class ToBeFixedForConfigurationCacheExtension implements IAnnotationDrivenExtens
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            final AtomicBoolean pass = new AtomicBoolean(false)
+            final AtomicBoolean pass = new AtomicBoolean()
             invocation.getFeature().getFeatureMethod().interceptors.add(
                 0,
                 new InnerIterationInterceptor(pass, iterationMatchers)

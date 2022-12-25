@@ -23,6 +23,10 @@ abstract class ApiGroovyCompilerIntegrationSpec extends GroovyCompilerIntegratio
         if (versionLowerThan('1.8')) {
             return
         }
+        // Integer optimizations don't seem to have an effect in Groovy 4 anymore
+        if (versionNumber.major >= 4) {
+            return
+        }
 
         when:
         run("sanityCheck")

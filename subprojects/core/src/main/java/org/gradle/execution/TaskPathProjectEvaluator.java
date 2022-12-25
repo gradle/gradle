@@ -30,14 +30,6 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
 
     @Override
     public void configure(ProjectInternal project) {
-        if (cancellationToken.isCancellationRequested()) {
-            throw new BuildCancelledException();
-        }
-        // Need to configure intermediate parent projects for configure-on-demand
-        ProjectInternal parentProject = project.getParent();
-        if (parentProject != null) {
-            configure(parentProject);
-        }
         project.getOwner().ensureConfigured();
     }
 
@@ -55,14 +47,6 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
         configure(project);
         for (Project sub : project.getSubprojects()) {
             configure((ProjectInternal) sub);
-        }
-    }
-
-    @Override
-    public void configureHierarchyFully(ProjectInternal project) {
-        configureFully(project);
-        for (Project sub : project.getSubprojects()) {
-            configureFully((ProjectInternal) sub);
         }
     }
 }

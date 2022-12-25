@@ -56,6 +56,10 @@ public class BuildTreeDefinedKeys {
         return SecuritySupport.asciiArmoredFileFor(keyringsFile);
     }
 
+    public File getEffectiveKeyringsFile() {
+        return effectiveKeyringsFile;
+    }
+
     public List<PGPPublicKeyRing> loadKeys() throws IOException {
         if (effectiveKeyringsFile != null) {
             return SecuritySupport.loadKeyRingFile(effectiveKeyringsFile);

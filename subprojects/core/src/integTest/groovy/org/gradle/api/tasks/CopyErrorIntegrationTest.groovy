@@ -21,7 +21,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.PreconditionVerifier
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.hamcrest.CoreMatchers
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
@@ -99,10 +98,12 @@ The following types/formats are supported:
 
             ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
             failure.assertHasDescription("Execution failed for task ':copy'.")
-            failure.assertThatCause(CoreMatchers.anyOf(
-                CoreMatchers.startsWith("Could not list contents of directory '${dir}' as it is not readable."),
-                CoreMatchers.startsWith("Could not read path '${dir}'.")
-            ))
+            failure.assertHasDocumentedCause("Cannot access input property 'rootSpec\$1' of task ':copy'. " +
+                "Accessing unreadable inputs or outputs is not supported. " +
+                "Declare the task as untracked by using Task.doNotTrackState(). " +
+                "See https://docs.gradle.org/current/userguide/incremental_build.html#disable-state-tracking for more details."
+            )
+            failure.assertHasCause("java.nio.file.AccessDeniedException: ${dir}")
         } finally {
             dir.permissions = oldPermissions
         }

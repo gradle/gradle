@@ -81,6 +81,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             getInputs().files((Callable<FileTree>) resolver::getSource)
                 .withPropertyName(specPropertyName)
                 .withPathSensitivity(PathSensitivity.RELATIVE)
+                .ignoreEmptyDirectories(false)
                 .skipWhenEmpty();
 
             getInputs().property(specPropertyName + ".destPath", (Callable<String>) () -> resolver.getDestPath().getPathString());

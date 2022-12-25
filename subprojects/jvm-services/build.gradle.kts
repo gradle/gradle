@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":base-services"))
     implementation(project(":core-api"))
     implementation(project(":file-temp"))
+    implementation(project(":file-collections"))
     implementation(project(":functional"))
     implementation(project(":logging"))
     implementation(project(":process-services"))
@@ -15,6 +16,7 @@ dependencies {
     implementation(libs.nativePlatform)
     implementation(libs.guava)
     implementation(libs.asm)
+    implementation(libs.xmlApis)
 
     testImplementation(project(":native"))
     testImplementation(project(":file-collections"))

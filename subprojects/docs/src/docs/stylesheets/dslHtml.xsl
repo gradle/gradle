@@ -59,22 +59,54 @@
 
             <body>
                 <xsl:call-template name="body.attributes"/>
-                <xsl:call-template name="header.navigation"></xsl:call-template>
-                <main class="main-content">
-                    <nav class="docs-navigation">
-                        <div class="search-container">
-                            <input type="search" name="q" id="search-input" class="search-input" placeholder="Search Docs"/>
+                <div class="layout">
+                    <xsl:call-template name="header.navigation"></xsl:call-template>
+                    <main class="main-content">
+                        <nav class="docs-navigation">
+                            <div class="search-container">
+                                <input type="search" name="q" id="search-input" class="search-input" placeholder="Search Docs"/>
+                            </div>
+                            <ul>
+                                <xsl:apply-templates select="." mode="sidebar"/>
+                                <!-- only apply navbar to sections that are not marked with 'noNavBar' -->
+                                <xsl:apply-templates select="/book/section[not(@condition) or @condition != 'noNavBar']/table[@role = 'dslTypes']" mode="sidebar"/>
+                            </ul>
+                        </nav>
+                        <div class="content">
+                            <div id="content">
+                                <xsl:copy-of select="$content"/>
+                            </div>
+                            <xsl:call-template name="footer.navigation"></xsl:call-template>
+                            <aside class="secondary-navigation"></aside>
                         </div>
-                        <ul>
-                            <xsl:apply-templates select="." mode="sidebar"/>
-                            <!-- only apply navbar to sections that are not marked with 'noNavBar' -->
-                            <xsl:apply-templates select="/book/section[not(@condition) or @condition != 'noNavBar']/table[@role = 'dslTypes']" mode="sidebar"/>
-                        </ul>
-                    </nav>
-                    <xsl:copy-of select="$content"/>
-                    <aside class="secondary-navigation"></aside>
-                </main>
-                <xsl:call-template name="footer.navigation"></xsl:call-template>
+                    </main>
+                    <div class="site-footer-secondary">
+                        <div class="site-footer-secondary__contents">
+                            <div class="site-footer__copy">© <a href="https://gradle.com">Gradle Inc. </a>
+                                <time>2021</time>
+                                All rights reserved.
+                            </div>
+                            <div class="site-footer__logo"><a href="/">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 66.06">
+                                    <defs>
+                                        <style>.cls-1 {
+                                            fill: #02303a;
+                                            }</style>
+                                    </defs>
+                                    <title>gradle</title>
+                                    <path class="cls-1"
+                                          d="M85.11,4.18a14.27,14.27,0,0,0-19.83-.34,1.38,1.38,0,0,0,0,2L67,7.6a1.36,1.36,0,0,0,1.78.12A8.18,8.18,0,0,1,79.5,20.06C68.17,31.38,53.05-.36,18.73,16a4.65,4.65,0,0,0-2,6.54l5.89,10.17a4.64,4.64,0,0,0,6.3,1.73l.14-.08-.11.08L31.53,33a60.29,60.29,0,0,0,8.22-6.13,1.44,1.44,0,0,1,1.87-.06h0a1.34,1.34,0,0,1,.06,2A61.61,61.61,0,0,1,33,35.34l-.09,0-2.61,1.46a7.34,7.34,0,0,1-3.61.94,7.45,7.45,0,0,1-6.47-3.71l-5.57-9.61C4,32-2.54,46.56,1,65a1.36,1.36,0,0,0,1.33,1.11H8.61A1.36,1.36,0,0,0,10,64.87a9.29,9.29,0,0,1,18.42,0,1.35,1.35,0,0,0,1.34,1.19H35.9a1.36,1.36,0,0,0,1.34-1.19,9.29,9.29,0,0,1,18.42,0A1.36,1.36,0,0,0,57,66.06H63.1a1.36,1.36,0,0,0,1.36-1.34c.14-8.6,2.46-18.48,9.07-23.43C96.43,24.16,90.41,9.48,85.11,4.18ZM61.76,30.05l-4.37-2.19h0a2.74,2.74,0,1,1,4.37,2.2Z"/>
+                                </svg>
+                            </a></div>
+                            <div class="site-footer-secondary__links">
+                                <a href="https://gradle.com/careers">Careers</a> |
+                                <a href="https://gradle.org/privacy">Privacy</a> |
+                                <a href="https://gradle.org/terms">Terms of Service</a> |
+                                <a href="https://gradle.org/contact/">Contact</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </body>
         </html>
         <xsl:value-of select="$chunk.append"/>
@@ -85,18 +117,18 @@
       -->
 
     <xsl:template match="book" mode="sidebar">
-        <li><a href="../userguide/userguide.html">User Manual Home</a></li>
-        <li><a href="index.html" class="active">DSL Reference Home</a></li>
-        <li><a href="../release-notes.html">Release Notes</a></li>
+        <li><a href="../userguide/userguide.html" class="reference-links">User Manual Home</a></li>
+        <li><a href="index.html" class="active reference-links">DSL Reference Home</a></li>
+        <li><a href="../release-notes.html" class="reference-links">Release Notes</a></li>
         <ul class="sections">
             <xsl:apply-templates select="section" mode="sidebar.link"/>
         </ul>
     </xsl:template>
 
     <xsl:template match="chapter" mode="sidebar">
-        <li><a href="../userguide/userguide.html">User Manual Home</a></li>
-        <li><a href="index.html">DSL Reference Home</a></li>
-        <li><a href="../release-notes.html">Release Notes</a></li>
+        <li><a href="../userguide/userguide.html" class="reference-links">User Manual Home</a></li>
+        <li><a href="index.html" class="reference-links">DSL Reference Home</a></li>
+        <li><a href="../release-notes.html" class="reference-links">Release Notes</a></li>
         <ul class="sections">
             <xsl:apply-templates select="section[table]" mode="sidebar.link"/>
         </ul>

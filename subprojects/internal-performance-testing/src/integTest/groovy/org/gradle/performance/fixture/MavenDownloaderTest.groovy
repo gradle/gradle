@@ -25,7 +25,6 @@ import org.junit.Assume
 import org.junit.AssumptionViolatedException
 import spock.lang.Specification
 import spock.lang.TempDir
-import spock.lang.Unroll
 
 import java.nio.file.Files
 
@@ -46,7 +45,6 @@ class MavenDownloaderTest extends Specification {
         }
     }
 
-    @Unroll
     def "can download Maven distribution with version #mavenVersion"() {
         when:
         def install

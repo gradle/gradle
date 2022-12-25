@@ -20,13 +20,13 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.json.JsonBuilder;
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
@@ -36,8 +36,8 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleRes
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.internal.CollectionUtils;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -146,10 +146,11 @@ public class JsonProjectDependencyRenderer {
         json.call(overall);
     }
 
-    private List<Configuration> getNonDeprecatedConfigurations(Project project) {
+    private List<Configuration> getConfigurationsWhichCouldHaveDependencyInfo(Project project) {
         List<Configuration> filteredConfigurations = new ArrayList<>();
         for (Configuration configuration : project.getConfigurations()) {
-            if (!((DeprecatableConfiguration) configuration).isFullyDeprecated()) {
+            ConfigurationInternal configurationInternal = (ConfigurationInternal)configuration;
+            if (configurationInternal.isDeclarableAgainstByExtension()) {
                 filteredConfigurations.add(configuration);
             }
         }
@@ -162,7 +163,7 @@ public class JsonProjectDependencyRenderer {
     }
 
     private List<Map<String, Object>> createConfigurations(Project project) {
-        Iterable<Configuration> configurations = getNonDeprecatedConfigurations(project);
+        Iterable<Configuration> configurations = getConfigurationsWhichCouldHaveDependencyInfo(project);
         return CollectionUtils.collect(configurations, configuration -> {
             LinkedHashMap<String, Object> map = new LinkedHashMap<>(4);
             map.put("name", configuration.getName());
@@ -179,13 +180,13 @@ public class JsonProjectDependencyRenderer {
             RenderableDependency root = new RenderableModuleResult(result.getRoot());
             return createDependencyChildren(root, new HashSet<>());
         } else {
-            return createDependencyChildren(new UnresolvableConfigurationResult(configuration), new HashSet<>());
+            return createDependencyChildren(UnresolvableConfigurationResult.of(configuration), new HashSet<>());
         }
     }
 
     private List<Map<String, Object>> createDependencyChildren(RenderableDependency dependency, final Set<Object> visited) {
         Iterable<? extends RenderableDependency> children = dependency.getChildren();
-        return CollectionUtils.collect(children, (Transformer<Map<String, Object>, RenderableDependency>) childDependency -> {
+        return CollectionUtils.collect(children, childDependency -> {
             boolean alreadyVisited = !visited.add(childDependency.getId());
             boolean alreadyRendered = alreadyVisited && !childDependency.getChildren().isEmpty();
             String name = replaceArrow(childDependency.getName());
@@ -225,7 +226,7 @@ public class JsonProjectDependencyRenderer {
             ResolutionResult result = configuration.getIncoming().getResolutionResult();
             root = new RenderableModuleResult(result.getRoot());
         } else {
-            root = new UnresolvableConfigurationResult(configuration);
+            root = UnresolvableConfigurationResult.of(configuration);
         }
         Set<ModuleIdentifier> modules = Sets.newHashSet();
         Set<ComponentIdentifier> visited = Sets.newHashSet();
@@ -281,7 +282,7 @@ public class JsonProjectDependencyRenderer {
 
     private List<Object> createInsightDependencyChildren(RenderableDependency dependency, final Set<Object> visited, final Configuration configuration) {
         Iterable<? extends RenderableDependency> children = dependency.getChildren();
-        return CollectionUtils.collect(children, (Transformer<Object, RenderableDependency>) childDependency -> {
+        return CollectionUtils.collect(children, childDependency -> {
             boolean alreadyVisited = !visited.add(childDependency.getId());
             boolean leaf = childDependency.getChildren().isEmpty();
             boolean alreadyRendered = alreadyVisited && !leaf;

@@ -18,7 +18,6 @@ package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.MutableReference
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
@@ -29,7 +28,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 @CleanupTestDirectory
 class PathNormalizationStrategyTest extends Specification {
@@ -76,9 +74,7 @@ class PathNormalizationStrategyTest extends Specification {
     }
 
     private FileSystemLocationSnapshot snapshot(File file) {
-        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
-        fileSystemAccess.read(file.absolutePath, result.&set)
-        return result.get()
+        return fileSystemAccess.read(file.absolutePath)
     }
 
     def "sensitivity NONE"() {
@@ -93,7 +89,6 @@ class PathNormalizationStrategyTest extends Specification {
         }
     }
 
-    @Unroll
     def "sensitivity NAME_ONLY (DirectorySensitivity: #strategy.directorySensitivity)"() {
         def fingerprints = collectFingerprints(strategy)
         expect:
@@ -110,20 +105,19 @@ class PathNormalizationStrategyTest extends Specification {
         ]
     }
 
-    @Unroll
     def "sensitivity RELATIVE (DirectorySensitivity: #strategy.directorySensitivity)"() {
         def fingerprints = collectFingerprints(strategy)
         expect:
         fingerprints[jarFile1]                      == jarFile1.name
         fingerprints[jarFile2]                      == jarFile2.name
-        fingerprints[resources]                     == rootDirectoryFingerprintFor(strategy.directorySensitivity)
+        fingerprints[resources]                     == null
         fingerprints[resources.file(fileInRoot)]    == fileInRoot
         fingerprints[resources.file(subDirA)]       == directoryFingerprintFor(subDirA, strategy.directorySensitivity)
         fingerprints[resources.file(fileInSubdirA)] == fileInSubdirA
         fingerprints[resources.file(subDirB)]       == directoryFingerprintFor(subDirB, strategy.directorySensitivity)
         fingerprints[resources.file(fileInSubdirB)] == fileInSubdirB
-        fingerprints[emptyRootDir]                  == rootDirectoryFingerprintFor(strategy.directorySensitivity)
-        fingerprints[missingFile]                   == missingFile.name
+        fingerprints[emptyRootDir]                  == null
+        fingerprints[missingFile]                   == null
 
         where:
         strategy << [
@@ -132,7 +126,6 @@ class PathNormalizationStrategyTest extends Specification {
         ]
     }
 
-    @Unroll
     def "sensitivity ABSOLUTE (DirectorySensitivity: #strategy.directorySensitivity)"() {
         def fingerprints = collectFingerprints(strategy)
         expect:
@@ -163,7 +156,7 @@ class PathNormalizationStrategyTest extends Specification {
 
     List<File> getAllFilesToFingerprint(DirectorySensitivity directorySensitivity) {
         def dirs = [emptyRootDir, resources.file(subDirA), resources.file(subDirB), resources]
-        def files = [jarFile1, jarFile2, missingFile, resources.file(fileInRoot), resources.file(fileInSubdirA), resources.file(fileInSubdirB)]
+        def files = [jarFile1, jarFile2, resources.file(fileInRoot), resources.file(fileInSubdirA), resources.file(fileInSubdirB)]
 
         return directorySensitivity == DirectorySensitivity.DEFAULT ? (dirs + files) : files
     }

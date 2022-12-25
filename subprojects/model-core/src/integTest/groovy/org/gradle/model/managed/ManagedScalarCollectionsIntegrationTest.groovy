@@ -18,14 +18,12 @@ package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import spock.lang.Unroll
 
 @UnsupportedWithConfigurationCache(because = "software model")
 class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
 
     private final static List<String> MANAGED_SCALAR_COLLECTION_TYPES = ['List', 'Set']
 
-    @Unroll
     def "rule can mutate a managed type with a #type of scalar read-only property"() {
         given:
         buildScript """
@@ -62,7 +60,6 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
         type << MANAGED_SCALAR_COLLECTION_TYPES
     }
 
-    @Unroll
     def "rule can mutate a managed type with a #type of scalar read-write property"() {
         given:
         buildScript """
@@ -105,7 +102,6 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
         type << MANAGED_SCALAR_COLLECTION_TYPES
     }
 
-    @Unroll
     def "rule can nullify a managed type with a #type of scalar read-write property"() {
         given:
         buildScript """
@@ -147,7 +143,6 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
         type << MANAGED_SCALAR_COLLECTION_TYPES
     }
 
-    @Unroll
     def "rule can overwrite value of a managed type with a #type of scalar read-write property"() {
         given:
         buildScript """
@@ -191,7 +186,6 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
         type << MANAGED_SCALAR_COLLECTION_TYPES
     }
 
-    @Unroll
     def "rule can nullify and set value of a managed type #type in the same mutation block"() {
         given:
         buildScript """
@@ -234,7 +228,6 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
         type << MANAGED_SCALAR_COLLECTION_TYPES
     }
 
-    @Unroll
     def "rule cannot mutate a managed type with a #type of scalar property when a rule input"() {
         when:
         buildScript """
@@ -272,7 +265,6 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
         type << MANAGED_SCALAR_COLLECTION_TYPES
     }
 
-    @Unroll
     def "cannot mutate #type subject of a validation rule"() {
         when:
         buildScript """
@@ -309,7 +301,6 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
         type << MANAGED_SCALAR_COLLECTION_TYPES
     }
 
-    @Unroll
     def "rule cannot mutate rule input even using iterator on #type"() {
         when:
         buildScript """
@@ -350,7 +341,6 @@ class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    @Unroll
     def "reports problem when managed type declares a #type of managed type"() {
         when:
         buildScript """
@@ -381,7 +371,6 @@ A valid scalar collection takes the form of List<T> or Set<T> where 'T' is one o
         type << MANAGED_SCALAR_COLLECTION_TYPES
     }
 
-    @Unroll
     def "reports problem when managed type declares a #type of subtype of scalar type"() {
         when:
         buildScript """

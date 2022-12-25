@@ -16,10 +16,7 @@
 
 package org.gradle.api
 
-import spock.lang.Unroll
-
 abstract class MutationFailureFromRegisterDomainObjectContainerIntegrationTest extends AbstractDomainObjectContainerIntegrationTest {
-    @Unroll
     def "cannot execute mutation method #mutationMethod.key from register"() {
         buildFile << """
             testContainer.register("a") {

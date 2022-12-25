@@ -17,14 +17,17 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
 
 class JavaExecMainClassIntegrationTest extends AbstractIntegrationSpec {
 
+    @IgnoreIf({ GradleContextualExecuter.configCache })
     def "can add JavaExec mainClass convention to automatically find class at execution time"() {
         given:
-        def configurationCache = GradleContextualExecuter.configCache ? newConfigurationCacheFixture() : null
+        def configurationCache = new ConfigurationCacheFixture(this)
         buildFile << """
 
             plugins {
@@ -92,7 +95,7 @@ class JavaExecMainClassIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains 'it works!'
-        configurationCache?.assertStateStored() ?: true
+        configurationCache.assertStateStored()
 
         when:
         originalMain.delete()
@@ -101,7 +104,7 @@ class JavaExecMainClassIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains 'it certainly does!'
-        configurationCache?.assertStateLoaded() ?: true
+        configurationCache.assertStateLoaded()
     }
 
     private TestFile writeMainClass(className, String message) {

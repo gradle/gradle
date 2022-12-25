@@ -31,7 +31,42 @@ object Workarounds {
     fun isIgnoredBeanField(field: Field) =
         ignoredBeanFields.contains(field.name to field.declaringClass.name)
 
-    fun canReadSystemProperty(from: String): Boolean {
-        return from.startsWith("com.gradle.scan.plugin.internal.")
+    fun canReadSystemProperty(from: String): Boolean =
+        withWorkaroundsFor("systemProps") {
+            isBuildScanPlugin(from)
+        }
+
+    fun canReadEnvironmentVariable(from: String): Boolean =
+        withWorkaroundsFor("envVars") {
+            isBuildScanPlugin(from)
+        }
+
+    fun canStartExternalProcesses(from: String): Boolean =
+        withWorkaroundsFor("processes") {
+            isBuildScanPlugin(from) || isEnterpriseConventionsPlugin(from)
+        }
+
+    fun canReadFiles(from: String): Boolean =
+        withWorkaroundsFor("files") {
+            isBuildScanPlugin(from)
+        }
+
+    private
+    fun isBuildScanPlugin(from: String): Boolean = from.run {
+        startsWith("com.gradle.scan.plugin.internal.")
+            || startsWith("com.gradle.enterprise.agent.")
     }
+
+    // TODO(https://github.com/gradle/gradle-org-conventions-plugin/issues/18) Remove the workaround when our conventions plugin is compatible.
+    private
+    fun isEnterpriseConventionsPlugin(from: String): Boolean =
+        from.startsWith("com.gradle.enterprise.conventions.")
+
+    private
+    inline fun withWorkaroundsFor(area: String, isEnabled: () -> Boolean): Boolean =
+        isEnabled() && !shouldDisableInputWorkaroundsFor(area)
+
+    private
+    fun shouldDisableInputWorkaroundsFor(area: String): Boolean =
+        System.getProperty("org.gradle.internal.disable.input.workarounds")?.contains(area, ignoreCase = true) ?: false
 }

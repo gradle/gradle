@@ -244,6 +244,16 @@ public abstract class TypeOf<T> {
     }
 
     /**
+     * Fully Qualified name.
+     *
+     * @return this type's FQN
+     * @since 7.4
+     */
+    public String getFullyQualifiedName() {
+        return type.getName();
+    }
+
+    /**
      * <p>
      * This returns the underlying, concrete Java {@link java.lang.Class}.
      * </p>

@@ -56,5 +56,17 @@ public interface ResolvedGraphComponent {
     @Nullable
     String getRepositoryName();
 
+    /**
+     * Returns the resolved/selected variant(s) for this component.
+     *
+     * @return the resolved/selected variant(s) for this component
+     */
     List<ResolvedVariantResult> getResolvedVariants();
+
+    /**
+     * Returns all variant(s) for this component, including all {@linkplain #getResolvedVariants() resolved variants}.
+     *
+     * @return all variant(s) for this component
+     */
+    List<ResolvedVariantResult> getAllVariants();
 }

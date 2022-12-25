@@ -1,5 +1,9 @@
 // tag::test-report[]
 // A resolvable configuration to collect test reports data
+plugins {
+    id 'reporting-base'
+}
+
 configurations {
     testReportData {
         canBeResolved = true
@@ -17,8 +21,8 @@ dependencies {
 }
 
 tasks.register('testReport', TestReport) {
-    destinationDir = layout.buildDirectory.dir('reports/allTests').get().asFile
+    destinationDirectory = reporting.baseDirectory.dir('allTests')
     // Use test results from testReportData configuration
-    testResultDirs.from(configurations.testReportData)
+    testResults.from(configurations.testReportData)
 }
 // end::test-report[]

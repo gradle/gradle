@@ -18,16 +18,15 @@ package org.gradle.internal.enterprise;
 
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Infrastructure like services used by the plugin.
  */
-@UsedByScanPlugin
 public interface GradleEnterprisePluginRequiredServices {
 
     UserInputHandler getUserInputHandler();
 
     StyledTextOutputFactory getStyledTextOutputFactory();
 
+    GradleEnterprisePluginBackgroundJobExecutors getBackgroundJobExecutors();
 }

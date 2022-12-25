@@ -70,6 +70,11 @@ public interface BuildState {
     void ensureProjectsLoaded();
 
     /**
+     * Have the projects been loaded, ie has {@link #ensureProjectsLoaded()} already completed for this build?
+     */
+    boolean isProjectsLoaded();
+
+    /**
      * Ensures all projects in this build are configured, if not already done.
      */
     void ensureProjectsConfigured();
@@ -90,7 +95,7 @@ public interface BuildState {
     File getBuildRootDir();
 
     /**
-     * Returns the current state of the mutable model of this build.
+     * Returns the current state of the mutable model of this build. Try to use {@link #withState(Transformer)} instead.
      */
     GradleInternal getMutableModel();
 
@@ -103,4 +108,9 @@ public interface BuildState {
      * Runs an action against the tooling model creators of this build. May configure the build as required.
      */
     <T> T withToolingModels(Function<? super BuildToolingModelController, T> action);
+
+    /**
+     * Restarts the lifecycle for this build, discarding all present model state.
+     */
+    void resetLifecycle();
 }

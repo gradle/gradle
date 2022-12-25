@@ -45,10 +45,17 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     BuildState getOwner();
 
     /**
-     * Returns the parent of this project in the project tree. Note that this isn't the same as {@link Project#getParent()}.
+     * Returns the parent of this project in the project tree. Note that this is not the same as {@link Project#getParent()}, use {@link #getBuildParent()} for that.
      */
     @Nullable
     ProjectState getParent();
+
+    /**
+     * Returns the parent of this project, as per {@link Project#getParent()}. This will be null for the root project of a build in the tree, even if the project is not
+     * at the root of the project tree.
+     */
+    @Nullable
+    ProjectState getBuildParent();
 
     /**
      * Returns the direct children of this project, in public iteration order.
@@ -66,7 +73,7 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     Path getIdentityPath();
 
     /**
-     * Returns a path for this project within its containing build. These are not unique within a build tree.
+     * Returns a path for this project within its containing build. These are not unique within a build tree. Use instead {@link #getIdentityPath()} to uniquely this project.
      */
     Path getProjectPath();
 
@@ -76,9 +83,20 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     File getProjectDir();
 
     /**
+     * Returns the nesting level of a project in a multi-project hierarchy. For single project builds this is always
+     * 0. In a multi-project hierarchy 0 is returned for the root project.
+     */
+    int getDepth();
+
+    /**
      * Returns the identifier of the default component produced by this project.
      */
     ProjectComponentIdentifier getComponentIdentifier();
+
+    /**
+     * Is the mutable model for this project available?
+     */
+    boolean isCreated();
 
     /**
      * Creates the mutable model for this project.
@@ -87,6 +105,8 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
 
     /**
      * Configures the mutable model for this project, if not already.
+     *
+     * May also configure the parent of this project.
      */
     void ensureConfigured();
 
@@ -104,20 +124,20 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
      * Returns the lock that will be acquired when accessing the mutable state of this project via {@link #applyToMutableState(Consumer)} and {@link #fromMutableState(Function)}.
      * A caller can optionally acquire this lock before calling one of these accessor methods, in order to avoid those methods blocking.
      *
-     * <p>Note that the lock may be shared between projects.
+     * <p>When parallel execution is disabled, the lock is shared between projects within a build, and each build in the build tree has its own shared lock.
      */
     ResourceLock getAccessLock();
 
     /**
      * Returns the lock that should be acquired by non-isolated tasks from this project prior to execution.
      *
-     * When parallel execution is enabled, this is the same as the access lock returned by {@link #getAccessLock()}. When a task reaches across project or build boundaries, this
-     * lock is released and then reacquired, allowing other tasks or work to proceed and avoiding deadlocks in cases where there are dependency cycles between projects or builds.
+     * <p>This lock allows both access to the project state and the right to execute as a task. Acquiring this lock also acquires the lock returned by {@link #getAccessLock()}.
      *
-     * When parallel execution is disabled, this is a single lock that is shared by all projects of a build in the tree. This lock allows both access to
-     * the project state and the right to execute as a task. When a task reaches across build boundaries, the process state lock is released but the task execution lock is not.
-     * This prevents other tasks from the same build from starting but allows tasks in other builds to access the state of this project without deadlocks in cases where
-     * there are dependency cycles between builds.
+     * <p>When a task reaches across project boundaries, the project state lock is released but the task execution lock is not. This prevents other tasks from the same project from starting but
+     * allows tasks in other projects to access the state of this project without deadlocks in cases where there are dependency cycles between projects. It also allows other non-taask work
+     * to run while the task is blocked.
+     *
+     * <p>When parallel execution is not enabled, the lock is shared between projects within a build, and each build in the build tree has its own shared lock.
      */
     ResourceLock getTaskExecutionLock();
 }

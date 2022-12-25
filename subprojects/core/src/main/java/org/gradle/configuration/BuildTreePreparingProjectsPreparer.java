@@ -24,7 +24,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.DependenciesAccessors;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
-import org.gradle.internal.build.BuildStateRegistry;
+import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.ServiceRegistry;
@@ -33,14 +33,14 @@ import java.io.File;
 
 public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
     private final ProjectsPreparer delegate;
-    private final BuildStateRegistry buildStateRegistry;
+    private final BuildInclusionCoordinator coordinator;
     private final BuildSourceBuilder buildSourceBuilder;
     private final BuildLoader buildLoader;
 
-    public BuildTreePreparingProjectsPreparer(ProjectsPreparer delegate, BuildLoader buildLoader, BuildStateRegistry buildStateRegistry, BuildSourceBuilder buildSourceBuilder) {
+    public BuildTreePreparingProjectsPreparer(ProjectsPreparer delegate, BuildLoader buildLoader, BuildInclusionCoordinator coordinator, BuildSourceBuilder buildSourceBuilder) {
         this.delegate = delegate;
         this.buildLoader = buildLoader;
-        this.buildStateRegistry = buildStateRegistry;
+        this.coordinator = coordinator;
         this.buildSourceBuilder = buildSourceBuilder;
     }
 
@@ -49,19 +49,21 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         // Setup classloader for root project, all other projects will be derived from this.
         SettingsInternal settings = gradle.getSettings();
         ClassLoaderScope settingsClassLoaderScope = settings.getClassLoaderScope();
-        ClassLoaderScope buildSrcClassLoaderScope = settingsClassLoaderScope.createChild("buildSrc[" + gradle.getIdentityPath() + "]");
+        ClassLoaderScope buildSrcClassLoaderScope = settingsClassLoaderScope.createChild("buildSrc[" + gradle.getIdentityPath() + "]", null);
         gradle.setBaseProjectClassLoaderScope(buildSrcClassLoaderScope);
         generateDependenciesAccessorsAndAssignPluginVersions(gradle.getServices(), settings, buildSrcClassLoaderScope);
         // attaches root project
         buildLoader.load(gradle.getSettings(), gradle);
-        // Makes included build substitutions available
-        if (gradle.isRootBuild()) {
-            buildStateRegistry.beforeConfigureRootBuild();
-        }
+
+        // Makes included build substitutions available for this build
+        coordinator.registerSubstitutionsAvailableFor(gradle.getOwner());
+
         // Build buildSrc and export classpath to root project
         buildBuildSrcAndLockClassloader(gradle, buildSrcClassLoaderScope);
 
         delegate.prepareProjects(gradle);
+
+        coordinator.registerSubstitutionsProvidedBy(gradle.getOwner());
     }
 
     private void buildBuildSrcAndLockClassloader(GradleInternal gradle, ClassLoaderScope baseProjectClassLoaderScope) {

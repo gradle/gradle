@@ -29,24 +29,48 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         "\"$it\""
     }.join(", ")
 
-    def "including over 250 projects is not possible via varargs in Groovy"() {
+    def "including over 250 projects is not possible via varargs in Groovy 3"() {
+        assumeGroovy3()
         // Groovy doesn't even support >=255 args at compilation, so to trigger the right error
         // 254 projects must be used instead.
         settingsFile << """
             rootProject.name = 'root'
-            include ${projectNames.take(254).collect { "\"$it\"" }.join(", ")}
+            $includeFunction ${projectNames.take(254).collect { "\"$it\"" }.join(", ")}
         """
 
         expect:
         def result = fails("projects")
         result.assertHasDescription("A problem occurred evaluating settings 'root'.")
         failureCauseContains("org.codehaus.groovy.runtime.ArrayUtil.createArray")
+
+        where:
+        includeFunction << ["include", "includeFlat"]
     }
 
-    def "including large amounts of projects is not possible via varargs in Groovy"() {
+    def "including over 250 projects is not possible via varargs in Groovy 4"() {
+        assumeGroovy4()
+        // Groovy doesn't even support >=255 args at compilation, so to trigger the right error
+        // 254 projects must be used instead.
         settingsFile << """
             rootProject.name = 'root'
-            include $projectNamesCommaSeparated
+            $includeFunction ${projectNames.take(254).collect { "\"$it\"" }.join(", ")}
+        """
+
+        expect:
+        def result = fails("projects")
+        result.assertHasDescription("A problem occurred evaluating settings 'root'.")
+        // In Java 8 "call site" is used, in Java 11 "bootstrap method"
+        failureHasCause(~/(call site|bootstrap method) initialization exception/)
+
+        where:
+        includeFunction << ["include", "includeFlat"]
+    }
+
+    def "including large amounts of projects is not possible via varargs in Groovy 3"() {
+        assumeGroovy3()
+        settingsFile << """
+            rootProject.name = 'root'
+            $includeFunction $projectNamesCommaSeparated
         """
 
         // The failure here emits a stacktrace because it's at compilation time
@@ -56,12 +80,35 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         def result = fails("projects")
         result.assertThatDescription(containsNormalizedString("Could not compile settings file"))
         failureCauseContains("The max number of supported arguments is 255, but found 301")
+
+        where:
+        includeFunction << ["include", "includeFlat"]
+    }
+
+    def "including large amounts of projects is not possible via varargs in Groovy 4"() {
+        assumeGroovy4()
+        settingsFile << """
+            rootProject.name = 'root'
+            $includeFunction $projectNamesCommaSeparated
+        """
+
+        // The failure here emits a stacktrace because it's at compilation time
+        executer.withStackTraceChecksDisabled()
+
+        expect:
+        def result = fails("projects")
+        result.assertHasDescription("A problem occurred evaluating settings 'root'.")
+        // Java 8 does not print the exception name
+        failureHasCause(~/(java.lang.IllegalArgumentException: )?bad parameter count 302/)
+
+        where:
+        includeFunction << ["include", "includeFlat"]
     }
 
     def "including large amounts of projects is possible via a List in Groovy"() {
         settingsFile << """
             rootProject.name = 'root'
-            include([$projectNamesCommaSeparated])
+            $includeFunction([$projectNamesCommaSeparated])
         """
 
         when:
@@ -71,12 +118,15 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         for (def name : projectNames) {
             outputContains(name)
         }
+
+        where:
+        includeFunction << ["include", "includeFlat"]
     }
 
     def "including large amounts of projects is possible via varargs in Kotlin"() {
         settingsKotlinFile << """
             rootProject.name = "root"
-            include($projectNamesCommaSeparated)
+            $includeFunction($projectNamesCommaSeparated)
         """
 
         when:
@@ -86,12 +136,15 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         for (def name : projectNames) {
             outputContains(name)
         }
+
+        where:
+        includeFunction << ["include", "includeFlat"]
     }
 
     def "including large amounts of projects is possible via a List in Kotlin"() {
         settingsKotlinFile << """
             rootProject.name = "root"
-            include(listOf($projectNamesCommaSeparated))
+            $includeFunction(listOf($projectNamesCommaSeparated))
         """
 
         when:
@@ -101,5 +154,8 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
         for (def name : projectNames) {
             outputContains(name)
         }
+
+        where:
+        includeFunction << ["include", "includeFlat"]
     }
 }

@@ -16,10 +16,11 @@
 
 package org.gradle.internal.watch
 
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.initialization.StartParameterBuildOptions
-import org.gradle.internal.watch.vfs.WatchMode
-import spock.lang.Unroll
+import org.gradle.internal.watch.registry.WatchMode
 
+@LocalOnly
 class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     private static final String ENABLED_MESSAGE = "Watching the file system is configured to be enabled"
     private static final String ENABLED_IF_AVAILABLE_MESSAGE = "Watching the file system is configured to be enabled if available"
@@ -40,7 +41,6 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         outputContains(ACTIVE_MESSAGE)
     }
 
-    @Unroll
     def "can be enabled via gradle.properties (enabled: #enabled)"() {
         buildFile << """
             apply plugin: "java"
@@ -59,7 +59,6 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         false   | DISABLED_MESSAGE       | INACTIVE_MESSAGE
     }
 
-    @Unroll
     def "can be enabled via system property (enabled: #enabled)"() {
         buildFile << """
             apply plugin: "java"
@@ -77,7 +76,6 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         false   | DISABLED_MESSAGE       | INACTIVE_MESSAGE
     }
 
-    @Unroll
     def "can be enabled via #commandLineOption"() {
         buildFile << """
             apply plugin: "java"
@@ -95,7 +93,6 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         "--no-watch-fs"   | DISABLED_MESSAGE       | INACTIVE_MESSAGE
     }
 
-    @Unroll
     def "setting to #watchMode via command-line init script has no effect"() {
         buildFile << """
             apply plugin: "java"
@@ -115,7 +112,6 @@ class EnableFileSystemWatchingIntegrationTest extends AbstractFileSystemWatching
         watchMode << WatchMode.values()
     }
 
-    @Unroll
     def "setting to #watchMode via init script in user home has no effect"() {
         buildFile << """
             apply plugin: "java"

@@ -174,6 +174,51 @@ class DefaultModuleRegistryTest extends Specification {
         module.runtimeClasspath.asFiles == [runtimeDep]
     }
 
+    def "locates dependency #dependency replaced by Gradle Enterprise plugin to #actualDependencyOnClasspath in classpath"() {
+        given:
+        def dependencyJar = tmpDir.createFile("external/${actualDependencyOnClasspath}.jar")
+        def moduleDir = createModule("my-testing", properties(runtime: "${dependency}.jar".toString()))
+        def registry = new DefaultModuleRegistry(DefaultClassPath.of([moduleDir, dependencyJar]), null)
+
+        when:
+        def module = registry.getModule("gradle-my-testing")
+        then:
+        module.runtimeClasspath.asFiles == [dependencyJar]
+
+        where:
+        dependency                      | actualDependencyOnClasspath
+        'junit-platform-commons-1.8.3'  | 'junit-platform-commons-1.9.9'
+        'junit-platform-engine-1.8.3'   | 'junit-platform-engine-1.9.9'
+        'junit-platform-launcher-1.8.3' | 'junit-platform-launcher-1.9.9'
+        'opentest4j-1.2.27'             | 'opentest4j-1.3.38'
+    }
+
+    def "does not locate dependency replaced by Gradle Enterprise plugin in classpath when installation is present"() {
+        given:
+        def dependencyJar = tmpDir.createFile("external/junit-platform-commons-1.9.9.jar")
+        def moduleDir = createModule("my-testing", properties(runtime: 'junit-platform-commons-1.8.3.jar'))
+        def registry = new DefaultModuleRegistry(DefaultClassPath.of([moduleDir, dependencyJar]), new GradleInstallation(distDir))
+
+        when:
+        registry.getModule("gradle-my-testing")
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.startsWith("Cannot find JAR 'junit-platform-commons-1.8.3.jar' required by module 'gradle-my-testing' using classpath")
+    }
+
+    def "does not locate dependency not replaced by Gradle Enterprise plugin in classpath"() {
+        given:
+        def dependencyJar = tmpDir.createFile("external/junit-platform-basics-1.9.9.jar")
+        def moduleDir = createModule("my-testing", properties(runtime: 'junit-platform-basics-1.8.3.jar'))
+        def registry = new DefaultModuleRegistry(DefaultClassPath.of([moduleDir, dependencyJar]), null)
+
+        when:
+        registry.getModule("gradle-my-testing")
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Cannot find JAR 'junit-platform-basics-1.8.3.jar' required by module 'gradle-my-testing' using classpath."
+    }
+
     def "requires no additional module classpath when run from distribution"() {
         given:
         def registry = new DefaultModuleRegistry(classLoaderFor([]), ClassPath.EMPTY, new GradleInstallation(distDir))

@@ -18,11 +18,11 @@ package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.Transformer;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -82,7 +82,9 @@ public class ClassLoaderCache {
         }
     }
 
-    /** Clears all entries in the cache. */
+    /**
+     * Clears all entries in the cache.
+     */
     public void clear() {
         lock.lock();
         try {

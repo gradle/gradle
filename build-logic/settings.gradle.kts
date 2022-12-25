@@ -15,9 +15,14 @@
  */
 
 pluginManagement {
+    includeBuild("../build-logic-commons")
     repositories {
         gradlePluginPortal()
     }
+}
+
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.3.0")
 }
 
 dependencyResolutionManagement {
@@ -28,23 +33,18 @@ dependencyResolutionManagement {
             content {
                 val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
-                includeVersionByRegex("com.gradle.enterprise", "test-distribution-gradle-plugin", rcAndMilestonesPattern)
-                includeVersionByRegex("com.gradle.internal", "test-selection-gradle-plugin", rcAndMilestonesPattern)
             }
         }
-        maven {
-            name = "Gradle public repository"
-            url = uri("https://repo.gradle.org/gradle/public")
+        jcenter {
             content {
-                includeModule("classycle", "classycle")
+                includeModule("org.openmbee.junit", "junit-xml-parser")
+                includeModule("org.codehaus.groovy.modules", "http-builder-ng-core")
             }
         }
         mavenCentral()
         gradlePluginPortal()
     }
 }
-
-includeBuild("../build-logic-commons")
 
 apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
@@ -85,20 +85,4 @@ include("performance-testing")
 include("profiling")
 include("publishing")
 
-fun remoteBuildCacheEnabled(settings: Settings) = settings.buildCache.remote?.isEnabled == true
-
-fun isAdoptOpenJDK() = true == System.getProperty("java.vendor")?.contains("AdoptOpenJDK")
-
-fun isAdoptOpenJDK11() = isAdoptOpenJDK() && JavaVersion.current().isJava11
-
-fun getBuildJavaHome() = System.getProperty("java.home")
-
-gradle.settingsEvaluated {
-    if ("true" == System.getProperty("org.gradle.ignoreBuildJavaVersionCheck")) {
-        return@settingsEvaluated
-    }
-
-    if (remoteBuildCacheEnabled(this) && !isAdoptOpenJDK11()) {
-        throw GradleException("Remote cache is enabled, which requires AdoptOpenJDK 11 to perform this build. It's currently ${getBuildJavaHome()}.")
-    }
-}
+rootProject.name = "build-logic"

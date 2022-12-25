@@ -16,9 +16,9 @@
 
 package org.gradle.api.reporting.components
 
-import org.gradle.api.Transformer
+import org.gradle.internal.InternalTransformer
 
-class ComponentReportOutputFormatter implements Transformer<String, String> {
+class ComponentReportOutputFormatter implements InternalTransformer<String, String> {
 
     @Override
     String transform(String original) {

@@ -24,7 +24,6 @@ import org.gradle.util.SetSystemProperties
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class DefaultGradleRunnerTest extends Specification {
 
@@ -182,6 +181,15 @@ class DefaultGradleRunnerTest extends Specification {
         t.message == 'Please specify a project directory before executing the build'
     }
 
+    def "throws exception if working directory is not provided when run is requested"() {
+        when:
+        createRunner().run()
+
+        then:
+        def t = thrown(InvalidRunnerConfigurationException)
+        t.message == 'Please specify a project directory before executing the build'
+    }
+
     def "throws exception if working directory is not provided when build and fail is requested"() {
         when:
         createRunner().buildAndFail()
@@ -203,7 +211,6 @@ class DefaultGradleRunnerTest extends Specification {
         TextUtil.normaliseLineSeparators(message) == basicDiagnosticsMessage
     }
 
-    @Unroll
     def "creates diagnostic message for execution result for thrown #description"() {
         given:
         def runner = createRunnerWithWorkingDirAndArgument()
@@ -249,7 +256,6 @@ class DefaultGradleRunnerTest extends Specification {
         debug << [true, false]
     }
 
-    @Unroll
     def "debug flag is #description for system property value '#systemPropertyValue'"() {
         when:
         System.properties[DefaultGradleRunner.DEBUG_SYS_PROP] = systemPropertyValue

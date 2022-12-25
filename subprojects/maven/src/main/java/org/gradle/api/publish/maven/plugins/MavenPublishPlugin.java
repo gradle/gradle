@@ -29,12 +29,11 @@ import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.ExtensionContainer;
-import org.gradle.api.plugins.JavaPlatformPlugin;
-import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.PublishingExtension;
+import org.gradle.api.publish.internal.versionmapping.DefaultVersionMappingStrategy;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenPublication;
@@ -43,14 +42,11 @@ import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.maven.internal.publication.WritableMavenProjectIdentity;
 import org.gradle.api.publish.maven.internal.publisher.MutableMavenProjectIdentity;
-import org.gradle.api.publish.internal.versionmapping.DefaultVersionMappingStrategy;
 import org.gradle.api.publish.maven.tasks.GenerateMavenPom;
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal;
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.publish.tasks.GenerateModuleMetadata;
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -68,7 +64,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * @since 1.4
  * @see <a href="https://docs.gradle.org/current/userguide/publishing_maven.html">Maven Publishing reference</a>
  */
-public class MavenPublishPlugin implements Plugin<Project> {
+public abstract class MavenPublishPlugin implements Plugin<Project> {
 
     public static final String PUBLISH_LOCAL_LIFECYCLE_TASK_NAME = "publishToMavenLocal";
 
@@ -78,16 +74,19 @@ public class MavenPublishPlugin implements Plugin<Project> {
     private final FileResolver fileResolver;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final ProviderFactory providerFactory;
+    private final TaskDependencyFactory taskDependencyFactory;
 
     @Inject
     public MavenPublishPlugin(InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory, DependencyMetaDataProvider dependencyMetaDataProvider,
-                              FileResolver fileResolver, ImmutableAttributesFactory immutableAttributesFactory, ProviderFactory providerFactory) {
+                              FileResolver fileResolver, ImmutableAttributesFactory immutableAttributesFactory, ProviderFactory providerFactory,
+                              TaskDependencyFactory taskDependencyFactory) {
         this.instantiatorFactory = instantiatorFactory;
         this.objectFactory = objectFactory;
         this.dependencyMetaDataProvider = dependencyMetaDataProvider;
         this.fileResolver = fileResolver;
         this.immutableAttributesFactory = immutableAttributesFactory;
         this.providerFactory = providerFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     @Override
@@ -104,9 +103,7 @@ public class MavenPublishPlugin implements Plugin<Project> {
             extension.getPublications().registerFactory(MavenPublication.class, new MavenPublicationFactory(
                     dependencyMetaDataProvider,
                     instantiatorFactory.decorateLenient(),
-                    fileResolver,
-                    project.getPluginManager(),
-                    project.getExtensions()));
+                    fileResolver));
             realizePublishingTasksLater(project, extension);
         });
     }
@@ -203,27 +200,20 @@ public class MavenPublishPlugin implements Plugin<Project> {
         private final Instantiator instantiator;
         private final DependencyMetaDataProvider dependencyMetaDataProvider;
         private final FileResolver fileResolver;
-        private final PluginManager plugins;
-        private final ExtensionContainer extensionContainer;
 
         private MavenPublicationFactory(DependencyMetaDataProvider dependencyMetaDataProvider,
                                         Instantiator instantiator,
-                                        FileResolver fileResolver,
-                                        PluginManager plugins,
-                                        ExtensionContainer extensionContainer) {
+                                        FileResolver fileResolver) {
             this.dependencyMetaDataProvider = dependencyMetaDataProvider;
             this.instantiator = instantiator;
             this.fileResolver = fileResolver;
-            this.plugins = plugins;
-            this.extensionContainer = extensionContainer;
         }
 
         @Override
         public MavenPublication create(final String name) {
             MutableMavenProjectIdentity projectIdentity = createProjectIdentity();
-            NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver).create();
+            NotationParser<Object, MavenArtifact> artifactNotationParser = new MavenArtifactNotationParserFactory(instantiator, fileResolver, taskDependencyFactory).create();
             VersionMappingStrategyInternal versionMappingStrategy = objectFactory.newInstance(DefaultVersionMappingStrategy.class);
-            configureDefaultConfigurationsUsedWhenMappingToResolvedVersions(versionMappingStrategy);
             return objectFactory.newInstance(
                     DefaultMavenPublication.class,
                     name,
@@ -231,19 +221,6 @@ public class MavenPublishPlugin implements Plugin<Project> {
                     artifactNotationParser,
                     versionMappingStrategy
             );
-        }
-
-        private void configureDefaultConfigurationsUsedWhenMappingToResolvedVersions(VersionMappingStrategyInternal versionMappingStrategy) {
-            plugins.withPlugin("org.gradle.java", plugin -> {
-                SourceSet mainSourceSet = extensionContainer.getByType(SourceSetContainer.class).getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-                // setup the default configurations used when mapping to resolved versions
-                versionMappingStrategy.defaultResolutionConfiguration(Usage.JAVA_API, mainSourceSet.getCompileClasspathConfigurationName());
-                versionMappingStrategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, mainSourceSet.getRuntimeClasspathConfigurationName());
-            });
-            plugins.withPlugin("org.gradle.java-platform", plugin -> {
-                versionMappingStrategy.defaultResolutionConfiguration(Usage.JAVA_API, JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME);
-                versionMappingStrategy.defaultResolutionConfiguration(Usage.JAVA_RUNTIME, JavaPlatformPlugin.CLASSPATH_CONFIGURATION_NAME);
-            });
         }
 
         private MutableMavenProjectIdentity createProjectIdentity() {

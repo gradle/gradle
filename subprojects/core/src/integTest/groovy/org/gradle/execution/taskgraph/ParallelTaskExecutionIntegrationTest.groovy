@@ -20,9 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.gradle.util.TestPrecondition
-import org.gradle.util.internal.ToBeImplemented
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -94,8 +93,10 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
             }
 
             allprojects {
+                def pingEndings = ['FailingPing', 'PingWithCacheableWarnings', 'SerialPing', 'InvalidPing']
+
                 tasks.addRule("<>Ping") { String name ->
-                    if (name.endsWith("Ping") && name.size() == 5) {
+                    if (name.endsWith("Ping") && pingEndings.every { !name.endsWith(it) }) {
                         tasks.create(name, Ping)
                     }
                 }
@@ -153,8 +154,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         """
         expect:
         2.times {
-            blockingServer.expect(":aPing")
-            blockingServer.expect(":bPing")
+            blockingServer.expectConcurrent(1, ":aPing", ":bPing")
             run ":aPing", ":bPing"
         }
     }
@@ -263,6 +263,48 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
+    def "tasks from same project do not run in parallel even when tasks do undeclared dependency resolution"() {
+        given:
+        executer.beforeExecute {
+            withArgument("--parallel")
+        }
+        withParallelThreads(3)
+
+        buildFile("""
+            allprojects {
+                apply plugin: 'java-library'
+            }
+            project(":b") {
+                dependencies {
+                    implementation project(":a")
+                }
+
+                task undeclared {
+                    def runtimeClasspath = configurations.runtimeClasspath
+                    doLast {
+                        ${blockingServer.callFromBuild("before-resolve")}
+                        runtimeClasspath.files.each { }
+                        ${blockingServer.callFromBuild("after-resolve")}
+                    }
+                }
+                task other {
+                    doLast {
+                        ${blockingServer.callFromBuild("other")}
+                    }
+                }
+            }
+        """)
+
+        when:
+        blockingServer.expect("before-resolve")
+        blockingServer.expect("after-resolve")
+        blockingServer.expect("other")
+        run("undeclared", "other")
+
+        then:
+        noExceptionThrown()
+    }
+
     def "tasks are not run in parallel if there are tasks without async work running in a different project without --parallel"() {
         given:
         withParallelThreads(3)
@@ -292,8 +334,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            blockingServer.expectConcurrent(":aPing")
-            blockingServer.expectConcurrent(":bPing")
+            blockingServer.expectConcurrent(1, ":aPing", ":bPing")
             run ":aPing", ":bPing"
         }
     }
@@ -311,8 +352,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            blockingServer.expectConcurrent(":a:aPing")
-            blockingServer.expectConcurrent(":b:bPing")
+            blockingServer.expectConcurrent(1, ":a:aPing", ":b:bPing")
             run ":a:aPing", ":b:bPing"
         }
     }
@@ -324,24 +364,25 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         buildFile << """
             def foo = file("foo")
 
-            aPing.destroyables.register foo
+            destroyerPing.destroyables.register foo
 
-            bPing.outputs.file foo
-            bPing.doLast { foo << "foo" }
+            producerPing.outputs.file foo
+            producerPing.doLast { foo << "foo" }
 
-            cPing.inputs.file foo
-            cPing.dependsOn bPing
+            consumerPing.inputs.file foo
+            consumerPing.dependsOn producerPing
         """
 
         expect:
         2.times {
-            blockingServer.expectConcurrent(":aPing")
-            blockingServer.expectConcurrent(":bPing")
-            blockingServer.expectConcurrent(":cPing")
-            run ":aPing", ":cPing"
+            blockingServer.expectConcurrent(":destroyerPing")
+            blockingServer.expectConcurrent(":producerPing")
+            blockingServer.expectConcurrent(":consumerPing")
+            run ":destroyerPing", ":consumerPing"
         }
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3570")
     def "tasks are not run in parallel if destroy files overlap with input files (create/use first)"() {
         given:
         withParallelThreads(2)
@@ -485,14 +526,14 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
     @Requires({ GradleContextualExecuter.embedded })
     // this test only works in embedded mode because of the use of validation test fixtures
-    def "other tasks are not started when an invalid task task is running"() {
+    def "other tasks are not started when an invalid task is running"() {
         given:
         withParallelThreads(3)
         withInvalidPing()
 
         expect:
         2.times {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'))
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'), 'id', 'section')
 
             blockingServer.expect(":aInvalidPing")
             blockingServer.expectConcurrent(":bPing", ":cPing")
@@ -518,7 +559,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'))
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'), 'id', 'section')
 
             blockingServer.expectConcurrent(":aPing", ":bPing")
             blockingServer.expect(":cInvalidPing")
@@ -526,9 +567,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    // Stopping the hanging Gradle process fails on Windows
-    @org.gradle.util.Requires(TestPrecondition.LINUX)
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/17013")
+    @Issue("https://github.com/gradle/gradle/issues/17013")
     def "does not deadlock when resolving outputs requires resolving multiple artifacts"() {
         buildFile("""
             import org.gradle.util.internal.GFileUtils
@@ -575,19 +614,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
             withArgument("--parallel")
         }
 
-        when:
-        def daemon = executer.withArgument("outputDeadlock").start()
-        if (!GradleContextualExecuter.configCache) {
-            Thread.sleep(10_000)
-        }
-        then:
-        if (GradleContextualExecuter.configCache) {
-            // There is no deadlock with configuration caching, since the resolution already happened.
-            daemon.waitForFinish()
-        } else {
-            // TODO: The build should finish normally
-            assert daemon.isRunning()
-        }
+        expect:
+        succeeds("outputDeadlock")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17905")

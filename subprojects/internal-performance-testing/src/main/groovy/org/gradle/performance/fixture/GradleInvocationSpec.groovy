@@ -42,6 +42,13 @@ class GradleInvocationSpec implements InvocationSpec {
     final List<String> cleanTasks
     final boolean useDaemon
     final boolean useToolingApi
+    final boolean useAndroidStudio
+    final File studioInstallDir
+    final File studioSandboxDir
+    /**
+     * The JVM arguments for Android Studio
+     */
+    final List<String> studioJvmArgs
     final boolean expectFailure
     final File buildLog
 
@@ -57,7 +64,11 @@ class GradleInvocationSpec implements InvocationSpec {
         boolean useToolingApi,
         boolean expectFailure,
         BuildAction buildAction,
-        File buildLog
+        File buildLog,
+        boolean useAndroidStudio,
+        List<String> studioJvmArgs,
+        File studioInstallDir,
+        File studioSandboxDir
     ) {
         this.gradleDistribution = gradleDistribution
         this.workingDirectory = workingDirectory
@@ -71,10 +82,14 @@ class GradleInvocationSpec implements InvocationSpec {
         this.expectFailure = expectFailure
         this.buildAction = buildAction
         this.buildLog = buildLog
+        this.useAndroidStudio = useAndroidStudio
+        this.studioJvmArgs = studioJvmArgs
+        this.studioInstallDir = studioInstallDir
+        this.studioSandboxDir = studioSandboxDir
     }
 
     boolean getBuildWillRunInDaemon() {
-        return useDaemon || useToolingApi
+        return useDaemon || useToolingApi || useAndroidStudio
     }
 
     static InvocationBuilder builder() {
@@ -93,6 +108,10 @@ class GradleInvocationSpec implements InvocationSpec {
         builder.useToolingApi = useToolingApi
         builder.expectFailure = expectFailure
         builder.buildLog(buildLog)
+        builder.useAndroidStudio = useAndroidStudio
+        builder.studioJvmArguments.addAll(studioJvmArgs)
+        builder.studioInstallDir = studioInstallDir
+        builder.studioSandboxDir = studioSandboxDir
         builder
     }
 
@@ -119,6 +138,10 @@ class GradleInvocationSpec implements InvocationSpec {
         List<String> cleanTasks = []
         boolean useDaemon = true
         boolean useToolingApi
+        boolean useAndroidStudio
+        List<String> studioJvmArguments = []
+        File studioInstallDir
+        File studioSandboxDir
         boolean expectFailure
         File buildLog
 
@@ -196,6 +219,26 @@ class GradleInvocationSpec implements InvocationSpec {
             this
         }
 
+        InvocationBuilder useAndroidStudio(boolean flag) {
+            this.useAndroidStudio = flag
+            this
+        }
+
+        InvocationBuilder studioJvmArgs(Iterable<String> args) {
+            this.studioJvmArguments.addAll(args)
+            this
+        }
+
+        InvocationBuilder studioInstallDir(File studioInstallDir) {
+            this.studioInstallDir = studioInstallDir
+            this
+        }
+
+        InvocationBuilder studioSandboxDir(File studioSandboxDir) {
+            this.studioSandboxDir = studioSandboxDir
+            this
+        }
+
         InvocationBuilder disableParallelWorkers() {
             jvmArgs("-D${ParallelismBuildOptions.MaxWorkersOption.GRADLE_PROPERTY}=1")
         }
@@ -227,7 +270,12 @@ class GradleInvocationSpec implements InvocationSpec {
                 useToolingApi,
                 expectFailure,
                 buildAction ?: new RunTasksAction(tasksToRun),
-                buildLog)
+                buildLog,
+                useAndroidStudio,
+                studioJvmArguments,
+                studioInstallDir,
+                studioSandboxDir
+            )
         }
 
     }

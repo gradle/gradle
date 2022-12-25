@@ -15,26 +15,41 @@
  */
 package org.gradle.api.internal.catalog;
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCache;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 
 import java.io.Closeable;
 
 public class DependenciesAccessorsWorkspaceProvider implements WorkspaceProvider, Closeable {
     private final DefaultImmutableWorkspaceProvider delegate;
 
-    public DependenciesAccessorsWorkspaceProvider(BuildTreeScopedCache scopedCache, FileAccessTimeJournal fileAccessTimeJournal, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner stringInterner) {
+    public DependenciesAccessorsWorkspaceProvider(
+        BuildTreeScopedCache scopedCache,
+        FileAccessTimeJournal fileAccessTimeJournal,
+        InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
+        StringInterner stringInterner,
+        ClassLoaderHierarchyHasher classLoaderHasher,
+        CleanupActionDecorator cleanupActionDecorator,
+        CacheConfigurationsInternal cacheConfigurations
+    ) {
         this.delegate = DefaultImmutableWorkspaceProvider.withBuiltInHistory(
             scopedCache
                 .cache("dependencies-accessors")
                 .withDisplayName("dependencies-accessors"),
             fileAccessTimeJournal,
             inMemoryCacheDecoratorFactory,
-            stringInterner);
+            stringInterner,
+            classLoaderHasher,
+            cleanupActionDecorator,
+            cacheConfigurations
+        );
     }
 
     @Override

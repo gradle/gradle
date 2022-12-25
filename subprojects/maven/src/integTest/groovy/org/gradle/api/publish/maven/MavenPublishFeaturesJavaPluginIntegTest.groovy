@@ -16,11 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import spock.lang.Unroll
-
 class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest {
-    @ToBeFixedForConfigurationCache
     def "can publish java-library with feature using extension"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -31,6 +27,11 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
                 registerFeature("feature") {
                     usingSourceSet(sourceSets.main)
                 }
+            }
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
 
             dependencies {
@@ -80,8 +81,6 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
         }
     }
 
-    @Unroll
-    @ToBeFixedForConfigurationCache
     def "can update #prop after feature has been registered"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -92,6 +91,11 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
                 registerFeature("feature") {
                     usingSourceSet(sourceSets.main)
                 }
+            }
+
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
             }
 
             dependencies {

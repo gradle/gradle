@@ -39,7 +39,6 @@ import org.gradle.nativeplatform.fixtures.app.XCTestCaseElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceFileElement
 import org.junit.Assume
-import spock.lang.Unroll
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftXCTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements XCTestExecutionResult, SwiftTaskNames {
@@ -536,7 +535,6 @@ apply plugin: 'swift-library'
             tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ':xcTest', ':test')
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can use broken test filter [#testFilter]"() {
         given:

@@ -16,14 +16,13 @@
 
 package org.gradle.internal.scan.config;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 /**
  * Information about the build scan plugin in use.
  *
+ * Implemented by the Enterprise plugin.
+ *
  * @since 4.0
  */
-@UsedByScanPlugin("Implemented by plugin")
 public interface BuildScanPluginMetadata {
 
     /**

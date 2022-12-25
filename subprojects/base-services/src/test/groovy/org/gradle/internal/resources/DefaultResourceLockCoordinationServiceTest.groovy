@@ -16,8 +16,8 @@
 
 package org.gradle.internal.resources
 
-
-import org.gradle.api.Transformer
+import org.gradle.api.Action
+import org.gradle.internal.InternalTransformer
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
@@ -36,7 +36,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         def lock2 = resourceLock("lock2", lock2Locked)
 
         when:
-        def result = coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        def result = coordinationService.withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState workerLeaseState) {
                 if (lock1.tryLock() && lock2.tryLock()) {
@@ -68,7 +68,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         when:
         async {
             start {
-                coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+                coordinationService.withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
                     @Override
                     ResourceLockState.Disposition transform(ResourceLockState workerLeaseState) {
                         try {
@@ -96,7 +96,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
             }
 
             lock2.lockedState = false
-            coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+            coordinationService.withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
                 @Override
                 ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                     resourceLockState.registerUnlocked(lock2)
@@ -121,7 +121,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         ]
 
         given:
-        def innerAction = new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        def innerAction = new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState workerLeaseState) {
                 if (lock[2].tryLock() && lock[3].tryLock()) {
@@ -131,7 +131,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
                 }
             }
         }
-        def outerAction = new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        def outerAction = new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState workerLeaseState) {
                 if (lock[0].tryLock()) {
@@ -165,7 +165,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
 
     def "can get the current resource lock state"() {
         when:
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        coordinationService.withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState resourcesLockState) {
                 assert coordinationService.getCurrent() == resourcesLockState
@@ -182,7 +182,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         def lock2 = resourceLock("lock2", false)
 
         when:
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        coordinationService.withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState workerLeaseState) {
                 try {
@@ -212,7 +212,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         def lock2 = resourceLock("lock2", false)
 
         when:
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        coordinationService.withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                 lock1.tryLock()
@@ -241,7 +241,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
 
         when:
         def disposition = null
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        coordinationService.withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                 disposition = tryLock(lock1, lock2).transform(resourceLockState)
@@ -270,7 +270,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
 
         when:
         def disposition = null
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        coordinationService.withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                 disposition = lock(lock1, lock2).transform(resourceLockState)
@@ -298,7 +298,7 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
 
         when:
         def disposition = null
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        coordinationService.withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                 disposition = unlock(lock1, lock2).transform(resourceLockState)
@@ -319,6 +319,88 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         true        | false       | FINISHED
         false       | true        | FINISHED
         false       | false       | FINISHED
+    }
+
+    def "notifies listener when lock is released"() {
+        def listener = Mock(Action)
+        coordinationService.addLockReleaseListener(listener)
+
+        def lock = resourceLock("lock1", true, true)
+
+        when:
+        coordinationService.withStateLock { state ->
+            assert lock.isLockedByCurrentThread()
+            lock.unlock()
+            return FINISHED
+        }
+
+        then:
+        1 * listener.execute(lock)
+        0 * listener._
+    }
+
+    def "notifies listener when lock is released in retry"() {
+        def listener = Mock(Action)
+        coordinationService.addLockReleaseListener(listener)
+
+        def lock = resourceLock("lock1")
+
+        when:
+        async {
+            start {
+                coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(lock))
+                coordinationService.withStateLock { state ->
+                    if (lock.isLockedByCurrentThread()) {
+                        instant.unlocked
+                        lock.unlock()
+                        return RETRY
+                    } else {
+                        return FINISHED
+                    }
+                }
+            }
+            thread.blockUntil.unlocked
+            coordinationService.notifyStateChange()
+        }
+
+        then:
+        1 * listener.execute(lock)
+        0 * listener._
+    }
+
+    def "does not notify listener when lock is acquired and released in single action"() {
+        def listener = Mock(Action)
+        coordinationService.addLockReleaseListener(listener)
+
+        def lock = resourceLock("lock1")
+
+        when:
+        coordinationService.withStateLock { state ->
+            assert !lock.isLockedByCurrentThread()
+            lock.tryLock()
+            lock.unlock()
+            return FINISHED
+        }
+
+        then:
+        0 * listener._
+    }
+
+    def "does not notify listener when lock is released due to action failure"() {
+        def listener = Mock(Action)
+        coordinationService.addLockReleaseListener(listener)
+
+        def lock = resourceLock("lock1")
+
+        when:
+        coordinationService.withStateLock { state ->
+            assert !lock.isLockedByCurrentThread()
+            lock.tryLock()
+            return FAILED
+        }
+
+        then:
+        0 * listener._
     }
 
     TestTrackedResourceLock resourceLock(String displayName, boolean locked, boolean hasLock = false) {

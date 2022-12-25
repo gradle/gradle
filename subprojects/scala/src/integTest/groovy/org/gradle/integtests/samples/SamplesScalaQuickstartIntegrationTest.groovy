@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.containsString
 
@@ -33,7 +32,6 @@ class SamplesScalaQuickstartIntegrationTest extends AbstractSampleIntegrationTes
     @Rule public final Sample sample = new Sample(testDirectoryProvider)
     @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
 
-    @Unroll
     @UsesSample('scala/quickstart')
     def "can build jar with #dsl dsl"() {
         // Build and test projects
@@ -57,7 +55,6 @@ class SamplesScalaQuickstartIntegrationTest extends AbstractSampleIntegrationTes
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample('scala/quickstart')
     def "can build scalaDoc with #dsl dsl"() {
         if (GradleContextualExecuter.isDaemon()) {

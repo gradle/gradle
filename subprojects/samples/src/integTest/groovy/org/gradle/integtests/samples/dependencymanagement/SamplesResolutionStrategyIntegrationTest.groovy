@@ -18,20 +18,16 @@ package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import spock.lang.Unroll
 
 class SamplesResolutionStrategyIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Unroll
     @UsesSample("dependencyManagement/customizingResolution-resolutionStrategy")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can resolve dependencies in #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
@@ -72,7 +68,10 @@ class SamplesResolutionStrategyIntegrationTest extends AbstractIntegrationSpec {
                     conf "org.codehaus:groovy-all:2.4.10"
                     conf "log4j:log4j:1.2"
                 }
-                task resolveConf { doLast { configurations.conf.files } }
+                task resolveConf {
+                    FileCollection conf = configurations.conf
+                    doLast { conf.files }
+                }
             """
         }
         else if (dsl == 'kotlin') {
@@ -87,7 +86,10 @@ class SamplesResolutionStrategyIntegrationTest extends AbstractIntegrationSpec {
                     "conf"("org.codehaus:groovy-all:2.4.10")
                     "conf"("log4j:log4j:1.2")
                 }
-                task("resolveConf") { doLast { configurations["conf"].files } }
+                task("resolveConf") {
+                    val conf: FileCollection = configurations["conf"]
+                    doLast { conf.files }
+                }
             """
         }
     }

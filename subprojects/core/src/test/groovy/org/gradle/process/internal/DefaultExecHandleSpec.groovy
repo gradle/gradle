@@ -195,6 +195,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.waitForFinish()
 
         then:
+        1 * listener.beforeExecutionStarted(execHandle)
         1 * listener.executionStarted(execHandle)
         1 * listener.executionFinished(execHandle, _ as ExecResult)
         0 * listener._
@@ -209,6 +210,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.waitForFinish()
 
         then:
+        1 * listener.beforeExecutionStarted(execHandle)
         1 * listener.executionStarted(execHandle)
         1 * listener.executionFinished(execHandle, _ as ExecResult)
         0 * listener._
@@ -224,6 +226,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.waitForFinish()
 
         then:
+        1 * listener.beforeExecutionStarted(execHandle)
         1 * listener.executionStarted(execHandle) >> { throw failure }
         1 * listener.executionFinished(execHandle, _ as ExecResult) >> { ExecHandle h, ExecResult r ->
             assert r.failure.cause == failure
@@ -245,6 +248,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.waitForFinish()
 
         then:
+        1 * listener.beforeExecutionStarted(execHandle)
         1 * listener.executionStarted(execHandle)
         1 * listener.executionFinished(execHandle, _ as ExecResult) >> { throw failure }
         0 * listener._
@@ -264,6 +268,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         execHandle.waitForFinish()
 
         then:
+        1 * listener.beforeExecutionStarted(execHandle)
         1 * listener.executionStarted(execHandle)
         1 * listener.executionFinished(execHandle, _ as ExecResult) >> { throw failure }
         0 * listener._
@@ -321,6 +326,7 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
         then:
         out.toString().contains "I'm the daemon"
+        1 * listener.beforeExecutionStarted(execHandle)
         1 * listener.executionStarted(execHandle)
         0 * listener.executionFinished(_, _)
 

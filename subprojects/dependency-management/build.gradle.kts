@@ -2,8 +2,16 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
+description = """This project contains most of the dependency management logic of Gradle:
+    |* the resolution engine,
+    |* how to retrieve and process dependencies and their metadata,
+    |* the dependency locking and verification implementations.
+    |
+    |DSL facing APIs are to be found in 'core-api'""".trimMargin()
+
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":build-option"))
     implementation(project(":enterprise-operations"))
     implementation(project(":functional"))
     implementation(project(":messaging"))
@@ -23,6 +31,7 @@ dependencies {
     implementation(project(":snapshots"))
     implementation(project(":execution"))
     implementation(project(":security"))
+    implementation(project(":wrapper-shared"))
 
     implementation(libs.slf4jApi)
     implementation(libs.groovy)
@@ -43,7 +52,7 @@ dependencies {
     testImplementation(project(":build-cache-packaging"))
     testImplementation(libs.asmUtil)
     testImplementation(libs.commonsHttpclient)
-    testImplementation(libs.nekohtml)
+    testImplementation(libs.jsoup)
     testImplementation(libs.groovyXml)
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":messaging")))
@@ -58,6 +67,9 @@ dependencies {
     integTestImplementation(libs.jansi)
     integTestImplementation(libs.ansiControlSequenceUtil)
     integTestImplementation(libs.groovyJson)
+    integTestImplementation(libs.socksProxy) {
+        because("SOCKS proxy not part of internal-integ-testing api, since it has limited usefulness, so must be explicitly depended upon")
+    }
     integTestImplementation(testFixtures(project(":security")))
     integTestImplementation(testFixtures(project(":model-core")))
 
@@ -95,12 +107,15 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
+    integTestImplementation(project(":launcher")) {
+        because("Daemon fixtures need DaemonRegistry")
+    }
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
     crossVersionTestImplementation(libs.jettyWebApp)
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 

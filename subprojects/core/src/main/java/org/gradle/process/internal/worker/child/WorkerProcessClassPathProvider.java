@@ -76,48 +76,51 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
     private final Object lock = new Object();
     private ClassPath workerClassPath;
 
-    public static final String[] RUNTIME_MODULES = new String[] {
-            "gradle-core-api",
-            "gradle-core",
-            "gradle-logging",
-            "gradle-messaging",
-            "gradle-base-services",
-            "gradle-enterprise-workers",
-            "gradle-cli",
-            "gradle-native",
-            "gradle-dependency-management",
-            "gradle-workers",
-            "gradle-worker-processes",
-            "gradle-process-services",
-            "gradle-persistent-cache",
-            "gradle-model-core",
-            "gradle-jvm-services",
-            "gradle-files",
-            "gradle-file-collections",
-            "gradle-file-temp",
-            "gradle-hashing",
-            "gradle-snapshots",
-            "gradle-base-annotations",
-            "gradle-build-operations"
+    public static final String[] RUNTIME_MODULES = new String[]{
+        "gradle-core-api",
+        "gradle-core",
+        "gradle-logging",
+        "gradle-logging-api",
+        "gradle-messaging",
+        "gradle-base-services",
+        "gradle-enterprise-logging",
+        "gradle-enterprise-workers",
+        "gradle-cli",
+        "gradle-wrapper-shared",
+        "gradle-native",
+        "gradle-dependency-management",
+        "gradle-workers",
+        "gradle-worker-processes",
+        "gradle-process-services",
+        "gradle-persistent-cache",
+        "gradle-model-core",
+        "gradle-jvm-services",
+        "gradle-files",
+        "gradle-file-collections",
+        "gradle-file-temp",
+        "gradle-hashing",
+        "gradle-snapshots",
+        "gradle-base-annotations",
+        "gradle-build-operations"
     };
 
-    public static final String[] RUNTIME_EXTERNAL_MODULES = new String[] {
-            "slf4j-api",
-            "jul-to-slf4j",
-            "native-platform",
-            "kryo",
-            "commons-lang",
-            "guava",
-            "javax.inject",
-            "groovy",
-            "groovy-ant",
-            "groovy-json",
-            "groovy-xml",
-            "asm"
+    public static final String[] RUNTIME_EXTERNAL_MODULES = new String[]{
+        "slf4j-api",
+        "jul-to-slf4j",
+        "native-platform",
+        "kryo",
+        "commons-lang",
+        "guava",
+        "javax.inject",
+        "groovy",
+        "groovy-ant",
+        "groovy-json",
+        "groovy-xml",
+        "asm"
     };
 
     // This list is ordered by the number of classes we load from each jar descending
-    private static final String[] WORKER_OPTIMIZED_LOADING_ORDER = new String[] {
+    private static final String[] WORKER_OPTIMIZED_LOADING_ORDER = new String[]{
         "gradle-base-services",
         "guava",
         "gradle-messaging",

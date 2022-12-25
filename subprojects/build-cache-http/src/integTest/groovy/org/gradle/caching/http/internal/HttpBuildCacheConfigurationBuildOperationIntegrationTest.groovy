@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.server.http.HttpBuildCacheServer
 import org.junit.Rule
-import spock.lang.Unroll
 
 class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -46,7 +45,6 @@ class HttpBuildCacheConfigurationBuildOperationIntegrationTest extends AbstractI
     @Rule
     HttpBuildCacheServer httpBuildCacheServer = new HttpBuildCacheServer(testDirectoryProvider)
 
-    @Unroll
     def "remote build cache configuration is exposed"() {
         given:
         httpBuildCacheServer.start()

@@ -51,8 +51,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.IncompatibleVariantsSelectionException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.local.model.RootLocalComponentMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata;
 import org.gradle.internal.component.model.DefaultCompatibilityCheckResult;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
@@ -96,6 +95,7 @@ public class DependencyGraphBuilder {
     private final VersionSelectorScheme versionSelectorScheme;
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
+    private final ResolutionConflictTracker conflictTracker;
 
     final static Spec<EdgeState> ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
     final static Spec<EdgeState> NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> !dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
@@ -130,6 +130,7 @@ public class DependencyGraphBuilder {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
+        this.conflictTracker = new ResolutionConflictTracker(moduleConflictHandler, capabilitiesConflictHandler);
     }
 
     public void resolve(final ResolveContext resolveContext, final DependencyGraphVisitor modelVisitor, boolean includeSyntheticDependencies) {
@@ -141,9 +142,10 @@ public class DependencyGraphBuilder {
         int graphSize = estimateSize(resolveContext);
         ResolutionStrategyInternal resolutionStrategy = resolveContext.getResolutionStrategy();
 
-        List<? extends DependencyMetadata> syntheticDependencies = includeSyntheticDependencies ? syntheticDependenciesOf(rootModule, resolveContext.getName()) : Collections.emptyList();
+        List<? extends DependencyMetadata> syntheticDependencies = includeSyntheticDependencies ?
+            rootModule.getState().getMetadata().getSyntheticDependencies(resolveContext.getName()) : Collections.emptyList();
 
-        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), graphSize, resolveContext.getResolutionStrategy().getConflictResolution(), syntheticDependencies);
+        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), graphSize, resolveContext.getResolutionStrategy().getConflictResolution(), syntheticDependencies, conflictTracker);
 
         Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMapWithExpectedSize(graphSize / 2);
         traverseGraph(resolveState, componentIdentifierCache);
@@ -151,15 +153,6 @@ public class DependencyGraphBuilder {
         validateGraph(resolveState, resolutionStrategy.isFailingOnDynamicVersions(), resolutionStrategy.isFailingOnChangingVersions());
 
         assembleResult(resolveState, modelVisitor);
-
-    }
-
-    private static List<? extends DependencyMetadata> syntheticDependenciesOf(DefaultBuildableComponentResolveResult rootModule, String name) {
-        ComponentResolveMetadata metadata = rootModule.getMetadata();
-        if (metadata instanceof RootLocalComponentMetadata) {
-            return ((RootLocalComponentMetadata)metadata).getSyntheticDependencies(name);
-        }
-        return Collections.emptyList();
     }
 
     /**
@@ -282,8 +275,10 @@ public class DependencyGraphBuilder {
                 // Have an unprocessed/new selector for this module. Need to re-select the target version (if there are any selectors that can be used).
                 performSelection(resolveState, module);
             }
-
-            module.addUnattachedDependency(dependency);
+            if (dependency.isUsed()) {
+                // Some corner case result in the edge being removed, in that case it needs to be "removed"
+                module.addUnattachedDependency(dependency);
+            }
             processed = true;
         }
         return processed;
@@ -299,7 +294,7 @@ public class DependencyGraphBuilder {
         ComponentState currentSelection = module.getSelected();
 
         try {
-            module.maybeUpdateSelection();
+            module.maybeUpdateSelection(conflictTracker);
         } catch (ModuleVersionResolveException e) {
             // Ignore: All selectors failed, and will have failures recorded
             return;
@@ -327,7 +322,7 @@ public class DependencyGraphBuilder {
 
     /**
      * Prepares the resolution of edges, either serially or concurrently.
-     * It uses a simple heuristic to determine if we should perform concurrent resolution, based on the the number of edges, and whether they have unresolved metadata.
+     * It uses a simple heuristic to determine if we should perform concurrent resolution, based on the number of edges, and whether they have unresolved metadata.
      */
     private void maybeDownloadMetadataInParallel(NodeState node, Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache, List<EdgeState> dependencies, Spec<EdgeState> dependencyFilter) {
         List<ComponentState> requiringDownload = null;
@@ -464,7 +459,7 @@ public class DependencyGraphBuilder {
     }
 
     private void validateChangingVersions(ComponentState selected) {
-        ComponentResolveMetadata metadata = selected.getMetadata();
+        ComponentGraphResolveMetadata metadata = selected.getMetadataOrNull();
         boolean moduleIsChanging = metadata != null && metadata.isChanging();
         for (NodeState node : selected.getNodes()) {
             List<EdgeState> incomingEdges = node.getIncomingEdges();

@@ -18,7 +18,6 @@ package org.gradle.api.reporting.dependencies;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -33,9 +32,9 @@ import org.gradle.api.reporting.dependencies.internal.HtmlDependencyReporter;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.util.internal.ClosureBackedAction;
-import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -61,12 +60,12 @@ import java.util.Set;
  * This can also be changed by setting the <code>reports.html.destination</code> property:
  * <pre>
  * htmlDependencyReport {
- *     reports.html.destination = file("build/reports/project/dependencies")
+ *     reports.html.outputLocation = file("build/reports/project/dependencies")
  * }
  * </pre>
  */
-@DisableCachingByDefault(because = "Not worth caching")
-public class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
+@UntrackedTask(because = "We can't describe the dependency tree of all projects as input")
+public abstract class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
     private Set<Project> projects;
     private final DirectoryProperty reportDir;
     private final DependencyReportContainer reports;
@@ -75,7 +74,6 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
         reports = getObjectFactory().newInstance(DefaultDependencyReportContainer.class, this, getCallbackActionDecorator());
         reportDir = getObjectFactory().directoryProperty();
         reports.getHtml().getRequired().set(true);
-        getOutputs().upToDateWhen(element -> false);
     }
 
     /**
@@ -86,7 +84,6 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
      * @since 7.1
      */
     @Internal
-    @Incubating
     public DirectoryProperty getProjectReportDirectory() {
         return reportDir;
     }

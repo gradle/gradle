@@ -15,35 +15,17 @@
  */
 package org.gradle.plugin.use.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.NamedDomainObjectCollection;
-import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
-import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.dsl.RepositoryHandlerInternal;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
-import org.gradle.api.internal.artifacts.repositories.ArtifactRepositoryInternal;
-import org.gradle.api.internal.artifacts.repositories.ArtifactResolutionDetails;
-import org.gradle.api.internal.artifacts.repositories.ContentFilteringRepository;
-import org.gradle.api.internal.artifacts.repositories.RepositoryContentDescriptorInternal;
-import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
-import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositories;
+import org.gradle.plugin.use.resolve.internal.PluginArtifactRepositoriesProvider;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-public class PluginDependencyResolutionServices implements DependencyResolutionServices {
-
-    private static final String REPOSITORY_NAME_PREFIX = "__plugin_repository__";
-
+@ServiceScope(Scopes.Build.class)
+public class PluginDependencyResolutionServices implements PluginRepositoryHandlerProvider, PluginArtifactRepositoriesProvider {
     private final Factory<DependencyResolutionServices> factory;
     private DependencyResolutionServices dependencyResolutionServices;
 
@@ -58,122 +40,17 @@ public class PluginDependencyResolutionServices implements DependencyResolutionS
         return dependencyResolutionServices;
     }
 
-    @Override
-    public RepositoryHandler getResolveRepositoryHandler() {
-        return getDependencyResolutionServices().getResolveRepositoryHandler();
+    private RepositoryHandlerInternal getResolveRepositoryHandler() {
+        return (RepositoryHandlerInternal) getDependencyResolutionServices().getResolveRepositoryHandler();
     }
 
     @Override
-    public ConfigurationContainer getConfigurationContainer() {
-        return getDependencyResolutionServices().getConfigurationContainer();
+    public RepositoryHandler getPluginRepositoryHandler() {
+        return getResolveRepositoryHandler();
     }
 
     @Override
-    public DependencyHandler getDependencyHandler() {
-        return getDependencyResolutionServices().getDependencyHandler();
-    }
-
-    @Override
-    public DependencyLockingHandler getDependencyLockingHandler() {
-        return getDependencyResolutionServices().getDependencyLockingHandler();
-    }
-
-    @Override
-    public ImmutableAttributesFactory getAttributesFactory() {
-        return getDependencyResolutionServices().getAttributesFactory();
-    }
-
-    @Override
-    public AttributesSchema getAttributesSchema() {
-        return getDependencyResolutionServices().getAttributesSchema();
-    }
-
-    public PluginRepositoryHandlerProvider getPluginRepositoryHandlerProvider() {
-        return this::getResolveRepositoryHandler;
-    }
-
-    @Override
-    public ObjectFactory getObjectFactory() {
-        return getDependencyResolutionServices().getObjectFactory();
-    }
-
-    public PluginRepositoriesProvider getPluginRepositoriesProvider() {
-        return new DefaultPluginRepositoriesProvider();
-    }
-
-    private class DefaultPluginRepositoriesProvider implements PluginRepositoriesProvider {
-
-        @Override
-        public List<ArtifactRepository> getPluginRepositories() {
-            return getResolveRepositoryHandler().stream().map(PluginArtifactRepository::new).collect(Collectors.toList());
-        }
-
-        @Override
-        public boolean isExclusiveContentInUse() {
-            return ((RepositoryHandlerInternal) getResolveRepositoryHandler()).isExclusiveContentInUse();
-        }
-    }
-
-
-    private static class PluginArtifactRepository implements ArtifactRepositoryInternal, ContentFilteringRepository, ResolutionAwareRepository {
-        private final ArtifactRepositoryInternal delegate;
-        private final ResolutionAwareRepository resolutionAwareDelegate;
-        private final RepositoryContentDescriptorInternal repositoryContentDescriptor;
-
-        private PluginArtifactRepository(ArtifactRepository delegate) {
-            this.delegate = (ArtifactRepositoryInternal) delegate;
-            this.resolutionAwareDelegate = (ResolutionAwareRepository) delegate;
-            this.repositoryContentDescriptor = this.delegate.getRepositoryDescriptorCopy();
-        }
-
-        @Override
-        public String getName() {
-            return REPOSITORY_NAME_PREFIX + delegate.getName();
-        }
-
-        @Override
-        public void setName(String name) {
-            delegate.setName(name);
-        }
-
-        @Override
-        public void content(Action<? super RepositoryContentDescriptor> configureAction) {
-            configureAction.execute(repositoryContentDescriptor);
-        }
-
-        @Override
-        public Action<? super ArtifactResolutionDetails> getContentFilter() {
-            return repositoryContentDescriptor.toContentFilter();
-        }
-
-        @Override
-        public String getDisplayName() {
-            return delegate.getDisplayName();
-        }
-
-        @Override
-        public ConfiguredModuleComponentRepository createResolver() {
-            return resolutionAwareDelegate.createResolver();
-        }
-
-        @Override
-        public RepositoryDescriptor getDescriptor() {
-            return resolutionAwareDelegate.getDescriptor();
-        }
-
-        @Override
-        public void onAddToContainer(NamedDomainObjectCollection<ArtifactRepository> container) {
-            delegate.onAddToContainer(container);
-        }
-
-        @Override
-        public RepositoryContentDescriptorInternal createRepositoryDescriptor() {
-            return delegate.createRepositoryDescriptor();
-        }
-
-        @Override
-        public RepositoryContentDescriptorInternal getRepositoryDescriptorCopy() {
-            return repositoryContentDescriptor.asMutableCopy();
-        }
+    public PluginArtifactRepositories createPluginResolveRepositories() {
+        return new DefaultPluginArtifactRepositories(factory, getResolveRepositoryHandler());
     }
 }

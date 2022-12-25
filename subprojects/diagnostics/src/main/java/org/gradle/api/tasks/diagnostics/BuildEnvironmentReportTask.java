@@ -20,12 +20,15 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
+import org.gradle.api.tasks.diagnostics.internal.ConfigurationDetails;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.ReportGenerator;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
-import org.gradle.work.DisableCachingByDefault;
+import org.gradle.internal.serialization.Cached;
 
 import javax.inject.Inject;
 
@@ -42,15 +45,35 @@ import static java.util.Collections.singleton;
  *
  * @since 2.10
  */
-@DisableCachingByDefault(because = "Produces only non-cacheable console output")
-public class BuildEnvironmentReportTask extends DefaultTask {
+@UntrackedTask(because = "Produces only non-cacheable console output")
+public abstract class BuildEnvironmentReportTask extends DefaultTask {
 
     public static final String TASK_NAME = "buildEnvironment";
 
     private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
 
-    public BuildEnvironmentReportTask() {
-        getOutputs().upToDateWhen(element -> false);
+    final Cached<BuildEnvironmentReportModel> reportModel = Cached.of(this::calculateReportModel);
+
+    private static final class BuildEnvironmentReportModel {
+
+        private final ProjectDetails project;
+        private final ConfigurationDetails configuration;
+
+        public BuildEnvironmentReportModel(ProjectDetails project, ConfigurationDetails configuration) {
+            this.project = project;
+            this.configuration = configuration;
+        }
+    }
+
+    private BuildEnvironmentReportModel calculateReportModel() {
+        return new BuildEnvironmentReportModel(
+            ProjectDetails.of(getProject()),
+            ConfigurationDetails.of(classpathConfiguration())
+        );
+    }
+
+    private Configuration classpathConfiguration() {
+        return getProject().getBuildscript().getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
     }
 
     @Inject
@@ -66,12 +89,12 @@ public class BuildEnvironmentReportTask extends DefaultTask {
     @TaskAction
     public void generate() {
         reportGenerator().generateReport(
-            singleton(getProject()),
-            project -> {
-                Configuration configuration = project.getBuildscript().getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
-                renderer.startConfiguration(configuration);
-                renderer.render(configuration);
-                renderer.completeConfiguration(configuration);
+            singleton(reportModel.get()),
+            model -> model.project,
+            model -> {
+                renderer.startConfiguration(model.configuration);
+                renderer.render(model.configuration);
+                renderer.completeConfiguration(model.configuration);
             }
         );
     }

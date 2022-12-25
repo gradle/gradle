@@ -30,9 +30,4 @@ enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
 """
     }
 
-    static void enableVersionCatalog(File settings) {
-        settings << """
-            enableFeaturePreview("VERSION_CATALOGS")
-        """
-    }
 }

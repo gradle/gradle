@@ -23,7 +23,6 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.process.ExecOperations
 import org.gradle.workers.WorkerExecutor
-import spock.lang.Unroll
 
 class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
     def "can construct a task with @Inject services constructor arg"() {
@@ -237,7 +236,6 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("got it 15")
     }
 
-    @Unroll
     def "service of type #serviceType is available for injection into task"() {
         given:
         buildFile << """

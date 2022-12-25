@@ -43,7 +43,9 @@ class GradleEnterprisePluginCheckInFixture {
     String artifactVersion = AutoAppliedGradleEnterprisePlugin.VERSION
 
     final String id = AutoAppliedGradleEnterprisePlugin.ID.id
-    final String className = "org.gradle.test.GradleEnterprisePlugin"
+    final String packageName = 'com.gradle.enterprise.gradleplugin'
+    final String simpleClassName = 'GradleEnterprisePlugin'
+    final String className = "${packageName}.${simpleClassName}"
 
     boolean doCheckIn = true
     protected boolean added
@@ -82,10 +84,11 @@ class GradleEnterprisePluginCheckInFixture {
         }
         added = true
         def builder = new PluginBuilder(projectDir.file('plugin-' + AutoAppliedGradleEnterprisePlugin.ID.id))
-        builder.addPluginSource(id, "GradleEnterprisePlugin", """
+        builder.packageName = packageName
+        builder.addPluginSource(id, simpleClassName, """
             package $builder.packageName
 
-            class GradleEnterprisePlugin implements $Plugin.name<$Settings.name> {
+            class ${simpleClassName} implements $Plugin.name<$Settings.name> {
                 void apply($Settings.name settings) {
                     println "gradleEnterprisePlugin.apply.runtimeVersion = $runtimeVersion"
 
@@ -100,6 +103,7 @@ class GradleEnterprisePluginCheckInFixture {
                         $GradleEnterprisePluginBuildState.name buildState ->
 
                         println "gradleEnterprisePlugin.serviceFactoryCreate.config.buildScanRequest = \$config.buildScanRequest"
+                        println "gradleEnterprisePlugin.serviceFactoryCreate.config.autoApplied = \$config.autoApplied"
                         println "gradleEnterprisePlugin.serviceFactoryCreate.config.taskExecutingBuild = \$config.taskExecutingBuild"
 
                         println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.buildStartedTime = \$buildState.buildStartedTime"
@@ -141,6 +145,9 @@ class GradleEnterprisePluginCheckInFixture {
                             $GradleEnterprisePluginEndOfBuildListener.name getEndOfBuildListener() {
                                 return { $GradleEnterprisePluginEndOfBuildListener.BuildResult.name buildResult ->
                                     println "gradleEnterprisePlugin.endOfBuild.buildResult.failure = \$buildResult.failure"
+                                    if (System.getProperty("build-listener-failure") != null) {
+                                        throw new RuntimeException("broken")
+                                    }
                                 } as $GradleEnterprisePluginEndOfBuildListener.name
                             }
                         }
@@ -162,11 +169,15 @@ class GradleEnterprisePluginCheckInFixture {
 
         builder.addPlugin("", "com.gradle.build-scan", 'BuildScanPlugin')
 
-        builder.publishAs("com.gradle:gradle-enterprise-gradle-plugin:${artifactVersion}", mavenRepo, pluginBuildExecuter)
+        builder.publishAs("${AutoAppliedGradleEnterprisePlugin.GROUP}:${AutoAppliedGradleEnterprisePlugin.NAME}:${artifactVersion}", mavenRepo, pluginBuildExecuter)
     }
 
     void assertBuildScanRequest(String output, GradleEnterprisePluginConfig.BuildScanRequest buildScanRequest) {
         assert output.contains("gradleEnterprisePlugin.serviceFactoryCreate.config.buildScanRequest = $buildScanRequest")
+    }
+
+    void assertAutoApplied(String output, boolean autoApplied) {
+        assert output.contains("gradleEnterprisePlugin.serviceFactoryCreate.config.autoApplied = $autoApplied")
     }
 
     void assertUnsupportedMessage(String output, String unsupported) {
@@ -174,6 +185,7 @@ class GradleEnterprisePluginCheckInFixture {
     }
 
     void assertEndOfBuildWithFailure(String output, @Nullable String failure) {
+        assert output.count("gradleEnterprisePlugin.endOfBuild.buildResult.failure = ") == 1
         assert output.contains("gradleEnterprisePlugin.endOfBuild.buildResult.failure = $failure")
     }
 
@@ -205,4 +217,9 @@ class GradleEnterprisePluginCheckInFixture {
         assert !output.contains("gradleEnterprisePlugin.apply.runtimeVersion = $runtimeVersion")
     }
 
+    void assertBackgroundJobCompletedBeforeShutdown(String output, String expectedJobOutput) {
+        def jobOutputPosition = output.indexOf(expectedJobOutput)
+        assert jobOutputPosition >= 0 : "cannot find $expectedJobOutput"
+        assert jobOutputPosition < output.indexOf("gradleEnterprisePlugin.endOfBuild.buildResult.failure")
+    }
 }

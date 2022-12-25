@@ -19,6 +19,18 @@ package org.gradle.process.internal;
 import org.gradle.process.ExecResult;
 
 public interface ExecHandleListener {
+    /**
+     * Called before the execution of the ExecHandle starts. Unlike {@link #executionStarted(ExecHandle)}, this method is called synchronously from {@link ExecHandle#start()}.
+     *
+     * @param execHandle the handle that is about to start
+     */
+    void beforeExecutionStarted(ExecHandle execHandle);
+
+    /**
+     * Called before the worker thread starts running the {@code execHandle}.
+     *
+     * @param execHandle the handle that is about to start
+     */
     void executionStarted(ExecHandle execHandle);
 
     void executionFinished(ExecHandle execHandle, ExecResult execResult);

@@ -1,13 +1,53 @@
 {
   "latestReleaseSnapshot": {
-    "version": "7.3-20211027231204+0000",
-    "buildTime": "20211027231204+0000"
+    "version": "8.0-20221224012445+0000",
+    "buildTime": "20221224012445+0000"
   },
   "latestRc": {
-    "version": "7.3-rc-3",
-    "buildTime": "20211026162420+0000"
+    "version": "8.0-milestone-6",
+    "buildTime": "20221220081158+0000"
   },
   "finalReleases": [
+    {
+      "version": "7.6",
+      "buildTime": "20221125133510+0000"
+    },
+    {
+      "version": "7.5.1",
+      "buildTime": "20220805211756+0000"
+    },
+    {
+      "version": "7.5",
+      "buildTime": "20220714124815+0000"
+    },
+    {
+      "version": "7.4.2",
+      "buildTime": "20220331152529+0000"
+    },
+    {
+      "version": "7.4.1",
+      "buildTime": "20220309150447+0000"
+    },
+    {
+      "version": "7.4",
+      "buildTime": "20220208095838+0000"
+    },
+    {
+      "version": "7.3.3",
+      "buildTime": "20211222123754+0000"
+    },
+    {
+      "version": "7.3.2",
+      "buildTime": "20211215112231+0000"
+    },
+    {
+      "version": "7.3.1",
+      "buildTime": "20211201154220+0000"
+    },
+    {
+      "version": "7.3",
+      "buildTime": "20211109204036+0000"
+    },
     {
       "version": "7.2",
       "buildTime": "20210817095903+0000"
@@ -31,6 +71,14 @@
     {
       "version": "7.0",
       "buildTime": "20210409222731+0000"
+    },
+    {
+      "version": "6.9.3",
+      "buildTime": "20221017074402+0000"
+    },
+    {
+      "version": "6.9.2",
+      "buildTime": "20211221172537+0000"
     },
     {
       "version": "6.9.1",

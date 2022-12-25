@@ -17,7 +17,7 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 
-class ComponentMetadataRulesInjectionIntegrationTest extends AbstractHttpDependencyResolutionTest implements ComponentMetadataRulesSupport {
+class ComponentMetadataRulesInjectionIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def 'inject no-op RepositoryResourceAccessor for flat dir repo'() {
         file('lib', 'my-lib-1.0.jar').createFile()
@@ -34,7 +34,7 @@ configurations {
 
 class AssertingRule implements ComponentMetadataRule {
     RepositoryResourceAccessor accessor
-    
+
     @javax.inject.Inject
     public AssertingRule(RepositoryResourceAccessor accessor) {
         this.accessor = accessor
@@ -55,12 +55,9 @@ dependencies {
 }
 
 task resolve {
+    def files = configurations.conf
     doLast {
-        delete 'libs'
-        copy {
-            from configurations.conf
-            into 'libs'
-        }
+        files.forEach { }
     }
 }
 """
@@ -70,7 +67,6 @@ task resolve {
         then:
         outputContains('AssertingRule executed')
         outputDoesNotContain('Resource action executed')
-
     }
 
     def 'can inject and use RepositoryResourceAccessor for ivy local repo'() {
@@ -87,7 +83,7 @@ configurations {
 
 class AssertingRule implements ComponentMetadataRule {
     RepositoryResourceAccessor accessor
-    
+
     @javax.inject.Inject
     public AssertingRule(RepositoryResourceAccessor accessor) {
         this.accessor = accessor
@@ -108,12 +104,9 @@ dependencies {
 }
 
 task resolve {
+    def files = configurations.conf
     doLast {
-        delete 'libs'
-        copy {
-            from configurations.conf
-            into 'libs'
-        }
+        files.forEach { }
     }
 }
 """
@@ -139,7 +132,7 @@ configurations {
 
 class AssertingRule implements ComponentMetadataRule {
     RepositoryResourceAccessor accessor
-    
+
     @javax.inject.Inject
     public AssertingRule(RepositoryResourceAccessor accessor) {
         this.accessor = accessor
@@ -160,12 +153,9 @@ dependencies {
 }
 
 task resolve {
+    def files = configurations.conf
     doLast {
-        delete 'libs'
-        copy {
-            from configurations.conf
-            into 'libs'
-        }
+        files.forEach { }
     }
 }
 """

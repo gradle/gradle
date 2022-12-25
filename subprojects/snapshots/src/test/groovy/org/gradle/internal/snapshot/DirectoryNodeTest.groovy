@@ -18,16 +18,14 @@ package org.gradle.internal.snapshot
 
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.FileType
-import org.gradle.internal.hash.HashCode
-import spock.lang.Unroll
+import org.gradle.internal.hash.TestHashCodes
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
-@Unroll
 class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSystemNode, FileSystemLocationSnapshot> {
     @Override
     protected FileSystemNode createInitialRootNode(ChildMap<FileSystemLocationSnapshot> children) {
-        return new DirectorySnapshot("/root/some/path", PathUtil.getFileName("path"), AccessType.DIRECT, HashCode.fromInt(1234), children).asFileSystemNode()
+        return new DirectorySnapshot("/root/some/path", PathUtil.getFileName("path"), AccessType.DIRECT, TestHashCodes.hashCodeFrom(1234), children).asFileSystemNode()
     }
 
     @Override
@@ -137,7 +135,7 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         setupTest(vfsSpec)
 
         when:
-        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE) as FileSystemLocationSnapshot
+        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE).get() as FileSystemLocationSnapshot
         then:
         foundSnapshot.type == FileType.Missing
         foundSnapshot.absolutePath == searchedPath.absolutePath
@@ -164,7 +162,7 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         setupTest(vfsSpec)
 
         when:
-        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE) as FileSystemLocationSnapshot
+        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE).get() as FileSystemLocationSnapshot
         then:
         foundSnapshot == selectedChild
         interaction { noMoreInteractions() }
@@ -195,7 +193,7 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         def grandChild = Mock(FileSystemLocationSnapshot)
 
         when:
-        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE) as FileSystemLocationSnapshot
+        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE).get() as FileSystemLocationSnapshot
         then:
         foundSnapshot == grandChild
         interaction {
@@ -228,12 +226,12 @@ class DirectoryNodeTest extends AbstractFileSystemNodeWithChildrenTest<FileSyste
         setupTest(vfsSpec)
 
         when:
-        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE) as FileSystemLocationSnapshot
+        FileSystemLocationSnapshot foundSnapshot = initialRoot.getNode(searchedPath, CASE_SENSITIVE).get() as FileSystemLocationSnapshot
         then:
         foundSnapshot.type == FileType.Missing
         foundSnapshot.absolutePath == searchedPath.absolutePath
         interaction {
-            getDescendantNodeOfSelectedChild(ReadOnlyFileSystemNode.EMPTY)
+            getDescendantNodeOfSelectedChild(null)
             noMoreInteractions()
         }
 

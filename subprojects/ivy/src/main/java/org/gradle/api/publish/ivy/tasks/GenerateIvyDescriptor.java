@@ -23,16 +23,18 @@ import org.gradle.api.publish.ivy.IvyConfiguration;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorAuthor;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
 import org.gradle.api.publish.ivy.IvyModuleDescriptorSpec;
+import org.gradle.api.publish.ivy.internal.publisher.IvyArtifactInternal;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependencyInternal;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publication.IvyModuleDescriptorSpecInternal;
 import org.gradle.api.publish.ivy.internal.publisher.IvyDescriptorFileGenerator;
-import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.work.DisableCachingByDefault;
+import org.gradle.internal.serialization.Cached;
+import org.gradle.internal.serialization.Transient;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -42,16 +44,13 @@ import java.io.File;
  *
  * @since 1.4
  */
-@DisableCachingByDefault(because = "Gradle doesn't understand the data structures")
-public class GenerateIvyDescriptor extends DefaultTask {
+@UntrackedTask(because = "Gradle doesn't understand the data structures")
+public abstract class GenerateIvyDescriptor extends DefaultTask {
 
-    private IvyModuleDescriptorSpec descriptor;
+    private Transient.Var<IvyModuleDescriptorSpec> descriptor = Transient.varOf();
+    private final Cached<IvyDescriptorFileGenerator.DescriptorFileSpec> ivyDescriptorSpec = Cached.of(this::computeIvyDescriptorFileSpec);
+
     private Object destination;
-
-    public GenerateIvyDescriptor() {
-        // Never up to date; we don't understand the data structures.
-        getOutputs().upToDateWhen(Specs.satisfyNone());
-    }
 
     @Inject
     protected PathToFileResolver getFileResolver() {
@@ -65,11 +64,11 @@ public class GenerateIvyDescriptor extends DefaultTask {
      */
     @Internal
     public IvyModuleDescriptorSpec getDescriptor() {
-        return descriptor;
+        return descriptor.get();
     }
 
     public void setDescriptor(IvyModuleDescriptorSpec descriptor) {
-        this.descriptor = descriptor;
+        this.descriptor.set(descriptor);
     }
 
     /**
@@ -105,6 +104,10 @@ public class GenerateIvyDescriptor extends DefaultTask {
 
     @TaskAction
     public void doGenerate() {
+         ivyDescriptorSpec.get().writeTo(getDestination());
+    }
+
+    IvyDescriptorFileGenerator.DescriptorFileSpec computeIvyDescriptorFileSpec() {
         IvyModuleDescriptorSpecInternal descriptorInternal = toIvyModuleDescriptorInternal(getDescriptor());
 
         IvyDescriptorFileGenerator ivyGenerator = new IvyDescriptorFileGenerator(descriptorInternal.getProjectIdentity(),
@@ -129,7 +132,7 @@ public class GenerateIvyDescriptor extends DefaultTask {
         }
 
         for (IvyArtifact ivyArtifact : descriptorInternal.getArtifacts()) {
-            ivyGenerator.addArtifact(ivyArtifact);
+            ivyGenerator.addArtifact(((IvyArtifactInternal) ivyArtifact).asNormalisedArtifact());
         }
 
         for (IvyDependencyInternal ivyDependency : descriptorInternal.getDependencies()) {
@@ -140,7 +143,9 @@ public class GenerateIvyDescriptor extends DefaultTask {
             ivyGenerator.addGlobalExclude(excludeRule);
         }
 
-        ivyGenerator.withXml(descriptorInternal.getXmlAction()).writeTo(getDestination());
+        ivyGenerator.withXml(descriptorInternal.getXmlAction());
+
+        return ivyGenerator.toSpec();
     }
 
     private static IvyModuleDescriptorSpecInternal toIvyModuleDescriptorInternal(IvyModuleDescriptorSpec ivyModuleDescriptorSpec) {

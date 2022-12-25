@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.Describable;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 
 public interface ComponentSelectionDescriptorFactory {
-    ComponentSelectionDescriptor newDescriptor(ComponentSelectionCause cause, Describable description);
 
     ComponentSelectionDescriptor newDescriptor(ComponentSelectionCause cause, String reason);
 

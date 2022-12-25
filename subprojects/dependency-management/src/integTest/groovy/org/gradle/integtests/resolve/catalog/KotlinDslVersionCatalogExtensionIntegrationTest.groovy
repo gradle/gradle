@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.catalog
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -35,7 +34,6 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         settingsKotlinFile << """
             rootProject.name = "test"
         """
-        FeaturePreviewsFixture.enableVersionCatalog(settingsKotlinFile)
         settingsKotlinFile << """
             dependencyResolutionManagement {
                 repositories {
@@ -54,7 +52,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("my-lib").to("org.gradle.test:lib:1.0")
+                        library("my-lib", "org.gradle.test:lib:1.0")
                     }
                 }
             }
@@ -75,7 +73,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             tasks.register("checkDeps") {
                 inputs.files(configurations.compileClasspath)
                 doLast {
-                    val fileNames = configurations.compileClasspath.files.map(File::getName)
+                    val fileNames = configurations.compileClasspath.get().files.map(File::getName)
                     assert(fileNames == listOf("lib-1.1.jar"))
                 }
             }
@@ -97,7 +95,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("lib").to("org:test:1.0")
+                        library("lib", "org:test:1.0")
                     }
                 }
             }
@@ -114,7 +112,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         file("buildSrc/src/main/kotlin/my.plugin.gradle.kts") << """
             pluginManager.withPlugin("java") {
                 val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
-                dependencies.addProvider("implementation", libs.findDependency("lib").get())
+                dependencies.addProvider("implementation", libs.findLibrary("lib").get())
             }
         """
 
@@ -127,7 +125,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             tasks.register("checkDeps") {
                 inputs.files(configurations.compileClasspath)
                 doLast {
-                    val fileNames = configurations.compileClasspath.files.map(File::getName)
+                    val fileNames = configurations.compileClasspath.get().files.map(File::getName)
                     assert(fileNames == listOf("test-1.0.jar"))
                 }
             }
@@ -151,8 +149,8 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("my-lib").to("org.gradle.test:lib:1.1")
-                        alias("my-lib2").to("org.gradle.test:lib2:1.1")
+                        library("my-lib", "org.gradle.test:lib:1.1")
+                        library("my-lib2", "org.gradle.test:lib2:1.1")
                     }
                 }
             }
@@ -197,8 +195,8 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("my-lib").to("org.gradle.test:lib:1.1")
-                        alias("my-lib2").to("org.gradle.test:lib2:1.1")
+                        library("my-lib", "org.gradle.test:lib:1.1")
+                        library("my-lib2", "org.gradle.test:lib2:1.1")
                     }
                 }
             }
@@ -244,9 +242,9 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("my-lib").to("org.gradle.test:lib:1.1")
+                        library("my-lib", "org.gradle.test:lib:1.1")
                         // Forces `my.lib` to be a ProviderConvertible, otherwise unused
-                        alias("my-lib-two").to("org.gradle.test:lib2:1.1")
+                        library("my-lib-two", "org.gradle.test:lib2:1.1")
                     }
                 }
             }
@@ -288,9 +286,9 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("my-lib").to("org.gradle.test:lib:1.1")
+                        library("my-lib", "org.gradle.test:lib:1.1")
                         // Forces `my.lib` to be a ProviderConvertible, otherwise unused
-                        alias("my-lib-two").to("org.gradle.test:lib2:1.1")
+                        library("my-lib-two", "org.gradle.test:lib2:1.1")
                     }
                 }
             }
@@ -335,8 +333,8 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             dependencyResolutionManagement {
                 versionCatalogs {
                     create("libs") {
-                        alias("myLib").to("org.gradle.test:lib:1.1")
-                        alias("myLib-subgroup").to("org.gradle.test:lib2:1.1")
+                        library("myLib", "org.gradle.test:lib:1.1")
+                        library("myLib-subgroup", "org.gradle.test:lib2:1.1")
                     }
                 }
             }
@@ -377,6 +375,69 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         succeeds ':checkDeps'
     }
 
+
+    @Issue("https://github.com/gradle/gradle/issues/22650")
+    def "can use the generated extension to declare a dependency constraint with and without sub-group using bundles"() {
+        settingsKotlinFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    register("libs") {
+                        version("myLib") {
+                            strictly("[1.0,1.1)")
+                        }
+                        library("myLib", "org.gradle.test", "lib-core").versionRef("myLib")
+                        library("myLib-ext", "org.gradle.test", "lib-ext").versionRef("myLib")
+                        bundle("myBundle", listOf("myLib"))
+                        bundle("myBundle-ext", listOf("myLib-ext"))
+                    }
+                }
+            }
+        """
+        def publishLib = { String artifactId, String version ->
+            def lib = mavenHttpRepo.module("org.gradle.test", artifactId, version)
+                .withModuleMetadata()
+                .publish()
+            lib.moduleMetadata.expectGet()
+            lib.pom.expectGet()
+            return lib
+        }
+        publishLib("lib-core", "1.0").with {
+            it.rootMetaData.expectGet()
+            it.artifact.expectGet()
+        }
+        publishLib("lib-core", "1.1")
+        publishLib("lib-ext", "1.0").with {
+            it.rootMetaData.expectGet()
+            it.artifact.expectGet()
+        }
+
+        withCheckDeps()
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+            }
+
+            dependencies {
+                implementation("org.gradle.test:lib-core:1.+") // intentional!
+                implementation("org.gradle.test:lib-ext") // intentional!
+                constraints {
+                    implementation(libs.bundles.myBundle)
+                    implementation(libs.bundles.myBundle.ext)
+                }
+            }
+
+            tasks.register<CheckDeps>("checkDeps") {
+                files.from(configurations.compileClasspath)
+                expected.set(listOf("lib-core-1.0.jar", "lib-ext-1.0.jar"))
+            }
+            // Might be worth checking constraints too? Not sure if necessary because the Groovy DSL version covers that
+            // and the selected versions above would be wrong.
+        """
+
+        expect:
+        succeeds ':checkDeps'
+    }
+
     private void withCheckDeps() {
         buildKotlinFile << """
             abstract class CheckDeps: DefaultTask() {
@@ -393,5 +454,48 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
                 }
             }
         """
+    }
+
+    def "no name conflicting accessors of different catalogs"() {
+        def libA = mavenHttpRepo.module("com.company","libs-a").publish()
+        def libB = mavenHttpRepo.module("com.companylibs","libs-b").publish()
+        settingsKotlinFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    create("libs") {
+                        library("com-company-libs-a", "com.company:libs-a:1.0")
+                    }
+
+                    create("moreLibs") {
+                        library("com-companylibs-b", "com.companylibs:libs-b:1.0")
+                    }
+                }
+            }
+        """
+        withCheckDeps()
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+            }
+
+            dependencies {
+                implementation(libs.com.company.libs.a)
+                implementation(moreLibs.com.companylibs.b)
+            }
+
+            tasks.register<CheckDeps>("checkDeps") {
+                files.from(configurations.compileClasspath)
+                expected.set(listOf("libs-a-1.0.jar", "libs-b-1.0.jar"))
+            }
+        """
+
+        when:
+        libA.pom.expectGet()
+        libA.artifact.expectGet()
+        libB.pom.expectGet()
+        libB.artifact.expectGet()
+
+        then:
+        succeeds ':checkDeps'
     }
 }

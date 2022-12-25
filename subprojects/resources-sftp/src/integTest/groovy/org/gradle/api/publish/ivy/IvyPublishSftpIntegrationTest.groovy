@@ -16,13 +16,10 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.server.sftp.IvySftpRepository
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
-import spock.lang.Unroll
 
-@Unroll
 class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
 
     @Rule
@@ -67,7 +64,6 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         """
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish to a SFTP repository with layout #layout"() {
         given:
         def ivySftpRepo = getIvySftpRepo(m2Compatible)
@@ -139,7 +135,6 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         'maven'  | true
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish to a SFTP repository with pattern layout and m2Compatible #m2Compatible"() {
         given:
         def ivySftpRepo = getIvySftpRepo(m2Compatible, "[module]/[organisation]/[revision]")
@@ -205,7 +200,6 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         m2Compatible << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishing to a SFTP repo when directory creation fails"() {
         given:
         buildAndSettingsFilesForPublishing()
@@ -226,7 +220,6 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
             .assertHasCause("Could not create resource '${ivySftpRepo.uri}'.")
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishing to a SFTP repo when file uploading fails"() {
         given:
         buildAndSettingsFilesForPublishing()

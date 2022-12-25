@@ -18,7 +18,6 @@ package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GradleVersion
-import spock.lang.Unroll
 
 import static org.gradle.plugin.use.internal.DefaultPluginId.*
 import static org.gradle.plugin.use.internal.PluginRequestCollector.EMPTY_VALUE
@@ -85,7 +84,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         and:
         failure.assertHasLineNumber 3
         failure.assertHasFileName("Build file '${buildFile}'")
-        failure.assertThatCause(containsString("only buildscript {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"))
+        failure.assertThatCause(containsString("only buildscript {}, pluginManagement {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"))
         includesLinkToUserguide()
     }
 
@@ -103,7 +102,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         and:
         failure.assertHasLineNumber 4
         failure.assertHasFileName("Build file '${buildFile}'")
-        failure.assertThatCause(containsString("only buildscript {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"))
+        failure.assertThatCause(containsString("only buildscript {}, pluginManagement {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed"))
         includesLinkToUserguide()
     }
 
@@ -167,7 +166,6 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         includesLinkToUserguide()
     }
 
-    @Unroll
     def "illegal syntax in plugins block - #code"() {
         when:
         buildScript("""plugins {\n$code\n}""")
@@ -208,7 +206,6 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         2          | "getVersion()" /* script target api */ | BASE_MESSAGE
     }
 
-    @Unroll
     def "allowed syntax in plugins block - #code"() {
         given:
         when:
@@ -236,7 +233,6 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         ]
     }
 
-    @Unroll
     def "illegal value in plugins block - #code"() {
         when:
         buildScript("""plugins {\n$code\n}""")

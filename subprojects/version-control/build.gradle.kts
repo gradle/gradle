@@ -2,11 +2,14 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Version control integration (with git) for source dependencies"
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":files"))
+    implementation(project(":functional"))
     implementation(project(":file-collections"))
     implementation(project(":persistent-cache"))
     implementation(project(":core-api"))

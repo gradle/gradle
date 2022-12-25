@@ -52,7 +52,7 @@ class DefaultWatchableFileSystemDetectorTest extends Specification {
         ]
 
         expect:
-        detect() == [unsupported]
+        detect() == [unsupported.mountPoint]
 
         where:
         description   | unsupported

@@ -2,9 +2,12 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Services and utilities needed by Gradle Enterprise plugin"
+
 dependencies {
     api(project(":base-services"))
     api(project(":enterprise-operations"))
+    api(project(":enterprise-logging"))
 
     implementation(libs.inject)
     implementation(libs.jsr305)
@@ -12,10 +15,14 @@ dependencies {
     implementation(project(":build-option"))
     implementation(project(":core"))
     implementation(project(":core-api"))
+    implementation(project(":dependency-management"))
+    implementation(project(":execution"))
+    implementation(project(":configuration-cache"))
     implementation(project(":file-collections"))
     implementation(project(":jvm-services"))
     implementation(project(":launcher"))
     implementation(project(":logging"))
+    implementation(project(":messaging"))
     implementation(project(":model-core"))
     implementation(project(":process-services"))
     implementation(project(":reporting"))
@@ -31,6 +38,7 @@ dependencies {
 
     integTestImplementation(project(":internal-testing"))
     integTestImplementation(project(":internal-integ-testing"))
+    integTestImplementation(testFixtures(project(":core")))
 
     // Dependencies of the integ test fixtures
     integTestImplementation(project(":build-option"))

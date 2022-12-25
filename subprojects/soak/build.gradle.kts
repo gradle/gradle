@@ -18,6 +18,9 @@ dependencies {
     integTestImplementation(project(":persistent-cache"))
     integTestImplementation(libs.slf4jApi)
     integTestImplementation(libs.jetty)
+    integTestImplementation(libs.assertj) {
+        because("Kotlin soak tests use AssertJ")
+    }
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }

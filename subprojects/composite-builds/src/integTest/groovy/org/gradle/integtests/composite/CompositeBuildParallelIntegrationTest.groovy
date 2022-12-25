@@ -21,13 +21,11 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 @IgnoreIf({ GradleContextualExecuter.isParallel() })
 class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
-    @Unroll
     def "works when number of included builds exceeds max-workers --max-workers=#maxWorkers"() {
         def totalIncludedBuilds = 5*maxWorkers
         buildA.buildFile << """

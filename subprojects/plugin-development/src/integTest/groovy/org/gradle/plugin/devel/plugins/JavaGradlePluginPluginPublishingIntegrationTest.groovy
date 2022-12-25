@@ -34,28 +34,6 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         """
     }
 
-    def "Publishes nothing if automated publishing is disabled"() {
-        given:
-        plugin('foo', 'com.example.foo')
-        publishToIvy()
-        publishToMaven()
-        buildFile << """
-            gradlePlugin {
-                automatedPublishing = false
-            }
-        """
-
-        when:
-        succeeds 'publish'
-
-        then:
-        ivyRepo.module('com.example', 'plugins', '1.0').assertNotPublished()
-        ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertNotPublished()
-
-        mavenRepo.module('com.example', 'plugins', '1.0').assertNotPublished()
-        mavenRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertNotPublished()
-    }
-
     @ToBeFixedForConfigurationCache(because = "publishing")
     def "Publishes main plugin artifact to Ivy"() {
         given:

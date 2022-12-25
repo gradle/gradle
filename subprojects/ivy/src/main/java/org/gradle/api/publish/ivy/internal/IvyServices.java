@@ -23,6 +23,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.publish.ivy.internal.publisher.ContextualizingIvyPublisher;
 import org.gradle.api.publish.ivy.internal.publisher.DependencyResolverIvyPublisher;
+import org.gradle.api.publish.ivy.internal.publisher.IvyDuplicatePublicationTracker;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublisher;
 import org.gradle.api.publish.ivy.internal.publisher.ValidatingIvyPublisher;
 import org.gradle.internal.resource.local.FileResourceRepository;
@@ -35,6 +36,11 @@ public class IvyServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.addProvider(new BuildServices());
+    }
+
+    @Override
+    public void registerProjectServices(ServiceRegistration registration) {
+        registration.add(IvyDuplicatePublicationTracker.class);
     }
 
     private static class BuildServices {

@@ -17,7 +17,6 @@ package org.gradle.cli
 
 import spock.lang.Issue
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class CommandLineParserTest extends Specification {
     private final CommandLineParser parser = new CommandLineParser()
@@ -174,7 +173,6 @@ class CommandLineParserTest extends Specification {
         result.option('long-option-a').values == ['arg']
     }
 
-    @Unroll
     def "parse fails for invalid option name #badOptionName"() {
         when:
         parser.option(badOptionName)
@@ -381,7 +379,8 @@ class CommandLineParserTest extends Specification {
             '--another-long-option                this is a long option',
             '-B',
             '-b',
-            '-y, -z, --end-option, --last-option  this is the last option'
+            '-y, -z, --end-option, --last-option  this is the last option',
+            '--                                   Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.'
         ]
     }
 
@@ -398,7 +397,8 @@ class CommandLineParserTest extends Specification {
             '-a, --long-option  this is option a [deprecated]',
             '-b                 [deprecated]',
             '-c                 option c [incubating]',
-            '-d                 [incubating]'
+            '-d                 [incubating]',
+            '--                 Signals the end of built-in options. Gradle parses subsequent parameters as only tasks or task options.'
         ]
     }
 
@@ -456,7 +456,6 @@ class CommandLineParserTest extends Specification {
         e.message == 'Unknown command-line option \'-u\'.'
     }
 
-    @Unroll
     def "parse fails when command line contains unknown option with newline #arg"() {
         when:
         parser.parse(arg)
@@ -537,14 +536,13 @@ class CommandLineParserTest extends Specification {
     }
 
     def parseFailsWhenArgumentIsMissing() {
-        parser.option('a').hasArgument()
-
+        parser.option('a').hasArgument().hasDescription("No argument description.")
         when:
         parser.parse(['-a'])
 
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == 'No argument was provided for command-line option \'-a\'.'
+        e.message == 'No argument was provided for command-line option \'-a\' with description: \'No argument description.\''
     }
 
     def parseFailsWhenArgumentIsMissingFromEqualsForm() {
@@ -586,26 +584,26 @@ class CommandLineParserTest extends Specification {
     }
 
     def parseFailsWhenArgumentIsMissingAndAnotherOptionFollows() {
-        parser.option('a').hasArgument()
+        parser.option('a').hasArgument().hasDescription("No argument description.")
 
         when:
         parser.parse(['-a', '-b'])
 
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == 'No argument was provided for command-line option \'-a\'.'
+        e.message == 'No argument was provided for command-line option \'-a\' with description: \'No argument description.\''
     }
 
     def parseFailsWhenArgumentIsMissingAndOptionsAreCombined() {
         parser.option('a')
-        parser.option('b').hasArgument()
+        parser.option('b').hasArgument().hasDescription("No argument description.")
 
         when:
         parser.parse(['-ab'])
 
         then:
         def e = thrown(CommandLineArgumentException)
-        e.message == 'No argument was provided for command-line option \'-b\'.'
+        e.message == 'No argument was provided for command-line option \'-b\' with description: \'No argument description.\''
     }
 
     def parseFailsWhenAttachedArgumentIsProvidedForOptionWhichDoesNotTakeAnArgument() {

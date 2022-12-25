@@ -31,7 +31,6 @@ import org.gradle.util.UsesNativeServices
 import org.gradle.util.internal.VersionNumber
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.regex.Matcher
 
@@ -172,8 +171,7 @@ End of search list.
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def execActionFactory = Mock(ExecActionFactory)
 
-    @Unroll
-    "can scrape version number from output of GCC #versionNumber"() {
+    def "can scrape version number from output of GCC #versionNumber"() {
         expect:
         def result = output(gcc, gccVerboseOutput(versionNumber.toString()))
         result.available
@@ -187,16 +185,14 @@ End of search list.
         gcc4         | "4.2.1"
     }
 
-    @Unroll
-    "can scrape version from output of GCC"() {
+    def "can scrape version from output of GCC"() {
         expect:
         def result = output(gcc4, gccVerboseOutput('4.2.1', []))
         result.available
         result.component.vendor == 'gcc version 4.2.1 (Ubuntu 4.2.1-2ubuntu1~14.04.3)'
     }
 
-    @Unroll
-    "can scrape architecture from GCC output"() {
+    def "can scrape architecture from GCC output"() {
         expect:
         def x86 = output(gccX86, gccVerboseOutput())
         x86.component.defaultArchitecture.isI386()

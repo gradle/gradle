@@ -34,7 +34,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.internal.TextUtil
 import spock.lang.Timeout
-import spock.lang.Unroll
 
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertTrue
@@ -67,7 +66,6 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("[QUIET] [system.out] <Normal>this is stdout\n</Normal>]"))
     }
 
-    @Unroll
     def "log level and categories are preserved when forwarded to main process"() {
         when:
         execute(worker(new LoggingProcess(action)))

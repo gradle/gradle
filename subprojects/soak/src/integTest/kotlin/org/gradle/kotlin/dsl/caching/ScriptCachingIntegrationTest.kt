@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.caching
 
+import org.assertj.core.api.Assertions.assertThat
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.kotlin.dsl.caching.fixtures.CachedScript
 import org.gradle.kotlin.dsl.caching.fixtures.KotlinDslCacheFixture
 import org.gradle.kotlin.dsl.caching.fixtures.cachedBuildFile
@@ -33,7 +35,6 @@ import org.gradle.kotlin.dsl.execution.ProgramParser
 import org.gradle.kotlin.dsl.execution.ProgramSource
 import org.gradle.kotlin.dsl.execution.ProgramTarget
 import org.gradle.kotlin.dsl.fixtures.DeepThought
-import org.junit.Ignore
 import org.junit.Test
 import java.util.UUID
 
@@ -221,9 +222,7 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
     }
 
     @Test
-    @Ignore
     fun `in-memory script class loading cache releases memory of unused entries`() {
-
         // given: buildSrc memory hog
         val memoryHogMb = 128
         val myTask = withFile(
@@ -254,9 +253,11 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
         }
 
         // expect: memory hog released
-        val runs = 4
-        val daemonHeapMb = memoryHogMb * runs + 96
+        val runs = 10
+        // For some reason we have 5 references to the task class.
+        val daemonHeapMb = memoryHogMb * 5 + 400
         for (run in 1..runs) {
+            println("Run number $run")
             myTask.writeText(myTask.readText().replace("runAction${run - 1}", "runAction$run"))
             buildWithDaemonHeapSize(daemonHeapMb, "myTask").apply {
                 compilationCache {
@@ -267,6 +268,8 @@ class ScriptCachingIntegrationTest : AbstractScriptCachingIntegrationTest() {
                 }
             }
         }
+        val daemonFixture = DaemonLogsAnalyzer.newAnalyzer(executer.daemonBaseDir)
+        assertThat(daemonFixture.daemons).hasSize(1)
     }
 
     private

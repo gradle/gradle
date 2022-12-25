@@ -575,7 +575,6 @@ task b(type: DirTransformerTask, dependsOn: a) {
         }
     }
 
-    @ToBeFixedForConfigurationCache(because = "task wrongly up-to-date")
     def "skips tasks when input properties have not changed"() {
         buildFile << '''
 public class GeneratorTask extends DefaultTask {
@@ -1085,8 +1084,7 @@ task b(dependsOn: a)
     @ValidationTestFor(
         ValidationProblemId.UNKNOWN_IMPLEMENTATION
     )
-    @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: CustomTask")
-    def "task loaded with custom classloader disables execution optimizations"() {
+    def "task loaded with custom classloader fails the build"() {
         file("input.txt").text = "data"
         buildFile << """
             def CustomTask = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
@@ -1109,125 +1107,23 @@ task b(dependsOn: a)
             }
         """
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        fails "customTask"
+        then:
+        failureDescriptionStartsWith("Some problems were found with the configuration of task ':customTask' (type 'CustomTask').")
+        failureDescriptionContains(implementationUnknown {
             implementationOfTask(':customTask')
             unknownClassloader('CustomTask_Decorated')
-            includeLink()
         })
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        failureDescriptionContains(implementationUnknown {
             additionalTaskAction(':customTask')
             unknownClassloader('CustomTask_Decorated')
-            includeLink()
         })
-        succeeds "customTask"
-        then:
-        noneSkipped()
-
-        when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
-            implementationOfTask(':customTask')
-            unknownClassloader('CustomTask_Decorated')
-            includeLink()
-        })
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
-            additionalTaskAction(':customTask')
-            unknownClassloader('CustomTask_Decorated')
-            includeLink()
-        })
-        succeeds "customTask"
-        then:
-        noneSkipped()
     }
 
     @ValidationTestFor(
         ValidationProblemId.UNKNOWN_IMPLEMENTATION
     )
-    def "can switch between task with implementation from unknown classloader and from known classloader"() {
-        file("input.txt").text = "data"
-        buildFile << """
-            ${customTaskImplementation("CustomTaskFromBuildFile")}
-
-            def CustomTaskFromUnknownClassloader = new GroovyClassLoader(getClass().getClassLoader()).parseClass '''
-                import org.gradle.api.*
-                import org.gradle.api.tasks.*
-
-                ${customTaskImplementation("CustomTaskFromUnknownClassloader")}
-            '''
-
-            def customTaskClass = providers.gradleProperty("unknownClassloader").forUseAtConfigurationTime().isPresent()
-                    ? CustomTaskFromUnknownClassloader
-                    : CustomTaskFromBuildFile
-
-            task customTask(type: customTaskClass) {
-                outputs.cacheIf { true }
-                input = file("input.txt")
-                output = file("build/output.txt")
-            }
-        """
-        when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
-            implementationOfTask(':customTask')
-            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
-            includeLink()
-        })
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
-            additionalTaskAction(':customTask')
-            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
-            includeLink()
-        })
-        withBuildCache().run "customTask", "-PunknownClassloader"
-        then:
-        executedAndNotSkipped(":customTask")
-
-        when:
-        withBuildCache().run "customTask"
-        then:
-        executedAndNotSkipped(":customTask")
-
-        when:
-        withBuildCache().run "customTask"
-        then:
-        skipped(":customTask")
-
-        when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
-            implementationOfTask(':customTask')
-            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
-            includeLink()
-        })
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
-            additionalTaskAction(':customTask')
-            unknownClassloader('CustomTaskFromUnknownClassloader_Decorated')
-            includeLink()
-        })
-        withBuildCache().run "customTask", "-PunknownClassloader"
-        then:
-        executedAndNotSkipped(":customTask")
-
-        when:
-        withBuildCache().run "customTask"
-        then:
-        skipped(":customTask")
-    }
-
-    private static String customTaskImplementation(String className) {
-        """
-            class ${className} extends DefaultTask {
-                @InputFile File input
-                @OutputFile File output
-                @TaskAction action() {
-                    output.parentFile.mkdirs()
-                    output.text = input.text
-                }
-            }
-        """
-    }
-
-    @ValidationTestFor(
-        ValidationProblemId.UNKNOWN_IMPLEMENTATION
-    )
-    @ToBeFixedForConfigurationCache(because = "ClassNotFoundException: CustomTaskAction")
-    def "task with custom action loaded with custom classloader is never up-to-date"() {
+    def "task with custom action loaded with custom classloader fails the build"() {
         file("input.txt").text = "data"
         buildFile << """
             import org.gradle.api.*
@@ -1263,24 +1159,13 @@ task b(dependsOn: a)
             }
         """
         when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
+        fails "customTask"
+        then:
+        failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
+        failureDescriptionContains(implementationUnknown {
             additionalTaskAction(':customTask')
             unknownClassloader('CustomTaskAction')
-            includeLink()
         })
-        succeeds "customTask"
-        then:
-        noneSkipped()
-
-        when:
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, implementationUnknown {
-            additionalTaskAction(':customTask')
-            unknownClassloader('CustomTaskAction')
-            includeLink()
-        })
-        succeeds "customTask"
-        then:
-        noneSkipped()
     }
 
     @Issue("gradle/gradle#1168")
@@ -1375,38 +1260,6 @@ task b(dependsOn: a)
         skipped(':taskWithInputs')
     }
 
-    @Issue('https://github.com/gradle/gradle/issues/1224')
-    def 'can change input properties dynamically'() {
-        given:
-        file('inputDir1').createDir()
-        file('inputDir2').createDir()
-        buildFile << '''
-    class MyTask extends DefaultTask {
-        @TaskAction
-        void processFiles(IncrementalTaskInputs inputs) {
-            inputs.outOfDate { }
-        }
-    }
-
-    task myTask (type: MyTask){
-        project.ext.inputDirs.split(',').each { inputs.dir(it) }
-        outputs.upToDateWhen { true }
-    }
-'''
-
-        when:
-        args('-PinputDirs=inputDir1,inputDir2')
-
-        then:
-        succeeds('myTask')
-
-        when:
-        args('-PinputDirs=inputDir1')
-
-        then:
-        succeeds('myTask')
-    }
-
     @ToBeImplemented("Private getters should be ignored")
     @ValidationTestFor(
         ValidationProblemId.PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED
@@ -1448,7 +1301,7 @@ task b(dependsOn: a)
 
         then:
         failureDescriptionContains(
-            privateGetterAnnotatedMessage { type('MyTask').property('myPrivateInput').annotation('Input')}
+            privateGetterAnnotatedMessage { type('MyTask').property('myPrivateInput').annotation('Input') }
         )
     }
 
@@ -1550,5 +1403,42 @@ task b(dependsOn: a)
                 alsoAnnotatedWith('Classpath', 'InputFiles')
             }
         )
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/7923")
+    def "task is not up-to-date when the implementation of a named #actionMethodName action changes"() {
+        buildScript """
+            tasks.register('myTask') {
+                outputs.dir(layout.buildDirectory.dir('myDir'))
+                ${actionMethodName}('myAction') { println("printing from action") }
+            }
+        """
+
+        when:
+        run ':myTask'
+        then:
+        executedAndNotSkipped(':myTask')
+        outputContains("printing from action")
+
+        when:
+        buildFile << """
+            tasks.register('other')
+        """
+        run ':myTask', '--info'
+        then:
+        executedAndNotSkipped(':myTask')
+        outputContains("printing from action")
+        outputContains("One or more additional actions for task ':myTask' have changed.")
+
+        when:
+        run ':myTask'
+        then:
+        skipped(':myTask')
+
+        where:
+        actionMethodName << [
+            "doFirst",
+            "doLast",
+        ]
     }
 }

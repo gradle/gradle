@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2021 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,120 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.junit.Test
 
-class EclipseTestSourcesIntegrationTest extends AbstractEclipseIntegrationTest {
+class EclipseTestSourcesIntegrationTest extends AbstractEclipseTestSourcesIntegrationTest {
 
-    @Test
     @ToBeFixedForConfigurationCache
-    void "All test source folders and test dependencies are marked with test attribute"() {
-        //when
-        file('src/main/java').mkdirs()
-        file('src/test/java').mkdirs()
-        runEclipseTask """
-            apply plugin: 'java'
-            apply plugin: 'eclipse'
-
-            ${mavenCentralRepository()}
-
-            dependencies {
-                 implementation "com.google.guava:guava:21.0"
-                 testImplementation "junit:junit:4.13"
+    def "source directories from main source sets are not marked with test classpath attribute"() {
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'eclipse'
             }
         """
+        file('src/main/java').mkdirs()
 
-        //then
-        classpath.lib("guava-21.0.jar").assertHasNoAttribute("test", "true")
-        classpath.lib("junit-4.13.jar").assertHasAttribute("test", "true")
-        classpath.sourceDir("src/main/java").assertHasNoAttribute("test", "true")
-        classpath.sourceDir("src/test/java").assertHasAttribute("test", "true")
+        when:
+        run 'eclipse'
+
+        then:
+        assertSourceDirectoryDoesNotHaveTestAttribute('src/main/java')
+    }
+
+    @ToBeFixedForConfigurationCache
+    def "source directories from test source sets are marked with test classpath attribute"() {
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'eclipse'
+            }
+        """
+        file('src/test/java').mkdirs()
+
+        when:
+        run 'eclipse'
+
+        then:
+        assertSourceDirectoryHasTestAttribute('src/test/java')
+    }
+
+    @ToBeFixedForConfigurationCache
+    def "source directories defined in custom source sets are marked with test classpath attribute if source set name contains 'test' substring"() {
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'eclipse'
+            }
+
+            sourceSets {
+                functionalTest
+                integration
+            }
+        """
+        file('src/functionalTest/java').mkdirs()
+        file('src/integration/java').mkdirs()
+
+        when:
+        run 'eclipse'
+
+        then:
+        assertSourceDirectoryHasTestAttribute('src/functionalTest/java')
+        assertSourceDirectoryDoesNotHaveTestAttribute('src/integration/java')
+    }
+
+    @ToBeFixedForConfigurationCache
+    def "source directories defined in jvm test suites are marked with test classpath attribute"() {
+        settingsFile << "rootProject.name = 'eclipse-jvm-test-suites-integration-test'"
+        buildFile << """
+            plugins {
+                id 'eclipse'
+                id 'jvm-test-suite'
+            }
+
+            testing {
+                suites {
+                    integration(JvmTestSuite) {
+                        sources {
+                            java {
+                                srcDirs = ['src/integration/java']
+                            }
+                        }
+                    }
+                }
+            }
+        """
+        file('src/integration/java').mkdirs()
+
+        when:
+        run 'eclipse'
+
+        then:
+        assertSourceDirectoryHasTestAttribute('src/integration/java')
+    }
+
+    @ToBeFixedForConfigurationCache
+    def "can configure which source directories are marked with test classpath attribute"() {
+        setup:
+        buildFile << """
+            plugins {
+                id 'java'
+                id 'eclipse'
+            }
+
+            eclipse {
+                classpath {
+                    testSourceSets = [sourceSets.main]
+                }
+            }
+        """
+        file('src/main/java').mkdirs()
+        file('src/test/java').mkdirs()
+
+        when:
+        run 'eclipse'
+
+        then:
+        assertSourceDirectoryHasTestAttribute('src/main/java')
+        assertSourceDirectoryDoesNotHaveTestAttribute('src/test/java')
     }
 }

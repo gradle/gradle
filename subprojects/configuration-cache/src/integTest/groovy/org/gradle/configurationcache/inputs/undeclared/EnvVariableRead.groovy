@@ -43,4 +43,13 @@ abstract class EnvVariableRead extends BuildInputRead {
             }
         }
     }
+
+    static EnvVariableRead getEnvContainsKey(String name) {
+        return new EnvVariableRead() {
+            @Override
+            String getKotlinExpression() {
+                return "System.getenv().containsKey(\"$name\")"
+            }
+        }
+    }
 }

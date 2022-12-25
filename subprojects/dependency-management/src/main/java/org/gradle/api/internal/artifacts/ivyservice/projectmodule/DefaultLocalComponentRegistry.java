@@ -16,26 +16,77 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.api.internal.project.HoldsProjectState;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.internal.Describables;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
+import org.gradle.internal.model.CalculatedValueContainer;
+import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.ValueCalculator;
 
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
-    private final List<LocalComponentProvider> providers;
+public class DefaultLocalComponentRegistry implements LocalComponentRegistry, HoldsProjectState {
+    private final BuildIdentifier thisBuild;
+    private final ProjectStateRegistry projectStateRegistry;
+    private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final LocalComponentProvider provider;
+    private final LocalComponentInAnotherBuildProvider otherBuildProvider;
+    private final Map<ProjectComponentIdentifier, CalculatedValueContainer<LocalComponentGraphResolveState, ?>> projects = new ConcurrentHashMap<>();
 
-    public DefaultLocalComponentRegistry(List<LocalComponentProvider> providers) {
-        this.providers = providers;
+    public DefaultLocalComponentRegistry(
+        BuildIdentifier thisBuild,
+        ProjectStateRegistry projectStateRegistry,
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        LocalComponentProvider provider,
+        LocalComponentInAnotherBuildProvider otherBuildProvider
+    ) {
+        this.thisBuild = thisBuild;
+        this.projectStateRegistry = projectStateRegistry;
+        this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.provider = provider;
+        this.otherBuildProvider = otherBuildProvider;
     }
 
     @Override
-    public LocalComponentMetadata getComponent(ProjectComponentIdentifier projectIdentifier) {
-        for (LocalComponentProvider provider : providers) {
-            LocalComponentMetadata componentMetaData = provider.getComponent(projectIdentifier);
-            if (componentMetaData != null) {
-                return componentMetaData;
+    public LocalComponentGraphResolveState getComponent(ProjectComponentIdentifier projectIdentifier) {
+        CalculatedValueContainer<LocalComponentGraphResolveState, ?> valueContainer = projects.computeIfAbsent(projectIdentifier, projectComponentIdentifier -> {
+            ProjectState projectState = projectStateRegistry.stateFor(projectIdentifier);
+            return calculatedValueContainerFactory.create(Describables.of("metadata of", projectIdentifier), new MetadataSupplier(projectState));
+        });
+        // Calculate the value after adding the entry to the map, so that the value container can take care of thread synchronization
+        valueContainer.finalizeIfNotAlready();
+        return valueContainer.get();
+    }
+
+    @Override
+    public void discardAll() {
+        projects.clear();
+    }
+
+    private class MetadataSupplier implements ValueCalculator<LocalComponentGraphResolveState> {
+        private final ProjectState projectState;
+
+        public MetadataSupplier(ProjectState projectState) {
+            this.projectState = projectState;
+        }
+
+        @Override
+        public LocalComponentGraphResolveState calculateValue(NodeExecutionContext context) {
+            if (isLocalProject(projectState.getComponentIdentifier())) {
+                return provider.getComponent(projectState);
+            } else {
+                return otherBuildProvider.getComponent(projectState);
             }
         }
-        throw new IllegalArgumentException(projectIdentifier + " not found.");
+
+        private boolean isLocalProject(ProjectComponentIdentifier projectIdentifier) {
+            return projectIdentifier.getBuild().equals(thisBuild);
+        }
     }
 }

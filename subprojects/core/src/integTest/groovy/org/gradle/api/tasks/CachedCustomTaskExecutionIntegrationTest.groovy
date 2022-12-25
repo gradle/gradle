@@ -25,11 +25,14 @@ import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Requires
-import spock.lang.Unroll
 
 import static org.gradle.api.tasks.LocalStateFixture.defineTaskWithLocalState
+import static org.gradle.util.internal.TextUtil.escapeString
 
 class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, ValidationMessageChecker {
+
+    private static final String CACHE_KEY_PATTERN = "[0-9a-f]+"
+
     def configureCacheForBuildSrc() {
         file("buildSrc/settings.gradle") << localCacheConfiguration()
     }
@@ -208,7 +211,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             task customTask {
                 outputs.cacheIf { true }
                 def fileList
-                if (providers.systemProperty("changedCardinality").forUseAtConfigurationTime().present) {
+                if (providers.systemProperty("changedCardinality").present) {
                     fileList = ["build/output1.txt"]
                 } else {
                     fileList = ["build/output1.txt", "build/output2.txt"]
@@ -450,7 +453,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build").listFiles().sort() as List == [file("build/output-a.txt"), file("build/output-b.txt")]
     }
 
-    @Unroll
     def "missing #type output from runtime API is not cached"() {
         given:
         file("input.txt") << "data"
@@ -489,7 +491,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         type << ["file", "dir"]
     }
 
-    @Unroll
     def "missing #type from annotation API is not cached"() {
         given:
         file("input.txt") << "data"
@@ -568,7 +569,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build/empty").assertIsEmptyDir()
     }
 
-    @Unroll
     def "reports useful error when output #expected is expected but #actual is produced"() {
         given:
         file("input.txt") << "data"
@@ -591,8 +591,8 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         when:
         withBuildCache().fails "customTask"
         then:
-        failureHasCause("Failed to store cache entry for task ':customTask'")
         def expectedMessage = message.replace("PATH", file("build/output").path)
+        failureHasCause(~/Failed to store cache entry $CACHE_KEY_PATTERN for task ':customTask': Could not pack tree 'output': ${escapeString(expectedMessage)}/)
         errorOutput.contains "Could not pack tree 'output': $expectedMessage"
 
         where:
@@ -718,7 +718,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         expectedOutput.file
     }
 
-    @Unroll
     def "local state declared via #api API is destroyed when task is loaded from cache"() {
         def localStateFile = file("local-state.json")
         buildFile << defineTaskWithLocalState(useRuntimeApi)
@@ -741,7 +740,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         api = useRuntimeApi ? "runtime" : "annotation"
     }
 
-    @Unroll
     def "local state declared via #api API is not destroyed when task is not loaded from cache"() {
         def localStateFile = file("local-state.json")
         buildFile << defineTaskWithLocalState(useRuntimeApi)
@@ -763,7 +761,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         api = useRuntimeApi ? "runtime" : "annotation"
     }
 
-    @Unroll
     def "null local state declared via #api API is supported"() {
         buildFile << defineTaskWithLocalState(useRuntimeApi, localStateFile)
 
@@ -833,14 +830,13 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
 
         executer.beforeExecute {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'input'))
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'input'), 'id', 'section')
         }
 
         when:
         withBuildCache().run "invalid", "--info"
         then:
-        outputContains("""
-            |Caching disabled for task ':invalid' because:
+        outputContains("""|Caching disabled for task ':invalid' because:
             |  Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.
         """.stripMargin())
         executedAndNotSkipped(":invalid")

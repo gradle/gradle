@@ -27,3 +27,5 @@ dependencies {
 }
 
 testFilesCleanup.reportOnly.set(true)
+
+description = """Provides functionality for resolving and managing plugins during their application to projects."""

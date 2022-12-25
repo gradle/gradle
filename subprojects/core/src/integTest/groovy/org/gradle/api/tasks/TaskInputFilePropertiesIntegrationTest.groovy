@@ -19,21 +19,19 @@ package org.gradle.api.tasks
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.tasks.TaskPropertyUtils
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
-import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.reflect.problems.ValidationProblemId
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.internal.reflect.validation.ValidationTestFor
 import spock.lang.Issue
-import spock.lang.Unroll
 
 class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
     def setup() {
         expectReindentedValidationMessage()
     }
 
-    @Unroll
     def "allows optional @#annotation.simpleName to have null value"() {
         buildFile << """
             import ${GetInputFilesVisitor.name}
@@ -68,7 +66,6 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
     @ValidationTestFor(
         ValidationProblemId.UNSUPPORTED_NOTATION
     )
-    @Unroll
     @Issue("https://github.com/gradle/gradle/issues/3193")
     @ToBeFixedForConfigurationCache(because = "multiple build failures")
     def "TaskInputs.#method shows error message when used with complex input"() {
@@ -112,13 +109,12 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
     @ValidationTestFor(
         ValidationProblemId.UNSUPPORTED_NOTATION
     )
-    @Unroll
     @ToBeFixedForConfigurationCache(because = "multiple build failures")
     def "#annotation.simpleName shows error message when used with complex input"() {
         buildFile << """
             import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
             import org.gradle.api.internal.tasks.TaskPropertyUtils
-            import org.gradle.api.internal.tasks.properties.PropertyWalker
+            import org.gradle.internal.properties.bean.PropertyWalker
 
             class CustomTask extends DefaultTask {
                 @Optional @${annotation.name} input

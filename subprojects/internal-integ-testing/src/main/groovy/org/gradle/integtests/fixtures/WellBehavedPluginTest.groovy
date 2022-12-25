@@ -22,7 +22,7 @@ import org.junit.Assume
 
 import java.util.regex.Pattern
 
-abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
+abstract class WellBehavedPluginTest extends AbstractIntegrationSpec {
 
     String getPluginName() {
         def matcher = Pattern.compile("(\\w+)Plugin(GoodBehaviour)?(Integ(ration)?)?Test").matcher(getClass().simpleName)
@@ -45,7 +45,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         "ScalaPluginGoodBehaviourTest",
         "AntlrPluginIntegrationTest",
         "PlayApplicationPluginGoodBehaviourIntegrationTest",
-        "CheckstylePluginIntegrationTest",
         "PmdPluginIntegrationTest",
         "CppLibraryPluginIntegrationTest",
         "CppApplicationPluginIntegrationTest",
@@ -76,7 +75,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         "ScalaPluginGoodBehaviourTest",
         "AntlrPluginIntegrationTest",
         "PlayApplicationPluginGoodBehaviourIntegrationTest",
-        "CheckstylePluginIntegrationTest",
         "PmdPluginIntegrationTest",
         "CppLibraryPluginIntegrationTest",
         "CppApplicationPluginIntegrationTest",
@@ -140,51 +138,6 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache(bottomSpecs = [
-        "AntlrPluginIntegrationTest",
-        "ApplicationPluginIntegrationTest",
-        "AssemblerLangPluginIntegrationTest",
-        "AssemblerPluginIntegrationTest",
-        "BasePluginGoodBehaviourTest",
-        "CLangPluginIntegrationTest",
-        "CPluginIntegrationTest",
-        "CUnitPluginIntegrationTest",
-        "CoffeeScriptBasePluginIntegrationTest",
-        "CppApplicationPluginIntegrationTest",
-        "CppLangPluginIntegrationTest",
-        "CppLibraryPluginIntegrationTest",
-        "CppPluginIntegrationTest",
-        "CppUnitTestPluginIntegrationTest",
-        "DistributionPluginIntegrationTest",
-        "EarPluginGoodBehaviourTest",
-        "EnvJsPluginIntegrationTest",
-        "GoogleTestPluginIntegrationTest",
-        "GroovyPluginGoodBehaviourTest",
-        "JUnitTestSuitePluginGoodBehaviourTest",
-        "JavaBasePluginGoodBehaviourTest",
-        "JavaGradlePluginPluginIntegrationTest",
-        "JavaLanguagePluginGoodBehaviourTest",
-        "JavaLibraryDistributionIntegrationTest",
-        "JavaPluginGoodBehaviourTest",
-        "JavaScriptBasePluginIntegrationTest",
-        "JsHintPluginIntegrationTest",
-        "MavenPluginGoodBehaviourTest",
-        "NativeComponentPluginIntegrationTest",
-        "ObjectiveCLangPluginIntegrationTest",
-        "ObjectiveCPluginIntegrationTest",
-        "ObjectiveCppLangPluginIntegrationTest",
-        "ObjectiveCppPluginIntegrationTest",
-        "PlayCoffeeScriptPluginGoodBehaviourIntegrationTest",
-        "PlayJavaScriptPluginGoodBehaviourIntegrationTest",
-        "RhinoPluginIntegrationTest",
-        "ScalaLanguagePluginGoodBehaviourTest",
-        "ScalaPluginGoodBehaviourTest",
-        "SwiftApplicationPluginIntegrationTest",
-        "SwiftLibraryPluginIntegrationTest",
-        "WarPluginGoodBehaviourTest",
-        "WindowsResourceScriptPluginIntegrationTest",
-        "WindowsResourcesPluginIntegrationTest",
-    ])
     def "does not realize all possible tasks if the build is included"() {
         Assume.assumeFalse(pluginName in ['xctest', 'visual-studio', 'xcode', 'play-application'])
 

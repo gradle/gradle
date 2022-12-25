@@ -26,7 +26,6 @@ import org.gradle.testkit.runner.fixtures.PluginUnderTest
 import org.gradle.util.GradleVersion
 import org.gradle.util.UsesNativeServices
 import spock.lang.IgnoreIf
-import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.hamcrest.CoreMatchers.anyOf
@@ -193,7 +192,6 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
         runner("compare").withPluginClasspath(plugin.implClasspath).build()
     }
 
-    @Unroll
     @InspectsExecutedTasks
     def "plugin applied via injection can apply another plugin from its implementation classpath"() {
         given:

@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
-import spock.lang.Unroll
 
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
@@ -34,7 +33,6 @@ class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationS
         executer.withRepositoryMirrors()
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/workingWithDependencies-iterateDependencies")
     @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can iterate over dependencies assigned to a configuration with #dsl dsl"() {
@@ -51,7 +49,6 @@ commons-codec:commons-codec:1.7""")
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/workingWithDependencies-iterateArtifacts")
     @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can iterate over artifacts resolved for a module with #dsl dsl"() {
@@ -75,7 +72,6 @@ commons-codec:commons-codec:1.7""")
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/workingWithDependencies-walkGraph")
     @ToBeFixedForConfigurationCache(because = "broken file collection")
     def "can walk the dependency graph of a configuration with #dsl dsl"() {
@@ -100,7 +96,6 @@ commons-codec:commons-codec:1.7""")
         dsl << ['groovy', 'kotlin']
     }
 
-    @Unroll
     @UsesSample("dependencyManagement/workingWithDependencies-accessMetadataArtifact")
     @ToBeFixedForConfigurationCache(iterationMatchers = ".*kotlin dsl")
     def "can accessing a module's metadata artifact with #dsl dsl"() {

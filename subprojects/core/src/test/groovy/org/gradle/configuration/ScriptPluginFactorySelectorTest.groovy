@@ -24,7 +24,6 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resource.StringTextResource
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class ScriptPluginFactorySelectorTest extends Specification {
 
@@ -42,7 +41,6 @@ class ScriptPluginFactorySelectorTest extends Specification {
         _ * defaultScriptPluginFactory.create(*_) >> defaultScriptPlugin
     }
 
-    @Unroll
     def "selects default scripting support short circuiting provider lookup for #fileName"() {
         given:
         def scriptSource = scriptSourceFor(fileName)

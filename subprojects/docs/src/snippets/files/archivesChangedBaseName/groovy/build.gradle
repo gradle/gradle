@@ -11,20 +11,23 @@ base {
 }
 // end::base-plugin-config[]
 
-tasks.register('myZip', Zip) {
+def myZip = tasks.register('myZip', Zip) {
     from 'somedir'
 }
 
-tasks.register('myOtherZip', Zip) {
+def myOtherZip = tasks.register('myOtherZip', Zip) {
     archiveAppendix = 'wrapper'
     archiveClassifier = 'src'
     from 'somedir'
 }
 
 tasks.register('echoNames') {
+    def projectNameString = project.name
+    def archiveFileName = myZip.flatMap { it.archiveFileName }
+    def myOtherArchiveFileName = myOtherZip.flatMap { it.archiveFileName }
     doLast {
-        println "Project name: ${project.name}"
-        println myZip.archiveFileName.get()
-        println myOtherZip.archiveFileName.get()
+        println "Project name: $projectNameString"
+        println archiveFileName.get()
+        println myOtherArchiveFileName.get()
     }
 }

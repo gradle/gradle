@@ -22,9 +22,8 @@ import org.gradle.nativeplatform.fixtures.app.ExeWithDiamondDependencyHelloWorld
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Unroll
 
-@Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+@Requires([TestPrecondition.CAN_INSTALL_EXECUTABLE, TestPrecondition.NOT_MAC_OS_X])
 class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"
@@ -45,7 +44,6 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 """
     }
 
-    @Unroll
     def "produces reasonable error message when referenced library #label"() {
         given:
         def app = new CppHelloWorldApp()
@@ -90,7 +88,6 @@ project(":other") {
         "does not exist in referenced project" | "project: ':other', library: 'unknown'" | "Could not locate library 'unknown' in project ':other' required by 'main' in project ':exe'."
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can use #notationName notation to reference library in same project"() {
         given:
@@ -124,7 +121,6 @@ model {
         "map"        | "library: 'hello'"
     }
 
-    @Unroll
     @ToBeFixedForConfigurationCache
     def "can use map #notationName notation to reference library dependency of binary"() {
         given:

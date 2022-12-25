@@ -52,7 +52,7 @@ class MutableClassDetails implements ClassDetails {
     }
 
     @Override
-    public Collection<Field> getInstanceFields() {
+    public List<Field> getInstanceFields() {
         return instanceFields;
     }
 

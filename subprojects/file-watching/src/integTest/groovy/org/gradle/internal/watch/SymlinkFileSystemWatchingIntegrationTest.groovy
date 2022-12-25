@@ -16,12 +16,12 @@
 
 package org.gradle.internal.watch
 
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.Unroll
 
-@Unroll
+@LocalOnly
 @Requires(TestPrecondition.SYMLINKS)
 class SymlinkFileSystemWatchingIntegrationTest extends AbstractFileSystemWatchingIntegrationTest {
     private static final String UNABLE_TO_WATCH_MESSAGE = "Unable to watch the file system for changes."

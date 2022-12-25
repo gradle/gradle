@@ -24,13 +24,11 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.resource.ExternalResourceListBuildOperationType
 import org.gradle.internal.resource.ExternalResourceReadBuildOperationType
 import org.gradle.internal.resource.ExternalResourceReadMetadataBuildOperationType
-import spock.lang.Unroll
 
 class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    @Unroll
     def "emits events for dependency resolution downloads - chunked: #chunked"() {
         given:
         def m = mavenHttpRepo.module("org.utils", "impl", '1.3')

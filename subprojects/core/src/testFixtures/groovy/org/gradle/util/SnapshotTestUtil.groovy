@@ -19,17 +19,34 @@ package org.gradle.util
 
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
+import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.snapshot.ValueSnapshotter
+import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.state.DefaultManagedFactoryRegistry
 
 class SnapshotTestUtil {
     static ValueSnapshotter valueSnapshotter() {
-        return new DefaultValueSnapshotter(new ClassLoaderHierarchyHasher() {
+        return new DefaultValueSnapshotter(
+            [],
+            classLoaderHierarchyHasher()
+        )
+    }
+
+    static IsolatableFactory isolatableFactory() {
+        return new DefaultIsolatableFactory(
+            classLoaderHierarchyHasher(),
+            new DefaultManagedFactoryRegistry(null)
+        )
+    }
+
+    private static ClassLoaderHierarchyHasher classLoaderHierarchyHasher() {
+        return new ClassLoaderHierarchyHasher() {
             @Override
             HashCode getClassLoaderHash(ClassLoader classLoader) {
-                return HashCode.fromInt(classLoader.hashCode())
+                return TestHashCodes.hashCodeFrom(classLoader.hashCode())
             }
-        }, new DefaultManagedFactoryRegistry(null))
+        };
     }
 }

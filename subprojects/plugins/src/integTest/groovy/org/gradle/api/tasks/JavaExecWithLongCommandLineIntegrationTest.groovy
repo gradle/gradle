@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.util.LongCommandLineDetectionUtil
-import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
 
@@ -81,7 +80,6 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         """
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
     def "still fail when classpath doesn't shorten the command line enough with #method"() {
         def veryLongCommandLineArgs = getLongCommandLine(getMaxArgs() * 16)
@@ -104,7 +102,6 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         'ExecOperations.javaexec' | 'runWithExecOperations'
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
     def "does not suggest long command line failures when execution fails with #method"() {
         buildFile << """
@@ -121,12 +118,13 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
         where:
         method                    | taskName
-        'JavaExec task'           | 'run'
         'project.javaexec'        | 'runWithJavaExec'
         'ExecOperations.javaexec' | 'runWithExecOperations'
+        // The test does not work with the JavaExec task because the task resolves the executable prior to starting the process.
+        // At the same time, all the cases test the same functionality of the ExecHandle implementation.
+        // 'JavaExec task'           | 'run'
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
     def "does not suggest long command line failures when execution fails for short command line with #method"() {
         buildFile << """
@@ -142,12 +140,13 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
         where:
         method                    | taskName
-        'JavaExec task'           | 'run'
         'project.javaexec'        | 'runWithJavaExec'
         'ExecOperations.javaexec' | 'runWithExecOperations'
+        // The test does not work with the JavaExec task because the task resolves the executable prior to starting the process.
+        // At the same time, all the cases test the same functionality of the ExecHandle implementation.
+        // 'JavaExec task'           | 'run'
     }
 
-    @Unroll
     @UnsupportedWithConfigurationCache(iterationMatchers = ".* project.javaexec")
     def "succeeds with long classpath with #method"() {
         buildFile << """

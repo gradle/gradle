@@ -20,7 +20,6 @@ import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.WithExternalRepository
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
-import spock.lang.Unroll
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -30,18 +29,13 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 )
 class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanceTest implements WithExternalRepository {
 
-    public static final String MIN_MEMORY = "-Xms800m"
-    public static final String MAX_MEMORY = "-Xmx800m"
-
     def setup() {
         runner.minimumBaseVersion = '5.6.4'
-        runner.targetVersions = ["7.4-20211011015750+0000"]
     }
 
     def "resolve large dependency graph from file repo"() {
         given:
         runner.tasksToRun = ['resolveDependencies']
-        runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
         runner.args = ["-PnoExcludes"]
 
         when:
@@ -51,13 +45,11 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionPerformanc
         result.assertCurrentVersionHasNotRegressed()
     }
 
-    @Unroll
     def "resolve large dependency graph (parallel = #parallel, locking = #locking)"() {
         startServer()
 
         given:
         runner.tasksToRun = ['resolveDependencies']
-        runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
         runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes']
         if (parallel) {
             runner.args += '--parallel'

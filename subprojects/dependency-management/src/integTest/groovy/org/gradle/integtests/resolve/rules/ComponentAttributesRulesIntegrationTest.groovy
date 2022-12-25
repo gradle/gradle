@@ -18,16 +18,12 @@ package org.gradle.integtests.resolve.rules
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.server.http.IvyHttpModule
-import spock.lang.Unroll
 
 class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    @Unroll("#outcome if attribute is #mutation via component metadata rule")
-    @ToBeFixedForConfigurationCache(iterationMatchers = ["fails.*"])
-    def "check that attribute rules modify the result of dependency resolution"() {
+    def "#outcome if attribute is #mutation via component metadata rule"() {
         given:
         repository {
             'org.test:module:1.0'()
@@ -99,8 +95,6 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForConfigurationCache(iterationMatchers = [".*component level = false.*"])
-    @Unroll
     def "variant attributes take precedence over component attributes (component level = #componentLevel)"() {
         given:
         repository {
@@ -233,8 +227,6 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForConfigurationCache(iterationMatchers = [".*fix applied = false.*"])
-    @Unroll
     def "published component metadata can be overwritten (fix applied = #fixApplied)"() {
         given:
         repository {
@@ -380,7 +372,6 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
      * that we can provide a status to Maven dependencies and still use attribute matching
      * to use the right version.
      */
-    @Unroll
     def "can select the latest.#status version having release status"() {
         given:
         def versions = [

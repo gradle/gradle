@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Usage
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -29,10 +30,10 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
     private static final Attribute<Object> OTHER_BAR = Attribute.of(BAR.name, Object.class)
     private static final Attribute<String> BAZ = Attribute.of("baz", String)
 
-    def snapshotter = SnapshotTestUtil.valueSnapshotter()
+    def isolatableFactory = SnapshotTestUtil.isolatableFactory()
     def instantiator = TestUtil.objectInstantiator()
 
-    def factory = new DefaultImmutableAttributesFactory(snapshotter, instantiator)
+    def factory = new DefaultImmutableAttributesFactory(isolatableFactory, instantiator)
 
     def "can create empty set"() {
         when:
@@ -180,7 +181,7 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
 
     def "can compare attribute sets created by two different factories"() {
         given:
-        def otherFactory = new DefaultImmutableAttributesFactory(snapshotter, instantiator)
+        def otherFactory = new DefaultImmutableAttributesFactory(isolatableFactory, instantiator)
 
         when:
         def set1 = factory.concat(factory.of(FOO, "foo"), BAR, "bar")
@@ -192,7 +193,7 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
 
     def "can append to a set created with a different factory"() {
         given:
-        def otherFactory = new DefaultImmutableAttributesFactory(snapshotter, instantiator)
+        def otherFactory = new DefaultImmutableAttributesFactory(isolatableFactory, instantiator)
         def attributes = otherFactory.of(FOO, 'foo')
 
         when:
@@ -275,14 +276,14 @@ class DefaultImmutableAttributesFactoryTest extends Specification {
     }
 
     def "translates deprecated usage values"() {
-        def result = factory.concat(factory.of(FOO, "foo"), Usage.USAGE_ATTRIBUTE, instantiator.named(Usage, Usage.JAVA_API_JARS))
+        def result = factory.concat(factory.of(FOO, "foo"), Usage.USAGE_ATTRIBUTE, instantiator.named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
 
         expect:
         result.findEntry(Usage.USAGE_ATTRIBUTE).get().name == "java-api"
     }
 
     def "translates deprecated usage values as Isolatable"() {
-        def result = factory.concat(factory.of(FOO, "foo"), Usage.USAGE_ATTRIBUTE, new CoercingStringValueSnapshot("java-runtime-jars", instantiator))
+        def result = factory.concat(factory.of(FOO, "foo"), Usage.USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(JavaEcosystemSupport.DEPRECATED_JAVA_RUNTIME_JARS, instantiator))
 
         expect:
         result.findEntry(Usage.USAGE_ATTRIBUTE).get().toString() == "java-runtime"

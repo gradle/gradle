@@ -16,20 +16,21 @@
 
 package org.gradle.internal.build.event.types;
 
+import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
 
 import java.util.List;
 
 public class DefaultTestFailureResult extends AbstractTestResult implements InternalTestFailureResult {
-    private final List<DefaultFailure> failures;
+    private final List<InternalFailure> failures;
 
-    public DefaultTestFailureResult(long startTime, long endTime, List<DefaultFailure> failures) {
+    public DefaultTestFailureResult(long startTime, long endTime, List<InternalFailure> failures) {
         super(startTime, endTime, "failed");
         this.failures = failures;
     }
 
     @Override
-    public List<DefaultFailure> getFailures() {
+    public List<InternalFailure> getFailures() {
         return failures;
     }
 }

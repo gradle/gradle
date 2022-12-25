@@ -23,7 +23,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -31,7 +30,6 @@ class JUnitCategoriesIntegrationSpec extends AbstractSampleIntegrationTest {
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
-    @Unroll
     def 'reports unloadable #type'() {
         given:
         resources.maybeCopy("JUnitCategoriesIntegrationSpec/reportsUnloadableCategories")
@@ -116,20 +114,80 @@ public class MyTest {
         outputContains('MyTest > testMyMethod FAILED')
     }
 
-    @Unroll
     @Issue('https://github.com/gradle/gradle/issues/4924')
-    def "re-executes test when #type is changed"() {
+    def "re-executes test when options are changed in #suiteName"() {
+        given:
+        resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")
+        buildFile << """
+        |testing {
+        |   suites {
+        |       $suiteDeclaration {
+        |           useJUnit()
+        |           targets {
+        |               all {
+        |                   testTask.configure {
+        |                       options {
+        |                           includeCategories 'org.gradle.CategoryA'
+        |                       }
+        |                   }
+        |               }
+        |           }
+        |       }
+        |   }
+        |}""".stripMargin()
+
+        when:
+        succeeds ":$task"
+
+        then:
+        executedAndNotSkipped ":$task"
+
+        when:
+        resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")
+        buildFile << """
+        |testing {
+        |   suites {
+        |       $suiteDeclaration {
+        |           useJUnit()
+        |           targets {
+        |               all {
+        |                   testTask.configure {
+        |                       options {
+        |                           includeCategories 'org.gradle.CategoryB'
+        |                       }
+        |                   }
+        |               }
+        |           }
+        |       }
+        |   }
+        |}""".stripMargin()
+
+        and:
+        succeeds ":$task"
+
+        then:
+        executedAndNotSkipped ":$task"
+
+        where:
+        suiteName   | suiteDeclaration              | task
+        'test'      | 'test'                        | 'test'
+        'integTest' | 'integTest(JvmTestSuite)'     | 'integTest'
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/4924')
+    def "skips test on re-run when options are NOT changed"() {
         given:
         resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")
         buildFile << """
         |testing {
         |   suites {
         |       test {
+        |           useJUnit()
         |           targets {
         |               all {
         |                   testTask.configure {
         |                       options {
-        |                           ${type} 'org.gradle.CategoryA'
+        |                           includeCategories 'org.gradle.CategoryA'
         |                       }
         |                   }
         |               }
@@ -145,16 +203,9 @@ public class MyTest {
         executedAndNotSkipped ':test'
 
         when:
-        resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")
-        buildFile << "test.useJUnit()"
-
-        and:
         succeeds ':test'
 
         then:
-        executedAndNotSkipped ':test'
-
-        where:
-        type << ['includeCategories', 'excludeCategories']
+        skipped ':test'
     }
 }

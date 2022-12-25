@@ -16,33 +16,31 @@
 
 package org.gradle.composite.internal
 
-
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
-import org.gradle.internal.build.BuildState
-import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.execution.plan.PlanExecutor
 import org.gradle.internal.build.BuildWorkGraph
 import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.ExecutionResult
-import org.gradle.internal.build.IncludedBuildState
+import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 
-class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
-    def buildStateRegistry = Mock(BuildStateRegistry)
+class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTest {
     def workerLeaseService = new TestWorkerLeaseService()
-    def graph = new DefaultIncludedBuildTaskGraph(executorFactory, new TestBuildOperationExecutor(), buildStateRegistry, workerLeaseService)
+    def preparer = Mock(BuildTreeWorkGraphPreparer)
+    def graph = new DefaultIncludedBuildTaskGraph(executorFactory, new TestBuildOperationExecutor(), buildStateRegistry, workerLeaseService, Stub(PlanExecutor), preparer)
 
-    def "does nothing when nothing scheduled"() {
+    def "does no work when nothing scheduled"() {
         when:
         graph.withNewWorkGraph { g ->
-            g.scheduleWork { b ->
+            def f = g.scheduleWork { b ->
             }
-            g.runWork().rethrow()
+            f.runWork().rethrow()
         }
 
         then:
+        1 * preparer.prepareToScheduleTasks(_)
         0 * _
     }
 
@@ -55,14 +53,15 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
         when:
         graph.withNewWorkGraph { g ->
-            g.scheduleWork { b ->
+            def f = g.scheduleWork { b ->
                 b.withWorkGraph(build) {}
             }
-            g.runWork().rethrow()
+            f.runWork().rethrow()
         }
 
         then:
         1 * workGraphController.newWorkGraph() >> workGraph
+        1 * preparer.prepareToScheduleTasks(_)
         1 * workGraph.populateWorkGraph(_)
         1 * workGraph.finalizeGraph()
         1 * workGraph.runWork() >> ExecutionResult.succeeded()
@@ -70,7 +69,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
     def "cannot schedule tasks when graph has not been created"() {
         when:
-        graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+        graph.locateTask(taskIdentifier(DefaultBuildIdentifier.ROOT, ":task")).queueForExecution()
 
         then:
         def e = thrown(IllegalStateException)
@@ -80,7 +79,7 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def "cannot schedule tasks when after graph has finished execution"() {
         when:
         graph.withNewWorkGraph { 12 }
-        graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+        graph.locateTask(taskIdentifier(DefaultBuildIdentifier.ROOT, ":task")).queueForExecution()
 
         then:
         def e = thrown(IllegalStateException)
@@ -90,11 +89,11 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def "cannot schedule tasks when graph is not yet being prepared for execution"() {
         given:
         def id = Stub(BuildIdentifier)
-        def build = build(id)
+        build(id)
 
         when:
         graph.withNewWorkGraph { g ->
-            graph.locateTask(id, ":task").queueForExecution()
+            graph.locateTask(taskIdentifier(id, ":task")).queueForExecution()
         }
 
         then:
@@ -105,13 +104,13 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def "cannot schedule tasks when graph has been prepared for execution"() {
         given:
         def id = Stub(BuildIdentifier)
-        def build = build(id)
+        build(id)
 
         when:
         graph.withNewWorkGraph { g ->
             g.scheduleWork {
             }
-            graph.locateTask(id, ":task").queueForExecution()
+            graph.locateTask(taskIdentifier(id, ":task")).queueForExecution()
         }
 
         then:
@@ -128,15 +127,15 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
 
         workGraphController.newWorkGraph() >> workGraph
         workGraph.runWork() >> {
-            graph.locateTask(DefaultBuildIdentifier.ROOT, ":task").queueForExecution()
+            graph.locateTask(taskIdentifier(DefaultBuildIdentifier.ROOT, ":task")).queueForExecution()
         }
 
         when:
         graph.withNewWorkGraph { g ->
-            g.scheduleWork { b ->
+            def f = g.scheduleWork { b ->
                 b.withWorkGraph(build) {}
             }
-            g.runWork().rethrow()
+            f.runWork().rethrow()
         }
 
         then:
@@ -147,26 +146,18 @@ class DefaultIncludedBuildTaskGraphTest extends ConcurrentSpec {
     def "cannot schedule tasks when graph has completed task execution"() {
         given:
         def id = Stub(BuildIdentifier)
-        def build = build(id)
+        build(id)
 
         when:
         graph.withNewWorkGraph { g ->
-            g.scheduleWork {
+            def f= g.scheduleWork {
             }
-            g.runWork()
-            graph.locateTask(id, ":task").queueForExecution()
+            f.runWork()
+            graph.locateTask(taskIdentifier(id, ":task")).queueForExecution()
         }
 
         then:
         def e = thrown(IllegalStateException)
         e.message == "Work graph is in an unexpected state: Finished"
-    }
-
-    BuildState build(BuildIdentifier id, BuildWorkGraphController workGraph = null) {
-        def build = Mock(IncludedBuildState)
-        _ * build.buildIdentifier >> id
-        _ * build.workGraph >> (workGraph ?: Stub(BuildWorkGraphController))
-        _ * buildStateRegistry.getBuild(id) >> build
-        return build
     }
 }

@@ -42,7 +42,7 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
     fun `internal types codec leaves not implemented trace for unsupported types`() {
 
         val unsupportedBean = 42 to "42"
-        val problems = serializationProblemsOf(unsupportedBean, codecs().internalTypesCodec)
+        val problems = serializationProblemsOf(unsupportedBean, codecs().internalTypesCodec())
         val problem = problems.single()
         assertInstanceOf<PropertyTrace.Gradle>(
             problem.trace
@@ -75,6 +75,19 @@ class UserTypesCodecTest : AbstractUserTypeCodecTest() {
         abstract fun displayName(): String
     }
 
+    @Test
+    fun `preserves identity of java util logging Level`() {
+        configurationCacheRoundtripOf(java.util.logging.Level.INFO to java.util.logging.Level.WARNING).run {
+            assertThat(
+                first,
+                sameInstance(java.util.logging.Level.INFO)
+            )
+            assertThat(
+                second,
+                sameInstance(java.util.logging.Level.WARNING)
+            )
+        }
+    }
 
     @Test
     fun `Peano sanity check`() {

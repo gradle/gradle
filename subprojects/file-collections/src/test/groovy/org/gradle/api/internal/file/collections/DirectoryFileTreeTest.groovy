@@ -17,22 +17,19 @@ package org.gradle.api.internal.file.collections
 
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.ReproducibleFileVisitor
-import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-import spock.lang.Unroll
 
-@Unroll
 class DirectoryFileTreeTest extends AbstractProjectBuilderSpec {
     def "visits structure"() {
         given:
         def root = temporaryFolder.createDir("root")
         def patterns = new PatternSet()
         def owner = Stub(FileTreeInternal)
-        def visitor = Mock(FileCollectionStructureVisitor)
+        def visitor = Mock(MinimalFileTree.MinimalFileTreeStructureVisitor)
 
         def fileTree = new DirectoryFileTree(root, patterns, TestFiles.fileSystem(), false)
 

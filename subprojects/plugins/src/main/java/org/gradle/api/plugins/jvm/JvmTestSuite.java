@@ -20,6 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.Buildable;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
+import org.gradle.api.attributes.TestSuiteType;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.testing.base.TestSuite;
 
@@ -36,7 +39,7 @@ import org.gradle.testing.base.TestSuite;
  * <p>
  * Based on the testing framework declared, Gradle will automatically add the appropriate dependencies and configure the underlying test task.
  * </p>
- * 
+ *
  * @since 7.3
  */
 @Incubating
@@ -67,10 +70,20 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     ExtensiblePolymorphicDomainObjectContainer<? extends JvmTestSuiteTarget> getTargets();
 
     /**
+     * Get the test type for this test suite.
+     *
+     * Defaults to the value of the {@code UNIT_TEST} constant defined in {@link TestSuiteType} for the built-in test suite, and to the dash-case name of the
+     * test suite for custom test suites.  Test suite types must be unique across all test suites within a project.
+     *
+     * @since 7.4
+     */
+    Property<String> getTestType();
+
+    /**
      * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework.
      *
      * <p>
-     *     Gradle will provide the version of JUnit Jupiter to use. Defaults to version {@code 5.7.1}
+     *     Gradle will provide the version of JUnit Jupiter to use. Defaults to version {@code 5.8.2}
      * </p>
      */
     void useJUnitJupiter();
@@ -83,9 +96,18 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     void useJUnitJupiter(String version);
 
     /**
+     * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework with a specific version.
+     *
+     * @param version provider supplying the version of JUnit Jupiter to use
+     *
+     * @since 7.6
+     */
+    void useJUnitJupiter(Provider<String> version);
+
+    /**
      * Use the <a href="https://junit.org/junit4/">JUnit4</a> testing framework.
      * <p>
-     *     Gradle will provide the version of JUnit4 to use. Defaults to version {@code 4.13}
+     *     Gradle will provide the version of JUnit4 to use. Defaults to version {@code 4.13.2}
      * </p>
      */
     void useJUnit();
@@ -98,9 +120,18 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     void useJUnit(String version);
 
     /**
+     * Use the <a href="https://junit.org/junit4/">JUnit4</a> testing framework with a specific version.
+     *
+     * @param version provider supplying the version of JUnit4 to use
+     *
+     * @since 7.6
+     */
+    void useJUnit(Provider<String> version);
+
+    /**
      * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework.
      * <p>
-     *     Gradle will provide the version of Spock to use. Defaults to version {@code 2.0-groovy-3.0}
+     *     Gradle will provide the version of Spock to use. Defaults to version {@code 2.2-groovy-3.0}
      * </p>
      */
     void useSpock();
@@ -113,9 +144,18 @@ public interface JvmTestSuite extends TestSuite, Buildable {
     void useSpock(String version);
 
     /**
+     * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework with a specific version.
+     *
+     * @param version provider supplying the version of Spock to use
+     *
+     * @since 7.6
+     */
+    void useSpock(Provider<String> version);
+
+    /**
      * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework.
      * <p>
-     *     Gradle will provide the version of kotlin.test to use. Defaults to version {@code 1.5.31}
+     *     Gradle will provide the version of kotlin.test to use. Defaults to version {@code 1.6.20}
      * </p>
      */
     void useKotlinTest();
@@ -126,6 +166,15 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * @param version the version of kotlin.test to use
      */
     void useKotlinTest(String version);
+
+    /**
+     * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework with a specific version.
+     *
+     * @param version provider supplying the version of kotlin.test to use
+     *
+     * @since 7.6
+     */
+    void useKotlinTest(Provider<String> version);
 
     /**
      * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework.
@@ -141,6 +190,15 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * @param version version of TestNG to use
      */
     void useTestNG(String version);
+
+    /**
+     * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework with a specific version.
+     *
+     * @param version provider supplying the version of TestNG to use
+     *
+     * @since 7.6
+     */
+    void useTestNG(Provider<String> version);
 
     /**
      * Dependency handler for this component.

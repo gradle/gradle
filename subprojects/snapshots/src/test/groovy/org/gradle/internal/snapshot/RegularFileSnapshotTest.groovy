@@ -18,11 +18,11 @@ package org.gradle.internal.snapshot
 
 import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.impl.DefaultFileMetadata
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 
 class RegularFileSnapshotTest extends AbstractFileSystemLeafSnapshotTest {
     @Override
     protected RegularFileSnapshot createInitialRootNode(String absolutePath) {
-        return new RegularFileSnapshot(absolutePath, PathUtil.getFileName(absolutePath), HashCode.fromInt(1235), DefaultFileMetadata.file(1, 2, AccessType.DIRECT))
+        return new RegularFileSnapshot(absolutePath, PathUtil.getFileName(absolutePath), TestHashCodes.hashCodeFrom(1235), DefaultFileMetadata.file(1, 2, AccessType.DIRECT))
     }
 }

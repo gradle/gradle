@@ -27,7 +27,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class RegexBackedCSourceParserTest extends Specification {
     @Rule
@@ -466,7 +465,6 @@ class RegexBackedCSourceParserTest extends Specification {
         found == ['test1', 'test2', 'test3', 'test4', 'system1', 'system2', 'system3', 'system4', 'DEFINED1', 'DEFINED2']
     }
 
-    @Unroll
     def "finds #directive surrounded by different whitespace"() {
         when:
         sourceFile << """
@@ -491,7 +489,6 @@ class RegexBackedCSourceParserTest extends Specification {
         directive << ["include", "import"]
     }
 
-    @Unroll
     def "finds #directive where whitespace surrounds the # character"() {
         when:
         sourceFile << """
@@ -539,7 +536,6 @@ class RegexBackedCSourceParserTest extends Specification {
         includes == ['"test1"', '"test2"', '"test3"', '<system1>', '<system2>', '<system3>', 'MACRO1', 'MACRO2', 'MACRO1()', 'MACRO2()'].collect { include(it) }
     }
 
-    @Unroll
     def "finds #directive where comment in place of whitespace"() {
         when:
         sourceFile << """
@@ -561,7 +557,6 @@ class RegexBackedCSourceParserTest extends Specification {
         directive << ["include", "import"]
     }
 
-    @Unroll
     def "finds #directive with no whitespace"() {
         when:
         sourceFile << """
@@ -605,7 +600,6 @@ class RegexBackedCSourceParserTest extends Specification {
         included << ["test'file", "testfile'", "'testfile'", "test<file", "test\"file", "\"testFile\"", "test file"]
     }
 
-    @Unroll
     def "ignores #directive inside a quoted string"() {
         when:
         sourceFile << """
@@ -624,7 +618,6 @@ class RegexBackedCSourceParserTest extends Specification {
         directive << ["include", "import", "define"]
     }
 
-    @Unroll
     def "ignores #directive that is commented out"() {
         when:
         sourceFile << """

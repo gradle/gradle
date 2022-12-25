@@ -16,11 +16,8 @@
 
 package org.gradle.internal.enterprise;
 
-import org.gradle.internal.scan.UsedByScanPlugin;
-
 import javax.annotation.Nullable;
 
-@UsedByScanPlugin
 public interface GradleEnterprisePluginCheckInResult {
 
     /**

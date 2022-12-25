@@ -17,9 +17,7 @@
 package org.gradle.initialization;
 
 import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.scan.UsedByScanPlugin;
 
-@UsedByScanPlugin
 public final class RunNestedBuildBuildOperationType implements BuildOperationType<RunNestedBuildBuildOperationType.Details, RunNestedBuildBuildOperationType.Result> {
 
     public interface Details {

@@ -93,7 +93,7 @@ class ContinuousBuildCancellationIntegrationTest extends AbstractContinuousInteg
         when:
         for (int i = 0; i < 3; i++) {
             testfile << '// changed'
-            succeeds()
+            buildTriggeredAndSucceeded()
         }
         and:
         sendEOT()

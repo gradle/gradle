@@ -60,7 +60,12 @@ class PgpKeyGrouper {
         keysToEntries.asMap()
             .entrySet()
             .forEach(e -> {
-                Collection<PgpEntry> pgpKeys = e.getValue();
+                // Filter out anything for which we have a trusted key entry already
+                Collection<PgpEntry> pgpKeys = e.getValue().stream()
+                    .filter(entry -> verificationsBuilder.getTrustedKeys().stream()
+                        .filter(trustedKey -> trustedKey.getKeyId().equals(e.getKey()))
+                        .noneMatch(entry::checkAndMarkSatisfiedBy))
+                    .collect(Collectors.toList());
                 if (pgpKeys.size() > 1) {
                     // if there's only one entry, we won't "normalize" into globally trusted keys
                     List<ModuleComponentIdentifier> moduleComponentIds = pgpKeys.stream()

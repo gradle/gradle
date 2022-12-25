@@ -5,13 +5,14 @@ plugins {
 description = "Public and internal 'core' Gradle APIs that are required by other subprojects"
 
 dependencies {
+    api(project(":process-services"))
+
     implementation(project(":base-services"))
     implementation(project(":base-services-groovy"))
     implementation(project(":enterprise-operations"))
     implementation(project(":files"))
     implementation(project(":logging"))
     implementation(project(":persistent-cache"))
-    implementation(project(":process-services"))
     implementation(project(":resources"))
 
     implementation(libs.groovy)
@@ -30,7 +31,7 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 

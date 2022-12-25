@@ -19,24 +19,37 @@ package org.gradle.internal.serialize;
 import com.google.common.base.Objects;
 import org.gradle.internal.Cast;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
+/**
+ * Default implementation of {@link SerializerRegistry}.
+ *
+ * This class must be thread-safe because multiple tasks may be registering serializable classes concurrently, while other tasks are calling {@link #build(Class)}.
+ */
+@ThreadSafe
 public class DefaultSerializerRegistry implements SerializerRegistry {
-    private final Map<Class<?>, Serializer<?>> serializerMap = new TreeMap<Class<?>, Serializer<?>>(new Comparator<Class<?>>() {
+    private static final Comparator<Class<?>> CLASS_COMPARATOR = new Comparator<Class<?>>() {
         @Override
         public int compare(Class<?> o1, Class<?> o2) {
             return o1.getName().compareTo(o2.getName());
         }
-    });
-    private final Set<Class<?>> javaSerialization = new HashSet<Class<?>>();
+    };
+    private final Map<Class<?>, SerializerFactory<?>> serializerMap = new ConcurrentSkipListMap<Class<?>, SerializerFactory<?>>(CLASS_COMPARATOR);
+
+    // We are using a ConcurrentHashMap here because:
+    //   - We don't want to use a Set with CLASS_COMPARATOR, since that would treat two classes with the same name originating from different classloaders as identical, allowing only one in the Set.
+    //   - ConcurrentHashMap.newKeySet() isn't available on Java 6, yet, and that is where this code needs to run.
+    //   - CopyOnWriteArraySet has slower insert performance, since it is not hash based.
+    private final Map<Class<?>, Boolean> javaSerialization = new ConcurrentHashMap<Class<?>, Boolean>();
     private final SerializerClassMatcherStrategy classMatcher;
 
     public DefaultSerializerRegistry() {
@@ -48,13 +61,17 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
     }
 
     @Override
-    public <T> void register(Class<T> implementationType, Serializer<T> serializer) {
-        serializerMap.put(implementationType, serializer);
+    public <T> void register(Class<T> implementationType, final Serializer<T> serializer) {
+        registerWithFactory(implementationType, new InstanceBasedSerializerFactory<T>(serializer));
+    }
+
+    protected <T> void registerWithFactory(Class<T> implementationType, final SerializerFactory<T> serializerProvider) {
+        serializerMap.put(implementationType, serializerProvider);
     }
 
     @Override
     public <T> void useJavaSerialization(Class<T> implementationType) {
-        javaSerialization.add(implementationType);
+        javaSerialization.put(implementationType, Boolean.TRUE);
     }
 
     @Override
@@ -64,7 +81,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
                 return true;
             }
         }
-        for (Class<?> candidate : javaSerialization) {
+        for (Class<?> candidate : javaSerialization.keySet()) {
             if (classMatcher.matches(baseType, candidate)) {
                 return true;
             }
@@ -74,14 +91,14 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
 
     @Override
     public <T> Serializer<T> build(Class<T> baseType) {
-        Map<Class<?>, Serializer<?>> matches = new LinkedHashMap<Class<?>, Serializer<?>>();
-        for (Map.Entry<Class<?>, Serializer<?>> entry : serializerMap.entrySet()) {
+        Map<Class<?>, SerializerFactory<?>> matches = new LinkedHashMap<Class<?>, SerializerFactory<?>>();
+        for (Map.Entry<Class<?>, SerializerFactory<?>> entry : serializerMap.entrySet()) {
             if (baseType.isAssignableFrom(entry.getKey())) {
                 matches.put(entry.getKey(), entry.getValue());
             }
         }
         Set<Class<?>> matchingJavaSerialization = new LinkedHashSet<Class<?>>();
-        for (Class<?> candidate : javaSerialization) {
+        for (Class<?> candidate : javaSerialization.keySet()) {
             if (baseType.isAssignableFrom(candidate)) {
                 matchingJavaSerialization.add(candidate);
             }
@@ -90,7 +107,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
             throw new IllegalArgumentException(String.format("Don't know how to serialize objects of type %s.", baseType.getName()));
         }
         if (matches.size() == 1 && matchingJavaSerialization.isEmpty()) {
-            return Cast.uncheckedNonnullCast(matches.values().iterator().next());
+            return Cast.uncheckedNonnullCast(matches.values().iterator().next().serializerInstance());
         }
         return new TaggedTypeSerializer<T>(matches, matchingJavaSerialization);
     }
@@ -114,12 +131,12 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
         private final Map<Class<?>, TypeInfo> typeHierarchies = new HashMap<Class<?>, TypeInfo>();
         private final TypeInfo[] serializersByTag;
 
-        TaggedTypeSerializer(Map<Class<?>, Serializer<?>> serializerMap, Set<Class<?>> javaSerialization) {
+        TaggedTypeSerializer(Map<Class<?>, SerializerFactory<?>> serializerMap, Set<Class<?>> javaSerialization) {
             serializersByTag = new TypeInfo[2 + serializerMap.size()];
             serializersByTag[JAVA_TYPE] = JAVA_SERIALIZATION;
             int nextTag = 2;
-            for (Map.Entry<Class<?>, Serializer<?>> entry : serializerMap.entrySet()) {
-                add(nextTag, entry.getKey(), entry.getValue());
+            for (Map.Entry<Class<?>, SerializerFactory<?>> entry : serializerMap.entrySet()) {
+                add(nextTag, entry.getKey(), entry.getValue().serializerInstance());
                 nextTag++;
             }
             for (Class<?> type : javaSerialization) {
@@ -191,6 +208,29 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
 
         boolean matches(Class<?> baseType, Class<?> candidate);
 
+    }
+
+    /**
+     * Serializer wrapper, that allows specific instance to be created when they cannot be shared or reused.
+     *
+     * @param <S> The type supported by the serializer
+     */
+    protected interface SerializerFactory<S> {
+        Serializer<S> serializerInstance();
+    }
+
+    private static class InstanceBasedSerializerFactory<S> implements SerializerFactory<S> {
+
+        private final Serializer<S> instance;
+
+        private InstanceBasedSerializerFactory(Serializer<S> instance) {
+            this.instance = instance;
+        }
+
+        @Override
+        public Serializer<S> serializerInstance() {
+            return instance;
+        }
     }
 
     private static final class HierarchySerializerMatcher implements SerializerClassMatcherStrategy {

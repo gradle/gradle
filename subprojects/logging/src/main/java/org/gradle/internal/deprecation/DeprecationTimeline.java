@@ -36,7 +36,11 @@ class DeprecationTimeline {
     }
 
     static DeprecationTimeline behaviourWillBeRemovedInVersion(GradleVersion version) {
-        return new DeprecationTimeline("This behaviour has been deprecated and is scheduled to be removed in %s.", version);
+        return new DeprecationTimeline("This behavior is scheduled to be removed in %s.", version);
+    }
+
+    static DeprecationTimeline willChangeInVersion(GradleVersion version) {
+        return new DeprecationTimeline("This will change in %s.", version);
     }
 
     @Override

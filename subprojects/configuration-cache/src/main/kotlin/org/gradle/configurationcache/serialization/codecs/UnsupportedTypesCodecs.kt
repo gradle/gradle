@@ -38,9 +38,9 @@ import org.gradle.api.artifacts.query.ArtifactResolutionQuery
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.result.ArtifactResolutionResult
 import org.gradle.api.artifacts.result.ArtifactResult
-import org.gradle.api.artifacts.result.ComponentResult
+import org.gradle.api.artifacts.result.ComponentArtifactsResult
 import org.gradle.api.artifacts.result.ResolutionResult
-import org.gradle.api.artifacts.result.ResolvedVariantResult
+import org.gradle.api.artifacts.result.UnresolvedComponentResult
 import org.gradle.api.artifacts.type.ArtifactTypeContainer
 import org.gradle.api.attributes.AttributeMatchingStrategy
 import org.gradle.api.attributes.AttributesSchema
@@ -56,6 +56,7 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.configurationcache.serialization.unsupported
 import org.gradle.internal.scripts.GradleScript
+import org.gradle.internal.service.DefaultServiceRegistry
 import java.io.FileDescriptor
 import java.io.InputStream
 import java.io.OutputStream
@@ -120,9 +121,9 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<ResolvedArtifact>())
     bind(unsupported<ArtifactView>())
     bind(unsupported<ArtifactResolutionResult>())
-    bind(unsupported<ComponentResult>())
+    bind(unsupported<ComponentArtifactsResult>())
+    bind(unsupported<UnresolvedComponentResult>())
     bind(unsupported<ArtifactResult>())
-    bind(unsupported<ResolvedVariantResult>())
 
     // Publishing types
     bind(unsupported<Publication>())
@@ -130,4 +131,7 @@ fun BindingsBuilder.unsupportedTypes() {
     // Direct build service references
     // Build services must always be referenced via their providers.
     bind(unsupported<BuildService<*>>())
+
+    // Gradle implementation types
+    bind(unsupported<DefaultServiceRegistry>())
 }

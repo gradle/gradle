@@ -53,15 +53,15 @@ publishing {
     configurePublishingTasks()
 }
 
-val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY").forUseAtConfigurationTime()
+val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY")
 val signArtifacts: Boolean = !pgpSigningKey.orNull.isNullOrEmpty()
 
 tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
 
 signing {
     useInMemoryPgpKeys(
-        project.providers.environmentVariable("PGP_SIGNING_KEY").forUseAtConfigurationTime().orNull,
-        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").forUseAtConfigurationTime().orNull
+        project.providers.environmentVariable("PGP_SIGNING_KEY").orNull,
+        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").orNull
     )
     publishing.publications.configureEach {
         if (signArtifacts) {
@@ -209,6 +209,18 @@ fun publishNormalizedToLocalRepository() {
         isVisible = false
         outgoing.artifact(localRepository) {
             builtBy(localPublish)
+        }
+    }
+
+    if (signArtifacts) {
+        // Otherwise we get
+        // ask ':tooling-api:publishGradleDistributionPublicationToRemoteRepository' uses this output of task ':tooling-api:signLocalPublication'
+        // without declaring an explicit or implicit dependency. This can lead to incorrect results being produced, depending on what order the tasks are executed.
+        tasks.named("publishGradleDistributionPublicationToRemoteRepository") {
+            dependsOn("signLocalPublication")
+        }
+        tasks.named("publishLocalPublicationToLocalRepository") {
+            dependsOn("signGradleDistributionPublication")
         }
     }
 }

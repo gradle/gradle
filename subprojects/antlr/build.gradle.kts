@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.distribution.api-java")
 }
 
+description = "Adds support for generating parsers from Antlr grammars."
+
 dependencies {
     implementation(project(":base-services"))
     implementation(project(":logging"))
@@ -10,6 +12,7 @@ dependencies {
     implementation(project(":model-core"))
     implementation(project(":core"))
     implementation(project(":plugins"))
+    implementation(project(":platform-jvm"))
     implementation(project(":workers"))
     implementation(project(":files"))
     implementation(project(":file-collections"))
@@ -33,6 +36,6 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/api/plugins/antlr/internal/*")
 }

@@ -5,7 +5,7 @@ repositories {
         url = uri("https://repo.spring.io/release")
     }
     maven {
-        url = uri("https://maven.restlet.com")
+        url = uri("https://repository.jboss.org/maven2")
     }
 }
 // end::multiple-repositories[]
@@ -13,7 +13,7 @@ repositories {
 val libs by configurations.creating
 
 dependencies {
-    libs("com.restlet.client:commons:2.0.0")
+    libs("jboss:jboss-system:4.2.2.GA")
 }
 
 tasks.register<Copy>("copyLibs") {

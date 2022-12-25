@@ -16,11 +16,9 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     def "can resolve tooling API via #configuration"() {
         given:
         def tapiVersion = distribution.getVersion().baseVersion.version
@@ -47,8 +45,9 @@ class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.register('resolve') {
+                def configuration = configurations.${configuration}
                 doLast {
-                    println configurations.${configuration}.files.collect { it.name }
+                    println configuration.files.collect { it.name }
                 }
             }
         """
@@ -92,8 +91,9 @@ class ToolingApiResolveIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.register('resolve') {
+                def sources = configurations.sources
                 doLast {
-                    println configurations.sources.files.collect { it.name }
+                    println sources.files.collect { it.name }
                 }
             }
         """

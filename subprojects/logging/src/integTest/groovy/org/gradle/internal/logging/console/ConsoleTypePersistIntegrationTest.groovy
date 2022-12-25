@@ -24,7 +24,7 @@ class ConsoleTypePersistIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             def consoleOutput = gradle.startParameter.consoleOutput
-            def expected = providers.gradleProperty("expected").forUseAtConfigurationTime()
+            def expected = providers.gradleProperty("expected")
             println "Console is " + consoleOutput
             assert consoleOutput.toString() == expected.get()
         """

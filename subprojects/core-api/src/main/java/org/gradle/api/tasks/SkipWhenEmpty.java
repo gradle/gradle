@@ -27,6 +27,8 @@ import java.lang.annotation.Target;
  *
  * <p>If all of the inputs declared with this annotation are empty, the task will be skipped with a "NO-SOURCE" message.</p>
  *
+ * <p>Consider using {@link IgnoreEmptyDirectories} as well, if the task only works on files and not on directories.</p>
+ *
  * <p>Inputs annotated with this annotation can be queried for changes via {@link org.gradle.work.InputChanges#getFileChanges(org.gradle.api.file.FileCollection)} or {@link org.gradle.work.InputChanges#getFileChanges(org.gradle.api.provider.Provider)}.</p>
  *
  * <p>This annotation should be attached to the getter method in Java or the property in Groovy.

@@ -17,13 +17,11 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
-import spock.lang.Unroll
 
-class PluginVariantResolveIntegrationTest extends AbstractPluginIntegrationTest {
+class PluginVariantResolveIntegrationTest extends AbstractIntegrationSpec {
 
-    @Unroll
     @Issue("https://github.com/gradle/gradle/issues/13659")
     def "should report an incompatible Java version of a plugin properly (#id)"() {
         withDummyPlugin(true)
@@ -49,7 +47,7 @@ class PluginVariantResolveIntegrationTest extends AbstractPluginIntegrationTest 
         fails ':help'
 
         then:
-        failure.assertHasErrorOutput("Incompatible because this component declares an API of a component compatible with Java 2099 and the consumer needed a runtime of a component compatible with Java ${JavaVersion.current().majorVersion}")
+        failure.assertHasErrorOutput("Incompatible because this component declares a component for use during compile-time, compatible with Java 2099 and the consumer needed a component for use during runtime, compatible with Java ${JavaVersion.current().majorVersion}")
 
         where:
         id                  | pluginsBlock
@@ -73,7 +71,6 @@ class PluginVariantResolveIntegrationTest extends AbstractPluginIntegrationTest 
             """
     }
 
-    @Unroll
     @Issue("https://github.com/gradle/gradle/issues/13659")
     def "should report an incompatible Java version of a plugin properly (#id) using composite builds"() {
         settingsFile << """
@@ -93,7 +90,7 @@ class PluginVariantResolveIntegrationTest extends AbstractPluginIntegrationTest 
         fails ':help'
 
         then:
-        failure.assertHasErrorOutput("Incompatible because this component declares an API of a component compatible with Java 2099 and the consumer needed a runtime of a component compatible with Java ${JavaVersion.current().majorVersion}")
+        failure.assertHasErrorOutput("Incompatible because this component declares a component for use during compile-time, compatible with Java 2099 and the consumer needed a component for use during runtime, compatible with Java ${JavaVersion.current().majorVersion}")
 
         where:
         id                  | pluginsBlock       | substitution

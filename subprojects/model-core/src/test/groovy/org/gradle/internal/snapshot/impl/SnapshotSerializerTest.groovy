@@ -18,7 +18,9 @@ package org.gradle.internal.snapshot.impl
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import org.gradle.internal.snapshot.ValueSnapshot
@@ -31,7 +33,7 @@ class SnapshotSerializerTest extends Specification {
     def encoder = new OutputStreamBackedEncoder(output)
 
     @Subject
-            serializer = new SnapshotSerializer()
+    def serializer = new SnapshotSerializer(Mock(ClassLoaderHierarchyHasher))
 
     def "serializes serialized properties"() {
         def original = snapshot("x".bytes)
@@ -72,7 +74,7 @@ class SnapshotSerializerTest extends Specification {
     }
 
     def "serializes hash properties"() {
-        def value = new HashCodeSnapshot(HashCode.fromInt(123))
+        def value = new HashCodeSnapshot(TestHashCodes.hashCodeFrom(123))
 
         when:
         write(value)
@@ -162,7 +164,7 @@ class SnapshotSerializerTest extends Specification {
     }
 
     def "serializes map properties"() {
-        def builder = ImmutableList.<MapEntrySnapshot<ValueSnapshot>>builder()
+        def builder = ImmutableList.<MapEntrySnapshot<ValueSnapshot>> builder()
         builder.add(new MapEntrySnapshot<ValueSnapshot>(string("123"), integer(123)))
         builder.add(new MapEntrySnapshot<ValueSnapshot>(string("456"), list(integer(-12), integer(12))))
         def original = new MapValueSnapshot(builder.build())
@@ -188,8 +190,17 @@ class SnapshotSerializerTest extends Specification {
         original == written
     }
 
-    def "serializes implementation properties"() {
+    def "serializes class implementation properties"() {
         def original = ImplementationSnapshot.of("someClassName", HashCode.fromString("0123456789"))
+        write(original)
+
+        expect:
+        original == written
+    }
+
+    def "serializes lambda implementation properties"() {
+        def lambda = TestLambdas.createTrackableLambda()
+        def original = ImplementationSnapshot.of(lambda.getClass().name, lambda, TestHashCodes.hashCodeFrom(1234))
         write(original)
 
         expect:
@@ -201,23 +212,21 @@ class SnapshotSerializerTest extends Specification {
         write(original)
 
         expect:
-        ImplementationSnapshot copy = written
-        copy.typeName == original.typeName
+        ImplementationSnapshot copy = written as ImplementationSnapshot
+        copy.classIdentifier == original.classIdentifier
         copy.classLoaderHash == null
-        copy.unknown
-        copy.unknownReason == ImplementationSnapshot.UnknownReason.UNKNOWN_CLASSLOADER
+        copy.unknownReason == UnknownImplementationSnapshot.UnknownReason.UNKNOWN_CLASSLOADER
     }
 
-    def "serializes implementation properties with lambda"() {
-        def original = ImplementationSnapshot.of('someClassName$$Lambda$12/312454364', HashCode.fromInt(1234))
+    def "serializes implementation properties with untracked lambda"() {
+        def original = ImplementationSnapshot.of('someClassName$$Lambda$12/312454364', TestHashCodes.hashCodeFrom(1234))
         write(original)
 
         expect:
-        ImplementationSnapshot copy = written
-        copy.typeName == original.typeName
+        ImplementationSnapshot copy = written as ImplementationSnapshot
+        copy.classIdentifier == original.classIdentifier
         copy.classLoaderHash == null
-        copy.isUnknown()
-        copy.unknownReason == ImplementationSnapshot.UnknownReason.LAMBDA
+        copy.unknownReason == UnknownImplementationSnapshot.UnknownReason.UNTRACKED_LAMBDA
     }
 
     private ArrayValueSnapshot array(ValueSnapshot... elements) {
@@ -240,8 +249,8 @@ class SnapshotSerializerTest extends Specification {
         return new StringValueSnapshot(value)
     }
 
-    private SerializedValueSnapshot snapshot(byte[] value) {
-        return new SerializedValueSnapshot(HashCode.fromInt(123), value)
+    private JavaSerializedValueSnapshot snapshot(byte[] value) {
+        return new JavaSerializedValueSnapshot(TestHashCodes.hashCodeFrom(123), value)
     }
 
     private ValueSnapshot getWritten() {

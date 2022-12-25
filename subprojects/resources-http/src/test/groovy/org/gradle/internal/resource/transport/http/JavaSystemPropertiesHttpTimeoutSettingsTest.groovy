@@ -16,15 +16,21 @@
 
 package org.gradle.internal.resource.transport.http
 
-import spock.lang.Specification
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Specification
 
-import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.*
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.CONNECTION_TIMEOUT_SYSTEM_PROPERTY
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.DEFAULT_CONNECTION_TIMEOUT
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.DEFAULT_IDLE_CONNECTION_TIMEOUT
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.DEFAULT_SOCKET_TIMEOUT
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.IDLE_CONNECTION_TIMEOUT_SYSTEM_PROPERTY
+import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
 class JavaSystemPropertiesHttpTimeoutSettingsTest extends Specification {
 
-    @Rule SetSystemProperties setSystemProperties = new SetSystemProperties()
+    @Rule
+    SetSystemProperties setSystemProperties = new SetSystemProperties()
 
     def "can retrieve default values"() {
         JavaSystemPropertiesHttpTimeoutSettings settings = new JavaSystemPropertiesHttpTimeoutSettings()
@@ -37,11 +43,15 @@ class JavaSystemPropertiesHttpTimeoutSettingsTest extends Specification {
     def "can parse custom value from system property"() {
         System.setProperty(CONNECTION_TIMEOUT_SYSTEM_PROPERTY, "111")
         System.setProperty(SOCKET_TIMEOUT_SYSTEM_PROPERTY, "222")
+        System.setProperty(IDLE_CONNECTION_TIMEOUT_SYSTEM_PROPERTY, "333")
         JavaSystemPropertiesHttpTimeoutSettings settings = new JavaSystemPropertiesHttpTimeoutSettings()
 
         expect:
-        settings.connectionTimeoutMs == 111
-        settings.socketTimeoutMs == 222
+        verifyAll(settings) {
+            connectionTimeoutMs == 111
+            socketTimeoutMs == 222
+            idleConnectionTimeoutMs == 333
+        }
     }
 
     def "uses default value if provided connection timeout is not valid"() {
@@ -61,6 +71,17 @@ class JavaSystemPropertiesHttpTimeoutSettingsTest extends Specification {
 
         expect:
         settings.socketTimeoutMs == DEFAULT_SOCKET_TIMEOUT
+
+        where:
+        timeout << ["", "abc"]
+    }
+
+    def "uses default value if provided idle connection timeout is not valid"() {
+        System.setProperty(IDLE_CONNECTION_TIMEOUT_SYSTEM_PROPERTY, timeout)
+        JavaSystemPropertiesHttpTimeoutSettings settings = new JavaSystemPropertiesHttpTimeoutSettings()
+
+        expect:
+        settings.idleConnectionTimeoutMs == DEFAULT_IDLE_CONNECTION_TIMEOUT
 
         where:
         timeout << ["", "abc"]

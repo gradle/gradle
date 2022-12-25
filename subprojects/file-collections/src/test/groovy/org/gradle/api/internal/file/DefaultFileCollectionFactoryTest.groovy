@@ -28,9 +28,8 @@ import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.internal.provider.MissingValueException
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
-import org.gradle.api.internal.tasks.TaskDependencyFactory
+import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
@@ -39,7 +38,6 @@ import org.junit.Assert
 import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
@@ -47,7 +45,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
     @ClassRule
     @Shared
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    def factory = new DefaultFileCollectionFactory(TestFiles.pathToFileResolver(tmpDir.testDirectory), Stub(TaskDependencyFactory), TestFiles.directoryFileTreeFactory(), Stub(Factory), Stub(PropertyHost), TestFiles.fileSystem())
+    def factory = new DefaultFileCollectionFactory(TestFiles.pathToFileResolver(tmpDir.testDirectory), TestFiles.taskDependencyFactory(), TestFiles.directoryFileTreeFactory(), Stub(Factory), Stub(PropertyHost), TestFiles.fileSystem())
 
     def "lazily queries contents of collection created from MinimalFileSet"() {
         def contents = Mock(MinimalFileSet)
@@ -70,7 +68,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
     def "lazily queries dependencies of collection created from MinimalFileSet"() {
         def contents = Mock(MinimalFileSet)
-        def builtBy = Mock(TaskDependency)
+        def builtBy = Mock(TaskDependencyInternal)
         def task = Stub(Task)
 
         when:
@@ -84,7 +82,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
         then:
         tasks == [task] as Set
-        1 * builtBy.getDependencies(_) >> [task]
+        1 * builtBy.getDependenciesForInternalUse(_) >> [task]
         0 * _
     }
 
@@ -98,7 +96,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
     def "constructs an empty collection"() {
         expect:
-        def collection = factory.empty()
+        def collection = FileCollectionFactory.empty()
         emptyCollection(collection)
         collection.toString() == "file collection"
 
@@ -109,7 +107,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
     def "constructs empty collection with display name"() {
         expect:
-        def collection = factory.empty("some collection")
+        def collection = FileCollectionFactory.empty("some collection")
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
         collection.visitStructure(new BrokenVisitor())
@@ -237,7 +235,6 @@ class DefaultFileCollectionFactoryTest extends Specification {
         files == [tmpDir.file('abc')] as Set
     }
 
-    @Unroll
     def 'resolving collection source #description can return null'() {
         def collection = factory.resolving('test files', input)
 
@@ -285,7 +282,6 @@ class DefaultFileCollectionFactoryTest extends Specification {
         files == [tmpDir.file('abc')] as Set
     }
 
-    @Unroll
     def 'can use a #description to specify the contents of a resolving collection'() {
         def collection = factory.resolving('test files', input)
 
@@ -321,7 +317,6 @@ class DefaultFileCollectionFactoryTest extends Specification {
         tree.is source
     }
 
-    @Unroll
     def 'can use a #description to specify the single content of the collection'() {
         def collection = factory.resolving('test files', input)
 
@@ -415,10 +410,6 @@ class DefaultFileCollectionFactoryTest extends Specification {
             Assert.fail()
         }
 
-        @Override
-        void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-            Assert.fail()
-        }
 
         @Override
         void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {

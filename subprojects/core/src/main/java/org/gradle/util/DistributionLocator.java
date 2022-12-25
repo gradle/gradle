@@ -16,6 +16,7 @@
 package org.gradle.util;
 
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -23,12 +24,24 @@ import java.net.URISyntaxException;
 /**
  * This class is only here to maintain binary compatibility with existing plugins.
  *
- * @deprecated Will be removed in Gradle 8.0.
+ * @deprecated Will be removed in Gradle 9.0.
  */
 @Deprecated
 public class DistributionLocator {
+
+    private static void logDeprecation() {
+        DeprecationLogger.deprecateType(DistributionLocator.class)
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "org_gradle_util_reports_deprecations")
+            .nagUser();
+    }
+
     private static final String RELEASE_REPOSITORY = "https://services.gradle.org/distributions";
     private static final String SNAPSHOT_REPOSITORY = "https://services.gradle.org/distributions-snapshots";
+
+    public DistributionLocator() {
+        logDeprecation();
+    }
 
     public URI getDistributionFor(GradleVersion version) {
         return getDistributionFor(version, "bin");

@@ -19,31 +19,31 @@ For example versions like `2.0-dev1` or `2.0-SNAPSHOT` are no longer included in
 ** Will match the highest versioned module with the specified status. See link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html#getStatus--[ComponentMetadata.getStatus()].
 * A Maven `SNAPSHOT` version identifier: e.g. `1.0-SNAPSHOT`, `1.4.9-beta1-SNAPSHOT`
 
+[[version_ordering]]
 == Version ordering
 
 Versions have an implicit ordering. Version ordering is used to:
 
 * Determine if a particular version is included in a range.
-* Determine which version is 'newest' when performing conflict resolution.
+* Determine which version is 'newest' when performing conflict resolution (watch out though, conflict resolution uses
+<<dependency_resolution#sec:base-version-comparison,"base versions">>).
 
 Versions are ordered based on the following rules:
 
 * Each version is split into it's constituent "parts":
 ** The characters `[. - _ +]` are used to separate the different "parts" of a version.
 ** Any part that contains both digits and letters is split into separate parts for each: `1a1 == 1.a.1`
-** Only the parts of a version are compared. The actual separator characters are not significant: `1.a.1 == 1-a+1 == 1.a-1 == 1a1`
+** Only the parts of a version are compared. The actual separator characters are not significant: `1.a.1 == 1-a+1 == 1.a-1 == 1a1` (watch out though, in the context of conflict resolution there are <<dependency_resolution#sec:base-version-comparison,exceptions to this rule>>).
 * The equivalent parts of 2 versions are compared using the following rules:
 ** If both parts are numeric, the highest numeric value is **higher**: `1.1` < `1.2`
 ** If one part is numeric, it is considered **higher** than the non-numeric part: `1.a` < `1.1`
-** If both are not numeric, the parts are compared **alphabetically, case-sensitive**: `1.A` < `1.B` < `1.a` < `1.b`
-** A version with an extra numeric part is considered **higher** than a version without: `1.1` < `1.1.0`
+** If both are non-numeric, the parts are compared **alphabetically**, in a **case-sensitive** manner: `1.A` < `1.B` < `1.a` < `1.b`
+** A version with an extra numeric part is considered **higher** than a version without (even when it's zero): `1.1` < `1.1.0`
 ** A version with an extra non-numeric part is considered **lower** than a version without: `1.1.a` < `1.1`
-* Certain string values have special meaning for the purposes of ordering:
-** The string `dev` is consider **lower** than any other string part: `1.0-dev` < `1.0-alpha` < `1.0-rc`.
-** The strings `rc`, `final`, `ga` and `release` are considered **higher** than any other string part (sorted in that order): `1.0-zeta` < `1.0-RC` < `1.0-FINAL` < `1.0-GA` < `1.0-RELEASE` < `1.0`.
-** The string `SP` will be ordered higher than `release`, it remains however lower than an unqualified version, limiting its use to versioning schemes using either `FINAL`, `GA` or `RELEASE`: `1.0-RELEASE` < `1.0-SP1` < `1.0`
-** The string `snapshot` will be ordered higher than `rc`: `1.0-RC` < `1.0-SNAPSHOT` < `1.0`.
-** Numeric snapshot versions have **no special meaning**, and are sorted like any other numeric part: `1.0` < `1.0-20150201.121010-123` < `1.1`.
+* Certain non-numeric parts have special meaning for the purposes of ordering:
+** `dev` is consider **lower** than any other non-numeric part: `1.0-dev` < `1.0-ALPHA` < `1.0-alpha` < `1.0-rc`.
+** The strings `rc`, `snapshot`, `final`, `ga`, `release` and `sp` are considered **higher** than any other string part (sorted in this order): `1.0-zeta` < `1.0-rc` < `1.0-snapshot` < `1.0-final` < `1.0-ga` < `1.0-release` < `1.0-sp` < `1.0`.
+** These special values are **NOT case sensitive**, as opposed to regular string parts and they do not depend on the separator used around them: `1.0-RC-1` == `1.0.rc.1`
 
 == Simple version declaration semantics
 
@@ -51,8 +51,8 @@ When you declare a version using the short-hand notation, for example:
 
 .A simple declaration
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=required-version]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=required-version]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=required-version]"]
 ====
 
 Then the version is considered a <<rich_versions.adoc#sec:required-version,required version>> which means that it should _minimally_ be `1.7.15` but can be upgraded by the engine (optimistic upgrade).
@@ -61,8 +61,8 @@ There is, however, a shorthand notation for <<rich_versions.adoc#sec:strict-vers
 
 .Shorthand notation for strict dependencies
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=strict-shorthand]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/kotlin",files="build.gradle.kts[tags=strict-shorthand]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-concreteVersion/groovy",files="build.gradle[tags=strict-shorthand]"]
 ====
 
 A strict version _cannot be upgraded_ and overrides whatever transitive dependencies originating from this dependency provide.
@@ -83,6 +83,6 @@ The advantage is that dependency constraints allow you to manage versions of all
 
 .Declaring a dependency without version
 ====
-include::sample[dir="snippets/dependencyManagement/declaringDependencies-withoutVersion/groovy",files="build.gradle[tags=dependencies-without-version]"]
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-withoutVersion/kotlin",files="build.gradle.kts[tags=dependencies-without-version]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-withoutVersion/groovy",files="build.gradle[tags=dependencies-without-version]"]
 ====

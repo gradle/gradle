@@ -16,6 +16,13 @@
 
 package org.gradle.caching.internal.controller;
 
+import org.gradle.caching.BuildCacheKey;
+import org.gradle.caching.internal.CacheableEntity;
+import org.gradle.caching.internal.controller.service.BuildCacheLoadResult;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+
+import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
 
 public class RootBuildCacheControllerRef {
@@ -59,13 +66,13 @@ public class RootBuildCacheControllerRef {
         }
 
         @Override
-        public <T> Optional<T> load(BuildCacheLoadCommand<T> command) {
-            return delegate.load(command);
+        public Optional<BuildCacheLoadResult> load(BuildCacheKey cacheKey, CacheableEntity cacheableEntity) {
+            return delegate.load(cacheKey, cacheableEntity);
         }
 
         @Override
-        public void store(BuildCacheStoreCommand command) {
-            delegate.store(command);
+        public void store(BuildCacheKey cacheKey, CacheableEntity entity, Map<String, FileSystemSnapshot> snapshots, Duration executionTime) {
+            delegate.store(cacheKey, entity, snapshots, executionTime);
         }
 
         @Override

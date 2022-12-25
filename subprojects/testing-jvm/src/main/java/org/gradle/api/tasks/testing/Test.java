@@ -18,18 +18,21 @@ package org.gradle.api.tasks.testing;
 
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
+import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestFramework;
 import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
@@ -43,6 +46,8 @@ import org.gradle.api.internal.tasks.testing.worker.TestWorker;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -51,7 +56,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
@@ -69,13 +73,13 @@ import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
-import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
@@ -157,7 +161,7 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  */
 @NonNullApi
 @CacheableTask
-public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
+public abstract class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
@@ -168,18 +172,17 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private FileCollection classpath;
     private final ConfigurableFileCollection stableClasspath;
     private final Property<TestFramework> testFramework;
-    private boolean userHasConfiguredTestFramework;
-
     private boolean scanForTestClasses = true;
     private long forkEvery;
     private int maxParallelForks = 1;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
     public Test() {
+        ObjectFactory objectFactory = getObjectFactory();
         patternSet = getPatternSetFactory().create();
-        classpath = getObjectFactory().fileCollection();
+        classpath = objectFactory.fileCollection();
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
-        stableClasspath = getObjectFactory().fileCollection();
+        stableClasspath = objectFactory.fileCollection();
         stableClasspath.from(new Callable<Object>() {
             @Override
             public Object call() {
@@ -189,44 +192,34 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
         forkOptions.setExecutable(null);
-        modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
-        javaLauncher = getObjectFactory().property(JavaLauncher.class);
-        testFramework = getObjectFactory().property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()));
+        modularity = objectFactory.newInstance(DefaultModularitySpec.class);
+        javaLauncher = objectFactory.property(JavaLauncher.class).convention(createJavaLauncherConvention());
+        javaLauncher.finalizeValueOnRead();
+        testFramework = objectFactory.property(TestFramework.class).convention(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
+        testFramework.finalizeValueOnRead();
     }
 
-    @Inject
-    protected ObjectFactory getObjectFactory() {
-        throw new UnsupportedOperationException();
-    }
+    private Provider<JavaLauncher> createJavaLauncherConvention() {
+        final ObjectFactory objectFactory = getObjectFactory();
+        final JavaToolchainService javaToolchainService = getJavaToolchainService();
+        Provider<JavaToolchainSpec> executableOverrideToolchainSpec = getProviderFactory().provider(new Callable<JavaToolchainSpec>() {
+            @Override
+            public JavaToolchainSpec call() {
+                return TestExecutableUtils.getExecutableToolchainSpec(Test.this, objectFactory);
+            }
+        });
 
-    @Inject
-    protected ActorFactory getActorFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected WorkerProcessFactory getProcessBuilderFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected Factory<PatternSet> getPatternSetFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected JavaForkOptionsFactory getForkOptionsFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected ModuleRegistry getModuleRegistry() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected JavaModuleDetector getJavaModuleDetector() {
-        throw new UnsupportedOperationException();
+        return executableOverrideToolchainSpec
+            .flatMap(new Transformer<Provider<JavaLauncher>, JavaToolchainSpec>() {
+                @Override
+                public Provider<JavaLauncher> transform(JavaToolchainSpec spec) {
+                    return javaToolchainService.launcherFor(spec);
+                }
+            })
+            .orElse(javaToolchainService.launcherFor(new Action<JavaToolchainSpec>() {
+                @Override
+                public void execute(JavaToolchainSpec javaToolchainSpec) {}
+            }));
     }
 
     /**
@@ -264,13 +257,14 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Returns the version of Java used to run the tests based on the executable specified by {@link #getExecutable()}.
+     * Returns the version of Java used to run the tests based on the {@link JavaLauncher} specified by {@link #getJavaLauncher()},
+     * or the executable specified by {@link #getExecutable()} if the {@code JavaLauncher} is not present.
      *
      * @since 3.3
      */
     @Input
     public JavaVersion getJavaVersion() {
-        return getServices().get(JvmVersionDetector.class).getJavaVersion(getEffectiveExecutable());
+        return JavaVersion.toVersion(getJavaLauncher().get().getMetadata().getLanguageVersion().asInt());
     }
 
     /**
@@ -613,7 +607,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     private void copyToolchainAsExecutable(ProcessForkOptions target) {
-        target.setExecutable(getEffectiveExecutable());
+        String executable = getJavaLauncher().get().getExecutablePath().toString();
+        target.setExecutable(executable);
     }
 
     /**
@@ -633,20 +628,23 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Override
     protected JvmTestExecutionSpec createTestExecutionSpec() {
-        validateToolchainConfiguration();
+        validateExecutableMatchesToolchain();
         JavaForkOptions javaForkOptions = getForkOptionsFactory().newJavaForkOptions();
         copyTo(javaForkOptions);
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, stableClasspath);
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, stableClasspath);
-        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses());
+        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses(), testIsModule);
     }
 
-    private void validateToolchainConfiguration() {
-        if (javaLauncher.isPresent()) {
-            checkState(forkOptions.getExecutable() == null, "Must not use `executable` property on `Test` together with `javaLauncher` property");
-        }
+    private void validateExecutableMatchesToolchain() {
+        File toolchainExecutable = getJavaLauncher().get().getExecutablePath().getAsFile();
+        String customExecutable = getExecutable();
+        checkState(
+            customExecutable == null || new File(customExecutable).equals(toolchainExecutable),
+            "Toolchain from `executable` property does not match toolchain from `javaLauncher` property"
+        );
     }
 
     private Set<String> getPreviousFailedTestClasses() {
@@ -894,11 +892,10 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
-     * Returns the chosen {@link TestFramework}.
+     * Returns the configured {@link TestFramework}.
      *
      * @since 7.3
      */
-    @Incubating
     @Nested
     public Property<TestFramework> getTestFrameworkProperty() {
         return testFramework;
@@ -906,37 +903,14 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Internal
     public TestFramework getTestFramework() {
-        return testFramework(null);
+        // TODO: Deprecate and remove this method
+        return testFramework.get();
     }
 
     public TestFramework testFramework(@Nullable Closure testFrameworkConfigure) {
-        if (!testFramework.isPresent()) {
-            useJUnit(testFrameworkConfigure);
-        }
-
-        // To maintain backwards compatibility with builds that may configure the test framework
-        // multiple times for a single task--either switching between frameworks or overwriting
-        // the existing configuration for a test framework--we need to keep track if the user has
-        // explicitly set a test framework
-        // With test suites, users should never need to call the useXXX methods, so we can forbid
-        // them from doing something like this from the beginning.
-        //
-        // testTask.configure {
-        //      options {
-        //          /* configure JUnit Platform */
-        //      }
-        // }
-        // testTask.configure {
-        //      useJUnit()
-        //      options {
-        //          /* configure JUnit */
-        //      }
-        // }
-
-        if (!userHasConfiguredTestFramework) {
-            testFramework.finalizeValue();
-        }
-        return testFramework.get();
+        // TODO: Deprecate and remove this method
+        options(testFrameworkConfigure);
+        return getTestFramework();
     }
 
     /**
@@ -944,45 +918,34 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @return The test framework options.
      */
-    @Internal
+    @Nested
     public TestFrameworkOptions getOptions() {
         return getTestFramework().getOptions();
     }
 
     /**
-     * Configures test framework specific options. Make sure to call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
+     * Configures test framework specific options.
+     * <p>
+     * When a {@code Test} task is created outside of Test Suites, you should call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
+     * If no test framework has been set, the task will assume JUnit4.
      *
      * @return The test framework options.
      */
-    public TestFrameworkOptions options(Closure testFrameworkConfigure) {
+    public TestFrameworkOptions options(@DelegatesTo(TestFrameworkOptions.class) Closure testFrameworkConfigure) {
         return ConfigureUtil.configure(testFrameworkConfigure, getOptions());
     }
 
     /**
-     * Configures test framework specific options. Make sure to call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
+     * Configures test framework specific options.
+     * <p>
+     * When a {@code Test} task is created outside of Test Suites, you should call {@link #useJUnit()}, {@link #useJUnitPlatform()} or {@link #useTestNG()} before using this method.
+     * If no test framework has been set, the task will assume JUnit4.
      *
      * @return The test framework options.
      * @since 3.5
      */
     public TestFrameworkOptions options(Action<? super TestFrameworkOptions> testFrameworkConfigure) {
-        TestFrameworkOptions options = getOptions();
-        testFrameworkConfigure.execute(options);
-        return options;
-    }
-
-    TestFramework useTestFramework(TestFramework testFramework) {
-        return useTestFramework(testFramework, null);
-    }
-
-    private <T extends TestFrameworkOptions> TestFramework useTestFramework(TestFramework testFramework, @Nullable Action<? super T> testFrameworkConfigure) {
-        userHasConfiguredTestFramework = true;
-        this.testFramework.set(testFramework);
-
-        if (testFrameworkConfigure != null) {
-            testFrameworkConfigure.execute(Cast.<T>uncheckedNonnullCast(this.testFramework.get().getOptions()));
-        }
-
-        return this.testFramework.get();
+        return Actions.with(getOptions(), testFrameworkConfigure);
     }
 
     /**
@@ -991,7 +954,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @see #useJUnit(org.gradle.api.Action) Configure JUnit4 specific options.
      */
     public void useJUnit() {
-        useJUnit(Actions.<JUnitOptions>doNothing());
+        useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter(), true));
     }
 
     /**
@@ -1001,7 +964,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @param testFrameworkConfigure A closure used to configure JUnit4 options.
      */
-    public void useJUnit(@Nullable Closure testFrameworkConfigure) {
+    public void useJUnit(@Nullable @DelegatesTo(JUnitOptions.class) Closure testFrameworkConfigure) {
         useJUnit(ConfigureUtil.<JUnitOptions>configureUsing(testFrameworkConfigure));
     }
 
@@ -1014,7 +977,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 3.5
      */
     public void useJUnit(Action<? super JUnitOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitTestFramework(this, (DefaultTestFilter) getFilter()), testFrameworkConfigure);
+        useJUnit();
+        applyOptions(JUnitOptions.class, testFrameworkConfigure);
     }
 
     /**
@@ -1025,11 +989,11 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * JUnit Platform supports multiple test engines, which allows other testing frameworks to be built on top of it.
      * You may need to use this option even if you are not using JUnit directly.
      *
-     * @since 4.6
      * @see #useJUnitPlatform(org.gradle.api.Action) Configure JUnit Platform specific options.
+     * @since 4.6
      */
     public void useJUnitPlatform() {
-        useJUnitPlatform(Actions.<JUnitPlatformOptions>doNothing());
+        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter(), true));
     }
 
     /**
@@ -1046,7 +1010,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 4.6
      */
     public void useJUnitPlatform(Action<? super JUnitPlatformOptions> testFrameworkConfigure) {
-        useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter()), testFrameworkConfigure);
+        useJUnitPlatform();
+        applyOptions(JUnitPlatformOptions.class, testFrameworkConfigure);
     }
 
     /**
@@ -1055,7 +1020,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @see #useTestNG(org.gradle.api.Action) Configure TestNG specific options.
      */
     public void useTestNG() {
-        useTestNG(Actions.<TestFrameworkOptions>doNothing());
+        useTestFramework(new TestNGTestFramework(this, (DefaultTestFilter) getFilter(), getObjectFactory()));
+
     }
 
     /**
@@ -1065,7 +1031,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @param testFrameworkConfigure A closure used to configure TestNG options.
      */
-    public void useTestNG(Closure testFrameworkConfigure) {
+    public void useTestNG(@DelegatesTo(TestNGOptions.class) Closure testFrameworkConfigure) {
         useTestNG(configureUsing(testFrameworkConfigure));
     }
 
@@ -1078,7 +1044,27 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 3.5
      */
     public void useTestNG(Action<? super TestNGOptions> testFrameworkConfigure) {
-        useTestFramework(new TestNGTestFramework(this, stableClasspath, (DefaultTestFilter) getFilter(), getObjectFactory()), testFrameworkConfigure);
+        useTestNG();
+        applyOptions(TestNGOptions.class, testFrameworkConfigure);
+    }
+
+    void useTestFramework(TestFramework testFramework) {
+        if (((DefaultProperty<?>) this.testFramework).isFinalized()) {
+            Class<?> currentFramework = this.testFramework.get().getClass();
+            Class<?> newFramework = testFramework.getClass();
+            if (currentFramework == newFramework) {
+                // We are setting a finalized framework to its existing value, no-op so as not to trigger a failure here.
+                // We need to allow this especially for the default test task, so that existing builds that configure options and
+                // then call useJunit() afterwards don't fail
+                return;
+            }
+        }
+
+        this.testFramework.set(testFramework);
+    }
+
+    private <T extends TestFrameworkOptions> void applyOptions(Class<T> optionsClass, Action<? super T> configuration) {
+        Actions.with(Cast.cast(optionsClass, getOptions()), configuration);
     }
 
     /**
@@ -1212,7 +1198,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @since 4.2
      */
-    @UsedByScanPlugin("test-distribution")
+    @UsedByScanPlugin("test-distribution, test-retry")
     void setTestExecuter(TestExecuter<JvmTestExecutionSpec> testExecuter) {
         this.testExecuter = testExecuter;
     }
@@ -1223,18 +1209,52 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @since 6.7
      */
     @Nested
-    @Optional
     public Property<JavaLauncher> getJavaLauncher() {
         return javaLauncher;
     }
 
-    private String getEffectiveExecutable() {
-        if (javaLauncher.isPresent()) {
-            // The below line is OK because it will only be exercised in the Gradle daemon and not in the worker running tests.
-            return javaLauncher.get().getExecutablePath().toString();
-        }
-        final String executable = getExecutable();
-        return executable == null ? Jvm.current().getJavaExecutable().getAbsolutePath() : executable;
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected JavaToolchainService getJavaToolchainService() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ProviderFactory getProviderFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ActorFactory getActorFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected WorkerProcessFactory getProcessBuilderFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected Factory<PatternSet> getPatternSetFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaForkOptionsFactory getForkOptionsFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ModuleRegistry getModuleRegistry() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaModuleDetector getJavaModuleDetector() {
+        throw new UnsupportedOperationException();
+    }
 }

@@ -40,6 +40,9 @@ Provides support for generating parsers using http://www.antlr.org/[ANTLR].
 <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM Test Suite>>::
 Provides support for modeling and configuring multiple test suite invocations.
 
+<<test_report_aggregation_plugin.adoc#test_report_aggregation_plugin,Test Report Aggregation>>::
+Aggregates the results of multiple link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task invocations (potentially spanning multiple Gradle projects) into a single HTML report.
+
 [[native_languages]]
 == Native languages
 
@@ -94,6 +97,9 @@ Performs quality checks on your project’s Java source files using http://pmd.g
 
 <<jacoco_plugin.adoc#jacoco_plugin,JaCoCo>>::
 Provides code coverage metrics for your Java project using http://www.eclemma.org/jacoco/[JaCoCo].
+
+<<jacoco_report_aggregation_plugin.adoc#jacoco_report_aggregation_plugin,JaCoCo Report Aggregation>>::
+Aggregates the results of multiple JaCoCo code coverage reports (potentially spanning multiple Gradle projects) into a single HTML report.
 
 <<codenarc_plugin.adoc#codenarc_plugin,CodeNarc>>::
 Performs quality checks on your Groovy source files using http://codenarc.sourceforge.net/index.html[CodeNarc] and generates associated reports.

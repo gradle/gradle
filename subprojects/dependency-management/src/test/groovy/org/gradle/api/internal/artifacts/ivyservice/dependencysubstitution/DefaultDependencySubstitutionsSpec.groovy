@@ -36,7 +36,6 @@ import org.gradle.internal.typeconversion.NotationParserBuilder
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Specification
-import spock.lang.Unroll
 
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons.SELECTED_BY_RULE
@@ -129,7 +128,6 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         0 * _
     }
 
-    @Unroll
     def "substitute module() matches only given module: #matchingModule"() {
         def mid = DefaultModuleIdentifier.newId("org.utils", "api")
 
@@ -139,8 +137,8 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def moduleDetails = Mock(DependencySubstitutionInternal)
 
         with(substitutions) {
-            substitute module(matchingModule) with matchingSubstitute
-            substitute module(nonMatchingModule) with nonMatchingSubstitute
+            substitute module(matchingModule) using matchingSubstitute
+            substitute module(nonMatchingModule) using nonMatchingSubstitute
         }
 
         when:
@@ -167,8 +165,8 @@ class DefaultDependencySubstitutionsSpec extends Specification {
 
     def "cannot substitute with unversioned module selector"() {
         when:
-        with(substitutions) {
-            substitute project("foo") with module('group:name')
+        substitutions.with {
+            substitute project("foo") using module('group:name')
         }
 
         then:
@@ -176,7 +174,6 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         t.message == "Must specify version for target of dependency substitution"
     }
 
-    @Unroll
     def "substitute project() matches only given project: #matchingProject"() {
         given:
         def matchingSubstitute = Mock(ComponentSelector)
@@ -186,8 +183,8 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         componentIdentifierFactory.createProjectComponentSelector(":impl") >> TestComponentIdentifiers.newSelector(":impl")
 
         with(substitutions) {
-            substitute project(matchingProject) with matchingSubstitute
-            substitute project(nonMatchingProject) with nonMatchingSubstitute
+            substitute project(matchingProject) using matchingSubstitute
+            substitute project(nonMatchingProject) using nonMatchingSubstitute
         }
 
         def projectDetails = Mock(DependencySubstitutionInternal)
@@ -244,14 +241,14 @@ class DefaultDependencySubstitutionsSpec extends Specification {
 
         when:
         with(substitutions) {
-            substitute module("org:foo") with project(":bar")
+            substitute module("org:foo") using project(":bar")
         }
         then:
         1 * validator.validateMutation(STRATEGY)
 
         when:
         with(substitutions) {
-            substitute project(":bar") with module("org:foo:1.0")
+            substitute project(":bar") using module("org:foo:1.0")
         }
         then:
         1 * validator.validateMutation(STRATEGY)
@@ -281,7 +278,6 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.rulesMayAddProjectDependency()
     }
 
-    @Unroll
     def "registering a substitute rule with (#from, #to) causes hasRule #result"() {
         given:
         componentIdentifierFactory.createProjectComponentSelector(_) >> Mock(ProjectComponentSelector)
@@ -289,7 +285,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def toComponent = createComponent(to)
 
         when:
-        substitutions.substitute(fromComponent).with(toComponent)
+        substitutions.substitute(fromComponent).using(toComponent)
 
         then:
         substitutions.rulesMayAddProjectDependency() == result

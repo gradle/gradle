@@ -17,9 +17,11 @@
 package org.gradle.kotlin.dsl.tooling.builders.r68
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 @TargetGradleVersion(">=6.8")
+@Flaky(because = 'https://github.com/gradle/gradle-private/issues/3414')
 @LeaksFileHandles("Kotlin Compiler Daemon taking time to shut down")
 class KotlinDslDefaultScriptsModelCrossVersionSpec extends AbstractKotlinDslScriptsModelCrossVersionSpec {
 

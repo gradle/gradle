@@ -85,13 +85,15 @@ public class DependencyVerificationConfiguration {
         private final String version;
         private final String fileName;
         private final boolean regex;
+        private final String reason;
 
-        TrustCoordinates(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
+        TrustCoordinates(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String reason) {
             this.group = group;
             this.name = name;
             this.version = version;
             this.fileName = fileName;
             this.regex = regex;
+            this.reason = reason;
         }
 
         public String getGroup() {
@@ -112,6 +114,10 @@ public class DependencyVerificationConfiguration {
 
         public boolean isRegex() {
             return regex;
+        }
+
+        public String getReason() {
+            return reason;
         }
 
         public boolean matches(ModuleComponentArtifactIdentifier id) {
@@ -155,7 +161,10 @@ public class DependencyVerificationConfiguration {
             if (!Objects.equals(version, that.version)) {
                 return false;
             }
-            return Objects.equals(fileName, that.fileName);
+            if (!Objects.equals(fileName, that.fileName)) {
+                return false;
+            }
+            return Objects.equals(reason, that.reason);
         }
 
         @Override
@@ -165,21 +174,51 @@ public class DependencyVerificationConfiguration {
             result = 31 * result + (version != null ? version.hashCode() : 0);
             result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
             result = 31 * result + (regex ? 1 : 0);
+            result = 31 * result + (reason != null ? reason.hashCode() : 0);
             return result;
         }
-    }
 
-    public static class TrustedArtifact extends TrustCoordinates {
-        TrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
-            super(group, name, version, fileName, regex);
+        public int internalCompareTo(TrustCoordinates other) {
+            int regexComparison = Boolean.compare(isRegex(), other.isRegex());
+            if (regexComparison != 0) {
+                return regexComparison;
+            }
+            int groupComparison = compareNullableStrings(getGroup(), other.getGroup());
+            if (groupComparison != 0) {
+                return groupComparison;
+            }
+            int nameComparison = compareNullableStrings(getName(), other.getName());
+            if (nameComparison != 0) {
+                return nameComparison;
+            }
+            int versionComparison = compareNullableStrings(getVersion(), other.getVersion());
+            if (versionComparison != 0) {
+                return versionComparison;
+            }
+            int fileNameComparison = compareNullableStrings(getFileName(), other.getFileName());
+            if (fileNameComparison != 0) {
+                return fileNameComparison;
+            }
+            return compareNullableStrings(getReason(), other.getReason());
         }
     }
 
-    public static class TrustedKey extends TrustCoordinates {
+    public static class TrustedArtifact extends TrustCoordinates implements Comparable<TrustedArtifact> {
+        TrustedArtifact(@Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex, @Nullable String reason) {
+            super(group, name, version, fileName, regex, reason);
+        }
+
+        @Override
+        public int compareTo(DependencyVerificationConfiguration.TrustedArtifact other) {
+            return internalCompareTo(other);
+        }
+    }
+
+    public static class TrustedKey extends TrustCoordinates implements Comparable<TrustedKey> {
         private final String keyId;
 
         TrustedKey(String keyId, @Nullable String group, @Nullable String name, @Nullable String version, @Nullable String fileName, boolean regex) {
-            super(group, name, version, fileName, regex);
+            super(group, name, version, fileName, regex, null);
             this.keyId = keyId;
         }
 
@@ -210,5 +249,28 @@ public class DependencyVerificationConfiguration {
             result = 31 * result + keyId.hashCode();
             return result;
         }
+
+        @Override
+        public int compareTo(DependencyVerificationConfiguration.TrustedKey other) {
+            int keyIdComparison = getKeyId().compareTo(other.getKeyId());
+            if (keyIdComparison != 0) {
+                return keyIdComparison;
+            }
+            return internalCompareTo(other);
+        }
+
+    }
+
+    private static int compareNullableStrings(String first, String second) {
+        if (first == null) {
+            if (second == null) {
+                return 0;
+            } else {
+                return -1;
+            }
+        } else if (second == null) {
+            return 1;
+        }
+        return first.compareTo(second);
     }
 }

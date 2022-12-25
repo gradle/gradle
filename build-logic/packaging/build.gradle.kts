@@ -2,6 +2,8 @@ plugins {
     id("gradlebuild.build-logic.kotlin-dsl-gradle-plugin")
 }
 
+description = "Provides a plugin for building Gradle distributions"
+
 dependencies {
     implementation(project(":documentation")) {
         // TODO turn this around: move corresponding code to this project and let docs depend on it

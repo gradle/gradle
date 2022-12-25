@@ -22,11 +22,14 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
+import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderConvertible
 import org.gradle.kotlin.dsl.support.delegates.ScriptHandlerDelegate
 import org.gradle.kotlin.dsl.support.unsafeLazy
 
@@ -79,6 +82,40 @@ private constructor(
         dependencyNotation: String,
         dependencyConfiguration: ExternalModuleDependency.() -> Unit
     ): ExternalModuleDependency = add(CLASSPATH_CONFIGURATION, dependencyNotation, dependencyConfiguration)
+
+    /**
+     * Adds a dependency to the script classpath.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     * @since 7.4
+     */
+    fun DependencyHandler.classpath(
+        dependencyNotation: Provider<MinimalExternalModuleDependency>,
+        dependencyConfiguration: ExternalModuleDependency.() -> Unit
+    ) {
+        addProvider(CLASSPATH_CONFIGURATION, dependencyNotation, dependencyConfiguration)
+    }
+
+    /**
+     * Adds a dependency to the script classpath.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @param dependencyConfiguration expression to use to configure the dependency.
+     * @return The dependency.
+     *
+     * @see [DependencyHandler.add]
+     * @since 7.4
+     */
+    fun DependencyHandler.classpath(
+        dependencyNotation: ProviderConvertible<MinimalExternalModuleDependency>,
+        dependencyConfiguration: ExternalModuleDependency.() -> Unit
+    ) {
+        addProviderConvertible(CLASSPATH_CONFIGURATION, dependencyNotation, dependencyConfiguration)
+    }
 
     /**
      * Adds a dependency to the script classpath.

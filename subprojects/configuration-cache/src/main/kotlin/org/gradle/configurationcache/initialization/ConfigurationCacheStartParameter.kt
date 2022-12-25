@@ -21,6 +21,8 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.configurationcache.extensions.unsafeLazy
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
+import org.gradle.internal.buildoption.InternalFlag
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
@@ -30,21 +32,25 @@ import java.io.File
 @ServiceScope(Scopes.BuildTree::class)
 class ConfigurationCacheStartParameter(
     private val buildLayout: BuildLayout,
-    private val buildModelParameters: BuildModelParameters,
-    startParameter: StartParameter
+    private val startParameter: StartParameterInternal,
+    options: InternalOptions,
+    modelParameters: BuildModelParameters
 ) {
+    val loadAfterStore: Boolean = !modelParameters.isRequiresBuildModel && options.getOption(InternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)).get()
 
-    private
-    val startParameter = startParameter as StartParameterInternal
+    val taskExecutionAccessPreStable: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")).get()
 
-    val isEnabled: Boolean
-        get() = buildModelParameters.isConfigurationCache
+    val gradleProperties: Map<String, Any?>
+        get() = startParameter.projectProperties
 
     val isQuiet: Boolean
         get() = startParameter.isConfigurationCacheQuiet
 
     val maxProblems: Int
         get() = startParameter.configurationCacheMaxProblems
+
+    val isDebug: Boolean
+        get() = startParameter.isConfigurationCacheDebug
 
     val failOnProblems: Boolean
         get() = startParameter.configurationCacheProblems == ConfigurationCacheProblemsOption.Value.FAIL
@@ -71,6 +77,9 @@ class ConfigurationCacheStartParameter(
     val rootDirectory: File
         get() = buildLayout.rootDirectory
 
+    val isOffline
+        get() = startParameter.isOffline
+
     val isRefreshDependencies
         get() = startParameter.isRefreshDependencies
 
@@ -79,6 +88,9 @@ class ConfigurationCacheStartParameter(
 
     val isUpdateDependencyLocks
         get() = startParameter.lockedDependenciesToUpdate.isNotEmpty()
+
+    val isWriteDependencyVerifications
+        get() = startParameter.writeDependencyVerifications.isNotEmpty()
 
     val requestedTaskNames: List<String> by unsafeLazy {
         startParameter.taskNames

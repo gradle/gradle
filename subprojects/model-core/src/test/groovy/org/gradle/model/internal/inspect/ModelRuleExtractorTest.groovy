@@ -25,7 +25,6 @@ import org.gradle.model.internal.registry.DefaultModelRegistry
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import spock.lang.Unroll
 
 import java.beans.Introspector
 
@@ -533,7 +532,6 @@ class ModelRuleExtractorTest extends ProjectRegistrySpec {
         }
     }
 
-    @Unroll
     def "void returning model definition with for a type with a nested property of invalid managed type - #inspected.simpleName"() {
         when:
         extract(inspected)

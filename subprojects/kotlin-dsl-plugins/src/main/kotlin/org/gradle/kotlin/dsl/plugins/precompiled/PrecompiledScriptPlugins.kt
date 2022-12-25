@@ -15,21 +15,23 @@
  */
 package org.gradle.kotlin.dsl.plugins.precompiled
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.tasks.TaskProvider
+import org.gradle.internal.Factory
+import org.gradle.internal.deprecation.DeprecationLogger
 
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.plugins.dsl.KotlinDslPluginOptions
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslJarsOf
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 
 /**
@@ -37,7 +39,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
  *
  * @see PrecompiledScriptPluginsSupport
  */
-class PrecompiledScriptPlugins : Plugin<Project> {
+abstract class PrecompiledScriptPlugins : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
@@ -53,20 +55,13 @@ class PrecompiledScriptPlugins : Plugin<Project> {
     private
     class Target(override val project: Project) : PrecompiledScriptPluginsSupport.Target {
 
+        override val jvmTarget: Provider<JavaVersion> =
+            DeprecationLogger.whileDisabled(Factory {
+                project.the<KotlinDslPluginOptions>().jvmTarget.map { JavaVersion.toVersion(it) }
+            })!!
+
         override val kotlinSourceDirectorySet: SourceDirectorySet
             get() = project.sourceSets["main"].kotlin
-
-        override val kotlinCompileTask: TaskProvider<out Task>
-            get() = project.tasks.named("compileKotlin")
-
-        override fun applyKotlinCompilerArgs(args: List<String>) {
-            kotlinCompileTask {
-                require(this is KotlinCompile)
-                kotlinOptions {
-                    freeCompilerArgs += args
-                }
-            }
-        }
     }
 }
 

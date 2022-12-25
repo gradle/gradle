@@ -24,7 +24,6 @@ import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
 import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
@@ -101,7 +100,6 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         classFormat(classFile('java', 'test', 'MyTest.class')) == 53
     }
 
-    @Unroll
     def "test task does not hang if maxParallelForks is greater than max-workers (#maxWorkers)"() {
         given:
         def maxParallelForks = maxWorkers + 1
@@ -238,7 +236,6 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         succeeds("help")
     }
 
-    @Unroll
     def "reports failure of TestExecuter regardless of filters"() {
         given:
         file('src/test/java/MyTest.java') << standaloneTestClass()
@@ -285,6 +282,179 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         extraArgs << [[], ["--tests", "MyTest"]]
     }
 
+    def "test framework can be set to the same value (#frameworkName) twice"() {
+        ignoreWhenJUnitPlatform()
+
+        given:
+        file('src/test/java/MyTest.java') << (frameworkName == "JUnit" ? standaloneTestClass() : junitJupiterStandaloneTestClass())
+
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation $frameworkDeps
+            }
+
+            test {
+                $useMethod
+                $useMethod
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds("test")
+
+        where:
+        frameworkName       | useMethod                 | frameworkDeps
+        "JUnit"             | "useJUnit()"              | "'junit:junit:${JUnitCoverage.NEWEST}'"
+        "JUnit Platform"    | "useJUnitPlatform()"      | "'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'"
+    }
+
+    def "options can be set prior to setting same test framework for the default test task"() {
+        ignoreWhenJUnitPlatform()
+
+        given:
+        file('src/test/java/MyTest.java') << standaloneTestClass()
+        file("src/test/java/Slow.java") << """public interface Slow {}"""
+
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
+            }
+
+            test {
+                options {
+                    excludeCategories = ["Slow"]
+                }
+                useJUnit()
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds("test")
+    }
+
+    def "options cannot be set prior to changing test framework for the default test task"() {
+        ignoreWhenJUnitPlatform()
+
+        given:
+        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
+
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
+            }
+
+            test {
+                options {
+                    excludeCategories = ["Slow"]
+                }
+            }
+
+            test {
+                useJUnitPlatform()
+            }
+        """.stripIndent()
+
+        expect:
+        fails("test")
+        failure.assertHasCause("The value for task ':test' property 'testFrameworkProperty' is final and cannot be changed any further.")
+    }
+
+    def "options can be set prior to setting same test framework for a custom test task"() {
+        ignoreWhenJUnitPlatform()
+
+        given:
+        file('src/test/java/MyTest.java') << standaloneTestClass()
+        file("src/test/java/Slow.java") << """public interface Slow {}"""
+
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'junit:junit:${JUnitCoverage.NEWEST}'
+            }
+
+            tasks.create('customTest', Test) {
+                options {
+                    excludeCategories = ["Slow"]
+                }
+                useJUnit()
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds("customTest")
+    }
+
+    def "options cannot be set prior to changing test framework for a custom test task"() {
+        ignoreWhenJUnitPlatform()
+
+        given:
+        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
+
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
+            }
+
+            tasks.create('customTest', Test) {
+                options {
+                    excludeCategories = ["Slow"]
+                }
+                useJUnitPlatform()
+            }
+        """.stripIndent()
+
+        expect:
+        fails("customTest")
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
+    }
+
+    def "options configured after setting test framework works"() {
+        given:
+        file('src/test/java/MyTest.java') << junitJupiterStandaloneTestClass()
+
+        settingsFile << "rootProject.name = 'Sample'"
+        buildFile << """
+            import org.gradle.api.internal.tasks.testing.*
+
+            apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+            dependencies {
+                testImplementation 'org.junit.jupiter:junit-jupiter:${JUnitCoverage.LATEST_JUPITER_VERSION}'
+            }
+
+            test {
+                useJUnitPlatform()
+                options {
+                    excludeTags = ["Slow"]
+                }
+            }
+
+            tasks.register('verifyTestOptions') {
+                doLast {
+                    assert tasks.getByName("test").getOptions().getExcludeTags().contains("Slow")
+                }
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds("test", "verifyTestOptions", "--warn")
+    }
+
     private static String standaloneTestClass() {
         return testClass('MyTest')
     }
@@ -298,6 +468,24 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
                public void test() {
                   System.out.println(System.getProperty("java.version"));
                   Assert.assertEquals(1,1);
+               }
+            }
+        """.stripIndent()
+    }
+
+    private static String junitJupiterStandaloneTestClass() {
+        return junitJupiterTestClass('MyTest')
+    }
+
+    private static String junitJupiterTestClass(String className) {
+        return """
+            import org.junit.jupiter.api.*;
+
+            public class $className {
+               @Test
+               public void test() {
+                  System.out.println(System.getProperty("java.version"));
+                  Assertions.assertEquals(1,1);
                }
             }
         """.stripIndent()

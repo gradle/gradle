@@ -31,7 +31,8 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
         GPG_CMD
     }
 
-    @Rule public final TestResources resources = new TestResources(temporaryFolder, "keys")
+    @Rule
+    public final TestResources resources = new TestResources(temporaryFolder, "keys")
 
     Path gpgHomeSymlink
 
@@ -100,6 +101,12 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
                 "${addTo}.setProperty('${escapeString(k)}', '${escapeString(v)}')"
             }.join(";")
         }
+
+        String addAsKotlinPropertiesScript(addTo = "extra", name = null) {
+            asProperties(name).collect { k, v ->
+                "${addTo}[\"${escapeString(k)}\"] = \"${escapeString(v)}\""
+            }.join(System.lineSeparator())
+        }
     }
 
     KeyInfo getKeyInfo(set = "default") {
@@ -144,7 +151,6 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
     TestFile fileRepoFile(String name) {
         file("build", "fileRepo", name)
     }
-
 
     void jarUploaded(String jarFileName = jarFileName) {
         assert m2RepoFile(jarFileName).exists()

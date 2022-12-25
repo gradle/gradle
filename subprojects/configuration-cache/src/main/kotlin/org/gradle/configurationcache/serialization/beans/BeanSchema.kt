@@ -17,21 +17,16 @@
 package org.gradle.configurationcache.serialization.beans
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.IConventionAware
-import org.gradle.api.internal.TaskInternal
-
-import org.gradle.configurationcache.problems.DisableConfigurationCacheFieldTypeCheck
 import org.gradle.configurationcache.problems.PropertyKind
-import org.gradle.configurationcache.serialization.IsolateContext
+import org.gradle.configurationcache.serialization.MutableIsolateContext
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.configurationcache.serialization.logUnsupported
 import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator
 import org.gradle.internal.reflect.ClassInspector
-
 import java.lang.reflect.AccessibleObject
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier.isStatic
@@ -115,7 +110,7 @@ data class RelevantField(
 
 
 internal
-fun IsolateContext.reportUnsupportedFieldType(
+fun MutableIsolateContext.reportUnsupportedFieldType(
     unsupportedType: KClass<*>,
     action: String,
     fieldName: String,
@@ -130,12 +125,7 @@ fun IsolateContext.reportUnsupportedFieldType(
 
 internal
 fun unsupportedFieldTypeFor(field: Field): KClass<*>? =
-    field.takeUnless {
-        field.isAnnotationPresent(DisableConfigurationCacheFieldTypeCheck::class.java)
-    }?.let {
-        unsupportedFieldDeclaredTypes
-            .firstOrNull { it.java.isAssignableFrom(field.type) }
-    }
+    unsupportedFieldDeclaredTypes.firstOrNull { it.java.isAssignableFrom(field.type) }
 
 
 private
@@ -158,8 +148,6 @@ fun isRelevantDeclaringClass(declaringClass: Class<*>): Boolean =
 private
 val irrelevantDeclaringClasses = setOf(
     Object::class.java,
-    Task::class.java,
-    TaskInternal::class.java,
     DefaultTask::class.java,
     ConventionTask::class.java
 )
