@@ -24,10 +24,12 @@ import org.gradle.configurationcache.extensions.useToRun
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedJavaSerialization
 import org.gradle.configurationcache.problems.PropertyKind
 import org.gradle.configurationcache.problems.PropertyTrace
+import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assert.assertThrows
 import org.junit.Ignore
 import org.junit.Test
 import java.io.ByteArrayInputStream
@@ -38,6 +40,7 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutput
 import java.io.ObjectOutputStream
 import java.io.Serializable
+import java.lang.reflect.InvocationTargetException
 
 
 class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
@@ -116,11 +119,16 @@ class JavaObjectSerializationCodecTest : AbstractUserTypeCodecTest() {
 
     @Test
     fun `unimplemented serialization feature problems link to the Java serialization section`() {
-        val problems = serializationProblemsOf(UnsupportedSerializableBean())
-        assertThat(problems.size, equalTo(1))
+        val exception = assertThrows(UnsupportedOperationException::class.java) {
+            try {
+                serializationProblemsOf(UnsupportedSerializableBean())
+            } catch (e: InvocationTargetException) {
+                throw e.targetException
+            }
+        }
         assertThat(
-            problems[0].documentationSection,
-            equalTo(NotYetImplementedJavaSerialization)
+            exception.message,
+            containsString(NotYetImplementedJavaSerialization.anchor)
         )
     }
 

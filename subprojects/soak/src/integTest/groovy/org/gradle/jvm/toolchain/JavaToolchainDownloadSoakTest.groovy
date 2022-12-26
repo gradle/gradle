@@ -26,7 +26,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << """
             plugins {
-                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.2'
+                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.3.0'
             }
         """
 
@@ -46,14 +46,13 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         executer.requireOwnGradleUserHomeDir()
         executer
-            .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
     }
 
     def "can download missing jdk automatically"() {
         when:
         result = executer
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+                .withTasks("compileJava")
                 .run()
 
         then:
@@ -72,7 +71,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         when:
         result = executer
-               .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+               .withTasks("compileJava")
                .run()
 
         then:

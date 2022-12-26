@@ -21,7 +21,6 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheStartParam
 import org.gradle.execution.EntryTaskSelector
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.ExecutionResult
-import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.buildtree.BuildTreeWorkController
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkPreparer
@@ -33,8 +32,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
     private val workGraph: BuildTreeWorkGraphController,
     private val cache: BuildTreeConfigurationCache,
     private val buildRegistry: BuildStateRegistry,
-    private val eventListenerRegistry: BuildEventListenerRegistryInternal,
-    private val startParameter: ConfigurationCacheStartParameter
+    private val startParameter: ConfigurationCacheStartParameter,
 ) : BuildTreeWorkController {
 
     override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?): ExecutionResult<Void> {
@@ -53,7 +51,7 @@ class ConfigurationCacheAwareBuildTreeWorkController(
             return executionResult
         }
 
-        eventListenerRegistry.unsubscribeAll()
+        cache.finalizeCacheEntry()
         buildRegistry.resetStateForAllBuilds()
 
         return workGraph.withNewWorkGraph { graph ->

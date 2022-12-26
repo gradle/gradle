@@ -17,9 +17,13 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaClassUtil
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.not
+import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume.assumeThat
 import org.junit.Test
 
 
@@ -44,7 +48,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `precompiled scripts use jvmTarget 8 by default`() {
+    fun `precompiled scripts use the build jvm target default`() {
 
         withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
 
@@ -58,7 +62,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
         withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
         withBuildScript("""plugins { id("some") }""")
 
-        assertThat(build("help").output, containsString(outputFor(JavaVersion.VERSION_1_8)))
+        assertThat(build("help").output, containsString(outputFor(JavaVersion.current())))
     }
 
     @Test
@@ -70,6 +74,12 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
 
         withDefaultSettingsIn("buildSrc")
         withKotlinDslPluginIn("buildSrc").appendText("""
+
+            java {
+                sourceCompatibility = JavaVersion.VERSION_11
+                targetCompatibility = JavaVersion.VERSION_11
+            }
+
             kotlinDslPluginOptions {
                 jvmTarget.set("11")
             }
@@ -82,7 +92,44 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
         withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
         withBuildScript("""plugins { id("some") }""")
 
+        executer.expectDocumentedDeprecationWarning("The KotlinDslPluginOptions.jvmTarget property has been deprecated. This is scheduled to be removed in Gradle 9.0. Configure a Java Toolchain instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#kotlin_dsl_plugin_toolchains")
+
         assertThat(build("help").output, containsString(outputFor(JavaVersion.VERSION_11)))
+    }
+
+    @Test
+    fun `can use java toolchain to compile precompiled scripts`() {
+
+        // https://github.com/gradle/gradle/issues/23125
+        assumeJava11OrHigher()
+
+        val jdk11 = AvailableJavaHomes.getJdk11()
+        assumeThat(jdk11, not(nullValue()))
+
+        withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
+
+        withDefaultSettingsIn("buildSrc")
+        withKotlinDslPluginIn("buildSrc").appendText("""
+
+            java {
+                toolchain {
+                    languageVersion.set(JavaLanguageVersion.of(11))
+                }
+            }
+
+            dependencies {
+                implementation(files("utils.jar"))
+            }
+        """)
+
+        withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
+        withBuildScript("""plugins { id("some") }""")
+
+        val result = gradleExecuterFor(arrayOf("help"))
+            .withArgument("-Porg.gradle.java.installations.paths=${jdk11!!.javaHome.absolutePath}")
+            .run()
+
+        assertThat(result.output, containsString(outputFor(JavaVersion.VERSION_11)))
     }
 
     private

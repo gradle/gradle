@@ -102,9 +102,7 @@ public class CompileTransaction {
             moveCompileOutputToOriginalFolders(stagedOutputs);
             return result;
         } catch (CompilationFailedException t) {
-            if (spec.getCompileOptions().supportsIncrementalCompilationAfterFailure()) {
-                rollbackStash(stashResult.stashedFiles);
-            }
+            rollbackStash(stashResult.stashedFiles);
             throw t;
         } finally {
             restoreSpecOutputs(stagedOutputs);
@@ -233,15 +231,25 @@ public class CompileTransaction {
     }
 
     private void rollbackStash(List<StashedFile> stashedFiles) {
-        stashedFiles.forEach(StashedFile::unstash);
+        if (supportsIncrementalCompilationAfterFailure()) {
+            stashedFiles.forEach(StashedFile::unstash);
+        }
     }
 
     private void setupSpecOutputs(List<StagedOutput> stagedOutputs) {
-        stagedOutputs.forEach(StagedOutput::setupSpecOutput);
+        if (supportsIncrementalCompilationAfterFailure()) {
+            stagedOutputs.forEach(StagedOutput::setupSpecOutput);
+        }
     }
 
     private void restoreSpecOutputs(List<StagedOutput> stagedOutputs) {
-        stagedOutputs.forEach(StagedOutput::restoreSpecOutput);
+        if (supportsIncrementalCompilationAfterFailure()) {
+            stagedOutputs.forEach(StagedOutput::restoreSpecOutput);
+        }
+    }
+
+    private boolean supportsIncrementalCompilationAfterFailure() {
+        return spec.getCompileOptions().supportsIncrementalCompilationAfterFailure();
     }
 
     private static void moveFile(File sourceFile, File destinationFile) {

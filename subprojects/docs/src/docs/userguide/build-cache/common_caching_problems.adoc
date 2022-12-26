@@ -104,7 +104,7 @@ as an input for compilation and test execution.
 
 
 If you use different JVM vendors for compiling or running Java we strongly suggest that you add the vendor as an input to the corresponding tasks.
-This can be achieved by using the <<more_about_tasks.adoc#sec:task_input_output_runtime_api,runtime API>> as shown in the following snippet.
+This can be achieved by using the <<incremental_build.adoc#sec:task_input_output_runtime_api,runtime API>> as shown in the following snippet.
 
 ====
 include::sample[dir="snippets/buildCache/java-version-tracking/kotlin",files="build.gradle.kts[tags=trackVendor]"]

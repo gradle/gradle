@@ -191,7 +191,9 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends AbstractProgr
         and:
         println events.describeOperationsTree()
 
-        events.operation(applyInitScript(initScript)).with { operation ->
+        def initScripts = events.operations(applyInitScript(initScript))
+        !initScripts.empty // Root build, plus buildSrc for Gradle >=8.0
+        initScripts.each { operation ->
             operation.child applyInitScriptPlugin(scriptPlugin1)
             operation.child applyInitScriptPlugin(scriptPlugin2)
         }

@@ -42,13 +42,18 @@ open class GradleDistribution(private val gradleHomeDir: FileCollection) {
 
     @get:Classpath
     val coreJars: SortedSet<File>
-        get() = gradleHomeDir.asFileTree.matching {
-            include("lib/*.jar")
-        }.files.toSortedSet()
+        get() = filesIn("lib/*.jar")
+
+    @get:Classpath
+    val agentJars: SortedSet<File>
+        get() = filesIn("lib/agents/*.jar")
 
     @get:Classpath
     val pluginJars: SortedSet<File>
-        get() = gradleHomeDir.asFileTree.matching {
-            include("lib/plugins/*.jar")
-        }.files.toSortedSet()
+        get() = filesIn("lib/plugins/*.jar")
+
+    private
+    fun filesIn(glob: String) = gradleHomeDir.asFileTree.matching {
+        include(glob)
+    }.files.toSortedSet()
 }

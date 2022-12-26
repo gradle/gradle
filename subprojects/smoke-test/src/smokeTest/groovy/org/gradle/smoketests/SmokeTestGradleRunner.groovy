@@ -19,6 +19,7 @@ package org.gradle.smoketests
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.InvalidPluginMetadataException
+import org.gradle.testkit.runner.InvalidRunnerConfigurationException
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.slf4j.LoggerFactory
 
@@ -45,6 +46,13 @@ class SmokeTestGradleRunner extends GradleRunner {
     @Override
     BuildResult buildAndFail() {
         def result = delegate.buildAndFail()
+        verifyDeprecationWarnings(result)
+        return result
+    }
+
+    @Override
+    BuildResult run() throws InvalidRunnerConfigurationException {
+        def result = delegate.run()
         verifyDeprecationWarnings(result)
         return result
     }
@@ -259,6 +267,10 @@ class SmokeTestGradleRunner extends GradleRunner {
     SmokeTestGradleRunner forwardOutput() {
         delegate.forwardOutput()
         return this
+    }
+
+    List<String> getJvmArguments() {
+        return delegate.getJvmArguments()
     }
 
     SmokeTestGradleRunner withJvmArguments(List<String> jvmArguments) {

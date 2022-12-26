@@ -30,6 +30,7 @@ class ScalaCompileOptionsConfigurerTest extends Specification {
     def 'using Java #toolchain and Scala #scalaLibraryVersion results in #expectedTarget'() {
         given:
         ScalaCompileOptions scalaCompileOptions = TestUtil.newInstance(ScalaCompileOptions)
+        scalaCompileOptions.additionalParameters = ["-some-other-flag"].asImmutable()
         def isScala3 = scalaLibraryVersion.startsWith("3.")
         File scalaLibrary = new File(isScala3 ? "scala3-library_3-${scalaLibraryVersion}.jar" : "scala-library-${scalaLibraryVersion}.jar")
         Set<File> classpath = [scalaLibrary]

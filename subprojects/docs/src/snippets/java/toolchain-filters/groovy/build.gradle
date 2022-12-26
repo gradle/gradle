@@ -30,7 +30,7 @@ java {
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(11)
-        vendor = JvmVendorSpec.IBM_SEMERU
+        vendor = JvmVendorSpec.IBM
         implementation = JvmImplementation.J9
     }
 }

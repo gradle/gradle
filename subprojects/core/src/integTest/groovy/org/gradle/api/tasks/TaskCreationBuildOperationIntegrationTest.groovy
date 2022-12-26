@@ -199,7 +199,12 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
             """
         }
         multiProjectBuild('root', ['sub'], createTasks)
-        includedBuild('buildSrc').multiProjectBuild('buildSrc', ['sub'], createTasks)
+        includedBuild('buildSrc').multiProjectBuild('buildSrc', ['sub']) {
+            buildFile << """
+                allprojects { apply plugin: 'java-library' }
+                dependencies { implementation(project(":sub")) }
+            """
+        }
         includedBuild('comp').multiProjectBuild('comp', ['sub'], createTasks).settingsFile
         buildFile << """
             tasks.named('build').configure { it.dependsOn gradle.includedBuild('comp').task(':build') }
@@ -211,8 +216,8 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         then:
         verifyTaskIds()
         def expectedTasks = [
-            withPath(':buildSrc', ':sub:build'),
-            withPath(':buildSrc', ':build'),
+            withPath(':buildSrc', ':sub:jar'),
+            withPath(':buildSrc', ':jar'),
             withPath(':comp', ':sub:build'),
             withPath(':comp', ':build'),
             withPath(':', ':sub:build'),

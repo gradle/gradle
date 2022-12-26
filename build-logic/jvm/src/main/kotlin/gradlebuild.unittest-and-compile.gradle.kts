@@ -44,7 +44,7 @@ plugins {
     id("org.gradle.test-retry")
 }
 
-extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", tasks)
+extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", project, tasks)
 
 removeTeamcityTempProperty()
 addDependencies()
@@ -64,6 +64,7 @@ fun configureCompile() {
 
     tasks.withType<JavaCompile>().configureEach {
         configureCompileTask(options)
+        options.compilerArgs.add("-parameters")
     }
     tasks.withType<GroovyCompile>().configureEach {
         groovyOptions.encoding = "utf-8"
@@ -285,8 +286,6 @@ fun configureTests() {
         }
 
         if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject()) {
-            println("Remote test distribution has been enabled for $testName")
-
             distribution {
                 this as TestDistributionExtensionInternal
                 enabled.set(true)

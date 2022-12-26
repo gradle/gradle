@@ -662,8 +662,9 @@ dependencies {
     implementation project(':a')
 }
 task resolve {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        configurations.compileClasspath.files
+        compileClasspath.files
     }
 }
 """
@@ -675,8 +676,9 @@ dependencies {
     implementation project(':b')
 }
 task resolve {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        configurations.compileClasspath.files
+        compileClasspath.files
     }
 }
 """

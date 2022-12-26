@@ -73,11 +73,11 @@ import org.gradle.internal.work.WorkerLeaseService
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.RedirectStdOutAndErr
-import org.jetbrains.annotations.Nullable
 import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Timeout
 
+import javax.annotation.Nullable
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 import java.util.function.Function
@@ -340,7 +340,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
-        void resetState() {
+        void resetLifecycle() {
         }
 
         @Override

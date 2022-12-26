@@ -22,8 +22,11 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class DistributionLocator {
-    private static final String RELEASE_REPOSITORY = "https://services.gradle.org/distributions";
-    private static final String SNAPSHOT_REPOSITORY = "https://services.gradle.org/distributions-snapshots";
+
+    public static final String SERVICES_GRADLE_BASE_URL = "https://services.gradle.org";
+
+    public static final String RELEASE_REPOSITORY = SERVICES_GRADLE_BASE_URL + "/distributions";
+    private static final String SNAPSHOT_REPOSITORY = SERVICES_GRADLE_BASE_URL + "/distributions-snapshots";
 
     public URI getDistributionFor(GradleVersion version) {
         return getDistributionFor(version, "bin");
@@ -41,8 +44,10 @@ public class DistributionLocator {
         }
     }
 
-    private URI getDistribution(String repositoryUrl, GradleVersion version, String archiveName,
-                                   String archiveClassifier) {
+    private URI getDistribution(
+        String repositoryUrl, GradleVersion version, String archiveName,
+        String archiveClassifier
+    ) {
         try {
             return new URI(repositoryUrl + "/" + archiveName + "-" + version.getVersion() + "-" + archiveClassifier + ".zip");
         } catch (URISyntaxException e) {

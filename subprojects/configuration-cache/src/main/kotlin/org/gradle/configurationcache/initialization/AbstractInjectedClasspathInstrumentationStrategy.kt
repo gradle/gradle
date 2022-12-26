@@ -23,15 +23,20 @@ import java.lang.management.ManagementFactory
 
 abstract class AbstractInjectedClasspathInstrumentationStrategy : InjectedClasspathInstrumentationStrategy {
     override fun getTransform(): CachedClasspathTransformer.StandardTransform {
-        val isAgentPresent = ManagementFactory.getRuntimeMXBean().inputArguments.find { it.startsWith("-javaagent:") } != null
-        return if (isAgentPresent) {
+        val isThirdPartyAgentPresent = ManagementFactory.getRuntimeMXBean().inputArguments.find { isThirdPartyJavaAgentSwitch(it) } != null
+        return if (isThirdPartyAgentPresent) {
             // Currently, the build logic instrumentation can interfere with Java agents, such as Jacoco
             // So, disable or fail or whatever based on which execution modes are enabled
-            whenAgentPresent()
+            whenThirdPartyAgentPresent()
         } else {
             CachedClasspathTransformer.StandardTransform.BuildLogic
         }
     }
 
-    abstract fun whenAgentPresent(): CachedClasspathTransformer.StandardTransform
+    private
+    fun isThirdPartyJavaAgentSwitch(argument: String): Boolean {
+        return argument.startsWith("-javaagent:") && !argument.contains("gradle-instrumentation-agent")
+    }
+
+    abstract fun whenThirdPartyAgentPresent(): CachedClasspathTransformer.StandardTransform
 }

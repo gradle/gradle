@@ -58,6 +58,10 @@ class DefaultTaskContainerTest extends AbstractPolymorphicDomainObjectContainerS
         getGradle() >> Mock(GradleInternal) {
             getIdentityPath() >> Path.path(":")
         }
+        getOwner() >> Mock(ProjectState) {
+            getDepth() >> 0
+            getProjectPath() >> Path.path(":project")
+        }
         getServices() >> Mock(ServiceRegistry)
         getTaskDependencyFactory() >> TestFiles.taskDependencyFactory()
         getObjects() >> Stub(ObjectFactory)

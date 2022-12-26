@@ -17,12 +17,13 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.Action;
+import org.gradle.internal.FinalizableValue;
 import org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler;
 import org.gradle.jvm.toolchain.JvmToolchainManagement;
 
 import javax.inject.Inject;
 
-public abstract class DefaultJvmToolchainManagement implements JvmToolchainManagement {
+public abstract class DefaultJvmToolchainManagement implements JvmToolchainManagement, FinalizableValue {
 
     private final JavaToolchainResolverRegistryInternal registry;
 
@@ -41,4 +42,8 @@ public abstract class DefaultJvmToolchainManagement implements JvmToolchainManag
         configureAction.execute(getJavaRepositories());
     }
 
+    @Override
+    public void preventFromFurtherMutation() {
+        registry.getRepositories().preventFromFurtherMutation();
+    }
 }

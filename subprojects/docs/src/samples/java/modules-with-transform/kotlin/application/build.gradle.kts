@@ -11,7 +11,7 @@ repositories {
 }
 
 tasks.compileJava {
-    options.javaModuleVersion.set(provider({ project.version as String }))
+    options.javaModuleVersion.set(provider({ version as String }))
 }
 
 // tag::extraModuleInfo[]

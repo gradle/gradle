@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
+import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyConfiguration;
@@ -46,6 +47,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -64,23 +66,50 @@ public class IvyDescriptorFileGenerator {
         }
     };
 
-    private final SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
-    private final IvyPublicationIdentity projectIdentity;
     private final VersionMappingStrategyInternal versionMappingStrategy;
-    private String branch;
-    private String status;
-    private List<IvyModuleDescriptorLicense> licenses = new ArrayList<IvyModuleDescriptorLicense>();
-    private List<IvyModuleDescriptorAuthor> authors = new ArrayList<IvyModuleDescriptorAuthor>();
-    private IvyModuleDescriptorDescription description;
-    private Map<QName, String> extraInfo;
-    private XmlTransformer xmlTransformer = new XmlTransformer();
-    private List<IvyConfiguration> configurations = new ArrayList<IvyConfiguration>();
-    private List<IvyArtifact> artifacts = new ArrayList<IvyArtifact>();
-    private List<IvyDependencyInternal> dependencies = new ArrayList<IvyDependencyInternal>();
-    private List<IvyExcludeRule> globalExcludes = new ArrayList<IvyExcludeRule>();
+    private final XmlTransformer xmlTransformer = new XmlTransformer();
+    private final Model model;
 
+    static class Model {
+        private String branch;
+        private String status;
+        private final String organisation;
+        private final String module;
+        private final String revision;
+        private final List<IvyModuleDescriptorLicense> licenses = new ArrayList<IvyModuleDescriptorLicense>();
+        private final List<IvyModuleDescriptorAuthor> authors = new ArrayList<IvyModuleDescriptorAuthor>();
+        private IvyModuleDescriptorDescription description;
+        private Map<QName, String> extraInfo;
+        private final List<IvyConfiguration> configurations = new ArrayList<IvyConfiguration>();
+        private final List<NormalizedIvyArtifact> artifacts = new ArrayList<>();
+        private final List<IvyDependencyInternal> dependencies = new ArrayList<IvyDependencyInternal>();
+        private final Map<IvyDependencyInternal, ModuleVersionIdentifier> resolvedVersions = new LinkedHashMap<>();
+        private List<IvyExcludeRule> globalExcludes = new ArrayList<IvyExcludeRule>();
+
+        public Model(IvyPublicationIdentity projectIdentity) {
+            organisation = projectIdentity.getOrganisation();
+            module = projectIdentity.getModule();
+            revision = projectIdentity.getRevision();
+        }
+
+        private boolean usesClassifier() {
+            for (IvyArtifact artifact : artifacts) {
+                if (artifact.getClassifier() != null) {
+                    return true;
+                }
+            }
+            for (IvyDependencyInternal dependency : dependencies) {
+                for (DependencyArtifact dependencyArtifact : dependency.getArtifacts()) {
+                    if (dependencyArtifact.getClassifier() != null) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    }
     public IvyDescriptorFileGenerator(IvyPublicationIdentity projectIdentity, boolean writeGradleRedirectionMarker, VersionMappingStrategyInternal versionMappingStrategy) {
-        this.projectIdentity = projectIdentity;
+        model = new Model(projectIdentity);
         this.versionMappingStrategy = versionMappingStrategy;
         if (writeGradleRedirectionMarker) {
             xmlTransformer.addFinalizer(ADD_GRADLE_METADATA_MARKER);
@@ -88,52 +117,60 @@ public class IvyDescriptorFileGenerator {
     }
 
     public void setStatus(String status) {
-        this.status = status;
+        model.status = status;
     }
 
     public void setBranch(String branch) {
-        this.branch = branch;
+        model.branch = branch;
     }
 
     public IvyDescriptorFileGenerator addLicense(IvyModuleDescriptorLicense ivyLicense) {
-        licenses.add(ivyLicense);
+        model.licenses.add(ivyLicense);
         return this;
     }
 
     public IvyDescriptorFileGenerator addAuthor(IvyModuleDescriptorAuthor ivyAuthor) {
-        authors.add(ivyAuthor);
+        model.authors.add(ivyAuthor);
         return this;
     }
 
     public void setDescription(IvyModuleDescriptorDescription ivyDescription) {
-        description = ivyDescription;
+        model.description = ivyDescription;
     }
 
     public Map<QName, String> getExtraInfo() {
-        return extraInfo;
+        return model.extraInfo;
     }
 
     public void setExtraInfo(Map<QName, String> extraInfo) {
-        this.extraInfo = extraInfo;
+        model.extraInfo = extraInfo;
     }
 
     public IvyDescriptorFileGenerator addConfiguration(IvyConfiguration ivyConfiguration) {
-        configurations.add(ivyConfiguration);
+        model.configurations.add(ivyConfiguration);
         return this;
     }
 
-    public IvyDescriptorFileGenerator addArtifact(IvyArtifact ivyArtifact) {
-        artifacts.add(ivyArtifact);
+    public IvyDescriptorFileGenerator addArtifact(NormalizedIvyArtifact ivyArtifact) {
+        model.artifacts.add(ivyArtifact);
         return this;
     }
 
     public IvyDescriptorFileGenerator addDependency(IvyDependencyInternal ivyDependency) {
-        dependencies.add(ivyDependency);
+        model.dependencies.add(ivyDependency);
+        VariantVersionMappingStrategyInternal variantStrategy = versionMappingStrategy.findStrategyForVariant(ivyDependency.getAttributes());
+        String org = ivyDependency.getOrganisation();
+        String module = ivyDependency.getModule();
+        String projectPath  = ivyDependency.getProjectPath();
+        ModuleVersionIdentifier resolvedVersion = variantStrategy.maybeResolveVersion(org, module, projectPath);
+        if (resolvedVersion != null) {
+            model.resolvedVersions.put(ivyDependency, resolvedVersion);
+        }
         return this;
     }
 
     public IvyDescriptorFileGenerator addGlobalExclude(IvyExcludeRule excludeRule) {
-        globalExcludes.add(excludeRule);
+        model.globalExcludes.add(excludeRule);
         return this;
     }
 
@@ -143,210 +180,223 @@ public class IvyDescriptorFileGenerator {
     }
 
     public IvyDescriptorFileGenerator writeTo(File file) {
-        xmlTransformer.transform(file, IVY_FILE_ENCODING, new Action<Writer>() {
-            @Override
-            public void execute(Writer writer) {
-                try {
-                    writeDescriptor(writer);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }
-        });
+        toSpec().writeTo(file);
         return this;
     }
 
-    private void writeDescriptor(final Writer writer) throws IOException {
-        OptionalAttributeXmlWriter xmlWriter = new OptionalAttributeXmlWriter(writer, "  ", IVY_FILE_ENCODING);
-        xmlWriter.startElement("ivy-module").attribute("version", "2.0");
-        if (usesClassifier()) {
-            xmlWriter.attribute("xmlns:m", "http://ant.apache.org/ivy/maven");
+    public static class ModelWriter {
+        private final SimpleDateFormat ivyDateFormat = new SimpleDateFormat(IVY_DATE_PATTERN);
+        private final Model model;
+
+        public ModelWriter(Model model) {
+            this.model = model;
         }
 
-        xmlWriter.startElement("info")
-            .attribute("organisation", projectIdentity.getOrganisation())
-            .attribute("module", projectIdentity.getModule())
-            .attribute("branch", branch)
-            .attribute("revision", projectIdentity.getRevision())
-            .attribute("status", status)
-            .attribute("publication", ivyDateFormat.format(new Date()));
-
-        for (IvyModuleDescriptorLicense license : licenses) {
-            xmlWriter.startElement("license")
-                .attribute("name", license.getName().getOrNull())
-                .attribute("url", license.getUrl().getOrNull())
-                .endElement();
+        private void writeTo(File file, XmlTransformer xmlTransformer) {
+            xmlTransformer.transform(file, IVY_FILE_ENCODING, new Action<Writer>() {
+                @Override
+                public void execute(Writer writer) {
+                    try {
+                        writeDescriptor(writer);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }
+            });
         }
 
-        for (IvyModuleDescriptorAuthor author : authors) {
-            xmlWriter.startElement("ivyauthor")
-                .attribute("name", author.getName().getOrNull())
-                .attribute("url", author.getUrl().getOrNull())
-                .endElement();
-        }
+        private void writeDescriptor(final Writer writer) throws IOException {
+            OptionalAttributeXmlWriter xmlWriter = new OptionalAttributeXmlWriter(writer, "  ", IVY_FILE_ENCODING);
+            xmlWriter.startElement("ivy-module").attribute("version", "2.0");
+            if (model.usesClassifier()) {
+                xmlWriter.attribute("xmlns:m", "http://ant.apache.org/ivy/maven");
+            }
 
-        if (description != null) {
-            xmlWriter.startElement("description")
-                .attribute("homepage", description.getHomepage().getOrNull())
-                .characters(description.getText().getOrElse(""))
-                .endElement();
-        }
+            xmlWriter.startElement("info")
+                .attribute("organisation", model.organisation)
+                .attribute("module", model.module)
+                .attribute("branch", model.branch)
+                .attribute("revision", model.revision)
+                .attribute("status", model.status)
+                .attribute("publication", ivyDateFormat.format(new Date()));
 
-        if (extraInfo != null) {
-            for (Map.Entry<QName, String> entry : extraInfo.entrySet()) {
-                if (entry.getKey() != null) {
-                    xmlWriter.startElement("ns:" + entry.getKey().getLocalPart())
-                        .attribute("xmlns:ns", entry.getKey().getNamespaceURI())
-                        .characters(entry.getValue())
-                        .endElement();
+            for (IvyModuleDescriptorLicense license : model.licenses) {
+                xmlWriter.startElement("license")
+                    .attribute("name", license.getName().getOrNull())
+                    .attribute("url", license.getUrl().getOrNull())
+                    .endElement();
+            }
+
+            for (IvyModuleDescriptorAuthor author : model.authors) {
+                xmlWriter.startElement("ivyauthor")
+                    .attribute("name", author.getName().getOrNull())
+                    .attribute("url", author.getUrl().getOrNull())
+                    .endElement();
+            }
+
+            if (model.description != null) {
+                xmlWriter.startElement("description")
+                    .attribute("homepage", model.description.getHomepage().getOrNull())
+                    .characters(model.description.getText().getOrElse(""))
+                    .endElement();
+            }
+
+            if (model.extraInfo != null) {
+                for (Map.Entry<QName, String> entry : model.extraInfo.entrySet()) {
+                    if (entry.getKey() != null) {
+                        xmlWriter.startElement("ns:" + entry.getKey().getLocalPart())
+                            .attribute("xmlns:ns", entry.getKey().getNamespaceURI())
+                            .characters(entry.getValue())
+                            .endElement();
+                    }
                 }
             }
+
+            xmlWriter.endElement();
+
+            writeConfigurations(xmlWriter);
+            writePublications(xmlWriter);
+            writeDependencies(xmlWriter);
+            xmlWriter.endElement();
         }
 
-        xmlWriter.endElement();
-
-        writeConfigurations(xmlWriter);
-        writePublications(xmlWriter);
-        writeDependencies(xmlWriter);
-        xmlWriter.endElement();
-    }
-
-    private boolean usesClassifier() {
-        for (IvyArtifact artifact : artifacts) {
-            if (artifact.getClassifier() != null) {
-                return true;
-            }
-        }
-        for (IvyDependencyInternal dependency : this.dependencies) {
-            for (DependencyArtifact dependencyArtifact : dependency.getArtifacts()) {
-                if (dependencyArtifact.getClassifier() != null) {
-                    return true;
+        private void writeConfigurations(OptionalAttributeXmlWriter xmlWriter) throws IOException {
+            xmlWriter.startElement("configurations");
+            for (IvyConfiguration configuration : model.configurations) {
+                xmlWriter.startElement("conf")
+                    .attribute("name", configuration.getName())
+                    .attribute("visibility", "public");
+                if (configuration.getExtends().size() > 0) {
+                    xmlWriter.attribute("extends", CollectionUtils.join(",", configuration.getExtends()));
                 }
-            }
-        }
-        return false;
-    }
-
-    private void writeConfigurations(OptionalAttributeXmlWriter xmlWriter) throws IOException {
-        xmlWriter.startElement("configurations");
-        for (IvyConfiguration configuration : configurations) {
-            xmlWriter.startElement("conf")
-                .attribute("name", configuration.getName())
-                .attribute("visibility", "public");
-            if (configuration.getExtends().size() > 0) {
-                xmlWriter.attribute("extends", CollectionUtils.join(",", configuration.getExtends()));
+                xmlWriter.endElement();
             }
             xmlWriter.endElement();
         }
-        xmlWriter.endElement();
-    }
 
-    private void writePublications(OptionalAttributeXmlWriter xmlWriter) throws IOException {
-        xmlWriter.startElement("publications");
-        for (IvyArtifact artifact : artifacts) {
+        private void writePublications(OptionalAttributeXmlWriter xmlWriter) throws IOException {
+            xmlWriter.startElement("publications");
+            for (IvyArtifact artifact : model.artifacts) {
+                xmlWriter.startElement("artifact")
+                    .attribute("name", artifact.getName())
+                    .attribute("type", artifact.getType())
+                    .attribute("ext", artifact.getExtension())
+                    .attribute("conf", artifact.getConf())
+                    .attribute("m:classifier", artifact.getClassifier())
+                    .endElement();
+            }
+            xmlWriter.endElement();
+        }
+
+        private void writeDependencies(OptionalAttributeXmlWriter xmlWriter) throws IOException {
+            xmlWriter.startElement("dependencies");
+            for (IvyDependencyInternal dependency : model.dependencies) {
+                String org = dependency.getOrganisation();
+                String module = dependency.getModule();
+                ModuleVersionIdentifier resolvedVersion = model.resolvedVersions.get(dependency);
+                if (resolvedVersion != null) {
+                    org = resolvedVersion.getGroup();
+                    module = resolvedVersion.getName();
+                }
+                xmlWriter.startElement("dependency")
+                    .attribute("org", org)
+                    .attribute("name", module)
+                    .attribute("rev", resolvedVersion != null ? resolvedVersion.getVersion() : dependency.getRevision())
+                    .attribute("conf", dependency.getConfMapping());
+
+
+                if (resolvedVersion != null && isDynamicVersion(dependency.getRevision())) {
+                    xmlWriter.attribute("revConstraint", dependency.getRevision());
+                }
+
+                if (!dependency.isTransitive()) {
+                    xmlWriter.attribute("transitive", "false");
+                }
+
+                for (DependencyArtifact dependencyArtifact : dependency.getArtifacts()) {
+                    printDependencyArtifact(dependencyArtifact, xmlWriter);
+                }
+                for (ExcludeRule excludeRule : dependency.getExcludeRules()) {
+                    writeDependencyExclude(excludeRule, xmlWriter);
+                }
+                xmlWriter.endElement();
+            }
+            for (IvyExcludeRule excludeRule : model.globalExcludes) {
+                writeGlobalExclude(excludeRule, xmlWriter);
+            }
+            xmlWriter.endElement();
+        }
+
+        private boolean isDynamicVersion(String version) {
+            return !ExactVersionSelector.isExact(version);
+        }
+
+        private void writeDependencyExclude(ExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {
+            xmlWriter.startElement("exclude")
+                .attribute("org", excludeRule.getGroup())
+                .attribute("module", excludeRule.getModule())
+                .endElement();
+        }
+
+        private void printDependencyArtifact(DependencyArtifact dependencyArtifact, OptionalAttributeXmlWriter xmlWriter) throws IOException {
+            // TODO Use IvyArtifact here
             xmlWriter.startElement("artifact")
-                .attribute("name", artifact.getName())
-                .attribute("type", artifact.getType())
-                .attribute("ext", artifact.getExtension())
-                .attribute("conf", artifact.getConf())
-                .attribute("m:classifier", artifact.getClassifier())
+                .attribute("name", dependencyArtifact.getName())
+                .attribute("type", dependencyArtifact.getType())
+                .attribute("ext", dependencyArtifact.getExtension())
+                .attribute("m:classifier", dependencyArtifact.getClassifier())
                 .endElement();
         }
-        xmlWriter.endElement();
-    }
 
-    private void writeDependencies(OptionalAttributeXmlWriter xmlWriter) throws IOException {
-        xmlWriter.startElement("dependencies");
-        for (IvyDependencyInternal dependency : dependencies) {
-            String org = dependency.getOrganisation();
-            String module = dependency.getModule();
-            String projectPath  = dependency.getProjectPath();
-            ModuleVersionIdentifier resolvedVersion = versionMappingStrategy.findStrategyForVariant(dependency.getAttributes()).maybeResolveVersion(org, module, projectPath);
-            if (resolvedVersion != null) {
-                org = resolvedVersion.getGroup();
-                module = resolvedVersion.getName();
-            }
-            xmlWriter.startElement("dependency")
-                .attribute("org", org)
-                .attribute("name", module)
-                .attribute("rev", resolvedVersion != null ? resolvedVersion.getVersion() : dependency.getRevision())
-                .attribute("conf", dependency.getConfMapping());
-
-
-            if (resolvedVersion != null && isDynamicVersion(dependency.getRevision())) {
-                xmlWriter.attribute("revConstraint", dependency.getRevision());
-            }
-
-            if (!dependency.isTransitive()) {
-                xmlWriter.attribute("transitive", "false");
-            }
-
-            for (DependencyArtifact dependencyArtifact : dependency.getArtifacts()) {
-                printDependencyArtifact(dependencyArtifact, xmlWriter);
-            }
-            for (ExcludeRule excludeRule : dependency.getExcludeRules()) {
-                writeDependencyExclude(excludeRule, xmlWriter);
-            }
-            xmlWriter.endElement();
+        private void writeGlobalExclude(IvyExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {
+            xmlWriter.startElement("exclude")
+                .attribute("org", excludeRule.getOrg())
+                .attribute("module", excludeRule.getModule())
+                .attribute("conf", excludeRule.getConf())
+                .endElement();
         }
-        for (IvyExcludeRule excludeRule : globalExcludes) {
-            writeGlobalExclude(excludeRule, xmlWriter);
+        private static class OptionalAttributeXmlWriter extends SimpleXmlWriter {
+            public OptionalAttributeXmlWriter(Writer writer, String indent, String encoding) throws IOException {
+                super(writer, indent, encoding);
+            }
+
+            @Override
+            public OptionalAttributeXmlWriter startElement(String name) throws IOException {
+                super.startElement(name);
+                return this;
+            }
+
+            @Override
+            public OptionalAttributeXmlWriter attribute(String name, String value) throws IOException {
+                if (value != null) {
+                    super.attribute(name, value);
+                }
+                return this;
+            }
+
+            @Override
+            public OptionalAttributeXmlWriter comment(String comment) throws IOException {
+                super.comment(comment);
+                return this;
+            }
         }
-        xmlWriter.endElement();
     }
 
-    private boolean isDynamicVersion(String version) {
-        return !ExactVersionSelector.isExact(version);
+    public DescriptorFileSpec toSpec() {
+        return new DescriptorFileSpec(model, xmlTransformer);
     }
 
-    private void writeDependencyExclude(ExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {
-        xmlWriter.startElement("exclude")
-            .attribute("org", excludeRule.getGroup())
-            .attribute("module", excludeRule.getModule())
-            .endElement();
-    }
+    public static class DescriptorFileSpec {
+        private Model model;
+        private XmlTransformer xmlTransformer;
 
-    private void printDependencyArtifact(DependencyArtifact dependencyArtifact, OptionalAttributeXmlWriter xmlWriter) throws IOException {
-        // TODO Use IvyArtifact here
-        xmlWriter.startElement("artifact")
-            .attribute("name", dependencyArtifact.getName())
-            .attribute("type", dependencyArtifact.getType())
-            .attribute("ext", dependencyArtifact.getExtension())
-            .attribute("m:classifier", dependencyArtifact.getClassifier())
-            .endElement();
-    }
-
-    private void writeGlobalExclude(IvyExcludeRule excludeRule, OptionalAttributeXmlWriter xmlWriter) throws IOException {
-        xmlWriter.startElement("exclude")
-            .attribute("org", excludeRule.getOrg())
-            .attribute("module", excludeRule.getModule())
-            .attribute("conf", excludeRule.getConf())
-            .endElement();
-    }
-
-    private static class OptionalAttributeXmlWriter extends SimpleXmlWriter {
-        public OptionalAttributeXmlWriter(Writer writer, String indent, String encoding) throws IOException {
-            super(writer, indent, encoding);
+        public DescriptorFileSpec(Model model, XmlTransformer xmlTransformer) {
+            this.model = model;
+            this.xmlTransformer = xmlTransformer;
         }
 
-        @Override
-        public OptionalAttributeXmlWriter startElement(String name) throws IOException {
-            super.startElement(name);
-            return this;
-        }
-
-        @Override
-        public OptionalAttributeXmlWriter attribute(String name, String value) throws IOException {
-            if (value != null) {
-                super.attribute(name, value);
-            }
-            return this;
-        }
-
-        @Override
-        public OptionalAttributeXmlWriter comment(String comment) throws IOException {
-            super.comment(comment);
-            return this;
+        public void writeTo(File destination) {
+            new ModelWriter(model).writeTo(destination, xmlTransformer);
         }
     }
 

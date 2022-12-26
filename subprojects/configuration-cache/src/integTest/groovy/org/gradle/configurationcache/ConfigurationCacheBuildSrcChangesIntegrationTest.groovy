@@ -34,11 +34,7 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
         """
 
         when:
-        if (isKotlinBuildSrc) {
-            configurationCacheRunLenient changeFixture.task
-        } else {
-            configurationCacheRun changeFixture.task
-        }
+        configurationCacheRun changeFixture.task
 
         then:
         outputContains changeFixture.expectedOutputBeforeChange
@@ -46,11 +42,7 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
 
         when:
         changeFixture.applyChange()
-        if (isKotlinBuildSrc) {
-            configurationCacheRunLenient changeFixture.task
-        } else {
-            configurationCacheRun changeFixture.task
-        }
+        configurationCacheRun changeFixture.task
 
         then:
         outputContains changeFixture.expectedCacheInvalidationMessage
@@ -66,7 +58,6 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
 
         where:
         changeFixtureSpec << BuildLogicChangeFixture.specs()
-        isKotlinBuildSrc = changeFixtureSpec.language == BuildLogicChangeFixture.Language.KOTLIN
     }
 
     def "invalidates cache upon change to #inputName used by buildSrc"() {
@@ -103,7 +94,7 @@ class ConfigurationCacheBuildSrcChangesIntegrationTest extends AbstractConfigura
                         doLast { println("NOT CI") }
                     }
                 }
-                assemble {
+                jar {
                     dependsOn("run")
                 }
             }

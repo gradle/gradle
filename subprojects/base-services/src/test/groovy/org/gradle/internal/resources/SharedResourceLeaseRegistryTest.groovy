@@ -16,7 +16,8 @@
 
 package org.gradle.internal.resources
 
-import org.gradle.api.Transformer
+
+import org.gradle.internal.InternalTransformer
 import org.gradle.internal.MutableBoolean
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
@@ -131,7 +132,7 @@ class SharedResourceLeaseRegistryTest extends ConcurrentSpec {
 
     boolean lockIsHeld(final ResourceLock resourceLock) {
         MutableBoolean held = new MutableBoolean()
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        coordinationService.withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                 held.set(resourceLock.locked && resourceLock.isLockedByCurrentThread())

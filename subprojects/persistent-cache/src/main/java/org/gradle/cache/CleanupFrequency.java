@@ -23,22 +23,29 @@ import java.util.concurrent.TimeUnit;
  *
  * @since 8.0
  */
-public enum CleanupFrequency {
+public interface CleanupFrequency {
+    long NEVER_CLEANED = 0;
+
     /**
      * Trigger cleanup once every 24 hours.
      */
-    DAILY() {
+    CleanupFrequency DAILY = new CleanupFrequency() {
         @Override
         public boolean requiresCleanup(long lastCleanupTimestamp) {
-            long duration = System.currentTimeMillis() - lastCleanupTimestamp;
-            long timeInHours = TimeUnit.MILLISECONDS.toHours(duration);
-            return timeInHours >= 24;
+            if (lastCleanupTimestamp == NEVER_CLEANED) {
+                return true;
+            } else {
+                long duration = System.currentTimeMillis() - lastCleanupTimestamp;
+                long timeInHours = TimeUnit.MILLISECONDS.toHours(duration);
+                return timeInHours >= 24;
+            }
         }
-    },
+    };
+
     /**
      * Trigger cleanup after every build session
      */
-    ALWAYS() {
+    CleanupFrequency ALWAYS = new CleanupFrequency() {
         @Override
         public boolean requiresCleanup(long lastCleanupTimestamp) {
             return true;
@@ -48,19 +55,20 @@ public enum CleanupFrequency {
         public boolean shouldCleanupOnEndOfSession() {
             return true;
         }
-    },
+    };
+
     /**
      * Disable cleanup completely
      */
-    NEVER() {
+    CleanupFrequency NEVER = new CleanupFrequency() {
         @Override
         public boolean requiresCleanup(long lastCleanupTimestamp) {
             return false;
         }
     };
 
-    public abstract boolean requiresCleanup(long lastCleanupTimestamp);
-    public boolean shouldCleanupOnEndOfSession() {
+    boolean requiresCleanup(long lastCleanupTimestamp);
+    default boolean shouldCleanupOnEndOfSession() {
         return false;
     }
 }

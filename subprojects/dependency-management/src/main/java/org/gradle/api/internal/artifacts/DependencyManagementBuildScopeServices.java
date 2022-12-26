@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -27,6 +26,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
@@ -78,7 +78,6 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
@@ -139,11 +138,11 @@ import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.history.OverlappingOutputDetector;
 import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetector;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
@@ -196,6 +195,7 @@ import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.cached.TwoStageByUrlCachedExternalResourceIndex;
 import org.gradle.internal.resource.cached.TwoStageExternalResourceFileStore;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
+import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -204,7 +204,6 @@ import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.ValueSnapshotter;
-import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
@@ -218,7 +217,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * The set of dependency management services that are created per build.
+ * The set of dependency management services that are created per build in the tree.
  */
 class DependencyManagementBuildScopeServices {
     void configure(ServiceRegistration registration) {
@@ -226,6 +225,8 @@ class DependencyManagementBuildScopeServices {
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
         registration.add(TransformationNodeDependencyResolver.class);
         registration.add(DefaultProjectLocalComponentProvider.class);
+        registration.add(DefaultProjectPublicationRegistry.class);
+        registration.add(FileResourceConnector.class);
     }
 
     DependencyResolutionManagementInternal createSharedDependencyResolutionServices(Instantiator instantiator,
@@ -261,13 +262,16 @@ class DependencyManagementBuildScopeServices {
         return new DefaultVersionComparator();
     }
 
+    CapabilityNotationParser createCapabilityNotationParser() {
+        return new CapabilityNotationParserFactory(false).create();
+    }
+
     DefaultProjectDependencyFactory createProjectDependencyFactory(
         Instantiator instantiator,
         StartParameter startParameter,
         ImmutableAttributesFactory attributesFactory,
-        TaskDependencyFactory taskDependencyFactory
-    ) {
-        NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
+        TaskDependencyFactory taskDependencyFactory,
+        CapabilityNotationParser capabilityNotationParser) {
         return new DefaultProjectDependencyFactory(instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory, taskDependencyFactory);
     }
 
@@ -279,13 +283,13 @@ class DependencyManagementBuildScopeServices {
         FileCollectionFactory fileCollectionFactory,
         RuntimeShadedJarFactory runtimeShadedJarFactory,
         ImmutableAttributesFactory attributesFactory,
-        SimpleMapInterner stringInterner) {
-        NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
+        SimpleMapInterner stringInterner,
+        CapabilityNotationParser capabilityNotationParser) {
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         return new DefaultDependencyFactory(
             instantiator,
-            DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner, attributesFactory, capabilityNotationParser),
+            DependencyNotationParser.create(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
             DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner, attributesFactory),
             new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
             capabilityNotationParser, projectDependencyFactory,
@@ -500,8 +504,7 @@ class DependencyManagementBuildScopeServices {
                                                                 ProducerGuard<ExternalResourceName> producerGuard,
                                                                 FileResourceRepository fileResourceRepository,
                                                                 ChecksumService checksumService,
-                                                                StartParameterResolutionOverride startParameterResolutionOverride,
-                                                                ListenerManager listenerManager) {
+                                                                StartParameterResolutionOverride startParameterResolutionOverride) {
         return artifactCachesProvider.withWritableCache((md, manager) -> new RepositoryTransportFactory(
             resourceConnectorFactories,
             temporaryFileProvider,
@@ -512,8 +515,8 @@ class DependencyManagementBuildScopeServices {
             startParameterResolutionOverride,
             producerGuard,
             fileResourceRepository,
-            checksumService,
-            listenerManager.getBroadcaster(FileResourceListener.class)));
+            checksumService
+        ));
     }
 
     RepositoryDisabler createRepositoryDisabler() {
@@ -528,7 +531,7 @@ class DependencyManagementBuildScopeServices {
                                                                         ListenerManager listenerManager,
                                                                         BuildCommencedTimeProvider timeProvider,
                                                                         ServiceRegistry serviceRegistry) {
-        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry, timeProvider, () -> serviceRegistry.get(GradleProperties.class));
+        DependencyVerificationOverride override = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor, checksumService, signatureVerificationServiceFactory, documentationRegistry, timeProvider, () -> serviceRegistry.get(GradleProperties.class), listenerManager.getBroadcaster(FileResourceListener.class));
         registerBuildFinishedHooks(listenerManager, override);
         return override;
     }
@@ -587,10 +590,6 @@ class DependencyManagementBuildScopeServices {
             calculatedValueContainerFactory);
     }
 
-    ProjectPublicationRegistry createProjectPublicationRegistry() {
-        return new DefaultProjectPublicationRegistry();
-    }
-
     ComponentSelectorConverter createModuleVersionSelectorFactory(ComponentIdentifierFactory componentIdentifierFactory, LocalComponentRegistry localComponentRegistry) {
         return new DefaultComponentSelectorConverter(componentIdentifierFactory, localComponentRegistry);
     }
@@ -647,8 +646,9 @@ class DependencyManagementBuildScopeServices {
                                                                                   BuildCommencedTimeProvider timeProvider,
                                                                                   BuildScopedCache buildScopedCache,
                                                                                   FileHasher fileHasher,
-                                                                                  StartParameter startParameter) {
-        return new DefaultSignatureVerificationServiceFactory(transportFactory, globalScopedCache, decoratorFactory, buildOperationExecutor, fileHasher, buildScopedCache, timeProvider, startParameter.isRefreshKeys());
+                                                                                  StartParameter startParameter,
+                                                                                  ListenerManager listenerManager) {
+        return new DefaultSignatureVerificationServiceFactory(transportFactory, globalScopedCache, decoratorFactory, buildOperationExecutor, fileHasher, buildScopedCache, timeProvider, startParameter.isRefreshKeys(), listenerManager.getBroadcaster(FileResourceListener.class));
     }
 
     private void registerBuildFinishedHooks(ListenerManager listenerManager, DependencyVerificationOverride dependencyVerificationOverride) {
@@ -666,8 +666,10 @@ class DependencyManagementBuildScopeServices {
                                                               ExecutionEngine executionEngine,
                                                               FeatureFlags featureFlags,
                                                               FileCollectionFactory fileCollectionFactory,
+                                                              ImmutableAttributesFactory attributesFactory,
+                                                              CapabilityNotationParser capabilityNotationParser,
                                                               InputFingerprinter inputFingerprinter) {
-        return new DefaultDependenciesAccessors(registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter);
+        return new DefaultDependenciesAccessors(registry, workspace, factory, featureFlags, executionEngine, fileCollectionFactory, inputFingerprinter, attributesFactory, capabilityNotationParser);
     }
 
 
@@ -695,7 +697,7 @@ class DependencyManagementBuildScopeServices {
         UniqueId fixedUniqueId = UniqueId.from("dhwwyv4tqrd43cbxmdsf24wquu");
         // @formatter:off
         return new DefaultExecutionEngine(documentationRegistry,
-            new IdentifyStep<>(
+            new IdentifyStep<>(buildOperationExecutor,
             new IdentityCacheStep<>(
             new AssignWorkspaceStep<>(
             new LoadPreviousExecutionStateStep<>(

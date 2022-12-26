@@ -519,7 +519,7 @@ public abstract class CompileOptions extends AbstractOptions {
      *
      * @since 4.3
      *
-     * @deprecated Use {@link #getGeneratedSourceOutputDirectory()} instead. This method will be removed in Gradle 8.0.
+     * @deprecated Use {@link #getGeneratedSourceOutputDirectory()} instead. This method will be removed in Gradle 9.0.
      */
     @Nullable
     @Deprecated
@@ -527,7 +527,7 @@ public abstract class CompileOptions extends AbstractOptions {
     public File getAnnotationProcessorGeneratedSourcesDirectory() {
         DeprecationLogger.deprecateProperty(CompileOptions.class, "annotationProcessorGeneratedSourcesDirectory")
             .replaceWith("generatedSourceOutputDirectory")
-            .willBeRemovedInGradle8()
+            .willBeRemovedInGradle9()
             .withDslReference()
             .nagUser();
 
@@ -543,12 +543,12 @@ public abstract class CompileOptions extends AbstractOptions {
      */
     @Deprecated
     public void setAnnotationProcessorGeneratedSourcesDirectory(@Nullable File file) {
-        // Used by Android plugin. Followup with https://github.com/gradle/gradle/issues/16782
-        /*DeprecationLogger.deprecateProperty(CompileOptions.class, "annotationProcessorGeneratedSourcesDirectory")
-            .replaceWith("generatedSourceOutputDirectory")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();*/
+        // Enable this deprecation in 8.1+. See: https://github.com/gradle/gradle/issues/16782
+//        DeprecationLogger.deprecateProperty(CompileOptions.class, "annotationProcessorGeneratedSourcesDirectory")
+//            .replaceWith("generatedSourceOutputDirectory")
+//            .willBeRemovedInGradle9()
+//            .withDslReference()
+//            .nagUser();
 
         this.generatedSourceOutputDirectory.set(file);
     }
@@ -559,6 +559,13 @@ public abstract class CompileOptions extends AbstractOptions {
      * @since 4.3
      */
     public void setAnnotationProcessorGeneratedSourcesDirectory(Provider<File> file) {
+        // Enable this deprecation in 8.1+.
+//        DeprecationLogger.deprecateProperty(CompileOptions.class, "annotationProcessorGeneratedSourcesDirectory")
+//            .replaceWith("generatedSourceOutputDirectory")
+//            .willBeRemovedInGradle9()
+//            .withDslReference()
+//            .nagUser();
+
         this.generatedSourceOutputDirectory.fileProvider(file);
     }
 

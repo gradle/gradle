@@ -101,6 +101,7 @@ Alternatively, you can unpack the Gradle distribution ZIP into `C:\Gradle` using
 
 To run Gradle, the path to the unpacked files from the Gradle website need to be on your terminal's path. The steps to do this are different for each operating system.
 
+[[sec:linux_macos_users_2]]
 ==== Linux & MacOS users
 
 Configure your `PATH` environment variable to include the `bin` directory of the unzipped distribution, e.g.:

@@ -24,13 +24,14 @@ publishing {
     }
     repositories {
         // change URLs to point to your repos, e.g. http://my.org/repo
+        def buildDir = layout.buildDirectory
         ivy {
             name "external"
-            url layout.buildDirectory.dir('repos/external')
+            url buildDir.dir('repos/external')
         }
         ivy {
             name "internal"
-            url layout.buildDirectory.dir('repos/internal')
+            url buildDir.dir('repos/internal')
         }
     }
 }
@@ -38,12 +39,15 @@ publishing {
 
 // tag::task-config[]
 tasks.withType(PublishToIvyRepository) {
-    onlyIf("publishing binary to the external repository, or binary and sources to the internal one") {
+    def publishIf = provider {
         if (repository == publishing.repositories.external)
             return publication == publishing.publications.binary
         if (repository == publishing.repositories.internal)
             return publication == publishing.publications.binaryAndSources
         return false
+    }
+    onlyIf("publishing binary to the external repository, or binary and sources to the internal one") {
+        publishIf.get()
     }
 }
 // end::task-config[]
