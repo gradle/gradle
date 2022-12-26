@@ -193,12 +193,12 @@ public abstract class Checkstyle extends SourceTask implements VerificationTask,
             spec.getForkOptions().setMaxHeapSize(maxHeapSize.getOrNull());
             spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
             spec.getForkOptions().getSystemProperties().put("checkstyle.enableExternalDtdLoad", getEnableExternalDtdLoad().get());
-            spec.getClasspath().from(getCheckstyleClasspath());
         });
         workQueue.submit(CheckstyleAction.class, this::setupParameters);
     }
 
     private void setupParameters(CheckstyleActionParameters parameters) {
+        parameters.getAntLibraryClasspath().setFrom(getCheckstyleClasspath());
         parameters.getConfig().set(getConfigFile());
         parameters.getMaxErrors().set(getMaxErrors());
         parameters.getMaxWarnings().set(getMaxWarnings());

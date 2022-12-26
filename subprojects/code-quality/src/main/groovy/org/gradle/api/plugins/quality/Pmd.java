@@ -132,12 +132,12 @@ public abstract class Pmd extends SourceTask implements VerificationTask, Report
 
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> {
             spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath().getAsFile().getAbsolutePath());
-            spec.getClasspath().from(getPmdClasspath());
         });
         workQueue.submit(PmdAction.class, this::setupParameters);
     }
 
     private void setupParameters(PmdActionParameters parameters) {
+        parameters.getAntLibraryClasspath().setFrom(getPmdClasspath());
         parameters.getPmdClasspath().setFrom(getPmdClasspath());
         parameters.getTargetJdk().set(getTargetJdk());
         parameters.getRuleSets().set(getRuleSets());
