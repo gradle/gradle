@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.plugins.quality.CodeNarc",
+            "member": "Method org.gradle.api.plugins.quality.CodeNarc.getAntBuilder()",
+            "acceptation": "Removing internal only type exposed on the public api for injection",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.testing.Test",
             "member": "Method org.gradle.api.tasks.testing.Test.setForkEvery(long)",
             "acceptation": "Test.forkEvery setter with same nullability as the getter",
