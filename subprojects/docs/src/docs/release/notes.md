@@ -1,6 +1,7 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release includes several improvements to the [Kotlin DSL](https://github.com/gradle/gradle/blob/release/subprojects/docs/src/docs/release/userguide/kotlin_dsl.html), testing on internal classes with the [JVM test suite](https://github.com/gradle/gradle/blob/release/subprojects/docs/src/docs/release/userguide/jvm_test_suite_plugin.html), and many improvements to `buildSrc` to behave more like included builds such as running `buildSrc` tasks directly, skipping tests, having init scripts and including other builds with  `buildSrc`. 
+This release includes several improvements to the [Kotlin DSL](userguide/kotlin_dsl.html), testing on internal classes with the [JVM test suite](userguide/jvm_test_suite_plugin.html),
+and many improvements to `buildSrc` to behave more like included builds such as running `buildSrc` tasks directly, skipping tests, having init scripts and including other builds with  `buildSrc`. 
 
 As always, there are also performance improvements like enhancements to the [configuration cache](userguide/configuration_cache.html).
 
@@ -95,7 +96,10 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
 ##### Updated Toolchain Download Repositories
 
-Gradle 7.6 introduced [arbitrary toolchain repositories](https://docs.gradle.org/7.6/userguide/toolchains.html#sub:download_repositories). In Gradle 8.0, there is no longer a default toolchain provisioner. You have to declare at least one Java Toolchain repository explicitly.  This can be done via toolchain repository plugins, like the [Foojay Toolchains Plugin](https://github.com/gradle/disco-toolchains):
+Gradle 7.6 introduced [arbitrary toolchain repositories](userguide/toolchains.html#sub:download_repositories).
+In Gradle 8.0, there is no longer a default toolchain provisioner.
+You have to declare at least one Java Toolchain repository explicitly.
+This can be done via toolchain repository plugins, like the [Foojay Toolchains Plugin](https://plugins.gradle.org/plugin/org.gradle.toolchains.foojay-resolver-convention):
 
 ```
 plugins {
@@ -132,11 +136,12 @@ Note that this doesn't apply to precompiled script plugins, see below.
 Previously, the compilation of [precompiled script plugins](userguide/custom_plugins.html#sec:precompiled_plugins) used the JVM target as configured on `kotlinDslPluginOptions.jvmTarget`.
 Starting with Gradle 8.0, it now uses the configured Java Toolchain, or Java 8 if none is configured.
 
-See the [`kotlin-dsl` plugin manual](userguide/kotlin_dsl.adoc#sec:kotlin-dsl_plugin) for more information on how to configure the Java Toolchain for precompiled script plugins and the [migration guide](userguide/upgrading_version_7.html#kotlin_dsl_plugin_toolchains) for more information on changed behaviour.
+See the [`kotlin-dsl` plugin manual](userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin) for more information on how to configure the Java Toolchain for precompiled script plugins and the [migration guide](userguide/upgrading_version_7.html#kotlin_dsl_plugin_toolchains) for more information on changed behaviour.
 
 #### Improved Script compilation performance 
 
-Gradle 8.0 introduces an interpreter for the [declarative plugins {} blocks](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts that make the overall build time around 20% faster. By default, calling the Kotlin compiler for declarative `plugins {}` blocks is avoided.
+Gradle 8.0 introduces an interpreter for the [declarative plugins {} blocks](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts that make the overall build time around 20% faster.
+By default, calling the Kotlin compiler for declarative `plugins {}` blocks is avoided.
 
 To utilize this performance, ensure you are using the supported formats in the declarative `plugins {}` blocks, for example:
 
@@ -151,7 +156,8 @@ plugins {
 2. Plugin specification with version and/or the plugin application flag
 3. Kotlin plugin specification helper
 
-Note that using version catalog aliases for plugins or plugin specification type-safe accessors is not supported by the `plugins {}` block interpreter. This support will be added in a later version.
+Note that using version catalog aliases for plugins or plugin specification type-safe accessors is not supported by the `plugins {}` block interpreter.
+This support will be added in a later version.
 
 In unsupported cases, Gradle falls back to the Kotlin compiler, providing the same performance as previous Gradle releases.
 
@@ -194,17 +200,22 @@ The [configuration cache](userguide/configuration_cache.html) improves build tim
 
 #### Consistent task execution for configuration cache hit and configuration cache miss builds
 
-In Gradle 8.0, tasks run in parallel from the first build when using the configuration cache. Gradle now loads the set of tasks from the cache entry after storing them on a cache miss. These tasks are isolated and can run in parallel. This is more  fine-grained than using the --parallel flag.
+In Gradle 8.0, tasks run in parallel from the first build when using the configuration cache.
+Gradle now loads the set of tasks from the cache entry after storing them on a cache miss.
+These tasks are isolated and can run in parallel. This is more  fine-grained than using the --parallel flag.
 
-When the [configuration cache](userguide/configuration_cache.html) is enabled, and Gradle is able to locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the cache entry and runs them as so-called 'isolated' tasks. Isolated tasks are able to run in parallel by default, subject to dependency constraints.
+When the [configuration cache](userguide/configuration_cache.html) is enabled, and Gradle is able to locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the cache entry and runs them as so-called 'isolated' tasks.
+Isolated tasks are able to run in parallel by default, subject to dependency constraints.
 
-When Gradle is unable to locate a configuration cache entry to use, it runs the 'configuration' phase to calculate the set of tasks to run and then stores these tasks to a new cache entry. In previous versions, Gradle would then run these tasks directly. However, as these tasks are not isolated, they would not run in parallel.
+When Gradle is unable to locate a configuration cache entry to use, it runs the 'configuration' phase to calculate the set of tasks to run and then stores these tasks to a new cache entry.
+In previous versions, Gradle would then run these tasks directly. However, as these tasks are not isolated, they would not run in parallel.
 
 There are some additional advantages to this new behavior:
 
 - Any problems that happen during deserialization will be reported in the cache miss build, making it easier to spot such problems.
 - Tasks have access to the same state in cache miss and cache hit builds.
-- Gradle can release all memory used by the configuration state prior to task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks were able to access it. This reduces the peak memory usage for a given set of tasks. 
+- Gradle can release all memory used by the configuration state prior to task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks were able to access it.
+- This reduces the peak memory usage for a given set of tasks. 
 
 This consistent behavior for cache miss and cache hit builds can help people who are migrating to use the configuration cache, as more problems can now be discovered on the first (cache miss) build.
 
@@ -275,15 +286,17 @@ Init scripts specified on the command-line using `--init-script` are now applied
 The [CodeNarc](https://codenarc.org/) project now publishes separate versions for use with Groovy 4.
 Gradle still currently ships with Groovy 3.
 
-To ensure future compatibility, the [CodeNarcPlugin](userguide/codenarc_plugin.html) now automatically detects the appropriate version of CodeNarc for the current Groovy runtime.
+To ensure future compatibility, the [CodeNarc Plugin](userguide/codenarc_plugin.html) now automatically detects the appropriate version of CodeNarc for the current Groovy runtime.
 
 You can still explicitly specify a CodeNarc version with the `toolVersion` property on the [CodeNarcExtension](dsl/org.gradle.api.plugins.quality.CodeNarcExtension.html#org.gradle.api.plugins.quality.CodeNarcExtension).
 
 #### Enhanced PMD and CodeNarc tasks to execute in parallel by default
 
-The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains. These tools now perform analysis via an external worker process, and therefore their tasks may now run in parallel within one project.
+The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains.
+These tools now perform analysis via an external worker process, and therefore their tasks may now run in parallel within one project.
 
-In Java projects, these tools will use the same version of Java required by the project. In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
+In Java projects, these tools will use the same version of Java required by the project.
+In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
