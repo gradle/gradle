@@ -56,7 +56,7 @@ public interface CheckstyleReports extends ReportContainer<SingleFileReport> {
      * This report is NOT enabled by default.
      *
      * @return The checkstyle SARIF report
-     * @since 8.0
+     * @since 8.1
      */
     @Internal
     @Incubating
