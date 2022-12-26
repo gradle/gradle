@@ -22,10 +22,9 @@ publishing {
 // end::publish-component[]
 // tag::repositories[]
     repositories {
-        def buildDir = layout.buildDirectory
         ivy {
             // change to point to your repo, e.g. http://my.org/repo
-            url = buildDir.dir("repo")
+            url = layout.buildDirectory.dir("repo")
         }
     }
 // tag::publish-component[]
