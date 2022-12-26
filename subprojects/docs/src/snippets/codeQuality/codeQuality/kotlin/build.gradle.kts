@@ -37,14 +37,27 @@ tasks.withType<Checkstyle>().configureEach {
 }
 // end::customize-checkstyle-memory[]
 
+// tag::enable-checkstyle-sarif-report[]
+checkstyle {
+    toolVersion = "10.3.3"
+}
+// end::enable-checkstyle-sarif-report[]
+
+// tag::enable-checkstyle-sarif-report[]
 // tag::customize-checkstyle-report[]
 tasks.withType<Checkstyle>().configureEach {
     reports {
+// end::customize-checkstyle-report[]
+        sarif.required.set(true)
+// end::enable-checkstyle-sarif-report[]
+// tag::customize-checkstyle-report[]
         xml.required.set(false)
         html.required.set(true)
         html.stylesheet = resources.text.fromFile("config/xsl/checkstyle-custom.xsl")
+// tag::enable-checkstyle-sarif-report[]
     }
 }
+// end::enable-checkstyle-sarif-report[]
 // end::customize-checkstyle-report[]
 
 // tag::customize-pmd[]
