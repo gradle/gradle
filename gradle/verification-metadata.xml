@@ -326,11 +326,11 @@
          <artifact name="android-studio-2023.2.1.16.linux.tar.gz">
             <sha256 value="6bd59abffdd3b68274be54dd104c2a44254a54fa5ad19390c1be2489a66f51d8" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
-         <artifact name="android-studio-2023.2.1.16.mac_arm.zip">
-            <sha256 value="3a8788bbc4a0f051d86d5a51789a446405764825d16c9d44622232dc110c517d" origin="Verified" reason="Artifact is not signed"/>
-         </artifact>
          <artifact name="android-studio-2023.2.1.16.mac.zip">
             <sha256 value="260898e96f1ec21bbc00ac7d0878f5a1037b024b128caf5c71fe9ef05dd5e0d0" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+         <artifact name="android-studio-2023.2.1.16.mac_arm.zip">
+            <sha256 value="3a8788bbc4a0f051d86d5a51789a446405764825d16c9d44622232dc110c517d" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
          <artifact name="android-studio-2023.2.1.16.windows.zip">
             <sha256 value="dbe764371f40869cf199e02d538b305656f49fb930afe072a1c929b881a035cf" origin="Verified" reason="Artifact is not signed"/>
@@ -635,6 +635,11 @@
             <pgp value="31BAE2E51D95E0F8AD9B7BCC40A3C4432BD7308C"/>
          </artifact>
       </component>
+      <component group="com.googlecode.plist" name="dd-plist" version="1.27">
+         <artifact name="dd-plist-1.27.jar">
+            <pgp value="1CEED21A8E77F056ED2341A84410603103CE3AF4"/>
+         </artifact>
+      </component>
       <component group="com.gradleup" name="gr8-plugin" version="0.10">
          <artifact name="gr8-plugin-0.10.jar">
             <pgp value="4857D1CE04E78FAB2A172E8F39B48E1BADDB933F"/>
@@ -685,8 +690,8 @@
             <pgp value="90EE19787A7BCF6FD37A1E9180C08B1C29100955"/>
          </artifact>
       </component>
-      <component group="com.sun.activation" name="jakarta.activation" version="2.0.0">
-         <artifact name="jakarta.activation-2.0.0.jar">
+      <component group="com.sun.activation" name="jakarta.activation" version="2.0.1">
+         <artifact name="jakarta.activation-2.0.1.jar">
             <pgp value="6DD3B8C64EF75253BEB2C53AD908A43FB7EC07AC"/>
          </artifact>
       </component>
@@ -1047,6 +1052,11 @@
             <pgp value="D54A395B5CF3F86EB45F6E426B1B008864323B92"/>
          </artifact>
       </component>
+      <component group="org.apache.commons" name="commons-compress" version="1.22">
+         <artifact name="commons-compress-1.22.jar">
+            <pgp value="CA62ED130E4053944406DF640181B45EA58677BC"/>
+         </artifact>
+      </component>
       <component group="org.apache.commons" name="commons-exec" version="1.1">
          <artifact name="commons-exec-1.1.jar">
             <pgp value="697538D9F48FABC72DD60C1F2C82DBE6C780E2AF"/>
@@ -1142,8 +1152,8 @@
             <pgp value="77993D3295698C46912E83984B2277C6358670EE"/>
          </artifact>
       </component>
-      <component group="org.assertj" name="assertj-core" version="3.20.2">
-         <artifact name="assertj-core-3.20.2.jar">
+      <component group="org.assertj" name="assertj-core" version="3.23.1">
+         <artifact name="assertj-core-3.23.1.jar">
             <pgp value="BE685132AFD2740D9095F9040CC0B712FEE75827"/>
          </artifact>
       </component>

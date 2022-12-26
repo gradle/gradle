@@ -90,7 +90,10 @@ dependencies {
     implementation(libs.commonsCompress)
     implementation(libs.nativePlatform)
     implementation(libs.xmlApis)
-    implementation(libs.tomlj)
+    implementation(libs.tomlj) {
+        // Used for its nullability annotations, not needed at runtime
+        exclude("org.checkerframework", "checker-qual")
+    }
     implementation(libs.javaParser) {
         because("The Groovy compiler inspects the dependencies at compile time")
     }
