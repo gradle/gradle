@@ -585,14 +585,6 @@
             ]
         },
         {
-            "type": "org.gradle.api.plugins.quality.CodeNarc",
-            "member": "Method org.gradle.api.plugins.quality.CodeNarc.getAntBuilder()",
-            "acceptation": "Deprecated method removed in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
             "type": "org.gradle.api.plugins.quality.CodeNarcExtension",
             "member": "Class org.gradle.api.plugins.quality.CodeNarcExtension",
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
