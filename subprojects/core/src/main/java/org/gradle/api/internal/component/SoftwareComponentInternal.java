@@ -19,7 +19,6 @@ package org.gradle.api.internal.component;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentVariant;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,7 +29,11 @@ import java.util.stream.Collectors;
 public interface SoftwareComponentInternal extends SoftwareComponent {
 
     default SoftwareComponentPublications getOutgoing() {
-        return new DefaultSoftwareComponentPublications(Collections.unmodifiableSet(getUsages()));
+        return new DefaultSoftwareComponentPublications(
+            getUsages().stream()
+                .map(x -> x instanceof UsageContextShim ? ((UsageContextShim) x).variant : x)
+                .collect(Collectors.toSet())
+        );
     }
 
     /**
@@ -51,8 +54,10 @@ public interface SoftwareComponentInternal extends SoftwareComponent {
      */
     @SuppressWarnings("deprecation")
     class UsageContextShim extends DelegatingSoftwareComponentVariant implements UsageContext {
+        private final SoftwareComponentVariant variant;
         private UsageContextShim(SoftwareComponentVariant variant) {
             super(variant);
+            this.variant = variant;
         }
     }
 }
