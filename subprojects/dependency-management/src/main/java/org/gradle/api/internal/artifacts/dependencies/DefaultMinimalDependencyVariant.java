@@ -39,7 +39,7 @@ public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDepend
                                            @Nullable String classifier,
                                            @Nullable String artifactType
     ) {
-        super(delegate.getModule(), new DefaultMutableVersionConstraint(delegate.getVersionConstraint()));
+        super(delegate.getModule(), new DefaultMutableVersionConstraint(delegate.getVersionConstraint()), delegate.getTargetConfiguration());
 
         attributesMutator = GUtil.elvis(attributesMutator, Actions.doNothing());
         capabilitiesMutator = GUtil.elvis(capabilitiesMutator, Actions.doNothing());
@@ -64,12 +64,13 @@ public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDepend
     private DefaultMinimalDependencyVariant(
         ModuleIdentifier id,
         MutableVersionConstraint versionConstraint,
+        @Nullable String configuration,
         Action<? super AttributeContainer> attributesMutator,
         Action<? super ModuleDependencyCapabilitiesHandler> capabilitiesMutator,
         @Nullable String classifier,
         @Nullable String artifactType
     ) {
-        super(id, versionConstraint);
+        super(id, versionConstraint, configuration);
         this.attributesMutator = attributesMutator;
         this.capabilitiesMutator = capabilitiesMutator;
         this.classifier = classifier;
@@ -97,7 +98,7 @@ public class DefaultMinimalDependencyVariant extends DefaultExternalModuleDepend
     @Override
     public MinimalExternalModuleDependency copy() {
         DefaultMinimalDependencyVariant dependency = new DefaultMinimalDependencyVariant(
-            getModule(), new DefaultMutableVersionConstraint(getVersionConstraint()),
+            getModule(), new DefaultMutableVersionConstraint(getVersionConstraint()), getTargetConfiguration(),
             attributesMutator, capabilitiesMutator, classifier, artifactType
         );
         copyTo(dependency);
