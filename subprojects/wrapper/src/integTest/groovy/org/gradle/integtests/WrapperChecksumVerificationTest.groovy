@@ -19,6 +19,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.hash.Hashing
+import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.wrapper.WrapperExecutor
 import org.junit.Rule
@@ -44,7 +45,7 @@ class WrapperChecksumVerificationTest extends AbstractWrapperIntegrationSpec {
         and:
         file('gradle/wrapper/gradle-wrapper.properties') << 'distributionSha256Sum=bad'
 
-            when:
+        when:
         def failure = wrapperExecuter.withStackTraceChecksDisabled().runWithFailure()
         def f = new File(file("user-home/wrapper/dists/gradle-bin").listFiles()[0], "gradle-bin.zip")
 
@@ -83,7 +84,9 @@ Expected checksum: 'bad'
         file('gradle/wrapper/gradle-wrapper.properties') << "distributionSha256Sum=${Hashing.sha256().hashFile(distribution.binDistribution).toZeroPaddedString(Hashing.sha256().hexDigits)}"
 
         when:
-        def result = wrapperExecuter.withTasks("wrapper", "--gradle-version", "7.5").runWithFailure()
+        def result = wrapperExecuter.withTasks("wrapper", "--gradle-version", "7.5")
+            .withCommandLineGradleOpts(JvmOptions.getDebugArgument(false, false, "localhost:5006"), "-Dorg.gradle.debug=true", "-Dorg.gradle.debug.server=false")
+            .runWithFailure()
 
         then:
         result.assertHasErrorOutput("gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. Specify one in the wrapped task configuration or with the --gradle-distribution-sha256-sum task option")

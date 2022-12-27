@@ -1519,6 +1519,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter startBuildProcessInDebugger(Action<JavaDebugOptionsInternal> action) {
+        debug.setEnabled(true);
         action.execute(debug);
         return this;
     }
@@ -1530,6 +1531,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     public GradleExecuter startLauncherInDebugger(Action<JavaDebugOptionsInternal> action) {
+        debugLauncher.setEnabled(true);
         action.execute(debugLauncher);
         return this;
     }
