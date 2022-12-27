@@ -20,6 +20,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
@@ -62,6 +64,8 @@ public abstract class WriteProperties extends DefaultTask {
     private Object outputFile;
     private String comment;
     private String encoding = "ISO_8859_1";
+
+    private RegularFileProperty destinationFile;
 
     /**
      * Returns an immutable view of properties to be written to the properties file.
@@ -191,8 +195,12 @@ public abstract class WriteProperties extends DefaultTask {
      * Returns the output file to write the properties to.
      */
     @OutputFile
+    @Optional
     public File getOutputFile() {
-        return getServices().get(FileOperations.class).file(outputFile);
+        if(outputFile != null) {
+            return getServices().get(FileOperations.class).file(outputFile);
+        }
+        return null;
     }
 
     /**
@@ -211,10 +219,22 @@ public abstract class WriteProperties extends DefaultTask {
         this.outputFile = outputFile;
     }
 
+    /**
+     * The output properties file.
+     *
+     * @since 8.1
+     */
+    @OutputFile
+    @Optional
+    @Incubating
+    abstract public RegularFileProperty getDestinationFile();
+
     @TaskAction
     public void writeProperties() throws IOException {
         Charset charset = Charset.forName(getEncoding());
-        OutputStream out = new BufferedOutputStream(new FileOutputStream(getOutputFile()));
+        RegularFileProperty df = getDestinationFile();
+        File file = df.getAsFile().getOrElse(getOutputFile());
+        OutputStream out = new BufferedOutputStream(new FileOutputStream(file));
         try {
             Properties propertiesToWrite = new Properties();
             propertiesToWrite.putAll(getProperties());
