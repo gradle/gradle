@@ -52,25 +52,28 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
             """)
     }
 
-    def "simple properties are written sorted alphabetically"() {
+    def "simple properties are written sorted alphabetically with #outputProprertyName"() {
         given:
         buildFile << """
             task props(type: WriteProperties) {
                 properties = [one: "1", two: "2", three: "three"]
                 comment = "Line comment"
-                outputFile = file("output.properties")
+                $outputProprertyName = file("${outputProprertyName}.properties")
             }
         """
 
         when:
         succeeds "props"
         then:
-        file("output.properties").text == normalize("""
+        file("${outputProprertyName}.properties").text == normalize("""
             #Line comment
             one=1
             three=three
             two=2
             """)
+
+        where:
+        outputProprertyName << ["destinationFile", "outputFile"]
     }
 
     def "unicode characters are escaped when #description"() {
