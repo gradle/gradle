@@ -140,7 +140,7 @@ public class DependencyNotationParser {
 
         @Override
         public void convert(MinimalExternalModuleDependency notation, NotationConvertResult<? super MinimalExternalModuleDependency> result) throws TypeConversionException {
-            DefaultMutableMinimalDependency moduleDependency = instantiator.newInstance(DefaultMutableMinimalDependency.class, notation.getModule(), notation.getVersionConstraint());
+            DefaultMutableMinimalDependency moduleDependency = instantiator.newInstance(DefaultMutableMinimalDependency.class, notation.getModule(), notation.getVersionConstraint(), notation.getTargetConfiguration());
             MinimalExternalModuleDependencyInternal internal = (MinimalExternalModuleDependencyInternal) notation;
             internal.copyTo(moduleDependency);
             result.converted(moduleDependency);
