@@ -43,8 +43,8 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
     }
 
-    public AbstractExternalModuleDependency(ModuleIdentifier module, MutableVersionConstraint version) {
-        super(null);
+    public AbstractExternalModuleDependency(ModuleIdentifier module, MutableVersionConstraint version, @Nullable String configuration) {
+        super(configuration);
         if (module == null) {
             throw new InvalidUserDataException("Module must not be null!");
         }
