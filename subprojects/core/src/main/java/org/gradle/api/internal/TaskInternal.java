@@ -19,7 +19,6 @@ package org.gradle.api.internal;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskRequiredServices;
@@ -103,9 +102,6 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     @Internal
     Path getIdentityPath();
-
-    @Internal
-    ProjectState getOwner();
 
     /**
      * Returns the project instance without performing the model access checks.
