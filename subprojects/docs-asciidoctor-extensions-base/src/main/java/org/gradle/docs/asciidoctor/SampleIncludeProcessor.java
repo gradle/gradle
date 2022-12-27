@@ -97,6 +97,7 @@ public class SampleIncludeProcessor extends IncludeProcessor {
             if (!tags.isEmpty()) {
                 source = filterByTag(source, sourceSyntax, tags);
             }
+            source = trimIndent(source);
             builder.append(String.format(".%s%n[source,%s]%n----%n%s%n----%n", sourceRelativeLocation, sourceSyntax, source));
         }
 
@@ -152,7 +153,7 @@ public class SampleIncludeProcessor extends IncludeProcessor {
         } else {
             String activeTag = null;
             Pattern tagPattern = Pattern.compile(regex);
-            try(BufferedReader reader = new BufferedReader(new StringReader(source))) {
+            try (BufferedReader reader = new BufferedReader(new StringReader(source))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     if (activeTag != null) {
@@ -181,4 +182,37 @@ public class SampleIncludeProcessor extends IncludeProcessor {
         }
         return null;
     }
+
+    private static String trimIndent(String source) {
+        String[] lines = source.split("\r\n|\r|\n");
+        int minIndent = Integer.MAX_VALUE;
+        for (String line : lines) {
+            if (line.trim().length() == 0) {
+                continue;
+            }
+
+            int indent = 0;
+            while (indent < line.length() && Character.isWhitespace(line.charAt(indent))) {
+                indent++;
+            }
+            if (indent < line.length()) {
+                minIndent = Math.min(minIndent, indent);
+            }
+        }
+
+        if (minIndent != Integer.MAX_VALUE && minIndent > 0) {
+            StringBuilder sb = new StringBuilder();
+            String newline = String.format("%n");
+            for (String line : lines) {
+                if (line.trim().length() > 0) {
+                    sb.append(line.substring(minIndent));
+                }
+                sb.append(newline);
+            }
+            return sb.toString();
+        }
+
+        return source;
+    }
+
 }

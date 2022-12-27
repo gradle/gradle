@@ -107,7 +107,7 @@ class CustomEventLogger extends BuildAdapter implements TaskExecutionListener {
     public void afterExecute(Task task, TaskState state) {
         println()
     }
-    
+
     public void buildFinished(BuildResult result) {
         println 'build completed'
         if (result.failure != null) {
@@ -159,7 +159,7 @@ include::sample[dir="src/samples",files="build.gradle[tags=foo,bar]"]
 
         then:
         !content.contains('println "hello world"')
-        content.contains("doLast {\n    }")
+        content.contains("doLast {\n}")
     }
 
     /**
@@ -222,5 +222,55 @@ include::sample[dir="src/samples",files="foo.xml[tag=bar]"]
         then:
         !content.contains('hello>')
         content.contains("&lt;child&gt;&lt;/child&gt;")
+    }
+
+    def "trims indentation in samples"() {
+        given:
+        tmpDir.newFile("src/samples/build.gradle") << """
+                // Comment
+                doLast {
+                    println "hello world"
+                }
+"""
+
+        String asciidocContent = """
+= Doctitle
+:samples-dir: ${tmpDir.root.canonicalPath}
+
+include::sample[dir="src/samples",files="build.gradle[]"]
+"""
+
+        when:
+        String content = asciidoctor.convert(asciidocContent, [:])
+
+        then:
+        content.contains('// Comment\ndoLast {\n    println "hello world"\n}')
+    }
+
+    def "trims indentation in samples with tags"() {
+        given:
+        tmpDir.newFile("src/samples/build.gradle") << """
+    // tag::foo[]
+                // Comment
+                doLast {
+    // end::foo[]
+                    println "hello world"
+    // tag::foo[]
+                }
+    // end::foo[]
+"""
+
+        String asciidocContent = """
+= Doctitle
+:samples-dir: ${tmpDir.root.canonicalPath}
+
+include::sample[dir="src/samples",files="build.gradle[tags=foo]"]
+"""
+
+        when:
+        String content = asciidoctor.convert(asciidocContent, [:])
+
+        then:
+        content.contains('// Comment\ndoLast {\n}')
     }
 }
