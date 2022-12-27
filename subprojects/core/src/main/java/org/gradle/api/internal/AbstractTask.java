@@ -236,11 +236,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return project;
     }
 
-    @Override
-    public ProjectInternal getProjectUnchecked() {
-        return project;
-    }
-
     @Internal
     @Override
     public String getName() {
