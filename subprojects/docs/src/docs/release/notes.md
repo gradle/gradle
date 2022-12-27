@@ -1,3 +1,4 @@
+
 The Gradle team is excited to announce Gradle @version@.
 
 This release includes several improvements to the [Kotlin DSL](userguide/kotlin_dsl.html), testing on internal classes with the [JVM test suite](userguide/jvm_test_suite_plugin.html),
@@ -290,14 +291,13 @@ To ensure future compatibility, the [CodeNarc Plugin](userguide/codenarc_plugin.
 
 You can still explicitly specify a CodeNarc version with the `toolVersion` property on the [CodeNarcExtension](dsl/org.gradle.api.plugins.quality.CodeNarcExtension.html#org.gradle.api.plugins.quality.CodeNarcExtension).
 
-#### Enhanced PMD and CodeNarc tasks to execute in parallel by default
+#### Enhanced PMD tasks to execute in parallel by default
 
-The [PMD](userguide/pmd_plugin.html) and [CodeNarc](userguide/codenarc_plugin.html) plugins now use the Gradle worker API and JVM toolchains.
-These tools now perform analysis via an external worker process, and therefore their tasks may now run in parallel within one project.
+The [PMD](userguide/pmd_plugin.html) plugin now uses the Gradle worker API and JVM toolchains.
+This tool now performs analysis via an external worker process, and therefore its tasks may now run in parallel within one project.
 
-In Java projects, these tools will use the same version of Java required by the project.
-In other types of projects, they will use the same version of Java that is used by the Gradle daemon.
-
+In Java projects, this tool will use the same version of Java required by the project.
+In other types of projects, it will use the same version of Java that is used by the Gradle daemon.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
