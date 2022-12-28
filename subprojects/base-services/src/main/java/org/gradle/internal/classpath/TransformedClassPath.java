@@ -217,6 +217,25 @@ public class TransformedClassPath implements ClassPath {
         return originalClassPath.equals(other.originalClassPath) && transforms.equals(other.transforms);
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("[");
+        boolean first = true;
+        for (File original : originalClassPath.getAsFiles()) {
+            if (!first) {
+                builder.append(", ");
+            }
+            builder.append(original);
+            File transformed = findTransformedJarFor(original);
+            if (transformed != null) {
+                builder.append("->").append(transformed);
+            }
+            first = false;
+        }
+        builder.append("]");
+        return builder.toString();
+    }
+
     /**
      * Creates a builder for the classpath with {@code size} original entries.
      *
