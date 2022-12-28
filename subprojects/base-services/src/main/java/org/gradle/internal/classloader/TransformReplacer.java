@@ -18,6 +18,7 @@ package org.gradle.internal.classloader;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.agents.InstrumentingClassLoader;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.io.StreamByteBuffer;
 
@@ -36,6 +37,11 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+/**
+ * A helper class that can remap classes loaded from the original JARs of the TransformedClassPath to the classes from the corresponding transformed JARs.
+ * <p>
+ * This class is thread-safe.
+ */
 public class TransformReplacer implements Closeable {
     private static final Loader SKIP_INSTRUMENTATION = new Loader();
     private final ConcurrentMap<ProtectionDomain, Loader> loaders;
@@ -46,10 +52,20 @@ public class TransformReplacer implements Closeable {
         this.classPath = classPath;
     }
 
+    /**
+     * Returns the transformed bytecode for the {@code className} loaded from {@code protectionDomain} if it is available in the classpath or {@code null} otherwise.
+     *
+     * @param className the name of the class (in internal binary format, e.g. {@code java/util/List}
+     * @param protectionDomain the protection domain of the class
+     * @return transformed bytes or {@code null} if there is no transformation for this class
+     *
+     * @see InstrumentingClassLoader#instrumentClass(String, ProtectionDomain, byte[])
+     */
     @Nullable
-    public byte[] getInstrumentedClass(@Nullable String className, ProtectionDomain protectionDomain) {
-        if (className == null) {
+    public byte[] getInstrumentedClass(@Nullable String className, @Nullable ProtectionDomain protectionDomain) {
+        if (className == null || protectionDomain == null) {
             // JVM allows to define a class with "null" name through Unsafe. LambdaMetafactory in Java 8 defines a SAM implementation for method handle this way.
+            // ProtectionDomain is unlikely to be null in practice, but checking it doesn't hurt.
             return null;
         }
         try {
@@ -59,23 +75,26 @@ public class TransformReplacer implements Closeable {
         }
     }
 
-    private Loader getLoader(@Nullable ProtectionDomain domain) {
-        if (domain == null) {
-            return SKIP_INSTRUMENTATION;
-        }
+    private Loader getLoader(ProtectionDomain domain) {
+        // This is a very verbose Java 6-compatible way of doing
+        // return loaders.computeIfAbsent(domain, this::createLoaderForDomain).
         Loader transformLoader = loaders.get(domain);
         if (transformLoader == null) {
-            File transformedJarPath = findTransformedFile(domain);
-            Loader newLoader = transformedJarPath != null ? new JarLoader(transformedJarPath) : SKIP_INSTRUMENTATION;
-            transformLoader = storeIfAbsent(domain, newLoader);
+            transformLoader = storeIfAbsent(domain, createLoaderForDomain(domain));
         }
         return transformLoader;
+    }
+
+    private Loader createLoaderForDomain(ProtectionDomain domain) {
+        File transformedJarPath = findTransformedFile(domain);
+        return transformedJarPath != null ? new JarLoader(transformedJarPath) : SKIP_INSTRUMENTATION;
     }
 
     private Loader storeIfAbsent(ProtectionDomain domain, Loader newLoader) {
         Loader oldLoader = loaders.putIfAbsent(domain, newLoader);
         if (oldLoader != null) {
-            // discard the new loader, someone beat us with storing it
+            // Discard the new loader, someone beat us with storing it.
+            IoActions.closeQuietly(newLoader);
             return oldLoader;
         }
         return newLoader;
@@ -90,6 +109,7 @@ public class TransformReplacer implements Closeable {
 
     @Nullable
     private File findTransformedFile(ProtectionDomain protectionDomain) {
+        // CodeSource is null for dynamically defined classes, or if the ClassLoader doesn't set them properly.
         CodeSource cs = protectionDomain.getCodeSource();
         URL originalUrl = cs != null ? cs.getLocation() : null;
         if (originalUrl == null || !"file".equals(originalUrl.getProtocol())) {
