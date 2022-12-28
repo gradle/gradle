@@ -12,7 +12,8 @@ We would like to thank the following community members for their contributions t
 
 [Martin Bonnin](https://github.com/martinbonnin),
 [valery1707](https://github.com/valery1707),
-[Yanshun Li](https://github.com/Chaoba).
+[Yanshun Li](https://github.com/Chaoba),
+[Brandon Richardson](https://github.com/brandon1024).
 
 ## Upgrade instructions
 
