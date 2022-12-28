@@ -36,6 +36,15 @@ public interface TestPrecondition {
         return precondition.isSatisfied();
     }
 
+    static boolean doSatisfiesAll(Class<? extends TestPrecondition> preconditionClasses[]) throws Exception {
+        for (Class<? extends TestPrecondition> preconditionClass : preconditionClasses) {
+            if (!doSatisfies(preconditionClass)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     static boolean notSatisfies(Class<? extends TestPrecondition> preconditionClass) throws Exception {
         return !doSatisfies(preconditionClass);
     }
