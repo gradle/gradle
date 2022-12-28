@@ -22,17 +22,15 @@ import org.spockframework.runtime.model.SpecInfo
 
 class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
 
-    // ========================================================================
-    // Requires implementation
-    // ========================================================================
-
     @Override
     void visitSpecAnnotation(Requires annotation, SpecInfo spec) {
-        spec.skipped |= TestPrecondition.notSatisfies(annotation)
+        // If all preconditions are met, we DON'T skip the tests
+        spec.skipped = !TestPrecondition.doSatisfiesAll(annotation.value())
     }
 
     @Override
     void visitFeatureAnnotation(Requires annotation, FeatureInfo feature) {
-        spec.skipped |= TestPrecondition.notSatisfies(annotation)
+        // If all preconditions are met, we DON'T skip the tests
+        spec.skipped = !TestPrecondition.doSatisfiesAll(annotation.value())
     }
 }

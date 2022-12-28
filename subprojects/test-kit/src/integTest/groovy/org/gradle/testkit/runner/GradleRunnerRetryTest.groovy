@@ -16,7 +16,7 @@
 
 package org.gradle.testkit.runner
 
-
+import org.gradle.test.fixtures.condition.RequiresNot
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 import org.gradle.test.fixtures.condition.Requires
@@ -63,7 +63,7 @@ class GradleRunnerRetryTest extends BaseGradleRunnerIntegrationTest {
         true
     }
 
-    @Requires(not=true, value = [
+    @RequiresNot(value = [
         UnitTestPreconditions.Windows,
         UnitTestPreconditions.Jdk7OrLater,
         UnitTestPreconditions.Jdk8OrEarlier
