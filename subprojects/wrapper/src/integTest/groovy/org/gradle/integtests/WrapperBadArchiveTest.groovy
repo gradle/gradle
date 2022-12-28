@@ -89,7 +89,7 @@ class WrapperBadArchiveTest extends AbstractWrapperIntegrationSpec {
         server.expect(server.get(GRADLE_BIN_ZIP).sendFile(badArchive))
         server.start()
 
-        prepareWrapper(new URI(gradleBin))
+        prepareWrapperWithGradleBin()
 
         when:
         def failure = wrapperExecuter
