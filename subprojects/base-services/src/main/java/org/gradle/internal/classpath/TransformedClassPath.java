@@ -31,8 +31,19 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * A special ClassPath that keeps track of the transformed "doubles" of the original classpath entries (JARs and class directories).
+ * An entry can only appear once in the class path, regardless of having a transformed "double".
+ * <p>
+ * Operations on this ClassPath ({@code plus}, {@code removeIf}) keep the transforms for retained entries.
+ * However, it is possible to override the entry when combining class paths, when both the receiver and the argument of {@code plus} contain the same entry.
+ * As the class path is typically searched left-to-right when looking for a class, the entry (and its transformed "double" if present) from the receiver wins.
+ * <p>
+ * The class loaders constructed from this classpath can replace classes from the original classpath entries with transformed ones (from "double") when loading.
+ */
 public class TransformedClassPath implements ClassPath {
     private final ClassPath originalClassPath;
+    // mapping of original -> "double"
     private final ImmutableMap<File, File> transforms;
 
     private TransformedClassPath(ClassPath originalClassPath, Map<File, File> transforms) {
@@ -45,16 +56,32 @@ public class TransformedClassPath implements ClassPath {
         return originalClassPath.isEmpty();
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This method returns the list of original JAR/class directory URIs.
+     */
     @Override
     public List<URI> getAsURIs() {
         return originalClassPath.getAsURIs();
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This method returns the list of original JARs/class directories.
+     */
     @Override
     public List<File> getAsFiles() {
         return originalClassPath.getAsFiles();
     }
 
+    /**
+     * Returns the list of JARs/class directories that this class path consists of, but original entries are replaced with corresponding transformed "doubles".
+     * The entries that have no "doubles" are returned as is.
+     *
+     * @return the list of JARs/class directories
+     */
     public List<File> getAsTransformedFiles() {
         List<File> originals = new ArrayList<File>(originalClassPath.getAsFiles());
         ListIterator<File> iter = originals.listIterator();
@@ -65,28 +92,49 @@ public class TransformedClassPath implements ClassPath {
         return originals;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This method returns the list of original JAR/class directory URLs.
+     */
     @Override
     public List<URL> getAsURLs() {
         return originalClassPath.getAsURLs();
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * This method returns the array of original JAR/class directory URLs.
+     */
     @Override
     public URL[] getAsURLArray() {
         return originalClassPath.getAsURLArray();
     }
 
-    ClassPath prepend(DefaultClassPath classPath) {
+    /**
+     * Prepends the given classPath to this classpath.
+     * No transformations are applied to the prepended class path.
+     * <p>
+     * This is a helper to implement DefaultClassPath.plus(TransformedClassPath) efficiently.
+     *
+     * @param classPath the classPath to prepend to this classpath
+     * @return the new transformed classpath
+     */
+    TransformedClassPath prepend(DefaultClassPath classPath) {
+        // TODO(mlopatkin): it is possible that some jars from the classPath are overriding the transformed ones in "this",
+        //  so we have to clean up transforms as well.
         return new TransformedClassPath(classPath.plus(originalClassPath), transforms);
     }
 
-    private ClassPath plusWithTransforms(TransformedClassPath classPath) {
+    private TransformedClassPath plusWithTransforms(TransformedClassPath classPath) {
         ClassPath mergedOriginals = originalClassPath.plus(classPath.originalClassPath);
 
-        // Merge transformations, keeping in mind that class paths are searched left-to-right.
+        // Merge transformations, keeping in mind that classpaths are searched left-to-right.
         ImmutableMap.Builder<File, File> mergedTransforms = ImmutableMap.builderWithExpectedSize(transforms.size() + classPath.transforms.size());
         Set<File> nonTransformedFiles = ImmutableSet.copyOf(originalClassPath.getAsFiles());
         for (Map.Entry<File, File> appendedTransform : classPath.transforms.entrySet()) {
-            // If we have non-transformed version of the file on this class path, and transformed in the rhs, then the transform is discarded - the original will win.
+            // If we have non-transformed version of the file on this classpath, and transformed in the rhs, then the transform is discarded - the original will win.
             if (!nonTransformedFiles.contains(appendedTransform.getKey())) {
                 mergedTransforms.put(appendedTransform);
             }
@@ -97,21 +145,36 @@ public class TransformedClassPath implements ClassPath {
         return new TransformedClassPath(mergedOriginals, mergedTransforms.buildKeepingLast());
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The appended classpath is not transformed.
+     */
     @Override
-    public ClassPath plus(Collection<File> classPath) {
+    public TransformedClassPath plus(Collection<File> classPath) {
         return new TransformedClassPath(originalClassPath.plus(classPath), transforms);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The appended classpath is not additionally transformed.
+     */
     @Override
-    public ClassPath plus(ClassPath classPath) {
+    public TransformedClassPath plus(ClassPath classPath) {
         if (classPath instanceof TransformedClassPath) {
             return plusWithTransforms((TransformedClassPath) classPath);
         }
         return new TransformedClassPath(originalClassPath.plus(classPath), transforms);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * The predicate is applied to the original classpath entries. The returned classpath keeps corresponding transformations.
+     */
     @Override
-    public ClassPath removeIf(Spec<? super File> filter) {
+    public TransformedClassPath removeIf(Spec<? super File> filter) {
         ClassPath filteredClassPath = originalClassPath.removeIf(filter);
         Set<File> remainingOriginals = ImmutableSet.copyOf(filteredClassPath.getAsFiles());
         ImmutableMap.Builder<File, File> remainingTransforms = ImmutableMap.builderWithExpectedSize(Math.min(remainingOriginals.size(), transforms.size()));
@@ -123,14 +186,20 @@ public class TransformedClassPath implements ClassPath {
         return new TransformedClassPath(filteredClassPath, remainingTransforms.build());
     }
 
+    /**
+     * Looks up the transformed JAR corresponding to the given classpath entry (JAR/classes directory), if it is available. Otherwise, returns {@code null}.
+     *
+     * @param originalClassPathEntry the original classpath entry
+     * @return the transformed JAR for the entry or {@code null} if there is none
+     */
     @Nullable
-    public File findTransformedJarFor(File originalJar) {
-        return transforms.get(originalJar);
+    public File findTransformedJarFor(File originalClassPathEntry) {
+        return transforms.get(originalClassPathEntry);
     }
 
     @Override
     public int hashCode() {
-        return originalClassPath.hashCode();
+        return originalClassPath.hashCode() + transforms.hashCode();
     }
 
     @Override
@@ -142,32 +211,53 @@ public class TransformedClassPath implements ClassPath {
             return false;
         }
         TransformedClassPath other = (TransformedClassPath) obj;
-        return originalClassPath.equals(other.originalClassPath);
+        return originalClassPath.equals(other.originalClassPath) && transforms.equals(other.transforms);
     }
 
+    /**
+     * Creates a builder for the classpath with {@code size} original entries.
+     *
+     * @param size the number of the original entries in the classpath
+     * @return the builder
+     */
+    public static Builder builderWithExactSize(int size) {
+        return new Builder(size);
+    }
+
+    /**
+     * Constructs a transformed classpath.
+     */
     public static class Builder {
         private final DefaultClassPath.Builder originals;
-        private final ImmutableMap.Builder<File, File> files;
+        private final ImmutableMap.Builder<File, File> transforms;
 
-        private Builder(int expectedSize) {
-            originals = DefaultClassPath.builderWithExactSize(expectedSize);
-            files = ImmutableMap.builderWithExpectedSize(expectedSize);
+        private Builder(int exactSize) {
+            originals = DefaultClassPath.builderWithExactSize(exactSize);
+            transforms = ImmutableMap.builderWithExpectedSize(exactSize);
         }
 
-        public static Builder withExpectedSize(int expectedSize) {
-            return new Builder(expectedSize);
-        }
-
+        /**
+         * Adds the classpath entry with the corresponding transformed JAR.
+         *
+         * @param original the original JAR or classes directory
+         * @param transformed the transformed JAR
+         * @return this builder
+         */
         public Builder add(File original, File transformed) {
             originals.add(original);
             if (!original.equals(transformed)) {
-                files.put(original, transformed);
+                transforms.put(original, transformed);
             }
             return this;
         }
 
+        /**
+         * Constructs the TransformedClassPath instance.
+         *
+         * @return the new classpath instance
+         */
         public TransformedClassPath build() {
-            Map<File, File> transformedMap = files.build();
+            Map<File, File> transformedMap = transforms.build();
             return new TransformedClassPath(originals.build(), transformedMap);
         }
     }
