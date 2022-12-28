@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
+import org.gradle.test.fixtures.condition.TestPrecondition
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.gradle.workers.fixtures.OptionsVerifier
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import org.junit.Assume
@@ -29,7 +31,7 @@ import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
 @IntegrationTestTimeout(180)
 class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
-    boolean isOracleJDK = TestPrecondition.JDK_ORACLE.fulfilled && (Jvm.current().jre != null)
+    boolean isOracleJDK = TestPrecondition.doSatisfies(UnitTestPreconditions.JdkOracle) && (Jvm.current().jre != null)
 
     WorkerExecutorFixture.WorkActionClass workActionThatPrintsWorkingDirectory
 

@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.condition.TestPrecondition
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Matchers
 import org.gradle.test.fixtures.condition.Requires
@@ -62,7 +63,7 @@ class TestEnvironmentIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Requires(UnitTestPreconditions.Jdk9OrLater)
     def canRunTestsReferencingSlf4jWithModularJava() {
         given:
-        if(isJupiter() && TestPrecondition.JDK14_OR_LATER.fulfilled) {
+        if(isJupiter() && TestPrecondition.doSatisfies(UnitTestPreconditions.Jdk14OrLater)) {
             // Otherwise it throws exception:
             // java.lang.IllegalAccessError: class org.junit.platform.launcher.core.LauncherFactory (in unnamed module @0x2f2a5b2d)
             // cannot access class org.junit.platform.commons.util.Preconditions (in module org.junit.platform.commons) because module org.junit.platform.commons does not export org.junit.platform.commons.util to unnamed module @0x2f2a5b2d
