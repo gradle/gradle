@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UsesSample
+import org.gradle.test.fixtures.condition.TestPrecondition
+import org.gradle.test.fixtures.condition.UnitTestPreconditions
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
@@ -338,7 +340,7 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("files/copy")
-    @IgnoreIf({ TestPrecondition.CASE_INSENSITIVE_FS.fulfilled })
+    @IgnoreIf({ TestPrecondition.doSatisfies(UnitTestPreconditions.CaseInsensitiveFs) })
     def "can use copy task with rename with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
