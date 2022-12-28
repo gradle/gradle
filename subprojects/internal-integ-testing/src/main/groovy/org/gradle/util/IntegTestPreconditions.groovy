@@ -37,6 +37,13 @@ class IntegTestPreconditions {
         }
     }
 
+    static final class NotEmbeddedExecutor implements TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return !GradleContextualExecuter.embedded
+        }
+    }
+
     static final class IsConfigCached implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
