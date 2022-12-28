@@ -20,20 +20,19 @@ import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecInfo
 
-class TestPreconditionExtension implements IAnnotationDrivenExtension<Requires> {
+class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
+
+    // ========================================================================
+    // Requires implementation
+    // ========================================================================
+
     @Override
     void visitSpecAnnotation(Requires annotation, SpecInfo spec) {
-        spec.skipped |= unsatisfied(annotation)
+        spec.skipped |= TestPrecondition.notSatisfies(annotation)
     }
 
     @Override
     void visitFeatureAnnotation(Requires annotation, FeatureInfo feature) {
-        feature.skipped |= unsatisfied(annotation)
-    }
-
-    private static boolean unsatisfied(Requires annotation) {
-        return annotation.value().any {
-            TestPrecondition.notSatisfies(it)
-        }
+        spec.skipped |= TestPrecondition.notSatisfies(annotation)
     }
 }
