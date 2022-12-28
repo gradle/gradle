@@ -23,22 +23,34 @@ import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.component.AbstractSoftwareComponentVariant;
 
 import java.util.Set;
 
-public abstract class AbstractConfigurationUsageContext extends AbstractUsageContext {
+/**
+ * A {@link SoftwareComponentVariant} based on a consumable {@link Configuration}.
+ */
+public class ConfigurationSoftwareComponentVariant extends AbstractSoftwareComponentVariant {
     protected final String name;
+    private final Configuration configuration;
     private DomainObjectSet<ModuleDependency> dependencies;
     private DomainObjectSet<DependencyConstraint> dependencyConstraints;
     private Set<? extends Capability> capabilities;
     private Set<ExcludeRule> excludeRules;
 
-    public AbstractConfigurationUsageContext(String name, ImmutableAttributes attributes, Set<PublishArtifact> artifacts) {
-        super(attributes, artifacts);
+    public ConfigurationSoftwareComponentVariant(SoftwareComponentVariant base, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
+        this(base.getName(), base.getAttributes(), artifacts, configuration);
+    }
+
+    public ConfigurationSoftwareComponentVariant(String name, AttributeContainer attributes, Set<? extends PublishArtifact> artifacts, Configuration configuration) {
+        super(((AttributeContainerInternal) attributes).asImmutable(), artifacts);
+        this.configuration = configuration;
         this.name = name;
     }
 
@@ -50,7 +62,7 @@ public abstract class AbstractConfigurationUsageContext extends AbstractUsageCon
     @Override
     public Set<ModuleDependency> getDependencies() {
         if (dependencies == null) {
-            dependencies = getConfiguration().getIncoming().getDependencies().withType(ModuleDependency.class);
+            dependencies = configuration.getIncoming().getDependencies().withType(ModuleDependency.class);
         }
         return dependencies;
     }
@@ -58,7 +70,7 @@ public abstract class AbstractConfigurationUsageContext extends AbstractUsageCon
     @Override
     public Set<? extends DependencyConstraint> getDependencyConstraints() {
         if (dependencyConstraints == null) {
-            dependencyConstraints = getConfiguration().getIncoming().getDependencyConstraints();
+            dependencyConstraints = configuration.getIncoming().getDependencyConstraints();
         }
         return dependencyConstraints;
     }
@@ -66,7 +78,7 @@ public abstract class AbstractConfigurationUsageContext extends AbstractUsageCon
     @Override
     public Set<? extends Capability> getCapabilities() {
         if (capabilities == null) {
-            this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(getConfiguration(),
+            this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(configuration,
                 Sets.newHashSet(),
                 Sets.newHashSet()));
         }
@@ -76,10 +88,8 @@ public abstract class AbstractConfigurationUsageContext extends AbstractUsageCon
     @Override
     public Set<ExcludeRule> getGlobalExcludes() {
         if (excludeRules == null) {
-            this.excludeRules = ImmutableSet.copyOf(((ConfigurationInternal) getConfiguration()).getAllExcludeRules());
+            this.excludeRules = ImmutableSet.copyOf(((ConfigurationInternal) configuration).getAllExcludeRules());
         }
         return excludeRules;
     }
-
-    protected abstract Configuration getConfiguration();
 }

@@ -21,27 +21,25 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.internal.ConfigurationSoftwareComponentVariant;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class MainLibraryVariant implements ComponentWithVariants, SoftwareComponentInternal {
     private final String name;
-    private final Usage usage;
     private final Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
     private final Configuration dependencies;
     private final DomainObjectSet<SoftwareComponent> variants;
     private final AttributeContainer attributeContainer;
 
-    public MainLibraryVariant(String name, Usage usage, Configuration dependencies, AttributeContainer attributeContainer, ObjectFactory objectFactory) {
+    public MainLibraryVariant(String name, Configuration dependencies, AttributeContainer attributeContainer, ObjectFactory objectFactory) {
         this.name = name;
-        this.usage = usage;
         this.dependencies = dependencies;
         this.attributeContainer = attributeContainer;
         this.variants = objectFactory.domainObjectSet(SoftwareComponent.class);
@@ -54,7 +52,7 @@ public class MainLibraryVariant implements ComponentWithVariants, SoftwareCompon
 
     @Override
     public Set<? extends UsageContext> getUsages() {
-        return ImmutableSet.of(new DefaultUsageContext(name, attributeContainer, artifacts, dependencies));
+        return ImmutableSet.of(new ConfigurationSoftwareComponentVariant(name, attributeContainer, artifacts, dependencies));
     }
 
     @Override

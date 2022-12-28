@@ -18,25 +18,21 @@ package org.gradle.api.internal.java.usagecontext;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.component.IvyPublishingAwareContext;
-import org.gradle.api.internal.component.MavenPublishingAwareContext;
-import org.gradle.api.plugins.internal.AbstractConfigurationUsageContext;
+import org.gradle.api.internal.component.IvyPublishingAwareVariant;
+import org.gradle.api.internal.component.MavenPublishingAwareVariant;
+import org.gradle.api.plugins.internal.ConfigurationSoftwareComponentVariant;
 
-public class FeatureConfigurationUsageContext extends AbstractConfigurationUsageContext implements MavenPublishingAwareContext, IvyPublishingAwareContext {
-    private final Configuration configuration;
+/**
+ * A {@link ConfigurationSoftwareComponentVariant} which is aware of both Maven and Ivy publishing.
+ */
+public class FeatureConfigurationVariant extends ConfigurationSoftwareComponentVariant implements MavenPublishingAwareVariant, IvyPublishingAwareVariant {
     private final ScopeMapping scopeMapping;
     private final boolean optional;
 
-    public FeatureConfigurationUsageContext(String name, Configuration configuration, ConfigurationVariant variant, String mavenScope, boolean optional) {
-        super(name, ((AttributeContainerInternal)variant.getAttributes()).asImmutable(), variant.getArtifacts());
-        this.configuration = configuration;
+    public FeatureConfigurationVariant(String name, Configuration configuration, ConfigurationVariant variant, String mavenScope, boolean optional) {
+        super(name, ((AttributeContainerInternal)variant.getAttributes()).asImmutable(), variant.getArtifacts(), configuration);
         this.scopeMapping = ScopeMapping.of(mavenScope, optional);
         this.optional = optional;
-    }
-
-    @Override
-    protected Configuration getConfiguration() {
-        return configuration;
     }
 
     @Override

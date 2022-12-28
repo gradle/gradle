@@ -411,22 +411,22 @@ class NativeBasePluginTest extends Specification {
     }
 
     def "adds Maven publications for component with main publication"() {
-        def usage1 = Stub(UsageContext)
+        def componentVariant1 = Stub(UsageContext)
         def artifact1 = Stub(PublishArtifact)
         artifact1.getFile() >> projectDir.file("artifact1")
-        usage1.artifacts >> [artifact1]
+        componentVariant1.artifacts >> [artifact1]
         def variant1 = Stub(PublishableVariant)
         variant1.name >> "debug"
-        variant1.usages >> [usage1]
+        variant1.usages >> [componentVariant1]
         variant1.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_debug", "1.2")
 
-        def usage2 = Stub(UsageContext)
+        def componentVariant2 = Stub(UsageContext)
         def artifact2 = Stub(PublishArtifact)
         artifact2.getFile() >> projectDir.file("artifact1")
-        usage2.artifacts >> [artifact2]
+        componentVariant2.artifacts >> [artifact2]
         def variant2 = Stub(PublishableVariant)
         variant2.name >> "release"
-        variant2.usages >> [usage2]
+        variant2.usages >> [componentVariant2]
         variant2.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_release", "1.2")
 
         def doNotPublish = Stub(SoftwareComponentInternal)
