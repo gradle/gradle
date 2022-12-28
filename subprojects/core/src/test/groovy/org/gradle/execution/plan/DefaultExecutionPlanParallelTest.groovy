@@ -1436,7 +1436,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         def dependencyNode = selectNextTaskNode()
         dependencyNode.task == dependency
-        assertNoWorkReadyToStart()
+        assertNoTaskReadyToStart()
 
         when:
         finishedExecuting(dependencyNode)
@@ -1506,8 +1506,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         executionPlan.tasks as List == [destroyer, producer1, producer2]
         ordinalGroups == [0, 1, 2]
-        assertLastTaskOfGroupReady(destroyer)
-        assertTasksReadyAndNoMoreToStart(producer1, producer2)
+        assertTasksReadyAndNoMoreToStart(destroyer, producer1, producer2)
         assertAllWorkComplete()
     }
 
@@ -1524,43 +1523,55 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         when:
         addToGraph(destroyer)
         addToGraphAndPopulate(producer)
-        def node1 = selectNextNode()
+        def destroyerMutations = selectNextNode()
 
         then:
-        assertIsResolveMutationsOf(node1, destroyer)
+        assertIsResolveMutationsOf(destroyerMutations, destroyer)
+        assertNoTaskReadyToStart()
+
+        when:
+        destroyerMutations.execute()
+        finishedExecuting(destroyerMutations)
+        def destroyerOrdinal = selectNextNode()
+        def destroyerTask = selectNextNode()
+
+
+        then:
+        destroyerTask.task == destroyer
+        destroyerOrdinal instanceof OrdinalNode && destroyerOrdinal.type == OrdinalNode.Type.DESTROYER
         assertNoWorkReadyToStart()
 
         when:
-        node1.execute()
-        finishedExecuting(node1)
-        def node2 = selectNextNode()
-        def node3 = selectNextNode()
+        finishedExecuting(destroyerOrdinal)
+        def producerMutatations = selectNextNode()
 
         then:
-        node2.task == destroyer
-        node3 instanceof OrdinalNode && node3.type == OrdinalNode.Type.DESTROYER
+        assertIsResolveMutationsOf(producerMutatations, producer)
         assertNoWorkReadyToStart()
 
         when:
-        finishedExecuting(node3)
-        def node4 = selectNextNode()
+        producerMutatations.execute()
+        finishedExecuting(producerMutatations)
+
+        and:
+        def producerOrdinal = selectNextNode()
 
         then:
-        assertIsResolveMutationsOf(node4, producer)
-        assertNoWorkReadyToStart()
+        producerOrdinal instanceof OrdinalNode && producerOrdinal.type == OrdinalNode.Type.PRODUCER
 
-        when:
-        node4.execute()
-        finishedExecuting(node4)
-
-        then:
+        and:
         assertNoWorkReadyToStartAfterSelect() // destroyer is still running, so producer cannot start
 
         when:
-        finishedExecuting(node2)
+        finishedExecuting(destroyerTask)
 
         then:
         assertTaskReadyAndNoMoreToStart(producer)
+
+        when:
+        finishedExecuting(producerOrdinal)
+
+        then:
         assertAllWorkComplete()
     }
 
@@ -1588,7 +1599,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         then:
         def dependencyNode = selectNextTaskNode()
         dependencyNode.task == dependency
-        assertNoWorkReadyToStart()
+        assertNoTaskReadyToStart()
 
         when:
         finishedExecuting(dependencyNode)
