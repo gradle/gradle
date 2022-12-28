@@ -15,11 +15,12 @@
  */
 package org.gradle.test.fixtures.condition
 
-
+import groovy.transform.CompileStatic
 import org.spockframework.runtime.extension.IAnnotationDrivenExtension
 import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecInfo
 
+@CompileStatic
 class RequiresNotExtension implements IAnnotationDrivenExtension<RequiresNot> {
 
     @Override
@@ -31,6 +32,6 @@ class RequiresNotExtension implements IAnnotationDrivenExtension<RequiresNot> {
     @Override
     void visitFeatureAnnotation(RequiresNot annotation, FeatureInfo feature) {
         // If not all preconditions are met, we DO skip the tests
-        spec.skipped = TestPrecondition.doSatisfies(annotation)
+        feature.skipped = TestPrecondition.doSatisfiesAll(annotation.value())
     }
 }
