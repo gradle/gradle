@@ -17,7 +17,7 @@
 package org.gradle.integtests.fixtures.longlived
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.IntegTestPreconditions
+import org.gradle.test.fixtures.IntegTestPreconditions
 import org.gradle.test.fixtures.condition.Requires
 
 /**

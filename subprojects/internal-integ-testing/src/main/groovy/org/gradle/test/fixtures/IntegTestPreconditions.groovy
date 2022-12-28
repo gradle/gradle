@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.util
+package org.gradle.test.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
