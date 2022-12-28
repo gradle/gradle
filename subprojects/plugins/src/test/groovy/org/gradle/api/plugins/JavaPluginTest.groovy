@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -196,7 +197,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         when:
         def jarTask = project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)
-        def javaLibrary = project.components.getByName("java")
+        SoftwareComponentInternal javaLibrary = project.components.getByName("java")
 
         then:
         def runtime = javaLibrary.usages.find { it.name == 'runtimeElements' }

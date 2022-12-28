@@ -79,7 +79,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
         AttributeContainer publicationAttributes = immutableAttributesFactory.mutable();
         publicationAttributes.attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
         publicationAttributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.ZIP_TYPE);
-        mainVariant = new MainLibraryVariant("api", apiUsage, apiElements, publicationAttributes, objectFactory);
+        mainVariant = new MainLibraryVariant("api", apiElements, publicationAttributes, objectFactory);
     }
 
     public DefaultCppSharedLibrary addSharedLibrary(NativeVariantIdentity identity, CppPlatform targetPlatform, NativeToolChainInternal toolChain, PlatformToolProvider platformToolProvider) {

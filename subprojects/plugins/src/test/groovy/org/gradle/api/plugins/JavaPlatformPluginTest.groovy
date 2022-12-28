@@ -21,7 +21,8 @@ import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
-import org.gradle.api.internal.component.UsageContext
+import org.gradle.api.component.SoftwareComponentVariant
+import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Unroll
 
@@ -114,26 +115,26 @@ class JavaPlatformPluginTest extends AbstractProjectBuilderSpec {
         project.dependencies.constraints.add(JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME, "org:runtime2:2.0")
 
         when:
-        def javaPlatform = project.components.getByName("javaPlatform")
-        UsageContext apiUsage = javaPlatform.usages[0]
-        UsageContext runtimeUsage = javaPlatform.usages[1]
+        SoftwareComponentInternal javaPlatform = project.components.getByName("javaPlatform")
+        SoftwareComponentVariant apiVariant = javaPlatform.usages[0]
+        SoftwareComponentVariant runtimeVariant = javaPlatform.usages[1]
 
         then:
-        runtimeUsage.dependencies.size() == 2
-        runtimeUsage.dependencies == project.configurations.getByName(JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
-        runtimeUsage.dependencyConstraints.size() == 2
-        runtimeUsage.dependencyConstraints == project.configurations.getByName(JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME).allDependencyConstraints
-        runtimeUsage.attributes.keySet() == [Usage.USAGE_ATTRIBUTE, Category.CATEGORY_ATTRIBUTE] as Set
-        runtimeUsage.attributes.getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_RUNTIME
-        runtimeUsage.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == Category.REGULAR_PLATFORM
+        runtimeVariant.dependencies.size() == 2
+        runtimeVariant.dependencies == project.configurations.getByName(JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
+        runtimeVariant.dependencyConstraints.size() == 2
+        runtimeVariant.dependencyConstraints == project.configurations.getByName(JavaPlatformPlugin.RUNTIME_CONFIGURATION_NAME).allDependencyConstraints
+        runtimeVariant.attributes.keySet() == [Usage.USAGE_ATTRIBUTE, Category.CATEGORY_ATTRIBUTE] as Set
+        runtimeVariant.attributes.getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_RUNTIME
+        runtimeVariant.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == Category.REGULAR_PLATFORM
 
-        apiUsage.dependencies.size() == 1
-        apiUsage.dependencies == project.configurations.getByName(JavaPlatformPlugin.API_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
-        apiUsage.dependencyConstraints.size() == 1
-        apiUsage.dependencyConstraints == project.configurations.getByName(JavaPlatformPlugin.API_CONFIGURATION_NAME).allDependencyConstraints
-        apiUsage.attributes.keySet() == [Usage.USAGE_ATTRIBUTE, Category.CATEGORY_ATTRIBUTE] as Set
-        apiUsage.attributes.getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_API
-        apiUsage.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == Category.REGULAR_PLATFORM
+        apiVariant.dependencies.size() == 1
+        apiVariant.dependencies == project.configurations.getByName(JavaPlatformPlugin.API_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
+        apiVariant.dependencyConstraints.size() == 1
+        apiVariant.dependencyConstraints == project.configurations.getByName(JavaPlatformPlugin.API_CONFIGURATION_NAME).allDependencyConstraints
+        apiVariant.attributes.keySet() == [Usage.USAGE_ATTRIBUTE, Category.CATEGORY_ATTRIBUTE] as Set
+        apiVariant.attributes.getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_API
+        apiVariant.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == Category.REGULAR_PLATFORM
     }
 
     @Unroll("cannot add a dependency to the #configuration configuration by default")

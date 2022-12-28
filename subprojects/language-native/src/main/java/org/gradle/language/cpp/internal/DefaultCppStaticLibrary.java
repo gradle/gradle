@@ -30,6 +30,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.internal.ConfigurationSoftwareComponentVariant;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.cpp.CppPlatform;
@@ -118,19 +119,19 @@ public class DefaultCppStaticLibrary extends DefaultCppBinary implements CppStat
         Configuration runtimeElements = getRuntimeElements().get();
         // TODO: Does a static library really have any runtime elements?
         return Sets.newHashSet(
-            new DefaultUsageContext(getIdentity().getLinkUsageContext(), linkElements.getAllArtifacts(), linkElements),
-            new DefaultUsageContext(getIdentity().getRuntimeUsageContext(), runtimeElements.getAllArtifacts(), runtimeElements)
+            new ConfigurationSoftwareComponentVariant(getIdentity().getLinkVariant(), linkElements.getAllArtifacts(), linkElements),
+            new ConfigurationSoftwareComponentVariant(getIdentity().getRuntimeVariant(), runtimeElements.getAllArtifacts(), runtimeElements)
         );
     }
 
     @Override
     public AttributeContainer getLinkAttributes() {
-        return getIdentity().getLinkUsageContext().getAttributes();
+        return getIdentity().getLinkVariant().getAttributes();
     }
 
     @Override
     public AttributeContainer getRuntimeAttributes() {
-        return getIdentity().getRuntimeUsageContext().getAttributes();
+        return getIdentity().getRuntimeVariant().getAttributes();
     }
 
     @Override
