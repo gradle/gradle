@@ -26,7 +26,7 @@ import org.gradle.util.internal.TextUtil
 
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
-@Requires(IntegTestPreconditions.Java8HomeAvailable)
+@Requires(IntegTestPreconditions.MoreThanOneJava8HomeAvailable)
 class TestTaskJdkRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
 
     private File getOriginalJavaExecutable() {

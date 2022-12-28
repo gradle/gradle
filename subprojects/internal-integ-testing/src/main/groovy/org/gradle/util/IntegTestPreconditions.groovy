@@ -94,6 +94,15 @@ class IntegTestPreconditions {
         }
     }
 
+    static class MoreThanOneJava8HomeAvailable implements  TestPrecondition {
+        @Override
+        boolean isSatisfied() throws Exception {
+            return AvailableJavaHomes.getAvailableJdks(
+                JavaVersion.toVersion(8)
+            ).size() > 1
+        }
+    }
+
     static class Java9HomeAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
