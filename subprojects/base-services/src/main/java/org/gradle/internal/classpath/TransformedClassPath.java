@@ -47,6 +47,7 @@ public class TransformedClassPath implements ClassPath {
     private final ImmutableMap<File, File> transforms;
 
     private TransformedClassPath(ClassPath originalClassPath, Map<File, File> transforms) {
+        assert !(originalClassPath instanceof TransformedClassPath);
         this.originalClassPath = originalClassPath;
         this.transforms = ImmutableMap.copyOf(transforms);
     }
@@ -122,27 +123,29 @@ public class TransformedClassPath implements ClassPath {
      * @return the new transformed classpath
      */
     TransformedClassPath prepend(DefaultClassPath classPath) {
-        // TODO(mlopatkin): it is possible that some jars from the classPath are overriding the transformed ones in "this",
-        //  so we have to clean up transforms as well.
-        return new TransformedClassPath(classPath.plus(originalClassPath), transforms);
+        // If some entries from this classpath are also in the prepended classpath, then the prepended ones win.
+        // Existing transforms for these entries have to be discarded.
+        // We can think of the prepended classpath as the TransformedClassPath without actual transforms,
+        // and then just append this classpath to it to achieve the desired behavior.
+        return new TransformedClassPath(classPath, ImmutableMap.<File, File>of()).plusWithTransforms(this);
     }
 
     private TransformedClassPath plusWithTransforms(TransformedClassPath classPath) {
         ClassPath mergedOriginals = originalClassPath.plus(classPath.originalClassPath);
 
-        // Merge transformations, keeping in mind that classpaths are searched left-to-right.
+        // Merge transformations, keeping in mind that classpath is searched left-to-right.
         ImmutableMap.Builder<File, File> mergedTransforms = ImmutableMap.builderWithExpectedSize(transforms.size() + classPath.transforms.size());
-        Set<File> nonTransformedFiles = ImmutableSet.copyOf(originalClassPath.getAsFiles());
+        Set<File> thisClassPathFiles = ImmutableSet.copyOf(originalClassPath.getAsFiles());
+        mergedTransforms.putAll(transforms);
         for (Map.Entry<File, File> appendedTransform : classPath.transforms.entrySet()) {
-            // If we have non-transformed version of the file on this classpath, and transformed in the rhs, then the transform is discarded - the original will win.
-            if (!nonTransformedFiles.contains(appendedTransform.getKey())) {
+            // If the file is already present on this classpath, it keeps its transform (or lack thereof).
+            if (!thisClassPathFiles.contains(appendedTransform.getKey())) {
                 mergedTransforms.put(appendedTransform);
             }
         }
-        // All transforms that we have win over transforms of the same files in the rhs.
-        mergedTransforms.putAll(transforms);
 
-        return new TransformedClassPath(mergedOriginals, mergedTransforms.buildKeepingLast());
+        // In the end, at most one instance of a transformed JAR should be recorded for any given file.
+        return new TransformedClassPath(mergedOriginals, mergedTransforms.buildOrThrow());
     }
 
     /**
