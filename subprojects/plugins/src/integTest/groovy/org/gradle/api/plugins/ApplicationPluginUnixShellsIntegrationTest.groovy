@@ -52,21 +52,21 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     static class DashAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return locate("bash") != null
+            return locate("dash") != null
         }
     }
 
     static class StaticShAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return locate("bash") != null
+            return locate("static-sh") != null
         }
     }
 
     static class ShellcheckAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return locate("bash") != null
+            return locate("shellcheck") != null
         }
     }
 
