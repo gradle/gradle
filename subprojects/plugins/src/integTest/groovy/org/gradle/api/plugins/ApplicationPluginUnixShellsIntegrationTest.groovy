@@ -17,10 +17,10 @@ package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.condition.Requires
 import org.gradle.test.fixtures.condition.TestPrecondition
 import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.fixtures.file.TestFile
 
 class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -45,28 +45,28 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     static class BashAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return locate("bash")
+            return locate("bash") != null
         }
     }
 
     static class DashAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return locate("bash")
+            return locate("bash") != null
         }
     }
 
     static class StaticShAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return locate("bash")
+            return locate("bash") != null
         }
     }
 
     static class ShellcheckAvailable implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return locate("bash")
+            return locate("bash") != null
         }
     }
 
