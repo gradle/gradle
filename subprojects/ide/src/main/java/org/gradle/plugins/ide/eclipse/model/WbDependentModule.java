@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import groovy.util.Node;
+import org.gradle.api.Incubating;
 import org.gradle.plugins.ide.eclipse.model.internal.PathUtil;
 
 import java.util.Map;
@@ -36,6 +37,16 @@ public class WbDependentModule implements WbModuleEntry {
         this((String) node.attribute("archiveName"), (String) node.attribute("deploy-path"), (String) node.attribute("handle"));
     }
 
+    public WbDependentModule(String deployPath, String handle) {
+        this("", deployPath, handle);
+    }
+
+    /**
+     * Constructor for WbDependentModule
+     *
+     * @since 8.1
+     */
+    @Incubating
     public WbDependentModule(String archiveName, String deployPath, String handle) {
         Preconditions.checkNotNull(archiveName);
         Preconditions.checkNotNull(deployPath);
@@ -44,10 +55,24 @@ public class WbDependentModule implements WbModuleEntry {
         this.handle = Preconditions.checkNotNull(handle);
     }
 
+    /**
+     * Get the archiveName property.
+     *
+     * @return the archiveName for this module.
+     * @since 8.1
+     */
+    @Incubating
     public String getArchiveName() {
         return archiveName;
     }
 
+    /**
+     * Set the archiveName for this module.
+     *
+     * @param archiveName the archiveName value to set.
+     * @since 8.1
+     */
+    @Incubating
     public void setArchiveName(String archiveName) {
         this.archiveName = archiveName;
     }
