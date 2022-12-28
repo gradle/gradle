@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Inherited
 @ExtensionAnnotation(RequiresExtension.class)
-public @interface Requires {
+public @interface RequiresNot {
 
     /**
      * The list of preconditions, which will be checked by {@link RequiresExtension}
