@@ -18,6 +18,9 @@ package org.gradle.internal.featurelifecycle;
 
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.scripts.ScriptExecutionListener;
+import org.gradle.internal.service.scopes.ListenerService;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.HashMap;
@@ -26,6 +29,8 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+@ServiceScope(Scopes.BuildTree.class)
+@ListenerService
 @ThreadSafe
 public class ScriptUsageLocationReporter implements ScriptExecutionListener, UsageLocationReporter {
     private final Lock lock = new ReentrantLock();
