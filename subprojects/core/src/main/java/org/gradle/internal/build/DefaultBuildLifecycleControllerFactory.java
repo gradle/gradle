@@ -17,7 +17,6 @@
 package org.gradle.internal.build;
 
 import org.gradle.StartParameter;
-import org.gradle.api.Action;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
@@ -31,7 +30,6 @@ import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
-import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import java.io.File;
@@ -56,9 +54,6 @@ public class DefaultBuildLifecycleControllerFactory implements BuildLifecycleCon
         StartParameter startParameter = buildDefinition.getStartParameter();
 
         final ListenerManager listenerManager = buildScopeServices.get(ListenerManager.class);
-        for (Action<ListenerManager> action : buildScopeServices.getAll(BuildScopeListenerManagerAction.class)) {
-            action.execute(listenerManager);
-        }
 
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);

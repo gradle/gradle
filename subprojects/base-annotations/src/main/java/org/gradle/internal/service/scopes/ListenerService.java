@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,19 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.Action;
-import org.gradle.internal.event.ListenerManager;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Action executed when building a GradleLauncher, used by subprojects to
- * register build-scoped listeners.
+ * Attached to a service implementation to indicate that the instance should be registered as a listener.
+ *
+ * <p>Generally, it is better to use {@link StatefulListener}, which is lazy and applies some validation to ensure no events are missed.
  */
-public interface BuildScopeListenerManagerAction extends Action<ListenerManager> {
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Inherited
+public @interface ListenerService {
 }
