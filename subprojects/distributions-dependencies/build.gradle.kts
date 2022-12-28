@@ -14,21 +14,22 @@ plugins {
 description = "Provides a platform dependency to align all distribution versions"
 
 val antVersion = "1.10.11"
-val archunitVersion = "1.0.0-rc1"
 val asmVersion = "9.3"
 val awsS3Version = "1.12.365"
 val bouncycastleVersion = "1.68"
 val jacksonVersion = "2.14.1"
 val jaxbVersion = "3.0.0"
-val jettyVersion = "9.4.36.v20210114"
 val junit5Version = "5.8.2"
 val mavenVersion = "3.6.3"
 val nativePlatformVersion = "0.22-milestone-24"
 val slf4jVersion = "1.7.30"
-val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
 val tomljVersion = "1.0.0"
 
+// test only
+val archunitVersion = "1.0.0-rc1"
 val bytebuddyVersion = "1.10.20"
+val jettyVersion = "9.4.36.v20210114"
+val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
 
 // For the junit-bom
 javaPlatform.allowDependencies()
