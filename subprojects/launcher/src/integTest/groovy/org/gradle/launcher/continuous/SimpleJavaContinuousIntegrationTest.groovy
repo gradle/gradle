@@ -18,6 +18,7 @@ package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.test.fixtures.condition.Requires
+import org.gradle.test.fixtures.condition.TestPrecondition
 import org.gradle.test.fixtures.condition.UnitTestPreconditions
 
 // NB: there's nothing specific about Java support and continuous.
@@ -49,7 +50,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         executedAndNotSkipped ":compileJava", ":build"
 
         when:
-        if (TestPrecondition.WINDOWS) {
+        if (TestPrecondition.doSatisfies(UnitTestPreconditions.Windows)) {
             //the main src dir might be locked, only delete children
             file("src/main/java").listFiles().each {
                 assert !it.deleteDir().exists()
