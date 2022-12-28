@@ -35,25 +35,29 @@ public class OrdinalNodeAccess {
 
     void addDestroyerNode(OrdinalGroup ordinal, LocalTaskNode destroyer, Consumer<Node> ordinalNodeConsumer) {
         // Create (or get) a destroyer ordinal node that depends on the output locations of this task node
-        ordinal.getDestroyerLocationsNode().addDependenciesFrom(destroyer);
+        OrdinalNode destroyerLocations = ordinal.getDestroyerLocationsNode();
+        destroyerLocations.addDependenciesFrom(destroyer);
+        maybeSchedule(ordinalNodeConsumer, destroyerLocations);
 
         // Depend on any previous producer ordinal nodes (i.e. any producer ordinal nodes with a lower ordinal)
         if (ordinal.getPrevious() != null) {
-            OrdinalNode producerLocations = ordinal.getPrevious().getProducerLocationsNode();
-            maybeSchedule(ordinalNodeConsumer, producerLocations);
-            destroyer.addDependencySuccessor(producerLocations);
+            OrdinalNode previousProducerLocations = ordinal.getPrevious().getProducerLocationsNode();
+            maybeSchedule(ordinalNodeConsumer, previousProducerLocations);
+            destroyer.addDependencySuccessor(previousProducerLocations);
         }
     }
 
     void addProducerNode(OrdinalGroup ordinal, LocalTaskNode producer, Consumer<Node> ordinalNodeConsumer) {
         // Create (or get) a producer ordinal node that depends on the dependencies of this task node
-        ordinal.getProducerLocationsNode().addDependenciesFrom(producer);
+        OrdinalNode producerLocations = ordinal.getProducerLocationsNode();
+        producerLocations.addDependenciesFrom(producer);
+        maybeSchedule(ordinalNodeConsumer, producerLocations);
 
         // Depend on any previous destroyer ordinal nodes (i.e. any destroyer ordinal nodes with a lower ordinal)
         if (ordinal.getPrevious() != null) {
-            OrdinalNode destroyerLocations = ordinal.getPrevious().getDestroyerLocationsNode();
-            maybeSchedule(ordinalNodeConsumer, destroyerLocations);
-            producer.addDependencySuccessor(destroyerLocations);
+            OrdinalNode previousDestroyerLocations = ordinal.getPrevious().getDestroyerLocationsNode();
+            maybeSchedule(ordinalNodeConsumer, previousDestroyerLocations);
+            producer.addDependencySuccessor(previousDestroyerLocations);
         }
     }
 
