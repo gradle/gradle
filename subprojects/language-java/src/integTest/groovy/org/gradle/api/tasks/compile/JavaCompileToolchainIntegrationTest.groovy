@@ -23,10 +23,10 @@ import org.gradle.integtests.fixtures.executer.DocumentationUtils
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.IntegTestPreconditions
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.IntegTestPreconditions
 import org.gradle.test.fixtures.condition.Requires
 import org.gradle.test.fixtures.condition.UnitTestPreconditions
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 

@@ -21,7 +21,7 @@ import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOp
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
-import org.gradle.util.IntegTestPreconditions
+import org.gradle.test.fixtures.IntegTestPreconditions
 import org.gradle.test.fixtures.condition.Requires
 import org.gradle.test.fixtures.condition.UnitTestPreconditions
 /**

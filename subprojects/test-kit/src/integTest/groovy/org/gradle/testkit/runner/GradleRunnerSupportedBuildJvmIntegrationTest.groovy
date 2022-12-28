@@ -19,12 +19,12 @@ package org.gradle.testkit.runner
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.IntegTestPreconditions
+import org.gradle.test.fixtures.condition.Requires
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
-import org.gradle.util.IntegTestPreconditions
-import org.gradle.test.fixtures.condition.Requires
 import spock.lang.Issue
 
 @NonCrossVersion
