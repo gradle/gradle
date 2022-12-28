@@ -111,7 +111,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private
     fun problemsListenerFor(task: TaskInternal): ProblemsListener = when {
         task.isCompatibleWithConfigurationCache -> problems
-        else -> problems.forIncompatibleTask(task.path)
+        else -> problems.forIncompatibleTask(task.identityPath.path)
     }
 
     private

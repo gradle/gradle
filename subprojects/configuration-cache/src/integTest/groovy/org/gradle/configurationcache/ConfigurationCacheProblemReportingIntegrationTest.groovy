@@ -20,14 +20,11 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.invocation.Gradle
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.invocation.DefaultGradle
 import spock.lang.Ignore
-import spock.lang.IgnoreIf
 
 import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheProblemsFixture.resolveConfigurationCacheReportDirectory
 
-@IgnoreIf({ GradleContextualExecuter.isNoDaemon() })
 class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "input files are reported with relative path"() {
@@ -688,54 +685,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
     }
 
-    def "report does not include configuration and runtime problems from buildSrc"() {
-        file("buildSrc/build.gradle") << """
-            // These should not be reported, as neither of these are serialized
-            gradle.buildFinished { }
-            classes.doLast { t -> t.project }
-        """
-        buildFile << """
-            gradle.addListener(new BuildAdapter())
-            task broken {
-                inputs.property('p', project)
-            }
-        """
-
-        when:
-        configurationCacheFails("broken")
-
-        then:
-        outputContains("Configuration cache entry discarded with 2 problems.")
-        problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': registration of listener on 'Gradle.addListener' is unsupported")
-            withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            problemsWithStackTraceCount = 1
-        }
-        failure.assertHasFailures(1)
-
-        when:
-        configurationCacheRunLenient("broken")
-
-        then:
-        postBuildOutputContains("Configuration cache entry stored with 3 problems.")
-        problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': registration of listener on 'Gradle.addListener' is unsupported")
-            withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
-            withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            problemsWithStackTraceCount = 1
-        }
-
-        when:
-        configurationCacheRunLenient("broken")
-
-        then:
-        postBuildOutputContains("Configuration cache entry reused with 1 problem.")
-        problems.assertResultHasProblems(result) {
-            withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
-            problemsWithStackTraceCount = 0
-        }
-    }
-
     def "reports #invocation access during execution"() {
 
         def configurationCache = newConfigurationCacheFixture()
@@ -1184,31 +1133,6 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
         failure.assertHasFailure("Configuration cache problems found in this build.") { failure ->
             failure.assertHasCauses(5)
-        }
-    }
-
-    def "report task problems from included build with complete task path"() {
-        given:
-        settingsFile << """
-            includeBuild 'inc'
-        """
-        file("inc/settings.gradle") << """
-            include 'sub'
-        """
-        file("inc/sub/build.gradle") << """
-            tasks.register('broken') { t ->
-                doLast({ println ("project = " + t.project) } as Action)
-            }
-        """
-
-        when:
-        configurationCacheFails ":inc:sub:broken"
-
-        then:
-        outputContains "Configuration cache entry discarded with 1 problem."
-        problems.assertFailureHasProblems(failure) {
-            withProblem("Task `:inc:sub:broken` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            totalProblemsCount = 1
         }
     }
 }
