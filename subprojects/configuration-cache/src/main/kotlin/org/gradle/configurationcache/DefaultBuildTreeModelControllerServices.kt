@@ -24,6 +24,7 @@ import org.gradle.configurationcache.initialization.ConfigurationCacheStartParam
 import org.gradle.configurationcache.initialization.DefaultConfigurationCacheProblemsListener
 import org.gradle.configurationcache.initialization.VintageInjectedClasspathInstrumentationStrategy
 import org.gradle.configurationcache.problems.ConfigurationCacheProblems
+import org.gradle.configurationcache.problems.DefaultProblemFactory
 import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
 import org.gradle.configurationcache.serialization.codecs.jos.JavaSerializationEncodingLookup
@@ -113,6 +114,7 @@ class DefaultBuildTreeModelControllerServices : BuildTreeModelControllerServices
             registration.add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
             registration.add(ConfigurationCacheInjectedClasspathInstrumentationStrategy::class.java)
             registration.add(DefaultConfigurationCacheProblemsListener::class.java)
+            registration.add(DefaultProblemFactory::class.java)
             registration.add(ConfigurationCacheProblems::class.java)
             registration.add(DefaultConfigurationCache::class.java)
             registration.add(BeanStateWriterLookup::class.java)

@@ -33,11 +33,11 @@ import org.gradle.configurationcache.problems.DocumentationSection.RequirementsB
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsExternalProcess
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsSafeCredentials
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsUseProjectDuringExecution
+import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
 import org.gradle.configurationcache.problems.StructuredMessage
-import org.gradle.configurationcache.problems.location
 import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.execution.TaskExecutionTracker
 import org.gradle.internal.service.scopes.ListenerService
@@ -52,6 +52,7 @@ interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, Buil
 @ListenerService
 class DefaultConfigurationCacheProblemsListener internal constructor(
     private val problems: ProblemsListener,
+    private val problemFactory: ProblemFactory,
     private val userCodeApplicationContext: UserCodeApplicationContext,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val taskExecutionTracker: TaskExecutionTracker,
@@ -79,7 +80,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         }
         problems.onProblem(
             PropertyProblem(
-                userCodeLocation(consumer),
+                problemFactory.locationForCaller(consumer),
                 StructuredMessage.build {
                     text("external process started ")
                     reference(command)
@@ -127,7 +128,6 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         }
         problems.onProblem(
             listenerRegistrationProblem(
-                userCodeLocation(),
                 invocationDescription,
                 InvalidUserCodeException(
                     "Listener registration '$invocationDescription' by $invocationSource is unsupported."
@@ -135,10 +135,6 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             )
         )
     }
-
-    private
-    fun userCodeLocation(consumer: String? = null) =
-        userCodeApplicationContext.location(consumer)
 
     override fun onUnsafeCredentials(locationSpecificReason: String, task: TaskInternal) {
         val message = StructuredMessage.build {
@@ -157,11 +153,9 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
 
     private
     fun listenerRegistrationProblem(
-        trace: PropertyTrace,
         invocationDescription: String,
         exception: InvalidUserCodeException
-    ) = PropertyProblem(
-        trace,
+    ) = problemFactory.problem(
         StructuredMessage.build {
             text("registration of listener on ")
             reference(invocationDescription)

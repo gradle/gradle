@@ -32,7 +32,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.configuration.ProjectsPreparer
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.configuration.internal.DynamicCallContextTracker
-import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configuration.project.BuildScriptProcessor
 import org.gradle.configuration.project.ConfigureActionsProjectEvaluator
 import org.gradle.configuration.project.DelayedConfigurationActions
@@ -42,6 +41,7 @@ import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.configurationcache.extensions.get
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.configurationcache.flow.FlowServicesProvider
+import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.services.ConfigurationCacheEnvironment
 import org.gradle.configurationcache.services.DefaultEnvironment
@@ -145,13 +145,13 @@ class DefaultBuildModelControllerServices(
         fun createCrossProjectModelAccess(
             projectRegistry: ProjectRegistry<ProjectInternal>,
             problemsListener: ProblemsListener,
-            userCodeApplicationContext: UserCodeApplicationContext,
+            problemFactory: ProblemFactory,
             listenerManager: ListenerManager,
             dynamicCallProblemReporting: DynamicCallProblemReporting
         ): CrossProjectModelAccess {
             val delegate = VintageIsolatedProjectsProvider().createCrossProjectModelAccess(projectRegistry)
             return ProblemReportingCrossProjectModelAccess(
-                delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), userCodeApplicationContext, dynamicCallProblemReporting
+                delegate, problemsListener, listenerManager.getBroadcaster(CoupledProjectsListener::class.java), problemFactory, dynamicCallProblemReporting
             )
         }
 

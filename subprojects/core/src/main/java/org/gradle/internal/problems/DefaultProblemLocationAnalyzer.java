@@ -16,7 +16,6 @@
 
 package org.gradle.internal.problems;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.initialization.ClassLoaderScopeId;
 import org.gradle.initialization.ClassLoaderScopeOrigin;
@@ -37,7 +36,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, ClassLoaderScopeRegistryListener, Closeable {
     private final Lock lock = new ReentrantLock();
-    private final Map<String, String> scripts = new HashMap<>();
+    private final Map<String, ClassLoaderScopeOrigin.Script> scripts = new HashMap<>();
     private final ClassLoaderScopeRegistryListenerManager listenerManager;
 
     public DefaultProblemLocationAnalyzer(ClassLoaderScopeRegistryListenerManager listenerManager) {
@@ -62,7 +61,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
             ClassLoaderScopeOrigin.Script scriptOrigin = (ClassLoaderScopeOrigin.Script) origin;
             lock.lock();
             try {
-                scripts.put(scriptOrigin.getFileName(), scriptOrigin.getDisplayName());
+                scripts.put(scriptOrigin.getFileName(), scriptOrigin);
             } finally {
                 lock.unlock();
             }
@@ -87,9 +86,9 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
             for (int i = startPos; i < endPos; i++) {
                 StackTraceElement element = stack.get(i);
                 if (element.getLineNumber() >= 0 && scripts.containsKey(element.getFileName())) {
-                    String source = scripts.get(element.getFileName());
+                    ClassLoaderScopeOrigin.Script source = scripts.get(element.getFileName());
                     int lineNumber = element.getLineNumber();
-                    return new Location(StringUtils.capitalize(source), lineNumber);
+                    return new Location(source.getLongDisplayName(), source.getShortDisplayName(), lineNumber);
                 }
             }
             return null;

@@ -344,8 +344,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored(false)
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
-            withTotalProblemsCount(2)
+            withProblem("Build file 'build.gradle': line 2: registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Build file 'build.gradle': line 3: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
         failure.assertHasFailures(1)
 
@@ -357,8 +357,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored() // does not fail
         postBuildOutputContains("Configuration cache entry stored with 2 problems.")
         problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
-            withTotalProblemsCount(2)
+            withProblem("Build file 'build.gradle': line 2: registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Build file 'build.gradle': line 3: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
 
         when:
@@ -778,7 +778,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         outputContains("Configuration cache entry discarded with 1 problem.")
         problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("Build file 'build.gradle': registration of listener on '$registrationPoint' is unsupported")
+            withUniqueProblems("Build file 'build.gradle': line 1: registration of listener on '$registrationPoint' is unsupported")
         }
 
         where:
@@ -922,7 +922,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         problems.assertFailureHasProblems(failure) {
             totalProblemsCount = 17
             withInput("Script 'script.gradle': system property 'PROP'")
-            withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Script 'script.gradle': line 4: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
 
@@ -945,7 +945,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         outputContains("Configuration cache entry discarded with 1 problem.")
         problems.assertFailureHasProblems(failure) {
             withInput("Script 'script.gradle': system property 'PROP'")
-            withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Script 'script.gradle': line 4: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
 
@@ -968,7 +968,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         outputContains("Configuration cache entry discarded with 1 problem.")
         problems.assertFailureHasProblems(failure) {
             withInput("Script 'script.gradle': system property 'PROP'")
-            withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Script 'script.gradle': line 4: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
 
@@ -1010,8 +1010,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         outputContains("Configuration cache entry discarded with 4 problems.")
         problems.assertFailureHasProblems(failure) {
-            withTotalProblemsCount(4)
-            withProblem("Script 'script.gradle': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Script 'script.gradle': line 10: registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Script 'script.gradle': line 13: registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Script 'script.gradle': line 4: registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Script 'script.gradle': line 7: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
 
@@ -1035,7 +1037,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
             withProblem("Build file '${relativePath('a/build.gradle')}': invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Build file '${relativePath('a/build.gradle')}': registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 2: registration of listener on 'Gradle.buildFinished' is unsupported")
         }
     }
 
