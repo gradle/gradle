@@ -153,7 +153,7 @@ class CheckstyleInvoker implements Action<AntBuilderDelegate> {
     }
 
     private static void assertUnsupportedReportFormatSARIF(VersionNumber version) {
-        throw new GradleException("SARIF report format is supported on Checkstyle versions 10.3.3 and later. Please upgrade from Checkstyle " + version +" or disable the SARIF format.")
+        throw new GradleException("SARIF report format is supported on Checkstyle versions 10.3.3 and newer. Please upgrade from Checkstyle " + version +" or disable the SARIF format.")
     }
 
     private static parseCheckstyleXml(Boolean isXmlRequired, File xmlOutputLocation) {

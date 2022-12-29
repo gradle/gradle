@@ -126,7 +126,7 @@ https://github.com/checkstyle/contribution/tree/master/xsl[View a sample Checkst
 [[sec:enable_checkstyle_sarif]]
 == Generate SARIF report
 
-link:https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html[SARIF] report is supported on Checkstyle versions 10.3.3 and later. It is not enabled by default.
+link:https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html[SARIF] report is supported on Checkstyle versions 10.3.3 and newer. It is not enabled by default.
 
 .Enable SARIF Report
 ====
