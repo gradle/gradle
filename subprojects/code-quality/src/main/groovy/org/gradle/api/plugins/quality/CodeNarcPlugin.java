@@ -22,6 +22,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
@@ -83,6 +84,12 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
         Configuration configuration = project.getConfigurations().getAt(getConfigurationName());
         configureTaskConventionMapping(configuration, task);
         configureReportsConventionMapping(task, baseName);
+    }
+
+    @Override
+    protected void beforeApply() {
+        // Necessary to disambiguate the published variants of newer codenarc versions (including the default version)
+        JavaEcosystemSupport.configureBundling(project.getDependencies().getAttributesSchema());
     }
 
     private void configureDefaultDependencies(Configuration configuration) {
