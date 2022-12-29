@@ -169,6 +169,9 @@ public class Install {
         tempDownloadFile.delete();
         logger.log("Downloading " + safeDistributionUrl);
         download.download(distributionUrl, tempDownloadFile);
+        if(localTargetFile.exists()) {
+            localTargetFile.delete();
+        }
         tempDownloadFile.renameTo(localTargetFile);
     }
 
