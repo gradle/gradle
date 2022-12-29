@@ -389,7 +389,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
         then:
         executedAndNotSkipped(":checkstyleMain")
-        result.assertHasErrorOutput("SARIF report format is supported on Checkstyle versions greater than 10.3.3 and newer. Please upgrade from Checkstyle $versionNumber or disable the SARIF format.")
+        result.assertHasErrorOutput("SARIF report format is supported on Checkstyle versions 10.3.3 and newer. Please upgrade from Checkstyle $versionNumber or disable the SARIF format.")
     }
 
     def "changes to files in configDirectory make the task out-of-date"() {
