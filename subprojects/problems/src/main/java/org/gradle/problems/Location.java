@@ -16,17 +16,31 @@
 
 package org.gradle.problems;
 
-public class Location {
-    private final String sourceDisplayName;
-    private final int lineNumber;
+import org.gradle.internal.DisplayName;
 
-    public Location(String sourceDisplayName, int lineNumber) {
-        this.sourceDisplayName = sourceDisplayName;
+public class Location {
+    private final int lineNumber;
+    private final DisplayName sourceLongDisplayName;
+    private final DisplayName sourceShortDisplayName;
+
+    public Location(DisplayName sourceLongDisplayName, DisplayName sourceShortDisplayName, int lineNumber) {
+        this.sourceLongDisplayName = sourceLongDisplayName;
+        this.sourceShortDisplayName = sourceShortDisplayName;
         this.lineNumber = lineNumber;
     }
 
-    public String getSourceDisplayName() {
-        return sourceDisplayName;
+    /**
+     * Returns a long display name for the source file containing this location. The long description should use absolute paths and assume no particular context.
+     */
+    public DisplayName getSourceLongDisplayName() {
+        return sourceLongDisplayName;
+    }
+
+    /**
+     * Returns a short display name for the source file containing this location. The short description may use relative paths.
+     */
+    public DisplayName getSourceShortDisplayName() {
+        return sourceShortDisplayName;
     }
 
     public int getLineNumber() {
@@ -34,6 +48,6 @@ public class Location {
     }
 
     public String getFormatted() {
-        return sourceDisplayName + ": line " + lineNumber;
+        return sourceLongDisplayName.getCapitalizedDisplayName() + ": line " + lineNumber;
     }
 }

@@ -16,10 +16,10 @@
 
 package org.gradle.internal.problems
 
-
 import org.gradle.initialization.ClassLoaderScopeId
 import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager
+import org.gradle.internal.Describables
 import spock.lang.Specification
 
 class DefaultProblemLocationAnalyzerTest extends Specification {
@@ -31,15 +31,19 @@ class DefaultProblemLocationAnalyzerTest extends Specification {
     def elementWithNoLineNumber = new StackTraceElement("class", "method", "filename", -1)
 
     def 'uses location info from deepest stack frame with matching source file and line information'() {
+        def longDisplayName = Describables.of("<long source>")
+        def shortDisplayName = Describables.of("<short source>")
+
         given:
-        analyzer.childScopeCreated(Stub(ClassLoaderScopeId), Stub(ClassLoaderScopeId), new ClassLoaderScopeOrigin.Script("filename", "<source>"))
+        analyzer.childScopeCreated(Stub(ClassLoaderScopeId), Stub(ClassLoaderScopeId), new ClassLoaderScopeOrigin.Script("filename", longDisplayName, shortDisplayName))
 
         when:
         def location = analyzer.locationForUsage([elementWithNoSourceFile, elementWithNoLineNumber, otherElement, element, callerElement])
 
         then:
-        location.sourceDisplayName == "<source>"
+        location.sourceLongDisplayName == longDisplayName
+        location.sourceShortDisplayName == shortDisplayName
         location.lineNumber == 7
-        location.formatted == "<source>: line 7"
+        location.formatted == "<long source>: line 7"
     }
 }

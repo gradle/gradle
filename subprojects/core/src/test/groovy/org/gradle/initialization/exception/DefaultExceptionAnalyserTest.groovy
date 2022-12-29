@@ -19,8 +19,7 @@ import org.gradle.api.GradleScriptException
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.initialization.ClassLoaderScopeId
-import org.gradle.initialization.ClassLoaderScopeOrigin
+import org.gradle.internal.Describables
 import org.gradle.internal.exceptions.Contextual
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.exceptions.MultiCauseException
@@ -95,7 +94,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         def result = []
 
         given:
-        _ * locationAnalyzer.locationForUsage(stackTrace) >> new Location("<source>", 7)
+        _ * locationAnalyzer.locationForUsage(stackTrace) >> location("<source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -122,8 +121,8 @@ class DefaultExceptionAnalyserTest extends Specification {
         def result = []
 
         given:
-        _ * locationAnalyzer.locationForUsage(stackTrace1) >> new Location("<source>", 12)
-        _ * locationAnalyzer.locationForUsage(stackTrace2) >> new Location("<source>", 7)
+        _ * locationAnalyzer.locationForUsage(stackTrace1) >> location("<source>", 12)
+        _ * locationAnalyzer.locationForUsage(stackTrace2) >> location("<source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -255,7 +254,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         def result = []
 
         given:
-        _ * locationAnalyzer.locationForUsage(stackTrace) >> new Location("<source>", 7)
+        _ * locationAnalyzer.locationForUsage(stackTrace) >> location("<source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -336,8 +335,8 @@ class DefaultExceptionAnalyserTest extends Specification {
         return failure
     }
 
-    private void notifyAnalyser(DefaultExceptionAnalyser analyser, final ScriptSource source) {
-        analyser.childScopeCreated(Stub(ClassLoaderScopeId), Stub(ClassLoaderScopeId), new ClassLoaderScopeOrigin.Script(source.fileName, source.displayName))
+    private Location location(String longDisplayName, int line) {
+        return new Location(Describables.of(longDisplayName), Describables.of("short"), line)
     }
 
     private DefaultExceptionAnalyser analyser() {

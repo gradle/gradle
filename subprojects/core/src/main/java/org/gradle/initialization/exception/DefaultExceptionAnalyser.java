@@ -73,7 +73,7 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
         // TODO: remove these special cases
         if (actualException instanceof ScriptCompilationException) {
             ScriptCompilationException scriptCompilationException = (ScriptCompilationException) actualException;
-            source = scriptCompilationException.getScriptSource().getDisplayName();
+            source = scriptCompilationException.getScriptSource().getLongDisplayName().getCapitalizedDisplayName();
             lineNumber = scriptCompilationException.getLineNumber();
         }
 
@@ -85,7 +85,7 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
             ) {
                 Location location = locationAnalyzer.locationForUsage(Arrays.asList(currentException.getStackTrace()));
                 if (location != null) {
-                    source = location.getSourceDisplayName();
+                    source = location.getSourceLongDisplayName().getCapitalizedDisplayName();
                     lineNumber = location.getLineNumber();
                 }
             }

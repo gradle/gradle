@@ -55,7 +55,7 @@ class ConfigurationCacheBuildSrcProblemReportingIntegrationTest extends Abstract
         then:
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': registration of listener on 'Gradle.addListener' is unsupported")
+            withProblem("Build file 'build.gradle': line 3: registration of listener on 'Gradle.addListener' is unsupported")
             withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 1
         }
@@ -67,7 +67,7 @@ class ConfigurationCacheBuildSrcProblemReportingIntegrationTest extends Abstract
         then:
         postBuildOutputContains("Configuration cache entry stored with 3 problems.")
         problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': registration of listener on 'Gradle.addListener' is unsupported")
+            withProblem("Build file 'build.gradle': line 3: registration of listener on 'Gradle.addListener' is unsupported")
             withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 1

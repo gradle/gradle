@@ -43,7 +43,7 @@ class ConfigurationCacheCompositeBuildProblemReportingIntegrationTest extends Ab
         outputContains "Configuration cache entry discarded with 3 problems."
         problems.assertFailureHasProblems(failure) {
             withProblem("Build file 'inc/sub/build.gradle': invocation of 'Task.project' at execution time is unsupported.".replace('/', File.separator))
-            withProblem("Build file 'inc/sub/build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported".replace('/', File.separator))
+            withProblem("Build file 'inc/sub/build.gradle': line 2: registration of listener on 'Gradle.buildFinished' is unsupported".replace('/', File.separator))
             withProblem("Task `:inc:sub:broken` of type `org.gradle.api.DefaultTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 2
         }
@@ -111,7 +111,7 @@ class ConfigurationCacheCompositeBuildProblemReportingIntegrationTest extends Ab
         // TODO - should not fail
         outputContains "Configuration cache entry discarded with 1 problem."
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'inc/sub/build.gradle': registration of listener on 'Gradle.buildFinished' is unsupported".replace('/', File.separator))
+            withProblem("Build file 'inc/sub/build.gradle': line 14: registration of listener on 'Gradle.buildFinished' is unsupported".replace('/', File.separator))
         }
     }
 }
