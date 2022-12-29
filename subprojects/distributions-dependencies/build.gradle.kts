@@ -16,22 +16,23 @@ plugins {
 description = "Provides a platform dependency to align all distribution versions"
 
 val antVersion = "1.10.11"
-val archunitVersion = "1.0.0-rc1"
 val asmVersion = "9.3"
-val awsS3Version = "1.11.948"
+val awsS3Version = "1.12.365"
 val bouncycastleVersion = "1.68"
-val jacksonVersion = "2.13.3"
+val jacksonVersion = "2.14.1"
 val jaxbVersion = "3.0.0"
-val jettyVersion = "9.4.36.v20210114"
 val junit5Version = "5.8.2"
 val mavenVersion = "3.6.3"
-val nativePlatformVersion = "0.22-milestone-23"
+val nativePlatformVersion = "0.22-milestone-24"
 val slf4jVersion = "1.7.30"
-val spockVersion = if (isBundleGroovy4) "2.2-groovy-4.0" else "2.2-groovy-3.0"
-val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
+val spockVersion = if (isBundleGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
 val tomljVersion = "1.0.0"
 
+// test only
+val archunitVersion = "1.0.0-rc1"
 val bytebuddyVersion = "1.10.20"
+val jettyVersion = "9.4.36.v20210114"
+val sshdVersion = "2.0.0" // Upgrade requires changes in package names and tests fail on expectations (but work otherwise)
 
 // For the junit-bom
 javaPlatform.allowDependencies()
@@ -66,7 +67,7 @@ dependencies {
         api(libs.commonsLang3)          { version { strictly("3.12.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.fastutil)              { version { strictly("8.5.2") }}
-        api(libs.gradleProfiler)        { version { strictly("0.19.0-alpha02") }}
+        api(libs.gradleProfiler)        { version { strictly("0.19.0") }}
         api(libs.gradleEnterpriseTestAnnotation) { version { strictly("1.0") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
         api(libs.googleApiClient)       { version { strictly("1.34.0"); because("our GCS version requires 1.34.0") }}
@@ -97,6 +98,7 @@ dependencies {
         api(libs.jacksonAnnotations)    { version { strictly(jacksonVersion) }}
         api(libs.jacksonCore)           { version { strictly(jacksonVersion) }}
         api(libs.jacksonDatabind)       { version { strictly(jacksonVersion) }}
+        api(libs.jacksonKotlin)         { version { strictly(jacksonVersion) }}
         api(libs.jakartaActivation)     { version { strictly("2.0.0") }}
         api(libs.jakartaXmlBind)        { version { strictly("3.0.0") }}
         api(libs.jansi)                 { version { strictly("1.18"); because("2.x changes the API") }}
@@ -111,7 +113,7 @@ dependencies {
         api(libs.joda)                  { version { strictly("2.10.4") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
         api(libs.jsch)                  { version { strictly("0.1.55") }}
-        api(libs.jsoup)                 { version { strictly("1.15.1") }}
+        api(libs.jsoup)                 { version { strictly("1.15.3") }}
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.junit)                 { version { strictly("4.13.2") }}
@@ -162,7 +164,6 @@ dependencies {
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
         api(libs.guice)                 { version { strictly("4.2.3") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
-        api(libs.jacksonKotlin)         { version { strictly("2.9.2") }}
         api(libs.javaParser)            { version { strictly("3.17.0") }}
         api(libs.jetty)                 { version { strictly(jettyVersion) }}
         api(libs.jettySecurity)         { version { strictly(jettyVersion) }}

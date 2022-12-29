@@ -73,7 +73,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             tasks.register("checkDeps") {
                 inputs.files(configurations.compileClasspath)
                 doLast {
-                    val fileNames = configurations.compileClasspath.files.map(File::getName)
+                    val fileNames = configurations.compileClasspath.get().files.map(File::getName)
                     assert(fileNames == listOf("lib-1.1.jar"))
                 }
             }
@@ -125,7 +125,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             tasks.register("checkDeps") {
                 inputs.files(configurations.compileClasspath)
                 doLast {
-                    val fileNames = configurations.compileClasspath.files.map(File::getName)
+                    val fileNames = configurations.compileClasspath.get().files.map(File::getName)
                     assert(fileNames == listOf("test-1.0.jar"))
                 }
             }
@@ -372,6 +372,69 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
         lib2.artifact.expectGet()
 
         then:
+        succeeds ':checkDeps'
+    }
+
+
+    @Issue("https://github.com/gradle/gradle/issues/22650")
+    def "can use the generated extension to declare a dependency constraint with and without sub-group using bundles"() {
+        settingsKotlinFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    register("libs") {
+                        version("myLib") {
+                            strictly("[1.0,1.1)")
+                        }
+                        library("myLib", "org.gradle.test", "lib-core").versionRef("myLib")
+                        library("myLib-ext", "org.gradle.test", "lib-ext").versionRef("myLib")
+                        bundle("myBundle", listOf("myLib"))
+                        bundle("myBundle-ext", listOf("myLib-ext"))
+                    }
+                }
+            }
+        """
+        def publishLib = { String artifactId, String version ->
+            def lib = mavenHttpRepo.module("org.gradle.test", artifactId, version)
+                .withModuleMetadata()
+                .publish()
+            lib.moduleMetadata.expectGet()
+            lib.pom.expectGet()
+            return lib
+        }
+        publishLib("lib-core", "1.0").with {
+            it.rootMetaData.expectGet()
+            it.artifact.expectGet()
+        }
+        publishLib("lib-core", "1.1")
+        publishLib("lib-ext", "1.0").with {
+            it.rootMetaData.expectGet()
+            it.artifact.expectGet()
+        }
+
+        withCheckDeps()
+        buildKotlinFile << """
+            plugins {
+                `java-library`
+            }
+
+            dependencies {
+                implementation("org.gradle.test:lib-core:1.+") // intentional!
+                implementation("org.gradle.test:lib-ext") // intentional!
+                constraints {
+                    implementation(libs.bundles.myBundle)
+                    implementation(libs.bundles.myBundle.ext)
+                }
+            }
+
+            tasks.register<CheckDeps>("checkDeps") {
+                files.from(configurations.compileClasspath)
+                expected.set(listOf("lib-core-1.0.jar", "lib-ext-1.0.jar"))
+            }
+            // Might be worth checking constraints too? Not sure if necessary because the Groovy DSL version covers that
+            // and the selected versions above would be wrong.
+        """
+
+        expect:
         succeeds ':checkDeps'
     }
 

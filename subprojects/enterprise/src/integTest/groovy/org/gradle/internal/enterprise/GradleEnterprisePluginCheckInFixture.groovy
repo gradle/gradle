@@ -35,8 +35,6 @@ import javax.annotation.Nullable
 @SuppressWarnings("GrMethodMayBeStatic")
 class GradleEnterprisePluginCheckInFixture {
 
-    private static final String EXECUTION_PHASE_STARTED_CALLBACK_MSG = "gradleEnterprisePlugin.executionPhaseStarted"
-
     private final TestFile projectDir
     private final MavenFileRepository mavenRepo
     private final GradleExecuter pluginBuildExecuter
@@ -45,7 +43,9 @@ class GradleEnterprisePluginCheckInFixture {
     String artifactVersion = AutoAppliedGradleEnterprisePlugin.VERSION
 
     final String id = AutoAppliedGradleEnterprisePlugin.ID.id
-    final String className = "org.gradle.test.GradleEnterprisePlugin"
+    final String packageName = 'com.gradle.enterprise.gradleplugin'
+    final String simpleClassName = 'GradleEnterprisePlugin'
+    final String className = "${packageName}.${simpleClassName}"
 
     boolean doCheckIn = true
     protected boolean added
@@ -56,19 +56,11 @@ class GradleEnterprisePluginCheckInFixture {
         this.pluginBuildExecuter = pluginBuildExecuter
     }
 
-    String pluginRepository() {
-        return "maven { url '${mavenRepo.uri}' }"
-    }
-
-    String pluginDependency() {
-        return "id '$id' version '$runtimeVersion'"
-    }
-
     String pluginManagement() {
         """
             pluginManagement {
                 repositories {
-                    ${pluginRepository()}
+                    maven { url '${mavenRepo.uri}' }
                 }
             }
         """
@@ -76,7 +68,7 @@ class GradleEnterprisePluginCheckInFixture {
 
     String plugins() {
         """
-            plugins { ${pluginDependency()} }
+            plugins { id "$id" version "$runtimeVersion" }
         """
     }
 
@@ -92,10 +84,11 @@ class GradleEnterprisePluginCheckInFixture {
         }
         added = true
         def builder = new PluginBuilder(projectDir.file('plugin-' + AutoAppliedGradleEnterprisePlugin.ID.id))
-        builder.addPluginSource(id, "GradleEnterprisePlugin", """
+        builder.packageName = packageName
+        builder.addPluginSource(id, simpleClassName, """
             package $builder.packageName
 
-            class GradleEnterprisePlugin implements $Plugin.name<$Settings.name> {
+            class ${simpleClassName} implements $Plugin.name<$Settings.name> {
                 void apply($Settings.name settings) {
                     println "gradleEnterprisePlugin.apply.runtimeVersion = $runtimeVersion"
 
@@ -110,6 +103,7 @@ class GradleEnterprisePluginCheckInFixture {
                         $GradleEnterprisePluginBuildState.name buildState ->
 
                         println "gradleEnterprisePlugin.serviceFactoryCreate.config.buildScanRequest = \$config.buildScanRequest"
+                        println "gradleEnterprisePlugin.serviceFactoryCreate.config.autoApplied = \$config.autoApplied"
                         println "gradleEnterprisePlugin.serviceFactoryCreate.config.taskExecutingBuild = \$config.taskExecutingBuild"
 
                         println "gradleEnterprisePlugin.serviceFactoryCreate.buildState.buildStartedTime = \$buildState.buildStartedTime"
@@ -148,10 +142,6 @@ class GradleEnterprisePluginCheckInFixture {
                                 }
                             }
 
-                            void executionPhaseStarted() {
-                                println "$EXECUTION_PHASE_STARTED_CALLBACK_MSG"
-                            }
-
                             $GradleEnterprisePluginEndOfBuildListener.name getEndOfBuildListener() {
                                 return { $GradleEnterprisePluginEndOfBuildListener.BuildResult.name buildResult ->
                                     println "gradleEnterprisePlugin.endOfBuild.buildResult.failure = \$buildResult.failure"
@@ -179,33 +169,19 @@ class GradleEnterprisePluginCheckInFixture {
 
         builder.addPlugin("", "com.gradle.build-scan", 'BuildScanPlugin')
 
-        builder.publishAs("com.gradle:gradle-enterprise-gradle-plugin:${artifactVersion}", mavenRepo, pluginBuildExecuter)
+        builder.publishAs("${AutoAppliedGradleEnterprisePlugin.GROUP}:${AutoAppliedGradleEnterprisePlugin.NAME}:${artifactVersion}", mavenRepo, pluginBuildExecuter)
     }
 
     void assertBuildScanRequest(String output, GradleEnterprisePluginConfig.BuildScanRequest buildScanRequest) {
         assert output.contains("gradleEnterprisePlugin.serviceFactoryCreate.config.buildScanRequest = $buildScanRequest")
     }
 
+    void assertAutoApplied(String output, boolean autoApplied) {
+        assert output.contains("gradleEnterprisePlugin.serviceFactoryCreate.config.autoApplied = $autoApplied")
+    }
+
     void assertUnsupportedMessage(String output, String unsupported) {
         assert output.contains("gradleEnterprisePlugin.checkIn.unsupported.reasonMessage = $unsupported")
-    }
-
-    void invokedExecutionPhaseStartedCallbackOnce(String output) {
-        assert output.count(EXECUTION_PHASE_STARTED_CALLBACK_MSG) == 1
-    }
-
-    void didNotInvokeExecutionPhaseStartedCallback(String output) {
-        assert !output.contains(EXECUTION_PHASE_STARTED_CALLBACK_MSG)
-    }
-
-    void assertMessagePrecedesExecutionPhaseStartedCallback(String output, String message) {
-        int messagePos = output.indexOf(message)
-        assert messagePos >= 0 && messagePos < output.indexOf(EXECUTION_PHASE_STARTED_CALLBACK_MSG)
-    }
-
-    void assertMessageFollowsExecutionPhaseStartedCallback(String output, String message) {
-        int messagePos = output.indexOf(message)
-        assert messagePos >= 0 && messagePos > output.indexOf(EXECUTION_PHASE_STARTED_CALLBACK_MSG)
     }
 
     void assertEndOfBuildWithFailure(String output, @Nullable String failure) {
@@ -241,4 +217,9 @@ class GradleEnterprisePluginCheckInFixture {
         assert !output.contains("gradleEnterprisePlugin.apply.runtimeVersion = $runtimeVersion")
     }
 
+    void assertBackgroundJobCompletedBeforeShutdown(String output, String expectedJobOutput) {
+        def jobOutputPosition = output.indexOf(expectedJobOutput)
+        assert jobOutputPosition >= 0 : "cannot find $expectedJobOutput"
+        assert jobOutputPosition < output.indexOf("gradleEnterprisePlugin.endOfBuild.buildResult.failure")
+    }
 }

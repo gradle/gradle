@@ -28,10 +28,6 @@ class IdentityCacheStepTest extends StepSpec<IdentityContext> {
 
     def step = new IdentityCacheStep<>(delegate)
 
-    @Override
-    protected IdentityContext createContext() {
-        Stub(IdentityContext)
-    }
 
     def "executes when no cached output exists"() {
         def delegateOutput = Mock(Object)

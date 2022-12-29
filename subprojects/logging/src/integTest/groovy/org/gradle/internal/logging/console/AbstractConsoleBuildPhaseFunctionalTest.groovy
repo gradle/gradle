@@ -227,7 +227,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         """
         file("buildSrc/build.gradle") << """
             ${server.callFromBuild('buildsrc-build-script')}
-            assemble {
+            jar {
                 dependsOn {
                     // call during task graph calculation
                     ${server.callFromBuild('buildsrc-task-graph')}
@@ -237,9 +237,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
                     ${server.callFromBuild('buildsrc-task')}
                 }
             }
-            gradle.buildFinished {
-                ${server.callFromBuild('buildsrc-build-finished')}
-            }
         """
 
         given:
@@ -247,7 +244,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         def childBuildScript = server.expectAndBlock('buildsrc-build-script')
         def childTaskGraph = server.expectAndBlock('buildsrc-task-graph')
         def task1 = server.expectAndBlock('buildsrc-task')
-        def childBuildFinished = server.expectAndBlock('buildsrc-build-finished')
         def rootBuildScript = server.expectAndBlock('root-build-script')
         def task2 = server.expectAndBlock('task2')
         def rootBuildFinished = server.expectAndBlock('root-build-finished')
@@ -272,11 +268,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         task1.waitForAllPendingCalls()
         assertHasBuildPhase("0% INITIALIZING")
         task1.releaseAll()
-
-        and:
-        childBuildFinished.waitForAllPendingCalls()
-        assertHasBuildPhase("0% INITIALIZING")
-        childBuildFinished.releaseAll()
 
         and:
         rootBuildScript.waitForAllPendingCalls()

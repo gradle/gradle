@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GradleVersion
-
 /**
  This test exists to ensure that the {@code @Deprecated} {@link Upload} task can still be registered
  and its properties accessed for backwards compatibility; but that it throws an exception upon usage.
@@ -52,6 +51,7 @@ class UploadTaskIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'tasks'
 
         and:
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         fails 'upload'
         result.assertHasErrorOutput "The legacy `Upload` task was removed in Gradle 8. Please use the `maven-publish` or `ivy-publish` plugin instead. See https://docs.gradle.org/${GradleVersion.current().version}/userguide/publishing_maven.html#publishing_maven or https://docs.gradle.org/${GradleVersion.current().version}/userguide/publishing_ivy.html#publishing_ivy for details"
     }

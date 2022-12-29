@@ -1011,6 +1011,70 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("result = [a.jar.green.red, b.jar.green.red]")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/23116")
+    def "task inputs can include an external artifact that is transformed at configuration time"() {
+        withColorVariants(mavenRepo.module("org.test", "test", "1.0").withModuleMetadata()).publish()
+        setupBuildWithColorTransformImplementation()
+        buildFile << """
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                registerTransform(MakeGreen) {
+                    from.attribute(color, 'green')
+                    to.attribute(color, 'chartreuse')
+                }
+                implementation "org.test:test:1.0"
+            }
+
+            // To trigger the issue:
+            // 1. serialize a task that uses the transformed artifact
+            // 2. serialize a task whose serialization triggers execution of that transform
+            // 3. serialize another task that uses the transformed artifact
+            // In addition, the 1st and 3rd tasks need to resolve different variants that share the same transform
+
+            def files1 = configurations.implementation.incoming.artifactView {
+                attributes.attribute(color, 'green')
+            }.files
+
+            task usesFiles1 {
+                doLast {
+                    println files1*.name
+                }
+            }
+
+            def files2 = configurations.implementation.incoming.artifactView {
+                attributes.attribute(color, 'chartreuse')
+            }.files
+
+            task resolveFilesWhenSerialized {
+                def input = provider { files2*.name }
+                doLast {
+                    println input.get()
+                }
+            }
+
+            task usesFiles2 {
+                doLast {
+                    println files2*.name
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("usesFiles1", "resolveFilesWhenSerialized", "usesFiles2")
+
+        then:
+        assertTransformed("test-1.0.jar", "test-1.0.jar.green")
+
+        when:
+        configurationCacheRun("usesFiles1", "resolveFilesWhenSerialized", "usesFiles2")
+
+        then:
+        assertTransformed()
+    }
+
     def "buildSrc output may require transform output"() {
         withColorVariants(mavenRepo.module("test", "test", "12")).publish()
 
@@ -1095,18 +1159,16 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        configurationCacheFails(":resolve")
+        configurationCacheFails(":resolve", "--continue")
 
         then:
         configurationCache.assertStateStored() // transform spec is stored
-        output.count("processing") == 3
+        output.count("processing") == 2
         outputContains("processing root.blue")
         outputContains("processing a.jar")
-        outputContains("processing a.blue")
         failure.assertHasFailure("Execution failed for task ':resolve'.") {
             it.assertHasCause("Failed to transform root.blue to match attributes {artifactType=blue, color=green}.")
-            it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
-            it.assertHasCause("Failed to transform a.blue to match attributes {artifactType=blue, color=green}.")
+            // TODO - should collect all failures rather than stopping on first failure
         }
         failure.assertHasFailures(1)
 
@@ -1160,7 +1222,7 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
         outputContains("processing b.jar")
         failure.assertHasFailure("Execution failed for task ':resolve'.") {
             it.assertHasCause("Failed to transform a.jar (project :a) to match attributes {artifactType=jar, color=green}.")
-            it.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
+            // TODO - should collect all failures rather than stopping on first failure
         }
 
         when:
@@ -1213,12 +1275,11 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractConf
 
         then:
         configurationCache.assertStateStored()
-        output.count("processing") == 2
+        output.count("processing") == 1
         outputContains("processing thing1-1.2.jar")
-        outputContains("processing thing2-1.2.jar")
         failure.assertHasFailure("Execution failed for task ':resolve'.") {
             it.assertHasCause("Failed to transform thing1-1.2.jar (group:thing1:1.2) to match attributes {artifactType=jar, color=green, org.gradle.status=release}.")
-            it.assertHasCause("Failed to transform thing2-1.2.jar (group:thing2:1.2) to match attributes {artifactType=jar, color=green, org.gradle.status=release}.")
+            // TODO - should collect all failures rather than stopping on first failure
         }
 
         when:

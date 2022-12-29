@@ -37,6 +37,8 @@ public interface ArtifactVisitor {
 
     /**
      * Visits an artifact. Artifacts are resolved but not necessarily available unless {@link #requireArtifactFiles()} returns true.
+     *
+     * <p>Note that a given artifact may be visited multiple times. The implementation is required to filter out duplicates.</p>
      */
     void visitArtifact(DisplayName variantName, AttributeContainer variantAttributes, List<? extends Capability> capabilities, ResolvableArtifact artifact);
 

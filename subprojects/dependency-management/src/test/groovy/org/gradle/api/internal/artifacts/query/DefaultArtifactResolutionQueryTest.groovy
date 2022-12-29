@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.query
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.result.ArtifactResolutionResult
@@ -34,6 +35,7 @@ import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCache
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentArtifactResolveState
+import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
@@ -137,7 +139,12 @@ class DefaultArtifactResolutionQueryTest extends Specification {
         1 * repositoryChain.artifactResolver >> artifactResolver
         1 * repositoryChain.componentResolver >> componentMetaDataResolver
         def state = Mock(ComponentGraphResolveState)
+
+        def metadata = Mock(ComponentGraphResolveMetadata)
+        _ * state.getMetadata() >> metadata
         _ * state.prepareForArtifactResolution() >> Mock(ComponentArtifactResolveState)
+        _ * metadata.getModuleVersionId() >> Mock(ModuleVersionIdentifier)
+
         numberOfComponentsToResolve * componentMetaDataResolver.resolve(_, _, _) >> { ComponentIdentifier componentId, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult resolveResult ->
             resolveResult.resolved(state)
         }

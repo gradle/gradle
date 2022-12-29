@@ -70,6 +70,12 @@ public class FinalizerGroup extends HasFinalizers {
         return this;
     }
 
+    @Override
+    public NodeGroup reachableFrom(OrdinalGroup newOrdinal) {
+        ordinal = newOrdinal;
+        return this;
+    }
+
     public NodeGroup getDelegate() {
         return delegate;
     }
@@ -96,16 +102,6 @@ public class FinalizerGroup extends HasFinalizers {
     @Override
     public FinalizerGroup asFinalizer() {
         return this;
-    }
-
-    @Override
-    public Iterable<? extends Node> getSuccessorsFor(Node node) {
-        // If the node is the finalizer for this group, it should wait for all the finalized nodes
-        if (isFinalizerNode(node)) {
-            return getFinalizedNodes();
-        } else {
-            return Collections.emptyList();
-        }
     }
 
     private static boolean memberCanStartAtAnyTime(Node node) {
@@ -166,7 +162,7 @@ public class FinalizerGroup extends HasFinalizers {
         Set<Node> finalizedNodesToBlockOn = findFinalizedNodesThatDoNotIntroduceACycle(reachableGroups);
         WaitForNodesToComplete waitForFinalizers = new WaitForNodesToComplete(finalizedNodesToBlockOn);
 
-        // Determine the finalized nodes that are also members
+        // Determine the finalized nodes that are also members. These may need to block waiting for other finalized nodes to complete
         Set<Node> blockedFinalizedMembers = new HashSet<>(getFinalizedNodes());
         blockedFinalizedMembers.removeAll(finalizedNodesToBlockOn);
         blockedFinalizedMembers.retainAll(members);
@@ -177,35 +173,43 @@ public class FinalizerGroup extends HasFinalizers {
             return;
         }
 
-        // For each member, determine which finalized node to wait for
+        // There are some finalized nodes that are also members
+        // For each member, determine which finalized nodes to wait for
         ImmutableMap.Builder<Node, MemberSuccessors> blockingNodesBuilder = ImmutableMap.builder();
         for (Node member : members) {
             if (isFinalizerNode(member) || memberCanStartAtAnyTime(member)) {
+                // Short-circuit for these, they are handled separately
                 continue;
             }
             if (blockedFinalizedMembers.contains(member)) {
                 if (!finalizedNodesToBlockOn.isEmpty()) {
+                    // This member is finalized and there are some finalized nodes that are not members. Wait for those nodes
                     blockingNodesBuilder.put(member, waitForFinalizers);
                 } else {
+                    // All finalized nodes are also members. Block until some other finalized node is started
                     blockingNodesBuilder.put(member, new WaitForFinalizedNodesToBecomeActive(Collections.singleton(member)));
                 }
             } else {
-                // Wait for the finalized nodes that don't introduce a cycle
-                Set<Node> blockOn = new LinkedHashSet<>(finalizedNodesToBlockOn);
+                // Determine whether this member is a dependency of a finalized node, in which case treat it as if it were a finalized member
+                boolean requiredByBlockedFinalizedMember = false;
                 for (Node finalizedMember : blockedFinalizedMembers) {
-                    if (!dependsOn(finalizedMember, member)) {
-                        blockOn.add(finalizedMember);
+                    if (dependsOn(finalizedMember, member)) {
+                        requiredByBlockedFinalizedMember = true;
+                        break;
                     }
                 }
-                if (blockOn.isEmpty()) {
-                    blockingNodesBuilder.put(member, new WaitForFinalizedNodesToBecomeActive(blockedFinalizedMembers));
-                } else {
-                    blockingNodesBuilder.put(member, new WaitForNodesToComplete(blockOn));
+                if (requiredByBlockedFinalizedMember) {
+                    blockingNodesBuilder.put(member, waitForFinalizers);
+                    continue;
                 }
+                // Wait for the finalized nodes that don't introduce a cycle
+                Set<Node> blockOn = new LinkedHashSet<>(finalizedNodesToBlockOn);
+                blockOn.addAll(blockedFinalizedMembers);
+                blockingNodesBuilder.put(member, new WaitForNodesToComplete(blockOn));
             }
         }
         ImmutableMap<Node, MemberSuccessors> blockingNodes = blockingNodesBuilder.build();
-        successors = node -> blockingNodes.get(node);
+        successors = blockingNodes::get;
     }
 
     private Set<Node> findFinalizedNodesThatDoNotIntroduceACycle(SetMultimap<FinalizerGroup, FinalizerGroup> reachableGroups) {

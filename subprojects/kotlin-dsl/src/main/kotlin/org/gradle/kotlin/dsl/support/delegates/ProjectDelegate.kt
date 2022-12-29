@@ -54,6 +54,7 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.WorkResult
+import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
 import org.gradle.normalization.InputNormalizationHandler
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
@@ -251,7 +252,7 @@ abstract class ProjectDelegate : Project {
     override fun getDependencyLocking(): DependencyLockingHandler =
         delegate.dependencyLocking
 
-    override fun <T : Any?> provider(value: Callable<T>): Provider<T> =
+    override fun <T : Any> provider(value: Callable<out T?>): Provider<T> =
         delegate.provider(value)
 
     override fun findProperty(propertyName: String): Any? =
@@ -356,6 +357,7 @@ abstract class ProjectDelegate : Project {
     override fun javaexec(action: Action<in JavaExecSpec>): ExecResult =
         delegate.javaexec(action)
 
+    @AllowUsingApiForExternalUse
     override fun getChildProjects(): MutableMap<String, Project> =
         delegate.childProjects
 

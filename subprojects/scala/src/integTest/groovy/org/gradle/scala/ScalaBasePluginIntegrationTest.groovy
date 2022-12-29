@@ -21,36 +21,41 @@ import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.junit.Rule
 
+import static org.gradle.scala.ScalaCompilationFixture.scalaDependency
 import static org.hamcrest.CoreMatchers.startsWith
 
-@TargetCoverage({ScalaCoverage.DEFAULT})
+@TargetCoverage({ ScalaCoverage.DEFAULT })
 class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
-    @Rule public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
+    @Rule
+    public final ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, temporaryFolder)
 
     def "defaults scalaClasspath to inferred Scala compiler dependency"() {
+        def scalaCompilerLib = versionNumber.major >= 3 ? "scala3-compiler_3" : "scala-compiler"
         file("build.gradle") << """
-        apply plugin: "scala-base"
+            apply plugin: "scala-base"
 
-        sourceSets {
-           custom
-        }
-
-        ${mavenCentralRepository()}
-
-        dependencies {
-           customImplementation "org.scala-lang:scala-library:$version"
-        }
-
-        task scaladoc(type: ScalaDoc) {
-           classpath = sourceSets.custom.runtimeClasspath
-        }
-
-        task verify {
-            doLast {
-                assert compileCustomScala.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
-                assert scaladoc.scalaClasspath.files.any { it.name == "scala-compiler-${version}.jar" }
+            sourceSets {
+               custom
             }
-        }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+               customImplementation "${scalaDependency(version.toString())}"
+            }
+
+            task scaladoc(type: ScalaDoc) {
+               classpath = sourceSets.custom.runtimeClasspath
+            }
+
+            task verify {
+                def compileCustomScalaClasspath = compileCustomScala.scalaClasspath
+                def scaladocScalaClasspath = scaladoc.scalaClasspath
+                doLast {
+                    assert compileCustomScalaClasspath.files.any { it.name == "$scalaCompilerLib-${version}.jar" }
+                    assert scaladocScalaClasspath.files.any { it.name == "$scalaCompilerLib-${version}.jar" }
+                }
+            }
         """
 
         expect:
@@ -59,28 +64,28 @@ class ScalaBasePluginIntegrationTest extends MultiVersionIntegrationSpec {
 
     def "only resolves source class path feeding into inferred Scala class path if/when the latter is actually used (but not during autowiring)"() {
         file("build.gradle") << """
-apply plugin: "scala-base"
+            apply plugin: "scala-base"
 
-sourceSets {
-    custom
-}
+            sourceSets {
+                custom
+            }
 
-${mavenCentralRepository()}
+            ${mavenCentralRepository()}
 
-dependencies {
-    customImplementation "org.scala-lang:scala-library:$version"
-}
+            dependencies {
+                customImplementation "${scalaDependency(version.toString())}"
+            }
 
-task scaladoc(type: ScalaDoc) {
-    classpath = sourceSets.custom.runtimeClasspath
-}
+            task scaladoc(type: ScalaDoc) {
+                classpath = sourceSets.custom.runtimeClasspath
+            }
 
-task verify {
-    doLast {
-        assert configurations.customCompileClasspath.state.toString() == "UNRESOLVED"
-        assert configurations.customRuntimeClasspath.state.toString() == "UNRESOLVED"
-    }
-}
+            task verify {
+                doLast {
+                    assert configurations.customCompileClasspath.state.toString() == "UNRESOLVED"
+                    assert configurations.customRuntimeClasspath.state.toString() == "UNRESOLVED"
+                }
+            }
         """
 
         expect:

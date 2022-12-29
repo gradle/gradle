@@ -22,20 +22,23 @@ import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
-import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
 import javax.annotation.Nonnull;
-import java.util.Optional;
 
-public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> implements DeferredExecutionAwareStep<C, R> {
+public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> extends BuildOperationStep<C, R> implements DeferredExecutionAwareStep<C, R> {
     private final DeferredExecutionAwareStep<? super IdentityContext, R> delegate;
 
     public IdentifyStep(
+        BuildOperationExecutor buildOperationExecutor,
         DeferredExecutionAwareStep<? super IdentityContext, R> delegate
     ) {
+        super(buildOperationExecutor);
         this.delegate = delegate;
     }
 
@@ -51,6 +54,31 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
 
     @Nonnull
     private IdentityContext createIdentityContext(UnitOfWork work, C context) {
+        Class<? extends UnitOfWork> workType = work.getClass();
+        return operation(operationContext -> {
+                IdentityContext identityContext = createIdentityContextInternal(work, context);
+                Identity identity = identityContext.getIdentity();
+                operationContext.setResult(new Operation.Result() {
+                    @Override
+                    public Identity getIdentity() {
+                        return identity;
+                    }
+                });
+                return identityContext;
+            },
+            BuildOperationDescriptor
+                .displayName("Identifying work")
+                .details(new Operation.Details() {
+                    @Override
+                    public Class<?> getWorkType() {
+                        return workType;
+                    }
+                })
+        );
+    }
+
+    @Nonnull
+    private IdentityContext createIdentityContextInternal(UnitOfWork work, C context) {
         InputFingerprinter.Result inputs = work.getInputFingerprinter().fingerprintInputProperties(
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
@@ -58,35 +86,21 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> i
             ImmutableSortedMap.of(),
             work::visitIdentityInputs
         );
+
         ImmutableSortedMap<String, ValueSnapshot> identityInputProperties = inputs.getValueSnapshots();
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> identityInputFileProperties = inputs.getFileFingerprints();
-
         Identity identity = work.identify(identityInputProperties, identityInputFileProperties);
-        return new IdentityContext() {
-            @Override
-            public Optional<String> getNonIncrementalReason() {
-                return context.getNonIncrementalReason();
-            }
 
-            @Override
-            public WorkValidationContext getValidationContext() {
-                return context.getValidationContext();
-            }
+        return new IdentityContext(context, identityInputProperties, identityInputFileProperties, identity);
+    }
 
-            @Override
-            public ImmutableSortedMap<String, ValueSnapshot> getInputProperties() {
-                return identityInputProperties;
-            }
+    public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
+        interface Details {
+            Class<?> getWorkType();
+        }
 
-            @Override
-            public ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getInputFileProperties() {
-                return identityInputFileProperties;
-            }
-
-            @Override
-            public Identity getIdentity() {
-                return identity;
-            }
-        };
+        interface Result {
+            Identity getIdentity();
+        }
     }
 }

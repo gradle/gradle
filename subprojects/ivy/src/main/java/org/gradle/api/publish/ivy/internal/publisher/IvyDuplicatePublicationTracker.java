@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.gradle.api.Project;
-import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.internal.validation.DuplicatePublicationTracker;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -35,7 +34,7 @@ public class IvyDuplicatePublicationTracker {
         this.duplicatePublicationTracker = duplicatePublicationTracker;
     }
 
-    public void checkCanPublish(PublicationInternal<?> publication, @Nullable URI repositoryLocation, String repositoryName) {
-        duplicatePublicationTracker.checkCanPublish(project, publication, repositoryLocation, repositoryName);
+    public void checkCanPublish(IvyNormalizedPublication publication, @Nullable URI repositoryLocation, String repositoryName) {
+        duplicatePublicationTracker.checkCanPublish(project.getDisplayName(), publication.getName(), publication.getCoordinates(), repositoryLocation, repositoryName);
     }
 }

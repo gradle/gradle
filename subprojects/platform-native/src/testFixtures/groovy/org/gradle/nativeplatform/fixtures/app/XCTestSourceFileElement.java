@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.fixtures.app;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
-import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.SourceFile;
 import org.gradle.integtests.fixtures.TestClassExecutionResult;
 import org.gradle.util.internal.CollectionUtils;
@@ -96,12 +95,7 @@ public abstract class XCTestSourceFileElement extends SourceFileElement implemen
 
     private String renderTestCases() {
         return Joiner.on("\n").join(
-            CollectionUtils.collect(getTestCases(), new Transformer<String, XCTestCaseElement>() {
-                @Override
-                public String transform(XCTestCaseElement testCase) {
-                    return testCase.getContent() + "\n";
-                }
-            })
+            CollectionUtils.collect(getTestCases(), testCase -> testCase.getContent() + "\n")
         );
     }
 

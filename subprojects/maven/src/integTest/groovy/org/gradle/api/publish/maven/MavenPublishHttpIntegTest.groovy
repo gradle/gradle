@@ -218,7 +218,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         given:
         redirectServer.start()
 
-        buildFile.text = publicationBuild(version, group, new URI("${redirectServer.uri}/repo"), "credentials(PasswordCredentials)")
+        buildFile.text = publicationBuild(version, group, new URI("${redirectServer.uri}/repo"))
         PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
         configureRepositoryCredentials(credentials.username, credentials.password)
 
@@ -310,7 +310,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
     def "can publish to authenticated repository using credentials Provider with inferred identity"() {
         given:
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "credentials(PasswordCredentials)")
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
         server.authenticationScheme = AuthScheme.BASIC
         PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
         expectPublishModuleWithCredentials(module, credentials)
@@ -322,16 +322,56 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         succeeds 'publish'
     }
 
-    @UnsupportedWithConfigurationCache
+    /**
+     * @see org.gradle.configurationcache.ConfigurationCacheMavenPublishIntegrationTest
+     */
+    @UnsupportedWithConfigurationCache(because="Unsafe/inline credentials not supported with CC")
+    def "cannot publish to authenticated repository using credentials Provider with inferred identity if repo has incompatible name"() {
+        given:
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "incompatible_repo_name")
+        server.authenticationScheme = AuthScheme.BASIC
+
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToIncompatible_repo_nameRepository'.")
+        failure.assertHasCause("Identity may contain only letters and digits, received: incompatible_repo_name")
+    }
+
+    @UnsupportedWithConfigurationCache(because="Unsafe/inline credentials not supported with CC")
     def "can publish to authenticated repository using inlined credentials"() {
         given:
         PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
-        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, """
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, "mavenRepo","""
             credentials {
                 username '${credentials.username}'
                 password '${credentials.password}'
             }
         """)
+        server.authenticationScheme = AuthScheme.BASIC
+        expectPublishModuleWithCredentials(module, credentials)
+
+        when:
+        succeeds 'publish'
+
+        then:
+        module.assertPublishedAsJavaModule()
+    }
+
+    @UnsupportedWithConfigurationCache(because="Unsafe/inline credentials not supported with CC")
+    def "can publish to authenticated repository with name not valid as identity as long as one uses inlined credentials "() {
+        given:
+        PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
+
+        def repositoryName = "maven-repo-invalid-as-identity"
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri, repositoryName,"""
+            credentials {
+                username '${credentials.username}'
+                password '${credentials.password}'
+            }
+        """)
+
         server.authenticationScheme = AuthScheme.BASIC
         expectPublishModuleWithCredentials(module, credentials)
 
@@ -385,14 +425,14 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     private static String publicationBuildWithoutCredentials(String version, String group, URI uri) {
-        return publicationBuild(version, group, uri, '')
+        return publicationBuild(version, group, uri, "maven", '')
     }
 
     private static String publicationBuildWithCredentialsProvider(String version, String group, URI uri, Class<? extends Credentials> credentialsType = PasswordCredentials.class) {
-        return publicationBuild(version, group, uri, "credentials(${credentialsType.simpleName})")
+        return publicationBuild(version, group, uri, "maven", "credentials(${credentialsType.simpleName})")
     }
 
-    private static String publicationBuild(String version, String group, URI uri, String credentialsBlock) {
+    private static String publicationBuild(String version, String group, URI uri, String repoName = "maven", String credentialsBlock = "credentials(PasswordCredentials)") {
         return """
             plugins {
                 id 'java'
@@ -404,6 +444,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
             publishing {
                 repositories {
                     maven {
+                        name "$repoName"
                         url "$uri"
                         ${credentialsBlock}
                     }

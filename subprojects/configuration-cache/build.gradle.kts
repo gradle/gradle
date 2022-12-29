@@ -35,11 +35,8 @@ kotlin.sourceSets.all {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     kotlinOptions.apply {
-        apiVersion = "1.5"
-        languageVersion = "1.5"
         freeCompilerArgs += listOf(
             "-opt-in=kotlin.contracts.ExperimentalContracts",
-            "-Xsam-conversions=class",
         )
     }
 }
@@ -65,7 +62,7 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":persistent-cache"))
     implementation(project(":plugin-use"))
-    implementation(project(":plugins"))
+    implementation(project(":platform-jvm"))
     implementation(project(":process-services"))
     implementation(project(":publish"))
     implementation(project(":resources"))
@@ -80,12 +77,14 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":build-option"))
 
+    implementation(libs.asm)
     implementation(libs.capsule)
     implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.groovyJson)
-    implementation(libs.slf4jApi)
     implementation(libs.guava)
+    implementation(libs.inject)
+    implementation(libs.slf4jApi)
 
     implementation(libs.futureKotlin("stdlib-jdk8"))
     implementation(libs.futureKotlin("reflect"))

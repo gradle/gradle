@@ -74,12 +74,12 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     public static RealisedMavenModuleResolveMetadata transform(DefaultMavenModuleResolveMetadata metadata) {
         VariantMetadataRules variantMetadataRules = metadata.getVariantMetadataRules();
         ImmutableList<? extends ComponentVariant> variants = LazyToRealisedModuleComponentResolveMetadataHelper.realiseVariants(metadata, variantMetadataRules, metadata.getVariants());
-        Map<String, ConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(metadata.getConfigurationNames().size());
-        List<ConfigurationMetadata> derivedVariants = ImmutableList.of();
+        Map<String, ModuleConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(metadata.getConfigurationNames().size());
+        List<ModuleConfigurationMetadata> derivedVariants = ImmutableList.of();
         if (variants.isEmpty()) {
-            Optional<List<? extends ConfigurationMetadata>> sourceVariants = metadata.deriveVariants();
+            Optional<List<? extends ModuleConfigurationMetadata>> sourceVariants = metadata.deriveVariants();
             if (sourceVariants.isPresent()) {
-                ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
+                ImmutableList.Builder<ModuleConfigurationMetadata> builder = new ImmutableList.Builder<>();
                 for (ConfigurationMetadata sourceVariant : sourceVariants.get()) {
                     ImmutableList<ModuleDependencyMetadata> dependencies = Cast.uncheckedCast(sourceVariant.getDependencies());
                     // We do not need to apply the rules manually to derived variants, because the derivation already
@@ -110,16 +110,18 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return new RealisedMavenModuleResolveMetadata(metadata, variants, derivedVariants, configurations);
     }
 
-    private static List<ConfigurationMetadata> addVariantsFromRules(ModuleComponentResolveMetadata componentMetadata,
-                                                                    ImmutableList<ConfigurationMetadata> derivedVariants,
-                                                                    VariantMetadataRules variantMetadataRules) {
+    private static List<ModuleConfigurationMetadata> addVariantsFromRules(
+        ModuleComponentResolveMetadata componentMetadata,
+        ImmutableList<ModuleConfigurationMetadata> derivedVariants,
+        VariantMetadataRules variantMetadataRules
+    ) {
         List<AdditionalVariant> additionalVariants = variantMetadataRules.getAdditionalVariants();
         if (additionalVariants.isEmpty()) {
             return derivedVariants;
         }
-        ImmutableList.Builder<ConfigurationMetadata> builder = new ImmutableList.Builder<>();
+        ImmutableList.Builder<ModuleConfigurationMetadata> builder = new ImmutableList.Builder<>();
         builder.addAll(derivedVariants);
-        Map<String, ConfigurationMetadata> variantsByName = derivedVariants.stream().collect(Collectors.toMap(ConfigurationMetadata::getName, Function.identity()));
+        Map<String, ModuleConfigurationMetadata> variantsByName = derivedVariants.stream().collect(Collectors.toMap(ConfigurationMetadata::getName, Function.identity()));
         for (AdditionalVariant additionalVariant : additionalVariants) {
             String name = additionalVariant.getName();
             String baseName = additionalVariant.getBase();
@@ -128,7 +130,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
             List<? extends ModuleDependencyMetadata> dependencies;
             ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
 
-            ConfigurationMetadata baseConf = variantsByName.get(baseName);
+            ModuleConfigurationMetadata baseConf = variantsByName.get(baseName);
             if (baseConf == null) {
                 attributes = componentMetadata.getAttributes();
                 capabilities = ImmutableCapabilities.EMPTY;
@@ -137,7 +139,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
             } else {
                 attributes = baseConf.getAttributes();
                 capabilities = (ImmutableCapabilities) baseConf.getCapabilities();
-                dependencies = ((ModuleConfigurationMetadata) baseConf).getDependencies();
+                dependencies = baseConf.getDependencies();
                 artifacts = Cast.uncheckedCast(baseConf.getArtifacts());
             }
 
@@ -150,18 +152,20 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return builder.build();
     }
 
-    private static RealisedConfigurationMetadata applyRules(ModuleComponentIdentifier id,
-                                                            String configurationName,
-                                                            VariantMetadataRules variantMetadataRules,
-                                                            ImmutableAttributes attributes,
-                                                            ImmutableCapabilities capabilities,
-                                                            List<? extends ModuleDependencyMetadata> dependencies,
-                                                            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-                                                            boolean transitive,
-                                                            boolean visible,
-                                                            ImmutableSet<String> hierarchy,
-                                                            boolean addedByRule,
-                                                            boolean isExternalVariant) {
+    private static RealisedConfigurationMetadata applyRules(
+        ModuleComponentIdentifier id,
+        String configurationName,
+        VariantMetadataRules variantMetadataRules,
+        ImmutableAttributes attributes,
+        ImmutableCapabilities capabilities,
+        List<? extends ModuleDependencyMetadata> dependencies,
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+        boolean transitive,
+        boolean visible,
+        ImmutableSet<String> hierarchy,
+        boolean addedByRule,
+        boolean isExternalVariant
+    ) {
         NameOnlyVariantResolveMetadata variant = new NameOnlyVariantResolveMetadata(configurationName);
         ImmutableAttributes variantAttributes = variantMetadataRules.applyVariantAttributeRules(variant, attributes);
         CapabilitiesMetadata capabilitiesMetadata = variantMetadataRules.applyCapabilitiesRules(variant, capabilities);
@@ -175,22 +179,22 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         Configuration configuration = metadata.getConfigurationDefinitions().get(configurationName);
         ImmutableSet<String> hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
         return createConfiguration(metadata.getId(), configurationName, configuration.isTransitive(), configuration.isVisible(), hierarchy,
-            getArtifactsForConfiguration(metadata), ((ModuleConfigurationMetadata) metadata.getConfiguration(configurationName)).getDependencies(),
+            getArtifactsForConfiguration(metadata), metadata.getConfiguration(configurationName).getDependencies(),
             metadata.getAttributes(), ImmutableCapabilities.EMPTY, false, metadata.isExternalVariant());
     }
 
     private static RealisedConfigurationMetadata createConfiguration(
-            ModuleComponentIdentifier componentId,
-            String name,
-            boolean transitive,
-            boolean visible,
-            ImmutableSet<String> hierarchy,
-            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
-            List<? extends DependencyMetadata> dependencies,
-            ImmutableAttributes attributes,
-            ImmutableCapabilities capabilities,
-            boolean addedByRule,
-            boolean isExternalVariant
+        ModuleComponentIdentifier componentId,
+        String name,
+        boolean transitive,
+        boolean visible,
+        ImmutableSet<String> hierarchy,
+        ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts,
+        List<? extends DependencyMetadata> dependencies,
+        ImmutableAttributes attributes,
+        ImmutableCapabilities capabilities,
+        boolean addedByRule,
+        boolean isExternalVariant
     ) {
         ImmutableList<ModuleDependencyMetadata> asImmutable = ImmutableList.copyOf(Cast.<List<ModuleDependencyMetadata>>uncheckedCast(dependencies));
         return new RealisedConfigurationMetadata(componentId, name, transitive, visible, hierarchy, artifacts, ImmutableList.of(), attributes, capabilities, asImmutable, addedByRule, isExternalVariant);
@@ -212,7 +216,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
             // Modules with other types of packaging may publish an artifact with that extension or a jar
             String type = metadata.getPackaging();
             artifacts = ImmutableList.of(new DefaultModuleComponentArtifactMetadata(metadata.getId(), new DefaultIvyArtifactName(metadata.getId().getModule(), type, type),
-                    metadata.artifact("jar", "jar", null)));
+                metadata.artifact("jar", "jar", null)));
         }
         return artifacts;
     }
@@ -230,10 +234,12 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     private final boolean relocated;
     private final String snapshotTimestamp;
 
-    private final ImmutableList<? extends ConfigurationMetadata> derivedVariants;
+    private final ImmutableList<? extends ModuleConfigurationMetadata> derivedVariants;
 
-    RealisedMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants,
-                                       List<ConfigurationMetadata> derivedVariants, Map<String, ConfigurationMetadata> configurations) {
+    RealisedMavenModuleResolveMetadata(
+        DefaultMavenModuleResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants,
+        List<ModuleConfigurationMetadata> derivedVariants, Map<String, ModuleConfigurationMetadata> configurations
+    ) {
         super(metadata, variants, configurations);
         this.objectInstantiator = metadata.getObjectInstantiator();
         packaging = metadata.getPackaging();
@@ -258,7 +264,7 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         return Optional.of(getDerivedVariants());
     }
 
-    ImmutableList<? extends ConfigurationMetadata> getDerivedVariants() {
+    ImmutableList<? extends ModuleConfigurationMetadata> getDerivedVariants() {
         return derivedVariants;
     }
 

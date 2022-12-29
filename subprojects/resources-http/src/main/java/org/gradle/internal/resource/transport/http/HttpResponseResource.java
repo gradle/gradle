@@ -81,18 +81,24 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         String disposition = response.getHeader("Content-Disposition");
         if (disposition != null) {
             // extracts file name from header field
-            int index = disposition.indexOf("filename=\"");
-            if (index > 0) {
-                return disposition.substring(index + 10, disposition.length() - 1);
+            int beginIndex = disposition.indexOf("filename=\"");
+            if (beginIndex > 0) {
+                int endIndex = disposition.indexOf(';', beginIndex + 11); // find the next semicolon
+                endIndex = endIndex < 0 ? disposition.length() : endIndex; // if no semicolon is found, then there is nothing else in the disposition
+                endIndex -= 1; // ignore the closing quotes
+                return disposition.substring(beginIndex + 10, endIndex);
             }
 
-            index = disposition.indexOf("filename=");
-            if (index > 0) {
-                return disposition.substring(index + 9);
+            beginIndex = disposition.indexOf("filename=");
+            if (beginIndex > 0) {
+                int endIndex = disposition.indexOf(';', beginIndex + 10); // find the next semicolon
+                endIndex = endIndex < 0 ? disposition.length() : endIndex; // if no semicolon is found, then there is nothing else in the disposition
+                return disposition.substring(beginIndex + 9, endIndex);
             }
         } else {
             // extracts file name from URL
-            String sourceInStringForm = source.toString();
+            URI uri = response.getEffectiveUri() == null ? source : response.getEffectiveUri();
+            String sourceInStringForm = uri.toString();
             int fileNameIndex = sourceInStringForm.lastIndexOf("/");
             if (fileNameIndex >= 0) {
                 return sourceInStringForm.substring(fileNameIndex + 1);

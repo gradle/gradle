@@ -80,7 +80,7 @@ import java.util.concurrent.Callable;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/idea_plugin.html">IDEA plugin reference</a>
  */
-public class IdeaPlugin extends IdePlugin {
+public abstract class IdeaPlugin extends IdePlugin {
     private static final Predicate<Project> HAS_IDEA_AND_JAVA_PLUGINS = new Predicate<Project>() {
         @Override
         public boolean apply(Project project) {
@@ -145,10 +145,11 @@ public class IdeaPlugin extends IdePlugin {
     }
 
     private void configureIdeaWorkspace(final Project project) {
+        final IdeaWorkspace workspace = project.getObjects().newInstance(IdeaWorkspace.class);
+        ideaModel.setWorkspace(workspace);
+
         if (isRoot()) {
-            final IdeaWorkspace workspace = project.getObjects().newInstance(IdeaWorkspace.class);
             workspace.setIws(new XmlFileContentMerger(new XmlTransformer()));
-            ideaModel.setWorkspace(workspace);
 
             final TaskProvider<GenerateIdeaWorkspace> task = project.getTasks().register(IDEA_WORKSPACE_TASK_NAME, GenerateIdeaWorkspace.class, workspace);
             task.configure(new Action<GenerateIdeaWorkspace>() {
@@ -283,11 +284,25 @@ public class IdeaPlugin extends IdePlugin {
                 return project.getProjectDir();
             }
         });
+        Set<File> testSourceDirs = Sets.newLinkedHashSet();
+        conventionMapping.map("testSourceDirs", new Callable<Set<File>>() {
+            @Override
+            public Set<File> call() {
+                return testSourceDirs;
+            }
+        });
         Set<File> resourceDirs = Sets.newLinkedHashSet();
         conventionMapping.map("resourceDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() throws Exception {
                 return resourceDirs;
+            }
+        });
+        Set<File> testResourceDirs = Sets.newLinkedHashSet();
+        conventionMapping.map("testResourceDirs", new Callable<Set<File>>() {
+            @Override
+            public Set<File> call() throws Exception {
+                return testResourceDirs;
             }
         });
         Set<File> excludeDirs = Sets.newLinkedHashSet();

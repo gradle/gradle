@@ -16,9 +16,14 @@
 
 package org.gradle.java.compile.incremental
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.tasks.compile.incremental.recomp.PreviousCompilationAccess
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
+import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
 import static org.junit.Assume.assumeFalse
@@ -218,10 +223,89 @@ abstract class BaseIncrementalCompilationAfterFailureIntegrationTest extends Abs
         outputs.recompiledClasses("A", "B", "C")
         outputContains("Full recompilation is required")
     }
+
+    def "is not incremental compilation after failure when cli compiler is used"() {
+        given:
+        def compileTask = language == CompiledLanguage.GROOVY ? "GroovyCompile" : "JavaCompile"
+        buildFile << """
+        tasks.withType($compileTask) {
+            options.incremental = true
+            options.fork = true
+            options.forkOptions.executable = '${TextUtil.escapeString(AvailableJavaHomes.getJdk(JavaVersion.current()).javacExecutable)}'
+        }
+        """
+        source "class A {}", "class B extends A {}", "class C {}"
+
+        when: "First compilation is always full compilation"
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B", "C")
+
+        when: "Compilation after failure is full recompilation when optimization is disabled"
+        outputs.snapshot { source("class A { garbage }") }
+        runAndFail language.compileTaskName
+        outputs.snapshot { source("class A {}") }
+        run language.compileTaskName, "--info"
+
+        then:
+        outputs.recompiledClasses("A", "B", "C")
+        outputContains("Full recompilation is required")
+    }
 }
 
 class JavaIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrementalCompilationAfterFailureIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "incremental compilation after failure works with modules #description"() {
+        file("impl/build.gradle") << """
+            def layout = project.layout
+            tasks.compileJava {
+                modularity.inferModulePath = $inferModulePath
+                options.compilerArgs.addAll($compileArgs)
+                doFirst {
+                    $doFirst
+                }
+            }
+        """
+        source "package a; import b.B; public class A {}",
+            "package b; public class B {}",
+            "package c; public class C {}"
+        file("src/main/${language.name}/module-info.${language.name}").text = """
+            module impl {
+                exports a;
+                exports b;
+                exports c;
+            }
+        """
+        succeeds language.compileTaskName
+        outputs.recompiledClasses("A", "B", "C", "module-info")
+
+        when:
+        outputs.snapshot {
+            source "package a; import b.B; public class A { void m1() {}; }",
+                "package b; import a.A; public class B { A m1() { return new B(); } }"
+        }
+
+        then:
+        fails language.compileTaskName
+
+        when:
+        outputs.snapshot {
+            source "package a; import b.B; public class A { void m1() {}; }",
+                "package b; import a.A; public class B { A m1() { return new A(); } }"
+        }
+        succeeds language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B", "module-info")
+
+        where:
+        description                 | inferModulePath | compileArgs                                                  | doFirst
+        "with inferred module-path" | "true"          | "[]"                                                         | ""
+        "with manual module-path"   | "false"         | "[\"--module-path=\${classpath.join(File.pathSeparator)}\"]" | "classpath = layout.files()"
+    }
 }
 
 class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrementalCompilationAfterFailureIntegrationTest {

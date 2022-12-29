@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.commonsCompress)
     implementation(libs.nativePlatform)
     implementation(libs.xmlApis)
     implementation(libs.tomlj)
@@ -74,7 +75,11 @@ dependencies {
         because("The Groovy compiler inspects the dependencies at compile time")
     }
 
-    testImplementation(project(":plugins"))
+    compileOnly(libs.futureKotlin("stdlib")) {
+        because("it needs to forward calls from instrumented code to the Kotlin standard library")
+    }
+
+    testImplementation(project(":platform-jvm"))
     testImplementation(project(":testing-base"))
     testImplementation(project(":platform-native"))
     testImplementation(libs.jsoup)
@@ -113,6 +118,9 @@ dependencies {
     }
     testFixturesApi(project(":resources")) {
         because("test fixtures expose file resource types")
+    }
+    testFixturesApi(testFixtures(project(":persistent-cache"))) {
+        because("test fixtures expose cross-build cache factory")
     }
     testFixturesApi(project(":process-services")) {
         because("test fixtures expose exec handler types")

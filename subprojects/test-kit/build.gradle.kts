@@ -1,5 +1,5 @@
 import gradlebuild.basics.isBundleGroovy4
-import org.gradle.api.internal.runtimeshaded.PackageListGenerator
+import gradlebuild.basics.tasks.PackageListGenerator
 
 plugins {
     id("gradlebuild.distribution.implementation-java")
@@ -44,8 +44,8 @@ dependencies {
 }
 
 val generateTestKitPackageList by tasks.registering(PackageListGenerator::class) {
-    classpath = sourceSets.main.get().runtimeClasspath
-    outputFile = file(layout.buildDirectory.file("runtime-api-info/test-kit-relocated.txt"))
+    classpath.from(sourceSets.main.map { it.runtimeClasspath })
+    outputFile.set(layout.buildDirectory.file("runtime-api-info/test-kit-relocated.txt"))
 }
 tasks.jar {
     into("org/gradle/api/internal/runtimeshaded") {

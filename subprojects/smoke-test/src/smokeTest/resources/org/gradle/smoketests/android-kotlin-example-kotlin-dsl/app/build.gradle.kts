@@ -17,13 +17,13 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    id("kotlin-android-extensions")
     id("jacoco")
 }
 
 android {
     compileSdkVersion(24)
     buildToolsVersion("$androidBuildToolsVersion")
+    namespace = "org.gradle.smoketest.kotlin.android"
     defaultConfig {
         applicationId = "org.gradle.smoketest.kotlin.android"
         minSdkVersion(16)
@@ -31,6 +31,9 @@ android {
         versionCode = 1
         versionName = "1.0"
         testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildFeatures {
+        viewBinding = true
     }
     buildTypes {
         getByName("release") {

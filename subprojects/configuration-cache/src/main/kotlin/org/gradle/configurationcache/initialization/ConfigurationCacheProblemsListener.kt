@@ -28,6 +28,7 @@ import org.gradle.api.internal.credentials.CredentialListener
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsExternalProcess
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsSafeCredentials
@@ -53,6 +54,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val taskExecutionTracker: TaskExecutionTracker,
     private val featureFlags: FeatureFlags,
+    private val inputTrackingState: InputTrackingState,
 ) : ConfigurationCacheProblemsListener {
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
@@ -70,12 +72,12 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     }
 
     override fun onExternalProcessStarted(command: String, consumer: String?) {
-        if (!featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE) || !atConfigurationTime() || taskExecutionTracker.currentTask.isPresent) {
+        if (!isStableConfigurationCacheEnabled() || !atConfigurationTime() || isExecutingTask() || isInputTrackingDisabled()) {
             return
         }
         problems.onProblem(
             PropertyProblem(
-                userCodeApplicationContext.location(consumer),
+                userCodeLocation(consumer),
                 StructuredMessage.build {
                     text("external process started ")
                     reference(command)
@@ -107,7 +109,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private
     fun problemsListenerFor(task: TaskInternal): ProblemsListener = when {
         task.isCompatibleWithConfigurationCache -> problems
-        else -> problems.forIncompatibleType()
+        else -> problems.forIncompatibleTask(task.path)
     }
 
     private
@@ -123,7 +125,7 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
         }
         problems.onProblem(
             listenerRegistrationProblem(
-                userCodeApplicationContext.location(null),
+                userCodeLocation(),
                 invocationDescription,
                 InvalidUserCodeException(
                     "Listener registration '$invocationDescription' by $invocationSource is unsupported."
@@ -131,6 +133,10 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             )
         )
     }
+
+    private
+    fun userCodeLocation(consumer: String? = null) =
+        userCodeApplicationContext.location(consumer)
 
     override fun onUnsafeCredentials(locationSpecificReason: String, task: TaskInternal) {
         val message = StructuredMessage.build {
@@ -172,4 +178,13 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private
     fun atConfigurationTime() =
         configurationTimeBarrier.isAtConfigurationTime
+
+    private
+    fun isInputTrackingDisabled() = !inputTrackingState.isEnabledForCurrentThread()
+
+    private
+    fun isStableConfigurationCacheEnabled() = featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
+
+    private
+    fun isExecutingTask() = taskExecutionTracker.currentTask.isPresent
 }

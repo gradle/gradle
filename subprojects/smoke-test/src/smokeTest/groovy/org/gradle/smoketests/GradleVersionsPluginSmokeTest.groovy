@@ -52,7 +52,10 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
 
         when:
-        def result = runner('dependencyUpdates', '-DoutputFormatter=txt').forwardOutput().build()
+        def result = runner('dependencyUpdates', '-DoutputFormatter=txt')
+            // TODO: com.github.benmanes.gradle.versions.updates.DependencyUpdates plugin triggers dependency resolution at execution time
+            .withJvmArguments("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+            .forwardOutput().build()
 
         then:
         result.task(':dependencyUpdates').outcome == SUCCESS

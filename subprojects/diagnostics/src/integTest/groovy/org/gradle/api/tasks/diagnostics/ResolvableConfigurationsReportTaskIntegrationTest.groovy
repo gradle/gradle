@@ -316,7 +316,6 @@ Extended Configurations
 
         and:
         doesNotHaveLegacyLegend()
-        doesNotHaveIncubatingLegend()
     }
 
     def "reports resolvable configurations of a Java Library with module dependencies if --all flag is set"() {
@@ -325,6 +324,14 @@ Extended Configurations
             plugins { id 'java-library' }
 
             ${mavenCentralRepository()}
+
+            configurations {
+                archiveLegacy {
+                    description = 'Example legacy configuration.'
+                    canBeConsumed = true
+                    canBeResolved = true
+                }
+            }
 
             dependencies {
                 api 'org.apache.commons:commons-lang3:3.5'
@@ -350,9 +357,9 @@ Attributes
     - org.gradle.usage               = java-runtime
 
 --------------------------------------------------
-Configuration archives (l)
+Configuration archiveLegacy (l)
 --------------------------------------------------
-Configuration for archive artifacts.
+Example legacy configuration.
 
 --------------------------------------------------
 Configuration compileClasspath
@@ -369,14 +376,6 @@ Attributes
 Extended Configurations
     - compileOnly
     - implementation
-
---------------------------------------------------
-Configuration default (l)
---------------------------------------------------
-Configuration for default artifacts.
-
-Extended Configurations
-    - runtimeElements
 
 --------------------------------------------------
 Configuration runtimeClasspath
@@ -441,7 +440,6 @@ Extended Configurations
 
         and:
         hasLegacyLegend()
-        doesNotHaveIncubatingLegend()
     }
 
     def "specifying a missing config with no configs produces empty report"() {
@@ -535,7 +533,6 @@ The following Attributes have compatibility rules defined.
 
         and:
         doesNotHaveLegacyLegend()
-        doesNotHaveIncubatingLegend()
     }
 
     def "disambiguation rules are printed if present"() {
@@ -587,7 +584,6 @@ The following Attributes have disambiguation rules defined.
 
         and:
         doesNotHaveLegacyLegend()
-        doesNotHaveIncubatingLegend()
     }
 
     def "disambiguation rules are printed if added to attributes"() {
@@ -651,7 +647,6 @@ The following Attributes have disambiguation rules defined.
 
         and:
         doesNotHaveLegacyLegend()
-        doesNotHaveIncubatingLegend()
     }
 
     def "report prints attribute disambiguation precedence"() {
@@ -712,7 +707,6 @@ The following Attributes have disambiguation rules defined.
 
         and:
         doesNotHaveLegacyLegend()
-        doesNotHaveIncubatingLegend()
     }
 
     def "specifying --recursive includes transitively extended configurations"() {

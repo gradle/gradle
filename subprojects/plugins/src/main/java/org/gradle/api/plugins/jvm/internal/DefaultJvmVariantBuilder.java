@@ -232,7 +232,9 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
                     configurations,
                     tasks,
                     project.getObjects(),
-                    project.getFileResolver());
+                    project.getFileResolver(),
+                    project.getTaskDependencyFactory()
+                );
         }
         if (sourcesJar) {
             JvmPluginsHelper.configureDocumentationVariantWithArtifact(sourceSet.getSourcesElementsConfigurationName(),
@@ -245,7 +247,9 @@ public class DefaultJvmVariantBuilder implements JvmVariantBuilderInternal {
                     configurations,
                     tasks,
                     project.getObjects(),
-                    project.getFileResolver());
+                    project.getFileResolver(),
+                    project.getTaskDependencyFactory()
+                );
         }
 
         if (published && component != null) {

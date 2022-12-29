@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -61,4 +64,32 @@ public interface CrossProjectModelAccess {
      * @return A Gradle instance that implements correct cross-project model access.
      */
     GradleInternal gradleInstanceForProject(ProjectInternal referrerProject, GradleInternal gradle);
+
+    /**
+     * Provides an implementation of a tracker that handles the usages of TaskDependency API in the context
+     * of the current project. The tracker checks that the usages for possible violation of cross-project model access restriction.
+     * @param referrerProject The project providing the context.
+     */
+    @Nullable
+    TaskDependencyUsageTracker taskDependencyUsageTracker(ProjectInternal referrerProject);
+
+    /**
+     * Provides an implementation of {@code TaskExecutionGraph} such that it handles access to the
+     * tasks in the other projects according to the current cross-project model access policy.
+     *
+     * @param referrerProject The project that views the task graph.
+     * @return A task graph instance that implements correct cross-project model access.
+     */
+    TaskExecutionGraphInternal taskGraphForProject(ProjectInternal referrerProject, TaskExecutionGraphInternal taskGraph);
+
+    /**
+     * Produces a {@code DynamicObject} for the inherited scope from the parent project of the specified project, behaving correctly
+     * regarding cross-project model access.
+     *
+     * @param referrerProject The project that needs to get an inherited scope dynamic object from its parent.
+     * @return Returns a {@code DynamicObject} for the {@code referrerProject}'s parent project, or null if there is no parent project.
+     * The returned object handles cross-project model access according to the current policy.
+     */
+    @Nullable
+    DynamicObject parentProjectDynamicInheritedScope(ProjectInternal referrerProject);
 }

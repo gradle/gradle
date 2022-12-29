@@ -28,18 +28,19 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor;
 import org.gradle.api.internal.tasks.properties.GetInputPropertiesVisitor;
-import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputPropertySpec;
-import org.gradle.api.internal.tasks.properties.PropertyValue;
-import org.gradle.api.internal.tasks.properties.PropertyVisitor;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskInputPropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.internal.execution.UnitOfWork.InputBehavior;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.properties.InputBehavior;
+import org.gradle.internal.properties.InputFilePropertyType;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.PropertyVisitor;
+import org.gradle.internal.properties.StaticValue;
+import org.gradle.internal.properties.bean.PropertyWalker;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -61,14 +62,14 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final FilePropertyContainer<TaskInputFilePropertyRegistration> registeredFileProperties = FilePropertyContainer.create();
     private final TaskInputs deprecatedThis;
 
-    public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
+    public DefaultTaskInputs(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory) {
         this.task = task;
         this.taskMutator = taskMutator;
         this.propertyWalker = propertyWalker;
         this.fileCollectionFactory = fileCollectionFactory;
         String taskDisplayName = task.toString();
-        this.allInputFiles = new TaskInputUnionFileCollection(taskDisplayName, "input", false, task, propertyWalker, fileCollectionFactory);
-        this.allSourceFiles = new TaskInputUnionFileCollection(taskDisplayName, "source", true, task, propertyWalker, fileCollectionFactory);
+        this.allInputFiles = new TaskInputUnionFileCollection(taskDisplayName, "input", false, task, propertyWalker, taskDependencyFactory, fileCollectionFactory);
+        this.allSourceFiles = new TaskInputUnionFileCollection(taskDisplayName, "source", true, task, propertyWalker, taskDependencyFactory, fileCollectionFactory);
         this.deprecatedThis = new TaskInputsDeprecationSupport();
     }
 
@@ -191,7 +192,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
+        TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor() {
             @Override
             public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
                 context.add(value.getTaskDependencies());
@@ -204,7 +205,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                 InputBehavior behavior,
                 DirectorySensitivity directorySensitivity,
                 LineEndingSensitivity lineEndingSensitivity,
-                @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                @Nullable FileNormalizer fileNormalizer,
                 PropertyValue value,
                 InputFilePropertyType filePropertyType
             ) {
@@ -222,7 +223,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         private final PropertyWalker propertyWalker;
         private final FileCollectionFactory fileCollectionFactory;
 
-        TaskInputUnionFileCollection(String taskDisplayName, String type, boolean skipWhenEmptyOnly, TaskInternal task, PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory) {
+        TaskInputUnionFileCollection(String taskDisplayName, String type, boolean skipWhenEmptyOnly, TaskInternal task, PropertyWalker propertyWalker, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory) {
+            super(taskDependencyFactory);
             this.taskDisplayName = taskDisplayName;
             this.type = type;
             this.skipWhenEmptyOnly = skipWhenEmptyOnly;
@@ -238,7 +240,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
         @Override
         protected void visitChildren(Consumer<FileCollectionInternal> visitor) {
-            TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor.Adapter() {
+            TaskPropertyUtils.visitProperties(propertyWalker, task, new PropertyVisitor() {
                 @Override
                 public void visitInputFileProperty(
                     final String propertyName,
@@ -246,7 +248,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
                     InputBehavior behavior,
                     DirectorySensitivity directorySensitivity,
                     LineEndingSensitivity lineEndingSensitivity,
-                    @Nullable Class<? extends FileNormalizer> fileNormalizer,
+                    @Nullable FileNormalizer fileNormalizer,
                     PropertyValue value, InputFilePropertyType filePropertyType
                 ) {
                     if (!TaskInputUnionFileCollection.this.skipWhenEmptyOnly || behavior.shouldSkipWhenEmpty()) {
@@ -258,7 +260,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
-    private static class HasInputsVisitor extends PropertyVisitor.Adapter {
+    private static class HasInputsVisitor implements PropertyVisitor {
         private boolean hasInputs;
 
         public boolean hasInputs() {
@@ -272,7 +274,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             InputBehavior behavior,
             DirectorySensitivity directorySensitivity,
             LineEndingSensitivity lineEndingSensitivity,
-            @Nullable Class<? extends FileNormalizer> fileNormalizer,
+            @Nullable FileNormalizer fileNormalizer,
             PropertyValue value,
             InputFilePropertyType filePropertyType
         ) {

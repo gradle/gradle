@@ -7,7 +7,16 @@ pluginManagement {
             url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates")
             content {
                 val rcAndMilestonesPattern = "\\d{1,2}?\\.\\d{1,2}?(\\.\\d{1,2}?)?-((rc-\\d{1,2}?)|(milestone-\\d{1,2}?))"
+                // GE plugin marker artifact
+                includeVersionByRegex("com.gradle.enterprise", "com.gradle.enterprise.gradle.plugin", rcAndMilestonesPattern)
+                // GE plugin jar
                 includeVersionByRegex("com.gradle", "gradle-enterprise-gradle-plugin", rcAndMilestonesPattern)
+            }
+        }
+        jcenter {
+            content {
+                includeModule("org.openmbee.junit", "junit-xml-parser")
+                includeModule("org.codehaus.groovy.modules", "http-builder-ng-core")
             }
         }
         gradlePluginPortal()
@@ -15,10 +24,10 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.11.1") // Sync with `build-logic/build-platform/build.gradle.kts`
+    id("com.gradle.enterprise").version("3.12.1") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
-    id("gradlebuild.base.allprojects")
     id("gradlebuild.internal.cc-experiment")
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.3.0")
 }
 
 includeBuild("build-logic-commons")
@@ -102,6 +111,7 @@ include("build-cache-http")
 include("testing-base")
 include("testing-native")
 include("testing-jvm")
+include("testing-jvm-infrastructure")
 include("testing-junit-platform")
 include("test-kit")
 include("installation-beacon")
@@ -135,12 +145,15 @@ include("enterprise-logging")
 include("enterprise-workers")
 include("build-operations")
 include("problems")
+include("instrumentation-agent")
 
 // Plugin portal projects
 include("kotlin-dsl-plugins")
 
 // Internal utility and verification projects
 include("docs")
+include("docs-asciidoctor-extensions-base")
+include("docs-asciidoctor-extensions")
 include("samples")
 include("architecture-test")
 include("internal-testing")

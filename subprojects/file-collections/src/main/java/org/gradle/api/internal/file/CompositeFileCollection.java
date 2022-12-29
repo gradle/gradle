@@ -19,10 +19,12 @@ package org.gradle.api.internal.file;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.io.File;
 import java.util.List;
@@ -38,8 +40,12 @@ import java.util.function.Supplier;
  * <p>The dependencies of this collection are calculated from the result of calling {@link #visitDependencies(TaskDependencyResolveContext)}.</p>
  */
 public abstract class CompositeFileCollection extends AbstractFileCollection implements TaskDependencyContainer {
-    public CompositeFileCollection(Factory<PatternSet> patternSetFactory) {
-        super(patternSetFactory);
+    public CompositeFileCollection(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+        super(taskDependencyFactory, patternSetFactory);
+    }
+
+    public CompositeFileCollection(TaskDependencyFactory taskDependencyFactory) {
+        super(taskDependencyFactory);
     }
 
     public CompositeFileCollection() {
@@ -74,7 +80,15 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
 
     @Override
     public FileCollectionInternal filter(final Spec<? super File> filterSpec) {
-        return new CompositeFileCollection(patternSetFactory) {
+        return new CompositeFileCollection(taskDependencyFactory, patternSetFactory) {
+            @Override
+            protected void appendContents(TreeFormatter formatter) {
+                formatter.node("filtered collection");
+                formatter.startChildren();
+                CompositeFileCollection.this.describeContents(formatter);
+                formatter.endChildren();
+            }
+
             @Override
             public FileCollectionInternal replace(FileCollectionInternal original, Supplier<FileCollectionInternal> supplier) {
                 FileCollectionInternal newCollection = CompositeFileCollection.this.replace(original, supplier);

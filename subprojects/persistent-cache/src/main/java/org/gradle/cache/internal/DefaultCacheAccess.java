@@ -67,7 +67,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     private final String cacheDisplayName;
     private final File baseDir;
-    private final CacheCleanupAction cleanupAction;
+    private final CacheCleanupExecutor cleanupAction;
     private final ExecutorFactory executorFactory;
     private final FileAccess fileAccess;
     private final Map<String, IndexedCacheEntry<?, ?>> caches = new HashMap<String, IndexedCacheEntry<?, ?>>();
@@ -85,8 +85,9 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private FileLock.State stateAtOpen;
     private Runnable fileLockHeldByOwner;
     private int cacheClosedCount;
+    private boolean alreadyCleaned;
 
-    public DefaultCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupAction cleanupAction, ExecutorFactory executorFactory) {
+    public DefaultCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupExecutor cleanupAction, ExecutorFactory executorFactory) {
         this.cacheDisplayName = cacheDisplayName;
         this.baseDir = baseDir;
         this.cleanupAction = cleanupAction;
@@ -129,23 +130,37 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     @Override
     public void open() {
-        stateLock.lock();
-        try {
+        withOwnershipNow(() -> {
             if (open) {
                 throw new IllegalStateException("Cache is already open.");
             }
-            takeOwnershipNow();
             try {
                 crossProcessCacheAccess.open();
                 open = true;
-            } finally {
-                releaseOwnership();
+            } catch (Throwable throwable) {
+                crossProcessCacheAccess.close();
+                throw UncheckedException.throwAsUncheckedException(throwable);
             }
-        } catch (Throwable throwable) {
-            crossProcessCacheAccess.close();
-            throw UncheckedException.throwAsUncheckedException(throwable);
-        } finally {
-            stateLock.unlock();
+        });
+    }
+
+    @Override
+    public void cleanup() {
+        if (cleanupAction != null) {
+            if (cacheAccessWorker != null) {
+                cacheAccessWorker.flush();
+            }
+
+            withOwnershipNow(this::doCleanup);
+        }
+    }
+
+    private void doCleanup() {
+        try {
+            cleanupAction.cleanup();
+            alreadyCleaned = true;
+        } catch (Exception e) {
+            LOG.debug("Cache {} could not run cleanup action {}", cacheDisplayName, cleanupAction);
         }
     }
 
@@ -159,29 +174,41 @@ public class DefaultCacheAccess implements CacheCoordinator {
             cacheUpdateExecutor.stop();
             cacheUpdateExecutor = null;
         }
+
+        withOwnershipNow(() -> {
+            try {
+                crossProcessCacheAccess.close();
+                if (fileLockHeldByOwner != null) {
+                    fileLockHeldByOwner.run();
+                }
+
+                // If cleanup is required, but has not already been invoked (e.g. at the end of the build session)
+                // perform cleanup on close.
+                if (cleanupAction != null && !alreadyCleaned) {
+                    doCleanup();
+                }
+
+                if (cacheClosedCount != 1) {
+                    LOG.debug("Cache {} was closed {} times.", cacheDisplayName, cacheClosedCount);
+                }
+            } finally {
+                owner = null;
+                fileLockHeldByOwner = null;
+            }
+        });
+    }
+
+    private void withOwnershipNow(Runnable action) {
         stateLock.lock();
         try {
             // Take ownership
             takeOwnershipNow();
-            if (fileLockHeldByOwner != null) {
-                fileLockHeldByOwner.run();
-            }
-            crossProcessCacheAccess.close();
-            if (cleanupAction != null) {
-                try {
-                    if (cleanupAction.requiresCleanup()) {
-                        cleanupAction.cleanup();
-                    }
-                } catch (Exception e) {
-                    LOG.debug("Cache {} could not run cleanup action {}", cacheDisplayName, cleanupAction);
-                }
-            }
-            if (cacheClosedCount != 1) {
-                LOG.debug("Cache {} was closed {} times.", cacheDisplayName, cacheClosedCount);
+            try {
+                action.run();
+            } finally {
+                releaseOwnership();
             }
         } finally {
-            owner = null;
-            fileLockHeldByOwner = null;
             stateLock.unlock();
         }
     }
@@ -326,14 +353,12 @@ public class DefaultCacheAccess implements CacheCoordinator {
         assert this.fileLock == null;
         this.fileLock = fileLock;
         this.stateAtOpen = fileLock.getState();
-        takeOwnershipNow();
-        try {
+
+        withOwnershipNow(() -> {
             for (IndexedCacheEntry<?, ?> entry : caches.values()) {
                 entry.getCache().afterLockAcquire(stateAtOpen);
             }
-        } finally {
-            releaseOwnership();
-        }
+        });
     }
 
     /**
@@ -343,8 +368,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         assert this.fileLock == fileLock;
         try {
             cacheClosedCount++;
-            takeOwnershipNow();
-            try {
+            withOwnershipNow(() -> {
                 notifyFinish();
 
                 // Snapshot the state and notify the caches
@@ -352,9 +376,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 for (IndexedCacheEntry<?, ?> entry : caches.values()) {
                     entry.getCache().beforeLockRelease(state);
                 }
-            } finally {
-                releaseOwnership();
-            }
+            });
         } finally {
             this.fileLock = null;
             this.stateAtOpen = null;

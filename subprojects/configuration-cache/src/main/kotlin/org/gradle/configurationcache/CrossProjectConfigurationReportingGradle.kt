@@ -41,11 +41,11 @@ import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
+import org.gradle.initialization.SettingsState
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.util.Path
 import java.io.File
 import java.util.Objects
@@ -53,11 +53,19 @@ import java.util.function.Supplier
 
 
 class CrossProjectConfigurationReportingGradle private constructor(
-    private val delegate: GradleInternal,
+    gradle: GradleInternal,
     private val referrerProject: ProjectInternal,
     private val crossProjectModelAccess: CrossProjectModelAccess,
     private val projectConfigurator: CrossProjectConfigurator
 ) : GradleInternal {
+
+    private
+    val delegate: GradleInternal = when (gradle) {
+        // 'unwrapping' ensures that there are no chains of delegation
+        is CrossProjectConfigurationReportingGradle -> gradle.delegate
+        else -> gradle
+    }
+
     override fun getParent(): GradleInternal? =
         delegate.parent?.let { delegateParent -> from(delegateParent, referrerProject) }
 
@@ -126,6 +134,9 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun removeListener(listener: Any) {
         delegate.removeListener(maybeWrapListener(listener))
     }
+
+    override fun getTaskGraph(): TaskExecutionGraphInternal =
+        crossProjectModelAccess.taskGraphForProject(referrerProject, delegate.taskGraph)
 
     override fun equals(other: Any?): Boolean =
         javaClass == (other as? CrossProjectConfigurationReportingGradle)?.javaClass &&
@@ -206,9 +217,6 @@ class CrossProjectConfigurationReportingGradle private constructor(
     }
 
     // region delegated members
-    override fun getTaskGraph(): TaskExecutionGraphInternal =
-        delegate.taskGraph
-
     override fun getPlugins(): PluginContainer =
         delegate.plugins
 
@@ -295,8 +303,8 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun getSettings(): SettingsInternal =
         delegate.settings
 
-    override fun setSettings(settings: SettingsInternal) {
-        delegate.settings = settings
+    override fun attachSettings(settings: SettingsState?) {
+        delegate.attachSettings(settings)
     }
 
     override fun setDefaultProject(defaultProject: ProjectInternal) {
@@ -312,9 +320,6 @@ class CrossProjectConfigurationReportingGradle private constructor(
 
     override fun getServices(): ServiceRegistry =
         delegate.services
-
-    override fun getServiceRegistryFactory(): ServiceRegistryFactory =
-        delegate.serviceRegistryFactory
 
     override fun setClassLoaderScope(classLoaderScope: Supplier<out ClassLoaderScope>) {
         delegate.setClassLoaderScope(classLoaderScope)

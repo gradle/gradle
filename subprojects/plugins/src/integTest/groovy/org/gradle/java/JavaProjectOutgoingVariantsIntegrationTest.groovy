@@ -129,12 +129,12 @@ project(':consumer') {
         """)
     }
 
-    def "provides API variant - #format"() {
+    def "provides API classes variant"() {
         buildFile << """
             project(':consumer') {
                 apply plugin: 'jvm-ecosystem'
                 configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-                configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, $format))
+                configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
             }
         """
 
@@ -147,9 +147,6 @@ project(':consumer') {
             files: [java.jar]
             java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}
         """)
-
-        where:
-        format << ["LibraryElements.JAR", "LibraryElements.CLASSES", "LibraryElements.RESOURCES"]
     }
 
     def "provides runtime variant - requestJarAttribute: #requestJarAttribute"() {

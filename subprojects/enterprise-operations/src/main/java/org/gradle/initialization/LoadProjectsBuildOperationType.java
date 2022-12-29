@@ -98,9 +98,7 @@ public final class LoadProjectsBuildOperationType implements BuildOperationType<
              * @see org.gradle.api.Project#getChildProjects()
              */
 
-            Set<Project> getChildren();
+            Set<? extends Project> getChildren();
         }
     }
-
-
 }

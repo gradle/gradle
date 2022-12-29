@@ -25,5 +25,18 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public enum Architecture {
-    I386, AMD64, AARCH64
+    /**
+     * 32-bit complex instruction set computer (CISC) architectures, including "x32", "i386", "x86"..
+     */
+    X86,
+
+    /**
+     * 64-bit variant of the X86 instruction set, including "x64", "x86_64", "amd64", "ia64".
+     */
+    X86_64,
+
+    /**
+     * 64-bit reduced instruction set computer (RISC) architectures, including "aarch64", "arm64".
+     */
+    AARCH64
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
+import org.gradle.initialization.ClassLoaderScopeOrigin;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
@@ -35,13 +36,21 @@ public class ImmutableClassLoaderScope extends AbstractClassLoaderScope {
     private final HashCode classpathImplementationHash;
     private final ClassLoader localClassLoader;
 
-    public ImmutableClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassPath classPath, @Nullable HashCode classpathImplementationHash,
-                                     @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
-        super(id, classLoaderCache, listener);
+    public ImmutableClassLoaderScope(
+        ClassLoaderScopeIdentifier id,
+        ClassLoaderScope parent,
+        @Nullable ClassLoaderScopeOrigin origin,
+        ClassPath classPath,
+        @Nullable HashCode classpathImplementationHash,
+        @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory,
+        ClassLoaderCache classLoaderCache,
+        ClassLoaderScopeRegistryListener listener
+    ) {
+        super(id, origin, classLoaderCache, listener);
         this.parent = parent;
         this.classPath = classPath;
         this.classpathImplementationHash = classpathImplementationHash;
-        listener.childScopeCreated(parent.getId(), id);
+        listener.childScopeCreated(parent.getId(), id, origin);
         ClassLoaderId classLoaderId = id.localId();
         if (localClassLoaderFactory != null) {
             localClassLoader = classLoaderCache.createIfAbsent(classLoaderId, classPath, parent.getExportClassLoader(), localClassLoaderFactory, classpathImplementationHash);
@@ -74,7 +83,7 @@ public class ImmutableClassLoaderScope extends AbstractClassLoaderScope {
     @Override
     public void onReuse() {
         parent.onReuse();
-        listener.childScopeCreated(parent.getId(), id);
+        listener.childScopeCreated(parent.getId(), id, origin);
         listener.classloaderCreated(id, id.localId(), localClassLoader, classPath, classpathImplementationHash);
     }
 

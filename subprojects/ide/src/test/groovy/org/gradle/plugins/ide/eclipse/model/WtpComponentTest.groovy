@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 public class WtpComponentTest extends Specification {
     private static final List CUSTOM_WB_MODULE_ENTRIES = [
-            new WbDependentModule('/WEB-INF/lib', "module:/classpath/myapp-1.0.0.jar"),
+            new WbDependentModule('myapp-1.0.0.jar', '/WEB-INF/lib', "module:/classpath/myapp-1.0.0.jar"),
             new WbResource("/WEB-INF/classes", "src/main/java")]
 
     private final WtpComponent component = new WtpComponent(new XmlTransformer())
@@ -55,7 +55,7 @@ public class WtpComponentTest extends Specification {
         component.contextPath == constructorContextPath
         // dependent modules are replaced, other entries are added up
         component.wbModuleEntries as Set == [
-                new WbDependentModule('/WEB-INF/lib', "module:/classpath/foo-1.2.3.jar"),
+                new WbDependentModule('foo-1.2.3.jar', '/WEB-INF/lib', "module:/classpath/foo-1.2.3.jar"),
                 new WbResource("/WEB-INF/classes", "src/main/java"),
                 new WbResource("/WEB-INF/classes", "src/other/java")] as Set
     }
@@ -87,7 +87,7 @@ public class WtpComponentTest extends Specification {
     }
 
     private List createSomeWbModuleEntries() {
-        [new WbDependentModule('/WEB-INF/lib', "module:/classpath/foo-1.2.3.jar"),
+        [new WbDependentModule('foo-1.2.3.jar', '/WEB-INF/lib', "module:/classpath/foo-1.2.3.jar"),
         new WbResource("/WEB-INF/classes", "src/other/java")]
     }
 }

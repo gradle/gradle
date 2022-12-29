@@ -35,6 +35,10 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
 
     void setDestinationDir(File destinationDir);
 
+    File getOriginalDestinationDir();
+
+    void setOriginalDestinationDir(File originalDestinationDir);
+
     Iterable<File> getSourceFiles();
 
     void setSourceFiles(Iterable<File> sourceFiles);

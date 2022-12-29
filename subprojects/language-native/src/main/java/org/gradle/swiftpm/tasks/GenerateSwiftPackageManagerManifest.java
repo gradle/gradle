@@ -50,7 +50,7 @@ import java.util.TreeSet;
  * @since 4.6
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
-public class GenerateSwiftPackageManagerManifest extends DefaultTask {
+public abstract class GenerateSwiftPackageManagerManifest extends DefaultTask {
     private final RegularFileProperty manifestFile;
     private final Property<Package> packageProperty;
 

@@ -16,6 +16,7 @@
 
 package org.gradle.language.scala.tasks;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -34,7 +35,7 @@ import java.util.List;
 /**
  * Options for Scala platform compilation.
  */
-public class BaseScalaCompileOptions extends AbstractOptions {
+public abstract class BaseScalaCompileOptions extends AbstractOptions {
 
     private static final long serialVersionUID = 0;
 
@@ -60,7 +61,7 @@ public class BaseScalaCompileOptions extends AbstractOptions {
 
     private List<String> loggingPhases;
 
-    private ScalaForkOptions forkOptions = new ScalaForkOptions();
+    private ScalaForkOptions forkOptions = getObjectFactory().newInstance(ScalaForkOptions.class);
 
     private IncrementalCompileOptions incrementalOptions;
 
@@ -164,14 +165,18 @@ public class BaseScalaCompileOptions extends AbstractOptions {
     /**
      * Additional parameters passed to the compiler.
      * Each parameter must start with '-'.
+     *
+     * @return The immutable list of additional parameters.
      */
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public List<String> getAdditionalParameters() {
         return additionalParameters;
     }
 
     public void setAdditionalParameters(@Nullable List<String> additionalParameters) {
-        this.additionalParameters = additionalParameters;
+        this.additionalParameters = additionalParameters == null ? null : ImmutableList.copyOf(additionalParameters);
     }
 
     /**

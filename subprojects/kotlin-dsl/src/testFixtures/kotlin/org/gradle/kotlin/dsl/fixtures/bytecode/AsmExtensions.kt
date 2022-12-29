@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.fixtures.bytecode
 
+import org.gradle.kotlin.dsl.support.bytecode.GradleJvmVersion
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.Label
@@ -51,7 +52,7 @@ fun beginClass(
     interfaces: List<InternalName>? = null
 ): ClassWriter = ClassWriter(ClassWriter.COMPUTE_MAXS + ClassWriter.COMPUTE_FRAMES).apply {
     visit(
-        Opcodes.V1_8,
+        GradleJvmVersion.minimalAsmClassVersion,
         modifiers,
         name.value,
         null,

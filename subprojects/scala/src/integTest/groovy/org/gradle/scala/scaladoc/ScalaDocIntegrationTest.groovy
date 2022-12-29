@@ -17,25 +17,54 @@
 package org.gradle.scala.scaladoc
 
 import org.gradle.api.plugins.scala.ScalaPlugin
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.ScalaCoverage
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.scala.ScalaCompilationFixture
 
 import static org.gradle.api.JavaVersion.VERSION_11
 import static org.gradle.api.JavaVersion.VERSION_1_8
 
-class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
+@TargetCoverage({ ScalaCoverage.DEFAULT })
+class ScalaDocIntegrationTest extends MultiVersionIntegrationSpec implements DirectoryBuildCacheFixture, JavaToolchainFixture {
 
     String scaladoc = ":${ScalaPlugin.SCALA_DOC_TASK_NAME}"
     ScalaCompilationFixture classes = new ScalaCompilationFixture(testDirectory)
 
+    def getOtherScalaVersion() {
+        def currentScalaVersion = version.toString()
+        def currentIndex = ScalaCoverage.DEFAULT.findIndexOf { it == currentScalaVersion }
+        return ScalaCoverage.DEFAULT[(currentIndex + 1) % ScalaCoverage.DEFAULT.size()]
+    }
 
-    def "changing the Scala version makes Scaladoc out of date"() {
+    def getDocsPath() {
+        return classes.isScala3() ? "build/docs/scaladoc/_empty_" : "build/docs/scaladoc"
+    }
+
+    def setup() {
+        classes.scalaVersion = version.toString()
+    }
+
+    def "scaladoc produces output"() {
         classes.baseline()
         buildScript(classes.buildScript())
-        def newScalaVersion = '2.12.6'
+
+        when:
+        succeeds scaladoc
+
+        then:
+        executedAndNotSkipped scaladoc
+        file(docsPath).assertContainsDescendants("House.html", "Other.html", "Person.html")
+    }
+
+    def "changing the Scala version makes Scaladoc out of date"() {
+        def newScalaVersion = getOtherScalaVersion()
+
+        classes.baseline()
+        buildScript(classes.buildScript())
 
         when:
         succeeds scaladoc
@@ -67,7 +96,7 @@ class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements Directo
         executedAndNotSkipped scaladoc
 
         when:
-        succeeds 'clean'
+        succeeds "clean"
         withBuildCache().run scaladoc
 
         then:
@@ -89,45 +118,30 @@ class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements Directo
         outputContains("maxHeapSize=234M")
     }
 
-    def "scaladoc uses scala3"() {
+    def "scaladoc multi project"() {
         classes.baseline()
-        classes.scalaVersion = '3.0.1'
-        given:
-        buildScript(classes.buildScript())
-
-        when:
-        succeeds scaladoc
-
-        then:
-        executedAndNotSkipped scaladoc, ":compileScala"
-        file("build/docs/scaladoc/api/_empty_").assertHasDescendants("House.html", "Other.html", "Person.html")
-    }
-
-    def 'scaladoc multi project scala 3'() {
-        classes.baseline()
-        classes.scalaVersion = '3.0.1'
-        given:
         settingsFile << """
-include(':utils')
-"""
+            include(':utils')
+        """
         buildScript(classes.buildScript())
 
-        def utilsDir = file('utils')
+        def utilsDir = file("utils")
         def utilsClasses = new ScalaCompilationFixture(utilsDir)
-        utilsClasses.scalaVersion = '3.0.1'
+        utilsClasses.scalaVersion = version.toString()
 
-        utilsDir.file('build.gradle').text = utilsClasses.buildScript()
+        utilsDir.file("build.gradle").text = utilsClasses.buildScript()
         utilsClasses.extra()
 
         when:
-        succeeds scaladoc
+        succeeds "scaladoc" // intentionally non-qualified
 
         then:
-        executedAndNotSkipped scaladoc, ":compileScala"
-        file("build/docs/scaladoc/api/_empty_").assertHasDescendants("House.html", "Other.html", "Person.html")
+        executedAndNotSkipped scaladoc
+        file(docsPath).assertContainsDescendants("House.html", "Other.html", "Person.html")
+        file("utils/$docsPath").assertContainsDescendants("City.html")
     }
 
-    def "can exclude classes from Scaladoc generation with scala2"() {
+    def "can exclude classes from Scaladoc generation"() {
         classes.baseline()
         buildScript(classes.buildScript())
 
@@ -135,47 +149,23 @@ include(':utils')
         succeeds scaladoc
 
         then:
-        file("build/docs/scaladoc/Person.html").assertExists()
-        file("build/docs/scaladoc/House.html").assertExists()
-        file("build/docs/scaladoc/Other.html").assertExists()
+        file("${docsPath}/Person.html").assertExists()
+        file("${docsPath}/House.html").assertExists()
+        file("${docsPath}/Other.html").assertExists()
 
         when:
         buildFile << """
-scaladoc {
-    exclude '**/Other.*'
-}
+            scaladoc {
+                exclude '**/Other.*'
+            }
         """
         and:
         succeeds scaladoc
 
         then:
-        file("build/docs/scaladoc/Person.html").assertExists()
-        file("build/docs/scaladoc/House.html").assertExists()
-        file("build/docs/scaladoc/Other.html").assertDoesNotExist()
-    }
-
-    def "can exclude classes from Scaladoc generation with scala3"() {
-        classes.scalaVersion = '3.0.1'
-        classes.baseline()
-        buildScript(classes.buildScript())
-
-        when:
-        succeeds scaladoc
-
-        then:
-        file("build/docs/scaladoc/api/_empty_").assertHasDescendants("House.html", "Other.html", "Person.html")
-
-        when:
-        buildFile << """
-scaladoc {
-    exclude '**/Other.*'
-}
-        """
-        and:
-        succeeds scaladoc
-
-        then:
-        file("build/docs/scaladoc/api/_empty_").assertHasDescendants("House.html", "Person.html")
+        file("${docsPath}/Person.html").assertExists()
+        file("${docsPath}/House.html").assertExists()
+        file("${docsPath}/Other.html").assertDoesNotExist()
     }
 
     def "scaladoc is out of date when changing the java launcher"() {
@@ -218,12 +208,5 @@ scaladoc {
         withInstallations(jdk8, jdk11).run scaladoc, '-Pchanged', '--info'
         then:
         skipped scaladoc
-    }
-
-    private withInstallations(JvmInstallationMetadata... jdkMetadata) {
-        def installationPaths = jdkMetadata.collect { it.javaHome.toAbsolutePath().toString() }.join(",")
-        executer
-            .withArgument("-Porg.gradle.java.installations.paths=" + installationPaths)
-        this
     }
 }

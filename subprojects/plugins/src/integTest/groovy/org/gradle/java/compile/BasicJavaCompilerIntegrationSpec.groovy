@@ -26,12 +26,15 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec {
+
+    abstract String compilerConfiguration()
+
+    abstract String logStatement()
+
     def setup() {
         executer.withArguments("-i")
         buildFile << buildScript()
-        buildFile << """
-    ${compilerConfiguration()}
-"""
+        buildFile << compilerConfiguration()
     }
 
     def compileGoodCode() {
@@ -410,10 +413,6 @@ dependencies {
 }
 """
     }
-
-    abstract compilerConfiguration()
-
-    abstract logStatement()
 
     def goodCode() {
         file("src/main/java/compile/test/Person.java") << '''

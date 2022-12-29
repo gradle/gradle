@@ -36,12 +36,13 @@ import java.util.concurrent.Callable;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/build_init_plugin.html">Build Init plugin reference</a>
  */
-public class BuildInitPlugin implements Plugin<Project> {
+public abstract class BuildInitPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
         if (project.getParent() == null) {
             project.getTasks().register("init", InitBuild.class, initBuild -> {
+                initBuild.notCompatibleWithConfigurationCache("Not applicable");
                 initBuild.setGroup("Build Setup");
                 initBuild.setDescription("Initializes a new Gradle build.");
 

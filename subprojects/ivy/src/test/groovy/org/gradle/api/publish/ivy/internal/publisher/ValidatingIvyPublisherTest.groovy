@@ -20,12 +20,12 @@ import org.gradle.api.Action
 import org.gradle.api.XmlProvider
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.ivy.InvalidIvyPublicationException
 import org.gradle.api.publish.ivy.IvyArtifact
-import org.gradle.api.publish.ivy.IvyArtifactSet
 import org.gradle.api.publish.ivy.internal.artifact.FileBasedIvyArtifact
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublicationIdentity
 import org.gradle.test.fixtures.file.TestFile
@@ -48,7 +48,8 @@ class ValidatingIvyPublisherTest extends Specification {
 
     def publisher = new ValidatingIvyPublisher(delegate, moduleIdentifierFactory, TestFiles.fileRepository(), metadataFactory)
     def repository = Mock(IvyArtifactRepository)
-    def mainArtifacts = Mock(IvyArtifactSet)
+    def mainArtifacts = emptySet()
+    def coordinates = DefaultModuleVersionIdentifier.newId("the-group", "the-artifact", "the-version")
 
     def "delegates when publication is valid"() {
         when:
@@ -56,7 +57,7 @@ class ValidatingIvyPublisherTest extends Specification {
         def generator = ivyGenerator("the-group", "the-artifact", "the-version")
                             .withBranch("the-branch")
                             .withStatus("release")
-        def publication = new IvyNormalizedPublication("pub-name", mainArtifacts, projectIdentity, ivyFile(generator), emptySet())
+        def publication = new IvyNormalizedPublication("pub-name", getCoordinates(), mainArtifacts, projectIdentity, ivyFile(generator), emptySet())
 
         and:
         publisher.publish(publication, repository)
@@ -75,7 +76,7 @@ class ValidatingIvyPublisherTest extends Specification {
                 }))
 
         and:
-        def publication = new IvyNormalizedPublication("pub-name", mainArtifacts, projectIdentity("the-group", "the-artifact", "the-version"), ivyFile, emptySet())
+        def publication = new IvyNormalizedPublication("pub-name", getCoordinates(), mainArtifacts, projectIdentity("the-group", "the-artifact", "the-version"), ivyFile, emptySet())
 
         and:
         publisher.publish(publication, repository)
@@ -87,7 +88,7 @@ class ValidatingIvyPublisherTest extends Specification {
     def "validates project coordinates"() {
         given:
         def projectIdentity = projectIdentity(group, name, version)
-        def publication = new IvyNormalizedPublication("pub-name", mainArtifacts, projectIdentity, ivyFile(group, name, version), emptySet())
+        def publication = new IvyNormalizedPublication("pub-name", coordinates, mainArtifacts, projectIdentity, ivyFile(group, name, version), emptySet())
 
         when:
         publisher.publish(publication, repository)
@@ -115,7 +116,7 @@ class ValidatingIvyPublisherTest extends Specification {
         def generator = ivyGenerator("org", "module", "version")
                             .withBranch(branch)
                             .withStatus(status)
-        def publication = new IvyNormalizedPublication("pub-name", mainArtifacts, projectIdentity, ivyFile(generator), emptySet())
+        def publication = new IvyNormalizedPublication("pub-name", coordinates, mainArtifacts, projectIdentity, ivyFile(generator), emptySet())
 
         when:
         publisher.publish(publication, repository)
@@ -145,7 +146,7 @@ class ValidatingIvyPublisherTest extends Specification {
         def generator = ivyGenerator("org", "module", "version")
                             .withBranch(branch)
                             .withStatus(status)
-        def publication = new IvyNormalizedPublication("pub-name", mainArtifacts, projectIdentity, ivyFile(generator), emptySet())
+        def publication = new IvyNormalizedPublication("pub-name", coordinates, mainArtifacts, projectIdentity, ivyFile(generator), emptySet())
 
         when:
         publisher.publish(publication, repository)
@@ -166,7 +167,7 @@ class ValidatingIvyPublisherTest extends Specification {
         def projectIdentity = projectIdentity("org", "module", "version")
         def generator = ivyGenerator("org", "module", "version")
         elements.each { generator.withExtraInfo(it, "${it}Value") }
-        def publication = new IvyNormalizedPublication("pub-name", mainArtifacts, projectIdentity, ivyFile(generator), emptySet())
+        def publication = new IvyNormalizedPublication("pub-name", coordinates, mainArtifacts, projectIdentity, ivyFile(generator), emptySet())
 
         when:
         publisher.publish(publication, repository)
@@ -184,7 +185,7 @@ class ValidatingIvyPublisherTest extends Specification {
     def "project coordinates must match ivy descriptor file"() {
         given:
         def projectIdentity = projectIdentity("org", "module", "version")
-        def publication = new IvyNormalizedPublication("pub-name", mainArtifacts, projectIdentity, ivyFile(organisation, module, version), emptySet())
+        def publication = new IvyNormalizedPublication("pub-name", coordinates, mainArtifacts, projectIdentity, ivyFile(organisation, module, version), emptySet())
 
         when:
         publisher.publish(publication, repository)
@@ -204,13 +205,13 @@ class ValidatingIvyPublisherTest extends Specification {
         given:
         def identity = new DefaultIvyPublicationIdentity("the-group", "the-artifact", "the-version")
         IvyDescriptorFileGenerator ivyFileGenerator = new IvyDescriptorFileGenerator(identity, marker, null)
-        def artifact = new FileBasedIvyArtifact(new File("foo.txt"), identity)
+        def artifact = new FileBasedIvyArtifact(new File("foo.txt"), identity, TestFiles.taskDependencyFactory())
         artifact.setConf("unknown")
-        ivyFileGenerator.addArtifact(artifact)
+        ivyFileGenerator.addArtifact(artifact.asNormalisedArtifact())
         def ivyFile = ivyFile(ivyFileGenerator)
 
         and:
-        def publication = new IvyNormalizedPublication("pub-name", mainArtifacts, identity, ivyFile, emptySet())
+        def publication = new IvyNormalizedPublication("pub-name", coordinates, mainArtifacts, identity, ivyFile, emptySet())
 
         when:
         publisher.publish(publication, repository)
@@ -232,7 +233,7 @@ class ValidatingIvyPublisherTest extends Specification {
             getExtension() >> extension
             getClassifier() >> classifier
         }
-        def publication = new IvyNormalizedPublication("pub-name", mainArtifacts, projectIdentity("org", "module", "version"), ivyFile("org", "module", "version"), toSet([ivyArtifact]))
+        def publication = new IvyNormalizedPublication("pub-name", coordinates, mainArtifacts, projectIdentity("org", "module", "version"), ivyFile("org", "module", "version"), toSet([ivyArtifact]))
 
         when:
         publisher.publish(publication, repository)
@@ -257,7 +258,7 @@ class ValidatingIvyPublisherTest extends Specification {
 
     def "cannot publish with file that is a directory"() {
         def ivyArtifact = Mock(IvyArtifact)
-        def publication = new IvyNormalizedPublication("pub-name", mainArtifacts, projectIdentity("group", "artifact", "version"), ivyFile("group", "artifact", "version"), toSet([ivyArtifact]))
+        def publication = new IvyNormalizedPublication("pub-name", coordinates, mainArtifacts, projectIdentity("group", "artifact", "version"), ivyFile("group", "artifact", "version"), toSet([ivyArtifact]))
 
         File someDir = new TestFile(testDirectoryProvider.testDirectory, "testFile")
         someDir.createDir()
@@ -294,7 +295,7 @@ class ValidatingIvyPublisherTest extends Specification {
             getFile() >> testDirectoryProvider.createFile('artifact2')
         }
         def projectIdentity = projectIdentity("org", "module", "revision")
-        def publication = new IvyNormalizedPublication("pub-name", mainArtifacts, projectIdentity, ivyFile("org", "module", "revision"), toSet([artifact1, artifact2]))
+        def publication = new IvyNormalizedPublication("pub-name", coordinates, mainArtifacts, projectIdentity, ivyFile("org", "module", "revision"), toSet([artifact1, artifact2]))
 
         when:
         publisher.publish(publication, repository)
@@ -314,7 +315,7 @@ class ValidatingIvyPublisherTest extends Specification {
             getFile() >> testDirectoryProvider.createFile('artifact1')
         }
         def projectIdentity = projectIdentity("org", "module", "revision")
-        def publication = new IvyNormalizedPublication("pub-name", mainArtifacts, projectIdentity, ivyFile("org", "module", "revision"), toSet([artifact1]))
+        def publication = new IvyNormalizedPublication("pub-name", coordinates, mainArtifacts, projectIdentity, ivyFile("org", "module", "revision"), toSet([artifact1]))
 
         when:
         publisher.publish(publication, repository)
