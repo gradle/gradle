@@ -185,9 +185,27 @@ public class SampleIncludeProcessor extends IncludeProcessor {
 
     private static String trimIndent(String source) {
         String[] lines = source.split("\r\n|\r|\n");
+
+        int minIndent = getMinIndent(lines);
+        if (minIndent == 0) {
+            return source;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        String newline = String.format("%n");
+        for (String line : lines) {
+            if (!line.trim().isEmpty()) {
+                sb.append(line.substring(minIndent));
+            }
+            sb.append(newline);
+        }
+        return sb.toString();
+    }
+
+    private static int getMinIndent(String[] lines) {
         int minIndent = Integer.MAX_VALUE;
         for (String line : lines) {
-            if (line.trim().length() == 0) {
+            if (line.trim().isEmpty()) {
                 continue;
             }
 
@@ -199,20 +217,6 @@ public class SampleIncludeProcessor extends IncludeProcessor {
                 minIndent = Math.min(minIndent, indent);
             }
         }
-
-        if (minIndent != Integer.MAX_VALUE && minIndent > 0) {
-            StringBuilder sb = new StringBuilder();
-            String newline = String.format("%n");
-            for (String line : lines) {
-                if (line.trim().length() > 0) {
-                    sb.append(line.substring(minIndent));
-                }
-                sb.append(newline);
-            }
-            return sb.toString();
-        }
-
-        return source;
+        return minIndent == Integer.MAX_VALUE ? 0 : minIndent;
     }
-
 }
