@@ -677,6 +677,7 @@ Method <org.gradle.plugins.ide.eclipse.model.SourceFolder.getOutput()> does not 
 Method <org.gradle.plugins.ide.eclipse.model.UnresolvedLibrary.getAttemptedSelector()> does not have raw return type assignable to org.gradle.api.provider.Property in (UnresolvedLibrary.java:38)
 Method <org.gradle.plugins.ide.eclipse.model.Variable.getKind()> does not have raw return type assignable to org.gradle.api.provider.Provider in (Variable.java:37)
 Method <org.gradle.plugins.ide.eclipse.model.WbDependentModule.getDeployPath()> does not have raw return type assignable to org.gradle.api.provider.Property in (WbDependentModule.java:45)
+Method <org.gradle.plugins.ide.eclipse.model.WbDependentModule.getArchiveName()> does not have raw return type assignable to org.gradle.api.provider.Property in (WbDependentModule.java:45)
 Method <org.gradle.plugins.ide.eclipse.model.WbDependentModule.getHandle()> does not have raw return type assignable to org.gradle.api.provider.Property in (WbDependentModule.java:53)
 Method <org.gradle.plugins.ide.eclipse.model.WbProperty.getName()> does not have raw return type assignable to org.gradle.api.provider.Property in (WbProperty.java:43)
 Method <org.gradle.plugins.ide.eclipse.model.WbProperty.getValue()> does not have raw return type assignable to org.gradle.api.provider.Property in (WbProperty.java:51)
