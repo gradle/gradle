@@ -255,31 +255,43 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             includeBuild("included")
         """
         buildFile << """
-            ${deprecatedMethodUsage()}
+            task broken {
+                doLast {
+                    ${deprecatedMethodUsage()}
+                }
+            }
         """
         file("buildSrc/build.gradle") << """
-            ${deprecatedMethodUsage()}
+            task broken {
+                doLast {
+                    ${deprecatedMethodUsage()}
+                }
+            }
         """
         file("included/build.gradle") << """
-            ${deprecatedMethodUsage()}
+            task broken {
+                doLast {
+                    ${deprecatedMethodUsage()}
+                }
+            }
         """
 
-        when:
-        executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
-        executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
-        executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
-        run()
+        expect:
+        2.times {
+            executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
+            executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
+            executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
+            run("broken", "buildSrc:broken", "included:broken")
 
-        then:
-        outputContains("Build file '${file("included/build.gradle")}': line 4")
-        outputContains("Build file '${file("buildSrc/build.gradle")}': line 4")
-        outputContains("Build file '${buildFile}': line 4")
+            outputContains("Build file '${file("included/build.gradle")}': line 5")
+            outputContains("Build file '${file("buildSrc/build.gradle")}': line 5")
+            outputContains("Build file '${buildFile}': line 5")
+        }
     }
 
     String deprecatedMethodUsage() {
         return """
-            import ${DeprecationLogger.name}
-            DeprecationLogger.deprecateMethod(Task.class, "someFeature()").willBeRemovedInGradle9().undocumented().nagUser();
+            ${DeprecationLogger.name}.deprecateMethod(Task.class, "someFeature()").willBeRemovedInGradle9().undocumented().nagUser();
         """
     }
 

@@ -23,7 +23,8 @@ import java.io.File;
 import java.util.function.Consumer;
 
 /**
- * Notifies the user of problems of some type collected during the execution of a build against a build tree.
+ * A service that collects problems of some type during the execution of Gradle for a build tree and reports them to the user
+ * in some form.
  */
 @ServiceScope(Scopes.BuildTree.class)
 public interface ProblemReporter {
