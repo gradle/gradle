@@ -227,50 +227,64 @@ include::sample[dir="src/samples",files="foo.xml[tag=bar]"]
     def "trims indentation in samples"() {
         given:
         tmpDir.newFile("src/samples/build.gradle") << """
-                // Comment
-                doLast {
-                    println "hello world"
-                }
-"""
+            |    // Comment
+            |    doLast {
+            |        println "hello world"
+            |    }
+        """.trim().stripMargin()
 
         String asciidocContent = """
-= Doctitle
-:samples-dir: ${tmpDir.root.canonicalPath}
-
-include::sample[dir="src/samples",files="build.gradle[]"]
-"""
+            |= Doctitle
+            |:samples-dir: ${tmpDir.root.canonicalPath}
+            |
+            |include::sample[dir="src/samples",files="build.gradle[]"]
+        """.trim().stripMargin()
 
         when:
         String content = asciidoctor.convert(asciidocContent, [:])
 
+        def expectedContent = '''
+            |// Comment
+            |doLast {
+            |    println "hello world"
+            |}
+        '''.trim().stripMargin()
+
         then:
-        content.contains('// Comment\ndoLast {\n    println "hello world"\n}')
+        content.contains(expectedContent)
     }
 
     def "trims indentation in samples with tags"() {
         given:
         tmpDir.newFile("src/samples/build.gradle") << """
-    // tag::foo[]
-                // Comment
-                doLast {
-    // end::foo[]
-                    println "hello world"
-    // tag::foo[]
-                }
-    // end::foo[]
-"""
+            |// No-indent comment outside of tag
+            |// tag::foo[]
+            |    // Comment
+            |    doLast {
+            |// end::foo[]
+            |        println "hello world"
+            |// tag::foo[]
+            |    }
+            |// end::foo[]
+        """.trim().stripMargin()
 
         String asciidocContent = """
-= Doctitle
-:samples-dir: ${tmpDir.root.canonicalPath}
-
-include::sample[dir="src/samples",files="build.gradle[tags=foo]"]
-"""
+            |= Doctitle
+            |:samples-dir: ${tmpDir.root.canonicalPath}
+            |
+            |include::sample[dir="src/samples",files="build.gradle[tags=foo]"]
+        """.trim().stripMargin()
 
         when:
         String content = asciidoctor.convert(asciidocContent, [:])
 
+        def expectedContent = """
+            |// Comment
+            |doLast {
+            |}
+        """.trim().stripMargin()
+
         then:
-        content.contains('// Comment\ndoLast {\n}')
+        content.contains(expectedContent)
     }
 }
