@@ -7,8 +7,8 @@ This sample shows how 2 Gradle builds that are normally developed separately and
 Note that the `my-app` build does not have direct dependencies on `my-utils`. Instead, it declares module dependencies on the libraries produced by `my-utils`:
 
 ====
-include::sample[dir="groovy",files="my-app/app/build.gradle[tags=app_dependencies]"]
 include::sample[dir="kotlin",files="my-app/app/build.gradle.kts[tags=app_dependencies]"]
+include::sample[dir="groovy",files="my-app/app/build.gradle[tags=app_dependencies]"]
 ====
 
 == Using command-line composite build
@@ -44,8 +44,8 @@ While simple, this approach has the downside of modifying the `my-app` build.
 It is also possible to create a separate composite build that includes both the `my-app` and `my-utils` builds.
 
 ====
-include::sample[dir="groovy",files="settings.gradle[]"]
 include::sample[dir="kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="groovy",files="settings.gradle[]"]
 ====
 
 After doing so, you can reference any tasks in the included builds directly on the command line in order to execute.
@@ -57,8 +57,8 @@ gradle :my-app:app:run
 Alternately, you can create delegating tasks in the composite project to execute tasks without specifying the full task path.
 
 ====
-include::sample[dir="groovy",files="build.gradle[tags=run]"]
 include::sample[dir="kotlin",files="build.gradle.kts[tags=run]"]
+include::sample[dir="groovy",files="build.gradle[tags=run]"]
 ====
 
 ```

@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.KotlinDslPluginSupport
@@ -31,7 +32,7 @@ import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugi
  * Configures the Kotlin compiler to recognise Gradle functional interface
  * annotated with [HasImplicitReceiver].
  */
-class KotlinDslCompilerPlugins : Plugin<Project> {
+abstract class KotlinDslCompilerPlugins : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
 
@@ -44,12 +45,19 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
             kotlinDslPluginOptions {
                 tasks.withType<KotlinCompile>().configureEach {
                     it.kotlinOptions {
-                        jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
-                        apiVersion = "1.4"
-                        languageVersion = "1.4"
+                        DeprecationLogger.whileDisabled {
+                            if (this@kotlinDslPluginOptions.jvmTarget.isPresent) {
+                                jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
+                            }
+                        }
+                        apiVersion = "1.8"
+                        languageVersion = "1.8"
                         freeCompilerArgs += KotlinDslPluginSupport.kotlinCompilerArgs
                     }
-                    it.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf("-XXLanguage:+DisableCompatibilityModeForNewInference")))
+                    it.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf(
+                        "-XXLanguage:+DisableCompatibilityModeForNewInference",
+                        "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
+                    )))
                 }
             }
         }

@@ -59,7 +59,7 @@ public class GeneratedSingletonFileTreeTest {
 
     @Test
     public void containsWontCreateFiles() {
-        final AtomicInteger callCounter = new AtomicInteger(0);
+        final AtomicInteger callCounter = new AtomicInteger();
         Action<OutputStream> fileAction = new Action<OutputStream>() {
             @Override
             public void execute(OutputStream outputStream) {
@@ -68,7 +68,7 @@ public class GeneratedSingletonFileTreeTest {
         };
         GeneratedSingletonFileTree tree = tree("file.txt", fileAction);
 
-        FileTreeAdapter fileTreeAdapter = new FileTreeAdapter(tree, TestFiles.getPatternSetFactory());
+        FileTreeAdapter fileTreeAdapter = new FileTreeAdapter(tree, TestFiles.taskDependencyFactory(), TestFiles.getPatternSetFactory());
         File file = rootDir.file("file.txt");
 
         assertTrue(fileTreeAdapter.contains(file));

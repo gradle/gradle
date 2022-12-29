@@ -18,7 +18,6 @@ package org.gradle.internal.execution.steps;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.internal.Try;
 import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
 import org.gradle.internal.execution.UnitOfWork;
@@ -52,6 +51,8 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
 
     @Override
     public Result execute(UnitOfWork work, C context) {
+        Class<? extends UnitOfWork> workType = work.getClass();
+        UnitOfWork.Identity identity = context.getIdentity();
         return buildOperationExecutor.call(new CallableBuildOperation<Result>() {
             @Override
             public Result call(BuildOperationContext operationContext) {
@@ -64,7 +65,17 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
             public BuildOperationDescriptor.Builder description() {
                 return BuildOperationDescriptor
                     .displayName("Executing " + work.getDisplayName())
-                    .details(Operation.Details.INSTANCE);
+                    .details(new Operation.Details() {
+                        @Override
+                        public Class<?> getWorkType() {
+                            return workType;
+                        }
+
+                        @Override
+                        public UnitOfWork.Identity getIdentity() {
+                            return identity;
+                        }
+                    });
             }
         });
     }
@@ -93,13 +104,13 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
         try {
             workOutput = work.execute(executionRequest);
         } catch (Throwable t) {
-            return ResultImpl.failed(t, Duration.ofMillis(timer.getElapsedMillis()));
+            return Result.failed(t, Duration.ofMillis(timer.getElapsedMillis()));
         }
 
         Duration duration = Duration.ofMillis(timer.getElapsedMillis());
         ExecutionOutcome mode = determineOutcome(context, workOutput);
 
-        return ResultImpl.success(duration, new ExecutionResultImpl(mode, workOutput));
+        return Result.success(duration, new ExecutionResultImpl(mode, workOutput));
     }
 
     private static ExecutionOutcome determineOutcome(InputChangesContext context, UnitOfWork.WorkOutput workOutput) {
@@ -121,42 +132,13 @@ public class ExecuteStep<C extends ChangingOutputsContext> implements Step<C, Re
      */
     public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
         interface Details {
-            Operation.Details INSTANCE = new Operation.Details() {
-            };
+            Class<?> getWorkType();
+            UnitOfWork.Identity getIdentity();
         }
 
         interface Result {
             Operation.Result INSTANCE = new Operation.Result() {
             };
-        }
-    }
-
-    private static final class ResultImpl implements Result {
-
-        private final Duration duration;
-        private final Try<Execution> outcome;
-
-        private ResultImpl(Duration duration, Try<Execution> outcome) {
-            this.duration = duration;
-            this.outcome = outcome;
-        }
-
-        private static Result failed(Throwable t, Duration duration) {
-            return new ResultImpl(duration, Try.failure(t));
-        }
-
-        private static Result success(Duration duration, Execution outcome) {
-            return new ResultImpl(duration, Try.successful(outcome));
-        }
-
-        @Override
-        public Duration getDuration() {
-            return duration;
-        }
-
-        @Override
-        public Try<Execution> getExecution() {
-            return outcome;
         }
     }
 

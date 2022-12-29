@@ -67,7 +67,7 @@ class ConfigurationCacheFixture {
 
     void assertStateStored(HasBuildActions details) {
         assertHasStoreReason(details)
-        configurationCacheBuildOperations.assertStateStored()
+        configurationCacheBuildOperations.assertStateStored(details.loadsOnStore)
 
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
 
@@ -90,7 +90,7 @@ class ConfigurationCacheFixture {
 
     void assertStateStoredWithProblems(HasBuildActions details, HasProblems problemDetails) {
         assertHasStoreReason(details)
-        configurationCacheBuildOperations.assertStateStored()
+        configurationCacheBuildOperations.assertStateStored(details.runsTasks)
 
         spec.result.assertHasPostBuildOutput("Configuration cache entry ${details.storeAction}.")
 
@@ -113,9 +113,9 @@ class ConfigurationCacheFixture {
 
     void assertStateStoredAndDiscarded(HasBuildActions details, HasProblems problemDetails) {
         assertHasStoreReason(details)
-        configurationCacheBuildOperations.assertStateStored()
+        configurationCacheBuildOperations.assertStateStored(false)
 
-        def message = "Configuration cache entry ${details.storeAction}."
+        def message = "Configuration cache entry ${details.storeAction}"
         boolean isFailure = spec.result instanceof ExecutionFailure
         if (isFailure) {
             spec.outputContains(message)
@@ -142,7 +142,7 @@ class ConfigurationCacheFixture {
 
     void assertStateRecreated(HasBuildActions details, HasInvalidationReason invalidationDetails) {
         assertHasRecreateReason(details, invalidationDetails)
-        configurationCacheBuildOperations.assertStateStored()
+        configurationCacheBuildOperations.assertStateStored(details.runsTasks)
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
         assertHasNoProblems()
     }
@@ -163,7 +163,7 @@ class ConfigurationCacheFixture {
 
     void assertStateRecreatedWithProblems(HasBuildActions details, HasInvalidationReason invalidationDetails, HasProblems problemDetails) {
         assertHasRecreateReason(details, invalidationDetails)
-        configurationCacheBuildOperations.assertStateStored()
+        configurationCacheBuildOperations.assertStateStored(false)
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
         assertHasProblems(problemDetails)
     }
@@ -346,6 +346,7 @@ class ConfigurationCacheFixture {
 
     trait HasBuildActions {
         boolean runsTasks = true
+        boolean loadsOnStore = true
 
         abstract String getStoreAction()
     }

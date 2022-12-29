@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache
 
-import org.gradle.api.file.FileCollection
 import org.gradle.configurationcache.initialization.ConfigurationCacheProblemsListener
 import org.gradle.configurationcache.serialization.Workarounds
 import org.gradle.configurationcache.services.EnvironmentChangeTracker
@@ -121,7 +120,17 @@ class InstrumentedInputAccessListener(
         undeclaredInputBroadcast.fileObserved(file, consumer)
     }
 
-    override fun fileCollectionObserved(fileCollection: FileCollection, consumer: String) {
-        undeclaredInputBroadcast.fileCollectionObserved(fileCollection, consumer)
+    override fun fileSystemEntryObserved(file: File, consumer: String) {
+        if (Workarounds.canReadFiles(consumer)) {
+            return
+        }
+        undeclaredInputBroadcast.fileSystemEntryObserved(file, consumer)
+    }
+
+    override fun directoryContentObserved(directory: File, consumer: String) {
+        if (Workarounds.canReadFiles(consumer)) {
+            return
+        }
+        undeclaredInputBroadcast.directoryChildrenObserved(directory, consumer)
     }
 }

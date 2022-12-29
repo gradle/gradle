@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec {
     @UnsupportedWithConfigurationCache(because = "uses buildFinished")
-    def "buildSrc build finished hook is executed prior to configuring root build"() {
+    def "buildSrc build finished hook is executed after running main tasks and before root build build finished hook"() {
         file("buildSrc/build.gradle") << """
             System.clearProperty("buildsrc")
 
@@ -31,15 +31,25 @@ class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         file("build.gradle") << """
-            println "configuring root project"
-            assert System.getProperty("buildsrc") == "done"
+            task thing {
+                doLast {
+                    println("running task")
+                    assert System.getProperty("buildsrc") == null
+                }
+            }
+
+            gradle.buildFinished {
+                println "root build finished"
+                assert System.getProperty("buildsrc") == "done"
+            }
         """
 
         when:
         run()
 
         then:
-        output.indexOf("buildSrc finished") < output.indexOf("configuring root project")
+        output.indexOf("running tasks") < output.indexOf("buildSrc finished")
+        output.indexOf("buildSrc finished") < output.indexOf("root build finished")
     }
 
     @UnsupportedWithConfigurationCache(because = "uses buildFinished")
@@ -50,14 +60,11 @@ class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec {
                 throw new RuntimeException("broken")
             }
         """
-        settingsFile << """
+        buildFile << """
             gradle.buildFinished { result ->
                 println "root build finished"
                 assert result.failure != null
             }
-        """
-        buildFile << """
-            throw new RuntimeException("should not happen")
         """
 
         when:
@@ -76,15 +83,12 @@ class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec {
                 throw new RuntimeException("buildSrc")
             }
         """
-        settingsFile << """
+        buildFile << """
             gradle.buildFinished { result ->
                 println "root build finished"
                 assert result.failure != null
                 throw new RuntimeException("root build")
             }
-        """
-        buildFile << """
-            throw new RuntimeException("should not happen")
         """
 
         when:

@@ -8,10 +8,9 @@ description = "Kotlin DSL Provider"
 
 dependencies {
 
-    compileOnlyApi(libs.futureKotlin("reflect"))
-
     api(project(":kotlin-dsl-tooling-models"))
     api(libs.futureKotlin("stdlib-jdk8"))
+    api(libs.futureKotlin("reflect"))
 
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
@@ -74,7 +73,7 @@ dependencies {
     testImplementation(project(":platform-native")) {
         because("BuildType from platform-native is used in ProjectAccessorsClassPathTest")
     }
-    testImplementation(project(":plugins"))
+    testImplementation(project(":platform-jvm"))
     testImplementation(project(":version-control"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(libs.ant)

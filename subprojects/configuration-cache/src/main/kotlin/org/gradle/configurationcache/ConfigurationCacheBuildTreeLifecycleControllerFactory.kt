@@ -40,7 +40,7 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory(
     private val taskGraph: BuildTreeWorkGraphController,
     private val stateTransitionControllerFactory: StateTransitionControllerFactory,
     private val startParameter: ConfigurationCacheStartParameter,
-    private val buildStateRegistry: BuildStateRegistry
+    private val buildStateRegistry: BuildStateRegistry,
 ) : BuildTreeLifecycleControllerFactory {
     private
     val vintageFactory = VintageBuildTreeLifecycleControllerFactory(buildModelParameters, taskGraph, buildOperationExecutor, projectLeaseRegistry, stateTransitionControllerFactory)

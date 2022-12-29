@@ -34,6 +34,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Directory '$testDirectory' does not contain a Gradle build.")
         failure.assertHasResolutions(
             "Run gradle init to create a new Gradle build in this directory.",
+            "Run with --stacktrace option to get the stack trace.",
             "Run with --info or --debug option to get more log output.") // Don't suggest running with --scan for a missing build
 
         testDirectory.assertIsEmptyDir()

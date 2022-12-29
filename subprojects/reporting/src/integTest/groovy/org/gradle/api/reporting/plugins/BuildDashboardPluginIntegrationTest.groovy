@@ -249,6 +249,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         """
 
         when:
+        executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
         run('buildDashboard')
 
         then:

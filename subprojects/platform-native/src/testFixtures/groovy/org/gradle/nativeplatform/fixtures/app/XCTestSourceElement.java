@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.fixtures.app;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Transformer;
 import org.gradle.integtests.fixtures.SourceFile;
 import org.gradle.integtests.fixtures.TestExecutionResult;
 import org.gradle.util.internal.CollectionUtils;
@@ -36,12 +35,7 @@ public abstract class XCTestSourceElement extends SwiftSourceElement implements 
 
     @Override
     public List<SourceFile> getFiles() {
-        List<SourceFile> result = Lists.newArrayList(CollectionUtils.collect(getTestSuites(), new Transformer<SourceFile, XCTestSourceFileElement>() {
-            @Override
-            public SourceFile transform(XCTestSourceFileElement element) {
-                return element.getSourceFile();
-            }
-        }));
+        List<SourceFile> result = Lists.newArrayList(CollectionUtils.collect(getTestSuites(), XCTestSourceFileElement::getSourceFile));
 
         result.add(getLinuxMainSourceFile(getTestSuites()));
         return result;

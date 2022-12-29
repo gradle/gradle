@@ -143,7 +143,7 @@ public class TestFile extends File {
     }
 
     public List<TestFile> files(Object... paths) {
-        List<TestFile> files = new ArrayList<TestFile>();
+        List<TestFile> files = new ArrayList<>();
         for (Object path : paths) {
             files.add(file(path));
         }
@@ -214,16 +214,13 @@ public class TestFile extends File {
         assertIsFile();
         Properties properties = new Properties();
         try {
-            FileInputStream inStream = new FileInputStream(this);
-            try {
+            try (FileInputStream inStream = new FileInputStream(this)) {
                 properties.load(inStream);
-            } finally {
-                inStream.close();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         for (Object key : properties.keySet()) {
             map.put(key.toString(), properties.getProperty(key.toString()));
         }
@@ -233,11 +230,8 @@ public class TestFile extends File {
     public Manifest getManifest() {
         assertIsFile();
         try {
-            JarFile jarFile = new JarFile(this);
-            try {
+            try (JarFile jarFile = new JarFile(this)) {
                 return jarFile.getManifest();
-            } finally {
-                jarFile.close();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -246,9 +240,8 @@ public class TestFile extends File {
 
     public List<String> linesThat(Matcher<? super String> matcher) {
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(this));
-            try {
-                List<String> lines = new ArrayList<String>();
+            try (BufferedReader reader = new BufferedReader(new FileReader(this))) {
+                List<String> lines = new ArrayList<>();
                 String line;
                 while ((line = reader.readLine()) != null) {
                     if (matcher.matches(line)) {
@@ -256,8 +249,6 @@ public class TestFile extends File {
                     }
                 }
                 return lines;
-            } finally {
-                reader.close();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -447,7 +438,7 @@ public class TestFile extends File {
 
     public TestFile assertDoesNotExist() {
         if (exists()) {
-            Set<String> descendants = new TreeSet<String>();
+            Set<String> descendants = new TreeSet<>();
             if (isFile()) {
                 throw new AssertionError(String.format("%s should not exist", this));
             } else {
@@ -467,7 +458,7 @@ public class TestFile extends File {
         assertIsFile();
         other.assertIsFile();
         assertEquals(String.format("%s is not the same length as %s", this, other), other.length(), this.length());
-        assertTrue(String.format("%s does not have the same content as %s", this, other), getMd5Hash().equals(other.getMd5Hash()));
+        assertEquals(String.format("%s does not have the same content as %s", this, other), getMd5Hash(), other.getMd5Hash());
         return this;
     }
 
@@ -574,7 +565,7 @@ public class TestFile extends File {
     }
 
     public TestFile assertHasDescendants(Iterable<String> descendants, boolean ignoreDirs) {
-        Set<String> actual = new TreeSet<String>();
+        Set<String> actual = new TreeSet<>();
         assertIsDir();
         visit(actual, "", this, ignoreDirs);
         Set<String> expected = new TreeSet<>(Lists.newArrayList(descendants));
@@ -594,12 +585,12 @@ public class TestFile extends File {
      */
     public TestFile assertContainsDescendants(Iterable<String> descendants) {
         assertIsDir();
-        Set<String> actual = new TreeSet<String>();
+        Set<String> actual = new TreeSet<>();
         visit(actual, "", this, false);
 
-        Set<String> expected = new TreeSet<String>(Lists.newArrayList(descendants));
+        Set<String> expected = new TreeSet<>(Lists.newArrayList(descendants));
 
-        Set<String> missing = new TreeSet<String>(expected);
+        Set<String> missing = new TreeSet<>(expected);
         missing.removeAll(actual);
 
         assertTrue(String.format("For dir: %s\n missing files: %s, expected: %s, actual: %s", this, missing, expected, actual), missing.isEmpty());
@@ -620,7 +611,7 @@ public class TestFile extends File {
     }
 
     public Set<String> allDescendants() {
-        Set<String> names = new TreeSet<String>();
+        Set<String> names = new TreeSet<>();
         if (isDirectory()) {
             visit(names, "", this, false);
         }
@@ -738,13 +729,15 @@ public class TestFile extends File {
     }
 
     public TestFile makeUnreadable() {
-        setReadable(false, false);
+        boolean success = setReadable(false, false);
+        assert success;
         assert !Files.isReadable(toPath());
         return this;
     }
 
     public TestFile makeReadable() {
-        setReadable(true, false);
+        boolean success = setReadable(true, false);
+        assert success;
         assert Files.isReadable(toPath());
         return this;
     }
@@ -840,13 +833,8 @@ public class TestFile extends File {
     public void writeProperties(Map<?, ?> properties) {
         Properties props = new Properties();
         props.putAll(properties);
-        try {
-            FileOutputStream stream = new FileOutputStream(this);
-            try {
-                props.store(stream, "comment");
-            } finally {
-                stream.close();
-            }
+        try (FileOutputStream stream = new FileOutputStream(this)) {
+            props.store(stream, "comment");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -884,7 +872,7 @@ public class TestFile extends File {
      * @see java.nio.file.Path#relativize(Path)
      */
     public String getRelativePathFromBase() {
-        Assert.assertTrue("relativeBase must have been set during construction", !relativeBase.toPath().equals(this.toPath()));
+        assertNotEquals("relativeBase must have been set during construction", relativeBase.toPath(), this.toPath());
         return relativeBase.toPath().relativize(this.toPath()).toString();
     }
 

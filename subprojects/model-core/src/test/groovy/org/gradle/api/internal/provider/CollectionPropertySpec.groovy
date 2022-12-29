@@ -25,7 +25,6 @@ import org.gradle.internal.Describables
 import org.gradle.util.internal.TextUtil
 
 abstract class CollectionPropertySpec<C extends Collection<String>> extends PropertySpec<C> {
-    @Override
     AbstractCollectionProperty<String, C> propertyWithDefaultValue() {
         return property()
     }

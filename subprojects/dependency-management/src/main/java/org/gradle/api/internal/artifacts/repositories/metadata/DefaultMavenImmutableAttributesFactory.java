@@ -85,11 +85,23 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
     }
 
     @Override
-    public ImmutableAttributes libraryWithUsage(ImmutableAttributes original, String usage) {
-        List<Object> key = ImmutableList.of(original, Category.LIBRARY, usage);
+    public ImmutableAttributes compileScope(ImmutableAttributes original) {
+        List<Object> key = ImmutableList.of(original, Usage.JAVA_API);
         return concatCache.computeIfAbsent(key, k -> {
             ImmutableAttributes result = original;
-            result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
+            result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_API, objectInstantiator));
+            result = concat(result, FORMAT_ATTRIBUTE, new CoercingStringValueSnapshot(LibraryElements.JAR, objectInstantiator));
+            result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.LIBRARY, objectInstantiator));
+            return result;
+        });
+    }
+
+    @Override
+    public ImmutableAttributes runtimeScope(ImmutableAttributes original) {
+        List<Object> key = ImmutableList.of(original, Usage.JAVA_RUNTIME);
+        return concatCache.computeIfAbsent(key, k -> {
+            ImmutableAttributes result = original;
+            result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
             result = concat(result, FORMAT_ATTRIBUTE, new CoercingStringValueSnapshot(LibraryElements.JAR, objectInstantiator));
             result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.LIBRARY, objectInstantiator));
             return result;

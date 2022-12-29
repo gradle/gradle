@@ -16,18 +16,12 @@
 
 package org.gradle.api.publish.ivy
 
-
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.encoding.Identifier
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import javax.xml.namespace.QName
 
 class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
-    @ToBeFixedForConfigurationCache
-    @Requires(TestPrecondition.SUPPORTS_UTF8_STDOUT)
     def "can publish with metadata containing #identifier characters"() {
         given:
         file("content-file") << "some content"
@@ -90,7 +84,6 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         identifier << Identifier.all
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish artifacts with attributes containing #identifier characters"() {
         given:
         file("content-file") << "some content"
@@ -147,7 +140,6 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         identifier << Identifier.all
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails with reasonable error message for invalid identifier value"() {
         buildFile << """
             apply plugin: 'ivy-publish'
@@ -173,7 +165,6 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         failure.assertHasCause "Invalid publication 'ivy': organisation cannot be empty."
     }
 
-    @ToBeFixedForConfigurationCache
     def "fails with reasonable error message for invalid metadata value" () {
         when:
         buildFile << """

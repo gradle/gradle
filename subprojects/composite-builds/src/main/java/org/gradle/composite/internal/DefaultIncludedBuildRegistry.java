@@ -20,7 +20,6 @@ import com.google.common.base.MoreObjects;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.initialization.buildsrc.BuildSrcDetector;
@@ -32,7 +31,6 @@ import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.NestedBuildTree;
-import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
@@ -45,16 +43,13 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 
 public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppable {
     private final IncludedBuildFactory includedBuildFactory;
-    private final IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder;
     private final BuildAddedListener buildAddedBroadcaster;
     private final BuildStateFactory buildStateFactory;
 
@@ -65,12 +60,9 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     private final Map<File, IncludedBuildState> includedBuildsByRootDir = new LinkedHashMap<>();
     private final Map<Path, File> includedBuildDirectoriesByPath = new LinkedHashMap<>();
     private final Deque<IncludedBuildState> pendingIncludedBuilds = new ArrayDeque<>();
-    private boolean registerSubstitutionsForRootBuild;
-    private final Set<IncludedBuildState> currentlyConfiguring = new HashSet<>();
 
-    public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, IncludedBuildDependencySubstitutionsBuilder dependencySubstitutionsBuilder, ListenerManager listenerManager, BuildStateFactory buildStateFactory) {
+    public DefaultIncludedBuildRegistry(IncludedBuildFactory includedBuildFactory, ListenerManager listenerManager, BuildStateFactory buildStateFactory) {
         this.includedBuildFactory = includedBuildFactory;
-        this.dependencySubstitutionsBuilder = dependencySubstitutionsBuilder;
         this.buildAddedBroadcaster = listenerManager.getBroadcaster(BuildAddedListener.class);
         this.buildStateFactory = buildStateFactory;
     }
@@ -150,25 +142,11 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public void afterConfigureRootBuild() {
-        if (registerSubstitutionsForRootBuild) {
-            dependencySubstitutionsBuilder.build(rootBuild);
-        }
-    }
-
-    @Override
     public void finalizeIncludedBuilds() {
         while (!pendingIncludedBuilds.isEmpty()) {
             IncludedBuildState build = pendingIncludedBuilds.removeFirst();
             assertNameDoesNotClashWithRootSubproject(build);
         }
-    }
-
-    @Override
-    public void registerSubstitutionsFor(IncludedBuildState build) {
-        currentlyConfiguring.add(build);
-        dependencySubstitutionsBuilder.build(build);
-        currentlyConfiguring.remove(build);
     }
 
     @Override
@@ -201,28 +179,6 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         Path identityPath = assignPath(owner, name, dir);
         BuildIdentifier buildIdentifier = idFor(name);
         return buildStateFactory.createNestedTree(buildDefinition, buildIdentifier, identityPath, owner);
-    }
-
-    @Override
-    public void registerSubstitutionsForRootBuild() {
-        registerSubstitutionsForRootBuild = true;
-    }
-
-    @Override
-    public void ensureConfigured(IncludedBuildState buildToConfigure) {
-        if (currentlyConfiguring.contains(buildToConfigure)) {
-            return;
-        }
-        currentlyConfiguring.add(buildToConfigure);
-        buildToConfigure.ensureProjectsConfigured();
-        GradleInternal gradle = buildToConfigure.getMutableModel();
-        for (IncludedBuildInternal reference : gradle.includedBuilds()) {
-            BuildState target = reference.getTarget();
-            if (target instanceof IncludedBuildState) {
-                dependencySubstitutionsBuilder.build((IncludedBuildState) target);
-            }
-        }
-        currentlyConfiguring.remove(buildToConfigure);
     }
 
     @Override
@@ -296,7 +252,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     @Override
     public void resetStateForAllBuilds() {
         for (BuildState build : buildsByIdentifier.values()) {
-            build.resetState();
+            build.resetLifecycle();
         }
     }
 

@@ -386,10 +386,10 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""No matching variant of org:test:1.0 was found. The consumer was configured to find a runtime of a component, as well as attribute 'custom' with value 'c1' but:
+        failure.assertHasCause("""No matching variant of org:test:1.0 was found. The consumer was configured to find a component for use during runtime, as well as attribute 'custom' with value 'c1' but:
   - Variant 'api' capability org:test:1.0 declares a component, as well as attribute 'custom' with value 'c1':
-      - Incompatible because this component declares an API of a component and the consumer needed a runtime of a component
-  - Variant 'runtime' capability org:test:1.0 declares a runtime of a component:
+      - Incompatible because this component declares a component for use during compile-time and the consumer needed a component for use during runtime
+  - Variant 'runtime' capability org:test:1.0 declares a component for use during runtime:
       - Incompatible because this component declares a component, as well as attribute 'custom' with value 'c2' and the consumer needed a component, as well as attribute 'custom' with value 'c1'""")
     }
 
@@ -599,10 +599,10 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""No matching variant of org:test:1.0 was found. The consumer was configured to find a runtime of a component, as well as attribute 'custom' with value 'c1' but:
+        failure.assertHasCause("""No matching variant of org:test:1.0 was found. The consumer was configured to find a component for use during runtime, as well as attribute 'custom' with value 'c1' but:
   - Variant 'api' capability org:test:1.0 declares a component, as well as attribute 'custom' with value 'c1':
-      - Incompatible because this component declares an API of a component and the consumer needed a runtime of a component
-  - Variant 'runtime' capability org:test:1.0 declares a runtime of a component:
+      - Incompatible because this component declares a component for use during compile-time and the consumer needed a component for use during runtime
+  - Variant 'runtime' capability org:test:1.0 declares a component for use during runtime:
       - Incompatible because this component declares a component, as well as attribute 'custom' with value 'c2' and the consumer needed a component, as well as attribute 'custom' with value 'c1'""")
     }
 

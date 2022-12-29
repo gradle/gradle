@@ -95,7 +95,7 @@ public interface BuildState {
     File getBuildRootDir();
 
     /**
-     * Returns the current state of the mutable model of this build.
+     * Returns the current state of the mutable model of this build. Try to use {@link #withState(Transformer)} instead.
      */
     GradleInternal getMutableModel();
 
@@ -110,7 +110,7 @@ public interface BuildState {
     <T> T withToolingModels(Function<? super BuildToolingModelController, T> action);
 
     /**
-     * Restarts the lifecycle for this build, discarding all present state.
+     * Restarts the lifecycle for this build, discarding all present model state.
      */
-    void resetState();
+    void resetLifecycle();
 }

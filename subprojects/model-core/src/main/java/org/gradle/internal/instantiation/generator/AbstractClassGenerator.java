@@ -51,6 +51,7 @@ import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
@@ -84,6 +85,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * Generates a subclass of the target class to mix-in some DSL behaviour.
@@ -503,7 +506,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
             @Override
             public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-                return strategy.newInstance(services, nested, displayName, params);
+                return DeprecationLogger.whileDisabledThrowing(
+                    () -> strategy.newInstance(services, nested, displayName, params)
+                );
             }
 
             @Override
@@ -654,11 +659,20 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
 
         public boolean hasAnnotation(Class<? extends Annotation> type) {
-            if (backingField != null && backingField.getAnnotation(type) != null) {
-                return true;
-            } else {
-                return mainGetter.method.getAnnotation(type) != null;
-            }
+            return findAnnotation(type) != null;
+        }
+
+        @Nullable
+        public <A extends Annotation> A findAnnotation(Class<A> type) {
+            return ofNullable(backingFieldAnnotationOf(type)).orElseGet(() -> getterAnnotationOf(type));
+        }
+
+        private <A extends Annotation> A getterAnnotationOf(Class<A> type) {
+            return mainGetter.method.getAnnotation(type);
+        }
+
+        private <A extends Annotation> A backingFieldAnnotationOf(Class<A> type) {
+            return backingField == null ? null : backingField.getAnnotation(type);
         }
 
         public MethodMetadata getMainGetter() {

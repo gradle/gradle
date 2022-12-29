@@ -30,7 +30,8 @@ import me.champeau.gradle.japicmp.report.Violation
  * </p>
  */
 class BinaryBreakingSuperclassChangeRule extends AbstractSuperClassChangesRule {
-    BinaryBreakingSuperclassChangeRule(Map params) {
+
+    BinaryBreakingSuperclassChangeRule(Map<String, Object> params) {
         super(params)
     }
 

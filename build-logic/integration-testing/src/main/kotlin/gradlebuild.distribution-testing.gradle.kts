@@ -17,6 +17,7 @@
 import gradlebuild.basics.repoRoot
 import gradlebuild.cleanup.services.CachesCleaner
 import gradlebuild.integrationtests.tasks.DistributionTest
+import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
 
 plugins {
     java
@@ -38,7 +39,7 @@ tasks.withType<DistributionTest>().configureEach {
     shouldRunAfter("test")
 
     setJvmArgsOfTestJvm()
-    setSystemPropertiesOfTestJVM()
+    setSystemPropertiesOfTestJVM("default")
     configureGradleTestEnvironment()
     addSetUpAndTearDownActions()
 }
@@ -91,15 +92,5 @@ fun DistributionTest.setJvmArgsOfTestJvm() {
     jvmArgs("-Xmx512m", "-XX:+HeapDumpOnOutOfMemoryError")
     if (!javaVersion.isJava8Compatible) {
         jvmArgs("-XX:MaxPermSize=768m")
-    }
-}
-
-fun DistributionTest.setSystemPropertiesOfTestJVM() {
-    // use -PtestVersions=all or -PtestVersions=1.2,1.3…
-    val integTestVersionsSysProp = "org.gradle.integtest.versions"
-    if (project.hasProperty("testVersions")) {
-        systemProperties[integTestVersionsSysProp] = project.property("testVersions")
-    } else {
-        systemProperties[integTestVersionsSysProp] = "default"
     }
 }

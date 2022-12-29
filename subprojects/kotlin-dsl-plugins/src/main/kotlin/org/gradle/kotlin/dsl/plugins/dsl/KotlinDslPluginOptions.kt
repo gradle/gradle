@@ -18,6 +18,8 @@ package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Property
+import org.gradle.internal.deprecation.DeprecationLogger
 
 import org.gradle.kotlin.dsl.*
 
@@ -27,7 +29,10 @@ import org.gradle.kotlin.dsl.*
  *
  * @see KotlinDslPlugin
  */
-class KotlinDslPluginOptions internal constructor(objects: ObjectFactory) {
+abstract class KotlinDslPluginOptions internal constructor(objects: ObjectFactory) {
+
+    private
+    val jvmTargetProperty = objects.property<String>()
 
     /**
      * Kotlin compilation JVM target.
@@ -36,9 +41,22 @@ class KotlinDslPluginOptions internal constructor(objects: ObjectFactory) {
      *
      * @see [org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions.jvmTarget]
      */
-    val jvmTarget = objects.property<String>().apply {
-        set("1.8")
-    }
+    @Deprecated("Configure a Java Toolchain instead")
+    val jvmTarget: Property<String>
+        get() {
+            nagUserAboutJvmTarget()
+            return jvmTargetProperty
+        }
+}
+
+
+private
+fun nagUserAboutJvmTarget() {
+    DeprecationLogger.deprecateProperty(KotlinDslPluginOptions::class.java, "jvmTarget")
+        .withAdvice("Configure a Java Toolchain instead.")
+        .willBeRemovedInGradle9()
+        .withUpgradeGuideSection(7, "kotlin_dsl_plugin_toolchains")
+        .nagUser()
 }
 
 

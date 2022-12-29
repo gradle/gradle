@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.Describables;
-import org.gradle.internal.component.local.model.DefaultLocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
@@ -31,7 +31,7 @@ import org.gradle.internal.model.ValueCalculator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
+public class DefaultLocalComponentRegistry implements LocalComponentRegistry, HoldsProjectState {
     private final BuildIdentifier thisBuild;
     private final ProjectStateRegistry projectStateRegistry;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
@@ -64,6 +64,11 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
         return valueContainer.get();
     }
 
+    @Override
+    public void discardAll() {
+        projects.clear();
+    }
+
     private class MetadataSupplier implements ValueCalculator<LocalComponentGraphResolveState> {
         private final ProjectState projectState;
 
@@ -74,9 +79,9 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
         @Override
         public LocalComponentGraphResolveState calculateValue(NodeExecutionContext context) {
             if (isLocalProject(projectState.getComponentIdentifier())) {
-                return new DefaultLocalComponentGraphResolveState(provider.getComponent(projectState));
+                return provider.getComponent(projectState);
             } else {
-                return new DefaultLocalComponentGraphResolveState(otherBuildProvider.getComponent(projectState));
+                return otherBuildProvider.getComponent(projectState);
             }
         }
 

@@ -23,8 +23,6 @@ import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.TaskInternal;
@@ -427,34 +425,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         return this;
     }
 
-    private static class BuildListenerImpl implements TaskExecutionGraphListener, InternalListener {
+    private static class BuildListenerImpl implements TaskExecutionListener, InternalListener {
         private final List<String> executedTasks = new CopyOnWriteArrayList<>();
         private final Set<String> skippedTasks = new CopyOnWriteArraySet<>();
 
         @Override
-        public void graphPopulated(TaskExecutionGraph graph) {
-            List<Task> planned = new ArrayList<>(graph.getAllTasks());
-            graph.addTaskExecutionListener(new TaskListenerImpl(planned, executedTasks, skippedTasks));
-        }
-    }
-
-    private static class TaskListenerImpl implements TaskExecutionListener, InternalListener {
-        private final List<Task> planned;
-        private final List<String> executedTasks;
-        private final Set<String> skippedTasks;
-
-        TaskListenerImpl(List<Task> planned, List<String> executedTasks, Set<String> skippedTasks) {
-            this.planned = planned;
-            this.executedTasks = executedTasks;
-            this.skippedTasks = skippedTasks;
-        }
-
-        @Override
         public void beforeExecute(Task task) {
-            if (!planned.contains(task)) {
-                System.out.println("Warning: " + task + " was executed even though it is not part of the task plan!");
-            }
-
             String taskPath = path(task);
             executedTasks.add(taskPath);
         }

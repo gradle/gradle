@@ -29,6 +29,7 @@ import org.gradle.configuration.internal.ListenerBuildOperationDecorator
 import org.gradle.configuration.internal.TestListenerBuildOperationDecorator
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.initialization.SettingsState
 import org.gradle.internal.build.DefaultPublicBuildPath
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager
@@ -313,10 +314,40 @@ class DefaultGradleSpec extends Specification {
 
         when:
         def settings = Stub(SettingsInternal)
-        gradle.settings = settings
+        def state = Stub(SettingsState) {
+            _ * getSettings() >> settings
+        }
+        gradle.attachSettings(state)
 
         then:
         gradle.settings == settings
+    }
+
+    def "closes settings when replaced"() {
+        def state1 = Mock(SettingsState)
+        def state2 = Stub(SettingsState)
+
+        given:
+        gradle.attachSettings(state1)
+
+        when:
+        gradle.attachSettings(state2)
+
+        then:
+        1 * state1.close()
+    }
+
+    def "closes settings when discarded"() {
+        def state = Mock(SettingsState)
+
+        given:
+        gradle.attachSettings(state)
+
+        when:
+        gradle.resetState()
+
+        then:
+        1 * state.close()
     }
 
     def "get root project throws exception when root project is not available"() {

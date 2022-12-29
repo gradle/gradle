@@ -17,18 +17,22 @@ package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Pair;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.launcher.daemon.client.DaemonStartupMessage;
 import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
-import org.gradle.launcher.daemon.server.health.LowHeapSpaceDaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
+import org.spockframework.runtime.SpockAssertionError;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
@@ -162,9 +166,9 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             } else if (line.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE)) {
                 // Remove the "Daemon will be shut down" message
                 i++;
-            } else if (line.contains(LowHeapSpaceDaemonExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
-                // Remove the "Expiring Daemon" message
-                i++;
+            } else if (line.contains(HealthExpirationStrategy.EXPIRE_DAEMON_MESSAGE)) {
+                // Remove the "The Daemon will expire" message
+                i+=7;
             } else if (line.contains(LoggingDeprecatedFeatureHandler.WARNING_SUMMARY)) {
                 // Remove the deprecations message: "Deprecated Gradle features...", "Use '--warning-mode all'...", "See https://docs.gradle.org...", and additional newline
                 i+=4;
@@ -220,10 +224,39 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return this;
     }
 
+    private static class LineWithDistance {
+        private final String line;
+        private final int distance;
+
+        public LineWithDistance(String line, int distance) {
+            this.line = line;
+            this.distance = distance;
+        }
+
+        public String getLine() {
+            return line;
+        }
+
+        public int getDistance() {
+            return distance;
+        }
+    }
+
     @Override
     public ExecutionResult assertContentContains(String actualText, String expectedOutput, String label) {
         String expectedText = LogContent.of(expectedOutput).withNormalizedEol();
         if (!actualText.contains(expectedText)) {
+            if (!expectedText.contains("\n")) {
+                Arrays.stream(actualText.split("\n"))
+                    // Measure Levenshtein distance for each line
+                    .map(line -> new LineWithDistance(line, StringUtils.getLevenshteinDistance(line, expectedText)))
+                    // Filter out lines that need more edits than half the length of the line
+                    .filter(pair -> pair.getDistance() < pair.getLine().length() / 2)
+                    // Find the closest match
+                    .min(Comparator.comparingInt(LineWithDistance::getDistance))
+                    .map(LineWithDistance::getLine)
+                    .ifPresent(similarLine -> failOnDifferentLine("Did not find expected text in " + label.toLowerCase() + ", found similar line.", expectedOutput, similarLine));
+            }
             failOnMissingOutput("Did not find expected text in " + label.toLowerCase() + ".", label, expectedOutput, actualText);
         }
         return this;
@@ -392,6 +425,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     private void failOnMissingOutput(String message, String type, String expected, String actual) {
         throw new AssertionError(String.format("%s%nExpected: %s%n%n%s:%n=======%n%s", message, expected, type, actual));
+    }
+
+    private void failOnDifferentLine(String message, String expected, String actual) {
+        throw new SpockAssertionError(String.format("%nExpected: \"%s\"%n but: was \"%s\"", expected, actual));
     }
 
     protected void failureOnUnexpectedOutput(String message) {

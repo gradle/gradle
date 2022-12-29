@@ -48,6 +48,7 @@ import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -383,6 +384,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return A map from child project name to child project. Returns an empty map if this project does not have
      *         any children.
      */
+    @ForExternalUse // See ProjectInternal#getChildProjects
     Map<String, Project> getChildProjects();
 
     /**
@@ -959,15 +961,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     FileTree tarTree(Object tarPath);
 
     /**
-     * Creates a {@code Provider} implementation based on the provided value.
+     * Creates a {@link Provider} implementation based on the provided value.
      *
-     * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
+     * <p>The provider is live and will call the {@link Callable} each time its value is queried. The {@link Callable} may return {@code null}, in which case the provider is considered to have no value.
+     *
+     * @param value The {@link Callable} use to calculate the value.
      * @return The provider. Never returns null.
-     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
      * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
      * @since 4.0
      */
-    <T> Provider<T> provider(Callable<T> value);
+    <T> Provider<T> provider(Callable<? extends @org.jetbrains.annotations.Nullable T> value);
 
     /**
      * Provides access to methods to create various kinds of {@link Provider} instances.
@@ -1320,7 +1323,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Adds an action to call immediately before this project is evaluated.</p>
      * <p>Passes the project to the action as a parameter. Actions passed to this
      * method execute in the same order they were passed.</p>
-     * 
+     *
      * <p>If the project has already been evaluated, the action never executes.</p>
      * <p>If you call this method within a <code>beforeEvaluate</code> action, the passed action never executes.</p>
      *
@@ -1334,7 +1337,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * action as a parameter. Actions passed to this method execute in the same order they were passed.
      * A parent project may add an action to its child projects to further configure those projects based
      * on their state after their build files run.</p>
-     * 
+     *
      * <p>If the project has already been evaluated, this method fails.</p>
      * <p>If you call this method within an <code>afterEvaluate</code> action, the passed action executes after all
      * previously added <code>afterEvaluate</code> actions finish executing.</p>
@@ -1345,7 +1348,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Adds a closure to call immediately before this project is evaluated.</p>
-     * 
+     *
      * @see Project#beforeEvaluate(Action)
      *
      * @param closure The closure to call.
@@ -1354,7 +1357,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Adds a closure to call immediately after this project is evaluated.</p>
-     * 
+     *
      * @see Project#afterEvaluate(Action)
      *
      * @param closure The closure to call.

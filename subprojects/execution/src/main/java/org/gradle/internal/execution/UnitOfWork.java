@@ -19,17 +19,17 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.fingerprint.InputFingerprinter;
 import org.gradle.internal.execution.history.OverlappingOutputs;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.execution.workspace.WorkspaceProvider;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
+import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -210,64 +210,6 @@ public interface UnitOfWork extends Describable {
         ) {}
     }
 
-    /**
-     * Describes the behavior of an input property.
-     */
-    enum InputBehavior {
-        /**
-         * Non-incremental inputs.
-         *
-         * <ul>
-         *     <li>Any change to the property value always triggers a full rebuild of the work</li>
-         *     <li>Changes for the property cannot be queried via {@link org.gradle.work.InputChanges}</li>
-         * </ul>
-         */
-        NON_INCREMENTAL(false, false),
-
-        /**
-         * Incremental inputs.
-         *
-         * <ul>
-         *     <li>Changes to the property value can cause an incremental execution of the work</li>
-         *     <li>Changes for the property can be queried via {@link org.gradle.work.InputChanges}</li>
-         * </ul>
-         */
-        INCREMENTAL(true, false),
-
-        /**
-         * Primary (incremental) inputs.
-         *
-         * <ul>
-         *     <li>Changes to the property value can cause an incremental execution</li>
-         *     <li>Changes for the property can be queried via {@link org.gradle.work.InputChanges}</li>
-         *     <li>When the property is empty, the work is skipped with any previous outputs removed</li>
-         * </ul>
-         */
-        PRIMARY(true, true);
-
-        private final boolean trackChanges;
-        private final boolean skipWhenEmpty;
-
-        InputBehavior(boolean trackChanges, boolean skipWhenEmpty) {
-            this.trackChanges = trackChanges;
-            this.skipWhenEmpty = skipWhenEmpty;
-        }
-
-        /**
-         * Whether incremental changes should be tracked via {@link org.gradle.work.InputChanges}.
-         */
-        public boolean shouldTrackChanges() {
-            return trackChanges;
-        }
-
-        /**
-         * Whether the work should be skipped and outputs be removed if the property is empty.
-         */
-        public boolean shouldSkipWhenEmpty() {
-            return skipWhenEmpty;
-        }
-    }
-
     interface ValueSupplier {
         @Nullable
         Object getValue();
@@ -279,14 +221,14 @@ public interface UnitOfWork extends Describable {
 
     class InputFileValueSupplier implements FileValueSupplier {
         private final Object value;
-        private final Class<? extends FileNormalizer> normalizer;
+        private final FileNormalizer normalizer;
         private final DirectorySensitivity directorySensitivity;
         private final LineEndingSensitivity lineEndingSensitivity;
         private final Supplier<FileCollection> files;
 
         public InputFileValueSupplier(
             @Nullable Object value,
-            Class<? extends FileNormalizer> normalizer,
+            FileNormalizer normalizer,
             DirectorySensitivity directorySensitivity,
             LineEndingSensitivity lineEndingSensitivity,
             Supplier<FileCollection> files
@@ -304,7 +246,7 @@ public interface UnitOfWork extends Describable {
             return value;
         }
 
-        public Class<? extends FileNormalizer> getNormalizer() {
+        public FileNormalizer getNormalizer() {
             return normalizer;
         }
 
@@ -322,20 +264,36 @@ public interface UnitOfWork extends Describable {
         }
     }
 
-    class OutputFileValueSupplier implements FileValueSupplier {
-        private final File root;
+    abstract class OutputFileValueSupplier implements FileValueSupplier {
         private final FileCollection files;
 
-        public OutputFileValueSupplier(File root, FileCollection files) {
-            this.root = root;
+        public OutputFileValueSupplier(FileCollection files) {
             this.files = files;
+        }
+
+        public static OutputFileValueSupplier fromStatic(File root, FileCollection fileCollection) {
+            return new OutputFileValueSupplier(fileCollection) {
+                @Nonnull
+                @Override
+                public File getValue() {
+                    return root;
+                }
+            };
+        }
+
+        public static OutputFileValueSupplier fromSupplier(Supplier<File> root, FileCollection fileCollection) {
+            return new OutputFileValueSupplier(fileCollection) {
+                @Nonnull
+                @Override
+                public File getValue() {
+                    return root.get();
+                }
+            };
         }
 
         @Nonnull
         @Override
-        public File getValue() {
-            return root;
-        }
+        abstract public File getValue();
 
         @Override
         public FileCollection getFiles() {

@@ -23,7 +23,7 @@ import spock.lang.Issue
 
 class DependencyNotationIntegrationSpec extends AbstractIntegrationSpec {
 
-    @ToBeFixedForConfigurationCache(because = "unsupported type Dependency")
+    @ToBeFixedForConfigurationCache(because = "Task uses the Configuration API")
     def "understands dependency notations"() {
         when:
         buildFile <<  """
@@ -46,7 +46,6 @@ dependencies {
            prefer '1.1'
         }
         transitive = false
-        force = true
     }
 
     conf module('org.foo:moduleOne:1.0'), module('org.foo:moduleTwo:1.0')
@@ -66,7 +65,6 @@ task checkDeps {
         def configuredDep = deps.find { it instanceof ExternalDependency && it.group == 'org.test' && it.name == 'configured' }
         assert configuredDep.version == '1.1'
         assert configuredDep.transitive == false
-        assert configuredDep.force == true
 
         assert deps.find { it instanceof ClientModule && it.name == 'moduleOne' && it.group == 'org.foo' }
         assert deps.find { it instanceof ClientModule && it.name == 'moduleTwo' && it.version == '1.0' }
@@ -82,7 +80,6 @@ task checkDeps {
 }
 """
         then:
-        executer.expectDeprecationWarning()
         succeeds 'checkDeps'
     }
 

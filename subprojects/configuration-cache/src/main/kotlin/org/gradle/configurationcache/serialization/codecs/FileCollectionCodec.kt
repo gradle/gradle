@@ -31,7 +31,6 @@ import org.gradle.api.internal.file.FilteredFileCollection
 import org.gradle.api.internal.file.SubtractingFileCollection
 import org.gradle.api.internal.file.collections.FailingFileCollection
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
-import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.internal.file.collections.ProviderBackedFileCollection
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.specs.Spec
@@ -42,6 +41,8 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
+import org.gradle.configurationcache.serialization.readList
+import org.gradle.configurationcache.serialization.writeCollection
 import java.io.File
 
 
@@ -53,36 +54,39 @@ class FileCollectionCodec(
 
     override suspend fun WriteContext.encode(value: FileCollectionInternal) {
         encodePreservingIdentityOf(value) {
-            val visitor = CollectingVisitor()
-            value.visitStructure(visitor)
-            write(visitor.elements)
+            encodeContents(value)
         }
+    }
+
+    suspend fun WriteContext.encodeContents(value: FileCollectionInternal) {
+        val visitor = CollectingVisitor()
+        value.visitStructure(visitor)
+        writeCollection(visitor.elements)
     }
 
     override suspend fun ReadContext.decode(): FileCollectionInternal {
         return decodePreservingIdentity { id ->
-            val contents = read()
-            val collection = if (contents is Collection<*>) {
-                fileCollectionFactory.resolving(
-                    contents.map { element ->
-                        when (element) {
-                            is File -> element
-                            is SubtractingFileCollectionSpec -> element.left.minus(element.right)
-                            is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
-                            is ProviderBackedFileCollectionSpec -> element.provider
-                            is FileTree -> element
-                            is ResolvedArtifactSet -> artifactSetConverter.asFileCollection(element)
-                            is BeanSpec -> element.bean
-                            else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
-                        }
-                    }
-                )
-            } else {
-                fileCollectionFactory.create(ErrorFileSet(contents as BrokenValue))
-            }
-            isolate.identities.putInstance(id, collection)
-            collection
+            val fileCollection = decodeContents()
+            isolate.identities.putInstance(id, fileCollection)
+            fileCollection
         }
+    }
+
+    suspend fun ReadContext.decodeContents(): FileCollectionInternal {
+        return fileCollectionFactory.resolving(
+            readList().map { element ->
+                when (element) {
+                    is File -> element
+                    is SubtractingFileCollectionSpec -> element.left.minus(element.right)
+                    is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
+                    is ProviderBackedFileCollectionSpec -> element.provider
+                    is FileTree -> element
+                    is ResolvedArtifactSet -> artifactSetConverter.asFileCollection(element)
+                    is BeanSpec -> element.bean
+                    else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
+                }
+            }
+        )
     }
 }
 
@@ -109,11 +113,13 @@ class CollectingVisitor : FileCollectionStructureVisitor {
                 elements.add(SubtractingFileCollectionSpec(fileCollection.left, fileCollection.right))
                 false
             }
+
             is FilteredFileCollection -> {
                 // TODO - when the collection is static then we should serialize the current contents of the collection
                 elements.add(FilteredFileCollectionSpec(fileCollection.collection, fileCollection.filterSpec))
                 false
             }
+
             is ProviderBackedFileCollection -> {
                 // Guard against file collection created from a task provider such as `layout.files(compileJava)`
                 // being referenced from a different task.
@@ -125,14 +131,17 @@ class CollectingVisitor : FileCollectionStructureVisitor {
                     true
                 }
             }
+
             is FileTreeInternal -> {
                 elements.add(fileCollection)
                 false
             }
+
             is FailingFileCollection -> {
                 elements.add(BeanSpec(fileCollection))
                 false
             }
+
             else -> {
                 true
             }
@@ -143,7 +152,7 @@ class CollectingVisitor : FileCollectionStructureVisitor {
             // Represents artifact transform outputs. Visit the source rather than the files
             // Transforms may have inputs or parameters that are task outputs or other changing files
             // When this is not the case, we should run the transform now and write the result.
-            // However, currently it is not easy to determine whether or not this is the case so assume that all transforms
+            // However, currently it is not easy to determine whether this is the case so assume that all transforms
             // have changing inputs
             FileCollectionStructureVisitor.VisitType.NoContents
         } else {
@@ -155,12 +164,15 @@ class CollectingVisitor : FileCollectionStructureVisitor {
             is TransformedProjectArtifactSet -> {
                 elements.add(source)
             }
+
             is LocalFileDependencyBackedArtifactSet -> {
                 elements.add(source)
             }
+
             is TransformedExternalArtifactSet -> {
                 elements.add(source)
             }
+
             else -> {
                 elements.addAll(contents)
             }
@@ -178,15 +190,4 @@ class CollectingVisitor : FileCollectionStructureVisitor {
         throw UnsupportedOperationException(
             "Unexpected file tree '$fileTree' of type '${fileTree.javaClass}' found while serializing a file collection."
         )
-}
-
-
-private
-class ErrorFileSet(private val error: BrokenValue) : MinimalFileSet {
-
-    override fun getDisplayName() =
-        "error-file-collection"
-
-    override fun getFiles() =
-        error.rethrow()
 }

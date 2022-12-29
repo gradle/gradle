@@ -6,7 +6,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "3.1.1"
+version = "4.0.0-rc-3"
 
 base.archivesName.set("plugins")
 
@@ -18,7 +18,7 @@ dependencies {
     compileOnly(project(":core"))
     compileOnly(project(":language-jvm"))
     compileOnly(project(":language-java"))
-    compileOnly(project(":plugins"))
+    compileOnly(project(":platform-jvm"))
     compileOnly(project(":plugin-development"))
     compileOnly(project(":kotlin-dsl"))
 
@@ -28,6 +28,8 @@ dependencies {
     implementation(libs.futureKotlin("stdlib-jdk8"))
     implementation(libs.futureKotlin("gradle-plugin"))
     implementation(libs.futureKotlin("sam-with-receiver"))
+
+    testImplementation(projects.logging)
 
     integTestImplementation(project(":base-services"))
     integTestImplementation(project(":logging"))
@@ -54,6 +56,7 @@ dependencies {
 
 packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/plugins/base/**")
+    excludePatterns.add("org/gradle/kotlin/dsl/plugins/precompiled/**")
 }
 
 testFilesCleanup.reportOnly.set(true)

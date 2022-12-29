@@ -17,10 +17,10 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
-import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import java.util.function.Predicate;
 
@@ -52,15 +52,28 @@ public class JavaToolchainMatcher implements Predicate<JavaToolchain> {
 
     private Predicate<? super JvmInstallationMetadata> implementationPredicate() {
         return metadata -> {
+            if (spec.getImplementation().get() == JvmImplementation.VENDOR_SPECIFIC) {
+                return true;
+            }
+
+            final boolean j9Requested = isJ9ExplicitlyRequested(spec) || isJ9RequestedViaVendor(spec);
             final boolean isJ9Vm = metadata.hasCapability(JvmInstallationMetadata.JavaInstallationCapability.J9_VIRTUAL_MACHINE);
-            final boolean j9Requested = spec.getImplementation().get() == JvmImplementation.J9;
             return j9Requested == isJ9Vm;
         };
     }
 
-    @SuppressWarnings("unchecked")
-    private Predicate<? super JvmInstallationMetadata> vendorPredicate() {
-        JvmVendorSpec vendorSpec = spec.getVendor().get();
-        return (Predicate<? super JvmInstallationMetadata>) vendorSpec;
+    private static boolean isJ9ExplicitlyRequested(JavaToolchainSpec spec) {
+        return spec.getImplementation().get() == JvmImplementation.J9;
     }
+
+    private static boolean isJ9RequestedViaVendor(JavaToolchainSpec spec) {
+        DefaultJvmVendorSpec vendorSpec = (DefaultJvmVendorSpec) spec.getVendor().get();
+        return vendorSpec != DefaultJvmVendorSpec.any() && vendorSpec.test(JvmVendor.KnownJvmVendor.IBM.asJvmVendor());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Predicate<JvmInstallationMetadata> vendorPredicate() {
+        return (DefaultJvmVendorSpec) spec.getVendor().get();
+    }
+
 }

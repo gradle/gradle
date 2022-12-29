@@ -652,7 +652,7 @@ class ComponentAttributeMatcherTest extends Specification {
                 return [preferred]
             }
 
-            candidates
+            null
         }
 
         @Override

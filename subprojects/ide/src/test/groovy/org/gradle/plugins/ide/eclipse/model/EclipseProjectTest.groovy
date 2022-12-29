@@ -17,11 +17,13 @@
 package org.gradle.plugins.ide.eclipse.model
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.plugins.ide.api.XmlFileContentMerger
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class EclipseProjectTest extends Specification {
 
-    def eclipseProject = new EclipseProject()
+    def eclipseProject = TestUtil.newInstance(EclipseProject, Mock(XmlFileContentMerger))
 
     def "allows adding linked resources"() {
         when:

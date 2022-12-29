@@ -60,7 +60,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                 containsString("Learn more about Gradle by exploring our samples at")))
 
         expect:
-        succeeds 'help'
+        succeeds 'properties'
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -85,7 +85,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                 containsString(BuildScriptBuilder.getIncubatingApisWarning())))
 
         expect:
-        succeeds 'help'
+        succeeds 'properties'
 
         where:
         scriptDsl << ScriptDslFixture.SCRIPT_DSLS
@@ -174,7 +174,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         when:
         executer.usingSettingsFile(customSettings)
-        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
+        executer.expectDocumentedDeprecationWarning("Specifying custom settings file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
         runInitWith targetScriptDsl as BuildInitDsl
 
         then:

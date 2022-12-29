@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -78,6 +77,5 @@ public interface FeatureSpec {
      *
      * @since 6.7
      */
-    @Incubating
     void disablePublication();
 }

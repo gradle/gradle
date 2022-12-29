@@ -65,7 +65,9 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
                         def systemLoaderUrls = systemLoader.URLs
                         println "$heading"
                         println systemLoaderUrls.size()
-                        println systemLoaderUrls[0]
+                        for (def url : systemLoaderUrls) {
+                            println url
+                        }
                     } else {
                         println "$noInfoHeading"
                     }
@@ -82,7 +84,19 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
 
         lines.find { it == heading } // here for nicer output if the output isn't what we expect
         def headingIndex = lines.indexOf(heading)
-        lines[headingIndex + 1] == "1"
-        lines[headingIndex + 2].contains("gradle-launcher")
+        def classpathSize = Integer.parseInt(lines[headingIndex + 1])
+        // The gradle-launcher.jar is mandatory.
+        // The gradle-instrumentation-agent.jar may not be available if the build runs in no-daemon mode.
+        // There should not be more jars on the system classpath.
+        classpathSize == 1 || classpathSize == 2
+        def maybeHasAgent = classpathSize > 1
+
+        def libraries = lines[headingIndex + 2..<headingIndex + 2 + classpathSize]
+        libraries.any {
+            it.contains("gradle-launcher")
+        }
+        !maybeHasAgent || libraries.any {
+            it.contains("gradle-instrumentation-agent")
+        }
     }
 }

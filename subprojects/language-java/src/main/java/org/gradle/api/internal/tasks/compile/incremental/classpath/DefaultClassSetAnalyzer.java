@@ -75,7 +75,7 @@ public class DefaultClassSetAnalyzer implements ClassSetAnalyzer {
 
     private void visit(File classpathEntry, ClassDependentsAccumulator accumulator, boolean abiOnly) {
         if (hasExtension(classpathEntry, ".jar")) {
-            fileOperations.zipTree(classpathEntry).visit(new JarEntryVisitor(accumulator, abiOnly));
+            fileOperations.zipTreeNoLocking(classpathEntry).visit(new JarEntryVisitor(accumulator, abiOnly));
         }
         if (classpathEntry.isDirectory()) {
             fileOperations.fileTree(classpathEntry).visit(new DirectoryEntryVisitor(accumulator, abiOnly));

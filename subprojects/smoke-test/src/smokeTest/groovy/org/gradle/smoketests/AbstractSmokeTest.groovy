@@ -21,7 +21,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheMaxProblemsOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
-import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheQuietOption
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.BuildOperationTreeFixture
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
@@ -57,28 +57,26 @@ abstract class AbstractSmokeTest extends Specification {
          * @see BuildScanPluginSmokeTest
          */
 
-        // https://plugins.gradle.org/plugin/nebula.dependency-recommender
-        static nebulaDependencyRecommender = "11.0.0"
+        // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-recommender
+        static nebulaDependencyRecommender = "12.0.0"
 
-        // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "17.1.0"
+        // https://plugins.gradle.org/plugin/com.netflix.nebula.plugin-plugin
+        static nebulaPluginPlugin = "20.0.0"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "17.7.0"
+        static nebulaLint = "17.7.1"
 
         // https://plugins.gradle.org/plugin/org.jetbrains.gradle.plugin.idea-ext
         static ideaExt = "1.1.6"
 
-        // https://plugins.gradle.org/plugin/nebula.dependency-lock
-        // TODO: Re-add "8.8.x", "9.4.x" and "10.1.x" if fixed:
-        //   https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/215
-        static nebulaDependencyLock = Versions.of("12.6.1")
+        // https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-lock
+        static nebulaDependencyLock = Versions.of("13.1.0")
 
-        // https://plugins.gradle.org/plugin/nebula.resolution-rules
-        static nebulaResolutionRules = "9.0.0"
+        // https://plugins.gradle.org/plugin/com.netflix.nebula.resolution-rules
+        static nebulaResolutionRules = "10.0.0"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("4.0.4", "6.0.0", "6.1.0", "7.0.0", "7.1.2")
+        static shadow = Versions.of("7.0.0", "7.1.2")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
         static asciidoctor = Versions.of("3.3.2")
@@ -133,7 +131,7 @@ abstract class AbstractSmokeTest extends Specification {
         static protobufTools = "3.21.5"
 
         // https://plugins.gradle.org/plugin/org.gradle.test-retry
-        static testRetryPlugin = "1.4.1"
+        static testRetryPlugin = "1.5.0"
 
         // https://plugins.gradle.org/plugin/com.jfrog.artifactory
         static artifactoryPlugin = "4.29.0"
@@ -171,7 +169,7 @@ abstract class AbstractSmokeTest extends Specification {
 
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.allopen
         // https://plugins.gradle.org/plugin/org.jetbrains.kotlin.plugin.spring
-        static kotlinPlugins = Versions.of("1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.20-RC")
+        static kotlinPlugins = Versions.of("1.6.10", "1.6.21", "1.7.0", "1.7.10", "1.7.22", "1.8.0-RC2")
 
         // https://plugins.gradle.org/plugin/com.moowork.grunt
         // https://plugins.gradle.org/plugin/com.moowork.gulp
@@ -264,7 +262,7 @@ abstract class AbstractSmokeTest extends Specification {
             .withProjectDir(testProjectDir)
             .forwardOutput()
             .withArguments(
-                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters()
+                tasks.toList() + outputParameters() + repoMirrorParameters() + configurationCacheParameters() + toolchainParameters()
             ) as DefaultGradleRunner
         gradleRunner.withJvmArguments(["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"])
         return new SmokeTestGradleRunner(gradleRunner)
@@ -277,7 +275,6 @@ abstract class AbstractSmokeTest extends Specification {
             parameters += [
                 "--${ConfigurationCacheOption.LONG_OPTION}".toString(),
                 "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=$maxProblems".toString(),
-                "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true".toString(),
                 "-D${BuildOperationTrace.SYSPROP}=${buildOperationTracePath()}".toString()
             ]
             if (maxProblems > 0) {
@@ -300,6 +297,14 @@ abstract class AbstractSmokeTest extends Specification {
             '--init-script', mirrorInitScriptPath,
             "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
             "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
+        ]
+    }
+
+    private static List<String> toolchainParameters() {
+        return [
+            "-Porg.gradle.java.installations.paths=${AvailableJavaHomes.getAvailableJvms().collect { it.javaHome.absolutePath }.join(",")}" as String,
+            '-Porg.gradle.java.installations.auto-detect=false',
+            '-Porg.gradle.java.installations.auto-download=false',
         ]
     }
 

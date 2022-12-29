@@ -17,7 +17,6 @@
 package org.gradle.api.internal;
 
 import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
@@ -32,21 +31,23 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectOrderingUtil;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDestroyables;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskLocalState;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
+import org.gradle.api.internal.tasks.DefaultTaskRequiredServices;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
-import org.gradle.api.internal.tasks.TaskContainerInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.tasks.TaskExecutionAccessChecker;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
+import org.gradle.api.internal.tasks.TaskRequiredServices;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
-import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener;
-import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
@@ -64,7 +65,6 @@ import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -75,8 +75,8 @@ import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
 import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.resources.ResourceLock;
-import org.gradle.internal.resources.SharedResource;
 import org.gradle.internal.scripts.ScriptOriginUtil;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -91,8 +91,6 @@ import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -159,9 +157,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskOutputsInternal taskOutputs;
     private final TaskDestroyables taskDestroyables;
     private final TaskLocalStateInternal taskLocalState;
+    private final TaskRequiredServices taskRequiredServices;
+    private final TaskExecutionAccessChecker taskExecutionAccessChecker;
     private LoggingManagerInternal loggingManager;
-
-    private Set<Provider<? extends BuildService<?>>> requiredServices;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -178,26 +176,28 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
         this.identity = taskInfo.identity;
         this.project = taskInfo.project;
+
         assert project != null;
         assert identity.name != null;
         this.state = new TaskStateInternal();
-        TaskContainerInternal tasks = project.getTasks();
-        this.mustRunAfter = new DefaultTaskDependency(tasks);
-        this.finalizedBy = new DefaultTaskDependency(tasks);
-        this.shouldRunAfter = new DefaultTaskDependency(tasks);
-        this.lifecycleDependencies = new DefaultTaskDependency(tasks);
+        final TaskDependencyFactory taskDependencyFactory = project.getTaskDependencyFactory();
+        this.mustRunAfter = taskDependencyFactory.configurableDependency();
+        this.finalizedBy = taskDependencyFactory.configurableDependency();
+        this.shouldRunAfter = taskDependencyFactory.configurableDependency();
+        this.lifecycleDependencies = taskDependencyFactory.configurableDependency();
 
         this.services = project.getServices();
 
         PropertyWalker propertyWalker = services.get(PropertyWalker.class);
         FileCollectionFactory fileCollectionFactory = services.get(FileCollectionFactory.class);
         taskMutator = new TaskMutator(this);
-        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, fileCollectionFactory);
-        taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, fileCollectionFactory);
+        taskInputs = new DefaultTaskInputs(this, taskMutator, propertyWalker, project.getTaskDependencyFactory(), fileCollectionFactory);
+        taskOutputs = new DefaultTaskOutputs(this, taskMutator, propertyWalker, project.getTaskDependencyFactory(), fileCollectionFactory);
         taskDestroyables = new DefaultTaskDestroyables(taskMutator, fileCollectionFactory);
         taskLocalState = new DefaultTaskLocalState(taskMutator, fileCollectionFactory);
-
-        this.dependencies = new DefaultTaskDependency(tasks, ImmutableSet.of(taskInputs, lifecycleDependencies));
+        this.dependencies = taskDependencyFactory.configurableDependency(ImmutableSet.of(taskInputs, lifecycleDependencies));
+        taskRequiredServices = new DefaultTaskRequiredServices(this, taskMutator, propertyWalker);
+        taskExecutionAccessChecker = services.get(TaskExecutionAccessChecker.class);
 
         this.timeout = project.getObjects().property(Duration.class);
     }
@@ -232,7 +232,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public Project getProject() {
-        notifyProjectAccess();
+        taskExecutionAccessChecker.notifyProjectAccess(this);
         return project;
     }
 
@@ -291,7 +291,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public TaskDependencyInternal getTaskDependencies() {
-        notifyTaskDependenciesAccess("Task.taskDependencies");
+        taskExecutionAccessChecker.notifyTaskDependenciesAccess(this, "Task.taskDependencies");
         return dependencies;
     }
 
@@ -304,7 +304,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Internal
     @Override
     public Set<Object> getDependsOn() {
-        notifyTaskDependenciesAccess("Task.dependsOn");
+        taskExecutionAccessChecker.notifyTaskDependenciesAccess(this, "Task.dependsOn");
         return lifecycleDependencies.getMutableValues();
     }
 
@@ -530,7 +530,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public int compareTo(Task otherTask) {
-        int depthCompare = project.compareTo(otherTask.getProject());
+        int depthCompare = ProjectOrderingUtil.compare(project, ((AbstractTask) otherTask).project);
         if (depthCompare == 0) {
             return getPath().compareTo(otherTask.getPath());
         } else {
@@ -1031,51 +1031,19 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public void usesService(Provider<? extends BuildService<?>> service) {
-        taskMutator.mutate("Task.usesService(Provider)", () -> {
-            if (requiredServices == null) {
-                requiredServices = new HashSet<>();
-            }
-            // TODO:configuration-cache assert build service is from the same build as the task
-            requiredServices.add(service);
-        });
+        taskRequiredServices.registerServiceUsage(service);
     }
 
-    public Set<Provider<? extends BuildService<?>>> getRequiredServices() {
-        if (requiredServices == null) {
-            return Collections.emptySet();
-        }
-        return requiredServices;
+    public TaskRequiredServices getRequiredServices() {
+        return taskRequiredServices;
     }
 
     @Override
     public List<ResourceLock> getSharedResources() {
-        if (requiredServices == null) {
-            return Collections.emptyList();
-        }
-        ImmutableList.Builder<ResourceLock> locks = ImmutableList.builder();
-        BuildServiceRegistryInternal serviceRegistry = getServices().get(BuildServiceRegistryInternal.class);
-        for (Provider<? extends BuildService<?>> service : requiredServices) {
-            SharedResource resource = serviceRegistry.forService(service);
-            if (resource.getMaxUsages() > 0) {
-                locks.add(resource.getResourceLock());
-            }
-        }
-        return locks.build();
+        return getBuildServiceRegistry().getSharedResources(taskRequiredServices.getElements());
     }
 
-    private void notifyProjectAccess() {
-        if (state.getExecuting()) {
-            getTaskExecutionAccessBroadcaster().onProjectAccess("Task.project", this);
-        }
-    }
-
-    private void notifyTaskDependenciesAccess(String invocationDescription) {
-        if (state.getExecuting()) {
-            getTaskExecutionAccessBroadcaster().onTaskDependenciesAccess(invocationDescription, this);
-        }
-    }
-
-    private TaskExecutionAccessListener getTaskExecutionAccessBroadcaster() {
-        return services.get(ListenerManager.class).getBroadcaster(TaskExecutionAccessListener.class);
+    private BuildServiceRegistryInternal getBuildServiceRegistry() {
+        return getServices().get(BuildServiceRegistryInternal.class);
     }
 }

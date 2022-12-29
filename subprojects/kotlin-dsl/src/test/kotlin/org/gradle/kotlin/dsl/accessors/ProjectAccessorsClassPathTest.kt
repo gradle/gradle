@@ -24,6 +24,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.same
 import kotlinx.metadata.jvm.KmModuleVisitor
 import org.gradle.api.Action
+import org.gradle.api.JavaVersion
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
@@ -66,6 +67,8 @@ import java.lang.reflect.Modifier.STATIC
 
 
 class ProjectAccessorsClassPathTest : AbstractDslTest() {
+
+    abstract class CustomConvention
 
     @Test
     fun `#buildAccessorsFor (Kotlin types)`() {
@@ -251,6 +254,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         require(
             compileToDirectory(
                 binDir,
+                JavaVersion.current(),
                 "bin",
                 kotlinFilesIn(srcDir),
                 loggerFor<ProjectAccessorsClassPathTest>(),
@@ -277,7 +281,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     entry<SourceSetContainer, SourceSet>("main")
                 ),
                 conventions = listOf(
-                    entry<Project, @kotlin.Suppress("deprecation") org.gradle.api.plugins.ApplicationPluginConvention>("application")
+                    entry<Project, CustomConvention>("customConvention")
                 ),
                 tasks = listOf(
                     entry<TaskContainer, Delete>("clean")
@@ -312,9 +316,9 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
         val tasks = mock<TaskContainerInternal> {
             on { named(any<String>(), eq(Delete::class.java)) } doReturn clean
         }
-        val applicationPluginConvention = mock<@Suppress("deprecation") org.gradle.api.plugins.ApplicationPluginConvention>()
+        val customConvention = mock<CustomConvention>()
         val convention = mock<Convention> {
-            on { plugins } doReturn mapOf("application" to applicationPluginConvention)
+            on { plugins } doReturn mapOf("customConvention" to customConvention)
         }
         val project = mock<ProjectInternal> {
             on { getConfigurations() } doReturn configurations
@@ -350,10 +354,10 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                     val container: NamedDomainObjectContainer<BuildType> = this
                 }
 
-                val i: ApplicationPluginConvention = application
+                val i: org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathTest.CustomConvention = customConvention
 
-                val j: Unit = application {
-                    val convention: ApplicationPluginConvention = this
+                val j: Unit = customConvention {
+                    val convention: org.gradle.kotlin.dsl.accessors.ProjectAccessorsClassPathTest.CustomConvention = this
                 }
 
                 val k: DependencyConstraint? = dependencies.constraints.api("direct:accessor:1.0")
@@ -399,7 +403,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
             dependencies,
             tasks,
             convention,
-            applicationPluginConvention,
+            customConvention,
             constraints
         ) {
             // val a

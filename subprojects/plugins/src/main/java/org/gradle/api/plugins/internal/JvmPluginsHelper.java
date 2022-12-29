@@ -41,6 +41,8 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
@@ -107,19 +109,30 @@ public class JvmPluginsHelper {
         return apiConfiguration;
     }
 
+    /***
+     * For compatibility with <a href="https://plugins.gradle.org/plugin/io.freefair.aspectj">AspectJ Plugin</a>
+     */
+    @Deprecated
     public static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, CompileOptions options, final Project target) {
-        configureForSourceSet(sourceSet, sourceDirectorySet, compile, target);
-        configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, options, target);
-    }
-
-    private static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, final Project target) {
         compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
         compile.setSource(sourceSet.getJava());
 
-        ConfigurableFileCollection classpath = compile.getProject().getObjects().fileCollection();
-        classpath.from((Callable<Object>) () -> sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getClassesDirectory())));
+        compileAgainstJavaOutputs(compile, sourceSet, target.getObjects());
+        configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, options, target);
+    }
 
-        compile.getConventionMapping().map("classpath", () -> classpath);
+    /**
+     * Configures {@code compileTask} to compile against {@code sourceSet}'s compile classpath
+     * in addition to the outputs of the java compilation, as specified by {@link SourceSet#getJava()}
+     *
+     * @param compileTask The task to configure.
+     * @param sourceSet The source set whose output contains the java classes to compile against.
+     * @param objectFactory An {@link ObjectFactory}.
+     */
+    public static void compileAgainstJavaOutputs(AbstractCompile compileTask, final SourceSet sourceSet, final ObjectFactory objectFactory) {
+        ConfigurableFileCollection classpath = objectFactory.fileCollection();
+        classpath.from((Callable<Object>) () -> sourceSet.getCompileClasspath().plus(objectFactory.fileCollection().from(sourceSet.getJava().getClassesDirectory())));
+        compileTask.getConventionMapping().map("classpath", () -> classpath);
     }
 
     public static void configureAnnotationProcessorPath(final SourceSet sourceSet, SourceDirectorySet sourceDirectorySet, CompileOptions options, final Project target) {
@@ -130,9 +143,9 @@ public class JvmPluginsHelper {
     }
 
     /***
-     * For compatibility with https://plugins.gradle.org/plugin/io.freefair.aspectj
+     * For compatibility with <a href="https://plugins.gradle.org/plugin/io.freefair.aspectj">AspectJ Plugin</a>
      */
-    @SuppressWarnings("unused")
+    @Deprecated
     public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, Provider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
         TaskProvider<? extends AbstractCompile> taskProvider = Cast.uncheckedCast(compileTask);
         configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, taskProvider, options);
@@ -175,7 +188,8 @@ public class JvmPluginsHelper {
         ConfigurationContainer configurations,
         TaskContainer tasks,
         ObjectFactory objectFactory,
-        FileResolver fileResolver
+        FileResolver fileResolver,
+        TaskDependencyFactory taskDependencyFactory
     ) {
         Configuration variant = maybeCreateInvisibleConfig(
             configurations,
@@ -202,7 +216,7 @@ public class JvmPluginsHelper {
             }
         }
         TaskProvider<Task> jar = tasks.named(jarTaskName);
-        variant.getOutgoing().artifact(new LazyPublishArtifact(jar, fileResolver));
+        variant.getOutgoing().artifact(new LazyPublishArtifact(jar, fileResolver, taskDependencyFactory));
         if (component != null) {
             component.addVariantsFromConfiguration(variant, new JavaConfigurationVariantMapping("runtime", true));
         }
@@ -254,8 +268,8 @@ public class JvmPluginsHelper {
     private abstract static class IntermediateJavaArtifact extends AbstractPublishArtifact {
         private final String type;
 
-        public IntermediateJavaArtifact(String type, Object dependency) {
-            super(dependency);
+        public IntermediateJavaArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency) {
+            super(taskDependencyFactory, dependency);
             this.type = type;
         }
 
@@ -298,8 +312,8 @@ public class JvmPluginsHelper {
 
         private final File file;
 
-        public ImmediateIntermediateJavaArtifact(String type, Object dependency, File file) {
-            super(type, dependency);
+        public ImmediateIntermediateJavaArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency, File file) {
+            super(taskDependencyFactory, type, dependency);
             this.file = file;
         }
 
@@ -317,8 +331,20 @@ public class JvmPluginsHelper {
 
         private final Provider<File> fileProvider;
 
-        public ProviderBasedIntermediateJavaArtifact(String type, Object dependency, Provider<File> fileProvider) {
-            super(type, dependency);
+        // Used in the Gradle build;
+        // TODO: remove once the usage in gradlebuild.test-fixtures.gradle.kts is no longer there
+        /**
+         * @deprecated Use the overload accepting a TaskDependencyFactory
+         */
+        @Deprecated
+        public ProviderBasedIntermediateJavaArtifact(
+            String type, Object dependency, Provider<File> fileProvider
+        ) {
+            this(DefaultTaskDependencyFactory.withNoAssociatedProject(), type, dependency, fileProvider);
+        }
+
+        public ProviderBasedIntermediateJavaArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency, Provider<File> fileProvider) {
+            super(taskDependencyFactory, type, dependency);
             this.fileProvider = fileProvider;
         }
 

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.capitalize
 import gradlebuild.pluginpublish.extension.PluginPublishExtension
 import java.time.Year
 

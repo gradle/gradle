@@ -28,7 +28,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
-
+import org.gradle.util.GradleVersion
 import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.TypeSafeMatcher
@@ -73,6 +73,12 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         // Only Kotlin settings scripts
         settingsFile.delete()
         file("settings.gradle.kts").touch()
+        // Gradle 6.5.1 instrumented jar cache has concurrency issues causing flakiness
+        // This is exacerbated by those cross-version tests running concurrently
+        // This isolates the Gradle user home for this version only
+        if (GradleVersion.version(releasedGradleVersion) == GradleVersion.version("6.5.1")) {
+            toolingApi.requireIsolatedUserHome()
+        }
     }
 
     private String defaultSettingsScript = ""

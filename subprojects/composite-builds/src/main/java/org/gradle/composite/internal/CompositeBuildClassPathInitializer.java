@@ -20,10 +20,12 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.initialization.ScriptClassPathInitializer;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.build.BuildState;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class CompositeBuildClassPathInitializer implements ScriptClassPathInitializer {
     private final BuildTreeWorkGraphController buildTreeWorkGraphController;
@@ -37,7 +39,8 @@ public class CompositeBuildClassPathInitializer implements ScriptClassPathInitia
     @Override
     public void execute(Configuration classpath) {
         List<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild = new ArrayList<>();
-        for (Task task : classpath.getBuildDependencies().getDependencies(null)) {
+        Set<? extends Task> dependencies = TaskDependencyUtil.getDependenciesForInternalUse(classpath.getBuildDependencies(), null);
+        for (Task task : dependencies) {
             BuildState targetBuild = ((ProjectInternal) task.getProject()).getOwner().getOwner();
             assert targetBuild != currentBuild;
             tasksToBuild.add(TaskIdentifier.of(targetBuild.getBuildIdentifier(), (TaskInternal) task));

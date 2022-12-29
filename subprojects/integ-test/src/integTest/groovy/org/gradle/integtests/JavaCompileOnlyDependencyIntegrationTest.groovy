@@ -99,14 +99,16 @@ dependencies {
 }
 
 task checkCompileClasspath {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        assert configurations.compileClasspath.files == [file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}'), file('${normaliseFileSeparators(implementationModule.artifactFile.path)}')] as Set
+        assert compileClasspath.files == [file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}'), file('${normaliseFileSeparators(implementationModule.artifactFile.path)}')] as Set
     }
 }
 
 task checkRuntimeClasspath {
+    def runtimeClasspath = configurations.runtimeClasspath
     doLast {
-        assert configurations.runtimeClasspath.files == [file('${normaliseFileSeparators(implementationModule.artifactFile.path)}'), file('${normaliseFileSeparators(runtimeModule.artifactFile.path)}')] as Set
+        assert runtimeClasspath.files == [file('${normaliseFileSeparators(implementationModule.artifactFile.path)}'), file('${normaliseFileSeparators(runtimeModule.artifactFile.path)}')] as Set
     }
 }
 """
@@ -150,14 +152,16 @@ task checkImplementation {
 }
 
 task checkCompileOnly {
+    def compileOnlyClasspath = configurations.compileOnlyClasspath
     doLast {
-        assert configurations.compileOnlyClasspath.files == [file('${normaliseFileSeparators(shared10.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
+        assert compileOnlyClasspath.files == [file('${normaliseFileSeparators(shared10.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
     }
 }
 
 task checkCompileClasspath{
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        assert configurations.compileClasspath.files == [file('${normaliseFileSeparators(shared11.artifactFile.path)}'), file('${normaliseFileSeparators(implementationModule.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
+        assert compileClasspath.files == [file('${normaliseFileSeparators(shared11.artifactFile.path)}'), file('${normaliseFileSeparators(implementationModule.artifactFile.path)}'), file('${normaliseFileSeparators(compileOnlyModule.artifactFile.path)}')] as Set
     }
 }
 """

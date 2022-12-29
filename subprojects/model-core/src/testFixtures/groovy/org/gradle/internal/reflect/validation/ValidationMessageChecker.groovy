@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect.validation
 
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.api.services.BuildService
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.reflect.problems.ValidationProblemId
@@ -176,6 +177,18 @@ trait ValidationMessageChecker {
                 .solution("If you want to track the path, return File.absolutePath as a String and keep @Input")
                 .render()
         }
+    }
+
+    @ValidationTestFor(
+        ValidationProblemId.SERVICE_REFERENCE_MUST_BE_A_BUILD_SERVICE
+    )
+    String serviceReferenceMustBeABuildService(@DelegatesTo(value = UnsupportedServiceReferenceType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
+        def config = display(UnsupportedServiceReferenceType, 'service_reference_must_be_a_build_service', spec)
+        config.description("has @ServiceReference annotation used on property of type '${config.propertyType}' which is not a build service implementation")
+            .reason("A property annotated with @ServiceReference must be of a type that implements '${BuildService.class.name}'")
+            .solution("Make '${config.propertyType}' implement '${BuildService.class.name}'")
+            .solution("Replace the @ServiceReference annotation on '${config.property}' with @Internal and assign a value of type '${config.propertyType}' explicitly")
+            .render()
     }
 
     @ValidationTestFor(
@@ -413,8 +426,8 @@ trait ValidationMessageChecker {
 
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
                                                                    String message,
-                                                                   String docId = 'more_about_tasks',
-                                                                   String section = 'sec:up_to_date_checks') {
+                                                                   String docId = "incremental_build",
+                                                                   String section = "") {
         String asSingleLine = convertToSingleLine(message)
         String deprecationMessage = asSingleLine + (asSingleLine.endsWith(" ") ? '' : ' ') +
             "This behavior has been deprecated. " +
@@ -815,12 +828,12 @@ trait ValidationMessageChecker {
         }
 
         AnnotationContext forTransformParameters() {
-            validAnnotations = "@Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested or @ReplacedBy"
+            validAnnotations = "@Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference"
             this
         }
 
         AnnotationContext forTask() {
-            validAnnotations = "@Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles or @ReplacedBy"
+            validAnnotations = "@Console, @Destroys, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @LocalState, @Nested, @OptionValues, @OutputDirectories, @OutputDirectory, @OutputFile, @OutputFiles, @ReplacedBy or @ServiceReference"
             this
         }
     }
@@ -939,4 +952,10 @@ trait ValidationMessageChecker {
         }
     }
 
+    static class UnsupportedServiceReferenceType extends ValidationMessageDisplayConfiguration<UnsupportedServiceReferenceType> {
+
+        UnsupportedServiceReferenceType(ValidationMessageChecker checker) {
+            super(checker)
+        }
+    }
 }

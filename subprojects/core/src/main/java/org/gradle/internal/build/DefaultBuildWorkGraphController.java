@@ -59,6 +59,17 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     }
 
     @Override
+    public void resetState() {
+        synchronized (lock) {
+            if (currentOwner != null) {
+                throw new IllegalStateException("Cannot reset work graph state as another thread is currently using the work graph.");
+            }
+            nodesByPath.clear();
+        }
+        taskNodeFactory.resetState();
+    }
+
+    @Override
     public ExportedTaskNode locateTask(TaskIdentifier taskIdentifier) {
         DefaultExportedTaskNode node = doLocate(taskIdentifier);
         if (taskIdentifier instanceof TaskIdentifier.TaskBasedTaskIdentifier) {
@@ -112,6 +123,14 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         public void stop() {
             if (plan != null) {
                 plan.stop();
+            }
+            synchronized (lock) {
+                assert currentOwner == Thread.currentThread();
+                pendingGraphs.remove(this);
+                if (pendingGraphs.isEmpty()) {
+                    currentOwner = null;
+                    lock.notifyAll();
+                }
             }
         }
 
@@ -194,11 +213,6 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
             } finally {
                 synchronized (lock) {
                     currentlyRunning = null;
-                    pendingGraphs.remove(this);
-                    if (pendingGraphs.isEmpty()) {
-                        currentOwner = null;
-                        lock.notifyAll();
-                    }
                 }
             }
         }

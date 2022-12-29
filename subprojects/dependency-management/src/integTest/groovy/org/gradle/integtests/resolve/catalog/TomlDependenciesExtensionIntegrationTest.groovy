@@ -185,6 +185,44 @@ myBundle = ["lib", "lib2"]
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/22552")
+    void "can add several dependencies at once using a bundle with DependencyHandler#addProvider"() {
+        tomlFile << """[libraries]
+lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
+lib2.module = "org.gradle.test:lib2"
+lib2.version = "1.0"
+
+[bundles]
+myBundle = ["lib", "lib2"]
+"""
+        def lib = mavenHttpRepo.module("org.gradle.test", "lib", "1.0").publish()
+        def lib2 = mavenHttpRepo.module("org.gradle.test", "lib2", "1.0").publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            dependencies {
+                addProvider("implementation", libs.bundles.myBundle)
+            }
+        """
+
+        when:
+        lib.pom.expectGet()
+        lib.artifact.expectGet()
+        lib2.pom.expectGet()
+        lib2.artifact.expectGet()
+
+        then:
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.gradle.test:lib:1.0')
+                module('org.gradle.test:lib2:1.0')
+            }
+        }
+    }
+
     void "overriding the version of a bundle overrides the version of all dependencies of the bundle"() {
         tomlFile << """[libraries]
 lib = {group = "org.gradle.test", name="lib", version.require="1.0"}
@@ -408,7 +446,7 @@ from-included="org.gradle.test:other:1.1"
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("com.acme:included:1.0", "project :included", "com.acme:included:zloubi") {
+                edge("com.acme:included:1.0", ":included", "com.acme:included:zloubi") {
                     compositeSubstitute()
                     configuration = "runtimeElements"
                     module('org.gradle.test:other:1.1')
@@ -816,6 +854,7 @@ dependencyResolutionManagement {
 """
 
         when:
+        executer.withStacktraceEnabled()
         fails 'help'
 
         then:
