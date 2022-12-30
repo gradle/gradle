@@ -75,12 +75,17 @@ public class JUnitXmlResultWriter {
                 writeTestCasesWithDiscreteRerunHandling(writer, methodResults, className, classId);
             }
 
-            writer.startElement("system-out");
-            writeOutputs(writer, classId, !options.outputPerTestCase, TestOutputEvent.Destination.StdOut);
-            writer.endElement();
-            writer.startElement("system-err");
-            writeOutputs(writer, classId, !options.outputPerTestCase, TestOutputEvent.Destination.StdErr);
-            writer.endElement();
+            if (!options.omitSystemOutLog) {
+                writer.startElement("system-out");
+                writeOutputs(writer, classId, !options.outputPerTestCase, TestOutputEvent.Destination.StdOut);
+                writer.endElement();
+            }
+
+            if (!options.omitSystemErrLog) {
+                writer.startElement("system-err");
+                writeOutputs(writer, classId, !options.outputPerTestCase, TestOutputEvent.Destination.StdErr);
+                writer.endElement();
+            }
 
             writer.endElement();
         } catch (IOException e) {

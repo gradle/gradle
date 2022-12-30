@@ -26,6 +26,8 @@ public abstract class DefaultJUnitXmlReport extends TaskGeneratedSingleDirectory
 
     private boolean outputPerTestCase;
     private final Property<Boolean> mergeReruns;
+    private boolean omitSystemOutLog;
+    private boolean omitSystemErrLog;
 
     public DefaultJUnitXmlReport(String name, Task task, ObjectFactory objectFactory) {
         super(name, task, null);
@@ -45,5 +47,25 @@ public abstract class DefaultJUnitXmlReport extends TaskGeneratedSingleDirectory
     @Override
     public Property<Boolean> getMergeReruns() {
         return mergeReruns;
+    }
+
+    @Override
+    public void setOmitSystemOutLog(boolean omitSystemOutLog) {
+        this.omitSystemOutLog = omitSystemOutLog;
+    }
+
+    @Override
+    public boolean isOmitSystemOutLog() {
+        return this.omitSystemOutLog;
+    }
+
+    @Override
+    public void setOmitSystemErrLog(boolean omitSystemErrLog) {
+        this.omitSystemErrLog = omitSystemErrLog;
+    }
+
+    @Override
+    public boolean isOmitSystemErrLog() {
+        return this.omitSystemErrLog;
     }
 }

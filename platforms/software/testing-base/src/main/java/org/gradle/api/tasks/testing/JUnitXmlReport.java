@@ -57,4 +57,25 @@ public interface JUnitXmlReport extends DirectoryReport {
     @Input
     Property<Boolean> getMergeReruns();
 
+    /**
+      * Should omit system out log
+     */
+    void setOmitSystemOutLog(boolean omitSystemOutLog);
+
+    /**
+     * Should omit system out log
+     */
+    @Input
+    boolean isOmitSystemOutLog();
+
+    /**
+     * Should omit system err log
+     */
+    void setOmitSystemErrLog(boolean omitSystemErrLog);
+
+    /**
+     * Should omit system err log
+     */
+    @Input
+    boolean isOmitSystemErrLog();
 }

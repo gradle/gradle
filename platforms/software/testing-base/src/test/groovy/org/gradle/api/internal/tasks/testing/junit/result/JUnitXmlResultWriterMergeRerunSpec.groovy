@@ -26,7 +26,7 @@ class JUnitXmlResultWriterMergeRerunSpec extends Specification {
     def outputPerTestCase = true
 
     protected JUnitXmlResultWriter getGenerator() {
-        new JUnitXmlResultWriter("localhost", provider, new JUnitXmlResultOptions(outputPerTestCase, true))
+        new JUnitXmlResultWriter("localhost", provider, new JUnitXmlResultOptions(outputPerTestCase, true, false, false))
     }
 
     def "merges for simple case - output per testcase"() {
