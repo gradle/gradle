@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixtu
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.agents.AgentControl
+import org.gradle.internal.agents.AgentStatus
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import spock.lang.Requires
 
@@ -147,11 +147,12 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
 
     private void withDumpAgentStatusTask() {
         buildFile("""
-            import ${AgentControl.name}
+            import ${AgentStatus.name}
 
             tasks.register('hello') {
                 doLast {
-                    println("agent applied = \${AgentControl.isInstrumentationAgentApplied()}")
+                    def status = services.get(AgentStatus).isInstrumentationAgentApplied()
+                    println("agent applied = \${status}")
                 }
             }
 
@@ -161,9 +162,9 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
 
     private void withDumpAgentStatusAtConfiguration() {
         buildFile("""
-            import ${AgentControl.name}
+            import ${AgentStatus.name}
 
-            def status = AgentControl.isInstrumentationAgentApplied()
+            def status = services.get(AgentStatus).isInstrumentationAgentApplied()
             tasks.register('hello') {
                 doLast {
                     println("agent applied = \$status")
