@@ -23,7 +23,7 @@ import org.gradle.util.internal.VersionNumber
 
 import static org.hamcrest.CoreMatchers.startsWith
 
-class CodeNarcCrossVersionIntegrationTest extends AbstractIntegrationSpec implements CodeNarcTestFixture {
+class CodeNarcGroovyVersionIntegrationTest extends AbstractIntegrationSpec implements CodeNarcTestFixture {
     private static final STABLE_VERSION = CodeNarcPlugin.DEFAULT_CODENARC_VERSION
     private static final STABLE_VERSION_WITH_GROOVY4_SUPPORT = "${STABLE_VERSION}-groovy-4.0"
 

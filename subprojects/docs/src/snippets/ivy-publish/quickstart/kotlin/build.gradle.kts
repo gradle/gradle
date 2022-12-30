@@ -22,10 +22,9 @@ publishing {
 // end::publish-component[]
 // tag::repositories[]
     repositories {
-        val buildDirectory = layout.buildDirectory
         ivy {
             // change to point to your repo, e.g. http://my.org/repo
-            url = uri(buildDirectory.dir("repo"))
+            url = uri(layout.buildDirectory.dir("repo"))
         }
     }
 // tag::publish-component[]
