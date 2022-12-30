@@ -35,7 +35,7 @@ import static org.hamcrest.CoreMatchers.equalTo
 class JUnitXmlResultWriterSpec extends Specification {
 
     private provider = Mock(TestResultsProvider)
-    private options = new JUnitXmlResultOptions(false, false)
+    private options = new JUnitXmlResultOptions(false, false, false, false)
 
     protected JUnitXmlResultWriter getGenerator() {
         new JUnitXmlResultWriter("localhost", provider, options)
@@ -141,7 +141,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     def "can generate with output per test"() {
         given:
-        options = new JUnitXmlResultOptions(true, false)
+        options = new JUnitXmlResultOptions(true, false, false, false)
         provider = new BuildableTestResultsProvider()
 
         when:
@@ -247,5 +247,51 @@ class JUnitXmlResultWriterSpec extends Specification {
         def text = new ByteArrayOutputStream()
         generator.write(result, text)
         return text.toString("UTF-8").replace(SystemProperties.instance.lineSeparator, "\n")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23229")
+    def "omit system-out section"() {
+        given:
+        options = new JUnitXmlResultOptions(true, false, true, false)
+
+
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
+        result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
+        _ * provider.writeAllOutput(_, _, _)
+
+        when:
+        def xml = getXml(result)
+
+        then:
+        xml == """<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.3">
+  <properties/>
+  <testcase name="some test" classname="com.foo.FooTest" time="0.2"/>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
+"""
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23229")
+    def "omit system-err section"() {
+        given:
+        options = new JUnitXmlResultOptions(true, false, false, true)
+
+
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
+        result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
+        _ * provider.writeAllOutput(_, _, _)
+
+        when:
+        def xml = getXml(result)
+
+        then:
+        xml == """<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.3">
+  <properties/>
+  <testcase name="some test" classname="com.foo.FooTest" time="0.2"/>
+  <system-out><![CDATA[]]></system-out>
+</testsuite>
+"""
     }
 }

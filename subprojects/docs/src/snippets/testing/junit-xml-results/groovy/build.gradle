@@ -26,6 +26,8 @@ testResultsDirName = "$buildDir/junit-xml"
 test {
     reports {
         junitXml {
+            omitSystemErrLog = true // defaults to false
+            omitSystemOutLog = true // defaults to false
             outputPerTestCase = true // defaults to false
             mergeReruns = true // defaults to false
         }

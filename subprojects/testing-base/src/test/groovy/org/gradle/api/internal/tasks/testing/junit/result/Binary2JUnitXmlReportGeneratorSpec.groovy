@@ -47,7 +47,7 @@ class Binary2JUnitXmlReportGeneratorSpec extends Specification {
         buildOperationExecutor = new DefaultBuildOperationExecutor(
             Mock(BuildOperationListener), Mock(Clock), new NoOpProgressLoggerFactory(),
             new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelismConfiguration, new DefaultBuildOperationIdFactory())
-        Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, new JUnitXmlResultOptions(false, false), buildOperationExecutor, "localhost")
+        Binary2JUnitXmlReportGenerator reportGenerator = new Binary2JUnitXmlReportGenerator(temp.testDirectory, resultsProvider, new JUnitXmlResultOptions(false, false, false, false), buildOperationExecutor, "localhost")
         reportGenerator.xmlWriter = Mock(JUnitXmlResultWriter)
         return reportGenerator
     }
