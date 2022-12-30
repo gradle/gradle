@@ -57,6 +57,8 @@ import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.agents.AgentStatus;
+import org.gradle.internal.agents.DefaultAgentStatus;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -312,5 +314,9 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     DefaultWorkValidationWarningRecorder createValidationWarningReporter() {
         return new DefaultWorkValidationWarningRecorder();
+    }
+
+    AgentStatus createAgentStatus() {
+        return new DefaultAgentStatus();
     }
 }
