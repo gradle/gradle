@@ -15,6 +15,7 @@
  */
 package org.gradle.api.artifacts.repositories;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.attributes.Attribute;
 
 /**
@@ -36,6 +37,14 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
      */
     @Override
     void includeGroup(String group);
+
+    /**
+     * Declares that an entire group and subgroups should be searched for in this repository.
+     *
+     * @param group the group name
+     */
+    @Override
+    void includeGroupAndSubGroups(String group);
 
     /**
      * Declares that an entire group should be searched for in this repository.
@@ -93,6 +102,16 @@ public interface RepositoryContentDescriptor extends InclusiveRepositoryContentD
      * @param group the group name
      */
     void excludeGroup(String group);
+
+    /**
+     * Declares that an entire group and subgroups shouldn't be searched for in this repository.
+     *
+     * @since 8.1
+     *
+     * @param group the group name
+     */
+    @Incubating
+    void excludeGroupAndSubGroups(String group);
 
     /**
      * Declares that an entire group shouldn't be searched for in this repository.

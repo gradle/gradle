@@ -132,6 +132,12 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         addInclude(group, null, null, false);
     }
 
+    @Override
+    public void includeGroupAndSubGroups(String group) {
+        checkNotNull(group, "Group cannot be null");
+        addInclude(createSubGroupRegex(group), null, null, true);
+    }
+
     private static void checkNotNull(@Nullable String value, String message) {
         if (value == null) {
             throw new IllegalArgumentException(message);
@@ -182,10 +188,20 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
         includeSpecs.add(new ContentSpec(regex, group, moduleName, version, versionSelectorScheme, versionSelectors, true));
     }
 
+    private String createSubGroupRegex(String group) {
+        return group.replaceAll("\\.", "\\\\.") + "(?:\\..+|\\Z|:.+)";
+    }
+
     @Override
     public void excludeGroup(String group) {
         checkNotNull(group, "Group cannot be null");
         addExclude(group, null, null, false);
+    }
+
+    @Override
+    public void excludeGroupAndSubGroups(String group) {
+        checkNotNull(group, "Group cannot be null");
+        addExclude(createSubGroupRegex(group), null, null, true);
     }
 
     @Override
