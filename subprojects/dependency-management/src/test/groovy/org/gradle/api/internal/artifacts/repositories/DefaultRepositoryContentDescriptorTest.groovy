@@ -242,14 +242,17 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
         }
 
         where:
-        method         | expr     | group   | module | version | excluded
-        'Group'        | 'org'    | 'org'   | 'foo'  | '1.0'   | true
-        'Group'        | 'org'    | 'other' | 'foo'  | '1.0'   | false
-        'GroupByRegex' | 'org'    | 'org'   | 'foo'  | '1.0'   | true
-        'GroupByRegex' | 'org'    | 'other' | 'foo'  | '1.0'   | false
-        'GroupByRegex' | 'bar'    | 'org'   | 'foo'  | '1.0'   | false
-        'GroupByRegex' | '[org]+' | 'org'   | 'foo'  | '1.0'   | true
-        'GroupByRegex' | '[org]+' | 'other' | 'foo'  | '1.0'   | false
+        method              | expr     | group        | module | version | excluded
+        'Group'             | 'org'    | 'org'        | 'foo'  | '1.0'   | true
+        'Group'             | 'org'    | 'other'      | 'foo'  | '1.0'   | false
+        'GroupByRegex'      | 'org'    | 'org'        | 'foo'  | '1.0'   | true
+        'GroupByRegex'      | 'org'    | 'other'      | 'foo'  | '1.0'   | false
+        'GroupByRegex'      | 'bar'    | 'org'        | 'foo'  | '1.0'   | false
+        'GroupByRegex'      | '[org]+' | 'org'        | 'foo'  | '1.0'   | true
+        'GroupByRegex'      | '[org]+' | 'other'      | 'foo'  | '1.0'   | false
+        'GroupAndSubGroups' | 'org'    | 'org'        | 'foo'  | '1.0'   | true
+        'GroupAndSubGroups' | 'org'    | 'org.other'  | 'foo'  | '1.0'   | true
+        'GroupAndSubGroups' | 'org'    | 'org1.other' | 'foo'  | '1.0'   | false
     }
 
     def "can exclude or include whole modules using #method(#expr)"() {
