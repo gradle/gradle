@@ -87,6 +87,9 @@ fun Project.addDependenciesAndConfigurations(prefix: String) {
             "${prefix}TestRuntimeOnly"(project.the<ExternalModulesExtension>().junit5Vintage)
             "${prefix}TestImplementation"(project(":internal-integ-testing"))
             "${prefix}TestFullDistributionRuntimeClasspath"(project(":distributions-full"))
+            // Add the agent JAR to the test runtime classpath so the InProcessGradleExecuter can find the module and spawn daemons.
+            // This doesn't apply the agent to the test process.
+            "${prefix}TestRuntimeOnly"(project(":instrumentation-agent"))
         }
     }
 }
