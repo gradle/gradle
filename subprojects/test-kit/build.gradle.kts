@@ -59,3 +59,8 @@ packageCycles {
 tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
 }
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}
