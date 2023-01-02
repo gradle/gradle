@@ -6,6 +6,7 @@ description = "Integration tests which don't fit anywhere else - should probably
 
 dependencies {
     integTestImplementation(project(":base-services"))
+    integTestImplementation(project(":build-option"))
     integTestImplementation(project(":enterprise-operations"))
     integTestImplementation(project(":native"))
     integTestImplementation(project(":logging"))
