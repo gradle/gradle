@@ -21,7 +21,6 @@ import org.gradle.internal.service.scopes.Scopes
 
 
 @EventScope(Scopes.BuildTree::class)
-internal
 interface ProblemFactory {
     /**
      * Returns a default location inferred from the calling thread's state.
@@ -34,4 +33,32 @@ interface ProblemFactory {
      * Problem has no documentation, and a default location is inferred from the calling thread's state.
      */
     fun problem(message: StructuredMessage, exception: Throwable? = null, documentationSection: DocumentationSection? = null): PropertyProblem
+
+    /**
+     * Creates a problem with the given message.
+     *
+     * By default, the problem has no exception or documentation, and a default location is inferred from the calling thread's state.
+     */
+    fun problem(messageBuilder: StructuredMessage.Builder.() -> Unit): Builder
+
+    interface Builder {
+        /**
+         * Creates a InvalidUserCodeException with the given message for this problem.
+         */
+        fun exception(message: String): Builder
+
+        /**
+         * Creates a InvalidUserCodeException message for this problem.
+         */
+        fun exception(): Builder
+
+        fun documentationSection(documentationSection: DocumentationSection): Builder
+
+        /**
+         * Allows the default location to be changed. The closure is called by `build()`
+         */
+        fun mapLocation(mapper: (PropertyTrace) -> PropertyTrace): Builder
+
+        fun build(): PropertyProblem
+    }
 }

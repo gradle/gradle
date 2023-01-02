@@ -27,7 +27,6 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.credentials.CredentialListener
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
-import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsBuildListeners
 import org.gradle.configurationcache.problems.DocumentationSection.RequirementsExternalProcess
@@ -53,7 +52,6 @@ interface ConfigurationCacheProblemsListener : TaskExecutionAccessListener, Buil
 class DefaultConfigurationCacheProblemsListener internal constructor(
     private val problems: ProblemsListener,
     private val problemFactory: ProblemFactory,
-    private val userCodeApplicationContext: UserCodeApplicationContext,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val taskExecutionTracker: TaskExecutionTracker,
     private val featureFlags: FeatureFlags,
@@ -94,33 +92,31 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     private
     fun onTaskExecutionAccessProblem(invocationDescription: String, task: TaskInternal) {
         problemsListenerFor(task).onProblem(
-            PropertyProblem(
-                propertyTraceForTask(task),
-                StructuredMessage.build {
-                    text("invocation of ")
-                    reference(invocationDescription)
-                    text(" at execution time is unsupported.")
-                },
-                InvalidUserCodeException(
-                    "Invocation of '$invocationDescription' by $task at execution time is unsupported."
-                ),
-                documentationSection = RequirementsUseProjectDuringExecution
-            )
+            problemFactory.problem {
+                text("invocation of ")
+                reference(invocationDescription)
+                text(" at execution time is unsupported.")
+            }
+                .exception("Invocation of '$invocationDescription' by $task at execution time is unsupported.")
+                .documentationSection(RequirementsUseProjectDuringExecution)
+                .mapLocation { locationForTask(it, task) }
+                .build()
         )
     }
+
+    private
+    fun locationForTask(location: PropertyTrace, task: TaskInternal) =
+        if (location is PropertyTrace.BuildLogic) {
+            location
+        } else {
+            PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
+        }
 
     private
     fun problemsListenerFor(task: TaskInternal): ProblemsListener = when {
         task.isCompatibleWithConfigurationCache -> problems
         else -> problems.forIncompatibleTask(task.identityPath.path)
     }
-
-    private
-    fun propertyTraceForTask(task: TaskInternal) =
-        userCodeApplicationContext.current()
-            ?.displayName
-            ?.let(PropertyTrace::BuildLogic)
-            ?: PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.identityPath.path)
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
         if (isBuildSrcBuild(invocationSource)) {
@@ -137,17 +133,15 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
     }
 
     override fun onUnsafeCredentials(locationSpecificReason: String, task: TaskInternal) {
-        val message = StructuredMessage.build {
-            text("Credential values found in configuration for: ")
-            text(locationSpecificReason)
-        }
         problems.onProblem(
-            PropertyProblem(
-                propertyTraceForTask(task),
-                message,
-                InvalidUserCodeException(message.toString()),
-                documentationSection = RequirementsSafeCredentials
-            )
+            problemFactory.problem {
+                text("Credential values found in configuration for: ")
+                text(locationSpecificReason)
+            }
+                .exception()
+                .documentationSection(RequirementsSafeCredentials)
+                .mapLocation { locationForTask(it, task) }
+                .build()
         )
     }
 
