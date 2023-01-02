@@ -413,8 +413,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored() // does not fail
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
-            withTotalProblemsCount(2)
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
         }
         failure.assertHasFailures(1)
 
@@ -426,8 +426,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored() // does not fail
         postBuildOutputContains("Configuration cache entry stored with 2 problems.")
         problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
-            withTotalProblemsCount(2)
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
         }
 
         when:
@@ -438,8 +438,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
         postBuildOutputContains("Configuration cache entry reused with 2 problems.")
         problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
-            withTotalProblemsCount(2)
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
         }
 
         when:
@@ -450,8 +450,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
         outputContains("Configuration cache entry reused with 2 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
-            withTotalProblemsCount(2)
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
         }
     }
 
@@ -479,7 +479,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored() // does not fail
         outputContains("Configuration cache entry discarded with 1 problem.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
         }
         failure.assertHasDescription("Execution failed for task ':broken'.")
         failure.assertHasCause("BOOM")
@@ -492,7 +492,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored()
         outputContains("Configuration cache entry stored with 1 problem.")
         problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
         }
         failure.assertHasDescription("Execution failed for task ':broken'.")
         failure.assertHasCause("BOOM")
@@ -505,7 +505,7 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
         outputContains("Configuration cache entry reused with 1 problem.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 4: invocation of 'Task.project' at execution time is unsupported.")
         }
         failure.assertHasDescription("Execution failed for task ':broken'.")
         failure.assertHasCause("BOOM")
@@ -548,12 +548,12 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored() // does not fail
         outputContains("Configuration cache entry discarded with too many problems (6 problems).")
         problems.assertFailureHasTooManyProblems(failure) {
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 6
             problemsWithStackTraceCount = 2
         }
 
@@ -565,12 +565,12 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored()
         outputContains("Configuration cache entry discarded with too many problems (6 problems).")
         problems.assertFailureHasTooManyProblems(failure) {
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 6
             problemsWithStackTraceCount = 2
         }
         failure.assertHasFailures(1)
@@ -583,12 +583,12 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored()
         postBuildOutputContains("Configuration cache entry stored with 6 problems.")
         problems.assertResultHasProblems(result) {
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 6
             problemsWithStackTraceCount = 2
         }
 
@@ -600,10 +600,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
         postBuildOutputContains("Configuration cache entry reused with 4 problems.")
         problems.assertResultHasProblems(result) {
+            withProblem("Build file 'build.gradle': line 9: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
-            withProblem("Task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
-            withProblem("Task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 4
             problemsWithStackTraceCount = 2
         }
     }
@@ -639,10 +639,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored(false)
         outputContains("Configuration cache entry discarded with 4 problems.")
         problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'build.gradle': line 8: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 4
             problemsWithStackTraceCount = 2
         }
 
@@ -654,10 +654,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored(false)
         outputContains("Configuration cache entry discarded with 4 problems.")
         problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'build.gradle': line 8: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with the configuration cache.")
-            withProblem("Task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 4
             problemsWithStackTraceCount = 2
         }
 
@@ -677,10 +677,10 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
         outputContains("Configuration cache entry reused with 4 problems.")
         problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'build.gradle': line 8: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:moreProblems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
-            withProblem("Task `:moreProblems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Task `:problems` of type `BrokenTask`: cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with the configuration cache.")
-            withProblem("Task `:problems` of type `BrokenTask`: invocation of 'Task.project' at execution time is unsupported.")
+            totalProblemsCount = 4
             problemsWithStackTraceCount = 2
         }
     }
@@ -724,10 +724,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored()
         outputContains("Configuration cache entry discarded with 5 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file 'build.gradle': invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:a` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:b` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:c` of type `org.gradle.api.DefaultTask`: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 11: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 23: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 5: invocation of '$invocation' at execution time is unsupported.")
             withTotalProblemsCount(5)
         }
 
@@ -738,10 +737,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateStored()
         postBuildOutputContains("Configuration cache entry stored with 5 problems.")
         problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:a` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:b` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:c` of type `org.gradle.api.DefaultTask`: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 11: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 23: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 5: invocation of '$invocation' at execution time is unsupported.")
             withTotalProblemsCount(5)
         }
 
@@ -752,10 +750,9 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         configurationCache.assertStateLoaded()
         postBuildOutputContains("Configuration cache entry reused with 5 problems.")
         problems.assertResultHasProblems(result) {
-            withProblem("Build file 'build.gradle': invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:a` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:b` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.")
-            withProblem("Task `:c` of type `org.gradle.api.DefaultTask`: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 11: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 23: invocation of '$invocation' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 5: invocation of '$invocation' at execution time is unsupported.")
             withTotalProblemsCount(5)
         }
 
@@ -1036,8 +1033,8 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         outputContains("Configuration cache entry discarded with 2 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Build file '${relativePath('a/build.gradle')}': invocation of 'Task.project' at execution time is unsupported.")
             withProblem("Build file '${relativePath('a/build.gradle')}': line 2: registration of listener on 'Gradle.buildFinished' is unsupported")
+            withProblem("Build file '${relativePath('a/build.gradle')}': line 5: invocation of 'Task.project' at execution time is unsupported.")
         }
     }
 
@@ -1116,21 +1113,21 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         then:
         outputContains("Configuration cache entry discarded with 530 problems.")
         problems.assertFailureHasProblems(failure) {
-            withProblem("Task `:broken100` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken101` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken102` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken103` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken104` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken105` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken106` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken107` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken108` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken109` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken10` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken110` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken111` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken112` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
-            withProblem("Task `:broken113` of type `org.gradle.api.DefaultTask`: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 10: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 100: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1000: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1005: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1010: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1015: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1020: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1025: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1030: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1035: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1040: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1045: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 105: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1050: invocation of 'Task.project' at execution time is unsupported.")
+            withProblem("Build file 'build.gradle': line 1055: invocation of 'Task.project' at execution time is unsupported.")
             totalProblemsCount = 530
         }
         failure.assertHasFailure("Configuration cache problems found in this build.") { failure ->

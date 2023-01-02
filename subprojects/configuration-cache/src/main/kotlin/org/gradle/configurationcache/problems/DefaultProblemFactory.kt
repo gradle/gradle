@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.problems
 
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.problems.buildtree.ProblemLocationAnalyzer
 
@@ -38,6 +39,40 @@ class DefaultProblemFactory(
     override fun problem(message: StructuredMessage, exception: Throwable?, documentationSection: DocumentationSection?): PropertyProblem {
         val trace = locationForCaller(exception)
         return PropertyProblem(trace, message, exception, documentationSection)
+    }
+
+    override fun problem(messageBuilder: StructuredMessage.Builder.() -> Unit): ProblemFactory.Builder {
+        val message = StructuredMessage.build(messageBuilder)
+        return object : ProblemFactory.Builder {
+            var exception: Throwable? = null
+            var documentationSection: DocumentationSection? = null
+            var locationMapper: (PropertyTrace) -> PropertyTrace = { it }
+
+            override fun exception(message: String): ProblemFactory.Builder {
+                exception = InvalidUserCodeException(message)
+                return this
+            }
+
+            override fun exception(): ProblemFactory.Builder {
+                exception = InvalidUserCodeException(message.toString())
+                return this
+            }
+
+            override fun mapLocation(mapper: (PropertyTrace) -> PropertyTrace): ProblemFactory.Builder {
+                locationMapper = mapper
+                return this
+            }
+
+            override fun documentationSection(documentationSection: DocumentationSection): ProblemFactory.Builder {
+                this.documentationSection = documentationSection
+                return this
+            }
+
+            override fun build(): PropertyProblem {
+                val location = locationMapper(locationForCaller(exception))
+                return PropertyProblem(location, message, exception, documentationSection)
+            }
+        }
     }
 
     private
