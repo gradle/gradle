@@ -25,6 +25,9 @@ import org.gradle.internal.agents.AgentStatus
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions
 import spock.lang.Requires
 
+// This test doesn't live in :instrumentation-agent to avoid the latter being implicitly added to
+// the test runtime classpath as part of the main source set's output.
+// It is important to have the agent appended to the classpath of all integration tests.
 class AgentApplicationTest extends AbstractIntegrationSpec {
     def "agent is disabled by default"() {
         given:
@@ -143,6 +146,24 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         false              | false               || true
         true               | false               || false
         false              | true                || false
+    }
+
+    @Requires(value = { GradleContextualExecuter.embedded }, reason = "Tests the embedded distribution")
+    def "daemon spawned from embedded runner has agent enabled"() {
+        given:
+        executer.tap {
+            // Force a separate daemon spawned by the InProcessGradleExecuter
+            requireDaemon()
+            requireIsolatedDaemons()
+        }
+        withAgent()
+        withDumpAgentStatusTask()
+
+        when:
+        succeeds()
+
+        then:
+        agentWasApplied()
     }
 
     private void withDumpAgentStatusTask() {
