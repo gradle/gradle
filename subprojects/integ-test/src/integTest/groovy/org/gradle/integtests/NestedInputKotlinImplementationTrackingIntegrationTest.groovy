@@ -140,6 +140,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
                 `java-gradle-plugin`
             }
 
+            import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
             import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
             repositories {
@@ -156,9 +157,9 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
             }
 
             tasks.withType<KotlinCompile>().configureEach {
-                kotlinOptions {
-                    apiVersion = "${kotlinVersion}"
-                    languageVersion = "${kotlinVersion}"
+                compilerOptions {
+                    apiVersion.set(KotlinVersion.fromVersion("${kotlinVersion}"))
+                    languageVersion.set(KotlinVersion.fromVersion("${kotlinVersion}"))
                 }
             }
         """
