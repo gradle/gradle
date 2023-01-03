@@ -31,6 +31,7 @@ import kotlinx.metadata.jvm.JvmTypeExtensionVisitor
 import kotlinx.metadata.jvm.KotlinClassHeader
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import kotlinx.metadata.jvm.KotlinModuleMetadata
+import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
@@ -314,8 +315,8 @@ typealias KmTypeBuilder = KmTypeVisitor.() -> Unit
 
 internal
 fun jvmGetterSignatureFor(propertyName: String, desc: String): JvmMethodSignature =
-// TODO:accessors Honor JavaBeans convention?
-    JvmMethodSignature("get${propertyName.capitalize()}", desc)
+    // TODO:accessors Honor JavaBeans convention?
+    JvmMethodSignature("get${propertyName.uppercaseFirstChar()}", desc)
 
 
 private

@@ -267,7 +267,7 @@ fun MethodVisitor.TRY_CATCH(
 
 internal
 fun <T : Enum<T>> MethodVisitor.GETSTATIC(field: T) {
-    val owner = field.declaringClass.internalName
+    val owner = field.declaringJavaClass.internalName
     GETSTATIC(owner, field.name, "L$owner;")
 }
 
@@ -305,8 +305,8 @@ fun MethodVisitor.ACONST_NULL() {
 /**
  * A JVM internal type name (as in `java/lang/Object` instead of `java.lang.Object`).
  */
-@Suppress("experimental_feature_warning")
-inline class InternalName(val value: String) {
+@JvmInline
+value class InternalName(val value: String) {
 
     companion object {
         fun from(sourceName: String) = InternalName(sourceName.replace('.', '/'))

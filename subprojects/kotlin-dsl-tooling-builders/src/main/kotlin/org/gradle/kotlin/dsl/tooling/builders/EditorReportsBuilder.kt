@@ -195,7 +195,7 @@ fun File.countLines(): Long =
 private
 fun BufferedInputStream.countLines(): Long {
     val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-    val newLine = '\n'.toByte()
+    val newLine = '\n'.code.toByte()
 
     var count = 0L
     var noNewLineBeforeEOF = false
