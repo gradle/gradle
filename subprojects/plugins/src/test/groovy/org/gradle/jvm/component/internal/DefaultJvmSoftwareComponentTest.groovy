@@ -32,6 +32,26 @@ class DefaultJvmSoftwareComponentTest extends AbstractProjectBuilderSpec {
         when:
         project.plugins.apply(JavaBasePlugin)
         def ext = project.getExtensions().getByType(JavaPluginExtension.class)
+
+        // Verify the JavaBasePlugin does not create the below tested objects so we can
+        // ensure the DefaultJvmSoftwareComponent is actually creating these domain objects.
+        then:
+        ext.sourceSets.findByName(SourceSet.MAIN_SOURCE_SET_NAME) == null
+        project.configurations.findByName(JvmConstants.RUNTIME_CLASSPATH_CONFIGURATION_NAME) == null
+        project.configurations.findByName(JvmConstants.RUNTIME_ELEMENTS_CONFIGURATION_NAME) == null
+        project.configurations.findByName(JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME) == null
+        project.configurations.findByName(JvmConstants.API_ELEMENTS_CONFIGURATION_NAME) == null
+        project.configurations.findByName('mainSourceElements') == null
+        project.configurations.findByName(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME) == null
+        project.configurations.findByName(JvmConstants.RUNTIME_ONLY_CONFIGURATION_NAME) == null
+        project.configurations.findByName(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME) == null
+        project.configurations.findByName(JvmConstants.ANNOTATION_PROCESSOR_CONFIGURATION_NAME) == null
+        project.tasks.findByName(JvmConstants.COMPILE_JAVA_TASK_NAME) == null
+        project.tasks.findByName(JvmConstants.JAR_TASK_NAME) == null
+        project.tasks.findByName(JvmConstants.JAVADOC_TASK_NAME) == null
+        project.tasks.findByName(JvmConstants.PROCESS_RESOURCES_TASK_NAME) == null
+
+        when:
         def component = project.objects.newInstance(DefaultJvmSoftwareComponent, "name", ext)
 
         then:

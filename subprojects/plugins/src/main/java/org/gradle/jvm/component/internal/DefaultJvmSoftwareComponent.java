@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.component.internal;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -34,6 +35,7 @@ import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent;
@@ -50,22 +52,25 @@ import org.gradle.api.publish.maven.MavenPublication;
 import org.gradle.api.publish.maven.internal.publication.MavenPublicationInternal;
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.jvm.component.JvmSoftwareComponent;
 
 import javax.inject.Inject;
 
 /**
- * Default implementation of {@link JvmSoftwareComponent}.
+ * The software component created by the Java plugin. This component owns the consumable configurations which contribute to
+ * this component's variants. Additionally, this component also owns the {@link SourceSet.MAIN_SOURCE_SET_NAME main} {@link SourceSet}
+ * and transitively any domain objects which are created by the {@link BasePlugin} on the main source set's behalf. This includes the
+ * source set's resolvable configurations and buckets, as well as any associated tasks.
  * <p>
  * This component was written assuming it will only be instantiated once, and therefore it hard-codes the names of the
  * domain objects it creates. However, future iterations of this component should allow it to be more generic.
  */
-public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent implements JvmSoftwareComponent, DiagnosableSoftwareComponent {
+public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent implements DiagnosableSoftwareComponent {
 
     private static final String SOURCE_ELEMENTS_VARIANT_NAME = "mainSourceElements";
 
@@ -99,7 +104,9 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         PluginContainer plugins = project.getPlugins();
         ExtensionContainer extensions = project.getExtensions();
 
-        this.sourceSet = javaExtension.getSourceSets().create(SourceSet.MAIN_SOURCE_SET_NAME);
+        assert project.getPlugins().hasPlugin(JavaBasePlugin.class);
+
+        this.sourceSet = createMainSourceSet(javaExtension.getSourceSets());
         this.runtimeClasspath = configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
         this.compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
 
@@ -114,6 +121,14 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         // Register the consumable configurations as providing variants for consumption.
         addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", false));
         addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", false));
+    }
+
+    private SourceSet createMainSourceSet(SourceSetContainer sourceSets) {
+        if (sourceSets.findByName(SourceSet.MAIN_SOURCE_SET_NAME) != null) {
+            throw new GradleException("Cannot create multiple instances of " + this.getClass().getSimpleName() + ".");
+        }
+
+        return sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
     }
 
     private static PublishArtifact configureArchives(Project project, TaskContainer tasks, ExtensionContainer extensions, SourceSet sourceSet) {
