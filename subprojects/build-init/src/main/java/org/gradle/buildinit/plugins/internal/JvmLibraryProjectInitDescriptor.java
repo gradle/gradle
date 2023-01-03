@@ -52,12 +52,12 @@ public class JvmLibraryProjectInitDescriptor extends JvmProjectInitDescriptor {
     }
 
     @Override
-    protected List<String> sourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
+    protected List<String> getSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
         return newArrayList("Library");
     }
 
     @Override
-    protected List<String> testSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
+    protected List<String> getTestSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
         return newArrayList(getUnitTestSourceTemplateName(settings));
     }
 
