@@ -20,30 +20,22 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
-import org.gradle.api.internal.component.BuildableJavaComponent;
-import org.gradle.api.internal.component.ComponentRegistry;
+import org.gradle.api.internal.component.SoftwareComponentContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.jvm.component.internal.DefaultJvmSoftwareComponent;
 import org.gradle.testing.base.TestingExtension;
 
 import javax.inject.Inject;
-import java.util.Collection;
-import java.util.Collections;
 
 import static org.gradle.api.plugins.JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME;
 
@@ -258,7 +250,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
         // Set the 'java' component as the project's default.
         Configuration defaultConfiguration = project.getConfigurations().getByName(Dependency.DEFAULT_CONFIGURATION);
         defaultConfiguration.extendsFrom(javaComponent.getRuntimeElements());
-        projectInternal.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(javaComponent));
+        ((SoftwareComponentContainerInternal) project.getComponents()).getMainComponent().convention(javaComponent);
 
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = projectInternal.getServices().get(BuildOutputCleanupRegistry.class);
 
@@ -324,40 +316,5 @@ public abstract class JavaPlugin implements Plugin<Project> {
         Project project = task.getProject();
         final Configuration configuration = project.getConfigurations().getByName(configurationName);
         task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
-    }
-
-    /**
-     * This is only used by buildSrc to add to the buildscript classpath.
-     */
-    private static class BuildableJavaComponentImpl implements BuildableJavaComponent {
-        private final DefaultJvmSoftwareComponent java;
-
-        public BuildableJavaComponentImpl(DefaultJvmSoftwareComponent java) {
-            this.java = java;
-        }
-
-        @Override
-        public Collection<String> getBuildTasks() {
-            return Collections.singleton(JavaBasePlugin.BUILD_TASK_NAME);
-        }
-
-        @Override
-        public FileCollection getRuntimeClasspath() {
-            ArtifactView view = java.getRuntimeClasspath().getIncoming().artifactView(config -> {
-                config.componentFilter(componentId -> {
-                    if (componentId instanceof OpaqueComponentIdentifier) {
-                        DependencyFactoryInternal.ClassPathNotation classPathNotation = ((OpaqueComponentIdentifier) componentId).getClassPathNotation();
-                        return classPathNotation != DependencyFactoryInternal.ClassPathNotation.GRADLE_API && classPathNotation != DependencyFactoryInternal.ClassPathNotation.LOCAL_GROOVY;
-                    }
-                    return true;
-                });
-            });
-            return java.getRuntimeElements().getOutgoing().getArtifacts().getFiles().plus(view.getFiles());
-        }
-
-        @Override
-        public Configuration getCompileDependencies() {
-            return java.getCompileClasspath();
-        }
     }
 }

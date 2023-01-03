@@ -37,6 +37,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent;
+import org.gradle.api.plugins.internal.DiagnosableSoftwareComponent;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
@@ -64,7 +65,7 @@ import javax.inject.Inject;
  * This component was written assuming it will only be instantiated once, and therefore it hard-codes the names of the
  * domain objects it creates. However, future iterations of this component should allow it to be more generic.
  */
-public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent implements JvmSoftwareComponent {
+public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent implements JvmSoftwareComponent, DiagnosableSoftwareComponent {
 
     private static final String SOURCE_ELEMENTS_VARIANT_NAME = "mainSourceElements";
 
