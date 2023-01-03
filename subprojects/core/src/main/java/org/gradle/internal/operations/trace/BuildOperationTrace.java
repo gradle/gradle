@@ -100,7 +100,7 @@ public class BuildOperationTrace implements Stoppable {
     private final BuildOperationListener listener = new BuildOperationListener() {
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            write(new SerializedOperationStart(buildOperation, startEvent, getWorkerLeaseNumber()));
+            write(new SerializedOperationStart(buildOperation, startEvent, getWorkerLeaseNumber(), getThreadDescription()));
         }
 
         @Override
@@ -110,9 +110,14 @@ public class BuildOperationTrace implements Stoppable {
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            write(new SerializedOperationFinish(buildOperation, finishEvent, getWorkerLeaseNumber()));
+            write(new SerializedOperationFinish(buildOperation, finishEvent, getWorkerLeaseNumber(), getThreadDescription()));
         }
     };
+
+    private static String getThreadDescription() {
+        Thread thread = Thread.currentThread();
+        return thread.getThreadGroup().getName() + " @@ " + thread.getName() + " @@ " + thread.getId();
+    }
 
     private Integer getWorkerLeaseNumber() {
         return workerThreadRegistry.isWorkerThread() ? workerLeaseRegistry.getCurrentWorkerLease().getWorkerLeaseNumber() : null;
@@ -342,6 +347,7 @@ public class BuildOperationTrace implements Stoppable {
                             start.startTime,
                             finish.endTime,
                             start.workerLeaseNumber,
+                            start.threadDescription,
                             detailsMap == null ? null : Collections.unmodifiableMap(detailsMap),
                             start.detailsClassName,
                             resultMap == null ? null : Collections.unmodifiableMap(resultMap),
