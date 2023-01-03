@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":file-collections"))
     implementation(project(":dependency-management"))
     implementation(project(":platform-base"))
+    implementation(project(":platform-jvm"))
     implementation(project(":platform-native"))
     implementation(project(":plugins"))
     implementation(project(":resources"))

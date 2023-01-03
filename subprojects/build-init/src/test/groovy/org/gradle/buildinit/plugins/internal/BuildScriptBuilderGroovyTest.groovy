@@ -17,6 +17,7 @@
 package org.gradle.buildinit.plugins.internal
 
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
@@ -36,6 +37,23 @@ class BuildScriptBuilderGroovyTest extends AbstractBuildScriptBuilderTest {
         then:
         assertOutputFile("""$COMMON_START
  */
+""")
+    }
+
+    def "generates toolchain entry"() {
+        when:
+        builder.javaLanguageVersion(JavaLanguageVersion.of(11))
+        builder.create(target).generate()
+
+        then:
+        assertOutputFile("""$COMMON_START
+ */
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
 """)
     }
 

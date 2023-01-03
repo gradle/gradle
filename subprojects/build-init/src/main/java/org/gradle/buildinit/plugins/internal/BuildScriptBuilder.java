@@ -32,6 +32,7 @@ import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
@@ -344,6 +345,16 @@ public class BuildScriptBuilder {
     public BuildScriptBuilder block(@Nullable String comment, String methodName, Action<? super ScriptBlockBuilder> blockContentBuilder) {
         blockContentBuilder.execute(block.block(comment, methodName));
         return this;
+    }
+
+    public BuildScriptBuilder javaLanguageVersion(JavaLanguageVersion languageVersion) {
+        return block(null, "java", t -> {
+            t.block(null, "toolchain", t1 -> {
+                t1.propertyAssignment(null, "languageVersion",
+                    new MethodInvocationExpression(null, "JavaLanguageVersion.of", singletonList(new LiteralValue(languageVersion.asInt()))),
+                false);
+            });
+        });
     }
 
     /**
@@ -1116,7 +1127,7 @@ public class BuildScriptBuilder {
                 ScriptBlockImpl constraintsBlock = new ScriptBlockImpl();
                 for (String config : this.constraints.keySet()) {
                     for (Statement constraintSpec : this.constraints.get(config)) {
-                            constraintsBlock.add(constraintSpec);
+                        constraintsBlock.add(constraintSpec);
                     }
                 }
                 printer.printBlock("constraints", constraintsBlock);
@@ -1135,7 +1146,7 @@ public class BuildScriptBuilder {
             if (!constraints.isEmpty()) {
                 ScriptBlock constraintsBlock = new ScriptBlock(null, "constraints");
                 for (String config : constraints.keySet()) {
-                    for(Statement statement : constraints.get(config)) {
+                    for (Statement statement : constraints.get(config)) {
                         constraintsBlock.add(statement);
                     }
                 }
@@ -1193,28 +1204,28 @@ public class BuildScriptBuilder {
 
         @Override
         public SuiteSpec junitJupiterSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM, libraryVersionProvider.getVersion("junit-jupiter"),  builder);
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.JUNIT_PLATFORM, libraryVersionProvider.getVersion("junit-jupiter"), builder);
             suites.add(spec);
             return spec;
         }
 
         @Override
         public SuiteSpec spockSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.SPOCK, libraryVersionProvider.getVersion("spock"),  builder);
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.SPOCK, libraryVersionProvider.getVersion("spock"), builder);
             suites.add(spec);
             return spec;
         }
 
         @Override
         public SuiteSpec kotlinTestSuite(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, libraryVersionProvider.getVersion("kotlin"),  builder);
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.KOTLIN_TEST, libraryVersionProvider.getVersion("kotlin"), builder);
             suites.add(spec);
             return spec;
         }
 
         @Override
         public SuiteSpec testNG(String name, TemplateLibraryVersionProvider libraryVersionProvider) {
-            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.TEST_NG, libraryVersionProvider.getVersion("testng"),  builder);
+            final SuiteSpec spec = new SuiteSpec(null, name, SuiteSpec.TestSuiteFramework.TEST_NG, libraryVersionProvider.getVersion("testng"), builder);
             suites.add(spec);
             return spec;
         }

@@ -18,7 +18,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 
-class ScalaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
+class ScalaApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "some/thing/App.scala"
     public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppSuite.scala"

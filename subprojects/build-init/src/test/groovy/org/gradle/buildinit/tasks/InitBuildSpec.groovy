@@ -28,6 +28,7 @@ import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType
 import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
@@ -36,6 +37,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static java.util.Optional.empty
+import static java.util.Optional.of
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT
@@ -220,6 +222,29 @@ class InitBuildSpec extends Specification {
         then:
         packageName == "myPackageName"
     }
+
+    def "get tool chain for #language"() {
+        given:
+        def inputHandler = Mock(UserInputHandler)
+        inputHandler.selectOption(_ as String, _ as List<JavaLanguageVersion>, _ as JavaLanguageVersion) >> JavaLanguageVersion.of(11)
+
+        when:
+        def languageVersion = init.getJavaLanguageVersion(inputHandler, language)
+
+        then:
+        languageVersion == result
+
+        where:
+        language        | result
+        Language.JAVA   | of(JavaLanguageVersion.of(11))
+        Language.SCALA  | of(JavaLanguageVersion.of(11))
+        Language.KOTLIN | of(JavaLanguageVersion.of(11))
+        Language.GROOVY | of(JavaLanguageVersion.of(11))
+        Language.CPP    | empty()
+        Language.SWIFT  | empty()
+    }
+
+
     def "should reject invalid package name: #invalidPackageName"() {
         given:
         projectLayoutRegistry.get("java-library") >> projectSetupDescriptor

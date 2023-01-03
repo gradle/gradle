@@ -18,13 +18,10 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 
-class ScalaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
+class ScalaLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "some/thing/Library.scala"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "some/thing/LibrarySuite.scala"
-
-    @Override
-    String subprojectName() { 'lib' }
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
