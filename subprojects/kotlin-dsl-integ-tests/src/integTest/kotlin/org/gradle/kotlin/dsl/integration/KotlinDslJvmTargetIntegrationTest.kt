@@ -23,6 +23,7 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume.assumeNotNull
 import org.junit.Assume.assumeThat
 import org.junit.Test
 
@@ -100,8 +101,11 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can use Java Toolchain to compile precompiled scripts`() {
 
+        val jdk8 = AvailableJavaHomes.getJdk8()
+        assumeNotNull(jdk8)
+
         val jdk11 = AvailableJavaHomes.getJdk11()
-        assumeThat(jdk11, not(nullValue()))
+        assumeNotNull(jdk11)
 
         withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
 
@@ -122,11 +126,21 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
         withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
         withBuildScript("""plugins { id("some") }""")
 
-        val result = gradleExecuterFor(arrayOf("help"))
-            .withArgument("-Porg.gradle.java.installations.paths=${jdk11!!.javaHome.absolutePath}")
+        val installationPaths = listOf(jdk8!!, jdk11!!).joinToString(",") {
+            it.javaHome.absolutePath
+        }
+
+        gradleExecuterFor(arrayOf("build"))
+            .withJavaHome(jdk8?.javaHome)
+            .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
             .run()
 
-        assertThat(result.output, containsString(outputFor(JavaVersion.VERSION_11)))
+        val helpResult = gradleExecuterFor(arrayOf("help"))
+            .withJavaHome(jdk11.javaHome)
+            .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
+            .run()
+
+        assertThat(helpResult.output, containsString(outputFor(JavaVersion.VERSION_11)))
     }
 
     private
