@@ -16,6 +16,8 @@
 
 import gradlebuild.basics.accessors.kotlin
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 
@@ -59,17 +61,16 @@ tasks {
 }
 
 fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
-    kotlinOptions {
-        incremental = true
-        // allWarningsAsErrors = true // TODO let kotlin compiler fail on warnings
-        apiVersion = "1.8"
-        languageVersion = "1.8"
-        freeCompilerArgs += listOf(
+    compilerOptions {
+        // allWarningsAsErrors.set(true) // TODO let kotlin compiler fail on warnings
+        apiVersion.set(KotlinVersion.KOTLIN_1_8)
+        languageVersion.set(KotlinVersion.KOTLIN_1_8)
+        jvmTarget.set(JvmTarget.JVM_1_8)
+        freeCompilerArgs.addAll(
             "-Xjsr305=strict",
             "-java-parameters",
             "-Xsam-conversions=class",
             "-Xskip-metadata-version-check",
         )
-        jvmTarget = "1.8"
     }
 }
