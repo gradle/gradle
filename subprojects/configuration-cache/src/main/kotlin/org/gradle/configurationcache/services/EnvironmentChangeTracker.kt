@@ -16,9 +16,8 @@
 
 package org.gradle.configurationcache.services
 
-import org.gradle.configuration.internal.UserCodeApplicationContext
+import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.PropertyTrace
-import org.gradle.configurationcache.problems.location
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import java.util.concurrent.ConcurrentHashMap
@@ -35,7 +34,8 @@ import java.util.concurrent.ConcurrentHashMap
  * mode results in the IllegalStateException.
  */
 @ServiceScope(Scopes.BuildTree::class)
-class EnvironmentChangeTracker(private val userCodeApplicationContext: UserCodeApplicationContext) {
+internal
+class EnvironmentChangeTracker(private val problemFactory: ProblemFactory) {
     private
     val mode = ModeHolder()
 
@@ -118,7 +118,7 @@ class EnvironmentChangeTracker(private val userCodeApplicationContext: UserCodeA
         }
 
         fun systemPropertyChanged(key: Any, value: Any?, consumer: String) {
-            mutatedSystemProperties[key] = SystemPropertySet(key, value, userCodeApplicationContext.location(consumer))
+            mutatedSystemProperties[key] = SystemPropertySet(key, value, problemFactory.locationForCaller(consumer))
         }
 
         fun systemPropertyRemoved(key: Any) {
@@ -170,7 +170,7 @@ class EnvironmentChangeTracker(private val userCodeApplicationContext: UserCodeA
 
     sealed class SystemPropertyChange
 
-    class SystemPropertySet(val key: Any, val value: Any?, val location: PropertyTrace?) : SystemPropertyChange()
+    class SystemPropertySet(val key: Any, val value: Any?, val location: PropertyTrace) : SystemPropertyChange()
     class SystemPropertyRemove(val key: String) : SystemPropertyChange()
 
     /**
