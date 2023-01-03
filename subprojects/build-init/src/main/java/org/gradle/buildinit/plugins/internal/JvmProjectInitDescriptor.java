@@ -146,8 +146,8 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     @Override
     public void generateSources(InitSettings settings, TemplateFactory templateFactory) {
         for (String subproject : settings.getSubprojects()) {
-            List<String> sourceTemplates = sourceTemplates(subproject, settings, templateFactory);
-            List<String> testSourceTemplates = testSourceTemplates(subproject, settings, templateFactory);
+            List<String> sourceTemplates = getSourceTemplates(subproject, settings, templateFactory);
+            List<String> testSourceTemplates = getTestSourceTemplates(subproject, settings, templateFactory);
 
             List<TemplateOperation> templateOps = sourceTemplates.stream()
                 .map(t -> templateFactory.fromSourceTemplate(templatePath(t), "main", subproject, templateLanguage(t)))
@@ -172,9 +172,9 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         return getLanguage();
     }
 
-    protected abstract List<String> sourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory);
+    protected abstract List<String> getSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory);
 
-    protected abstract List<String> testSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory);
+    protected abstract List<String> getTestSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory);
 
     protected void applyApplicationPlugin(BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder.plugin(

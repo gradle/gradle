@@ -79,7 +79,7 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
     }
 
     @Override
-    protected List<String> sourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
+    protected List<String> getSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
         if (isSingleProject(settings)) {
             return newArrayList("App");
         }
@@ -96,7 +96,7 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
     }
 
     @Override
-    protected List<String> testSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
+    protected List<String> getTestSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory) {
         if (isSingleProject(settings)) {
             return newArrayList(getTestFrameWorkName(settings));
         }
