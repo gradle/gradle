@@ -193,9 +193,9 @@ sealed class PropertyTrace {
             }
             is BuildLogic -> {
                 append(trace.source.displayName)
-                if (trace.lineNumber != null) {
+                trace.lineNumber?.let {
                     append(": line ")
-                    append(trace.lineNumber)
+                    append(it)
                 }
             }
             is BuildLogicClass -> {
