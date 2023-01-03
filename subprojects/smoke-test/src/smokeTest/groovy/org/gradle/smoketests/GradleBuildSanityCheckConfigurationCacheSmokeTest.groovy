@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.testkit.runner.TaskOutcome
-import spock.lang.Ignore
 
 class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
 
