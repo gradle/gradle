@@ -149,7 +149,7 @@ To utilize this performance, ensure you are using the supported formats in the d
 ```kotlin
 plugins {
     id("java-library")                               // <1>
-    id("com.acme.example") version "1.0 apply false  // <2>
+    id("com.acme.example") version "1.0" apply false  // <2>
     kotlin("jvm") version "1.7.21"                   // <3>
 }
 ```
