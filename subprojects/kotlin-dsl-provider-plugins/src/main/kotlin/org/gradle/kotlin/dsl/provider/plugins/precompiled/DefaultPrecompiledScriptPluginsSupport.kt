@@ -201,7 +201,7 @@ fun Project.enableScriptCompilationOf(
         val compilePluginsBlocks by registering(CompilePrecompiledScriptPluginPlugins::class) {
 
             javaLauncher.set(javaToolchainService.launcherFor(java.toolchain))
-            jvmTarget.set(jvmTargetProvider)
+            @Suppress("DEPRECATION") jvmTarget.set(jvmTargetProvider)
 
             dependsOn(extractPrecompiledScriptPluginPlugins)
             sourceDir(extractedPluginsBlocks)
