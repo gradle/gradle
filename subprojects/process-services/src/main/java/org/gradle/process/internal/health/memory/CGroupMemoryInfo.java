@@ -37,7 +37,7 @@ public class CGroupMemoryInfo implements OsMemoryInfo {
             String memTotalString = Files.asCharSource(new File(CGROUP_MEM_TOTAL_FILE), Charset.defaultCharset()).readFirstLine();
             memUsage = Long.parseLong(memUsageString);
             memTotal = Long.parseLong(memTotalString);
-            memAvailable = memTotal - memUsage;
+            memAvailable = Math.max(0, memTotal - memUsage);
         } catch (IOException e) {
             throw new UnsupportedOperationException("Unable to read system memory", e);
         } catch (NumberFormatException e) {
