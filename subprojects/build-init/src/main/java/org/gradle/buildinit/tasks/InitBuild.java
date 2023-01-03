@@ -37,15 +37,22 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.lang.model.SourceVersion;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+import static java.util.stream.Collectors.toList;
 import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackageName;
 
 /**
@@ -199,6 +206,11 @@ public abstract class InitBuild extends DefaultTask {
 
         validatePackageName(packageName);
 
+
+        java.util.Optional<JavaLanguageVersion> toolChainVersion = getJavaLanguageVersion(inputHandler, initDescriptor.getLanguage());
+
+        validatePackageName(packageName);
+
         List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
         InitSettings settings = new InitSettings(
             projectName,
@@ -209,7 +221,8 @@ public abstract class InitBuild extends DefaultTask {
             packageName,
             testFramework,
             insecureProtocol.get(),
-            projectDir);
+            projectDir,
+            toolChainVersion);
         initDescriptor.generate(settings);
 
         initDescriptor.getFurtherReading(settings).ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
@@ -219,6 +232,19 @@ public abstract class InitBuild extends DefaultTask {
         if (!isNullOrEmpty(packageName) && !SourceVersion.isName(packageName)) {
             throw new GradleException("Package name: '" + packageName + "' is not valid - it may contain invalid characters or reserved words.");
         }
+    }
+
+    java.util.Optional<JavaLanguageVersion> getJavaLanguageVersion(UserInputHandler inputHandler, Language language) {
+        if(isJvmLanguage(language)) {
+            JavaLanguageVersion current = JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion());
+            return of(inputHandler.selectOption("Select a Java toolchain to build the project", DefaultJavaLanguageVersion.getKnownVersions().collect(toList()), current));
+        }
+        return empty();
+    }
+
+    private static final List<Language> JVM_LANGUAGES = Arrays.asList(Language.SCALA, Language.GROOVY, Language.GROOVY, Language.JAVA, Language.KOTLIN);
+    private static boolean isJvmLanguage(Language language) {
+        return JVM_LANGUAGES.contains(language);
     }
 
     private BuildInitDsl getBuildInitDsl(UserInputHandler inputHandler, BuildInitializer initDescriptor) {

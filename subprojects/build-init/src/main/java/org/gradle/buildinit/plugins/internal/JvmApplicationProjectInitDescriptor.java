@@ -63,7 +63,7 @@ public class JvmApplicationProjectInitDescriptor extends JvmProjectInitDescripto
         if (isSingleProject(settings)) {
             applyApplicationPlugin(buildScriptBuilder);
             buildScriptBuilder.implementationDependency("This dependency is used by the application.",
-                    "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
+                "com.google.guava:guava:" + libraryVersionProvider.getVersion("guava"));
         } else {
             if ("app".equals(projectName)) {
                 buildScriptBuilder.plugin(null, applicationConventionPlugin(settings));

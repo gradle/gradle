@@ -22,7 +22,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 
 @LeaksFileHandles
-class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
+class KotlinApplicationInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_APP_CLASS = "some/thing/App.kt"
     public static final String SAMPLE_APP_TEST_CLASS = "some/thing/AppTest.kt"
