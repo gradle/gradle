@@ -174,7 +174,7 @@ In addition to libraries, version catalog supports declaring plugin versions.
 While libraries are represented by their group, artifact and version coordinates, Gradle plugins are identified by their id and version only.
 Therefore, they need to be declared separately:
 
-WARNING: Version catalogs do not support Settings plugins.
+WARNING: You cannot use a plugin declared in a version catalog in your settings file or settings plugin (because catalogs are defined in settings themselves, it would be a chicken and egg problem).
 
 .Declaring a plugin version
 ====
