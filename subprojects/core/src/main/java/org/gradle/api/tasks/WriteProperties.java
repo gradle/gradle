@@ -61,11 +61,8 @@ public abstract class WriteProperties extends DefaultTask {
     private final Map<String, Callable<String>> deferredProperties = Maps.newHashMap();
     private final Map<String, String> properties = Maps.newHashMap();
     private String lineSeparator = "\n";
-    private Object outputFile;
     private String comment;
     private String encoding = "ISO_8859_1";
-
-    private RegularFileProperty destinationFile;
 
     /**
      * Returns an immutable view of properties to be written to the properties file.
@@ -197,10 +194,7 @@ public abstract class WriteProperties extends DefaultTask {
     @OutputFile
     @Optional
     public File getOutputFile() {
-        if(outputFile != null) {
-            return getServices().get(FileOperations.class).file(outputFile);
-        }
-        return null;
+        return getDestinationFile().getAsFile().getOrNull();
     }
 
     /**
@@ -209,14 +203,14 @@ public abstract class WriteProperties extends DefaultTask {
      * @since 4.0
      */
     public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile;
+        getDestinationFile().set(outputFile);
     }
 
     /**
      * Sets the output file to write the properties to.
      */
     public void setOutputFile(Object outputFile) {
-        this.outputFile = outputFile;
+        this.getDestinationFile().set(getServices().get(FileOperations.class).file(outputFile));
     }
 
     /**
