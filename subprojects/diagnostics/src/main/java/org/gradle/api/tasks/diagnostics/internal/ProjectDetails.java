@@ -19,12 +19,15 @@ package org.gradle.api.tasks.diagnostics.internal;
 import org.gradle.api.Project;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public interface ProjectDetails {
 
     static ProjectDetails of(final Project project) {
         final String displayName = project.getDisplayName();
         final String description = project.getDescription();
+        final String name = project.getName();
+        final String path = project.getPath();
         return new ProjectDetails() {
             @Override
             public String getDisplayName() {
@@ -37,8 +40,18 @@ public interface ProjectDetails {
             }
 
             @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public String getPath() {
+                return path;
+            }
+
+            @Override
             public int hashCode() {
-                return this.getDisplayName().hashCode();
+                return Objects.hash(displayName, name, path);
             }
 
             @Override
@@ -47,7 +60,16 @@ public interface ProjectDetails {
                     return false;
                 }
                 ProjectDetails that = (ProjectDetails) obj;
-                return this.getDisplayName().equals(that.getDisplayName());
+                if (!this.getDisplayName().equals(that.getDisplayName())) {
+                    return false;
+                }
+                if (!this.getName().equals(that.getName())) {
+                    return false;
+                }
+                if (!this.getPath().equals(that.getPath())) {
+                    return false;
+                }
+                return true;
             }
         };
     }
@@ -56,4 +78,8 @@ public interface ProjectDetails {
 
     @Nullable
     String getDescription();
+
+    String getName();
+
+    String getPath();
 }
