@@ -26,7 +26,6 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
-import org.gradle.jvm.component.JvmSoftwareComponent
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TestUtil
@@ -202,7 +201,6 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         SoftwareComponentInternal javaLibrary = project.components.getByName("java")
 
         then:
-        javaLibrary instanceof JvmSoftwareComponent
         javaLibrary instanceof AdhocComponentWithVariants
         def runtime = javaLibrary.usages.find { it.name == 'runtimeElements' }
         runtime.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
