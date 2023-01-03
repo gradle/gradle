@@ -64,6 +64,7 @@ val allowedProperties = setOf(
 
 
 @ServiceScope(Scopes.BuildTree::class)
+internal
 class InstrumentedInputAccessListener(
     listenerManager: ListenerManager,
     configurationCacheProblemsListener: ConfigurationCacheProblemsListener,
