@@ -23,7 +23,6 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.execution.TaskExecutionGraphListener
-import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.configurationcache.extensions.capitalized
@@ -214,13 +213,13 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     override fun size(): Int = delegate.size()
 
     @Deprecated("Deprecated in Java")
-    override fun addTaskExecutionListener(listener: TaskExecutionListener) {
+    override fun addTaskExecutionListener(@Suppress("DEPRECATION") listener: org.gradle.api.execution.TaskExecutionListener) {
         @Suppress("DEPRECATION")
         delegate.addTaskExecutionListener(listener)
     }
 
     @Deprecated("Deprecated in Java")
-    override fun removeTaskExecutionListener(listener: TaskExecutionListener) {
+    override fun removeTaskExecutionListener(@Suppress("DEPRECATION") listener: org.gradle.api.execution.TaskExecutionListener) {
         @Suppress("DEPRECATION")
         delegate.removeTaskExecutionListener(listener)
     }
