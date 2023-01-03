@@ -23,6 +23,8 @@ import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.KotlinDslPluginSupport
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugin
@@ -44,15 +46,15 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
         afterEvaluate {
             kotlinDslPluginOptions {
                 tasks.withType<KotlinCompile>().configureEach {
-                    it.kotlinOptions {
+                    it.compilerOptions {
                         DeprecationLogger.whileDisabled {
                             if (this@kotlinDslPluginOptions.jvmTarget.isPresent) {
-                                jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
+                                jvmTarget.set(JvmTarget.fromTarget(this@kotlinDslPluginOptions.jvmTarget.get()))
                             }
                         }
-                        apiVersion = "1.8"
-                        languageVersion = "1.8"
-                        freeCompilerArgs += KotlinDslPluginSupport.kotlinCompilerArgs
+                        apiVersion.set(KotlinVersion.KOTLIN_1_8)
+                        languageVersion.set(KotlinVersion.KOTLIN_1_8)
+                        freeCompilerArgs.addAll(KotlinDslPluginSupport.kotlinCompilerArgs)
                     }
                     it.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf(
                         "-XXLanguage:+DisableCompatibilityModeForNewInference",
