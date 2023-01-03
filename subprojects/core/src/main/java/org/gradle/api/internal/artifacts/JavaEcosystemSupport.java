@@ -129,7 +129,7 @@ public abstract class JavaEcosystemSupport {
         targetEnvironmentSchema.getDisambiguationRules().add(TargetJvmEnvironmentDisambiguationRules.class);
     }
 
-    public static void configureBundling(AttributesSchema attributesSchema) {
+    private static void configureBundling(AttributesSchema attributesSchema) {
         AttributeMatchingStrategy<Bundling> bundlingSchema = attributesSchema.attribute(Bundling.BUNDLING_ATTRIBUTE);
         bundlingSchema.getCompatibilityRules().add(BundlingCompatibilityRules.class);
         bundlingSchema.getDisambiguationRules().add(BundlingDisambiguationRules.class);
