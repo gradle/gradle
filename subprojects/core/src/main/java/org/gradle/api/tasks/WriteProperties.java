@@ -23,7 +23,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.provider.Provider;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -195,15 +194,17 @@ public abstract class WriteProperties extends DefaultTask {
     /**
      * Returns the output file to write the properties to.
      */
-    @OutputFile
-    @Optional
-    @Deprecated
+    @Internal
     public File getOutputFile() {
-        DeprecationLogger.deprecateProperty(getClass(), "outputFile").replaceWith("destinationFile")
+        deprecationWarning();
+        return getDestinationFile().getAsFile().getOrNull();
+    }
+
+    private void deprecationWarning() {
+        DeprecationLogger.deprecateProperty(WriteProperties.class, "outputFile").replaceWith("destinationFile")
             .willBeRemovedInGradle9()
             .withDslReference()
             .nagUser();
-        return getDestinationFile().getAsFile().getOrNull();
     }
 
     /**
@@ -213,10 +214,7 @@ public abstract class WriteProperties extends DefaultTask {
      */
     @Deprecated
     public void setOutputFile(File outputFile) {
-        DeprecationLogger.deprecateProperty(getClass(), "outputFile").replaceWith("destinationFile")
-            .willBeRemovedInGradle9()
-            .withDslReference()
-            .nagUser();
+        deprecationWarning();
         getDestinationFile().set(outputFile);
     }
 
@@ -225,12 +223,8 @@ public abstract class WriteProperties extends DefaultTask {
      */
     @Deprecated
     public void setOutputFile(Object outputFile) {
-        DeprecationLogger.deprecateProperty(getClass(), "outputFile").replaceWith("destinationFile")
-            .willBeRemovedInGradle9()
-            .withDslReference()
-            .nagUser();
-
-        this.getDestinationFile().set(getServices().get(FileOperations.class).file(outputFile));
+        deprecationWarning();
+        getDestinationFile().set(getServices().get(FileOperations.class).file(outputFile));
     }
 
     /**
@@ -239,14 +233,13 @@ public abstract class WriteProperties extends DefaultTask {
      * @since 8.1
      */
     @OutputFile
-    @Optional
     @Incubating
     abstract public RegularFileProperty getDestinationFile();
 
     @TaskAction
     public void writeProperties() throws IOException {
         Charset charset = Charset.forName(getEncoding());
-        File file = getTargetFile();
+        File file = getDestinationFile().getAsFile().get();
         OutputStream out = new BufferedOutputStream(new FileOutputStream(file));
         try {
             Properties propertiesToWrite = new Properties();
@@ -255,15 +248,6 @@ public abstract class WriteProperties extends DefaultTask {
         } finally {
             IoActions.closeQuietly(out);
         }
-    }
-
-    private File getTargetFile() {
-        RegularFileProperty df = getDestinationFile();
-        Provider<File> fileProvider = df.getAsFile();
-        if (fileProvider.isPresent()) {
-            return fileProvider.get();
-        }
-        return getOutputFile();
     }
 
     private static void checkForNullValue(String key, Object value) {
