@@ -298,7 +298,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             get() = modelParameters.isIntermediateModelCache
 
         override val instrumentationAgentUsed: Boolean
-            get() = agentStatus.isInstrumentationAgentApplied
+            get() = agentStatus.isAgentInstrumentationEnabled
 
         override fun hashCodeOf(file: File) =
             fileSystemAccess.read(file.absolutePath).hash
@@ -343,7 +343,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             get() = modelParameters.isInvalidateCoupledProjects
 
         override val instrumentationAgentUsed: Boolean
-            get() = agentStatus.isInstrumentationAgentApplied
+            get() = agentStatus.isAgentInstrumentationEnabled
 
         override fun gradleProperty(propertyName: String): String? =
             gradleProperties.find(propertyName)?.uncheckedCast()

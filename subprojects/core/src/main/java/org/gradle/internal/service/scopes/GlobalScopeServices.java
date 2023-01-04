@@ -58,7 +58,6 @@ import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.agents.AgentStatus;
-import org.gradle.internal.agents.DefaultAgentStatus;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -120,14 +119,16 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     protected final ClassPath additionalModuleClassPath;
     private final GradleBuildEnvironment environment;
+    private final AgentStatus agentStatus;
 
-    public GlobalScopeServices(final boolean longLiving) {
-        this(longLiving, ClassPath.EMPTY);
+    public GlobalScopeServices(final boolean longLiving, AgentStatus agentStatus) {
+        this(longLiving, agentStatus, ClassPath.EMPTY);
     }
 
-    public GlobalScopeServices(final boolean longLiving, ClassPath additionalModuleClassPath) {
+    public GlobalScopeServices(final boolean longLiving, AgentStatus agentStatus, ClassPath additionalModuleClassPath) {
         super();
         this.additionalModuleClassPath = additionalModuleClassPath;
+        this.agentStatus = agentStatus;
         this.environment = () -> longLiving;
     }
 
@@ -317,6 +318,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     AgentStatus createAgentStatus() {
-        return new DefaultAgentStatus();
+        return agentStatus;
     }
 }

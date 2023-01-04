@@ -39,6 +39,7 @@ import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.agents.DisabledAgentStatus;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
@@ -107,7 +108,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         .parent(newCommandLineProcessLogging())
         .parent(NativeServicesTestFixture.getInstance())
         .parent(ValidationServicesFixture.getServices())
-        .provider(new GlobalScopeServices(true))
+        // TODO(mlopatkin) if the executor is actually in-process executor, then the agent might be handy.
+        .provider(new GlobalScopeServices(true, new DisabledAgentStatus()))
         .build();
 
     private static final JvmVersionDetector JVM_VERSION_DETECTOR = GLOBAL_SERVICES.get(JvmVersionDetector.class);
