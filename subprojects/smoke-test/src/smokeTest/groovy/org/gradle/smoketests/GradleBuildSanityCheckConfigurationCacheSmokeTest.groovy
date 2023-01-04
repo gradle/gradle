@@ -17,11 +17,9 @@
 package org.gradle.smoketests
 
 import org.gradle.testkit.runner.TaskOutcome
-import spock.lang.Ignore
 
 class GradleBuildSanityCheckConfigurationCacheSmokeTest extends AbstractGradleBuildConfigurationCacheSmokeTest {
 
-    @Ignore("Temporarily ignored to get the Sign task in")
     def "can run Gradle sanityCheck with configuration cache enabled"() {
         given:
         // This is an approximation, running the whole build lifecycle 'sanityCheck' is too expensive
