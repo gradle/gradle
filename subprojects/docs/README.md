@@ -77,9 +77,20 @@ You will find these references useful when authoring AsciiDoc:
  - [Asciidoctor User Manual](https://asciidoctor.org/docs/user-manual/)
  - [Asciidoctor Gradle Plugin Reference](https://asciidoctor.org/docs/asciidoctor-gradle-plugin/)
 
-### Using Asciidoctor
+### Adding new chapters
 
-To write a chapter in Asciidoctor format, simply place it in `src/docs/userguide` called `<chapter>.adoc`.
+When adding a new chapter to the manual do the following steps:
+1. Create a file called `<chapter>.adoc` in a suitable subdirectory of `src/docs/userguide` and write the content there.
+2. Add the license text to the top of the file and also add an ID for the chapter title.
+This is required to be able to link directly to the chapter from other chapters, as opposed to linking to a section inside.\
+The ID should preferably match the name of the `adoc` file. 
+For instance, linking to `toolchains.adoc` is possible with `<<toolchains.adoc#toolchains,Text>>`, and the declaration looks like:
+    ```asciidoc
+    [[toolchains]]
+    = Toolchains for JVM projects
+    ```
+3. Include the new chapter file in the [`userguide_single.adoc`](src/docs/userguide/userguide_single.adoc).
+4. Include the relative link to the new chapter in the [`header.html`](src/main/resources/header.html)
 
 ### Code Snippets
 
@@ -134,7 +145,9 @@ Let's break down this example to explain:
 
 It is possible to embed sample sources, commands, and expected output directly in the Asciidoc (or a mixture of embedded and `include`d), but we don't use this for the user manual yet. See the [Exemplar documentation](https://github.com/gradle/exemplar/#configuring-embedded-samples) if you're interested in this.
 
-### Code Samples
+### Testing samples and snippets
+
+#### Code samples
 
 Samples and output belong under `src/samples` and are published beside the user manual. See the `org.gradle.samples` plugin.
 
@@ -148,20 +161,27 @@ To run tests for a single sample, let's say from `samples/java/application`:
 ./gradlew :docs:docsTest --tests "org.gradle.docs.samples.DependencyManagementSnippetsTest.java-application*"
 ```
 
-To run tests for a single snippet:
+#### Code snippets
 
-Let's say you want to run the snippet found at `src/snippets/dependencyManagement/customizingResolution-consistentResolution`.
+Snippets live under `src/snippets`.
 
-then you can run the following command line:
-
+As an example, you can run Kotlin and Groovy snippets tests from [`src/snippets/java/toolchain-task/`](src/snippets/java/toolchain-task) using:
 ```
-   ./gradlew :docs:docsTest --tests "*.snippet-dependency-management-customizing-resolution-consistent-resolution*"
+./gradlew :docs:docsTest --tests "*.snippet-java-toolchain-task_*"
 ```
 
-which would run both Groovy and Kotlin tests.
+You can also filter the tests for a specific DSL like this:
+```
+./gradlew :docs:docsTest --tests "*.snippet-java-toolchain-task_kotlin_*"
+```
+
+#### Testing with configuration cache
 
 It is possible to run samples and snippets with the configuration cache enabled to ensure compatibility.
-To do that set the Gradle property `enableConfigurationCacheForDocsTests=true` in the command line or in the `gradle.properties` file.
+You can do that by setting the Gradle property `enableConfigurationCacheForDocsTests` in the command line or in the `gradle.properties` file.
+```
+./gradlew :docs:docsTest --tests "*.snippet-java-toolchain-task_*" -PenableConfigurationCacheForDocsTests=true
+```
 
 ## Groovy DSL Reference
 

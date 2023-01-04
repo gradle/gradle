@@ -25,8 +25,8 @@ import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ManagedFactoryRegistry;
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 

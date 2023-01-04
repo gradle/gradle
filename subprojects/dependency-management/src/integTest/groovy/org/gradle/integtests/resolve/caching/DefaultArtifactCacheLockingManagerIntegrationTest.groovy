@@ -24,12 +24,14 @@ import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
 
 import static java.util.concurrent.TimeUnit.DAYS
 import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES
+import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 
 class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, GradleUserHomeCleanupFixture {
     public static final int HALF_DEFAULT_MAX_AGE_IN_DAYS = Math.max(1, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES / 2 as int)
@@ -192,12 +194,20 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         when:
         run '--stop' // ensure daemon does not cache file access times in memory
 
-        and:
+        then:
+        gcFile.assertExists()
+
+        when:
         writeLastFileAccessTimeToJournal(resource.parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
         writeLastFileAccessTimeToJournal(files[0].parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
         writeLastFileAccessTimeToJournal(files[1].parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
 
         and:
+        executer.beforeExecute {
+            if (!GradleContextualExecuter.embedded) {
+                executer.withArgument("-D$REUSE_USER_HOME_SERVICES=true")
+            }
+        }
         executer.withTasks('help').start().waitForFinish()
 
         then:

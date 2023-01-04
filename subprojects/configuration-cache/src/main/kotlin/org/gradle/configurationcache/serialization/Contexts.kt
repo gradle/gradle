@@ -412,9 +412,9 @@ abstract class AbstractIsolateContext<T>(
         currentProblemsListener.onError(trace, error, message)
     }
 
-    override suspend fun forIncompatibleType(action: suspend () -> Unit) {
+    override suspend fun forIncompatibleType(path: String, action: suspend () -> Unit) {
         val previousListener = currentProblemsListener
-        currentProblemsListener = previousListener.forIncompatibleType()
+        currentProblemsListener = previousListener.forIncompatibleTask(path)
         try {
             action()
         } finally {

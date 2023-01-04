@@ -25,7 +25,6 @@ import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
-import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.internal.provider.PropertyFactory
@@ -48,7 +47,6 @@ import org.gradle.configurationcache.serialization.decodePreservingIdentity
 import org.gradle.configurationcache.serialization.decodePreservingSharedIdentity
 import org.gradle.configurationcache.serialization.encodePreservingIdentityOf
 import org.gradle.configurationcache.serialization.encodePreservingSharedIdentityOf
-import org.gradle.configurationcache.serialization.logPropertyProblem
 import org.gradle.configurationcache.serialization.readClassOf
 import org.gradle.configurationcache.serialization.readNonNull
 import org.gradle.internal.build.BuildStateRegistry
@@ -71,18 +69,7 @@ class FixedValueReplacingProviderCodec(
     }.build()
 
     suspend fun WriteContext.encodeProvider(value: ProviderInternal<*>) {
-        val state = try {
-            value.calculateExecutionTimeValue()
-        } catch (e: Exception) {
-            logPropertyProblem("serialize", e) {
-                text("value ")
-                reference(value.toString())
-                text(" failed to unpack provider")
-            }
-            writeByte(0)
-            write(BrokenValue(e))
-            return
-        }
+        val state = value.calculateExecutionTimeValue()
         encodeValue(state)
     }
 
@@ -124,11 +111,6 @@ class FixedValueReplacingProviderCodec(
 
     suspend fun ReadContext.decodeValue(): ValueSupplier.ExecutionTimeValue<*> =
         when (readByte()) {
-            0.toByte() -> {
-                val value = read() as BrokenValue
-                ValueSupplier.ExecutionTimeValue.changingValue(DefaultProvider { value.rethrow() })
-            }
-
             1.toByte() -> ValueSupplier.ExecutionTimeValue.missing<Any>()
             2.toByte() -> ValueSupplier.ExecutionTimeValue.ofNullable(read()) // nullable because serialization may replace value with null, eg when using provider of Task
             3.toByte() -> {
@@ -190,7 +172,7 @@ class BuildServiceProviderCodec(
             if (isResolved) {
                 val parameters = read() as BuildServiceParameters?
                 val maxUsages = readInt()
-                buildServiceRegistryOf(buildIdentifier).register(name, implementationType, parameters, maxUsages)
+                buildServiceRegistryOf(buildIdentifier).registerIfAbsent(name, implementationType, parameters, maxUsages)
             } else {
                 buildServiceRegistryOf(buildIdentifier).consume(name, implementationType)
             }

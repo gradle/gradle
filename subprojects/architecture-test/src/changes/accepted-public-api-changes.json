@@ -106,6 +106,14 @@
         },
         {
             "type": "org.gradle.api.artifacts.dsl.DependencyHandler",
+            "member": "Method org.gradle.api.artifacts.dsl.DependencyHandler.add(java.lang.String,java.lang.Object,groovy.lang.Closure)",
+            "acceptation": "This could always return null",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.dsl.DependencyHandler",
             "member": "Method org.gradle.api.artifacts.dsl.DependencyHandler.registerTransform(org.gradle.api.Action)",
             "acceptation": "Legacy ArtifactTransform API has been removed",
             "changes": [
@@ -574,14 +582,6 @@
             "acceptation": "making this class abstract makes it easier to remove boilerplate",
             "changes": [
                 "Class is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.quality.CodeNarc",
-            "member": "Method org.gradle.api.plugins.quality.CodeNarc.getAntBuilder()",
-            "acceptation": "Deprecated method removed in Gradle 8.0",
-            "changes": [
-                "Method has been removed"
             ]
         },
         {
@@ -1549,7 +1549,15 @@
         },
         {
             "type": "org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler",
-            "member": "Method org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler.repositories()",
+            "member": "Method org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler.getAsList()",
+            "acceptation": "method addition backport to 7.6.1",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler",
+            "member": "Method org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler.remove(java.lang.String)",
             "acceptation": "method addition backport to 7.6.1",
             "changes": [
                 "Method added to interface"

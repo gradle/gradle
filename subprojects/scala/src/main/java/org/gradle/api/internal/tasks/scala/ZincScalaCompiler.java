@@ -30,25 +30,16 @@ import org.gradle.internal.time.Timer;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.internal.GFileUtils;
 import sbt.internal.inc.Analysis;
-import sbt.internal.inc.ExternalLookup;
 import sbt.internal.inc.IncrementalCompilerImpl;
 import sbt.internal.inc.Locate;
 import sbt.internal.inc.LoggedReporter;
 import sbt.internal.inc.PlainVirtualFileConverter;
 import sbt.internal.inc.ScalaInstance;
-import sbt.internal.inc.Stamper;
 import scala.Option;
-import scala.Some;
-import scala.collection.immutable.Set;
-import scala.jdk.javaapi.CollectionConverters;
 import xsbti.T2;
 import xsbti.VirtualFile;
-import xsbti.VirtualFileRef;
-import xsbti.api.AnalyzedClass;
 import xsbti.compile.AnalysisContents;
 import xsbti.compile.AnalysisStore;
-import xsbti.compile.Changes;
-import xsbti.compile.ClassFileManager;
 import xsbti.compile.ClassFileManagerType;
 import xsbti.compile.ClasspathOptionsUtil;
 import xsbti.compile.CompileAnalysis;
@@ -57,8 +48,6 @@ import xsbti.compile.CompileResult;
 import xsbti.compile.CompilerCache;
 import xsbti.compile.Compilers;
 import xsbti.compile.DefinesClass;
-import xsbti.compile.ExternalHooks;
-import xsbti.compile.FileHash;
 import xsbti.compile.IncOptions;
 import xsbti.compile.Inputs;
 import xsbti.compile.PerClasspathEntryLookup;
@@ -66,7 +55,6 @@ import xsbti.compile.PreviousResult;
 import xsbti.compile.ScalaCompiler;
 import xsbti.compile.Setup;
 import xsbti.compile.TransactionalManagerType;
-import xsbti.compile.analysis.Stamp;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -138,7 +126,6 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
             .orElse(PreviousResult.of(Optional.empty(), Optional.empty()));
 
         IncOptions incOptions = IncOptions.of()
-                .withExternalHooks(new LookupOnlyExternalHooks(new ExternalBinariesLookup()))
                 .withRecompileOnMacroDef(Optional.of(false))
                 .withClassfileManagerType(classFileManagerType)
                 .withTransitiveStep(5);
@@ -208,81 +195,6 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
                 .map(a -> a instanceof Analysis ? (Analysis) a : null)
                 .<DefinesClass>map(AnalysisBakedDefineClass::new)
                 .orElseGet(() -> definesClassCache.get(classpathEntry, Locate::definesClass));
-        }
-    }
-
-    private static class ExternalBinariesLookup implements ExternalLookup {
-
-        @Override
-        public Option<AnalyzedClass> lookupAnalyzedClass(String binaryClassName, Option<VirtualFileRef> file)  {
-            return Option.empty();
-        }
-
-        @Override
-        public Option<Changes<VirtualFileRef>> changedSources(CompileAnalysis previousAnalysis) {
-            return Option.empty();
-        }
-
-        @Override
-        public Option<Set<VirtualFileRef>> changedBinaries(CompileAnalysis previousAnalysis) {
-            List<VirtualFileRef> result = new java.util.ArrayList<>();
-
-            for (Map.Entry<VirtualFileRef, Stamp> e : previousAnalysis.readStamps().getAllLibraryStamps().entrySet()) {
-                File path = CONVERTER.toPath(e.getKey()).toFile();
-                if (!path.exists() || !e.getValue().equals(Stamper.forLastModifiedInRootPaths(CONVERTER).apply(e.getKey()))) {
-                    result.add(e.getKey());
-                }
-            }
-            if (result.isEmpty()) {
-                return Option.empty();
-            } else {
-                return new Some<>(CollectionConverters.asScala(result).toSet());
-            }
-        }
-
-
-        @Override
-        public Option<Set<VirtualFileRef>> removedProducts(CompileAnalysis previousAnalysis) {
-            return Option.empty();
-        }
-
-        @Override
-        public boolean shouldDoIncrementalCompilation(Set<String> changedClasses, CompileAnalysis analysis) {
-            return true;
-        }
-
-
-        @Override
-        public Optional<FileHash[]> hashClasspath(VirtualFile[] classpath) {
-            return Optional.empty();
-        }
-    }
-
-    private static class LookupOnlyExternalHooks implements ExternalHooks {
-        private final Optional<Lookup> lookup;
-
-        public LookupOnlyExternalHooks(Lookup lookup) {
-            this.lookup = Optional.of(lookup);
-        }
-
-        @Override
-        public Optional<Lookup> getExternalLookup() {
-            return lookup;
-        }
-
-        @Override
-        public Optional<ClassFileManager> getExternalClassFileManager() {
-            return Optional.empty();
-        }
-
-        @Override
-        public ExternalHooks withExternalClassFileManager(ClassFileManager externalClassFileManager) {
-            return this;
-        }
-
-        @Override
-        public ExternalHooks withExternalLookup(Lookup externalLookup) {
-            return this;
         }
     }
 

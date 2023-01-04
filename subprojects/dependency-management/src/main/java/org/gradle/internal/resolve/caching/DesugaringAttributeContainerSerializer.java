@@ -29,7 +29,7 @@ import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 import java.io.IOException;
 
 /**
- * An attribute container serializer that will desugar typed attributes.
+ * A thread-safe and reusable attribute container serializer that will desugar typed attributes.
  *
  * Attributes that are of types different than {@code String} or {@code boolean} will be desugared
  * before serialization. The process requires the attribute type to implement {@link Named}.

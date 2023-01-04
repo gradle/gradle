@@ -30,6 +30,7 @@ import org.gradle.internal.time.TimestampSuppliers
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
@@ -68,6 +69,7 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
     def cacheConfigurations = Stub(CacheConfigurationsInternal) {
         getReleasedWrappers() >> releasedWrappers
         getSnapshotWrappers() >> snapshotWrappers
+        getCleanupFrequency() >> TestUtil.providerFactory().provider { CleanupFrequency.DAILY }
     }
 
     def property(Object value) {

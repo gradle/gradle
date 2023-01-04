@@ -19,7 +19,7 @@ package org.gradle.internal.resources;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
 
@@ -72,7 +72,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
 
     @Override
     public void withStateLock(final Runnable action) {
-        withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                 action.run();
@@ -84,7 +84,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     @Override
     public <T> T withStateLock(final Supplier<T> action) {
         final MutableReference<T> result = MutableReference.empty();
-        withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                 result.set(action.get());
@@ -95,7 +95,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     }
 
     @Override
-    public boolean withStateLock(Transformer<ResourceLockState.Disposition, ResourceLockState> stateLockAction) {
+    public boolean withStateLock(InternalTransformer<ResourceLockState.Disposition, ResourceLockState> stateLockAction) {
         synchronized (lock) {
             DefaultResourceLockState resourceLockState = new DefaultResourceLockState();
             DefaultResourceLockState previous = startOperation(resourceLockState);
@@ -244,46 +244,46 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
     /**
      * Attempts an atomic, blocking lock on the provided resource locks.
      */
-    public static Transformer<ResourceLockState.Disposition, ResourceLockState> lock(Iterable<? extends ResourceLock> resourceLocks) {
+    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> lock(Iterable<? extends ResourceLock> resourceLocks) {
         return new AcquireLocks(resourceLocks, true);
     }
 
     /**
      * Attempts an atomic, blocking lock on the provided resource locks.
      */
-    public static Transformer<ResourceLockState.Disposition, ResourceLockState> lock(ResourceLock... resourceLocks) {
+    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> lock(ResourceLock... resourceLocks) {
         return lock(Arrays.asList(resourceLocks));
     }
 
     /**
      * Attempts an atomic, non-blocking lock on the provided resource locks.
      */
-    public static Transformer<ResourceLockState.Disposition, ResourceLockState> tryLock(Iterable<? extends ResourceLock> resourceLocks) {
+    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> tryLock(Iterable<? extends ResourceLock> resourceLocks) {
         return new AcquireLocks(resourceLocks, false);
     }
 
     /**
      * Attempts an atomic, non-blocking lock on the provided resource locks.
      */
-    public static Transformer<ResourceLockState.Disposition, ResourceLockState> tryLock(ResourceLock... resourceLocks) {
+    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> tryLock(ResourceLock... resourceLocks) {
         return tryLock(Arrays.asList(resourceLocks));
     }
 
     /**
      * Unlocks the provided resource locks.
      */
-    public static Transformer<ResourceLockState.Disposition, ResourceLockState> unlock(Iterable<? extends ResourceLock> resourceLocks) {
+    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> unlock(Iterable<? extends ResourceLock> resourceLocks) {
         return new ReleaseLocks(resourceLocks);
     }
 
     /**
      * Unlocks the provided resource locks.
      */
-    public static Transformer<ResourceLockState.Disposition, ResourceLockState> unlock(ResourceLock... resourceLocks) {
+    public static InternalTransformer<ResourceLockState.Disposition, ResourceLockState> unlock(ResourceLock... resourceLocks) {
         return unlock(Arrays.asList(resourceLocks));
     }
 
-    private static class AcquireLocks implements Transformer<ResourceLockState.Disposition, ResourceLockState> {
+    private static class AcquireLocks implements InternalTransformer<ResourceLockState.Disposition, ResourceLockState> {
         private final Iterable<? extends ResourceLock> resourceLocks;
         private final boolean blocking;
 
@@ -303,7 +303,7 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
         }
     }
 
-    private static class ReleaseLocks implements Transformer<ResourceLockState.Disposition, ResourceLockState> {
+    private static class ReleaseLocks implements InternalTransformer<ResourceLockState.Disposition, ResourceLockState> {
         private final Iterable<? extends ResourceLock> resourceLocks;
 
         ReleaseLocks(Iterable<? extends ResourceLock> resourceLocks) {

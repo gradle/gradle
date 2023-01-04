@@ -19,7 +19,6 @@ package org.gradle.internal;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 
 import javax.annotation.Nullable;
@@ -137,48 +136,6 @@ public abstract class Actions {
         public int hashCode() {
             return actions.hashCode();
         }
-    }
-
-    /**
-     * Creates a new composite action, where the argument is first transformed.
-     *
-     * @param action The action.
-     * @param transformer The transformer to transform the argument with
-     * @param <T> The type the action is expecting (that the argument is transformed to)
-     * @param <I> The type of the original argument
-     * @return An action that transforms an object of type I to type O to give to the given action
-     */
-    public static <T, I> Action<I> transformBefore(final Action<? super T> action, final Transformer<? extends T, ? super I> transformer) {
-        return new TransformingActionAdapter<T, I>(transformer, action);
-    }
-
-    private static class TransformingActionAdapter<T, I> implements Action<I> {
-        private final Transformer<? extends T, ? super I> transformer;
-        private final Action<? super T> action;
-
-        private TransformingActionAdapter(Transformer<? extends T, ? super I> transformer, Action<? super T> action) {
-            this.transformer = transformer;
-            this.action = action;
-        }
-
-        @Override
-        public void execute(I thing) {
-            T transformed = transformer.transform(thing);
-            action.execute(transformed);
-        }
-    }
-
-    /**
-     * Adapts an action to a different type by casting the object before giving it to the action.
-     *
-     * @param actionType The type the action is expecting
-     * @param action The action
-     * @param <T> The type the action is expecting
-     * @param <I> The type before casting
-     * @return An action that casts the object to the given type before giving it to the given action
-     */
-    public static <T, I> Action<I> castBefore(final Class<T> actionType, final Action<? super T> action) {
-        return transformBefore(action, Transformers.cast(actionType));
     }
 
     /**
