@@ -21,7 +21,6 @@ import org.gradle.vcs.fixtures.GitFileRepository
 
 
 class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
-    @ToBeFixedForConfigurationCache
     def "export fails when external dependency cannot be mapped to a git url"() {
         given:
         buildFile << """
@@ -41,7 +40,6 @@ class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftP
         failure.assertHasCause("Cannot determine the Git URL for dependency on dep:dep.")
     }
 
-    @ToBeFixedForConfigurationCache
     def "export fails when file dependency is present"() {
         given:
         buildFile << """

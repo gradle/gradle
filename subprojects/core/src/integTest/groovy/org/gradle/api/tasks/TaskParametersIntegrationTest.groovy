@@ -767,9 +767,9 @@ task someTask(type: SomeTask) {
         })
 
         where:
-        method  | path
-        "dir"   | "output-file.txt"
-        "dirs"  | "output-file.txt"
+        method | path
+        "dir"  | "output-file.txt"
+        "dirs" | "output-file.txt"
     }
 
     @ValidationTestFor(
@@ -857,12 +857,14 @@ task someTask(type: SomeTask) {
 
         when:
         fails "failingTask"
+
         then:
-        failureHasCause("Failed to calculate the value of task ':failingTask' property 'stringInput'.")
-        failureHasCause("BOOM")
         if (GradleContextualExecuter.isConfigCache()) {
-            failureDescriptionContains("Configuration cache problems found in this build.")
+            failureDescriptionContains("Configuration cache state could not be cached: field `__stringInput__` of task `:failingTask` of type `FailingTask`: error writing value of type 'org.gradle.api.internal.provider.DefaultProperty'")
+        } else {
+            failureHasCause("Failed to calculate the value of task ':failingTask' property 'stringInput'.")
         }
+        failureHasCause("BOOM")
     }
 
     @ToBeFixedForConfigurationCache

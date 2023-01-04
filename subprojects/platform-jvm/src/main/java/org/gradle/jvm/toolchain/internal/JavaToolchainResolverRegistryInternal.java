@@ -22,7 +22,7 @@ import java.util.List;
 
 public interface JavaToolchainResolverRegistryInternal extends JavaToolchainResolverRegistry {
 
-    DefaultJavaToolchainRepositoryHandler getRepositories();
+    JavaToolchainRepositoryHandlerInternal getRepositories();
 
     List<? extends RealizedJavaToolchainRepository> requestedRepositories();
 }

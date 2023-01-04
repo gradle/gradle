@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.quality.integtest.fixtures.CodeNarcCoverage
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.GroovyCoverage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -33,7 +32,7 @@ import static org.hamcrest.CoreMatchers.startsWith
 
 @TargetCoverage({ CodeNarcCoverage.supportedVersionsByJdk })
 @Requires(TestPrecondition.STABLE_GROOVY)
-class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
+class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec implements CodeNarcTestFixture {
     def setup() {
         buildFile << """
             apply plugin: "groovy"
@@ -206,34 +205,5 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         !!!skipped(':codenarcMain')
         !!!output.contains('CodeNarc Report')
         !!!output.contains('CodeNarc completed: (p1=0; p2=0; p3=0)')
-    }
-
-    private goodCode() {
-        file("src/main/groovy/org/gradle/class1.java") << "package org.gradle; class class1 { }"
-        file("src/test/groovy/org/gradle/testclass1.java") << "package org.gradle; class testclass1 { }"
-        file("src/main/groovy/org/gradle/Class2.groovy") << "package org.gradle; class Class2 { }"
-        file("src/test/groovy/org/gradle/TestClass2.groovy") << "package org.gradle; class TestClass2 { }"
-    }
-
-    private badCode() {
-        file("src/main/groovy/org/gradle/class1.java") << "package org.gradle; class class1 { }"
-        file("src/main/groovy/org/gradle/Class2.groovy") << "package org.gradle; class Class2 { }"
-        file("src/test/groovy/org/gradle/TestClass1.java") << "package org.gradle; class TestClass1 { }"
-        file("src/test/groovy/org/gradle/testclass2.groovy") << "package org.gradle; class testclass2 { }"
-    }
-
-    private TestFile report(String sourceSet, String ext = 'html') {
-        file("build/reports/codenarc/${sourceSet}.${ext}")
-    }
-
-    private TestFile writeRuleFile() {
-        file("config/codenarc/codenarc.xml") << """
-            <ruleset xmlns="http://codenarc.org/ruleset/1.0"
-                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                    xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
-                    xsi:noNamespaceSchemaLocation="http://codenarc.org/ruleset-schema.xsd">
-                <ruleset-ref path="rulesets/naming.xml"/>
-            </ruleset>
-        """
     }
 }

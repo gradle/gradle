@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.locking
 
 import org.gradle.api.artifacts.dsl.LockMode
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 abstract class AbstractLockingIntegrationTest extends AbstractDependencyResolutionTest {
@@ -676,7 +675,6 @@ configurations {
         unique << [true, false]
     }
 
-    @ToBeFixedForConfigurationCache(because = "different error reporting")
     def "fails if trying to resolve a locked configuration with #flag"() {
         buildFile << """
 dependencyLocking {

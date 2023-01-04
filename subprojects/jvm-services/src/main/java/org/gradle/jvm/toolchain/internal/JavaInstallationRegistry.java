@@ -17,7 +17,6 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Supplier;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -36,6 +35,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 
@@ -151,12 +151,12 @@ public class JavaInstallationRegistry {
 
     private static class Installations {
 
-        private final Supplier<Set<InstallationLocation>> initialiser;
+        private final Supplier<Set<InstallationLocation>> initializer;
 
         private Set<InstallationLocation> locations = null;
 
-        Installations(Supplier<Set<InstallationLocation>> initialiser) {
-            this.initialiser = initialiser;
+        Installations(Supplier<Set<InstallationLocation>> initializer) {
+            this.initializer = initializer;
         }
 
         synchronized Set<InstallationLocation> get() {
@@ -171,7 +171,7 @@ public class JavaInstallationRegistry {
 
         private void initIfNeeded() {
             if (locations == null) {
-                locations = initialiser.get();
+                locations = initializer.get();
             }
         }
 

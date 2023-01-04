@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.Flaky
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
@@ -83,6 +84,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/18084')
     @IgnoreIf({ GradleContextualExecuter.embedded })
+    @Flaky(because = "Sometimes it hangs for hours")
     def "can debug on selected port with org.gradle.debug.port"() {
         given:
         executer.requireDaemon().requireIsolatedDaemons()
@@ -190,6 +192,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         value << ["-1", "0", "1.1", "foo", " 1", "65536"]
     }
 
+    @Flaky(because = "Sometimes it hangs for hours")
     @Issue('https://github.com/gradle/gradle/issues/18084')
     @IgnoreIf({ GradleContextualExecuter.embedded })
     @Timeout(30)

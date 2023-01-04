@@ -59,7 +59,7 @@ class DefaultTransformerCodec(
         }
     }
 
-    override suspend fun ReadContext.decode(): DefaultTransformer? {
+    override suspend fun ReadContext.decode(): DefaultTransformer {
         return decodePreservingSharedIdentity {
             val implementationClass = readClassOf<TransformAction<*>>()
             val fromAttributes = readNonNull<ImmutableAttributes>()

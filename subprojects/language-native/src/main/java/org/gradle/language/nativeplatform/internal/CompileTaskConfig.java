@@ -17,7 +17,6 @@ package org.gradle.language.nativeplatform.internal;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
@@ -84,12 +83,7 @@ public abstract class CompileTaskConfig implements SourceTransformTaskConfig {
             @Override
             public List<FileCollection> call() {
                 Collection<NativeDependencySet> libs = binary.getLibs((DependentSourceSet) sourceSet);
-                return CollectionUtils.collect(libs, new Transformer<FileCollection, NativeDependencySet>() {
-                    @Override
-                    public FileCollection transform(NativeDependencySet original) {
-                        return original.getIncludeRoots();
-                    }
-                });
+                return CollectionUtils.collect(libs, NativeDependencySet::getIncludeRoots);
             }
         });
         FileCollectionFactory fileCollectionFactory = ((ProjectInternal) task.getProject()).getServices().get(FileCollectionFactory.class);
