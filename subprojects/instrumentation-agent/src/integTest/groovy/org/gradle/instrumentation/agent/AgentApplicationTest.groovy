@@ -74,9 +74,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
 
         then:
         agentStatusWas(agentStatus)
-        configurationCache.assertStateStored {
-            loadsOnStore = false
-        }
+        configurationCache.assertStateStored()
 
         when:
         withAgentApplied(agentStatus)
@@ -101,9 +99,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
 
         then:
         agentStatusWas(useAgentOnFirstRun)
-        configurationCache.assertStateStored {
-            loadsOnStore = false
-        }
+        configurationCache.assertStateStored()
 
         when:
         withAgentApplied(useAgentOnSecondRun)
@@ -111,9 +107,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
 
         then:
         agentStatusWas(useAgentOnSecondRun)
-        configurationCache.assertStateStored {
-            loadsOnStore = false
-        }
+        configurationCache.assertStateStored()
 
         where:
         useAgentOnFirstRun | useAgentOnSecondRun

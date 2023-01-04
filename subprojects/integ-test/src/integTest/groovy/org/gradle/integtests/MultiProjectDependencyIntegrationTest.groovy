@@ -18,6 +18,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.Flaky
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
 
@@ -196,6 +197,7 @@ project(':c') {
         jarsNotBuilt 'a', 'b', 'c', 'd'
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3673")
     def "project dependency a->[b,c] and c->d and b fails with run with --continue"() {
         projectDependency from: 'a', to: ['b', 'c']
         projectDependency from: 'c', to: ['d']
@@ -213,6 +215,7 @@ project(':c') {
         jarsNotBuilt 'a', 'b'
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3673")
     def "project dependency a->[b,c] and both b & c fail with --continue"() {
         projectDependency from: 'a', to: ['b', 'c']
         failingBuild 'b'

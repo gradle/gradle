@@ -17,10 +17,8 @@
 package org.gradle.profile;
 
 import org.gradle.StartParameter;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction;
 
 public class BuildProfileServices extends AbstractPluginServiceRegistry {
     @Override
@@ -42,22 +40,8 @@ public class BuildProfileServices extends AbstractPluginServiceRegistry {
             public void configure(ServiceRegistration serviceRegistration, StartParameter startParameter) {
                 if (startParameter.isProfile()) {
                     serviceRegistration.add(ProfileEventAdapter.class);
-                    serviceRegistration.add(ProfileRegistrationAction.class);
                 }
             }
         });
-    }
-
-    public static class ProfileRegistrationAction implements BuildScopeListenerManagerAction {
-        private final ProfileEventAdapter eventAdapter;
-
-        public ProfileRegistrationAction(ProfileEventAdapter eventAdapter) {
-            this.eventAdapter = eventAdapter;
-        }
-
-        @Override
-        public void execute(ListenerManager listenerManager) {
-            listenerManager.addListener(eventAdapter);
-        }
     }
 }
