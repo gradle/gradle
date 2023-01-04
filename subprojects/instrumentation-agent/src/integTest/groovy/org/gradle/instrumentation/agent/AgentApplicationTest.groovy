@@ -151,7 +151,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
 
             tasks.register('hello') {
                 doLast {
-                    def status = services.get(AgentStatus).isInstrumentationAgentApplied()
+                    def status = services.get(AgentStatus).isAgentInstrumentationEnabled()
                     println("agent applied = \${status}")
                 }
             }
@@ -164,7 +164,7 @@ class AgentApplicationTest extends AbstractIntegrationSpec {
         buildFile("""
             import ${AgentStatus.name}
 
-            def status = services.get(AgentStatus).isInstrumentationAgentApplied()
+            def status = services.get(AgentStatus).isAgentInstrumentationEnabled()
             tasks.register('hello') {
                 doLast {
                     println("agent applied = \$status")

@@ -48,7 +48,8 @@ public class BuildProcess extends CurrentProcess {
      */
     public boolean configureForBuild(DaemonParameters requiredBuildParameters) {
         boolean javaHomeMatch = getJvm().equals(requiredBuildParameters.getEffectiveJvm());
-        boolean javaAgentStateMatch = agentStatus.isInstrumentationAgentApplied() == requiredBuildParameters.shouldApplyInstrumentationAgent();
+        // TODO(mlopatkin) This can be relaxed: even if the agent is installed for current process, running with the legacy instrumentation is possible.
+        boolean javaAgentStateMatch = agentStatus.isAgentInstrumentationEnabled() == requiredBuildParameters.shouldApplyInstrumentationAgent();
 
         boolean immutableJvmArgsMatch = true;
         if (requiredBuildParameters.hasUserDefinedImmutableJvmArgs()) {

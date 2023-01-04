@@ -109,7 +109,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             case None:
                 return copyingPipeline();
             case BuildLogic:
-                if (!agentStatus.isInstrumentationAgentApplied()) {
+                if (!agentStatus.isAgentInstrumentationEnabled()) {
                     return instrumentingPipeline(InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader());
                 }
                 return agentInstrumentingPipeline(copyingPipeline(), instrumentingPipeline(InstrumentingClasspathFileTransformer.instrumentForLoadingWithAgent()));

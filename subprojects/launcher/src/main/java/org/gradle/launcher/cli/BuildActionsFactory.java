@@ -28,6 +28,7 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.agents.DisabledAgentStatus;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
@@ -141,7 +142,8 @@ class BuildActionsFactory implements CommandLineActionCreator {
             .displayName("Global services")
             .parent(loggingServices)
             .parent(NativeServices.getInstance())
-            .provider(new GlobalScopeServices(startParameter.isContinuous()))
+            // TODO(mlopatkin) In-process builds should use the agent if it is applied to the process.
+            .provider(new GlobalScopeServices(startParameter.isContinuous(), new DisabledAgentStatus()))
             .build();
 
         // Force the user home services to be stopped first, the dependencies between the user home services and the global services are not preserved currently
@@ -172,7 +174,7 @@ class BuildActionsFactory implements CommandLineActionCreator {
         if (usingDaemon) {
             builder.parent(basicServices);
         } else {
-            builder.provider(new GlobalScopeServices(false));
+            builder.provider(new GlobalScopeServices(false, new DisabledAgentStatus()));
         }
         return builder.provider(new DaemonClientGlobalServices()).build();
     }

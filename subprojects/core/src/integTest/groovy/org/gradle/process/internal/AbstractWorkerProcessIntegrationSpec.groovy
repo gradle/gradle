@@ -33,6 +33,7 @@ import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.initialization.layout.GlobalCacheDir
+import org.gradle.internal.agents.DisabledAgentStatus
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.jvm.inspection.CachingJvmMetadataDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector
@@ -65,7 +66,7 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
     DefaultServiceRegistry services = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
         .parent(NativeServicesTestFixture.getInstance())
         .provider(LoggingServiceRegistry.NO_OP)
-        .provider(new GlobalScopeServices(false))
+        .provider(new GlobalScopeServices(false, new DisabledAgentStatus()))
         .build()
     final MessagingServer server = services.get(MessagingServer.class)
     @Rule
