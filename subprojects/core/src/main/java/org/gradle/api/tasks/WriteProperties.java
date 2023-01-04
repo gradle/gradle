@@ -195,6 +195,7 @@ public abstract class WriteProperties extends DefaultTask {
      * Returns the output file to write the properties to.
      */
     @Internal
+    @Deprecated
     public File getOutputFile() {
         deprecationWarning();
         return getDestinationFile().getAsFile().getOrNull();
