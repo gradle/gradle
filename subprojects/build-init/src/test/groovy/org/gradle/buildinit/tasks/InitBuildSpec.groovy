@@ -155,7 +155,7 @@ class InitBuildSpec extends Specification {
         projectName == "other"
     }
 
-    def "should use project name as asked for"() {
+    def "should use project name from user input"() {
         given:
         projectSetupDescriptor.supportsProjectName() >> true
         def userInputHandler = Mock(UserInputHandler)
@@ -196,7 +196,7 @@ class InitBuildSpec extends Specification {
         e.message == "Package name is not supported for 'some-type' build type."
     }
 
-    def "should use package name as asked for"() {
+    def "should use package name from user input"() {
         given:
         projectSetupDescriptor.id >> "some-type"
         projectSetupDescriptor.supportsPackage() >> true
@@ -226,10 +226,10 @@ class InitBuildSpec extends Specification {
     def "get tool chain for #language"() {
         given:
         def inputHandler = Mock(UserInputHandler)
-        inputHandler.selectOption(_ as String, _ as List<JavaLanguageVersion>, _ as JavaLanguageVersion) >> JavaLanguageVersion.of(11)
+        inputHandler.selectOption(_ as String, _ as List<InitBuild.JavaVersionSelection>, _ as InitBuild.JavaVersionSelection) >> new InitBuild.JavaVersionSelection(JavaLanguageVersion.of(11))
 
         when:
-        def languageVersion = init.getJavaLanguageVersion(inputHandler, language)
+        def languageVersion = init.getJavaLanguageVersion(true, inputHandler, language)
 
         then:
         languageVersion == result

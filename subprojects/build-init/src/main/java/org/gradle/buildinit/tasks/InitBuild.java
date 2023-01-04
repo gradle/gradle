@@ -206,8 +206,7 @@ public abstract class InitBuild extends DefaultTask {
 
         validatePackageName(packageName);
 
-
-        java.util.Optional<JavaLanguageVersion> toolChainVersion = getJavaLanguageVersion(inputHandler, initDescriptor.getLanguage());
+        java.util.Optional<JavaLanguageVersion> toolChainVersion = getJavaLanguageVersion(useIncubatingAPIs, inputHandler, initDescriptor.getLanguage());
 
         validatePackageName(packageName);
 
@@ -234,10 +233,28 @@ public abstract class InitBuild extends DefaultTask {
         }
     }
 
-    java.util.Optional<JavaLanguageVersion> getJavaLanguageVersion(UserInputHandler inputHandler, Language language) {
-        if(isJvmLanguage(language)) {
+    static class JavaVersionSelection{
+        private final JavaLanguageVersion languageVersion;
+
+        JavaVersionSelection(JavaLanguageVersion ver) {
+            languageVersion = ver;
+        }
+
+        @Override
+        public String toString() {
+            return "Java " + languageVersion;
+        }
+
+        public JavaLanguageVersion getLanguageVersion() {
+            return languageVersion;
+        }
+    }
+    java.util.Optional<JavaLanguageVersion> getJavaLanguageVersion(boolean useIncubatingAPIs, UserInputHandler inputHandler, Language language) {
+        if(isJvmLanguage(language) && useIncubatingAPIs) {
             JavaLanguageVersion current = JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion());
-            return of(inputHandler.selectOption("Select a Java toolchain to build the project", DefaultJavaLanguageVersion.getKnownVersions().collect(toList()), current));
+            return of(inputHandler.selectOption("Which version of Java is this Project targeting",
+                DefaultJavaLanguageVersion.getKnownVersions().map(version -> new JavaVersionSelection(version)).collect(toList()), new JavaVersionSelection(current)))
+                .map(JavaVersionSelection::getLanguageVersion);
         }
         return empty();
     }
