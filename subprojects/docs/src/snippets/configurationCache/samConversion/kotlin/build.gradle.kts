@@ -15,7 +15,7 @@
  */
 
 plugins {
-    kotlin("jvm") version "1.8.0-RC2"
+    kotlin("jvm") version "1.8.0"
 }
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile

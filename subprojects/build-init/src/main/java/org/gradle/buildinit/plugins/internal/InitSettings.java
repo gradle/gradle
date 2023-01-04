@@ -24,8 +24,9 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 public class InitSettings {
     private final BuildInitDsl dsl;
@@ -66,14 +67,20 @@ public class InitSettings {
     ) {
         this.projectName = projectName;
         this.useIncubatingAPIs = useIncubatingAPIs;
-        this.subprojects = !subprojects.isEmpty() && modularizationOption == ModularizationOption.SINGLE_PROJECT ?
-            Collections.singletonList(subprojects.get(0)) : subprojects;
+        this.subprojects = getSubprojects(subprojects, modularizationOption);
         this.modularizationOption = modularizationOption;
         this.dsl = dsl;
         this.packageName = packageName;
         this.testFramework = testFramework;
         this.insecureProtocolOption = insecureProtocolOption;
         this.target = target;
+    }
+
+    private static List<String> getSubprojects(List<String> subprojects, ModularizationOption modularizationOption) {
+        if (!subprojects.isEmpty() && modularizationOption == ModularizationOption.SINGLE_PROJECT) {
+            return singletonList(subprojects.get(0));
+        }
+        return subprojects;
     }
 
     public String getProjectName() {

@@ -91,3 +91,25 @@ jobs:
             If you are still interested in contributing this, please ensure that
             it is rebased against the latest branch (usually `master`), all review
             comments have been addressed and the build is passing.
+  close-pending-reproducer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v6
+        with:
+          # GLOBAL ------------------------------------------------------------
+          operations-per-run: 30
+          exempt-all-milestones: true
+          days-before-stale: -1
+          only-labels: 'pending:reproducer'
+
+          # ISSUES ------------------------------------------------------------
+          days-before-issue-close: 7
+          stale-issue-label: 'pending:reproducer'
+          close-issue-label: 'closed:unreproducible'
+          close-issue-message: >
+            While we asked for a reproducer, none was provided. If you provide a valid reproducer, we will consider this issue again.
+            In the meantime, closing as unreproducible.
+
+          # PULL REQUESTS -----------------------------------------------------
+          stale-pr-label: 'pending:reproducer'
+          days-before-pr-close: -1

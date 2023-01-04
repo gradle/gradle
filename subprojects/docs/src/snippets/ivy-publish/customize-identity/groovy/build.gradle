@@ -7,9 +7,8 @@ plugins {
 publishing {
 // end::customize-identity[]
     repositories {
-        def repoDir = layout.buildDirectory.dir('repo')
         ivy {
-            url repoDir
+            url layout.buildDirectory.dir('repo')
         }
     }
 // tag::customize-identity[]
