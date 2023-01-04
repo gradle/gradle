@@ -18,9 +18,10 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import gradlebuild.basics.repoRoot
+import gradlebuild.basics.isBundleGroovy4
 import gradlebuild.modules.extension.ExternalModulesExtension
 
-val libs = extensions.create<ExternalModulesExtension>("libs")
+val libs = extensions.create<ExternalModulesExtension>("libs", isBundleGroovy4)
 
 applyAutomaticUpgradeOfCapabilities()
 dependencies {
