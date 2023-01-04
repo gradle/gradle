@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
-import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.ConfigurationCacheStateFile
 import org.gradle.configurationcache.InputTrackingState
@@ -30,8 +29,8 @@ import org.gradle.configurationcache.extensions.directoryContentHash
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
+import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.location
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.services.EnvironmentChangeTracker
@@ -76,7 +75,7 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val report: ConfigurationCacheReport,
-    private val userCodeApplicationContext: UserCodeApplicationContext,
+    private val problemFactory: ProblemFactory,
     private val taskExecutionTracker: TaskExecutionTracker,
     private val environmentChangeTracker: EnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
@@ -313,7 +312,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             report.onInput(input)
 
         override fun location(consumer: String?) =
-            userCodeApplicationContext.location(consumer)
+            problemFactory.locationForCaller(consumer)
     }
 
     private

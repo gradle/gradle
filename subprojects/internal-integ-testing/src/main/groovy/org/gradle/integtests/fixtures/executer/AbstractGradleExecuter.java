@@ -50,6 +50,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.jvm.toolchain.internal.AutoDetectingInstallationSupplier;
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
@@ -1066,7 +1067,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             allArgs.add("-Porg.gradle.java.installations.auto-download=false");
         }
         if (disableToolchainDetection) {
-            allArgs.add("-Porg.gradle.java.installations.auto-detect=false");
+            allArgs.add("-P" + AutoDetectingInstallationSupplier.AUTO_DETECT + "=false");
         }
 
         allArgs.addAll(args);
