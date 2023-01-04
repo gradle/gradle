@@ -104,8 +104,10 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             buildScriptBuilder.plugin("Apply the " + languagePlugin + " Plugin to add support for " + getLanguage() + ".", languagePlugin, pluginVersion);
         });
 
-        settings.getJavaLanguageVersion().ifPresent(languageVersion -> buildScriptBuilder.javaLanguageVersion(languageVersion));
-
+        settings.getJavaLanguageVersion().ifPresent(languageVersion -> {
+            buildScriptBuilder.plugin("Apply the foojay plugin to allow automatic download of matching JDKs on other systems", "org.gradle.toolchains.foojay-resolver", "0.4.0");
+            buildScriptBuilder.javaLanguageVersion(languageVersion);
+        });
 
         buildScriptBuilder
             .fileComment("This generated file contains a sample " + getLanguage() + " " + getComponentType() + " project to get you started.")
