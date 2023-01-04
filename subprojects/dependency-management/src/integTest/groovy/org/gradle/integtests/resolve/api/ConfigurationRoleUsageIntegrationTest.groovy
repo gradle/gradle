@@ -347,7 +347,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
-    def "maybeCreateWithRole verifies usage of existing built-in roles when match is found, failing on mismatch"() {
+    def "maybeCreateWithRole verifies usage of existing built-in configurations' roles when matching configuration is found, failing on mismatch"() {
         given:
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
@@ -371,7 +371,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
   \tDeclarable Against - this configuration can have dependencies added to it""")
     }
 
-    def "maybeCreateWithRole verifies usage of existing custom roles when match is found, failing on mismatch"() {
+    def "maybeCreateWithRole verifies usage of existing custom configurations' roles when matching configuration is found, failing on mismatch"() {
         given:
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
