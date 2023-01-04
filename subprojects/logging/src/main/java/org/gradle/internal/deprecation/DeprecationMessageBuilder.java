@@ -334,6 +334,9 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         @Override
         String formatAdvice(List<String> replacements) {
+            if (replacements.isEmpty()) {
+                return "Please " + deprecationType.usage + " another configuration instead.";
+            }
             return String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements));
         }
     }
