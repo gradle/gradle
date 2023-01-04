@@ -20,10 +20,8 @@ import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanBuildStartedTi
 import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanClock;
 import org.gradle.internal.enterprise.impl.legacy.DefaultBuildScanScopeIds;
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction;
 
 public class GradleEnterprisePluginServices extends AbstractPluginServiceRegistry {
 
@@ -39,20 +37,6 @@ public class GradleEnterprisePluginServices extends AbstractPluginServiceRegistr
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(GradleEnterprisePluginAutoApplicationListener.class);
-        registration.add(GradleEnterprisePluginAutoApplicationListenerRegistrationAction.class);
-    }
-
-    public static class GradleEnterprisePluginAutoApplicationListenerRegistrationAction implements BuildScopeListenerManagerAction {
-        private final GradleEnterprisePluginAutoApplicationListener listener;
-
-        public GradleEnterprisePluginAutoApplicationListenerRegistrationAction(GradleEnterprisePluginAutoApplicationListener listener) {
-            this.listener = listener;
-        }
-
-        @Override
-        public void execute(ListenerManager listenerManager) {
-            listenerManager.addListener(listener);
-        }
     }
 
     @Override

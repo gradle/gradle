@@ -72,7 +72,6 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 TODO - Java lambdas are supported, and unsupported captured values are reported.
 TODO - File collections queried at configuration time are treated as configuration inputs.
 TODO - File system repositories are fully supported including dynamic versions in Maven, Maven local, and Ivy repositories  
-
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================

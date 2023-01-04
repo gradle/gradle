@@ -16,7 +16,6 @@
 
 package org.gradle.configurationcache.problems
 
-import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.internal.DisplayName
 import kotlin.reflect.KClass
 
@@ -104,7 +103,8 @@ sealed class PropertyTrace {
     object Gradle : PropertyTrace()
 
     class BuildLogic(
-        val displayName: DisplayName
+        val source: DisplayName,
+        val lineNumber: Int? = null
     ) : PropertyTrace()
 
     class BuildLogicClass(
@@ -192,7 +192,11 @@ sealed class PropertyTrace {
                 quoted(trace.type.name)
             }
             is BuildLogic -> {
-                append(trace.displayName.displayName)
+                append(trace.source.displayName)
+                trace.lineNumber?.let {
+                    append(": line ")
+                    append(it)
+                }
             }
             is BuildLogicClass -> {
                 append("class ")
@@ -234,18 +238,6 @@ sealed class PropertyTrace {
             is Project -> trace
             else -> null
         }
-}
-
-
-fun UserCodeApplicationContext.location(consumer: String?): PropertyTrace {
-    val currentApplication = current()
-    return if (currentApplication != null) {
-        PropertyTrace.BuildLogic(currentApplication.displayName)
-    } else if (consumer != null) {
-        PropertyTrace.BuildLogicClass(consumer)
-    } else {
-        PropertyTrace.Unknown
-    }
 }
 
 

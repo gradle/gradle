@@ -26,12 +26,10 @@ import org.gradle.api.execution.TaskExecutionGraphListener
 import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.extensions.capitalized
+import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.StructuredMessage
-import org.gradle.configurationcache.problems.location
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.Node
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
@@ -41,13 +39,14 @@ import java.util.Objects
 import java.util.function.Consumer
 
 
+internal
 class CrossProjectConfigurationReportingTaskExecutionGraph(
     taskGraph: TaskExecutionGraphInternal,
     private val referrerProject: ProjectInternal,
     private val problems: ProblemsListener,
     private val crossProjectModelAccess: CrossProjectModelAccess,
     private val coupledProjectsListener: CoupledProjectsListener,
-    private val userCodeContext: UserCodeApplicationContext
+    private val problemFactory: ProblemFactory
 ) : TaskExecutionGraphInternal {
 
     private
@@ -155,7 +154,6 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
 
     private
     fun reportProjectIsolationProblem(requestPath: String?) {
-        val location = userCodeContext.location(null)
         val message = StructuredMessage.build {
             text("Project ")
             reference(referrerProject.identityPath.toString())
@@ -166,7 +164,8 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
             message.toString().capitalized() +
                 if (requestPath != null) "; tried to access '$requestPath'" else '"'
         )
-        problems.onProblem(PropertyProblem(location, message, exception, null))
+        val problem = problemFactory.problem(message, exception)
+        problems.onProblem(problem)
     }
 
     private
