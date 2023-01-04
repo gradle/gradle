@@ -63,6 +63,11 @@ public interface InternalBuildProgressListener {
     String FILE_DOWNLOAD = "FILE_DOWNLOAD";
 
     /**
+     * The constant for build phase operations.
+     */
+    String BUILD_PHASE = "BUILD_PHASE";
+
+    /**
      * Invoked when a progress event happens in the build being run, and one or more listeners for the given event type have been registered.
      *
      * The event types implemented in Gradle 2.4 are:

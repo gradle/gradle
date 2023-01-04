@@ -23,8 +23,7 @@ import org.gradle.api.tasks.TaskProvider;
  * This can be used both on the producer side, to explain what it provides,
  * or on the consumer side, to express requirements.
  */
-public
-interface JvmEcosystemAttributesDetails {
+public interface JvmEcosystemAttributesDetails {
     /**
      * Provides or requires a library
      */

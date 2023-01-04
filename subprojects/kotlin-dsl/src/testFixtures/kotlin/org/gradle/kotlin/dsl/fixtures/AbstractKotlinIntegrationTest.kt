@@ -147,10 +147,10 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
         withBuildScriptIn(baseDir, scriptWithKotlinDslPlugin())
 
     protected
-    fun scriptWithKotlinDslPlugin(): String =
+    fun scriptWithKotlinDslPlugin(version: String? = null): String =
         """
             plugins {
-                `kotlin-dsl`
+                `kotlin-dsl`${if (version == null) "" else " version \"$version\""}
             }
 
             $repositoriesBlock
@@ -233,7 +233,12 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     }
 
     protected
-    fun assumeJava11() {
+    fun assumeJavaLessThan17() {
+        assumeTrue("Test disabled under JDK 17 and higher", JavaVersion.current() < JavaVersion.VERSION_17)
+    }
+
+    protected
+    fun assumeJava11OrHigher() {
         assumeTrue("Test requires Java 11 or higher", JavaVersion.current().isJava11Compatible)
     }
 

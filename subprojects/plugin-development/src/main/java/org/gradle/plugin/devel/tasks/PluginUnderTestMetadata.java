@@ -18,7 +18,6 @@ package org.gradle.plugin.devel.tasks;
 
 import com.google.common.base.Joiner;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
@@ -42,7 +41,7 @@ import static org.gradle.util.internal.CollectionUtils.collect;
  * @since 2.13
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class PluginUnderTestMetadata extends DefaultTask {
+public abstract class PluginUnderTestMetadata extends DefaultTask {
 
     public static final String IMPLEMENTATION_CLASSPATH_PROP_KEY = "implementation-classpath";
     public static final String METADATA_FILE_NAME = "plugin-under-test-metadata.properties";
@@ -93,11 +92,6 @@ public class PluginUnderTestMetadata extends DefaultTask {
 
     @Input
     protected List<String> getPaths() {
-        return collect(getPluginClasspath(), new Transformer<String, File>() {
-            @Override
-            public String transform(File file) {
-                return file.getAbsolutePath().replaceAll("\\\\", "/");
-            }
-        });
+        return collect(getPluginClasspath(), file -> file.getAbsolutePath().replaceAll("\\\\", "/"));
     }
 }

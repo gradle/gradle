@@ -1,0 +1,52 @@
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver' version '0.3.0'
+}
+
+import java.util.Optional
+import javax.inject.Inject
+
+apply plugin: AdoptiumPlugin
+
+// tag::toolchain-management[]
+toolchainManagement {
+    jvm { // <1>
+        javaRepositories {
+            repository('foojay') { // <2>
+                resolverClass = org.gradle.toolchains.foojay.FoojayToolchainResolver
+            }
+            repository('adoptium') { // <3>
+                resolverClass = AdoptiumResolver
+                credentials {
+                    username "user"
+                    password "password"
+                }
+                authentication {
+                    digest(BasicAuthentication)
+                } // <4>
+            }
+        }
+    }
+}
+// end::toolchain-management[]
+
+rootProject.name = 'toolchain-management'
+
+abstract class AdoptiumPlugin implements Plugin<Settings> {
+
+    @Inject
+    protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
+
+    void apply(Settings settings) {
+        settings.getPlugins().apply("jvm-toolchain-management")
+
+        JavaToolchainResolverRegistry registry = getToolchainResolverRegistry()
+        registry.register(AdoptiumResolver.class)
+    }
+}
+
+abstract class AdoptiumResolver implements JavaToolchainResolver {
+    @Override
+    Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+        return Optional.empty()
+    }
+}

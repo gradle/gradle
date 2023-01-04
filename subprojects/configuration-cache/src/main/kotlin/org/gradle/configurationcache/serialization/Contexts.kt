@@ -16,18 +16,23 @@
 
 package org.gradle.configurationcache.serialization
 
+import it.unimi.dsi.fastutil.objects.ReferenceArrayList
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.gradle.configurationcache.ClassLoaderScopeSpec
 import org.gradle.configurationcache.problems.ProblemsListener
 import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.PropertyTrace
+import org.gradle.configurationcache.problems.StructuredMessageBuilder
 import org.gradle.configurationcache.serialization.beans.BeanStateReader
 import org.gradle.configurationcache.serialization.beans.BeanStateReaderLookup
 import org.gradle.configurationcache.serialization.beans.BeanStateWriter
 import org.gradle.configurationcache.serialization.beans.BeanStateWriterLookup
+import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.internal.Describables
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -55,6 +60,8 @@ class DefaultWriteContext(
 ) : AbstractIsolateContext<WriteIsolate>(codec, problemsListener), WriteContext, Encoder by encoder, AutoCloseable {
 
     override val sharedIdentities = WriteIdentities()
+
+    override val circularReferences = CircularReferences()
 
     private
     val classes = WriteIdentities()
@@ -115,6 +122,14 @@ class DefaultWriteContext(
                 writeScope(scope.parent)
             }
             writeString(scope.name)
+            if (scope.origin is ClassLoaderScopeOrigin.Script) {
+                writeBoolean(true)
+                writeString(scope.origin.fileName)
+                writeString(scope.origin.longDisplayName.displayName)
+                writeString(scope.origin.shortDisplayName.displayName)
+            } else {
+                writeBoolean(false)
+            }
             writeClassPath(scope.localClassPath)
             writeHashCode(scope.localImplementationHash)
             writeClassPath(scope.exportClassPath)
@@ -144,7 +159,8 @@ internal
 class LoggingTracer(
     private val profile: String,
     private val writePosition: () -> Long,
-    private val logger: Logger
+    private val logger: Logger,
+    private val level: LogLevel
 ) : Tracer {
 
     // Include a sequence number in the events so the order of events can be preserved in face of log output reordering
@@ -161,7 +177,8 @@ class LoggingTracer(
 
     private
     fun log(frame: String, openOrClose: Char) {
-        logger.debug(
+        logger.log(
+            level,
             """{"profile":"$profile","type":"$openOrClose","frame":"$frame","at":${writePosition()},"sn":${nextSequenceNumber()}}"""
         )
     }
@@ -216,6 +233,21 @@ class DefaultReadContext(
     lateinit var projectProvider: ProjectProvider
 
     override lateinit var classLoader: ClassLoader
+
+    override fun onFinish(action: () -> Unit) {
+        pendingOperations.add(action)
+    }
+
+    internal
+    fun finish() {
+        for (op in pendingOperations) {
+            op()
+        }
+        pendingOperations.clear()
+    }
+
+    private
+    var pendingOperations = ReferenceArrayList<() -> Unit>()
 
     internal
     fun initClassLoader(classLoader: ClassLoader) {
@@ -280,14 +312,19 @@ class DefaultReadContext(
         }
 
         val name = readString()
+        val origin = if (readBoolean()) {
+            ClassLoaderScopeOrigin.Script(readString(), Describables.of(readString()), Describables.of(readString()))
+        } else {
+            null
+        }
         val localClassPath = readClassPath()
         val localImplementationHash = readHashCode()
         val exportClassPath = readClassPath()
 
         val newScope = if (localImplementationHash != null && exportClassPath.isEmpty) {
-            parent.createLockedChild(name, localClassPath, localImplementationHash, null)
+            parent.createLockedChild(name, origin, localClassPath, localImplementationHash, null)
         } else {
-            parent.createChild(name).local(localClassPath).export(exportClassPath).lock()
+            parent.createChild(name, origin).local(localClassPath).export(exportClassPath).lock()
         }
 
         scopes.putInstance(id, newScope)
@@ -323,6 +360,7 @@ abstract class AbstractIsolateContext<T>(
     codec: Codec<Any?>,
     problemsListener: ProblemsListener
 ) : MutableIsolateContext {
+
     private
     var currentProblemsListener: ProblemsListener = problemsListener
 
@@ -332,8 +370,7 @@ abstract class AbstractIsolateContext<T>(
     private
     var currentCodec = codec
 
-    override
-    var trace: PropertyTrace = PropertyTrace.Gradle
+    override var trace: PropertyTrace = PropertyTrace.Gradle
 
     protected
     abstract fun newIsolate(owner: IsolateOwner): T
@@ -373,9 +410,13 @@ abstract class AbstractIsolateContext<T>(
         currentProblemsListener.onProblem(problem)
     }
 
-    override suspend fun forIncompatibleType(action: suspend () -> Unit) {
+    override fun onError(error: Exception, message: StructuredMessageBuilder) {
+        currentProblemsListener.onError(trace, error, message)
+    }
+
+    override suspend fun forIncompatibleType(path: String, action: suspend () -> Unit) {
         val previousListener = currentProblemsListener
-        currentProblemsListener = previousListener.forIncompatibleType()
+        currentProblemsListener = previousListener.forIncompatibleTask(path)
         try {
             action()
         } finally {

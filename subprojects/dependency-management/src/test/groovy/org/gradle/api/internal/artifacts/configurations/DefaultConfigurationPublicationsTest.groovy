@@ -35,8 +35,8 @@ import spock.lang.Specification
 
 class DefaultConfigurationPublicationsTest extends Specification {
     def parentAttributes = ImmutableAttributes.EMPTY
-    def artifacts = new DefaultPublishArtifactSet("artifacts", TestUtil.domainObjectCollectionFactory().newDomainObjectSet(PublishArtifact), TestFiles.fileCollectionFactory())
-    def allArtifacts = new DefaultPublishArtifactSet("artifacts", TestUtil.domainObjectCollectionFactory().newDomainObjectSet(PublishArtifact), TestFiles.fileCollectionFactory())
+    def artifacts = new DefaultPublishArtifactSet("artifacts", TestUtil.domainObjectCollectionFactory().newDomainObjectSet(PublishArtifact), TestFiles.fileCollectionFactory(), TestFiles.taskDependencyFactory())
+    def allArtifacts = new DefaultPublishArtifactSet("artifacts", TestUtil.domainObjectCollectionFactory().newDomainObjectSet(PublishArtifact), TestFiles.fileCollectionFactory(), TestFiles.taskDependencyFactory())
     def artifactNotationParser = Stub(NotationParser)
     def capabilityNotationParser = Stub(NotationParser)
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
@@ -44,7 +44,9 @@ class DefaultConfigurationPublicationsTest extends Specification {
     def displayName = Describables.of("<config>")
     def publications = new DefaultConfigurationPublications(displayName, artifacts, {
         allArtifacts
-    }, parentAttributes, TestUtil.instantiatorFactory().decorateLenient(), artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, TestUtil.domainObjectCollectionFactory())
+    }, parentAttributes, TestUtil.instantiatorFactory().decorateLenient(), artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory,
+        TestUtil.domainObjectCollectionFactory(), TestFiles.taskDependencyFactory()
+    )
 
     def setup() {
         artifacts.whenObjectAdded { allArtifacts.add(it) }

@@ -29,8 +29,7 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
         resolveLocal.expectDefaultConfiguration('runtime')
         resolvePublished = new ResolveTestFixture(buildFile, 'publishedPath')
         resolvePublished.expectDefaultConfiguration('runtime')
-        resolveLocal.addDefaultVariantDerivationStrategy()
-        resolveLocal.addJavaEcosystemSchema()
+        resolveLocal.addJavaEcosystem()
 
         mavenRepo.module("org.test", "m2", "1.0").dependsOn("org.test", "m3", "1.0").withModuleMetadata().publish()
         mavenRepo.module("org.test", "m3", '1.0').withModuleMetadata().publish()
@@ -97,8 +96,8 @@ class DependencyResolveRulesDisableGlobalDependencySubstitutionIntegrationTest e
     def static expectResolvedToLocal(ResolveTestFixture resolve) {
         resolve.expectGraph {
             root(":m1", "org.test:m1:0.9") {
-                edge("org.test:m2:1.0", "project :m2", "org.test:m2:0.9") {
-                    edge("org.test:m3:1.0", "project :m3", "org.test:m3:0.9") {
+                edge("org.test:m2:1.0", ":m2", "org.test:m2:0.9") {
+                    edge("org.test:m3:1.0", ":m3", "org.test:m3:0.9") {
                         noArtifacts()
                     }
                     noArtifacts()

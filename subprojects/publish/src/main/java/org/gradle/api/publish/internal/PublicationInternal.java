@@ -57,6 +57,7 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
      * @param file The file to be used for publishing the derived artifact.
      * @return The newly created derived artifact.
      */
+    @Nullable
     T addDerivedArtifact(T originalArtifact, DerivedArtifact file);
 
     void removeDerivedArtifact(T artifact);
@@ -69,7 +70,6 @@ public interface PublicationInternal<T extends PublicationArtifact> extends Publ
      */
     PublishedFile getPublishedFile(PublishArtifact source);
 
-    @Nullable
     VersionMappingStrategyInternal getVersionMappingStrategy();
 
     boolean isPublishBuildId();

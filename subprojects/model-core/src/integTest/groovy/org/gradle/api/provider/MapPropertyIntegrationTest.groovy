@@ -654,4 +654,34 @@ task thing {
         failure.assertHasDescription("Execution failed for task ':thing'.")
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
+
+    def "can put flatmap of task output into map property"() {
+        given:
+        buildFile("""
+            abstract class PrintTask extends DefaultTask {
+                @OutputFile
+                abstract RegularFileProperty getOutput()
+
+                @TaskAction
+                def action() {
+                    output.get().asFile.text = "Hello"
+                }
+            }
+
+            def printTask = tasks.register('print', PrintTask) {
+                output = layout.buildDirectory.file('file.txt')
+            }
+
+            verify {
+                dependsOn printTask
+                prop.put("key", printTask.flatMap { it.output }.map { it.asFile.text })
+                expected = [key: "Hello"]
+            }
+        """)
+
+        expect:
+        2.times {
+            succeeds("verify")
+        }
+    }
 }

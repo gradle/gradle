@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -66,7 +63,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge('org:lib:1.0', 'project :platform', 'depsub:platform:') {
+                edge('org:lib:1.0', ':platform', 'depsub:platform:') {
                     variant(expectedVariant, [
                         'org.gradle.category': expectedCategory,
                         'org.gradle.usage': 'java-runtime'
@@ -139,7 +136,6 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
 
     }
 
-    @ToBeFixedForConfigurationCache(because = "fails serialization of resolution error")
     def "can substitute a dependency without capabilities with a dependency with capabilities"() {
         mavenRepo.module("org", "lib", "1.0").publish()
 
@@ -303,7 +299,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         then:
         resolve.expectGraph {
             root(":", ":depsub:") {
-                edge('org:lib:1.0', 'project :other', 'org:other:') {
+                edge('org:lib:1.0', ':other', 'org:other:') {
                     configuration = 'runtimeElements'
                     selectedByRule()
                 }

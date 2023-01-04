@@ -103,7 +103,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         task instanceof Ear
-        task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+        task dependsOn(JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME)
         task.destinationDirectory.get() == project.libsDirectory.get()
 
         when:
@@ -166,7 +166,7 @@ class EarPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         task.destinationDirectory.get() == project.libsDirectory.get()
-        task dependsOn(hasItems(JavaPlugin.CLASSES_TASK_NAME))
+        task dependsOn(hasItems(JavaPlugin.CLASSES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME))
     }
 
     def "adds ear as publication"() {

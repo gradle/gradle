@@ -47,6 +47,7 @@ class PerformanceReporter {
         Iterable<File> resultJsons,
         Map<String, String> databaseParameters,
         String channel,
+        Set<String> channelPatterns,
         String branchName,
         String commitId,
         FileCollection classpath,
@@ -67,6 +68,7 @@ class PerformanceReporter {
                 spec.systemProperties(databaseParameters)
                 spec.debug = debugReportGeneration
                 spec.systemProperty("org.gradle.performance.execution.channel", channel)
+                spec.systemProperty("org.gradle.performance.execution.channel.patterns", channelPatterns.join(","))
                 spec.systemProperty("org.gradle.performance.execution.branch", branchName)
                 spec.systemProperty("org.gradle.performance.dependencyBuildIds", dependencyBuildIds)
 

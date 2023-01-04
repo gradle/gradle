@@ -34,23 +34,18 @@ package org.gradle.api.internal.tasks
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec
-import org.gradle.api.tasks.ClasspathNormalizer
-import org.gradle.api.tasks.CompileClasspathNormalizer
-import org.gradle.api.tasks.FileNormalizer
 import org.gradle.caching.BuildCacheKey
 import org.gradle.internal.execution.caching.CachingState
 import org.gradle.internal.execution.history.BeforeExecutionState
+import org.gradle.internal.execution.model.InputNormalizer
+import org.gradle.internal.execution.model.OutputNormalizer
 import org.gradle.internal.file.FileType
-import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.DirectorySensitivity
-import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer
+import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
-import org.gradle.internal.fingerprint.NameOnlyInputNormalizer
-import org.gradle.internal.fingerprint.OutputNormalizer
-import org.gradle.internal.fingerprint.RelativePathInputNormalizer
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.TestSnapshotFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -63,7 +58,7 @@ import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResu
 import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute.FINGERPRINTING_STRATEGY_NAME_ONLY
 import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute.FINGERPRINTING_STRATEGY_RELATIVE_PATH
 import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute.from
-import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute.fromNormalizerClass
+import static org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute.fromNormalizer
 import static org.gradle.internal.fingerprint.DirectorySensitivity.DEFAULT
 import static org.gradle.internal.fingerprint.DirectorySensitivity.IGNORE_DIRECTORIES
 import static org.gradle.internal.fingerprint.LineEndingSensitivity.NORMALIZE_LINE_ENDINGS
@@ -86,23 +81,23 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
         directorySensitivity << DirectorySensitivity.values()
     }
 
-    def "can convert normalizer class into a PropertyAttribute"(Class<? extends FileNormalizer> normalizerClass, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute expectedPropertyAttribute) {
+    def "can convert normalizer class into a PropertyAttribute"(FileNormalizer normalizer, SnapshotTaskInputsBuildOperationResult.FilePropertyAttribute expectedPropertyAttribute) {
         expect:
-        fromNormalizerClass(normalizerClass) == expectedPropertyAttribute
+        fromNormalizer(normalizer) == expectedPropertyAttribute
 
         where:
-        normalizerClass             | expectedPropertyAttribute
-        ClasspathNormalizer         | FINGERPRINTING_STRATEGY_CLASSPATH
-        CompileClasspathNormalizer  | FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH
-        AbsolutePathInputNormalizer | FINGERPRINTING_STRATEGY_ABSOLUTE_PATH
-        RelativePathInputNormalizer | FINGERPRINTING_STRATEGY_RELATIVE_PATH
-        NameOnlyInputNormalizer     | FINGERPRINTING_STRATEGY_NAME_ONLY
-        IgnoredPathInputNormalizer  | FINGERPRINTING_STRATEGY_IGNORED_PATH
+        normalizer                       | expectedPropertyAttribute
+        InputNormalizer.RUNTIME_CLASSPATH | FINGERPRINTING_STRATEGY_CLASSPATH
+        InputNormalizer.COMPILE_CLASSPATH | FINGERPRINTING_STRATEGY_COMPILE_CLASSPATH
+        InputNormalizer.ABSOLUTE_PATH     | FINGERPRINTING_STRATEGY_ABSOLUTE_PATH
+        InputNormalizer.RELATIVE_PATH     | FINGERPRINTING_STRATEGY_RELATIVE_PATH
+        InputNormalizer.NAME_ONLY         | FINGERPRINTING_STRATEGY_NAME_ONLY
+        InputNormalizer.IGNORE_PATH       | FINGERPRINTING_STRATEGY_IGNORED_PATH
     }
 
     def "throws when converting an unsupported normalizer class into a PropertyAttribute"() {
         when:
-        fromNormalizerClass(OutputNormalizer)
+        fromNormalizer(OutputNormalizer.INSTANCE)
 
         then:
         def t = thrown(IllegalStateException)
@@ -115,7 +110,7 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
         def inputFileProperty = Mock(InputFilePropertySpec) {
             getDirectorySensitivity() >> IGNORE_DIRECTORIES
             getLineEndingNormalization() >> NORMALIZE_LINE_ENDINGS
-            getNormalizer() >> AbsolutePathInputNormalizer
+            getNormalizer() >> InputNormalizer.ABSOLUTE_PATH
             getPropertyName() >> 'foo'
         }
         def snapshots = directory('/foo', [
@@ -130,10 +125,10 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
         def beforeExecutionState = Mock(BeforeExecutionState) {
             getInputFileProperties() >> ImmutableSortedMap.of('foo',
                 Mock(CurrentFileCollectionFingerprint) {
-                    getHash() >> HashCode.fromInt(345)
+                    getHash() >> TestHashCodes.hashCodeFrom(345)
                     getFingerprints() >> [
-                        '/foo/one.txt': new DefaultFileSystemLocationFingerprint('/foo/one.txt', FileType.RegularFile, HashCode.fromInt(123)),
-                        '/foo/sub/two.txt': new DefaultFileSystemLocationFingerprint('/foo/sub/two.txt', FileType.RegularFile, HashCode.fromInt(234)),
+                        '/foo/one.txt': new DefaultFileSystemLocationFingerprint('/foo/one.txt', FileType.RegularFile, TestHashCodes.hashCodeFrom(123)),
+                        '/foo/sub/two.txt': new DefaultFileSystemLocationFingerprint('/foo/sub/two.txt', FileType.RegularFile, TestHashCodes.hashCodeFrom(234)),
                     ]
                     getSnapshot() >> snapshots
                 }
@@ -180,7 +175,7 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
         def inputFileProperty = Mock(InputFilePropertySpec) {
             getDirectorySensitivity() >> DEFAULT
             getLineEndingNormalization() >> NORMALIZE_LINE_ENDINGS
-            getNormalizer() >> RelativePathInputNormalizer
+            getNormalizer() >> InputNormalizer.RELATIVE_PATH
             getPropertyName() >> 'inputFiles'
         }
         def snapshots = directory('/input', [
@@ -189,9 +184,9 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
         def beforeExecutionState = Mock(BeforeExecutionState) {
             getInputFileProperties() >> ImmutableSortedMap.of('inputFiles',
                 Mock(CurrentFileCollectionFingerprint) {
-                    getHash() >> HashCode.fromInt(345)
+                    getHash() >> TestHashCodes.hashCodeFrom(345)
                     getFingerprints() >> [
-                        '/input/foo': new DefaultFileSystemLocationFingerprint('/input/foo', FileType.Directory, HashCode.fromInt(123))
+                        '/input/foo': new DefaultFileSystemLocationFingerprint('/input/foo', FileType.Directory, TestHashCodes.hashCodeFrom(123))
                     ]
                     getSnapshot() >> snapshots
                 }
@@ -232,7 +227,7 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
         def inputFileProperty = Mock(InputFilePropertySpec) {
             getDirectorySensitivity() >> DEFAULT
             getLineEndingNormalization() >> NORMALIZE_LINE_ENDINGS
-            getNormalizer() >> AbsolutePathInputNormalizer
+            getNormalizer() >> InputNormalizer.ABSOLUTE_PATH
             getPropertyName() >> 'foo'
         }
         def snapshots = directory('/foo', [
@@ -247,14 +242,14 @@ class SnapshotTaskInputsBuildOperationResultTest extends Specification implement
         def beforeExecutionState = Mock(BeforeExecutionState) {
             getInputFileProperties() >> ImmutableSortedMap.of('foo',
                 Mock(CurrentFileCollectionFingerprint) {
-                    getHash() >> HashCode.fromInt(345)
+                    getHash() >> TestHashCodes.hashCodeFrom(345)
                     getFingerprints() >> [
-                        '/foo/one.txt': new DefaultFileSystemLocationFingerprint('/foo/one.txt', FileType.RegularFile, HashCode.fromInt(123)),
-                        '/foo/sub/two.txt': new DefaultFileSystemLocationFingerprint('/foo/sub/two.txt', FileType.RegularFile, HashCode.fromInt(234)),
-                        '/foo': new DefaultFileSystemLocationFingerprint('/foo', FileType.Directory, HashCode.fromInt(123)),
-                        '/foo/empty': new DefaultFileSystemLocationFingerprint('/foo/empty', FileType.Directory, HashCode.fromInt(123)),
-                        '/foo/empty/empty': new DefaultFileSystemLocationFingerprint('/foo/empty/empty', FileType.Directory, HashCode.fromInt(123)),
-                        '/foo/sub': new DefaultFileSystemLocationFingerprint('/foo/sub', FileType.Directory, HashCode.fromInt(123)),
+                        '/foo/one.txt': new DefaultFileSystemLocationFingerprint('/foo/one.txt', FileType.RegularFile, TestHashCodes.hashCodeFrom(123)),
+                        '/foo/sub/two.txt': new DefaultFileSystemLocationFingerprint('/foo/sub/two.txt', FileType.RegularFile, TestHashCodes.hashCodeFrom(234)),
+                        '/foo': new DefaultFileSystemLocationFingerprint('/foo', FileType.Directory, TestHashCodes.hashCodeFrom(123)),
+                        '/foo/empty': new DefaultFileSystemLocationFingerprint('/foo/empty', FileType.Directory, TestHashCodes.hashCodeFrom(123)),
+                        '/foo/empty/empty': new DefaultFileSystemLocationFingerprint('/foo/empty/empty', FileType.Directory, TestHashCodes.hashCodeFrom(123)),
+                        '/foo/sub': new DefaultFileSystemLocationFingerprint('/foo/sub', FileType.Directory, TestHashCodes.hashCodeFrom(123)),
                     ]
                     getSnapshot() >> snapshots
                 }

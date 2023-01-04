@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
-import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Bundling;
@@ -31,12 +31,13 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
+import java.util.List;
 import java.util.Map;
 
 public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAttributesFactory {
     private final ImmutableAttributesFactory delegate;
     private final NamedObjectInstantiator objectInstantiator;
-    private final Map<ComponentTypeEntry, ImmutableAttributes> concatCache = Maps.newConcurrentMap();
+    private final Map<List<Object>, ImmutableAttributes> concatCache = Maps.newConcurrentMap();
 
     public DefaultMavenImmutableAttributesFactory(ImmutableAttributesFactory delegate, NamedObjectInstantiator objectInstantiator) {
         this.delegate = delegate;
@@ -49,8 +50,13 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
     }
 
     @Override
-    public AttributeContainerInternal mutable(AttributeContainerInternal parent) {
-        return delegate.mutable(parent);
+    public AttributeContainerInternal mutable(AttributeContainerInternal fallback) {
+        return delegate.mutable(fallback);
+    }
+
+    @Override
+    public AttributeContainerInternal join(AttributeContainerInternal fallback, AttributeContainerInternal primary) {
+        return delegate.join(fallback, primary);
     }
 
     @Override
@@ -69,8 +75,8 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
     }
 
     @Override
-    public ImmutableAttributes concat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) {
-        return delegate.concat(attributes1, attributes2);
+    public ImmutableAttributes concat(ImmutableAttributes fallback, ImmutableAttributes primary) {
+        return delegate.concat(fallback, primary);
     }
 
     @Override
@@ -79,82 +85,64 @@ public class DefaultMavenImmutableAttributesFactory implements MavenImmutableAtt
     }
 
     @Override
-    public ImmutableAttributes libraryWithUsage(ImmutableAttributes original, String usage) {
-        ComponentTypeEntry entry = new ComponentTypeEntry(original, Category.LIBRARY, usage);
-        ImmutableAttributes result = concatCache.get(entry);
-        if (result == null) {
-            result = concat(original, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
+    public ImmutableAttributes compileScope(ImmutableAttributes original) {
+        List<Object> key = ImmutableList.of(original, Usage.JAVA_API);
+        return concatCache.computeIfAbsent(key, k -> {
+            ImmutableAttributes result = original;
+            result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_API, objectInstantiator));
             result = concat(result, FORMAT_ATTRIBUTE, new CoercingStringValueSnapshot(LibraryElements.JAR, objectInstantiator));
             result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.LIBRARY, objectInstantiator));
-            concatCache.put(entry, result);
-        }
-        return result;
+            return result;
+        });
+    }
+
+    @Override
+    public ImmutableAttributes runtimeScope(ImmutableAttributes original) {
+        List<Object> key = ImmutableList.of(original, Usage.JAVA_RUNTIME);
+        return concatCache.computeIfAbsent(key, k -> {
+            ImmutableAttributes result = original;
+            result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
+            result = concat(result, FORMAT_ATTRIBUTE, new CoercingStringValueSnapshot(LibraryElements.JAR, objectInstantiator));
+            result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.LIBRARY, objectInstantiator));
+            return result;
+        });
     }
 
     @Override
     public ImmutableAttributes platformWithUsage(ImmutableAttributes original, String usage, boolean enforced) {
         String componentType = enforced ? Category.ENFORCED_PLATFORM : Category.REGULAR_PLATFORM;
-        ComponentTypeEntry entry = new ComponentTypeEntry(original, componentType, usage);
-        ImmutableAttributes result = concatCache.get(entry);
-        if (result == null) {
-            result = concat(original, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
+        List<Object> key = ImmutableList.of(original, componentType, usage);
+        return concatCache.computeIfAbsent(key, k -> {
+            ImmutableAttributes result = original;
+            result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
             result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(componentType, objectInstantiator));
-            concatCache.put(entry, result);
-        }
-        return result;
+            return result;
+        });
     }
 
     @Override
     public ImmutableAttributes sourcesVariant(ImmutableAttributes original) {
-        ImmutableAttributes result = original;
-        result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.DOCUMENTATION, objectInstantiator));
-        result = concat(result, Bundling.BUNDLING_ATTRIBUTE, objectInstantiator.named(Bundling.class, Bundling.EXTERNAL));
-        result = concat(result, DocsType.DOCS_TYPE_ATTRIBUTE, objectInstantiator.named(DocsType.class, DocsType.SOURCES));
-        result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
-        return result;
+        List<Object> key = ImmutableList.of(original, Category.DOCUMENTATION, Usage.JAVA_RUNTIME, DocsType.SOURCES);
+        return concatCache.computeIfAbsent(key, k -> {
+            ImmutableAttributes result = original;
+            result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.DOCUMENTATION, objectInstantiator));
+            result = concat(result, Bundling.BUNDLING_ATTRIBUTE, objectInstantiator.named(Bundling.class, Bundling.EXTERNAL));
+            result = concat(result, DocsType.DOCS_TYPE_ATTRIBUTE, objectInstantiator.named(DocsType.class, DocsType.SOURCES));
+            result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
+            return result;
+        });
     }
 
     @Override
     public ImmutableAttributes javadocVariant(ImmutableAttributes original) {
-        ImmutableAttributes result = original;
-        result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.DOCUMENTATION, objectInstantiator));
-        result = concat(result, Bundling.BUNDLING_ATTRIBUTE, objectInstantiator.named(Bundling.class, Bundling.EXTERNAL));
-        result = concat(result, DocsType.DOCS_TYPE_ATTRIBUTE, objectInstantiator.named(DocsType.class, DocsType.JAVADOC));
-        result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
-        return result;
-    }
-
-    private static class ComponentTypeEntry {
-        private final ImmutableAttributes source;
-        private final String componentType;
-        private final String usage;
-        private final int hashCode;
-
-        private ComponentTypeEntry(ImmutableAttributes source, String componentType, String usage) {
-            this.source = source;
-            this.componentType = componentType;
-            this.usage = usage;
-            this.hashCode = Objects.hashCode(source, componentType, usage);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            ComponentTypeEntry that = (ComponentTypeEntry) o;
-            return hashCode == that.hashCode &&
-                Objects.equal(source, that.source) &&
-                Objects.equal(componentType, that.componentType) &&
-                Objects.equal(usage, that.usage);
-        }
-
-        @Override
-        public int hashCode() {
-            return hashCode;
-        }
+        List<Object> key = ImmutableList.of(original, Category.DOCUMENTATION, Usage.JAVA_RUNTIME, DocsType.JAVADOC);
+        return concatCache.computeIfAbsent(key, k -> {
+            ImmutableAttributes result = original;
+            result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.DOCUMENTATION, objectInstantiator));
+            result = concat(result, Bundling.BUNDLING_ATTRIBUTE, objectInstantiator.named(Bundling.class, Bundling.EXTERNAL));
+            result = concat(result, DocsType.DOCS_TYPE_ATTRIBUTE, objectInstantiator.named(DocsType.class, DocsType.JAVADOC));
+            result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
+            return result;
+        });
     }
 }

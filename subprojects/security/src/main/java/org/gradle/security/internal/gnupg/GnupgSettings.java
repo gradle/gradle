@@ -45,11 +45,11 @@ public class GnupgSettings {
     }
 
     private String defaultExecutable() {
-        String defaultExecutable = useLegacyGpg ? "gpg" : "gpg2";
         if (OperatingSystem.current().isWindows()) {
-            defaultExecutable += ".exe";
+            return "gpg.exe";
+        } else {
+            return "gpg";
         }
-        return defaultExecutable;
     }
 
     public void setUseLegacyGpg(boolean useLegacyGpg) {

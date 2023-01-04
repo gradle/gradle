@@ -17,7 +17,9 @@ package org.gradle.api.internal.plugins;
 
 import org.apache.tools.ant.taskdefs.Chmod;
 import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
 import org.gradle.util.internal.AntUtil;
@@ -25,8 +27,13 @@ import org.gradle.util.internal.CollectionUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.Collections;
+import java.util.Set;
 
 public class StartScriptGenerator {
 
@@ -85,7 +92,7 @@ public class StartScriptGenerator {
     }
 
     public StartScriptGenerator(ScriptGenerator unixStartScriptGenerator, ScriptGenerator windowsStartScriptGenerator) {
-        this(unixStartScriptGenerator, windowsStartScriptGenerator, new AntUnixFileOperation());
+        this(unixStartScriptGenerator, windowsStartScriptGenerator, new DefaultUnixFileOperation());
     }
 
     StartScriptGenerator(ScriptGenerator unixStartScriptGenerator, ScriptGenerator windowsStartScriptGenerator, UnixFileOperation unixFileOperation) {
@@ -95,17 +102,7 @@ public class StartScriptGenerator {
     }
 
     private JavaAppStartScriptGenerationDetails createStartScriptGenerationDetails() {
-        return new DefaultJavaAppStartScriptGenerationDetails(
-                applicationName,
-                optsEnvironmentVar,
-                exitEnvironmentVar,
-                mainClassName,
-                CollectionUtils.toStringList(defaultJvmOpts),
-                CollectionUtils.toStringList(classpath),
-                CollectionUtils.toStringList(modulePath),
-                scriptRelPath,
-                appNameSystemProperty
-        );
+        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, optsEnvironmentVar, exitEnvironmentVar, mainClassName, CollectionUtils.toStringList(defaultJvmOpts), CollectionUtils.toStringList(classpath), CollectionUtils.toStringList(modulePath), scriptRelPath, appNameSystemProperty);
     }
 
     public void generateUnixScript(final File unixScript) {
@@ -121,14 +118,39 @@ public class StartScriptGenerator {
         void createExecutablePermission(File file);
     }
 
-    static class AntUnixFileOperation implements UnixFileOperation {
+    private static final class DefaultUnixFileOperation implements UnixFileOperation {
+
         @Override
         public void createExecutablePermission(File file) {
+            if (OperatingSystem.current().isWindows()) {
+                createWindowsExecutablePermission(file);
+            } else {
+                createPosixExecutablePermission(file);
+            }
+        }
+
+        private void createWindowsExecutablePermission(File file) {
             Chmod chmod = new Chmod();
             chmod.setFile(file);
             chmod.setPerm("ugo+rx");
             chmod.setProject(AntUtil.createProject());
             chmod.execute();
+        }
+
+        private void createPosixExecutablePermission(File file) {
+            Path path = file.toPath();
+            try {
+                Set<PosixFilePermission> permissions = Files.getPosixFilePermissions(path);
+                permissions.add(PosixFilePermission.OWNER_READ);
+                permissions.add(PosixFilePermission.OWNER_EXECUTE);
+                permissions.add(PosixFilePermission.GROUP_READ);
+                permissions.add(PosixFilePermission.GROUP_EXECUTE);
+                permissions.add(PosixFilePermission.OTHERS_READ);
+                permissions.add(PosixFilePermission.OTHERS_EXECUTE);
+                Files.setPosixFilePermissions(path, permissions);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
     }
 

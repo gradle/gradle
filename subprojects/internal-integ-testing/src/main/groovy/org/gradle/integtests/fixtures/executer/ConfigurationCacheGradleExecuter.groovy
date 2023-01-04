@@ -28,8 +28,13 @@ class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
     static final List<String> CONFIGURATION_CACHE_ARGS = [
         "--${ConfigurationCacheOption.LONG_OPTION}",
         "-D${ConfigurationCacheQuietOption.PROPERTY_NAME}=true",
-        "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0"
+        "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=0",
+        "-Dorg.gradle.configuration-cache.internal.load-after-store=${testWithLoadAfterStore()}"
     ].collect { it.toString() }
+
+    static boolean testWithLoadAfterStore() {
+        return !System.getProperty("org.gradle.configuration-cache.internal.test-disable-load-after-store")
+    }
 
     ConfigurationCacheGradleExecuter(
         GradleDistribution distribution,
@@ -42,6 +47,11 @@ class ConfigurationCacheGradleExecuter extends DaemonGradleExecuter {
 
     @Override
     protected List<String> getAllArgs() {
-        return super.getAllArgs() + CONFIGURATION_CACHE_ARGS
+        def args = super.getAllArgs()
+        if (args.contains("--no-configuration-cache")) { // Don't enable if explicitly disabled
+            return args
+        } else {
+            return args + CONFIGURATION_CACHE_ARGS
+        }
     }
 }

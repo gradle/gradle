@@ -147,7 +147,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "can aggregate jacoco execution data from subprojects"() {
+    def "can aggregate jacoco execution data from dependent projects"() {
         given:
         file("application/build.gradle") << """
             apply plugin: 'org.gradle.jacoco-report-aggregation'
@@ -188,6 +188,66 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         report.assertDoesNotContainClass("org.apache.commons.io.IOUtils")
     }
 
+    def "aggregated report resolves sources variant of project dependencies"() {
+        given:
+        file("application/build.gradle") << """
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+
+            reporting.reports.testCodeCoverageReport.reportTask.configure {
+                doLast {
+                    assert it.sourceDirectories.files.size() == 6
+                    println it.sourceDirectories.files
+                }
+            }
+        """
+        file("transitive/build.gradle") << """
+            dependencies {
+                implementation 'org.apache.commons:commons-io:1.3.2'
+            }
+        """
+
+        when:
+        succeeds(':application:testCodeCoverageReport')
+
+        then:
+        outputContains(file('application/src/main/java').absolutePath)
+        outputContains(file('application/src/main/resources').absolutePath)
+        outputContains(file('direct/src/main/java').absolutePath)
+        outputContains(file('direct/src/main/resources').absolutePath)
+        outputContains(file('transitive/src/main/java').absolutePath)
+        outputContains(file('transitive/src/main/resources').absolutePath)
+    }
+
+    def "aggregated report resolves classes variant of project dependencies"() {
+        given:
+        file("application/build.gradle") << """
+            apply plugin: 'org.gradle.jacoco-report-aggregation'
+
+            reporting.reports.testCodeCoverageReport.reportTask.configure {
+                doLast {
+                    assert it.classDirectories.files.size() == 3
+                    println it.classDirectories.files
+                }
+            }
+        """
+        file("transitive/build.gradle") << """
+            dependencies {
+                implementation 'org.apache.commons:commons-io:1.3.2'
+            }
+        """
+
+        when:
+        succeeds(':application:testCodeCoverageReport')
+
+        then:
+        outputContains(file('application/build/classes/java/main').absolutePath)
+        outputDoesNotContain(file('application/build/libs/application-1.0.jar').absolutePath)
+        outputContains(file('direct/build/classes/java/main').absolutePath)
+        outputDoesNotContain(file('direct/build/libs/direct-1.0.jar').absolutePath)
+        outputContains(file('transitive/build/classes/java/main').absolutePath)
+        outputDoesNotContain(file('transitive/build/libs/transitive-1.0.jar').absolutePath)
+    }
+
     def 'aggregated report infers dependency versions from platform'() {
         given:
         file("application/build.gradle") << """
@@ -219,7 +279,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
                         testType = TestSuiteType.INTEGRATION_TEST
                         useJUnit()
                         dependencies {
-                          implementation project
+                          implementation project()
                         }
                     }
                 }
@@ -430,64 +490,6 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         // verify that external dependencies are filtered
         report.assertDoesNotContainClass("org.apache.commons.io.IOUtils")
         report.assertDoesNotContainClass("org.codehaus.janino.Parser")
-    }
-
-    def 'can apply custom attributes to refine coverage results'() {
-        setup:
-        file('application/build.gradle') << '''
-            // add a additional Attribute to the execution data results for the application unit-test suite
-            configurations.coverageDataElementsForTest.attributes {
-              attribute(Attribute.of('customAttribute', String), 'foo')
-            }
-        '''
-        file('transitive/build.gradle') << '''
-            // add a additional Attribute to the execution data results for the transitive unit-test suite
-            configurations.coverageDataElementsForTest.attributes {
-              attribute(Attribute.of('customAttribute', String), 'bar')
-            }
-        '''
-        buildFile << '''
-            apply plugin: 'org.gradle.jacoco-report-aggregation'
-
-            dependencies {
-                jacocoAggregation project(":application")
-                jacocoAggregation project(":direct")
-            }
-
-            reporting {
-                reports {
-                    testCodeCoverageReport(JacocoCoverageReport) {
-                        testType = TestSuiteType.UNIT_TEST
-                    }
-                }
-            }
-
-            // add an Attribute to the configuration tasked with collecting results
-            // as a result, variant selection should exclude the transitive project
-            reporting {
-                reports.withType(JacocoCoverageReport).configureEach { report ->
-                    Configuration reportConf = configurations.getByName("${report.name}ExecutionData")
-                    reportConf.attributes {
-                        attribute(Attribute.of('customAttribute', String), 'foo')
-                    }
-                }
-            }
-        '''
-
-        when:
-        succeeds(":testCodeCoverageReport")
-
-        then:
-        file("transitive/build/jacoco/test.exec").assertDoesNotExist()
-        file("direct/build/jacoco/test.exec").assertExists()
-        file("application/build/jacoco/test.exec").assertExists()
-
-        file("build/reports/jacoco/testCodeCoverageReport/html/index.html").assertExists()
-
-        def report = new JacocoReportXmlFixture(file("build/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"))
-        report.assertHasClassCoverage("application.Adder")
-        report.assertHasClassCoverage("direct.Multiplier")
-        report.assertHasClassButNoCoverage("transitive.Powerize") // the class is still in the results since we collect class dirs and source elements; but excluded binary execution data
     }
 
     def 'test verification failure prevents creation of aggregated report'() {

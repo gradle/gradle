@@ -16,13 +16,16 @@
 
 package org.gradle.internal.resources
 
-import org.gradle.api.Transformer
+
+import org.gradle.internal.InternalTransformer
 import org.gradle.internal.MutableBoolean
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.CountDownLatch
 
-import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.*
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock
 
 class SharedResourceLeaseRegistryTest extends ConcurrentSpec {
     def coordinationService = new DefaultResourceLockCoordinationService()
@@ -33,7 +36,7 @@ class SharedResourceLeaseRegistryTest extends ConcurrentSpec {
         sharedResourceLeaseRegistry.registerSharedResource('resource', 1)
 
         and:
-        def sharedResourceLock = sharedResourceLeaseRegistry.getResourceLock('resource', 1)
+        def sharedResourceLock = sharedResourceLeaseRegistry.getResourceLock('resource')
         assert !lockIsHeld(sharedResourceLock)
 
         when:
@@ -63,7 +66,7 @@ class SharedResourceLeaseRegistryTest extends ConcurrentSpec {
                 start {
                     started.countDown()
                     thread.blockUntil.releaseAll
-                    def sharedResourceLock = sharedResourceLeaseRegistry.getResourceLock('resource', 1)
+                    def sharedResourceLock = sharedResourceLeaseRegistry.getResourceLock('resource')
                     coordinationService.withStateLock(lock(sharedResourceLock))
                     assert lockIsHeld(sharedResourceLock)
                     coordinationService.withStateLock(unlock(sharedResourceLock))
@@ -83,8 +86,8 @@ class SharedResourceLeaseRegistryTest extends ConcurrentSpec {
         sharedResourceLeaseRegistry.registerSharedResource('resource-b', 1)
 
         and:
-        def lockA = sharedResourceLeaseRegistry.getResourceLock('resource-a', 1)
-        def lockB = sharedResourceLeaseRegistry.getResourceLock('resource-b', 1)
+        def lockA = sharedResourceLeaseRegistry.getResourceLock('resource-a')
+        def lockB = sharedResourceLeaseRegistry.getResourceLock('resource-b')
 
         when:
         coordinationService.withStateLock(lock(lockA))
@@ -113,7 +116,7 @@ class SharedResourceLeaseRegistryTest extends ConcurrentSpec {
         async {
             numberOfThreads.times {
                 start {
-                    def sharedResourceLock = sharedResourceLeaseRegistry.getResourceLock('resource', 1)
+                    def sharedResourceLock = sharedResourceLeaseRegistry.getResourceLock('resource')
                     coordinationService.withStateLock(lock(sharedResourceLock))
                     assert lockIsHeld(sharedResourceLock)
                     acquired.countDown()
@@ -127,22 +130,9 @@ class SharedResourceLeaseRegistryTest extends ConcurrentSpec {
         noExceptionThrown()
     }
 
-    def "fails to acquire lock when requested leases exceeds maximum available"() {
-        given:
-        sharedResourceLeaseRegistry.registerSharedResource('resource', 1)
-        def sharedResourceLock = sharedResourceLeaseRegistry.getResourceLock('resource', 2)
-
-        when:
-        coordinationService.withStateLock(lock(sharedResourceLock))
-
-        then:
-        def ex = thrown(IllegalArgumentException)
-        ex.message == "Cannot acquire lock on lease of 2 for resource as max available leases is 1"
-    }
-
     boolean lockIsHeld(final ResourceLock resourceLock) {
         MutableBoolean held = new MutableBoolean()
-        coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
+        coordinationService.withStateLock(new InternalTransformer<ResourceLockState.Disposition, ResourceLockState>() {
             @Override
             ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
                 held.set(resourceLock.locked && resourceLock.isLockedByCurrentThread())

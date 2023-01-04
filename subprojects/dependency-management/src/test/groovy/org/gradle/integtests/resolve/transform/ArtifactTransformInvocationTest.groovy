@@ -33,14 +33,14 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Classpath
 import org.gradle.internal.Try
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier
-import org.gradle.internal.execution.fingerprint.InputFingerprinter
+import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 
 import java.util.concurrent.atomic.AtomicInteger
 
 class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
-    public static final AtomicInteger INVOCATION_COUNT = new AtomicInteger(0)
+    public static final AtomicInteger INVOCATION_COUNT = new AtomicInteger()
     public static final String SELECTED_PATH = "selected.txt"
 
     def artifactType = Attribute.of('artifactType', String)
@@ -52,10 +52,10 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
     def "input artifact selection is restored when using the in-memory cache"() {
         def transform = registerTransform(IdentityTransform)
 
-        def inputArtifact1 = file("input1.txt")
+        def inputArtifact1 = file("input1/input.txt")
         inputArtifact1.text = "Hello"
 
-        def inputArtifact2 = file("input2.txt")
+        def inputArtifact2 = file("input2/input.txt")
         inputArtifact2.text = "Hello"
 
         expect:
@@ -67,12 +67,12 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
     def "input artifact paths are restored when using the in-memory cache"() {
         def transform = registerTransform(SelectFileTransform)
 
-        def inputArtifact1 = file("input1")
+        def inputArtifact1 = file("input1/input.txt")
 
         def selectedFile1 = inputArtifact1.file(SELECTED_PATH)
         selectedFile1.text = "Hello"
 
-        def inputArtifact2 = file("input2.txt")
+        def inputArtifact2 = file("input2/input.txt")
 
         def selectedFile2 = inputArtifact2.file(SELECTED_PATH)
         selectedFile2.text = "Hello"
@@ -85,12 +85,12 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
     def "the order is retained when mixing input artifacts and produced artifacts"() {
         def transform = registerTransform(MixedTransform)
 
-        def inputArtifact1 = file("input1")
+        def inputArtifact1 = file("input1/input.txt")
 
         def selectedFile1 = inputArtifact1.file(SELECTED_PATH)
         selectedFile1.text = "Hello"
 
-        def inputArtifact2 = file("input2.txt")
+        def inputArtifact2 = file("input2/input.txt")
 
         def selectedFile2 = inputArtifact2.file(SELECTED_PATH)
         selectedFile2.text = "Hello"
@@ -135,7 +135,7 @@ class ArtifactTransformInvocationTest extends AbstractProjectBuilderSpec {
             TransformationSubject.initial(artifact),
             inputFingerprinter
         )
-        invocation.invoke()
+        invocation.completeAndGet()
     }
 
     static abstract class IdentityTransform implements TransformAction<TransformParameters.None> {

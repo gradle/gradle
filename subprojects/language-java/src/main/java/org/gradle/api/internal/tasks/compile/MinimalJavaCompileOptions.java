@@ -47,6 +47,7 @@ public class MinimalJavaCompileOptions implements Serializable {
     private String javaModuleMainClass;
     private boolean supportsCompilerApi;
     private boolean supportsConstantsAnalysis;
+    private boolean supportsIncrementalCompilationAfterFailure;
     private File previousCompilationDataFile;
 
     public MinimalJavaCompileOptions(final CompileOptions compileOptions) {
@@ -68,6 +69,7 @@ public class MinimalJavaCompileOptions implements Serializable {
         this.headerOutputDirectory = compileOptions.getHeaderOutputDirectory().getAsFile().getOrNull();
         this.javaModuleVersion = compileOptions.getJavaModuleVersion().getOrNull();
         this.javaModuleMainClass = compileOptions.getJavaModuleMainClass().getOrNull();
+        this.supportsIncrementalCompilationAfterFailure = compileOptions.getIncrementalAfterFailure().getOrElse(false);
     }
 
     @Nullable
@@ -239,5 +241,13 @@ public class MinimalJavaCompileOptions implements Serializable {
 
     public void setSupportsConstantAnalysis(boolean supportsConstantsAnalysis) {
         this.supportsConstantsAnalysis = supportsConstantsAnalysis;
+    }
+
+    public boolean supportsIncrementalCompilationAfterFailure() {
+        return supportsIncrementalCompilationAfterFailure;
+    }
+
+    public void setSupportsIncrementalCompilationAfterFailure(boolean supportsIncrementalCompilationAfterFailure) {
+        this.supportsIncrementalCompilationAfterFailure = supportsIncrementalCompilationAfterFailure;
     }
 }

@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.scala;
 import sbt.internal.inc.classpath.AbstractClassLoaderCache;
 import sbt.io.IO;
 import scala.Function0;
-import scala.collection.JavaConverters;
+import scala.jdk.javaapi.CollectionConverters;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,7 +82,7 @@ class TimeCheckingClassLoaderCache implements AbstractClassLoaderCache {
     @Override
     public ClassLoader apply(scala.collection.immutable.List<File> files) {
         try {
-            List<File> jFiles = JavaConverters.seqAsJavaList(files);
+            List<File> jFiles = CollectionConverters.asJava(files);
             return cache.get(getTimestampedFiles(jFiles), () -> {
                 ArrayList<URL> urls = new ArrayList<>(jFiles.size());
                 for (File f : jFiles) {
@@ -98,7 +98,7 @@ class TimeCheckingClassLoaderCache implements AbstractClassLoaderCache {
     @Override
     public ClassLoader cachedCustomClassloader(scala.collection.immutable.List<File> files, Function0<ClassLoader> mkLoader) {
         try {
-            return cache.get(getTimestampedFiles(JavaConverters.seqAsJavaList(files)), () -> mkLoader.apply());
+            return cache.get(getTimestampedFiles(CollectionConverters.asJava(files)), () -> mkLoader.apply());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

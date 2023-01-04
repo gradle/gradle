@@ -23,27 +23,50 @@ import org.gradle.api.internal.artifacts.transform.TransformationDependency;
 
 import javax.annotation.Nullable;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static java.util.Arrays.asList;
 import static org.gradle.api.internal.tasks.WorkDependencyResolver.TASK_AS_TASK;
 
 @NonNullApi
-public abstract class AbstractTaskDependency implements TaskDependencyInternal {
+public abstract class AbstractTaskDependency implements TaskDependencyContainerInternal {
+
+    @Nullable
+    private final TaskDependencyUsageTracker dependencyUsageTracker;
+
+    public AbstractTaskDependency(@Nullable TaskDependencyUsageTracker dependencyUsageTracker) {
+        this.dependencyUsageTracker = dependencyUsageTracker;
+    }
+
     private static final WorkDependencyResolver<Task> IGNORE_ARTIFACT_TRANSFORM_RESOLVER = new WorkDependencyResolver<Task>() {
         @Override
         public boolean resolve(Task task, Object node, Action<? super Task> resolveAction) {
             // Ignore artifact transforms
-            return node instanceof TransformationDependency;
-        }
-
-        @Override
-        public boolean attachActionTo(Task task, Action<? super Task> action) {
-            return false;
+            return node instanceof TransformationDependency || node instanceof WorkNodeAction;
         }
     };
 
+    private Supplier<String> toStringProvider = null;
+
+    public void setToStringProvider(Supplier<String> toStringProvider) {
+        this.toStringProvider = toStringProvider;
+    }
+
+    @Override
+    public String toString() {
+        return toStringProvider != null ? toStringProvider.get() : super.toString();
+    }
+
     @Override
     public Set<? extends Task> getDependencies(@Nullable Task task) {
+        Set<? extends Task> result = getDependenciesForInternalUse(task);
+        if (dependencyUsageTracker != null) {
+            dependencyUsageTracker.onTaskDependencyUsage(result);
+        }
+        return result;
+    }
+
+    public Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task) {
         CachingTaskDependencyResolveContext<Task> context = new CachingTaskDependencyResolveContext<Task>(
             asList(TASK_AS_TASK, IGNORE_ARTIFACT_TRANSFORM_RESOLVER)
         );

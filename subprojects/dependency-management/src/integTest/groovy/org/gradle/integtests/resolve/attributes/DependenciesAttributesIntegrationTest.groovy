@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -157,7 +156,6 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForConfigurationCache
     def "Fails resolution because dependency attributes and constraint attributes conflict"() {
         given:
         repository {
@@ -260,7 +258,6 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @Issue("gradle/gradle#5232")
-    @ToBeFixedForConfigurationCache
     def "Serializes and reads back failed resolution when failure comes from an unmatched typed attribute"() {
         given:
         repository {
@@ -355,7 +352,6 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForConfigurationCache
     def "Fails resolution because consumer configuration attributes and dependency attributes conflict"() {
         given:
         repository {
@@ -390,10 +386,10 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""No matching variant of org:test:1.0 was found. The consumer was configured to find a runtime of a component, as well as attribute 'custom' with value 'c1' but:
+        failure.assertHasCause("""No matching variant of org:test:1.0 was found. The consumer was configured to find a component for use during runtime, as well as attribute 'custom' with value 'c1' but:
   - Variant 'api' capability org:test:1.0 declares a component, as well as attribute 'custom' with value 'c1':
-      - Incompatible because this component declares an API of a component and the consumer needed a runtime of a component
-  - Variant 'runtime' capability org:test:1.0 declares a runtime of a component:
+      - Incompatible because this component declares a component for use during compile-time and the consumer needed a component for use during runtime
+  - Variant 'runtime' capability org:test:1.0 declares a component for use during runtime:
       - Incompatible because this component declares a component, as well as attribute 'custom' with value 'c2' and the consumer needed a component, as well as attribute 'custom' with value 'c1'""")
     }
 
@@ -506,8 +502,66 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         'c1'               | 'c2'            | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/20182")
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    @ToBeFixedForConfigurationCache
+    @Unroll("Selects variant #expectedVariant using custom attribute value #dependencyValue overriding configuration attribute #configurationValue using dependency constraint without version")
+    def "dependency attribute value overrides configuration attribute using dependency constraint without version"() {
+        given:
+        repository {
+            'org:test:1.0' {
+                variant('api') {
+                    attribute('custom', 'c1')
+                }
+                variant('runtime') {
+                    attribute('custom', 'c2')
+                }
+            }
+        }
+
+        buildFile << """
+            configurations.conf.attributes.attribute(CUSTOM_ATTRIBUTE, '$configurationValue')
+
+            dependencies {
+                constraints {
+                    conf('org:test') {
+                       attributes {
+                          attribute(CUSTOM_ATTRIBUTE, '$dependencyValue')
+                       }
+                    }
+                }
+                conf 'org:test:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:test:1.0' {
+                expectResolve()
+            }
+        }
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:test:1.0') {
+                    configuration = expectedVariant
+                    variant(expectedVariant, expectedAttributes)
+                }
+                constraint('org:test', 'org:test:1.0') {
+                    configuration = expectedVariant
+                    variant(expectedVariant, expectedAttributes)
+                }
+            }
+        }
+
+        where:
+        configurationValue | dependencyValue | expectedVariant | expectedAttributes
+        'c2'               | 'c1'            | 'api'           | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c1']
+        'c1'               | 'c2'            | 'runtime'       | ['org.gradle.status': defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2']
+    }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "Fails resolution because consumer configuration attributes and constraint attributes conflict"() {
         given:
         repository {
@@ -545,10 +599,10 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""No matching variant of org:test:1.0 was found. The consumer was configured to find a runtime of a component, as well as attribute 'custom' with value 'c1' but:
+        failure.assertHasCause("""No matching variant of org:test:1.0 was found. The consumer was configured to find a component for use during runtime, as well as attribute 'custom' with value 'c1' but:
   - Variant 'api' capability org:test:1.0 declares a component, as well as attribute 'custom' with value 'c1':
-      - Incompatible because this component declares an API of a component and the consumer needed a runtime of a component
-  - Variant 'runtime' capability org:test:1.0 declares a runtime of a component:
+      - Incompatible because this component declares a component for use during compile-time and the consumer needed a component for use during runtime
+  - Variant 'runtime' capability org:test:1.0 declares a component for use during runtime:
       - Incompatible because this component declares a component, as well as attribute 'custom' with value 'c2' and the consumer needed a component, as well as attribute 'custom' with value 'c1'""")
     }
 

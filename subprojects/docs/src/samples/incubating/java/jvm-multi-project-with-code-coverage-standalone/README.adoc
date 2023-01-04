@@ -4,9 +4,14 @@ This sample shows how to aggregate code coverage across multiple Java subproject
 
 The project in this example contains three "code" subprojects: `application`, `list` and `utilities`.  All three projects apply the `jacoco` plugin, and `application` consumes both `list` and `utilities` via its implementation configuration.  A fourth subproject `code-coverage-report` is the standalone utility project used to collect the coverage results.
 
+[WARNING]
 ====
-include::sample[dir="groovy",files="code-coverage-report/build.gradle[tag=**]"]
+The Test Report Aggregation plugin does not currently work with the ``com.android.application`` plugin.
+====
+
+====
 include::sample[dir="kotlin",files="code-coverage-report/build.gradle.kts[tag=**]"]
+include::sample[dir="groovy",files="code-coverage-report/build.gradle[tag=**]"]
 ====
 
 The standalone project applies `jacoco-report-aggregation`, but requires additional configuration if the `jvm-test-suite` plugin is not also present.

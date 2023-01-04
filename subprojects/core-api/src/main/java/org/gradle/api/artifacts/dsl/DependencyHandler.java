@@ -95,9 +95,11 @@ import java.util.Map;
  * }
  *
  * dependencies {
- *   implementation('org.hibernate:hibernate:3.1') {
+ *   implementation('org.hibernate:hibernate') {
  *     //in case of versions conflict '3.1' version of hibernate wins:
- *     force = true
+ *     version {
+ *       strictly('3.1')
+ *     }
  *
  *     //excluding a particular transitive dependency:
  *     exclude module: 'cglib' //by artifact name
@@ -288,6 +290,7 @@ public interface DependencyHandler extends ExtensionAware {
      * @param configureClosure The closure to use to configure the dependency.
      * @return The dependency, or null if dependencyNotation is a provider.
      */
+    @Nullable
     Dependency add(String configurationName, Object dependencyNotation, Closure configureClosure);
 
     /**
@@ -489,17 +492,6 @@ public interface DependencyHandler extends ExtensionAware {
      * @since 4.0
      */
     void artifactTypes(Action<? super ArtifactTypeContainer> configureAction);
-
-    /**
-     * Registers an artifact transform.
-     *
-     * @deprecated use {@link #registerTransform(Class, Action)} instead.
-     * @see org.gradle.api.artifacts.transform.ArtifactTransform
-     * @since 3.5
-     */
-    @Deprecated
-    @SuppressWarnings("deprecation")
-    void registerTransform(Action<? super org.gradle.api.artifacts.transform.VariantTransform> registrationAction);
 
     /**
      * Registers an <a href="https://docs.gradle.org/current/userguide/artifact_transforms.html">artifact transform</a>.

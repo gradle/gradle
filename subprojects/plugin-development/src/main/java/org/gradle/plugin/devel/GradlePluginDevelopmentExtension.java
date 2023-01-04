@@ -21,6 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 
@@ -58,12 +59,17 @@ import java.util.Set;
  * @see org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  * @since 2.13
  */
-public class GradlePluginDevelopmentExtension {
+public abstract class GradlePluginDevelopmentExtension {
 
-    private SourceSet pluginSourceSet;
+    private final Property<String> website;
+
+    private final Property<String> vcsUrl;
+
     private final SourceSetContainer testSourceSets;
-    private final NamedDomainObjectContainer<PluginDeclaration> plugins;
+    private SourceSet pluginSourceSet;
     private boolean automatedPublishing = true;
+
+    private final NamedDomainObjectContainer<PluginDeclaration> plugins;
 
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet testSourceSet) {
         this(project, pluginSourceSet, new SourceSet[] {testSourceSet});
@@ -73,6 +79,8 @@ public class GradlePluginDevelopmentExtension {
         this.plugins = project.container(PluginDeclaration.class);
         this.pluginSourceSet = pluginSourceSet;
         this.testSourceSets = project.getObjects().newInstance(DefaultSourceSetContainer.class);
+        this.website = project.getObjects().property(String.class);
+        this.vcsUrl = project.getObjects().property(String.class);
         testSourceSets(testSourceSets);
     }
 
@@ -129,6 +137,26 @@ public class GradlePluginDevelopmentExtension {
      */
     public Set<SourceSet> getTestSourceSets() {
         return testSourceSets;
+    }
+
+    /**
+     * Returns the property holding the URL for the plugin's website.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public Property<String> getWebsite() {
+        return website;
+    }
+
+    /**
+     * Returns the property holding the URL for the plugin's VCS repository.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public Property<String> getVcsUrl() {
+        return vcsUrl;
     }
 
     /**

@@ -59,7 +59,7 @@ public abstract class JacocoReportBase extends JacocoBase {
     private final ConfigurableFileCollection additionalSourceDirs = getProject().files();
 
     public JacocoReportBase() {
-        onlyIf(new Spec<Task>() {
+        onlyIf("Any of the execution data files exists", new Spec<Task>() {
             @Override
             public boolean isSatisfiedBy(Task element) {
                 return Iterables.any(getExecutionData(), new Predicate<File>() {

@@ -25,6 +25,7 @@ import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.PropertyHost
@@ -157,10 +158,12 @@ class DefaultProjectSpec extends Specification {
         _ * serviceRegistry.get(InstantiatorFactory) >> Stub(InstantiatorFactory)
         _ * serviceRegistry.get(AttributesSchema) >> Stub(AttributesSchema)
         _ * serviceRegistry.get(ModelRegistry) >> Stub(ModelRegistry)
+        _ * serviceRegistry.get(CrossProjectModelAccess) >> Stub(CrossProjectModelAccess)
         _ * serviceRegistry.get(DependencyResolutionManagementInternal) >> Stub(DependencyResolutionManagementInternal)
+        _ * serviceRegistry.get(DynamicLookupRoutine) >> Stub(DynamicLookupRoutine)
 
         def fileOperations = Stub(FileOperations)
-        fileOperations.fileTree(_) >> TestFiles.fileOperations(tmpDir.testDirectory).fileTree('tree')
+        fileOperations.fileTree(_) >> TestFiles.fileOperations(tmpDir.testDirectory, new DefaultTemporaryFileProvider(() -> new File(tmpDir.testDirectory, "cache"))).fileTree('tree')
         def projectDir = new File("project")
         def objectFactory = Stub(ObjectFactory)
         objectFactory.fileCollection() >> TestFiles.fileCollectionFactory().configurableFiles()

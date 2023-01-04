@@ -34,6 +34,7 @@ dependencies {
     crossVersionTestImplementation(project(":platform-jvm"))
     crossVersionTestImplementation(project(":language-java"))
     crossVersionTestImplementation(project(":language-groovy"))
+    crossVersionTestImplementation(project(":logging"))
     crossVersionTestImplementation(project(":scala"))
     crossVersionTestImplementation(project(":ear"))
     crossVersionTestImplementation(project(":testing-jvm"))
@@ -54,3 +55,8 @@ dependencies {
 }
 
 testFilesCleanup.reportOnly.set(true)
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}

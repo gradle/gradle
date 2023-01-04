@@ -16,21 +16,17 @@
 
 package org.gradle.integtests.fixtures
 
-import com.google.common.util.concurrent.SimpleTimeLimiter
-import com.google.common.util.concurrent.UncheckedTimeoutException
+
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
+import org.gradle.integtests.fixtures.timeout.JavaProcessStackTracesMonitor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Assume
-
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 import static org.gradle.integtests.fixtures.WaitAtEndOfBuildFixture.buildLogicForEndOfBuildWait
 import static org.gradle.integtests.fixtures.WaitAtEndOfBuildFixture.buildLogicForMinimumBuildTime
@@ -41,7 +37,7 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     private static final int WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS = 20
     private static final boolean OS_IS_WINDOWS = OperatingSystem.current().isWindows()
     private static final String CHANGE_DETECTED_OUTPUT = "Change detected, executing build..."
-    private static final String WAITING_FOR_CHANGES_OUTPUT = "Waiting for changes to input files of tasks..."
+    private static final String WAITING_FOR_CHANGES_OUTPUT = "Waiting for changes to input files..."
 
     GradleHandle gradle
 
@@ -49,16 +45,13 @@ abstract class AbstractContinuousIntegrationTest extends AbstractIntegrationSpec
     private int errorOutputBuildMarker = 0
 
     int buildTimeout = WAIT_FOR_WATCHING_TIMEOUT_SECONDS
-    int shutdownTimeout = WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS
     boolean killToStop
-    boolean ignoreShutdownTimeoutException
     boolean withoutContinuousArg
     List<ExecutionResult> results = []
 
     void turnOnDebug() {
         executer.startBuildProcessInDebugger(true)
         buildTimeout *= 100
-        shutdownTimeout *= 100
     }
 
     def cleanup() {
@@ -156,7 +149,6 @@ ${result.error}
             .withTasks(tasks)
             .withForceInteractive(true)
             .withArgument("--full-stacktrace")
-            .withArgument("--watch-fs")
         if (!withoutContinuousArg) {
             executer.withArgument("--continuous")
         }
@@ -204,8 +196,14 @@ ${result.error}
             }
         }
         if (gradle.isRunning() && !endOfBuildReached) {
+            new JavaProcessStackTracesMonitor(temporaryFolder.getTestDirectory()).printAllStackTracesByJstack()
             throw new RuntimeException("""Timeout waiting for build to complete. Output:
 $lastOutput
+
+Error:
+${gradle.errorOutput}
+
+Look for additional thread dump files in the following folder: $temporaryFolder
 """)
         }
 
@@ -270,19 +268,12 @@ $lastOutput
                 gradle.abort()
             } else {
                 gradle.cancel()
-                ExecutorService executorService = Executors.newCachedThreadPool()
                 try {
-                    SimpleTimeLimiter.create(executorService).callWithTimeout(
-                        { gradle.waitForExit() },
-                        shutdownTimeout, TimeUnit.SECONDS, false
-                    )
-                } catch (UncheckedTimeoutException e) {
-                    gradle.abort()
-                    if (!ignoreShutdownTimeoutException) {
-                        throw e
-                    }
+                    waitForNotRunning()
                 } finally {
-                    executorService.shutdownNow()
+                    if (gradle.running) {
+                        gradle.abort()
+                    }
                 }
             }
         }
@@ -300,6 +291,8 @@ $lastOutput
         } catch (AssertionError ignored) {
             // ok, what we want
         }
+        assert gradle.isRunning()
+        assert !output.contains("Exiting continuous build")
     }
 
     // should be private, but is accessed by closures in this class
@@ -321,7 +314,7 @@ $lastOutput
         }
     }
 
-    private waitForNotRunning() {
+    void waitForNotRunning() {
         ConcurrentTestUtil.poll(WAIT_FOR_SHUTDOWN_TIMEOUT_SECONDS) {
             assert !gradle.running
         }

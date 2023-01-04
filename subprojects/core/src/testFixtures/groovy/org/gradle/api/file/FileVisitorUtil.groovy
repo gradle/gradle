@@ -28,7 +28,7 @@ import static org.junit.Assert.assertTrue
 
 class FileVisitorUtil {
     static void assertCanStopVisiting(MinimalFileTree tree) {
-        assertCanStopVisiting(new FileTreeAdapter(tree, TestFiles.patternSetFactory))
+        assertCanStopVisiting(new FileTreeAdapter(tree, TestFiles.taskDependencyFactory(), TestFiles.patternSetFactory))
     }
 
     static void assertCanStopVisiting(FileTree tree) {
@@ -49,7 +49,7 @@ class FileVisitorUtil {
     }
 
     static void assertVisits(MinimalFileTree tree, Iterable<String> expectedFiles, Iterable<String> expectedDirs) {
-        assertVisits(new FileTreeAdapter(tree, TestFiles.patternSetFactory), expectedFiles, expectedDirs)
+        assertVisits(new FileTreeAdapter(tree, TestFiles.taskDependencyFactory(), TestFiles.patternSetFactory), expectedFiles, expectedDirs)
     }
 
     static void assertVisits(FileTree tree, Iterable<String> expectedFiles, Iterable<String> expectedDirs) {
@@ -106,7 +106,7 @@ class FileVisitorUtil {
     }
 
     static void assertVisitsPermissions(MinimalFileTree tree, Map<String, Integer> filesWithPermissions) {
-        assertVisitsPermissions(new FileTreeAdapter(tree, TestFiles.patternSetFactory), filesWithPermissions)
+        assertVisitsPermissions(new FileTreeAdapter(tree, TestFiles.taskDependencyFactory(), TestFiles.patternSetFactory), filesWithPermissions)
     }
 
     static void assertVisitsPermissions(FileTree tree, Map<String, Integer> filesWithPermissions) {

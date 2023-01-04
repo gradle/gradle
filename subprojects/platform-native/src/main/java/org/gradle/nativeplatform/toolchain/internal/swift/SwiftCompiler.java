@@ -22,7 +22,6 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.FileUtils;
@@ -147,12 +146,7 @@ class SwiftCompiler extends AbstractCompiler<SwiftCompileSpec> {
                     genericArgs.add("-O");
                 }
 
-                genericArgs.addAll(CollectionUtils.collect(spec.getMacros().keySet(), new Transformer<String, String>() {
-                    @Override
-                    public String transform(String macro) {
-                        return "-D" + macro;
-                    }
-                }));
+                genericArgs.addAll(CollectionUtils.collect(spec.getMacros().keySet(), macro -> "-D" + macro));
 
                 genericArgs.add("-swift-version");
                 genericArgs.add(String.valueOf(spec.getSourceCompatibility().getVersion()));

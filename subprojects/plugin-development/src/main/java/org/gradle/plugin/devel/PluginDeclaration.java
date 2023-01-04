@@ -16,21 +16,17 @@
 
 package org.gradle.plugin.devel;
 
-import com.google.common.base.Objects;
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.provider.SetProperty;
 
-import javax.annotation.Nullable;
-import java.io.Serializable;
-
-
-//TODO version - could be different from main artifact's version
 /**
  * Describes a Gradle plugin under development.
  *
  * @see org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
  * @since 2.14
  */
-public class PluginDeclaration implements Named, Serializable {
+public abstract class PluginDeclaration implements Named {
     private final String name;
     private String id;
     private String implementationClass;
@@ -70,7 +66,6 @@ public class PluginDeclaration implements Named, Serializable {
      *
      * @since 4.10
      */
-    @Nullable
     public String getDisplayName() {
         return displayName;
     }
@@ -95,7 +90,6 @@ public class PluginDeclaration implements Named, Serializable {
      *
      * @since 4.10
      */
-    @Nullable
     public String getDescription() {
         return description;
     }
@@ -112,19 +106,15 @@ public class PluginDeclaration implements Named, Serializable {
         this.description = description;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof PluginDeclaration) {
-            PluginDeclaration other = (PluginDeclaration) obj;
-            return Objects.equal(name, other.name)
-                && Objects.equal(id, other.id)
-                && Objects.equal(implementationClass, other.implementationClass);
-        }
-        return false;
-    }
+    /**
+     * Returns the tags property for this plugin declaration.
+     *
+     * <p>Tags are used when publishing this plugin to repositories that support tagging plugins,
+     * for example the <a href="http://plugins.gradle.org">Gradle Plugin Portal</a>.
+     *
+     * @since 7.6
+     */
+    @Incubating
+    public abstract SetProperty<String> getTags();
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(name, id, implementationClass);
-    }
 }

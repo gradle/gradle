@@ -27,14 +27,10 @@ interface BuildControllers extends Closeable {
     void populateWorkGraphs();
 
     /**
-     * Starts running any scheduled tasks. Does nothing when {@link #populateWorkGraphs()} has not been called to schedule the tasks.
-     */
-    void startExecution();
-
-    /**
+     * Runs any scheduled tasks, blocking until complete. Does nothing when {@link #populateWorkGraphs()} has not been called to schedule the tasks.
      * Blocks until all scheduled tasks have completed.
      */
-    ExecutionResult<Void> awaitCompletion();
+    ExecutionResult<Void> execute();
 
     /**
      * Locates the controller for a given build, adding it if not present.

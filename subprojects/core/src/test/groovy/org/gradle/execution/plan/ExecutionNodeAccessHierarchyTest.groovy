@@ -116,7 +116,7 @@ class ExecutionNodeAccessHierarchyTest extends Specification {
         expect:
         nodesRelatedTo(root, "*/within") == ([rootNode, node3, node5, node7] as Set)
         nodesRelatedTo(root, "included/*") == ([rootNode, node4, node7] as Set)
-        nodesRelatedTo(root, "included/within") == ([rootNode, node4] as Set)
+        nodesRelatedTo(root, "included/within") == ([rootNode, node7] as Set)
     }
 
     def "uses the correct file type for filtering"() {

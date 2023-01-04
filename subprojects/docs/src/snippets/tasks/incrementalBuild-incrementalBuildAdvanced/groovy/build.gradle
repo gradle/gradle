@@ -50,7 +50,7 @@ tasks.register('processTemplates2', ProcessTemplates) {
 // tag::failed-inferred-task-dep[]
 
 tasks.register('badInstrumentClasses', Instrument) {
-    classFiles.from fileTree(tasks.named('compileJava').map { it.destinationDir })
+    classFiles.from fileTree(tasks.named('compileJava').flatMap { it.destinationDirectory }) {}
     destinationDir = file(layout.buildDirectory.dir('instrumented'))
 }
 // end::failed-inferred-task-dep[]
@@ -71,7 +71,7 @@ tasks.register('instrumentClasses2', Instrument) {
 
 // tag::inferred-task-dep-with-builtby[]
 tasks.register('instrumentClassesBuiltBy', Instrument) {
-    classFiles.from fileTree(tasks.named('compileJava').map { it.destinationDir }) {
+    classFiles.from fileTree(tasks.named('compileJava').flatMap { it.destinationDirectory }) {
         builtBy tasks.named('compileJava')
     }
     destinationDir = file(layout.buildDirectory.dir('instrumented'))
@@ -88,7 +88,7 @@ tasks.register('alwaysInstrumentClasses', Instrument) {
 
 // tag::git-clone[]
 tasks.register("cloneGradleProfiler", GitClone) {
-    destinationDir = layout.buildDirectory.dir("gradle-profiler")                      // <3>
+    destinationDir = layout.buildDirectory.dir("gradle-profiler") // <3>
     remoteUri = "https://github.com/gradle/gradle-profiler.git"
     commitId = "d6c18a21ca6c45fd8a9db321de4478948bdf801b"
 }

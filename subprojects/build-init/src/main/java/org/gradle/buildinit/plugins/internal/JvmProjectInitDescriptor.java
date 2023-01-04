@@ -22,10 +22,13 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import static java.util.stream.Collectors.toList;
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyGroupName;
+import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependency;
 
 public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectInitDescriptor {
 
@@ -134,8 +137,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
             buildScriptBuilder.plugin("Apply the common convention plugin for shared build configuration between library and application projects.", commonConventionPlugin(settings));
             if ("library".equals(conventionPluginName)) {
                 applyLibraryPlugin(buildScriptBuilder);
-            }
-            if ("application".equals(conventionPluginName)) {
+            } else if ("application".equals(conventionPluginName)) {
                 applyApplicationPlugin(buildScriptBuilder);
             }
         }
@@ -144,17 +146,15 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     @Override
     public void generateSources(InitSettings settings, TemplateFactory templateFactory) {
         for (String subproject : settings.getSubprojects()) {
-            List<String> sourceTemplates = new ArrayList<>();
-            List<String> testSourceTemplates = new ArrayList<>();
-            List<String> integrationTestSourceTemplates = new ArrayList<>();
+            List<String> sourceTemplates = getSourceTemplates(subproject, settings, templateFactory);
+            List<String> testSourceTemplates = getTestSourceTemplates(subproject, settings, templateFactory);
 
-            sourceTemplates(subproject, settings, templateFactory, sourceTemplates);
-            testSourceTemplates(subproject, settings, templateFactory, testSourceTemplates);
-
-            List<TemplateOperation> templateOps = new ArrayList<>(sourceTemplates.size() + testSourceTemplates.size() + integrationTestSourceTemplates.size());
-            sourceTemplates.stream().map(t -> templateFactory.fromSourceTemplate(templatePath(t), "main", subproject, templateLanguage(t))).forEach(templateOps::add);
-            testSourceTemplates.stream().map(t -> templateFactory.fromSourceTemplate(templatePath(t), "test", subproject, templateLanguage(t))).forEach(templateOps::add);
-            integrationTestSourceTemplates.stream().map(t -> templateFactory.fromSourceTemplate(templatePath(t), "integrationTest", subproject, templateLanguage(t))).forEach(templateOps::add);
+            List<TemplateOperation> templateOps = sourceTemplates.stream()
+                .map(t -> templateFactory.fromSourceTemplate(templatePath(t), "main", subproject, templateLanguage(t)))
+                .collect(toList());
+            testSourceTemplates.stream()
+                .map(t -> templateFactory.fromSourceTemplate(templatePath(t), "test", subproject, templateLanguage(t)))
+                .forEach(templateOps::add);
 
             templateFactory.whenNoSourcesAvailable(subproject, templateOps).generate();
         }
@@ -172,9 +172,9 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         return getLanguage();
     }
 
-    protected abstract void sourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory, List<String> templates);
+    protected abstract List<String> getSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory);
 
-    protected abstract void testSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory, List<String> templates);
+    protected abstract List<String> getTestSourceTemplates(String subproject, InitSettings settings, TemplateFactory templateFactory);
 
     protected void applyApplicationPlugin(BuildScriptBuilder buildScriptBuilder) {
         buildScriptBuilder.plugin(
@@ -193,20 +193,20 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     private void addStandardDependencies(BuildScriptBuilder buildScriptBuilder, boolean constraintsDefined) {
-        if (getLanguage() == Language.GROOVY) {
-            String groovyVersion = libraryVersionProvider.getVersion("groovy");
-            String groovyAllCoordinates = constraintsDefined ? "org.codehaus.groovy:groovy-all" : "org.codehaus.groovy:groovy-all:" + groovyVersion;
-            buildScriptBuilder.implementationDependency("Use the latest Groovy version for building this library", groovyAllCoordinates);
-        }
-        if (getLanguage() == Language.KOTLIN) {
-            buildScriptBuilder.dependencies().platformDependency("implementation", "Align versions of all Kotlin components", "org.jetbrains.kotlin:kotlin-bom");
-            buildScriptBuilder.implementationDependency("Use the Kotlin JDK 8 standard library.", "org.jetbrains.kotlin:kotlin-stdlib-jdk8");
-        }
-        if (getLanguage() == Language.SCALA) {
-            String scalaVersion = libraryVersionProvider.getVersion("scala");
-            String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
-            String scalaCoordinates = constraintsDefined ? "org.scala-lang:scala-library" : "org.scala-lang:scala-library:" + scalaLibraryVersion;
-            buildScriptBuilder.implementationDependency("Use Scala " + scalaVersion + " in our library project", scalaCoordinates);
+        switch (getLanguage()) {
+            case GROOVY:
+                String groovyVersion = libraryVersionProvider.getVersion("groovy");
+                String groovyAllCoordinates = groovyGroupName(groovyVersion) + ":" + (constraintsDefined ? "groovy-all" : "groovy-all:" + groovyVersion);
+                buildScriptBuilder.implementationDependency("Use the latest Groovy version for building this library", groovyAllCoordinates);
+                break;
+            case SCALA:
+                String scalaVersion = libraryVersionProvider.getVersion("scala");
+                String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
+                String scalaCoordinates = constraintsDefined ? "org.scala-lang:scala-library" : "org.scala-lang:scala-library:" + scalaLibraryVersion;
+                buildScriptBuilder.implementationDependency("Use Scala " + scalaVersion + " in our library project", scalaCoordinates);
+                break;
+            default:
+                break;
         }
     }
 
@@ -215,11 +215,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         buildScriptBuilder.implementationDependencyConstraint("Define dependency versions as constraints", "org.apache.commons:commons-text:" + commonsTextVersion);
 
         if (getLanguage() == Language.GROOVY) {
-            buildScriptBuilder.implementationDependencyConstraint(null, "org.codehaus.groovy:groovy-all:" + libraryVersionProvider.getVersion("groovy"));
-        }
-        if (getLanguage() == Language.KOTLIN) {
-            buildScriptBuilder.dependencies().platformDependency("implementation", "Align versions of all Kotlin components", "org.jetbrains.kotlin:kotlin-bom");
-            buildScriptBuilder.implementationDependencyConstraint(null, "org.jetbrains.kotlin:kotlin-stdlib-jdk8");
+            buildScriptBuilder.implementationDependencyConstraint(null, groovyModuleDependency("groovy-all", libraryVersionProvider.getVersion("groovy")));
         }
         if (getLanguage() == Language.SCALA) {
             String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
@@ -234,7 +230,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                     buildScriptBuilder
                         .plugin("Apply the groovy plugin to also add support for Groovy (needed for Spock)", "groovy")
                         .testImplementationDependency("Use the latest Groovy version for Spock testing",
-                            "org.codehaus.groovy:groovy:" + libraryVersionProvider.getVersion("groovy"));
+                            groovyModuleDependency("groovy", libraryVersionProvider.getVersion("groovy")));
                 }
                 buildScriptBuilder.testImplementationDependency("Use the awesome Spock testing and specification framework even with Java",
                         "org.spockframework:spock-core:" + libraryVersionProvider.getVersion("spock"),
@@ -275,8 +271,13 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
                         "org.scala-lang.modules:scala-xml_" + scalaVersion + ":" + scalaXmlVersion);
                 break;
             case KOTLINTEST:
-                buildScriptBuilder.testImplementationDependency("Use the Kotlin test library.", "org.jetbrains.kotlin:kotlin-test");
-                buildScriptBuilder.testImplementationDependency("Use the Kotlin JUnit integration.", "org.jetbrains.kotlin:kotlin-test-junit");
+                buildScriptBuilder.testImplementationDependency("Use the Kotlin JUnit 5 integration.", "org.jetbrains.kotlin:kotlin-test-junit5");
+                // TODO: Make this work with JUnit 5.6.0 again, see https://github.com/gradle/gradle/issues/13955
+                buildScriptBuilder.testImplementationDependency("Use the JUnit 5 integration.", "org.junit.jupiter:junit-jupiter-engine:" + libraryVersionProvider.getVersion("junit-jupiter"));
+
+                buildScriptBuilder.taskMethodInvocation(
+                        "Use JUnit Platform for unit tests.",
+                        "test", "Test", "useJUnitPlatform");
                 break;
             default:
                 buildScriptBuilder.testImplementationDependency("Use JUnit test framework.", "junit:junit:" + libraryVersionProvider.getVersion("junit"));

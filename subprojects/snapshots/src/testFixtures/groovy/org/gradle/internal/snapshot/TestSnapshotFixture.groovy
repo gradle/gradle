@@ -18,7 +18,7 @@ package org.gradle.internal.snapshot
 
 import org.apache.commons.io.FilenameUtils
 import org.gradle.internal.file.FileMetadata
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 
 import javax.annotation.Nullable
@@ -32,13 +32,21 @@ trait TestSnapshotFixture {
     private final Random pseudoRandom = new Random(1234)
 
     FileSystemLocationSnapshot directory(String absolutePath, FileMetadata.AccessType accessType = DIRECT, Long hashCode = null, List<FileSystemLocationSnapshot> children) {
-        new DirectorySnapshot(
+        def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
+        builder.enterDirectory(
+            accessType,
             FilenameUtils.separatorsToSystem(absolutePath),
             FilenameUtils.getName(absolutePath),
-            accessType,
-            HashCode.fromLong(hashCode ?: pseudoRandom.nextLong()),
-            children as List
+            DirectorySnapshotBuilder.EmptyDirectoryHandlingStrategy.INCLUDE_EMPTY_DIRS
         )
+        children.each { snapshot ->
+            if (snapshot instanceof DirectorySnapshot) {
+                builder.visitDirectory(snapshot)
+            } else {
+                builder.visitLeafElement(snapshot)
+            }
+        }
+        return builder.leaveDirectory()
     }
 
     FileSystemLocationSnapshot regularFile(String absolutePath, FileMetadata.AccessType accessType = DIRECT) {
@@ -53,7 +61,7 @@ trait TestSnapshotFixture {
         new RegularFileSnapshot(
             FilenameUtils.separatorsToSystem(absolutePath),
             FilenameUtils.getName(absolutePath),
-            HashCode.fromLong(hashCode ?: pseudoRandom.nextLong()),
+            TestHashCodes.hashCodeFrom(hashCode ?: pseudoRandom.nextLong()),
             file(abs(pseudoRandom.nextLong()), abs(pseudoRandom.nextLong()), accessType))
     }
 

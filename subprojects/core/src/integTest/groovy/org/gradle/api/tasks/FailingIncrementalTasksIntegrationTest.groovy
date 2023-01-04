@@ -62,11 +62,11 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
                 @Inject
                 abstract ProjectLayout getLayout()
 
-                @InputDirectory File sourceDir
+                @Incremental @InputDirectory File sourceDir
                 @OutputDirectory File destinationDir
 
                 @TaskAction
-                void process(IncrementalTaskInputs inputs) {
+                void process(InputChanges inputs) {
                     def outputTxt = layout.projectDirectory.file("\$destinationDir/output.txt").asFile
                     outputTxt.text = "output"
                     def modifyOutputs = providers.gradleProperty('modifyOutputs').orNull
@@ -100,7 +100,6 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
                 destinationDir = file("build")
             }
         """
-
         succeeds "incrementalTask", "-PexpectIncremental=false"
 
         file("src/input-change.txt") << "input"

@@ -49,6 +49,10 @@ trait VersionCatalogErrorMessages {
         buildMessage(ReservedAlias, VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec)
     }
 
+    String aliasContainsReservedName(@DelegatesTo(value = ReservedAlias, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(ReservedAlias, VersionCatalogProblemId.RESERVED_ALIAS_NAME, spec)
+    }
+
     String undefinedVersionRef(@DelegatesTo(value = UndefinedVersionRef, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(UndefinedVersionRef, VersionCatalogProblemId.UNDEFINED_VERSION_REFERENCE, spec)
     }
@@ -79,6 +83,18 @@ trait VersionCatalogErrorMessages {
 
     String parseError(@DelegatesTo(value=ParseError, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         buildMessage(ParseError, VersionCatalogProblemId.TOML_SYNTAX_ERROR, spec)
+    }
+
+    String noImportFiles(@DelegatesTo(value=NoImportFiles, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(NoImportFiles, VersionCatalogProblemId.NO_IMPORT_FILES, spec)
+    }
+
+    String tooManyImportFiles(@DelegatesTo(value=NoImportFiles, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(TooManyImportFiles, VersionCatalogProblemId.TOO_MANY_IMPORT_FILES, spec)
+    }
+
+    String tooManyImportInvokation(@DelegatesTo(value=TooManyFromInvokation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        buildMessage(TooManyFromInvokation, VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION, spec)
     }
 
     private static <T extends InCatalog<T>> String buildMessage(Class<T> clazz, VersionCatalogProblemId id, Closure<?> spec) {
@@ -222,6 +238,12 @@ trait VersionCatalogErrorMessages {
             this
         }
 
+        ReservedAlias shouldNotContain(String name) {
+            this.alias = name
+            this.message = "Alias '$name' contains a reserved name in Gradle and prevents generation of accessors"
+            this
+        }
+
         ReservedAlias reservedAliasPrefix(String... suffixes) {
             this.solution = "Use a different alias which prefix is not equal to ${oxfordListOf(suffixes as List, 'or')}"
             this
@@ -229,6 +251,11 @@ trait VersionCatalogErrorMessages {
 
         ReservedAlias reservedAliases(String... aliases) {
             this.solution = "Use a different alias which isn't in the reserved names ${oxfordListOf(aliases as List, "or")}"
+            this
+        }
+
+        ReservedAlias reservedNames(String... names) {
+            this.solution = "Use a different alias which doesn't contain any of ${oxfordListOf(names as List, "or")}"
             this
         }
 
@@ -481,6 +508,61 @@ ${solution}
     Reason: File '${missingFile.absolutePath}' doesn't exist.
 
     Possible solution: Make sure that the catalog file '${missingFile.name}' exists before importing it.
+
+    ${documentation}"""
+        }
+    }
+
+    static class NoImportFiles extends InCatalog<NoImportFiles> {
+        NoImportFiles() {
+            intro = """Invalid catalog definition:
+"""
+        }
+
+        @Override
+        String build() {
+            """${intro}  - Problem: In version catalog ${catalog}, no files are resolved to be imported.
+
+    Reason: The imported dependency doesn't resolve into any file.
+
+    Possible solution: Check the import statement, it should resolve into a single file.
+
+    ${documentation}"""
+        }
+    }
+
+    static class TooManyImportFiles extends InCatalog<TooManyImportFiles> {
+        TooManyImportFiles() {
+            intro = """Invalid catalog definition:
+"""
+        }
+
+        @Override
+        String build() {
+            """${intro}  - Problem: In version catalog ${catalog}, importing multiple files are not supported.
+
+    Reason: The import consists of multiple files.
+
+    Possible solution: Only import a single file.
+
+    ${documentation}"""
+        }
+    }
+
+    static class TooManyFromInvokation extends InCatalog<TooManyFromInvokation> {
+        TooManyFromInvokation() {
+            intro = """Invalid catalog definition:
+"""
+            section = "importing-catalog-from-file"
+        }
+
+        @Override
+        String build() {
+            """${intro}  - Problem: In version catalog ${catalog}, you can only call the 'from' method a single time.
+
+    Reason: The method was called more than once.
+
+    Possible solution: Remove further usages of the method call.
 
     ${documentation}"""
         }

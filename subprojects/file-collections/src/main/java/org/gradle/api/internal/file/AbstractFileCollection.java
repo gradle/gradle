@@ -26,7 +26,9 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.provider.BuildableBackedSetProvider;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -36,6 +38,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
+import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.GUtil;
 
@@ -47,17 +50,25 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public abstract class AbstractFileCollection implements FileCollectionInternal {
+    protected final TaskDependencyFactory taskDependencyFactory;
     protected final Factory<PatternSet> patternSetFactory;
 
-    protected AbstractFileCollection(Factory<PatternSet> patternSetFactory) {
+    protected AbstractFileCollection(TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+        this.taskDependencyFactory = taskDependencyFactory;
         this.patternSetFactory = patternSetFactory;
     }
 
     @SuppressWarnings("deprecation")
+    protected AbstractFileCollection(TaskDependencyFactory taskDependencyFactory) {
+        this(taskDependencyFactory, PatternSets.getNonCachingPatternSetFactory());
+    }
+
+    @SuppressWarnings("deprecation")
     public AbstractFileCollection() {
-        this.patternSetFactory = PatternSets.getNonCachingPatternSetFactory();
+        this(DefaultTaskDependencyFactory.withNoAssociatedProject());
     }
 
     /**
@@ -91,17 +102,9 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public final TaskDependency getBuildDependencies() {
         assertCanCarryBuildDependencies();
-        return new AbstractTaskDependency() {
-            @Override
-            public String toString() {
-                return "Dependencies of " + getDisplayName();
-            }
-
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                context.add(AbstractFileCollection.this);
-            }
-        };
+        DefaultTaskDependency result = taskDependencyFactory.visitingDependencies(context -> context.add(AbstractFileCollection.this));
+        result.setToStringProvider(() -> "Dependencies of " + getDisplayName());
+        return result;
     }
 
     protected void assertCanCarryBuildDependencies() {
@@ -138,11 +141,6 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             }
 
             @Override
-            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                addTreeContents(fileTree);
-            }
-
-            @Override
             public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                 addTreeContents(fileTree);
             }
@@ -175,7 +173,29 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public String getAsPath() {
+        showGetAsPathDeprecationWarning();
         return GUtil.asPath(this);
+    }
+
+    private void showGetAsPathDeprecationWarning() {
+        List<String> filesAsPaths = this.getFiles().stream()
+            .map(File::getPath)
+            .filter(path -> path.contains(File.pathSeparator))
+            .collect(Collectors.toList());
+        if (!filesAsPaths.isEmpty()) {
+            String displayedFilePaths = filesAsPaths.stream().map(path -> "'" + path + "'").collect(Collectors.joining(","));
+            throw DocumentedFailure.builder()
+                .withSummary(String.format(
+                    "Converting files to a classpath string when their paths contain the path separator '%s' is not supported. " +
+                        "The path separator is not a valid element of a file path.", File.pathSeparator))
+                .withContext(String.format("Problematic paths in '%s' are: %s.",
+                    getDisplayName(),
+                    displayedFilePaths
+                ))
+                .withAdvice("Add the individual files to the file collection instead.")
+                .withUpgradeGuideSection(7, "file_collection_to_classpath")
+                .build();
+        }
     }
 
     @Override
@@ -185,7 +205,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileCollection plus(FileCollection collection) {
-        return new UnionFileCollection(this, (FileCollectionInternal) collection);
+        return new UnionFileCollection(taskDependencyFactory, this, (FileCollectionInternal) collection);
     }
 
     @Override
@@ -280,16 +300,11 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             }
 
             @Override
-            public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                 // Visit the contents of the tree to generate the tree
                 if (visitAll(sourceTree)) {
                     fileTrees.add(sourceTree.getMirror());
                 }
-            }
-
-            @Override
-            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                visitGenericFileTree(fileTree, sourceTree);
             }
         });
         return fileTrees;
@@ -329,7 +344,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileTreeInternal getAsFileTree() {
-        return new FileCollectionBackedFileTree(patternSetFactory, this);
+        return new FileCollectionBackedFileTree(taskDependencyFactory, patternSetFactory, this);
     }
 
     @Override

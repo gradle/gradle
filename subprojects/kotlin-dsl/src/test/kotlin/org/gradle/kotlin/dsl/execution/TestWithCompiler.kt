@@ -22,11 +22,13 @@ import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import org.gradle.api.Action
+import org.gradle.api.JavaVersion
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
@@ -46,7 +48,7 @@ abstract class TestWithCompiler : TestWithTempFiles() {
     internal
     inline fun withExecutableProgramFor(
         program: ResidualProgram,
-        sourceHash: HashCode = HashCode.fromInt(0),
+        sourceHash: HashCode = TestHashCodes.hashCodeFrom(0),
         programKind: ProgramKind = ProgramKind.TopLevel,
         programTarget: ProgramTarget = ProgramTarget.Settings,
         action: ExecutableProgram.() -> Unit
@@ -71,6 +73,7 @@ abstract class TestWithCompiler : TestWithTempFiles() {
     ) {
         ResidualProgramCompiler(
             outputDir,
+            JavaVersion.current(),
             testRuntimeClassPath,
             sourceHash,
             programKind,

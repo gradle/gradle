@@ -21,7 +21,7 @@ import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.file.FileAccessTracker
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
@@ -52,7 +52,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
         def key = new ArtifactAtRepositoryKey("RepoID", Stub(ModuleComponentArtifactIdentifier))
 
         when:
-        index.store(key, null, HashCode.fromInt(0))
+        index.store(key, null, TestHashCodes.hashCodeFrom(0))
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -61,7 +61,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
 
     def "artifact key must be provided"() {
         when:
-        index.store(null, Stub(File), HashCode.fromInt(0))
+        index.store(null, Stub(File), TestHashCodes.hashCodeFrom(0))
 
         then:
         def e = thrown(IllegalArgumentException)
@@ -75,14 +75,14 @@ class DefaultModuleArtifactCacheTest extends Specification {
         def testFile = folder.createFile("aTestFile")
 
         when:
-        index.store(key, testFile, HashCode.fromInt(10))
+        index.store(key, testFile, TestHashCodes.hashCodeFrom(10))
 
         then:
         1 * cacheLockingManager.useCache(_) >> { Runnable action -> action.run() }
         1 * timeProvider.currentTime >> 123
         1 * persistentIndexedCache.put(key, _) >> { k, v ->
             assert v.cachedAt == 123
-            assert v.descriptorHash == HashCode.fromInt(10)
+            assert v.descriptorHash == TestHashCodes.hashCodeFrom(10)
             assert v.cachedFile == testFile
         }
     }
@@ -139,7 +139,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
         then:
         2 * cachedArtifact.isMissing() >> false
         1 * cachedArtifact.cachedAt >> 42L
-        1 * cachedArtifact.getDescriptorHash() >> HashCode.fromInt(42)
+        1 * cachedArtifact.getDescriptorHash() >> TestHashCodes.hashCodeFrom(42)
         1 * cachedArtifact.getCachedFile() >> commonRootPath.resolve("file.txt").toFile()
 
         1 * encoder.writeString("file.txt")
@@ -157,7 +157,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
         then:
         1 * decoder.readBoolean() >> false
         1 * decoder.readLong() >> 42L
-        1 * decoder.readBinary() >> HashCode.fromInt(42).toByteArray()
+        1 * decoder.readBinary() >> TestHashCodes.hashCodeFrom(42).toByteArray()
         1 * decoder.readString() >> fileName
 
         cachedArtifact.getCachedFile() == commonRootPath.resolve(fileName).toFile()

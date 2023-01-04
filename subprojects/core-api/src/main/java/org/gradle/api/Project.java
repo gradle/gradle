@@ -17,9 +17,11 @@
 package org.gradle.api;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
+import org.gradle.api.artifacts.dsl.DependencyFactory;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
@@ -30,6 +32,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.SyncSpec;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
@@ -45,6 +48,7 @@ import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.accesscontrol.ForExternalUse;
 import org.gradle.normalization.InputNormalizationHandler;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -380,6 +384,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return A map from child project name to child project. Returns an empty map if this project does not have
      *         any children.
      */
+    @ForExternalUse // See ProjectInternal#getChildProjects
     Map<String, Project> getChildProjects();
 
     /**
@@ -515,7 +520,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      */
-    Task task(String name, Closure configureClosure);
+    Task task(String name, @DelegatesTo(Task.class) Closure configureClosure);
 
     /**
      * <p>Creates a {@link Task} with the given name and adds it to this project. Before the task is returned, the given
@@ -605,7 +610,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The project with the given path. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
      */
-    Project project(String path, Closure configureClosure);
+    Project project(String path, @DelegatesTo(Project.class) Closure configureClosure);
 
     /**
      * <p>Locates a project by path and configures it using the given action. If the path is relative, it is
@@ -779,7 +784,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to use to configure the file collection.
      * @return the configured file tree. Never returns null.
      */
-    ConfigurableFileCollection files(Object paths, Closure configureClosure);
+    ConfigurableFileCollection files(Object paths, @DelegatesTo(ConfigurableFileCollection.class) Closure configureClosure);
 
     /**
      * <p>Creates a new {@code ConfigurableFileCollection} using the given paths. The paths are evaluated as per {@link
@@ -851,7 +856,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure Closure to configure the {@code ConfigurableFileTree} object.
      * @return the configured file tree. Never returns null.
      */
-    ConfigurableFileTree fileTree(Object baseDir, Closure configureClosure);
+    ConfigurableFileTree fileTree(Object baseDir, @DelegatesTo(ConfigurableFileTree.class) Closure configureClosure);
 
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
@@ -906,7 +911,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * <p>Creates a new {@code FileTree} which contains the contents of the given ZIP file. The given zipPath path is
-     * evaluated as per {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * evaluated as per {@link #file(Object)}. You can combine this method with the {@link #copy(Action)}
      * method to unzip a ZIP file.</p>
      *
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
@@ -931,7 +936,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>
      * Unless custom implementation of resources is passed, the tar tree attempts to guess the compression based on the file extension.
      * <p>
-     * You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * You can combine this method with the {@link #copy(Action)}
      * method to untar a TAR file:
      *
      * <pre class='autoTested'>
@@ -956,15 +961,16 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     FileTree tarTree(Object tarPath);
 
     /**
-     * Creates a {@code Provider} implementation based on the provided value.
+     * Creates a {@link Provider} implementation based on the provided value.
      *
-     * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
+     * <p>The provider is live and will call the {@link Callable} each time its value is queried. The {@link Callable} may return {@code null}, in which case the provider is considered to have no value.
+     *
+     * @param value The {@link Callable} use to calculate the value.
      * @return The provider. Never returns null.
-     * @throws org.gradle.api.InvalidUserDataException If the provided value is null.
      * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
      * @since 4.0
      */
-    <T> Provider<T> provider(Callable<T> value);
+    <T> Provider<T> provider(Callable<? extends @org.jetbrains.annotations.Nullable T> value);
 
     /**
      * Provides access to methods to create various kinds of {@link Provider} instances.
@@ -1028,7 +1034,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
      */
-    ExecResult javaexec(Closure closure);
+    ExecResult javaexec(@DelegatesTo(JavaExecSpec.class) Closure closure);
 
     /**
      * Executes an external Java process.
@@ -1047,7 +1053,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
      */
-    ExecResult exec(Closure closure);
+    ExecResult exec(@DelegatesTo(ExecSpec.class) Closure closure);
 
     /**
      * Executes an external command.
@@ -1145,7 +1151,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to execute against the <code>AntBuilder</code>.
      * @return The <code>AntBuilder</code>. Never returns null.
      */
-    AntBuilder ant(Closure configureClosure);
+    AntBuilder ant(@DelegatesTo(AntBuilder.class) Closure configureClosure);
 
     /**
      * <p>Executes the given action against the <code>AntBuilder</code> for this project. You can use this in your
@@ -1210,7 +1216,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure the closure to use to configure the published artifacts.
      */
-    void artifacts(Closure configureClosure);
+    void artifacts(@DelegatesTo(ArtifactHandler.class) Closure configureClosure);
 
     /**
      * <p>Configures the published artifacts for this project.
@@ -1292,7 +1298,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure The closure to execute.
      */
-    void subprojects(Closure configureClosure);
+    void subprojects(@DelegatesTo(Project.class) Closure configureClosure);
 
     /**
      * <p>Configures this project and each of its sub-projects.</p>
@@ -1311,40 +1317,52 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure The closure to execute.
      */
-    void allprojects(Closure configureClosure);
+    void allprojects(@DelegatesTo(Project.class) Closure configureClosure);
 
     /**
-     * Adds an action to execute immediately before this project is evaluated.
+     * <p>Adds an action to call immediately before this project is evaluated.</p>
+     * <p>Passes the project to the action as a parameter. Actions passed to this
+     * method execute in the same order they were passed.</p>
+     *
+     * <p>If the project has already been evaluated, the action never executes.</p>
+     * <p>If you call this method within a <code>beforeEvaluate</code> action, the passed action never executes.</p>
      *
      * @param action the action to execute.
      */
     void beforeEvaluate(Action<? super Project> action);
 
     /**
-     * Adds an action to execute immediately after this project is evaluated.
+     * <p>Adds an action to call immediately after this project is evaluated.</p>
+     * <p>Passes the project to the
+     * action as a parameter. Actions passed to this method execute in the same order they were passed.
+     * A parent project may add an action to its child projects to further configure those projects based
+     * on their state after their build files run.</p>
+     *
+     * <p>If the project has already been evaluated, this method fails.</p>
+     * <p>If you call this method within an <code>afterEvaluate</code> action, the passed action executes after all
+     * previously added <code>afterEvaluate</code> actions finish executing.</p>
      *
      * @param action the action to execute.
      */
     void afterEvaluate(Action<? super Project> action);
 
     /**
-     * <p>Adds a closure to be called immediately before this project is evaluated. The project is passed to the closure
-     * as a parameter.</p>
+     * <p>Adds a closure to call immediately before this project is evaluated.</p>
+     *
+     * @see Project#beforeEvaluate(Action)
      *
      * @param closure The closure to call.
      */
     void beforeEvaluate(Closure closure);
 
     /**
-     * <p>Adds a closure to be called immediately after this project has been evaluated. The project is passed to the
-     * closure as a parameter. Such a listener gets notified when the build file belonging to this project has been
-     * executed. A parent project may for example add such a listener to its child project. Such a listener can further
-     * configure those child projects based on the state of the child projects after their build files have been
-     * run.</p>
+     * <p>Adds a closure to call immediately after this project is evaluated.</p>
+     *
+     * @see Project#afterEvaluate(Action)
      *
      * @param closure The closure to call.
      */
-    void afterEvaluate(Closure closure);
+    void afterEvaluate(@DelegatesTo(Project.class) Closure closure);
 
     /**
      * <p>Determines if this project has the given property. See <a href="#properties">here</a> for details of the
@@ -1540,6 +1558,15 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     void dependencies(Closure configureClosure);
 
     /**
+     * Provides access to methods to create various kinds of {@link org.gradle.api.artifacts.Dependency Dependency} instances.
+     *
+     * @return the dependency factory. Never returns null.
+     * @since 7.6
+     */
+    @Incubating
+    DependencyFactory getDependencyFactory();
+
+    /**
      * Returns the build script handler for this project. You can use this handler to query details about the build
      * script for this project, and manage the classpath used to compile and execute the project's build script.
      *
@@ -1584,7 +1611,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure Closure to configure the CopySpec
      * @return {@link WorkResult} that can be used to check if the copy did any work.
      */
-    WorkResult copy(Closure closure);
+    WorkResult copy(@DelegatesTo(CopySpec.class) Closure closure);
 
     /**
      * Copies the specified files.  The given action is used to configure a {@link CopySpec}, which is then used to
@@ -1614,7 +1641,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure Closure to configure the CopySpec
      * @return The CopySpec
      */
-    CopySpec copySpec(Closure closure);
+    CopySpec copySpec(@DelegatesTo(CopySpec.class) Closure closure);
 
     /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given action is used
@@ -1635,7 +1662,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
 
     /**
      * Synchronizes the contents of a destination directory with some source directories and files.
-     * The given action is used to configure a {@link CopySpec}, which is then used to synchronize the files.
+     * The given action is used to configure a {@link SyncSpec}, which is then used to synchronize the files.
      *
      * <p>
      * This method is like the {@link #copy(Action)} task, except the destination directory will only contain the files copied.
@@ -1663,11 +1690,11 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * }
      * </pre>
      *
-     * @param action Action to configure the CopySpec.
+     * @param action Action to configure the SyncSpec.
      * @since 4.0
      * @return {@link WorkResult} that can be used to check if the sync did any work.
      */
-    WorkResult sync(Action<? super CopySpec> action);
+    WorkResult sync(Action<? super SyncSpec> action);
 
     /**
      * Returns the evaluation state of this project. You can use this to access information about the evaluation of this

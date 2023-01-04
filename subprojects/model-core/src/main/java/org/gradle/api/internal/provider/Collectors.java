@@ -25,6 +25,8 @@ import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
 public class Collectors {
     public interface ProvidedCollector<T> extends Collector<T> {
         boolean isProvidedBy(Provider<?> provider);
@@ -99,8 +101,9 @@ public class Collectors {
             if (value.isMissing()) {
                 return value.asType();
             }
-            collector.add(value.get(), collection);
-            return Value.present();
+
+            collector.add(value.getWithoutSideEffect(), collection);
+            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
         }
 
         @Override
@@ -113,10 +116,11 @@ public class Collectors {
             ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
             if (value.isMissing()) {
                 visitor.execute(ExecutionTimeValue.missing());
-            } else if (value.isFixedValue()) {
-                visitor.execute(ExecutionTimeValue.fixedValue(ImmutableList.of(value.getFixedValue())));
+            } else if (value.hasFixedValue()) {
+                // transform preserving side effects
+                visitor.execute(ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of)));
             } else {
-                visitor.execute(ExecutionTimeValue.changingValue(value.getChangingValue().map(e -> ImmutableList.of(e))));
+                visitor.execute(ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of))));
             }
         }
 
@@ -217,8 +221,9 @@ public class Collectors {
             if (value.isMissing()) {
                 return value.asType();
             }
-            collector.addAll(value.get(), collection);
-            return Value.present();
+
+            collector.addAll(value.getWithoutSideEffect(), collection);
+            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
         }
 
         @Override

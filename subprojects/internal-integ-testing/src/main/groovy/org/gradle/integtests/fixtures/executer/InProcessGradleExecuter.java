@@ -23,8 +23,6 @@ import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.TaskInternal;
@@ -112,6 +110,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.flattenTaskPaths;
+import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.normalizeLambdaIds;
 import static org.gradle.internal.hash.Hashing.hashString;
 import static org.gradle.util.Matchers.normalizedLineSeparators;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -426,34 +425,12 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         return this;
     }
 
-    private static class BuildListenerImpl implements TaskExecutionGraphListener, InternalListener {
+    private static class BuildListenerImpl implements TaskExecutionListener, InternalListener {
         private final List<String> executedTasks = new CopyOnWriteArrayList<>();
         private final Set<String> skippedTasks = new CopyOnWriteArraySet<>();
 
         @Override
-        public void graphPopulated(TaskExecutionGraph graph) {
-            List<Task> planned = new ArrayList<>(graph.getAllTasks());
-            graph.addTaskExecutionListener(new TaskListenerImpl(planned, executedTasks, skippedTasks));
-        }
-    }
-
-    private static class TaskListenerImpl implements TaskExecutionListener, InternalListener {
-        private final List<Task> planned;
-        private final List<String> executedTasks;
-        private final Set<String> skippedTasks;
-
-        TaskListenerImpl(List<Task> planned, List<String> executedTasks, Set<String> skippedTasks) {
-            this.planned = planned;
-            this.executedTasks = executedTasks;
-            this.skippedTasks = skippedTasks;
-        }
-
-        @Override
         public void beforeExecute(Task task) {
-            if (!planned.contains(task)) {
-                System.out.println("Warning: " + task + " was executed even though it is not part of the task plan!");
-            }
-
             String taskPath = path(task);
             executedTasks.add(taskPath);
         }
@@ -691,7 +668,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             List<String> causes = new ArrayList<>();
             extractCauses(failure, causes);
 
-            String failureMessage = failure.getMessage() == null ? "" : failure.getMessage();
+            String failureMessage = failure.getMessage() == null ? "" : normalizeLambdaIds(failure.getMessage());
             java.util.regex.Matcher matcher = LOCATION_PATTERN.matcher(failureMessage);
             if (matcher.find()) {
                 fileNames.add(matcher.group(1));
@@ -836,7 +813,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             }
             StringDescription description = new StringDescription();
             matcher.describeTo(description);
-            throw new AssertionFailedError(String.format("Could not find any failure with description %s, failures:%s\n", description.toString(), Joiner.on("\n").join(failures)));
+            throw new AssertionFailedError(String.format("Could not find any failure with description %s, failures:%s\n", description, Joiner.on("\n").join(failures)));
         }
 
         @Override
@@ -851,32 +828,17 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
     }
 
-    private static class FailureDetails implements ExecutionFailure.Failure {
+    private static class FailureDetails extends AbstractFailure {
         final Throwable failure;
-        final String description;
-        final List<String> causes;
 
         public FailureDetails(Throwable failure, String description, List<String> causes) {
+            super(description, causes);
             this.failure = failure;
-            this.description = description;
-            this.causes = causes;
         }
 
         @Override
         public String toString() {
             return description;
-        }
-
-        @Override
-        public void assertHasCause(String message) {
-            if (!causes.contains(message)) {
-                throw new AssertionFailedError(String.format("Expected cause '%s' not found in %s", message, causes));
-            }
-        }
-
-        @Override
-        public void assertHasCauses(int count) {
-            assertEquals(count, causes.size());
         }
     }
 

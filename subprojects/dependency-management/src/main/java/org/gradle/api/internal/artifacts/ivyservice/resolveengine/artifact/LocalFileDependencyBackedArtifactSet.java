@@ -202,6 +202,11 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
         }
 
         @Override
+        public Set<ResolvedVariant> getAllVariants() {
+            return getVariants();
+        }
+
+        @Override
         public ImmutableAttributes getOverriddenAttributes() {
             return ImmutableAttributes.EMPTY;
         }
@@ -230,10 +235,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         @Override
         public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
-        }
-
-        @Override
-        public void finalizeNow(boolean requireFiles) {
         }
 
         @Override
@@ -291,10 +292,6 @@ public class LocalFileDependencyBackedArtifactSet implements ResolvedArtifactSet
 
         @Override
         public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
-        }
-
-        @Override
-        public void finalizeNow(boolean requireFiles) {
         }
 
         @Override

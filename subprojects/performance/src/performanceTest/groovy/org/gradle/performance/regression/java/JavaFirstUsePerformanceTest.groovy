@@ -32,10 +32,6 @@ import static org.gradle.performance.results.OperatingSystem.LINUX
 )
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionPerformanceTest {
 
-    def setup() {
-        runner.targetVersions = ["7.5-20220118231504+0000"]
-    }
-
     def "first use"() {
         given:
         runner.tasksToRun = ['tasks']

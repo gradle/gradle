@@ -16,13 +16,12 @@
 
 package org.gradle.smoketests
 
-import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
-import static org.gradle.internal.reflect.validation.Severity.ERROR
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
-    private static final String ANDROID_PLUGIN_VERSION_FOR_TESTS = TestedVersions.androidGradle.latestStartsWith("7.0")
+    private static final String ANDROID_PLUGIN_VERSION_FOR_TESTS = TestedVersions.androidGradle.latestStartsWith("7.3")
 
     private static final String DAGGER_HILT_ANDROID_PLUGIN_ID = 'dagger.hilt.android.plugin'
     private static final String TRIPLET_PLAY_PLUGIN_ID = 'com.github.triplet.play'
@@ -32,22 +31,20 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
     private static final String CRASHLYTICS_PLUGIN_ID = 'com.google.firebase.crashlytics'
     private static final String FIREBASE_PERF_PLUGIN_ID = 'com.google.firebase.firebase-perf'
     private static final String SENTRY_PLUGIN_ID = 'io.sentry.android.gradle'
-    // bugsnag is not compatible with AGP 7.0
-    // https://github.com/bugsnag/bugsnag-android-gradle-plugin/issues/399
-//    private static final String BUGSNAG_PLUGIN_ID = 'com.bugsnag.android.gradle'
+    private static final String BUGSNAG_PLUGIN_ID = 'com.bugsnag.android.gradle'
 
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
             (GOOGLE_SERVICES_PLUGIN_ID): Versions.of('4.3.5'),
-            (CRASHLYTICS_PLUGIN_ID): Versions.of('2.5.1'),
-            (FIREBASE_PERF_PLUGIN_ID): Versions.of('1.3.5'),
-//            (BUGSNAG_PLUGIN_ID): Versions.of('5.7.6'),
-            (FLADLE_PLUGIN_ID): Versions.of('0.14.1'),
-            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.3.0-agp4.2'),
-            (SAFEARGS_PLUGIN_ID): Versions.of('2.3.5'),
-            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.38.1'),
-            (SENTRY_PLUGIN_ID): Versions.of('1.7.36'),
+            (CRASHLYTICS_PLUGIN_ID): Versions.of('2.9.1'),
+            (FIREBASE_PERF_PLUGIN_ID): Versions.of('1.4.1'),
+            (BUGSNAG_PLUGIN_ID): Versions.of('7.3.0'),
+            (FLADLE_PLUGIN_ID): Versions.of('0.17.4'),
+            (TRIPLET_PLAY_PLUGIN_ID): Versions.of('3.7.0'),
+            (SAFEARGS_PLUGIN_ID): Versions.of('2.5.1'),
+            (DAGGER_HILT_ANDROID_PLUGIN_ID): Versions.of('2.43.2'),
+            (SENTRY_PLUGIN_ID): Versions.of('3.1.6'),
         ]
     }
 
@@ -57,22 +54,8 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
         configureAndroidProject(testedPluginId)
 
         validatePlugins {
-            switch (testedPluginId) {
-                case SENTRY_PLUGIN_ID:
-                    passing {
-                        it !in [SENTRY_PLUGIN_ID]
-                    }
-                    onPlugins([SENTRY_PLUGIN_ID]) {
-                        failsWith([
-                            (missingAnnotationMessage { type('io.sentry.android.gradle.SentryProguardConfigTask').property('applicationVariant').missingInputOrOutput().includeLink() }): ERROR,
-                        ])
-                    }
-                    break
-                default:
-                    passing {
-                        true
-                    }
-                    break
+            passing {
+                true
             }
         }
     }
@@ -105,6 +88,9 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
                     }
                     if (pluginRequest.id.id == '${SENTRY_PLUGIN_ID}') {
                         useModule("io.sentry:sentry-android-gradle-plugin:\${pluginRequest.version}")
+                    }
+                    if (pluginRequest.id.id == '${BUGSNAG_PLUGIN_ID}') {
+                        useModule("com.bugsnag:bugsnag-android-gradle-plugin:\${pluginRequest.version}")
                     }
                 }
             }
@@ -146,8 +132,8 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
             case DAGGER_HILT_ANDROID_PLUGIN_ID:
                 buildFile << """
                     dependencies {
-                        implementation "com.google.dagger:hilt-android:2.38.1"
-                        implementation "com.google.dagger:hilt-compiler:2.38.1"
+                        implementation "com.google.dagger:hilt-android:2.43.2"
+                        implementation "com.google.dagger:hilt-compiler:2.43.2"
                     }
                 """
                 break
@@ -167,7 +153,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
         if (testedPluginId == DAGGER_HILT_ANDROID_PLUGIN_ID) {
             return [
                 'com.android.application': ANDROID_PLUGIN_VERSION_FOR_TESTS,
-                'org.jetbrains.kotlin.android': TestedVersions.kotlin.latest()
+                'org.jetbrains.kotlin.android': TestedVersions.kotlin.latestStable()
             ]
         }
         return ['com.android.application': ANDROID_PLUGIN_VERSION_FOR_TESTS]

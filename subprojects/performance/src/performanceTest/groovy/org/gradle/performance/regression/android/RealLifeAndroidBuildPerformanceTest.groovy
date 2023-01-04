@@ -16,6 +16,7 @@
 
 package org.gradle.performance.regression.android
 
+
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
 import org.gradle.performance.annotations.RunFor
@@ -33,17 +34,18 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
 
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
-        runner.targetVersions = ["7.5-20211227231450+0000"]
         AndroidTestProject.useStableAgpVersion(runner)
-        // AGP 4.1 requires 6.5+
-        // forUseAtConfigurationTime API used in this scenario
-        runner.minimumBaseVersion = "6.5"
+        AndroidTestProject.useStableKotlinVersion(runner)
+        // AGP 7.3 requires Gradle 7.4
+        runner.minimumBaseVersion = "7.4"
+        configureProjectJavaHomeToJdk11()
     }
 
     @RunFor([
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = "run help"),
         @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = ["largeAndroidBuild", "santaTrackerAndroidBuild"], iterationMatcher = "run assembleDebug"),
-        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = ".*phthalic.*")
+        @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild", iterationMatcher = ".*phthalic.*"),
+        // @Scenario(type = PER_COMMIT, operatingSystems = LINUX, testProjects = "largeAndroidBuild2", iterationMatcher = ".*module21.*"),
     ])
     def "run #tasks"() {
         given:
@@ -62,10 +64,11 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionPerformanc
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        tasks                          | warmUpRuns | runs
-        'help'                         | null       | null
-        'assembleDebug'                | null       | null
-        'clean phthalic:assembleDebug' | 2          | 8
+        tasks                                        | warmUpRuns | runs
+        'help'                                       | null       | null
+        'assembleDebug'                              | null       | null
+        'clean phthalic:assembleDebug'               | 2          | 8
+        ':module21:module02:assembleDebug --dry-run' | 8          | 20
     }
 
     @RunFor([

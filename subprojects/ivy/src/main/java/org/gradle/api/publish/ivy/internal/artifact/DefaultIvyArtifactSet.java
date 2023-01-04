@@ -22,8 +22,6 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.tasks.AbstractTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyArtifactSet;
@@ -38,11 +36,22 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
     private final FileCollection files;
     private final NotationParser<Object, IvyArtifact> ivyArtifactParser;
 
-    public DefaultIvyArtifactSet(String publicationName, NotationParser<Object, IvyArtifact> ivyArtifactParser, FileCollectionFactory fileCollectionFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+    public DefaultIvyArtifactSet(
+        String publicationName,
+        NotationParser<Object, IvyArtifact> ivyArtifactParser,
+        FileCollectionFactory fileCollectionFactory,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator
+    ) {
         super(IvyArtifact.class, collectionCallbackActionDecorator);
         this.publicationName = publicationName;
         this.ivyArtifactParser = ivyArtifactParser;
-        this.files = fileCollectionFactory.create(new ArtifactsTaskDependency(), new ArtifactsFileCollection());
+        this.files = fileCollectionFactory.create(
+            new ArtifactsFileCollection(), context -> {
+                for (IvyArtifact ivyArtifact : this) {
+                    context.add(ivyArtifact);
+                }
+            }
+        );
     }
 
     @Override
@@ -77,15 +86,6 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
                 files.add(artifact.getFile());
             }
             return files;
-        }
-    }
-
-    private class ArtifactsTaskDependency extends AbstractTaskDependency {
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            for (IvyArtifact ivyArtifact : DefaultIvyArtifactSet.this) {
-                context.add(ivyArtifact);
-            }
         }
     }
 }

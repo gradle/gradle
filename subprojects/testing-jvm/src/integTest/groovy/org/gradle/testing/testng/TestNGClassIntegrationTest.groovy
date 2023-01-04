@@ -24,11 +24,9 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
 
-import static org.gradle.testing.fixture.TestNGCoverage.FIXED_ICLASS_LISTENER
-import static org.gradle.testing.fixture.TestNGCoverage.NEWEST
 import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 
-@TargetCoverage({ [FIXED_ICLASS_LISTENER, NEWEST] })
+@TargetCoverage({ TestNGCoverage.SUPPORTS_ICLASS_LISTENER })
 class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
 
     private final static String STARTED = 'Started'

@@ -27,6 +27,7 @@ import org.gradle.api.ProjectState
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
+import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -37,6 +38,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.SyncSpec
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
@@ -52,6 +54,7 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.WorkResult
+import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
 import org.gradle.normalization.InputNormalizationHandler
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
@@ -188,7 +191,7 @@ abstract class ProjectDelegate : Project {
     override fun exec(action: Action<in ExecSpec>): ExecResult =
         delegate.exec(action)
 
-    override fun sync(action: Action<in CopySpec>): WorkResult =
+    override fun sync(action: Action<in SyncSpec>): WorkResult =
         delegate.sync(action)
 
     override fun configurations(configureClosure: Closure<*>) =
@@ -249,7 +252,7 @@ abstract class ProjectDelegate : Project {
     override fun getDependencyLocking(): DependencyLockingHandler =
         delegate.dependencyLocking
 
-    override fun <T : Any?> provider(value: Callable<T>): Provider<T> =
+    override fun <T : Any> provider(value: Callable<out T?>): Provider<T> =
         delegate.provider(value)
 
     override fun findProperty(propertyName: String): Any? =
@@ -257,6 +260,9 @@ abstract class ProjectDelegate : Project {
 
     override fun getDependencies(): DependencyHandler =
         delegate.dependencies
+
+    override fun getDependencyFactory(): DependencyFactory =
+        delegate.dependencyFactory
 
     override fun getResources(): ResourceHandler =
         delegate.resources
@@ -351,6 +357,7 @@ abstract class ProjectDelegate : Project {
     override fun javaexec(action: Action<in JavaExecSpec>): ExecResult =
         delegate.javaexec(action)
 
+    @AllowUsingApiForExternalUse
     override fun getChildProjects(): MutableMap<String, Project> =
         delegate.childProjects
 

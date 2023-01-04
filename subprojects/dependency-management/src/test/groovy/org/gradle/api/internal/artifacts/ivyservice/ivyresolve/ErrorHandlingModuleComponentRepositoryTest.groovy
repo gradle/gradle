@@ -28,14 +28,12 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
-import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.resolve.ModuleVersionResolveException
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
+import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
-import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
@@ -65,7 +63,9 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
     @Shared
     def tooManyRequests = status(429)
     @Shared
-    def unauthorized = status(403)
+    def forbidden = status(403)
+    @Shared
+    def unauthorized = status(401)
 
     @Subject
     ErrorHandlingModuleComponentRepository.ErrorHandlingModuleComponentRepositoryAccess access
@@ -193,44 +193,6 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         [maxRetries, exception, effectiveRetries] << retryCombinations()
     }
 
-    @Unroll("can resolve artifacts (max retries = #maxRetries, exception=#exception)")
-    def "can resolve artifacts"() {
-        access = createAccess(maxRetries)
-
-        given:
-        def component = Mock(ComponentResolveMetadata)
-        def variant = Mock(ConfigurationMetadata)
-        def componentId = Mock(ComponentIdentifier)
-        def result = Mock(BuildableComponentArtifactsResolveResult)
-        component.getId() >> componentId
-
-        when: 'repo is not disabled'
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
-        access.resolveArtifacts(component, variant, result)
-
-        then: 'work is delegated'
-        1 * delegate.resolveArtifacts(component, variant, result)
-
-        when: 'exception is thrown in resolution'
-        effectiveRetries * delegate.resolveArtifacts(component, variant, result) >> { throw exception }
-        access.resolveArtifacts(component, variant, result)
-
-        then: 'resolution fails and repo is disabled'
-        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
-        1 * result.failed(_ as ArtifactResolveException)
-
-        when: 'repo is already disabled'
-        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
-        access.resolveArtifacts(component, variant, result)
-
-        then: 'resolution fails directly'
-        1 * result.failed(_ as ArtifactResolveException)
-        0 * delegate._
-
-        where:
-        [maxRetries, exception, effectiveRetries] << retryCombinations()
-    }
-
     @Unroll("can resolve artifact (max retries = #maxRetries, exception=#exception)")
     def "can resolve artifact"() {
         access = createAccess(maxRetries)
@@ -239,7 +201,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         def artifact = Mock(ComponentArtifactMetadata)
         def artifactId = Mock(ComponentArtifactIdentifier)
         def moduleSources = ImmutableModuleSources.of(Mock(ModuleSource))
-        def result = Mock(BuildableArtifactResolveResult)
+        def result = Mock(BuildableArtifactFileResolveResult)
         artifact.getId() >> artifactId
 
         when: 'repo is not disabled'
@@ -269,12 +231,47 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         [maxRetries, exception, effectiveRetries] << retryCombinations()
     }
 
+    @Unroll
+    def "blocks repo immediately when receives #desc"() {
+        access = createAccess(1)
+
+        given:
+        def artifact = Mock(ComponentArtifactMetadata)
+        def artifactId = Mock(ComponentArtifactIdentifier)
+        def moduleSources = ImmutableModuleSources.of(Mock(ModuleSource))
+        def result = Mock(BuildableArtifactFileResolveResult)
+        artifact.getId() >> artifactId
+        delegate.resolveArtifact(artifact, moduleSources, result) >> { throw exception }
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> false
+
+        when: 'repo is not disabled'
+        access.resolveArtifact(artifact, moduleSources, result)
+
+        then: 'resolution fails and repo is disabled'
+        1 * repositoryBlacklister.disableRepository(REPOSITORY_ID, { hasCause(it, exception) })
+        1 * result.failed(_ as ArtifactResolveException)
+
+        when: 'repo is already disabled'
+        repositoryBlacklister.isDisabled(REPOSITORY_ID) >> true
+        access.resolveArtifact(artifact, moduleSources, result)
+
+        then: 'resolution fails directly'
+        1 * result.failed(_ as ArtifactResolveException)
+        0 * delegate._
+
+        where:
+        desc | exception
+        "unauthorized (401)" | unauthorized
+        "forbidden (403)" | forbidden
+    }
+
     List<List<?>> retryCombinations() {
         def retries = []
         (1..3).each { ret ->
             // no retries on runtime errors, missing resources, authentication errors
             retries << [ret, runtimeError, 1]
             retries << [ret, missing, 1]
+            retries << [ret, forbidden, 1]
             retries << [ret, unauthorized, 1]
             // retries on connect timeouts, too many requests, client timeouts
             retries << [ret, connectTimeout, ret]

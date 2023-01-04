@@ -33,6 +33,10 @@
                 <td><literal>[:]</literal></td>
             </tr>
             <tr>
+                <td>enableExternalDtdLoad</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
                 <td>showViolations</td>
                 <td><literal>true</literal></td>
             </tr>

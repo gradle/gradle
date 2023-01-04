@@ -20,8 +20,7 @@ import java.util.Map;
 /**
  * <p>An {@code AntBuilder} allows you to use Ant from your build script.</p>
  */
-@SuppressWarnings("deprecation")
-public abstract class AntBuilder extends groovy.util.AntBuilder {
+public abstract class AntBuilder extends groovy.ant.AntBuilder {
     /**
      * Returns the properties of the Ant project. This is a live map, you that you can make changes to the map and these
      * changes are reflected in the Ant project.
@@ -55,7 +54,6 @@ public abstract class AntBuilder extends groovy.util.AntBuilder {
      *
      * @since 7.1
      */
-    @Incubating
     public abstract void importBuild(Object antBuildFile, String baseDirectory);
 
     /**
@@ -70,7 +68,7 @@ public abstract class AntBuilder extends groovy.util.AntBuilder {
      * @param antBuildFile The build file. This is resolved as per {@link org.gradle.api.Project#file(Object)}.
      * @param taskNamer A transformer that calculates the name of the Gradle task for a corresponding Ant target.
      */
-    public abstract void importBuild(Object antBuildFile, Transformer<? extends String, ? super String> taskNamer);
+    public abstract void importBuild(Object antBuildFile, Transformer<? extends @org.jetbrains.annotations.NotNull String, ? super String> taskNamer);
 
     /**
      * Imports an Ant build into the associated Gradle project, specifying the base directory and potentially providing alternative names
@@ -90,7 +88,6 @@ public abstract class AntBuilder extends groovy.util.AntBuilder {
      *
      * @since 7.1
      */
-    @Incubating
     public abstract void importBuild(Object antBuildFile, String baseDirectory, Transformer<? extends String, ? super String> taskNamer);
 
     /**

@@ -139,7 +139,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         then:
         taskGraphCalculations.size() == 3
         taskGraphCalculations[0].details.buildPath == ":buildSrc"
-        taskGraphCalculations[0].result.requestedTaskPaths == [":build"]
+        taskGraphCalculations[0].result.requestedTaskPaths == [":jar"]
         taskGraphCalculations[1].details.buildPath == ":"
         taskGraphCalculations[1].result.requestedTaskPaths == [":build"]
         taskGraphCalculations[2].details.buildPath == ":b"
@@ -312,7 +312,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         then:
         with(operations()[0].result.taskPlan) {
             task.taskPath == [":producer:compileJava", ":producer:processResources", ":producer:classes", ":producer:jar", ":compileJava", ":processResources", ":classes", ":jar", ":startScripts", ":distZip"]
-            dependencies.taskPath.collect { it.sort() } == [[], [], [":producer:compileJava", ":producer:processResources"], [":producer:classes"], [":producer:compileJava"], [], [":compileJava", ":processResources"], [":classes"], [":jar", ":producer:jar"], [":jar", ":producer:jar", ":startScripts"]]
+            dependencies.taskPath.collect { it.sort() } == [[], [], [":producer:compileJava", ":producer:processResources"], [":producer:classes", ":producer:compileJava"], [":producer:compileJava"], [], [":compileJava", ":processResources"], [":classes", ":compileJava"], [":jar", ":producer:jar"], [":jar", ":producer:jar", ":startScripts"]]
         }
     }
 

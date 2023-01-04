@@ -3,8 +3,9 @@ repositories {
 }
 
 tasks.register('showRepos') {
+    def repositoryNames = repositories.collect { it.name }
     doLast {
         println "All repos:"
-        println repositories.collect { it.name }
+        println repositoryNames
     }
 }

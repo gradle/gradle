@@ -17,6 +17,7 @@ dependencies {
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
+    implementation(libs.inject)
 
     testImplementation(project(":file-watching"))
     testImplementation(project(":build-option"))
@@ -32,3 +33,8 @@ dependencies {
 }
 
 testFilesCleanup.reportOnly.set(true)
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}

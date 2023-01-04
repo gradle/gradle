@@ -99,6 +99,29 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("Util", "A", "AHelper", "AHelperResource.txt")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/21203")
+    def "generated files are recompiled when annotated file is affected by a change through method return type parameter"() {
+        given:
+        def util = java "class Util {}"
+        java """import java.util.List;
+            @Helper class A {
+                public List<Util> foo() {
+                    return null;
+                }
+            }
+        """
+        java "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        util.text = "class Util { public void foo() {} }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledFiles("Util", "A", "AHelper", "AHelperResource.txt")
+    }
+
     def "classes depending on generated files are recompiled when annotated file's ABI is affected by a change"() {
         given:
         def util = java "class Util {}"
@@ -163,12 +186,57 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
     }
 
+    def "incremental processing works on subsequent incremental compilations after failure"() {
+        given:
+        def a = java "@Helper class A {}"
+        java "class Unrelated {}"
+        run "compileJava"
+        a.text = "@Helper class A { public void foo() {} }"
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        a.text = "@Helper class A { public void bar() { garbage } }"
+        runAndFail "compileJava"
+
+        then:
+        outputs.noneRecompiled()
+
+        when:
+        a.text = "@Helper class A { public void bar() {} }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
+    }
+
     def "annotated files are not recompiled on unrelated changes"() {
         given:
         java "@Helper class A {}"
         def unrelated = java "class Unrelated {}"
 
         outputs.snapshot { run "compileJava" }
+
+        when:
+        unrelated.text = "class Unrelated { public void foo() {} }"
+        run "compileJava"
+
+        then:
+        outputs.recompiledClasses("Unrelated")
+    }
+
+    def "annotated files are not recompiled on unrelated changes even after failure"() {
+        given:
+        java "@Helper class A {}"
+        def unrelated = java "class Unrelated {}"
+
+        outputs.snapshot { run "compileJava" }
+
+        when:
+        unrelated.text = "class Unrelated { public void foo() { garbage } }"
+        runAndFail "compileJava"
+
+        then:
+        outputs.noneRecompiled()
 
         when:
         unrelated.text = "class Unrelated { public void foo() {} }"

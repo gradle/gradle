@@ -72,11 +72,11 @@ When the build is executed with `--warning-mode all`, the individual warnings wi
 
 ```
 > Task :myTask
-Property 'inputDirectory' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
-Property 'outputFile' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
+Property 'inputDirectory' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE. This behavior is scheduled to be removed in Gradle 7.0.
+Property 'outputFile' is not annotated with an input or output annotation. This behavior is scheduled to be removed in Gradle 7.0.
 ```
 
-If you own the code of the tasks in question, you can fix them by <<more_about_tasks.adoc#sec:task_input_validation, following the suggestions>>. You can also use `--stacktrace` to see where in the code each warning originates from.
+If you own the code of the tasks in question, you can fix them by <<incremental_build.adoc#sec:task_input_validation, following the suggestions>>. You can also use `--stacktrace` to see where in the code each warning originates from.
 
 Otherwise, you'll need to report the problems to the maintainer of the relevant task or plugin.
 
@@ -229,7 +229,7 @@ In Gradle 6.0, both pack and unpack errors will cause the build to fail, so that
 
 ==== buildSrc projects automatically use build cache configuration
 
-Previously, in order to to use the build cache for the buildSrc build you needed to duplicate your build cache config in the buildSrc build.
+Previously, in order to use the build cache for the buildSrc build you needed to duplicate your build cache config in the buildSrc build.
 Now, it automatically uses the build cache configuration defined by the top level settings script.
 
 ==== Changes to Dependency Management
@@ -303,7 +303,7 @@ This change has been made so that `pluginManagement` configuration can also be a
 ==== Plugins and classes loaded in settings scripts are visible to project scripts and `buildSrc`
 
 Previously, any classes added to the a settings script by using `buildscript {}` were not visible outside of the script.
-Now, they they are visible to all of the project build scripts.
+Now, they are visible to all of the project build scripts.
 
 They are also visible to the `buildSrc` build script and its settings script.
 
@@ -526,7 +526,7 @@ Previously, it was possible to pass `Task.dependsOn()` a `Provider<File>`, `Prov
 
 This is now an error because Gradle does not know how to build files that are not task outputs.
 
-*Note* that it is still possible to to pass `Task.dependsOn()` a `Provider` that returns a file and that represents a task output, for example `myTask.dependsOn(jar.archiveFile)` or `myTask.dependsOn(taskProvider.flatMap { it.outputDirectory })`, when the `Provider` is an annotated `@OutputFile` or `@OutputDirectory` property of a task.
+*Note* that it is still possible to pass `Task.dependsOn()` a `Provider` that returns a file and that represents a task output, for example `myTask.dependsOn(jar.archiveFile)` or `myTask.dependsOn(taskProvider.flatMap { it.outputDirectory })`, when the `Provider` is an annotated `@OutputFile` or `@OutputDirectory` property of a task.
 
 ==== Setting `Property` value to `null` uses the property convention
 
@@ -735,7 +735,7 @@ none
 
 Follow the API links to learn how to deal with these deprecations (if no extra information is provided here):
 
- * Setters for `classes` and `classpath` on link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html[`ValidateTaskProperties`]
+ * Setters for `classes` and `classpath` on `org.gradle.plugin.devel.tasks.ValidateTaskProperties` (removed)
 
  * There should not be setters for lazy properties like link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html[`ConfigurableFileCollection`].  Use `setFrom` instead. For example,
 ----

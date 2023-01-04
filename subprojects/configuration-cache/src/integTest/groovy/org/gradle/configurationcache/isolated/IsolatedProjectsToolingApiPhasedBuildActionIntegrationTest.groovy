@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache.isolated
 
+import spock.lang.Ignore
+
 class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
     def setup() {
         settingsFile << """
@@ -23,6 +25,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         """
     }
 
+    @Ignore("https://github.com/gradle/gradle/issues/23196")
     def "caches execution of phased BuildAction that queries custom tooling model"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
@@ -103,7 +106,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
-            modelsReused(":a", ":b")
+            modelsReused(":a", ":b", ":buildSrc")
         }
         outputContains("creating model for root project 'root'")
     }
@@ -125,7 +128,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         when:
         executer.withArguments(ENABLE_CLI)
         def models = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject()) {
-            // Empty list means "run tasks defined by build logic or default task"
+            // Empty list means "run tasks defined by build logic or default tasks"
             forTasks([])
         }
 

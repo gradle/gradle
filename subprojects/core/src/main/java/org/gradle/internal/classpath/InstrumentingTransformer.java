@@ -16,14 +16,18 @@
 
 package org.gradle.internal.classpath;
 
+import kotlin.io.FilesKt;
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
+import org.codehaus.groovy.vmplugin.v8.IndyInterface;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
 import org.gradle.internal.hash.Hasher;
-import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
+import org.gradle.model.internal.asm.MethodVisitorScope;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
@@ -31,12 +35,17 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.invoke.SerializedLambda;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -49,16 +58,11 @@ import static org.objectweb.asm.Opcodes.ACC_INTERFACE;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
-import static org.objectweb.asm.Opcodes.ACONST_NULL;
-import static org.objectweb.asm.Opcodes.ALOAD;
-import static org.objectweb.asm.Opcodes.ARETURN;
-import static org.objectweb.asm.Opcodes.DUP;
-import static org.objectweb.asm.Opcodes.F_SAME;
 import static org.objectweb.asm.Opcodes.H_INVOKESTATIC;
-import static org.objectweb.asm.Opcodes.IFEQ;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static org.objectweb.asm.Opcodes.INVOKESTATIC;
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
+import static org.objectweb.asm.Type.INT_TYPE;
 import static org.objectweb.asm.Type.getMethodDescriptor;
 import static org.objectweb.asm.Type.getObjectType;
 import static org.objectweb.asm.Type.getType;
@@ -68,7 +72,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     /**
      * Decoration format. Increment this when making changes.
      */
-    private static final int DECORATION_FORMAT = 18;
+    private static final int DECORATION_FORMAT = 21;
 
     private static final Type SYSTEM_TYPE = getType(System.class);
     private static final Type STRING_TYPE = getType(String.class);
@@ -78,6 +82,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final Type SERIALIZED_LAMBDA_TYPE = getType(SerializedLambda.class);
     private static final Type LONG_TYPE = getType(Long.class);
     private static final Type BOOLEAN_TYPE = getType(Boolean.class);
+    public static final Type PROPERTIES_TYPE = getType(Properties.class);
 
     private static final String RETURN_STRING = getMethodDescriptor(STRING_TYPE);
     private static final String RETURN_STRING_FROM_STRING = getMethodDescriptor(STRING_TYPE, STRING_TYPE);
@@ -98,9 +103,12 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING = getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE);
     private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING = getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE, STRING_TYPE);
     private static final String RETURN_OBJECT_FROM_INT = getMethodDescriptor(OBJECT_TYPE, Type.INT_TYPE);
+    private static final String RETURN_BOOLEAN = getMethodDescriptor(Type.BOOLEAN_TYPE);
     private static final String RETURN_BOOLEAN_FROM_OBJECT = getMethodDescriptor(Type.BOOLEAN_TYPE, OBJECT_TYPE);
-    private static final String RETURN_PROPERTIES = getMethodDescriptor(getType(Properties.class));
-    private static final String RETURN_PROPERTIES_FROM_STRING = getMethodDescriptor(getType(Properties.class), STRING_TYPE);
+    private static final String RETURN_PROPERTIES = getMethodDescriptor(PROPERTIES_TYPE);
+    private static final String RETURN_PROPERTIES_FROM_STRING = getMethodDescriptor(PROPERTIES_TYPE, STRING_TYPE);
+    private static final String RETURN_VOID_FROM_PROPERTIES = getMethodDescriptor(Type.VOID_TYPE, PROPERTIES_TYPE);
+    private static final String RETURN_VOID_FROM_PROPERTIES_STRING = getMethodDescriptor(Type.VOID_TYPE, PROPERTIES_TYPE, STRING_TYPE);
     private static final String RETURN_CALL_SITE_ARRAY = getMethodDescriptor(getType(CallSiteArray.class));
     private static final String RETURN_VOID_FROM_CALL_SITE_ARRAY = getMethodDescriptor(Type.VOID_TYPE, getType(CallSiteArray.class));
     private static final String RETURN_OBJECT_FROM_SERIALIZED_LAMBDA = getMethodDescriptor(OBJECT_TYPE, SERIALIZED_LAMBDA_TYPE);
@@ -113,7 +121,26 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final Type PROCESS_GROOVY_METHODS_TYPE = getType(ProcessGroovyMethods.class);
     private static final Type STRING_ARRAY_TYPE = getType(String[].class);
     private static final Type FILE_TYPE = getType(File.class);
+    private static final Type FILE_ARRAY_TYPE = getType(File[].class);
+    private static final Type PATH_TYPE = getType(Path.class);
+    private static final Type CHARSET_TYPE = getType(Charset.class);
     private static final Type LIST_TYPE = getType(List.class);
+
+    private static final Type KOTLIN_IO_FILES_TYPE = getType(FilesKt.class);
+    // readText(File, Charset) -> kotlinIoFilesKtReadText(File, Charset, String)
+    private static final String RETURN_STRING_FROM_FILE_CHARSET = getMethodDescriptor(STRING_TYPE, FILE_TYPE, getType(Charset.class));
+    private static final String RETURN_STRING_FROM_FILE_CHARSET_STRING = getMethodDescriptor(STRING_TYPE, FILE_TYPE, getType(Charset.class), STRING_TYPE);
+    // readText$default(File, Charset, int, Object) -> kotlinIoFilesKtReadText(File, Charset, String)
+    private static final String RETURN_STRING_FROM_FILE_CHARSET_INT_OBJECT = getMethodDescriptor(STRING_TYPE, FILE_TYPE, getType(Charset.class), INT_TYPE, OBJECT_TYPE);
+    private static final String RETURN_STRING_FROM_FILE_CHARSET_INT_OBJECT_STRING = getMethodDescriptor(STRING_TYPE, FILE_TYPE, getType(Charset.class), INT_TYPE, OBJECT_TYPE, STRING_TYPE);
+
+    private static final Type FILES_TYPE = getType(Files.class);
+    // readString(Path) -> filesReadString(Path, String)
+    private static final String RETURN_STRING_FROM_PATH = getMethodDescriptor(STRING_TYPE, PATH_TYPE);
+    private static final String RETURN_STRING_FROM_PATH_STRING = getMethodDescriptor(STRING_TYPE, PATH_TYPE, STRING_TYPE);
+    // readString(Path, Charset) -> filesReadString(Path, Charset, String)
+    private static final String RETURN_STRING_FROM_PATH_CHARSET = getMethodDescriptor(STRING_TYPE, PATH_TYPE, CHARSET_TYPE);
+    private static final String RETURN_STRING_FROM_PATH_CHARSET_STRING = getMethodDescriptor(STRING_TYPE, PATH_TYPE, CHARSET_TYPE, STRING_TYPE);
 
     // ProcessBuilder().start() -> start(ProcessBuilder, String)
     private static final String RETURN_PROCESS = getMethodDescriptor(PROCESS_TYPE);
@@ -149,8 +176,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     // Runtime().exec(String[], String[], File) -> exec(Runtime, String[], String[], File, String)
     // ProcessGroovyMethods.execute(String[], String[], File) -> execute(String[], String[], File, String)
     private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
-    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_FILE_STRING = getMethodDescriptor(
-        PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
+    private static final String RETURN_PROCESS_FROM_RUNTIME_STRING_ARRAY_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, RUNTIME_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
     private static final String RETURN_PROCESS_FROM_STRING_ARRAY_STRING_ARRAY_FILE_STRING = getMethodDescriptor(PROCESS_TYPE, STRING_ARRAY_TYPE, STRING_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
     // ProcessGroovyMethods.execute(List, String[], File) -> execute(List, String[], File, String)
     private static final String RETURN_PROCESS_FROM_LIST_STRING_ARRAY_FILE = getMethodDescriptor(PROCESS_TYPE, LIST_TYPE, STRING_ARRAY_TYPE, FILE_TYPE);
@@ -172,9 +198,26 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     // FileInputStream(String) -> fileOpened(String, String)
     private static final String RETURN_VOID_FROM_STRING = getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE);
     private static final String RETURN_VOID_FROM_STRING_STRING = getMethodDescriptor(Type.VOID_TYPE, STRING_TYPE, STRING_TYPE);
+    // File.exists() -> fileExists(File, String)
+    private static final String RETURN_BOOLEAN_FROM_FILE_STRING = getMethodDescriptor(Type.BOOLEAN_TYPE, FILE_TYPE, STRING_TYPE);
+    // File.listFiles() -> fileListFiles(File, String)
+    private static final String RETURN_FILE_ARRAY = getMethodDescriptor(FILE_ARRAY_TYPE);
+    private static final String RETURN_FILE_ARRAY_FROM_FILE_STRING = getMethodDescriptor(FILE_ARRAY_TYPE, FILE_TYPE, STRING_TYPE);
+    // File.listFiles(FileFilter) -> fileListFiles(File, FileFilter, String)
+    private static final String RETURN_FILE_ARRAY_FROM_FILEFILTER = getMethodDescriptor(FILE_ARRAY_TYPE, getType(FileFilter.class));
+    private static final String RETURN_FILE_ARRAY_FROM_FILE_FILEFILTER_STRING = getMethodDescriptor(FILE_ARRAY_TYPE, FILE_TYPE, getType(FileFilter.class), STRING_TYPE);
+    // File.listFiles(FileFilter) -> fileListFiles(File, FileFilter, String)
+    private static final String RETURN_FILE_ARRAY_FROM_FILENAMEFILTER = getMethodDescriptor(FILE_ARRAY_TYPE, getType(FilenameFilter.class));
+    private static final String RETURN_FILE_ARRAY_FROM_FILE_FILENAMEFILTER_STRING = getMethodDescriptor(FILE_ARRAY_TYPE, FILE_TYPE, getType(FilenameFilter.class), STRING_TYPE);
 
     private static final String LAMBDA_METAFACTORY_TYPE = getType(LambdaMetafactory.class).getInternalName();
     private static final String LAMBDA_METAFACTORY_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), getType(Object[].class));
+
+    private static final String GROOVY_INDY_INTERFACE_TYPE = getType(IndyInterface.class).getInternalName();
+
+    @SuppressWarnings("deprecation")
+    private static final String GROOVY_INDY_INTERFACE_V7_TYPE = getType(org.codehaus.groovy.vmplugin.v7.IndyInterface.class).getInternalName();
+    private static final String GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR = getMethodDescriptor(getType(CallSite.class), getType(MethodHandles.Lookup.class), STRING_TYPE, getType(MethodType.class), STRING_TYPE, INT_TYPE);
 
     private static final String INSTRUMENTED_CALL_SITE_METHOD = "$instrumentedCallSiteArray";
     private static final String CREATE_CALL_SITE_ARRAY_METHOD = "$createCallSiteArray";
@@ -240,74 +283,67 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
         }
 
         private void generateLambdaDeserializeMethod() {
-            new MethodVisitorScope(
-                visitStaticPrivateMethod(DESERIALIZE_LAMBDA, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA)
-            ) {
-                {
-                    visitCode();
-                    Label next = null;
-                    for (LambdaFactoryDetails factory : lambdaFactories) {
-                        if (next != null) {
-                            visitLabel(next);
-                            _F_SAME();
-                        }
-                        next = new Label();
-                        _ALOAD(0);
-                        _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodName", RETURN_STRING);
-                        _LDC(((Handle) factory.bootstrapMethodArguments.get(1)).getName());
-                        _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
-                        _IFEQ(next);
-                        Type[] argumentTypes = Type.getArgumentTypes(factory.descriptor);
-                        for (int i = 0; i < argumentTypes.length; i++) {
-                            _ALOAD(0);
-                            _LDC(i);
-                            _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getCapturedArg", RETURN_OBJECT_FROM_INT);
-                            unboxOrCastTo(argumentTypes[i]);
-                        }
-                        _INVOKEDYNAMIC(factory.name, factory.descriptor, factory.bootstrapMethodHandle, factory.bootstrapMethodArguments);
-                        _ARETURN();
-                    }
+            new MethodVisitorScope(visitStaticPrivateMethod(DESERIALIZE_LAMBDA, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA)) {{
+                Label next = null;
+                for (LambdaFactoryDetails factory : lambdaFactories) {
                     if (next != null) {
                         visitLabel(next);
                         _F_SAME();
                     }
-                    if (hasDeserializeLambda) {
+                    next = new Label();
+                    Handle implHandle = (Handle) factory.bootstrapMethodArguments.get(1);
+
+                    _ALOAD(0);
+                    _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodName", RETURN_STRING);
+                    _LDC(implHandle.getName());
+                    _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
+                    _IFEQ(next);
+
+                    _ALOAD(0);
+                    _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getImplMethodSignature", RETURN_STRING);
+                    _LDC(implHandle.getDesc());
+                    _INVOKEVIRTUAL(OBJECT_TYPE, "equals", RETURN_BOOLEAN_FROM_OBJECT);
+                    _IFEQ(next);
+
+                    Type[] argumentTypes = Type.getArgumentTypes(factory.descriptor);
+                    for (int i = 0; i < argumentTypes.length; i++) {
                         _ALOAD(0);
-                        _INVOKESTATIC(className, RENAMED_DESERIALIZE_LAMBDA, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA, isInterface);
-                    } else {
-                        _ACONST_NULL();
+                        _LDC(i);
+                        _INVOKEVIRTUAL(SERIALIZED_LAMBDA_TYPE, "getCapturedArg", RETURN_OBJECT_FROM_INT);
+                        _UNBOX(argumentTypes[i]);
                     }
+                    _INVOKEDYNAMIC(factory.name, factory.descriptor, factory.bootstrapMethodHandle, factory.bootstrapMethodArguments);
                     _ARETURN();
-                    visitMaxs(0, 0);
-                    visitEnd();
                 }
-            };
+                if (next != null) {
+                    visitLabel(next);
+                    _F_SAME();
+                }
+                if (hasDeserializeLambda) {
+                    _ALOAD(0);
+                    _INVOKESTATIC(className, RENAMED_DESERIALIZE_LAMBDA, RETURN_OBJECT_FROM_SERIALIZED_LAMBDA, isInterface);
+                } else {
+                    _ACONST_NULL();
+                }
+                _ARETURN();
+                visitMaxs(0, 0);
+                visitEnd();
+            }};
         }
 
         private void generateCallSiteFactoryMethod() {
-            new MethodVisitorScope(
-                visitStaticPrivateMethod(INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY)
-            ) {
-                {
-                    visitCode();
-                    _INVOKESTATIC(className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY);
-                    _DUP();
-                    _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY);
-                    _ARETURN();
-                    visitMaxs(2, 0);
-                    visitEnd();
-                }
-            };
+            new MethodVisitorScope(visitStaticPrivateMethod(INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY)) {{
+                _INVOKESTATIC(className, CREATE_CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY);
+                _DUP();
+                _INVOKESTATIC(INSTRUMENTED_TYPE, "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY);
+                _ARETURN();
+                visitMaxs(2, 0);
+                visitEnd();
+            }};
         }
 
         private MethodVisitor visitStaticPrivateMethod(String name, String descriptor) {
-            return super.visitMethod(
-                ACC_STATIC | ACC_SYNTHETIC | ACC_PRIVATE,
-                name,
-                descriptor,
-                null,
-                NO_EXCEPTIONS
-            );
+            return super.visitMethod(ACC_STATIC | ACC_SYNTHETIC | ACC_PRIVATE, name, descriptor, null, NO_EXCEPTIONS);
         }
     }
 
@@ -352,6 +388,18 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 } else if (name.equals("getProperties") && descriptor.equals(RETURN_PROPERTIES)) {
                     _LDC(binaryClassNameOf(className));
                     _INVOKESTATIC(INSTRUMENTED_TYPE, "systemProperties", RETURN_PROPERTIES_FROM_STRING);
+                    return true;
+                } else if (name.equals("setProperties") && descriptor.equals(RETURN_VOID_FROM_PROPERTIES)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "setSystemProperties", RETURN_VOID_FROM_PROPERTIES_STRING);
+                    return true;
+                } else if (name.equals("setProperty") && descriptor.equals(RETURN_STRING_FROM_STRING_STRING)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "setSystemProperty", RETURN_STRING_FROM_STRING_STRING_STRING);
+                    return true;
+                } else if (name.equals("clearProperty") && descriptor.equals(RETURN_STRING_FROM_STRING)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "clearSystemProperty", RETURN_STRING_FROM_STRING_STRING);
                     return true;
                 } else if (name.equals("getenv")) {
                     if (descriptor.equals(RETURN_STRING_FROM_STRING)) {
@@ -410,6 +458,28 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 _LDC(binaryClassNameOf(className));
                 _INVOKESTATIC(INSTRUMENTED_TYPE, "execute", instrumentedDescriptor.get());
                 return true;
+            } else if (owner.equals(KOTLIN_IO_FILES_TYPE.getInternalName())) {
+                if (name.equals("readText") && descriptor.equals(RETURN_STRING_FROM_FILE_CHARSET)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "kotlinIoFilesKtReadText", RETURN_STRING_FROM_FILE_CHARSET_STRING);
+                    return true;
+                }
+                if (name.equals("readText$default") && descriptor.equals(RETURN_STRING_FROM_FILE_CHARSET_INT_OBJECT)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "kotlinIoFilesKtReadTextDefault", RETURN_STRING_FROM_FILE_CHARSET_INT_OBJECT_STRING);
+                    return true;
+                }
+            } else if (owner.equals(FILES_TYPE.getInternalName())) {
+                if (name.equals("readString") && descriptor.equals(RETURN_STRING_FROM_PATH)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "filesReadString", RETURN_STRING_FROM_PATH_STRING);
+                    return true;
+                }
+                if (name.equals("readString") && descriptor.equals(RETURN_STRING_FROM_PATH_CHARSET)) {
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "filesReadString", RETURN_STRING_FROM_PATH_CHARSET_STRING);
+                    return true;
+                }
             }
             if (owner.equals(PROCESS_BUILDER_TYPE.getInternalName()) && name.equals("startPipeline") && descriptor.equals(RETURN_LIST_FROM_LIST)) {
                 _LDC(binaryClassNameOf(className));
@@ -437,6 +507,34 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 if (name.equals("start") && descriptor.equals(RETURN_PROCESS)) {
                     _LDC(binaryClassNameOf(className));
                     _INVOKESTATIC(INSTRUMENTED_TYPE, "start", RETURN_PROCESS_FROM_PROCESS_BUILDER_STRING);
+                    return true;
+                }
+            }
+            if (owner.equals(FILE_TYPE.getInternalName())) {
+                if ((name.equals("exists") || name.equals("isFile") || name.equals("isDirectory"))
+                    && descriptor.equals(RETURN_BOOLEAN)
+                ) {
+                    String instrumentedMethodName =
+                        name.equals("exists") ? "fileExists" :
+                            name.equals("isFile") ? "fileIsFile" :
+                                "fileIsDirectory";
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, instrumentedMethodName, RETURN_BOOLEAN_FROM_FILE_STRING);
+                    return true;
+                }
+
+                if (name.equals("listFiles") &&
+                    (descriptor.equals(RETURN_FILE_ARRAY) ||
+                        descriptor.equals(RETURN_FILE_ARRAY_FROM_FILEFILTER) ||
+                        descriptor.equals(RETURN_FILE_ARRAY_FROM_FILENAMEFILTER))
+                ) {
+                    String instrumentedDescriptor =
+                        descriptor.equals(RETURN_FILE_ARRAY) ? RETURN_FILE_ARRAY_FROM_FILE_STRING  :
+                            descriptor.equals(RETURN_FILE_ARRAY_FROM_FILEFILTER) ? RETURN_FILE_ARRAY_FROM_FILE_FILEFILTER_STRING :
+                                RETURN_FILE_ARRAY_FROM_FILE_FILENAMEFILTER_STRING;
+
+                    _LDC(binaryClassNameOf(className));
+                    _INVOKESTATIC(INSTRUMENTED_TYPE, "fileListFiles", instrumentedDescriptor);
                     return true;
                 }
             }
@@ -522,7 +620,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         @Override
         public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
-            if (isGradleLambdaDescriptor(descriptor) && bootstrapMethodHandle.getOwner().equals(LAMBDA_METAFACTORY_TYPE) && bootstrapMethodHandle.getName().equals("metafactory")) {
+            if (bootstrapMethodHandle.getOwner().equals(LAMBDA_METAFACTORY_TYPE) && bootstrapMethodHandle.getName().equals("metafactory")) {
                 Handle altMethod = new Handle(
                     H_INVOKESTATIC,
                     LAMBDA_METAFACTORY_TYPE,
@@ -535,6 +633,15 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                 args.add(LambdaMetafactory.FLAG_SERIALIZABLE);
                 super.visitInvokeDynamicInsn(name, descriptor, altMethod, args.toArray());
                 owner.addSerializedLambda(new LambdaFactoryDetails(name, descriptor, altMethod, args));
+            } else if (isGroovyIndyCallsite(descriptor, bootstrapMethodHandle)) {
+                Handle interceptor = new Handle(
+                    H_INVOKESTATIC,
+                    INSTRUMENTED_TYPE.getInternalName(),
+                    "bootstrap",
+                    GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR,
+                    false
+                );
+                super.visitInvokeDynamicInsn(name, descriptor, interceptor, bootstrapMethodArguments);
             } else {
                 super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
             }
@@ -542,15 +649,26 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         private boolean isGradleLambdaDescriptor(String descriptor) {
             return descriptor.endsWith(ACTION_LAMBDA_SUFFIX)
-                || descriptor.endsWith(SPEC_LAMBDA_SUFFIX);
+                || descriptor.endsWith(SPEC_LAMBDA_SUFFIX)
+                || descriptor.endsWith(TRANSFORMER_LAMBDA_SUFFIX)
+                || descriptor.endsWith(COMMAND_LINE_ARGUMENT_PROVIDER_LAMBDA_SUFFIX);
         }
 
         private String binaryClassNameOf(String className) {
             return getObjectType(className).getClassName();
         }
 
+        private boolean isGroovyIndyCallsite(String descriptor, Handle bootstrapMethodHandle) {
+            return (bootstrapMethodHandle.getOwner().equals(GROOVY_INDY_INTERFACE_TYPE) ||
+                bootstrapMethodHandle.getOwner().equals(GROOVY_INDY_INTERFACE_V7_TYPE)) &&
+                bootstrapMethodHandle.getName().equals("bootstrap") &&
+                bootstrapMethodHandle.getDesc().equals(GROOVY_INDY_INTERFACE_BOOTSTRAP_METHOD_DESCRIPTOR);
+        }
+
         private static final String ACTION_LAMBDA_SUFFIX = ")" + getType(Action.class).getDescriptor();
         private static final String SPEC_LAMBDA_SUFFIX = ")" + getType(Spec.class).getDescriptor();
+        private static final String TRANSFORMER_LAMBDA_SUFFIX = ")" + getType(Transformer.class).getDescriptor();
+        private static final String COMMAND_LINE_ARGUMENT_PROVIDER_LAMBDA_SUFFIX = ")" + getType(CommandLineArgumentProvider.class).getDescriptor();
     }
 
     private static class LambdaFactoryDetails {
@@ -564,80 +682,6 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
             this.descriptor = descriptor;
             this.bootstrapMethodHandle = bootstrapMethodHandle;
             this.bootstrapMethodArguments = bootstrapMethodArguments;
-        }
-    }
-
-    /**
-     * Simplifies emitting bytecode to a {@link MethodVisitor} by providing a JVM bytecode DSL.
-     */
-    @SuppressWarnings("NewMethodNamingConvention")
-    private static class MethodVisitorScope extends MethodVisitor {
-
-        public MethodVisitorScope(MethodVisitor methodVisitor) {
-            super(ASM_LEVEL, methodVisitor);
-        }
-
-        protected void unboxOrCastTo(Type targetType) {
-            AsmClassGeneratorUtils.unboxOrCast(this, targetType);
-        }
-
-        /**
-         * @see org.objectweb.asm.Opcodes#F_SAME
-         */
-        protected void _F_SAME() {
-            super.visitFrame(F_SAME, 0, new Object[0], 0, new Object[0]);
-        }
-
-        protected void _INVOKESPECIAL(String owner, String name, String descriptor) {
-            super.visitMethodInsn(INVOKESPECIAL, owner, name, descriptor, false);
-        }
-
-        protected void _INVOKESTATIC(Type owner, String name, String descriptor) {
-            _INVOKESTATIC(owner.getInternalName(), name, descriptor);
-        }
-
-        protected void _INVOKESTATIC(String owner, String name, String descriptor) {
-            super.visitMethodInsn(INVOKESTATIC, owner, name, descriptor, false);
-        }
-
-        protected void _INVOKESTATIC(String owner, String name, String descriptor, boolean targetIsInterface) {
-            super.visitMethodInsn(INVOKESTATIC, owner, name, descriptor, targetIsInterface);
-        }
-
-        protected void _INVOKEVIRTUAL(Type owner, String name, String descriptor) {
-            _INVOKEVIRTUAL(owner.getInternalName(), name, descriptor);
-        }
-
-        protected void _INVOKEVIRTUAL(String owner, String name, String descriptor) {
-            super.visitMethodInsn(INVOKEVIRTUAL, owner, name, descriptor, false);
-        }
-
-        protected void _INVOKEDYNAMIC(String name, String descriptor, Handle bootstrapMethodHandle, List<?> bootstrapMethodArguments) {
-            super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments.toArray());
-        }
-
-        protected void _DUP() {
-            super.visitInsn(DUP);
-        }
-
-        protected void _ACONST_NULL() {
-            super.visitInsn(ACONST_NULL);
-        }
-
-        protected void _LDC(Object value) {
-            super.visitLdcInsn(value);
-        }
-
-        protected void _ALOAD(int var) {
-            super.visitVarInsn(ALOAD, var);
-        }
-
-        protected void _IFEQ(Label label) {
-            super.visitJumpInsn(IFEQ, label);
-        }
-
-        protected void _ARETURN() {
-            super.visitInsn(ARETURN);
         }
     }
 }

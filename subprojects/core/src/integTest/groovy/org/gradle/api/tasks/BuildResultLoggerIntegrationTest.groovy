@@ -119,7 +119,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         run "adHocTask"
 
         then:
-        result.assertTasksNotSkipped(":buildSrc:compileJava", ":buildSrc:jar", ":buildSrc:classes", ":buildSrc:assemble", ":buildSrc:build", ":adHocTask")
+        result.assertTasksNotSkipped(":buildSrc:compileJava", ":buildSrc:jar", ":buildSrc:classes", ":adHocTask")
         result.assertHasPostBuildOutput("3 actionable tasks: 3 executed")
 
         when:
@@ -221,7 +221,7 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
             tasks.register("invalid", InvalidTask)
         """
 
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem())
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem(), 'id', 'section')
 
         when:
         run "invalid"

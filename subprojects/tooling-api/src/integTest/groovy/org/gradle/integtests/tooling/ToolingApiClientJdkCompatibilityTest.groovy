@@ -18,6 +18,7 @@ package org.gradle.integtests.tooling
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.test.fixtures.Flaky
 import org.junit.Assume
 
 abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationSpec {
@@ -40,11 +41,11 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
             def requestedGradleVersion = project.findProperty("gradleVersion")
             def requestedTargetJdk = project.findProperty("targetJdk")
 
-            // Earlier versions of Gradle can sometimes fail to connect to the just started Gradle daemon. 
+            // Earlier versions of Gradle can sometimes fail to connect to the just started Gradle daemon.
             // The failure will be the "tried to connect to 100 daemons" error
-            // If we're testing against a version that has this problem, we can ignore it. 
+            // If we're testing against a version that has this problem, we can ignore it.
             def ignoreFlakyDaemonConnections = Boolean.toString(GradleVersion.version(requestedGradleVersion) < GradleVersion.version("6.0"))
-            
+
             task runTask(type: JavaExec) {
                 args = [ "help", file("test-project"), requestedGradleVersion, requestedTargetJdk, gradle.gradleUserHomeDir, ignoreFlakyDaemonConnections ]
             }
@@ -52,7 +53,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
             task buildAction(type: JavaExec) {
                 args = [ "action", file("test-project"), requestedGradleVersion, requestedTargetJdk, gradle.gradleUserHomeDir, ignoreFlakyDaemonConnections ]
             }
-            
+
             configure([runTask, buildAction]) {
                 classpath = sourceSets.main.runtimeClasspath
                 mainClass = "ToolingApiCompatibilityClient"
@@ -60,7 +61,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
                     languageVersion = JavaLanguageVersion.of(Integer.parseInt(project.findProperty("clientJdk")))
                 }
                 enableAssertions = true
-                
+
                 if (${clientJdkVersion.isCompatibleWith(JavaVersion.VERSION_16)} && ['2.14.1'].contains(project.findProperty("gradleVersion"))) {
                     jvmArgs = ["--add-opens", "java.base/java.lang=ALL-UNNAMED"]
                 }
@@ -125,12 +126,12 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
                         }
                         System.exit(0);
                     } catch (org.gradle.tooling.GradleConnectionException e) {
-                        e.printStackTrace();
                         if (allowUnusable && e.getCause()!=null && e.getCause().getClass().getSimpleName().equals("NoUsableDaemonFoundException")) {
                             System.out.println("Daemon registry is in a bad state and we cannot connect to the daemon.");
                             System.exit(0);
                         } else {
-                            System.exit(1);                                
+                            e.printStackTrace();
+                            System.exit(1);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -209,6 +210,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
     abstract JavaVersion getClientJdkVersion()
 
+    @Flaky
     def "tapi client can launch task with Gradle and Java combination"(JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
         setup:
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
@@ -226,8 +228,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
         where:
         gradleDaemonJdkVersion  | gradleVersion
-        JavaVersion.VERSION_1_6 | "2.14.1" // last Gradle version that can run on Java 1.6
-
+        JavaVersion.VERSION_1_7 | "2.14.1"
         JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
 
@@ -238,14 +239,11 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
         JavaVersion.VERSION_1_8 | "6.9.2"
     }
 
+    @Flaky
     def "tapi client can run build action with Gradle and Java combination"(JavaVersion gradleDaemonJdkVersion, String gradleVersion) {
         setup:
         def gradleDaemonJdk = AvailableJavaHomes.getJdk(gradleDaemonJdkVersion)
         Assume.assumeTrue(gradleDaemonJdk!=null)
-
-        if (gradleDaemonJdkVersion == JavaVersion.VERSION_1_6 && gradleVersion == "2.14.1") {
-            executer.expectDeprecationWarning("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
-        }
 
         when:
         succeeds("buildAction",
@@ -259,8 +257,7 @@ abstract class ToolingApiClientJdkCompatibilityTest extends AbstractIntegrationS
 
         where:
         gradleDaemonJdkVersion  | gradleVersion
-        JavaVersion.VERSION_1_6 | "2.14.1" // last Gradle version that can run on Java 1.6
-
+        JavaVersion.VERSION_1_7 | "2.14.1"
         JavaVersion.VERSION_1_7 | "4.6"    // last version with reported regression
         JavaVersion.VERSION_1_7 | "4.10.3" // last Gradle version that can run on Java 1.7
 

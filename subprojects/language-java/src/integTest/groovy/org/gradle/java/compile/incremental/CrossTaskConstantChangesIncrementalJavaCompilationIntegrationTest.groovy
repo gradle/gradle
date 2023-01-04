@@ -431,7 +431,7 @@ abstract class CrossTaskConstantChangesIncrementalJavaCompilationIntegrationTest
     @Requires(TestPrecondition.JDK9_OR_LATER)
     def "recompiles all if constant used by annotation on module-info is changed"() {
         given:
-        file("api/src/main/${languageName}/constant/Const.${languageName}").text = "package constant; public class Const { public static final String CONST = \"unchecked\"; }"
+        source api: "package constant; public class Const { public static final String CONST = \"unchecked\"; }"
         def apiModuleInfo = file("api/src/main/${language.name}/module-info.${language.name}")
         apiModuleInfo.text = """
             module api {
@@ -447,17 +447,19 @@ abstract class CrossTaskConstantChangesIncrementalJavaCompilationIntegrationTest
                 requires api;
             }
         """
-        file("impl/src/main/${languageName}/foo/A.${languageName}").text = "package foo; class A { }"
+        source impl: ["package foo; class A { }"]
         impl.snapshot { run language.compileTaskName }
         when:
-        file("api/src/main/${languageName}/constant/Const.${languageName}").text = "package constant; public class Const { public static final String CONST = \"raw-types\"; }"
+        source api: ["package constant; public class Const { public static final String CONST = \"raw-types\"; }"]
         run "impl:${language.compileTaskName}"
         then:
         impl.recompiledClasses 'module-info', 'A'
     }
+
     def "recompiles all classes in a package if constant used by annotation on package-info is changed"() {
-        file("api/src/main/${languageName}/constant/Const.${languageName}").text = "package constant; public class Const { public static final int X = 1; }"
-        file("api/src/main/${languageName}/annotations/Anno.${languageName}").text = """
+        source api: [
+            "package constant; public class Const { public static final int X = 1; }",
+            """
             package annotations;
             import java.lang.annotation.*;
             @Retention(RetentionPolicy.RUNTIME)
@@ -465,17 +467,20 @@ abstract class CrossTaskConstantChangesIncrementalJavaCompilationIntegrationTest
             public @interface Anno {
                    int value();
             }
-        """
+            """
+        ]
         def packageFile = file("impl/src/main/${languageName}/foo/package-info.${languageName}")
         packageFile.text = """@Deprecated @annotations.Anno(constant.Const.X + 1) package foo;"""
-        file("impl/src/main/${languageName}/foo/A.${languageName}").text = "package foo; class A {}"
-        file("impl/src/main/${languageName}/foo/B.${languageName}").text = "package foo; public class B {}"
-        file("impl/src/main/${languageName}/foo/bar/C.${languageName}").text = "package foo.bar; class C {}"
-        file("impl/src/main/${languageName}/baz/D.${languageName}").text = "package baz; class D {}"
-        file("impl/src/main/${languageName}/baz/E.${languageName}").text = "package baz; import foo.B; class E extends B {}"
+        source impl: [
+            "package foo; class A {}",
+            "package foo; public class B {}",
+            "package foo.bar; class C {}",
+            "package baz; class D {}",
+            "package baz; import foo.B; class E extends B {}"
+        ]
         impl.snapshot { run language.compileTaskName }
         when:
-        file("api/src/main/${languageName}/constant/Const.${languageName}").text = "package constant; public class Const { public static final int X = 2; }"
+        source api: ["package constant; public class Const { public static final int X = 2; }"]
         run "impl:${language.compileTaskName}"
         then:
         impl.recompiledClasses "A", "B", "E", "package-info"

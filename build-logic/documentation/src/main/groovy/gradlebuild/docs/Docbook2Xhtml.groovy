@@ -110,7 +110,7 @@ abstract class Docbook2Xhtml extends SourceTask {
         def xslthlConfigFile = getStylesheetHighlightFile().get().asFile.toURI()
 
         // TODO: Implement this with the worker API
-        workerLeaseService.withoutProjectLock({
+        workerLeaseService.runAsIsolatedTask({
             source.visit { FileVisitDetails fvd ->
                 if (fvd.isDirectory()) {
                     return

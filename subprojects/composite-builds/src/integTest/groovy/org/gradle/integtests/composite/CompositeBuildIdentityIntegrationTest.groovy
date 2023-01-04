@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
 class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegrationTest {
@@ -57,7 +56,6 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
         "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "includes build identifier in dependency report with #display"() {
         dependency "org.test:${dependencyName}:1.0"
 
@@ -138,8 +136,9 @@ Required by:
         """
 
         buildA.buildFile << """
+            def runtimeClasspath = configurations.runtimeClasspath
             classes.doLast {
-                def components = configurations.runtimeClasspath.incoming.resolutionResult.allComponents.id
+                def components = runtimeClasspath.incoming.resolutionResult.allComponents.id
                 assert components.size() == 3
                 assert components[0].build.name == ':'
                 assert components[0].build.currentBuild

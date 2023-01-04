@@ -34,7 +34,8 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.commonsLang)
     implementation(libs.fastutil)
-    implementation(libs.ant) // for 'ZipFile' and 'ZipEntry'
+    implementation(libs.ant)
+    implementation(libs.commonsCompress)
     implementation(libs.asm)
     implementation(libs.asmCommons)
     implementation(libs.inject)
@@ -61,6 +62,8 @@ dependencies {
         because("ProjectBuilder test (JavaLanguagePluginTest) loads services from a Gradle distribution.")
     }
 
+    // TODO: Make these available for all integration tests? Maybe all tests?
+    integTestImplementation(libs.jetbrainsAnnotations)
     integTestDistributionRuntimeOnly(project(":distributions-core"))
     crossVersionTestDistributionRuntimeOnly(project(":distributions-basics"))
 }
@@ -81,11 +84,15 @@ strictCompile {
     ignoreDeprecations() // this project currently uses many deprecated part from 'platform-jvm'
 }
 
-classycle {
+packageCycles {
     // These public packages have classes that are tangled with the corresponding internal package.
-    excludePatterns.add("org/gradle/api/tasks/compile/**")
+    excludePatterns.add("org/gradle/api/tasks/**")
     excludePatterns.add("org/gradle/external/javadoc/**")
 }
 
-
 integTest.usesJavadocCodeSnippets.set(true)
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}

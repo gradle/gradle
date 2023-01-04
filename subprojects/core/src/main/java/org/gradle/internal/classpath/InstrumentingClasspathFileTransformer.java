@@ -50,18 +50,29 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     private final FileLockManager fileLockManager;
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
+    private final Policy policy;
     private final CachedClasspathTransformer.Transform transform;
     private final HashCode configHash;
+
+    public interface Policy {
+        void applyConfigurationTo(Hasher hasher);
+
+        boolean instrumentFile(File file);
+
+        boolean includeEntry(ClasspathEntryVisitor.Entry entry);
+    }
 
     public InstrumentingClasspathFileTransformer(
         FileLockManager fileLockManager,
         ClasspathWalker classpathWalker,
         ClasspathBuilder classpathBuilder,
+        Policy policy,
         CachedClasspathTransformer.Transform transform
     ) {
         this.fileLockManager = fileLockManager;
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
+        this.policy = policy;
         this.transform = transform;
         this.configHash = configHashFor(transform);
     }
@@ -69,6 +80,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     private HashCode configHashFor(CachedClasspathTransformer.Transform transform) {
         Hasher hasher = Hashing.defaultFunction().newHasher();
         hasher.putInt(CACHE_FORMAT);
+        policy.applyConfigurationTo(hasher);
         transform.applyConfigurationTo(hasher);
         return hasher.hash();
     }
@@ -125,11 +137,11 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     }
 
     private void transform(File source, File dest) {
-        if (isSignedJar(source)) {
+        if (policy.instrumentFile(source)) {
+            instrument(source, dest);
+        } else {
             LOGGER.debug("Signed archive '{}'. Skipping instrumentation.", source.getName());
             GFileUtils.copyFile(source, dest);
-        } else {
-            instrument(source, dest);
         }
     }
 
@@ -147,15 +159,18 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
     private void visitEntries(File source, ClasspathBuilder.EntryBuilder builder) throws IOException, FileException {
         classpathWalker.visit(source, entry -> {
             try {
+                if (!policy.includeEntry(entry)) {
+                    return;
+                }
                 if (entry.getName().endsWith(".class")) {
                     ClassReader reader = new ClassReader(entry.getContent());
                     ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
                     Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter);
                     reader.accept(chain.right, 0);
                     byte[] bytes = classWriter.toByteArray();
-                    builder.put(chain.left.getPathString(), bytes);
+                    builder.put(chain.left.getPathString(), bytes, entry.getCompressionMethod());
                 } else {
-                    builder.put(entry.getName(), entry.getContent());
+                    builder.put(entry.getName(), entry.getContent(), entry.getCompressionMethod());
                 }
             } catch (Throwable e) {
                 throw new IOException("Failed to process the entry '" + entry.getName() + "' from '" + source + "'", e);
@@ -163,7 +178,7 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
         });
     }
 
-    private boolean isSignedJar(File source) {
+    private static boolean isSignedJar(File source) {
         if (!source.isFile()) {
             return false;
         }
@@ -180,5 +195,45 @@ class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer 
             throw new UncheckedIOException(e);
         }
         return false;
+    }
+
+    public static Policy instrumentForLoadingWithClassLoader() {
+        return new Policy() {
+            @Override
+            public void applyConfigurationTo(Hasher hasher) {
+                // Do nothing, this is compatible with the old instrumentation
+            }
+
+            @Override
+            public boolean instrumentFile(File file) {
+                return !isSignedJar(file);
+            }
+
+            @Override
+            public boolean includeEntry(ClasspathEntryVisitor.Entry entry) {
+                // include everything
+                return true;
+            }
+        };
+    }
+
+    public static Policy instrumentForLoadingWithAgent() {
+        return new Policy() {
+            @Override
+            public void applyConfigurationTo(Hasher hasher) {
+                hasher.putInt(1);
+            }
+
+            @Override
+            public boolean instrumentFile(File file) {
+                return true;
+            }
+
+            @Override
+            public boolean includeEntry(ClasspathEntryVisitor.Entry entry) {
+                // Only include classes in the result, resources will be loaded from the original JAR by the class loader.
+                return entry.getName().endsWith(".class");
+            }
+        };
     }
 }

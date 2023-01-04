@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache.problems
 
+import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.logging.Logging
 import org.gradle.configurationcache.ConfigurationCacheAction
 import org.gradle.configurationcache.ConfigurationCacheAction.LOAD
@@ -70,13 +71,22 @@ class ConfigurationCacheProblems(
     var updatedProjects = 0
 
     private
-    var hasIncompatibleTypes = false
+    var incompatibleTasks = newConcurrentHashSet<String>()
 
     private
     lateinit var cacheAction: ConfigurationCacheAction
 
-    private
-    var invalidateStoredState: (() -> Unit)? = null
+    val shouldDiscardEntry: Boolean
+        get() {
+            if (cacheAction == LOAD) {
+                return false
+            }
+            if (isFailingBuildDueToSerializationError) {
+                return true
+            }
+            val summary = summarizer.get()
+            return discardStateDueToProblems(summary) || hasTooManyProblems(summary)
+        }
 
     init {
         listenerManager.addListener(postBuildHandler)
@@ -86,9 +96,8 @@ class ConfigurationCacheProblems(
         listenerManager.removeListener(postBuildHandler)
     }
 
-    fun action(action: ConfigurationCacheAction, invalidateState: () -> Unit) {
+    fun action(action: ConfigurationCacheAction) {
         cacheAction = action
-        invalidateStoredState = invalidateState
     }
 
     fun failingBuildDueToSerializationError() {
@@ -101,11 +110,15 @@ class ConfigurationCacheProblems(
         this.updatedProjects = updatedProjects
     }
 
-    override fun forIncompatibleType(): ProblemsListener {
-        hasIncompatibleTypes = true
+    override fun forIncompatibleTask(path: String): ProblemsListener {
+        incompatibleTasks.add(path)
         return object : ProblemsListener {
             override fun onProblem(problem: PropertyProblem) {
-                onProblem(problem, ProblemSeverity.Warn)
+                onProblem(problem, ProblemSeverity.Suppressed)
+            }
+
+            override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+                onProblem(PropertyProblem(trace, StructuredMessage.build(message), error))
             }
         }
     }
@@ -132,14 +145,7 @@ class ConfigurationCacheProblems(
     override fun report(reportDir: File, validationFailures: Consumer<in Throwable>) {
         val summary = summarizer.get()
         val failDueToProblems = summary.failureCount > 0 && isFailOnProblems
-        val discardStateDueToProblems = (summary.problemCount > 0 || hasIncompatibleTypes) && isFailOnProblems
-        val hasTooManyProblems = summary.problemCount > startParameter.maxProblems
-        val discardState = discardStateDueToProblems || hasTooManyProblems
-        if (cacheAction != LOAD && discardState) {
-            // Invalidate stored state if problems fail the build
-            requireNotNull(invalidateStoredState).invoke()
-        }
-
+        val hasTooManyProblems = hasTooManyProblems(summary)
         val outputDirectory = outputDirectoryFor(reportDir)
         val cacheActionText = cacheAction.summaryText()
         val requestedTasks = startParameter.requestedTasksOrDefault()
@@ -160,6 +166,7 @@ class ConfigurationCacheProblems(
                     }
                 )
             }
+
             hasTooManyProblems -> {
                 validationFailures.accept(
                     TooManyConfigurationCacheProblemsException(summary.causes) {
@@ -167,6 +174,7 @@ class ConfigurationCacheProblems(
                     }
                 )
             }
+
             else -> {
                 logger.warn(summary.textForConsole(cacheActionText, htmlReportFile))
             }
@@ -195,17 +203,18 @@ class ConfigurationCacheProblems(
         override fun afterStart() = Unit
 
         override fun beforeComplete() {
-            val problemCount = summarizer.get().problemCount
+            val summary = summarizer.get()
+            val problemCount = summary.problemCount
             val hasProblems = problemCount > 0
-            val discardStateDueToProblems = (problemCount > 0 || hasIncompatibleTypes) && isFailOnProblems
-            val hasTooManyProblems = problemCount > startParameter.maxProblems
+            val discardStateDueToProblems = discardStateDueToProblems(summary)
+            val hasTooManyProblems = hasTooManyProblems(summary)
             val problemCountString = problemCount.counter("problem")
             val reusedProjectsString = reusedProjects.counter("project")
             val updatedProjectsString = updatedProjects.counter("project")
             when {
-                isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded.")
+                isFailingBuildDueToSerializationError && !hasProblems -> log("Configuration cache entry discarded due to serialization error.")
                 isFailingBuildDueToSerializationError -> log("Configuration cache entry discarded with {}.", problemCountString)
-                cacheAction == STORE && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded.")
+                cacheAction == STORE && discardStateDueToProblems && !hasProblems -> log("Configuration cache entry discarded${incompatibleTasksSummary()}")
                 cacheAction == STORE && discardStateDueToProblems -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == STORE && hasTooManyProblems -> log("Configuration cache entry discarded with too many problems ({}).", problemCountString)
                 cacheAction == STORE && !hasProblems -> log("Configuration cache entry stored.")
@@ -220,6 +229,20 @@ class ConfigurationCacheProblems(
             }
         }
     }
+
+    private
+    fun incompatibleTasksSummary() = when {
+        incompatibleTasks.isNotEmpty() -> " because incompatible ${if (incompatibleTasks.size > 1) "tasks were" else "task was"} found: ${incompatibleTasks.joinToString(", ") { "'$it'" }}."
+        else -> "."
+    }
+
+    private
+    fun discardStateDueToProblems(summary: Summary) =
+        (summary.problemCount > 0 || incompatibleTasks.isNotEmpty()) && isFailOnProblems
+
+    private
+    fun hasTooManyProblems(summary: Summary) =
+        summary.nonSuppressedProblemCount > startParameter.maxProblems
 
     private
     fun log(msg: String, vararg args: Any = emptyArray()) {

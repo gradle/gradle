@@ -14,6 +14,13 @@ tasks.named<JavaCompile>("compileTestJava") {
     options.release.set(8)
 }
 
+/**
+ * Use Java 8 compatibility for JMH benchmarks
+ */
+tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
+    options.release.set(8)
+}
+
 moduleIdentity.createBuildReceipt()
 
 dependencies {
@@ -33,6 +40,7 @@ dependencies {
 
     testFixturesImplementation(libs.guava)
     testImplementation(testFixtures(project(":core")))
+    testImplementation(libs.xerces)
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 
@@ -41,7 +49,7 @@ dependencies {
     jmh(libs.guava)
 }
 
-classycle {
+packageCycles {
     // Needed for the factory methods in the base class
     excludePatterns.add("org/gradle/util/GradleVersion**")
 }

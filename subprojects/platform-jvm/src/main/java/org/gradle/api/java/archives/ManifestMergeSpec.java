@@ -16,6 +16,7 @@
 package org.gradle.api.java.archives;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 
 /**
@@ -44,7 +45,7 @@ public interface ManifestMergeSpec {
     /**
      * Adds a merge path to a manifest that should be merged into the base manifest. A merge path can be either another
      * {@link org.gradle.api.java.archives.Manifest} or a path that is evaluated as per
-     * {@link org.gradle.api.Project#files(Object...)} . If multiple merge paths are specified, the manifest are merged
+     * {@link org.gradle.api.Project#file(Object)} . If multiple merge paths are specified, the manifest are merged
      * in the order in which they are added.
      *
      * @param mergePaths The paths of manifests to be merged
@@ -72,5 +73,5 @@ public interface ManifestMergeSpec {
      * @param mergeAction The action to execute.
      * @return this
      */
-    ManifestMergeSpec eachEntry(Closure<?> mergeAction);
+    ManifestMergeSpec eachEntry(@DelegatesTo(ManifestMergeDetails.class) Closure<?> mergeAction);
 }

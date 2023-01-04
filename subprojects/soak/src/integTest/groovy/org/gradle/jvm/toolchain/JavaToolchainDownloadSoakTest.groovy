@@ -16,11 +16,20 @@
 
 package org.gradle.jvm.toolchain
 
+import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     def setup() {
+        settingsFile << """
+            plugins {
+                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.3.0'
+            }
+        """
+
         buildFile << """
             plugins {
                 id "java"
@@ -28,7 +37,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(14)
+                    languageVersion = JavaLanguageVersion.of(16)
                 }
             }
         """
@@ -36,16 +45,19 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         file("src/main/java/Foo.java") << "public class Foo {}"
 
         executer.requireOwnGradleUserHomeDir()
-        executer.withToolchainDownloadEnabled()
+        executer
+            .withToolchainDownloadEnabled()
     }
 
     def "can download missing jdk automatically"() {
         when:
-        succeeds("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+        result = executer
+                .withTasks("compileJava")
+                .run()
 
         then:
         javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded("hotspot")
+        assertJdkWasDownloaded("eclipse_foundation")
     }
 
     def "can download missing j9 jdk automatically"() {
@@ -58,17 +70,67 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+        result = executer
+               .withTasks("compileJava")
+               .run()
 
         then:
         javaClassFile("Foo.class").assertExists()
         assertJdkWasDownloaded("openj9")
     }
 
+    def "clean destination folder when downloading toolchain"() {
+        when: "build runs and doesn't have a local JDK to use for compilation"
+        result = executer
+                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+                .run()
+
+        then: "suitable JDK gets auto-provisioned"
+        javaClassFile("Foo.class").assertExists()
+        assertJdkWasDownloaded("eclipse_foundation")
+
+        when: "the marker file of the auto-provisioned JDK is deleted, making the JDK not detectable"
+        //delete marker file to make the previously downloaded installation undetectable
+        def markerFile = findMarkerFile(executer.gradleUserHomeDir.file("jdks"))
+        markerFile.delete()
+        assert !markerFile.exists()
+
+        and: "build runs again"
+        executer
+                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
+                .run()
+
+        then: "the JDK is auto-provisioned again and its files, even though they are already there don't trigger an error, they just get overwritten"
+        markerFile.exists()
+    }
+
     private void assertJdkWasDownloaded(String implementation) {
         assert executer.gradleUserHomeDir.file("jdks").listFiles({ file ->
-            file.name.contains("-14-") && file.name.contains(implementation)
+            file.name.contains("-16-") && file.name.contains(implementation)
         } as FileFilter)
     }
 
+    def cleanup() {
+        executer.gradleUserHomeDir.file("jdks").deleteDir()
+    }
+
+    private static File findMarkerFile(File directory) {
+        File markerFile
+        new SingleIncludePatternFileTree(directory, "**").visit(new FileVisitor() {
+            @Override
+            void visitDir(FileVisitDetails dirDetails) {
+            }
+
+            @Override
+            void visitFile(FileVisitDetails fileDetails) {
+                if (fileDetails.file.name == "provisioned.ok") {
+                    markerFile = fileDetails.file
+                }
+            }
+        })
+        if (markerFile == null) {
+            throw new RuntimeException("Marker file not found in " + directory.getAbsolutePath() + "")
+        }
+        return markerFile
+    }
 }

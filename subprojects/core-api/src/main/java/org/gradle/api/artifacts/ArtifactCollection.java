@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
@@ -52,7 +51,6 @@ public interface ArtifactCollection extends Iterable<ResolvedArtifactResult> {
      *
      * @since 7.4
      */
-    @Incubating
     Provider<Set<ResolvedArtifactResult>> getResolvedArtifacts();
 
     /**

@@ -1,17 +1,16 @@
 org.ow2.asm:asm:7.1
-   variant "compile" [
-      org.gradle.status              = release (not requested)
-      org.gradle.usage               = java-api
-      org.gradle.libraryelements     = jar (compatible with: classes)
-      org.gradle.category            = library
-
-      Requested attributes not found in the selected variant:
-         org.gradle.dependency.bundling = external
-         org.gradle.jvm.environment     = standard-jvm
-         org.gradle.jvm.version = 11
-   ]
+  Variant compile:
+    | Attribute Name                 | Provided | Requested    |
+    |--------------------------------|----------|--------------|
+    | org.gradle.status              | release  |              |
+    | org.gradle.category            | library  | library      |
+    | org.gradle.libraryelements     | jar      | classes      |
+    | org.gradle.usage               | java-api | java-api     |
+    | org.gradle.dependency.bundling |          | external     |
+    | org.gradle.jvm.environment     |          | standard-jvm |
+    | org.gradle.jvm.version         |          | 11           |
    Selection reasons:
-      - Was requested : we require a JDK 9 compatible bytecode generator
+      - Was requested: we require a JDK 9 compatible bytecode generator
 
 org.ow2.asm:asm:7.1
 \--- compileClasspath

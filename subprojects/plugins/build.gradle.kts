@@ -23,6 +23,9 @@ dependencies {
     implementation(project(":testing-base"))
     implementation(project(":testing-jvm"))
     implementation(project(":snapshots"))
+    implementation(project(":publish"))
+    implementation(project(":ivy"))
+    implementation(project(":maven"))
     implementation(project(":execution")) {
         because("We need it for BuildOutputCleanupRegistry")
     }
@@ -74,11 +77,16 @@ strictCompile {
     ignoreDeprecations() // uses deprecated software model types
 }
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/**")
 }
 
 integTest.usesJavadocCodeSnippets.set(true)
 testFilesCleanup.reportOnly.set(true)
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}
 
 description = """Provides core Gradle plugins such as the base plugin and version catalog plugin, as well as JVM-related plugins for building different types of Java and Groovy projects."""

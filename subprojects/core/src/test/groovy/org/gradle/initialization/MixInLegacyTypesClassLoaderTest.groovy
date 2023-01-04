@@ -78,18 +78,28 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
             class JavaPluginConvention {
                 public static final String SOME_CONST = "Value";
                 public static final String SOME_CONST_WITH_GETTER = "Other Value";
+                public static final String SOME_CONST_WITH_RHS_EXPRESSION = doSomething("Derived Value");
+                public static final String SOME_CONST_WITH_RHS_EXPRESSION_AND_GETTER = doSomething("Other Derived Value");
 
                 public static String getSomeStuff() { return SOME_CONST; }
                 public static String getSOME_CONST_WITH_GETTER() { return SOME_CONST_WITH_GETTER; }
+                public static String getSOME_CONST_WITH_RHS_EXPRESSION_AND_GETTER() { return SOME_CONST_WITH_RHS_EXPRESSION_AND_GETTER; }
                 String _prop;
                 String getProp() { return _prop; }
                 void setProp(String value) { _prop = value; }
-                String doSomething(String arg) { return arg; }
+
+                private static String doSomething(String arg) { return arg; }
             }
         """)
 
         when:
         original.getMethod("getSOME_CONST")
+
+        then:
+        thrown java.lang.NoSuchMethodException
+
+        when:
+        original.getMethod("getSOME_CONST_WITH_RHS_EXPRESSION")
 
         then:
         thrown java.lang.NoSuchMethodException
@@ -105,6 +115,12 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
 
         cl.SOME_CONST_WITH_GETTER == "Other Value"
         cl.getSOME_CONST_WITH_GETTER() == "Other Value"
+
+        cl.SOME_CONST_WITH_RHS_EXPRESSION == "Derived Value"
+        cl.getSOME_CONST_WITH_RHS_EXPRESSION() == "Derived Value"
+
+        cl.SOME_CONST_WITH_RHS_EXPRESSION_AND_GETTER == "Other Derived Value"
+        cl.getSOME_CONST_WITH_RHS_EXPRESSION_AND_GETTER() == "Other Derived Value"
     }
 
     def "add getters for booleans"() {
@@ -227,7 +243,7 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         def fileManager = compiler.getStandardFileManager(null, null, null)
         def task = compiler.getTask(null, fileManager, null, ["-d", classesDir.path], null, fileManager.getJavaFileObjects(srcFile))
         task.call()
-        def cl = new VisitableURLClassLoader("groovy-loader", groovyClassLoader, DefaultClassPath.of(classesDir))
+        def cl = VisitableURLClassLoader.fromClassPath("groovy-loader", groovyClassLoader, DefaultClassPath.of(classesDir))
         cl.loadClass(className)
     }
 }

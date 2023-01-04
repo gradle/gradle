@@ -57,6 +57,23 @@ If you are configuring a task by name, you will need to use the configuration av
 
 In the event you still need to get access to a Task instance, you can use link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#named-java.lang.String-[TaskCollection.named(java.lang.String)] and call link:{javadocPath}/org/gradle/api/provider/Provider.html#get--[Provider.get()].  This will cause the task to be created/configured, but everything should work as it has with the eager APIs.
 
+[[sec:how_do_i_order_tasks]]
+=== How do I order tasks with configuration avoidance in mind?
+
+[NOTE]
+====
+Calling ordering methods will not cause task creation by itself. All these methods do is declare relationships. However, it's important to note, that the existence of these relationships might indirectly cause task creation in later stages of the build process.
+====
+
+When task relationships need to be established (i.e. `dependsOn`, `finalizedBy`, `mustRunAfter`, `shouldRunAfter`), a distinction can be made between soft, and strong relationships, as their effects on task creation in configuration time differ:
+
+link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:mustRunAfter(java.lang.Object++[]++)[Task.mustRunAfter(...)] and link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:shouldRunAfter(java.lang.Object++[]++)[Task.shouldRunAfter(...)] represent soft relationships, which can only change the order of existing tasks, but can't trigger their creation.
+
+link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:dependsOn(java.lang.Object++[]++)[Task.dependsOn(...)] and link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:finalizedBy(java.lang.Object++[]++)[Task.finalizedBy(...)] represent strong relationships, which will _force_ the execution of referenced tasks, even if they wouldn't have been created otherwise.
+
+- If a task is _not_ executed (regardless if it was created with link:{groovyDslPath}/org.gradle.api.tasks.TaskContainer.html#org.gradle.api.tasks.TaskContainer:register(java.lang.String)[Task.register(...)] or link:{groovyDslPath}/org.gradle.api.tasks.TaskContainer.html#org.gradle.api.tasks.TaskContainer:create(java.lang.String)[Task.create(...)]), the defined relationships will not trigger any task creation at configuration time.
+- If a task _is_ executed, all strongly associated tasks need to be created and configured at configuration time, as they might have other `dependsOn` or `finalizedBy` relationships. This will happen transitively, until the task graph contains all strong relationships.
+
 [[sec:task_configuration_avoidance_migration_guidelines]]
 == Migration Guide
 
@@ -77,19 +94,6 @@ Consider the following code:
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
-----
-def check = tasks.register("check")
-tasks.register("verificationTask") { verificationTask ->
-    // Configure verificationTask
-
-    // Run verificationTask when someone runs check
-    check.get().dependsOn verificationTask
-}
-----
-=====
-[.multi-language-sample]
-=====
 [source,kotlin]
 ----
 val check by tasks.registering
@@ -98,6 +102,19 @@ tasks.register("verificationTask") {
 
     // Run verificationTask when someone runs check
     check.get().dependsOn(this)
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+def check = tasks.register("check")
+tasks.register("verificationTask") { verificationTask ->
+    // Configure verificationTask
+
+    // Run verificationTask when someone runs check
+    check.get().dependsOn verificationTask
 }
 ----
 =====
@@ -111,19 +128,6 @@ The code would become:
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
-----
-def check = tasks.register("check")
-def verificationTask = tasks.register("verificationTask") {
-    // Configure verificationTask
-}
-check.configure {
-    dependsOn verificationTask
-}
-----
-=====
-[.multi-language-sample]
-=====
 [source,kotlin]
 ----
 val check by tasks.registering
@@ -132,6 +136,19 @@ val verificationTask by tasks.registering {
 }
 check {
     dependsOn(verificationTask)
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+def check = tasks.register("check")
+def verificationTask = tasks.register("verificationTask") {
+    // Configure verificationTask
+}
+check.configure {
+    dependsOn verificationTask
 }
 ----
 =====
@@ -179,7 +196,7 @@ This will cause your build to eagerly create fewer tasks that are registered by 
 
 2. **Migrate tasks configured by name.**
 Similar to the previous point, this will cause your build to eagerly create fewer tasks that are registered by plugins.
-For example, logic that uses `TaskContainer#getByName(String, Closure/Action)` should be converted to `TaskContainer#named(String).configure(Closure/Action)`.
+For example, logic that uses `TaskContainer#getByName(String, Closure)` should be converted to `TaskContainer#named(String, Action)`.
 This also includes <<#task_configuration_avoidance_pitfalls_hidden_eager_task_realization, task configuration via DSL blocks>>.
 
 3. **Migrate tasks creation to `register(...)`.**
@@ -230,7 +247,7 @@ image::taskConfigurationAvoidance-performance-annotated.png[]
 === Pitfalls
 
 * [[task_configuration_avoidance_pitfalls_hidden_eager_task_realization]] **Beware of the hidden eager task realization.**
-There are many ways that a task can be configured eagerly.  For example, configuring a task using the task name and a DSL block will cause the task to immediately be created:
+There are many ways that a task can be configured eagerly.  For example, configuring a task using the task name and a DSL block will cause the task to immediately be created when using the Groovy DSL:
 +
 [source,groovy]
 ----
@@ -247,7 +264,7 @@ Instead use the `named()` method to acquire a reference to the task and configur
 +
 [source,groovy]
 ----
-tasks.named("someTask").configure {
+tasks.named("someTask") {
     // ...
     // Beware of the pitfalls here
 }
@@ -274,23 +291,23 @@ There are several ways this premature creation can be avoided:
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
-----
-def someTask = tasks.register("someTask")
-
-task anEagerTask {
-    dependsOn someTask
-}
-----
-=====
-[.multi-language-sample]
-=====
 [source,kotlin]
 ----
 val someTask by tasks.registering
 
 task("anEagerTask") {
     dependsOn(someTask)
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+def someTask = tasks.register("someTask")
+
+task anEagerTask {
+    dependsOn someTask
 }
 ----
 =====
@@ -313,23 +330,23 @@ tasks.register("anEagerTask") {
 ====
 [.multi-language-sample]
 =====
-[source,groovy]
-----
-tasks.register("someTask")
-
-task anEagerTask {
-    dependsOn tasks.named("someTask")
-}
-----
-=====
-[.multi-language-sample]
-=====
 [source,kotlin]
 ----
 tasks.register("someTask")
 
 task("anEagerTask") {
     dependsOn(tasks.named("someTask"))
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+tasks.register("someTask")
+
+task anEagerTask {
+    dependsOn tasks.named("someTask")
 }
 ----
 =====
@@ -407,7 +424,7 @@ It is highly recommended to have cross-version test coverage using <<test_kit.ad
 
 | Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getByName-java.lang.String-groovy.lang.Closure-[TaskCollection.getByName(java.lang.String, groovy.lang.Closure)]
 .2+| This returns a `TaskProvider` instead of a `Task`.
-| Use: `named(java.lang.String).configure(Action)`
+| Use: `named(java.lang.String, Action)`
 
 | Instead of: link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html#getByPath-java.lang.String-[TaskContainer.getByPath(java.lang.String)]
 .2+| Accessing tasks from another project requires a specific ordering of project evaluation.

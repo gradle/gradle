@@ -16,10 +16,11 @@
 
 package org.gradle.integtests.composite
 
+import spock.lang.Issue
+
 
 class CompositeBuildTaskLifecycleIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-
-    def "does not fail when mustRunAfter task in included build is not scheduled for execution"() {
+    def "does not fail when #method task in included build is not scheduled for execution"() {
         given:
         buildA.buildFile << """
             task a {
@@ -30,7 +31,7 @@ class CompositeBuildTaskLifecycleIntegrationTest extends AbstractCompositeBuildI
         def buildB = singleProjectBuild("buildB") {
             buildFile << """
                 task b {
-                    mustRunAfter 'c'
+                    $method 'c'
                 }
 
                 task c {
@@ -46,57 +47,12 @@ class CompositeBuildTaskLifecycleIntegrationTest extends AbstractCompositeBuildI
         assertTaskExecuted(':buildB', ':b')
         assertTaskExecuted(':', ':a')
         assertTaskNotExecuted(':buildB', ':c')
+
+        where:
+        method << ["shouldRunAfter", "mustRunAfter"]
     }
 
-    def "mustRunAfter task from included build is deprecated"() {
-        given:
-        buildA.buildFile << """
-            task a {
-                mustRunAfter gradle.includedBuild('buildB').task(':b')
-            }
-        """
-
-        def buildB = singleProjectBuild("buildB") {
-            buildFile << """
-                task b {
-                }
-            """
-        }
-        includedBuilds << buildB
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Using mustRunAfter to reference tasks from another build has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#referencing_tasks_from_included_builds")
-        execute(buildA, 'a')
-
-        then:
-        result.assertTasksExecuted(":a")
-    }
-
-    def "shouldRunAfter task from included build is deprecated"() {
-        given:
-        buildA.buildFile << """
-            task a {
-                shouldRunAfter gradle.includedBuild('buildB').task(':b')
-            }
-        """
-
-        def buildB = singleProjectBuild("buildB") {
-            buildFile << """
-                task b {
-                }
-            """
-        }
-        includedBuilds << buildB
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Using shouldRunAfter to reference tasks from another build has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#referencing_tasks_from_included_builds")
-        execute(buildA, 'a')
-
-        then:
-        result.assertTasksExecuted(":a")
-    }
-
-    def "finalizedBy is respected within included build"() {
+    def "finalizedBy task within included build schedules finalizer for execution"() {
         given:
         buildA.buildFile << """
             task a {
@@ -125,33 +81,33 @@ class CompositeBuildTaskLifecycleIntegrationTest extends AbstractCompositeBuildI
         assertTaskExecuted(':', ':a')
     }
 
-    def "finalizedBy task from included build schedules finalizer for execution"() {
+    @Issue("https://github.com/gradle/gradle/issues/15875")
+    void '#method can not reference tasks from another build'() {
         given:
         buildA.buildFile << """
             task a {
-                finalizedBy gradle.includedBuild('buildB').task(':b')
+                $method gradle.includedBuild('buildB').task(':b')
             }
         """
 
         def buildB = singleProjectBuild("buildB") {
             buildFile << """
                 task b {
-                    finalizedBy 'c'
+                    $method 'c'
                 }
 
                 task c {
                 }
             """
         }
-        executer.expectDocumentedDeprecationWarning("Using finalizedBy to reference tasks from another build has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#referencing_tasks_from_included_builds")
+
         includedBuilds << buildB
 
-        when:
-        execute(buildA, 'a')
+        expect:
+        fails(buildA, "a")
+        result.hasErrorOutput("Cannot use $method to reference tasks from another build")
 
-        then:
-        assertTaskExecuted(':', ':a')
-        assertTaskExecuted(':buildB', ':b')
-        assertTaskExecuted(':buildB', ':c')
+        where:
+        method << ["finalizedBy", "shouldRunAfter", "mustRunAfter"]
     }
 }

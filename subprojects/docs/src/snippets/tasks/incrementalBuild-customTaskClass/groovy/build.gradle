@@ -12,6 +12,10 @@ def processTemplates = tasks.register('processTemplates', ProcessTemplates) {
     outputDir = file(layout.buildDirectory.dir('genOutput'))
 }
 
+interface Injected {
+    @Inject FileSystemOperations getFs()
+}
+
 // tag::ad-hoc-task[]
 tasks.register('processTemplatesAdHoc') {
     inputs.property('engine', TemplateEngineType.FREEMARKER)
@@ -23,12 +27,18 @@ tasks.register('processTemplatesAdHoc') {
     outputs.dir(layout.buildDirectory.dir('genOutput2'))
         .withPropertyName('outputDir')
 
+// end::ad-hoc-task[]
+    def buildDirectory = layout.buildDirectory
+    def objectFactory = project.objects
+    def injected = objectFactory.newInstance(Injected)
+
+// tag::ad-hoc-task[]
     doLast {
         // Process the templates here
 // end::ad-hoc-task[]
-        copy {
-            into layout.buildDirectory.dir('genOutput2')
-            from fileTree('src/templates')
+        injected.fs.copy {
+            into buildDirectory.dir('genOutput2')
+            from objectFactory.fileTree().from('src/templates')
             expand([year: '2013'])
         }
 
@@ -57,10 +67,14 @@ tasks.register('processTemplatesAdHocSkipWhenEmpty') {
     outputs.dir(layout.buildDirectory.dir('genOutput2'))
         .withPropertyName('outputDir')
 
+    def buildDirectory = layout.buildDirectory
+    def objectFactory = project.objects
+    def injected = objectFactory.newInstance(Injected)
+
     doLast {
-        copy {
-            into layout.buildDirectory.dir('genOutput2')
-            from fileTree('src/templates')
+        injected.fs.copy {
+            into buildDirectory.dir('genOutput2')
+            from objectFactory.fileTree().from('src/templates')
             expand([year: '2013'])
         }
     }
@@ -87,7 +101,7 @@ tasks.register('processTemplatesWithExtraInputs', ProcessTemplates) {
 
 // tag::inferred-task-dep-via-outputs[]
 tasks.register('packageFiles', Zip) {
-    from processTemplates.map {it.outputs }
+    from processTemplates.map { it.outputDir }
 }
 // end::inferred-task-dep-via-outputs[]
 
@@ -100,9 +114,10 @@ tasks.register('packageFiles2', Zip) {
 
 // tag::adhoc-destroyable-task[]
 tasks.register('removeTempDir') {
-    destroyables.register(layout.projectDirectory.dir('tmpDir'))
+    def tempDir = layout.projectDirectory.dir('tmpDir')
+    destroyables.register(tempDir)
     doLast {
-        delete(layout.projectDirectory.dir('tmpDir'))
+        tempDir.asFile.deleteDir()
     }
 }
 // end::adhoc-destroyable-task[]

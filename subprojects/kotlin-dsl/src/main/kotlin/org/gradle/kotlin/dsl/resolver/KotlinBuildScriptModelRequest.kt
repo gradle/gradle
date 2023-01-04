@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.resolver
 
+import com.google.common.annotations.VisibleForTesting
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.isParentOf
 import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
@@ -24,10 +25,8 @@ import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
-
-import com.google.common.annotations.VisibleForTesting
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 
 import java.io.File
 import java.util.function.Function
@@ -142,17 +141,17 @@ fun GradleConnector.useGradleFrom(gradleInstallation: GradleInstallation): Gradl
 private
 fun fetchKotlinBuildScriptModelFor(parameters: FetchParameters): KotlinBuildScriptModel {
 
-    if (parameters.scriptFile == null) {
-        return fetchKotlinBuildScriptModelFrom(parameters.importedProjectDir, parameters)
-    }
+    val projectDir = parameters.importedProjectDir
+    val scriptFile = parameters.scriptFile
+        ?: return fetchKotlinBuildScriptModelFrom(projectDir, parameters)
 
-    val effectiveProjectDir = buildSrcProjectDirOf(parameters.scriptFile, parameters.importedProjectDir)
-        ?: parameters.importedProjectDir
+    val effectiveProjectDir = buildSrcProjectDirOf(scriptFile, projectDir)
+        ?: projectDir
 
     val scriptModel = fetchKotlinBuildScriptModelFrom(effectiveProjectDir, parameters)
-    if (scriptModel.enclosingScriptProjectDir == null && hasProjectDependentClassPath(parameters.scriptFile)) {
-        val externalProjectRoot = projectRootOf(parameters.scriptFile, parameters.importedProjectDir)
-        if (externalProjectRoot != parameters.importedProjectDir) {
+    if (scriptModel.enclosingScriptProjectDir == null && hasProjectDependentClassPath(scriptFile)) {
+        val externalProjectRoot = projectRootOf(scriptFile, projectDir)
+        if (externalProjectRoot != projectDir) {
             return fetchKotlinBuildScriptModelFrom(externalProjectRoot, parameters)
         }
     }
@@ -228,8 +227,7 @@ fun projectRootOf(scriptFile: File, importedProjectRoot: File, stopAt: File? = n
             dir == importedProjectRoot -> importedProjectRoot
             isProjectRoot(dir) -> dir
             else -> {
-                val parentDir = dir.parentFile
-                when (parentDir) {
+                when (val parentDir = dir.parentFile) {
                     null, dir, stopAt -> scriptFile.parentFile // external project
                     else -> test(parentDir)
                 }

@@ -17,12 +17,32 @@
 package org.gradle.internal.execution.steps;
 
 import org.gradle.internal.Try;
-import org.gradle.internal.execution.ExecutionResult;
+import org.gradle.internal.execution.ExecutionEngine.Execution;
 import org.gradle.internal.execution.UnitOfWork;
 
 import java.time.Duration;
 
-public interface Result {
+public class Result {
+
+    private final Duration duration;
+    private final Try<Execution> execution;
+
+    protected Result(Duration duration, Try<Execution> execution) {
+        this.duration = duration;
+        this.execution = execution;
+    }
+
+    protected Result(Result parent) {
+        this(parent.getDuration(), parent.getExecution());
+    }
+
+    public static Result failed(Throwable t, Duration duration) {
+        return new Result(duration, Try.failure(t));
+    }
+
+    public static Result success(Duration duration, Execution outcome) {
+        return new Result(duration, Try.successful(outcome));
+    }
 
     /**
      * The elapsed wall clock time of executing the actual work, i.e. the time it took to execute the
@@ -41,7 +61,11 @@ public interface Result {
      *     <li>had there been no work to reuse, the local execution might have happened happen incrementally.</li>
      * </ul>
      */
-    Duration getDuration();
+    public Duration getDuration() {
+        return duration;
+    }
 
-    Try<ExecutionResult> getExecutionResult();
+    public Try<Execution> getExecution() {
+        return execution;
+    }
 }

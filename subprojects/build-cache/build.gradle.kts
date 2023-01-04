@@ -9,11 +9,13 @@ dependencies {
     api(project(":build-cache-base"))
     api(project(":snapshots"))
 
+    implementation(project(":build-cache-packaging"))
     implementation(project(":base-services"))
     implementation(project(":enterprise-operations"))
     implementation(project(":core-api"))
     implementation(project(":files"))
     implementation(project(":file-temp"))
+    implementation(project(":functional"))
     implementation(project(":native"))
     implementation(project(":persistent-cache"))
     implementation(project(":resources"))
@@ -35,6 +37,7 @@ dependencies {
     testImplementation(project(":file-collections"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":base-services")))
+    testImplementation(testFixtures(project(":snapshots")))
 
     integTestDistributionRuntimeOnly(project(":distributions-core"))
 }

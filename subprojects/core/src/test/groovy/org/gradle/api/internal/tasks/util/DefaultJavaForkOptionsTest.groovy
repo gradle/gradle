@@ -279,10 +279,42 @@ class DefaultJavaForkOptionsTest extends Specification {
         when:
         options.debugOptions {
             it.port.set(2233)
+            it.host.set("*")
         }
 
         then:
         options.debugOptions.port.get() == 2233
+        options.debugOptions.host.get() == "*"
+    }
+
+    def "allJvmArgs includes debug options port"() {
+        when:
+        options.debugOptions {
+            it.enabled.set(true)
+            it.port.set(11111)
+        }
+
+        then:
+        '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=11111' in options.allJvmArgs
+    }
+
+    def "allJvmArgs includes debug options host if it is set"() {
+        when:
+        options.debugOptions {
+            it.enabled.set(true)
+            it.port.set(22222)
+            if (host != null) {
+                it.host.set(host)
+            }
+        }
+
+        then:
+        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=$address".toString() in options.allJvmArgs
+
+        where:
+        host        | address
+        null        | "22222"
+        "127.0.0.1" | "127.0.0.1:22222"
     }
 
     def "can set bootstrapClasspath"() {

@@ -537,6 +537,17 @@ public class ExtensibleDynamicObjectTest {
     }
 
     @Test
+    public void canInvokeClosureLikePropertyAsAMethod() {
+        Bean bean = new Bean();
+        bean.defineProperty("someMethod", new Object() {
+            public String call(String param) {
+                return param.toLowerCase();
+            }
+        });
+        assertThat(bean.invokeMethod("someMethod", "Param"), equalTo("param"));
+    }
+
+    @Test
     public void invokeMethodFailsForUnknownMethod() {
         Bean bean = new Bean();
         try {

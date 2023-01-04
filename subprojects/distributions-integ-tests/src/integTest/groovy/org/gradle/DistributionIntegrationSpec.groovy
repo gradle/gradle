@@ -36,7 +36,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
-    protected static final THIRD_PARTY_LIB_COUNT = 146
+    protected static final THIRD_PARTY_LIB_COUNT = 149
 
     @Rule public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier()
 
@@ -61,6 +61,14 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     /**
+     * Change this whenever you add or remove subprojects for distribution java agents (lib/agents).
+     * @return
+     */
+    int getAgentJarsCount() {
+        1
+    }
+
+    /**
      * Change this if you added or removed dependencies.
      */
     int getThirdPartyLibJarsCount() {
@@ -68,7 +76,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     int getLibJarsCount() {
-        coreLibJarsCount + packagedPluginsJarCount + thirdPartyLibJarsCount
+        coreLibJarsCount + packagedPluginsJarCount + agentJarsCount + thirdPartyLibJarsCount
     }
 
     def "distribution size should not exceed a certain number"() {
@@ -170,7 +178,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${baseVersion}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 400 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 500 * 1024 // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Plugins
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-dependency-management-${baseVersion}.jar"))
@@ -191,6 +199,9 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-language-java-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-language-groovy-${baseVersion}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-enterprise-${baseVersion}.jar"))
+
+        // Agents
+        assertIsGradleJar(contentsDir.file("lib/agents/gradle-instrumentation-agent-${baseVersion}.jar"))
 
         // Docs
         contentsDir.file('README').assertIsFile()

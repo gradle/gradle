@@ -42,7 +42,12 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-classycle {
+packageCycles {
     // Some cycles have been inherited from the time these classes were in :core
-    excludePatterns.add("org/gradle/api/internal/file/collections/")
+    excludePatterns.add("org/gradle/api/internal/file/collections/**")
+}
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

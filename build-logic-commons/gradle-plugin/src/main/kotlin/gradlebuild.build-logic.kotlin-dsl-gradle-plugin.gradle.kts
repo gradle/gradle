@@ -14,29 +14,19 @@
  * limitations under the License.
  */
 
-import java.io.FileOutputStream
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
-import java.nio.file.LinkOption
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
-
 plugins {
     id("java-library")
     id("org.gradle.kotlin.kotlin-dsl") // this is 'kotlin-dsl' without version
     id("gradlebuild.code-quality")
     id("gradlebuild.ktlint")
+    id("gradlebuild.ci-reporting")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
+java.configureJavaToolChain()
 
 dependencies {
     api(platform(project(":build-platform")))
-    implementation("gradlebuild:code-quality")
-    implementation("gradlebuild:build-scan")
+    implementation("gradlebuild:gradle-plugin")
 
     testImplementation("org.junit.vintage:junit-vintage-engine")
 }
@@ -49,59 +39,16 @@ ktlint {
 
 tasks.runKtlintCheckOverKotlinScripts {
     // Only check the build files, not all *.kts files in the project
-    setIncludes(listOf("*.gradle.kts"))
+    includes += listOf("*.gradle.kts")
 }
 
-tasks.codeQuality {
-    dependsOn(tasks.ktlintCheck)
+tasks.named("codeQuality") {
+    dependsOn("ktlintCheck")
 }
 
 tasks.validatePlugins {
     failOnWarning.set(true)
     enableStricterValidation.set(true)
-}
-
-
-val isCiServer = "CI" in System.getenv()
-
-if (isCiServer && project.name != "gradle-kotlin-dsl-accessors") {
-    gradle.buildFinished {
-        failedTasks().forEach { prepareReportForCIPublishing(it.reports["html"].outputLocation.get().asFile) }
-    }
-}
-
-fun failedTasks() = gradle.taskGraph.allTasks.filter {
-    it.project == project && it is Reporting<*> && it.state.failure != null
-}.map { it as Reporting<*> }
-
-fun zip(destZip: File, srcDir: File) {
-    destZip.parentFile.mkdirs()
-    ZipOutputStream(FileOutputStream(destZip), StandardCharsets.UTF_8).use { zipOutput ->
-        val srcPath = srcDir.toPath()
-        Files.walk(srcPath).use { paths ->
-            paths
-                .filter { Files.isRegularFile(it, LinkOption.NOFOLLOW_LINKS) }
-                .forEach { path ->
-                    val zipEntry = ZipEntry(srcPath.relativize(path).toString())
-                    zipOutput.putNextEntry(zipEntry)
-                    Files.copy(path, zipOutput)
-                    zipOutput.closeEntry()
-                }
-        }
-    }
-}
-
-fun prepareReportForCIPublishing(report: File) {
-    if (report.isDirectory) {
-        val destFile = layout.buildDirectory.file("report-${project.name}-${report.name}.zip").get().asFile
-        zip(destFile, report)
-    } else {
-        copy {
-            from(report)
-            into(layout.buildDirectory)
-            rename { "report-${project.name}-${report.parentFile.name}-${report.name}" }
-        }
-    }
 }
 
 tasks.withType<Test>().configureEach {

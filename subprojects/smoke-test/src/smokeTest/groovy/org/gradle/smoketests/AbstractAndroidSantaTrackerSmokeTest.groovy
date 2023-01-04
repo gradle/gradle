@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
-import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
@@ -36,7 +35,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     TestFile homeDir
 
-    String kotlinVersion = TestedVersions.kotlin.latest()
+    String kotlinVersion = TestedVersions.kotlin.latestStable()
 
     def setup() {
         homeDir = temporaryFolder.createDir("test-kit-home")
@@ -53,23 +52,20 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected BuildResult buildLocation(File projectDir, String agpVersion) {
-        return expectAgpFileTreeDeprecations(agpVersion, runnerForLocation(projectDir, agpVersion, "assembleDebug"))
-            .build()
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
     }
 
     protected BuildResult buildLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion) {
-        return expectAgpFileTreeDeprecations(agpVersion, runnerForLocationMaybeExpectingWorkerExecutorDeprecation(location, agpVersion, "assembleDebug"))
-            .build()
+        return runnerForLocation(location, agpVersion,"assembleDebug")
+            .deprecations(SantaTrackerDeprecations) {
+                expectAndroidWorkerExecutionSubmitDeprecationWarning(agpVersion)
+            }.build()
     }
 
-    protected SmokeTestGradleRunner runnerForLocationMaybeExpectingWorkerExecutorDeprecation(File location, String agpVersion, String... tasks) {
-        return runnerForLocation(location, agpVersion, tasks)
-            .expectLegacyDeprecationWarningIf(agpVersion.startsWith("4.1"),
-                "The WorkerExecutor.submit() method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 8.0. " +
-                    "Please use the noIsolation(), classLoaderIsolation() or processIsolation() method instead. " +
-                    "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#method_workerexecutor_submit_is_deprecated for more details."
-            )
+    static class SantaTrackerDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
+        SantaTrackerDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
     }
 
     protected BuildResult cleanLocation(File projectDir, String agpVersion) {
@@ -77,7 +73,13 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     protected SmokeTestGradleRunner runnerForLocation(File projectDir, String agpVersion, String... tasks) {
-        def runnerArgs = [["-DagpVersion=$agpVersion", "-DkotlinVersion=$kotlinVersion", "--stacktrace"], tasks].flatten()
+        def runnerArgs = [[
+            // TODO: the versions of KGP we use still access Task.project from a cacheIf predicate
+            "-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true",
+            "-DagpVersion=$agpVersion",
+            "-DkotlinVersion=$kotlinVersion",
+            "--stacktrace"],
+        tasks].flatten()
         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_16)) {
             // fall back to using Java 11 (LTS) for Android tests
             // Kapt is not compatible with JDK 16+, https://youtrack.jetbrains.com/issue/KT-45545,

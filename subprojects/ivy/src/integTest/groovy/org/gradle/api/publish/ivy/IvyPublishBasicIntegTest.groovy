@@ -17,7 +17,6 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
 class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
@@ -44,7 +43,6 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         ivyRepo.module('group', 'root', '1.0').assertNotPublished()
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishes empty module when publication has no added component"() {
         given:
         settingsFile << "rootProject.name = 'empty-project'"
@@ -90,7 +88,6 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish simple jar"() {
         given:
         def javaLibrary = javaLibrary(ivyRepo.module('group', 'root', '1.0'))
@@ -165,7 +162,6 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         failure.assertHasCause("Ivy publication 'ivy' cannot include multiple components")
     }
 
-    @ToBeFixedForConfigurationCache
     def "publishes to all defined repositories"() {
         given:
         def ivyRepo2 = ivy("ivy-repo-2")
@@ -197,7 +193,6 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         module2.assertPublished()
     }
 
-    @ToBeFixedForConfigurationCache
     def "can publish custom PublishArtifact"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -246,6 +241,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
                     }
                 }
             }
+            ${ivyTestRepository()}
             publishing {
                 repositories {
                     ivy { url "${ivyRepo.uri}" }
@@ -266,7 +262,6 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         module.assertPublished()
     }
 
-    @ToBeFixedForConfigurationCache
     def "warns when trying to publish a transitive = false variant"() {
         given:
         def javaLibrary = javaLibrary(ivyRepo.module('group', 'root', '1.0'))
@@ -301,15 +296,12 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
             }
         """
 
-        when:
+        expect: "build warned about transitive = true variant"
         executer.withStackTraceChecksDisabled()
+        executer.expectDeprecationWarning("Publication ignores 'transitive = false' at configuration level. This behavior is deprecated. Consider using 'transitive = false' at the dependency level if you need this to be published.")
         succeeds 'publish'
-
-        then: "build warned about transitive = true variant"
-        outputContains("Publication ignores 'transitive = false' at configuration level.")
     }
 
-    @ToBeFixedForConfigurationCache(because = "configuration cache doesn't support task failures")
     @Issue("https://github.com/gradle/gradle/issues/15009")
     def "fails publishing if a variant contains a dependency on an enforced platform"() {
         settingsFile << """
@@ -324,6 +316,8 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
             dependencies {
                 implementation enforcedPlatform('org:platform:1.0')
             }
+
+            ${emptyJavaClasspath()}
 
             publishing {
                 repositories {
@@ -347,7 +341,6 @@ In general publishing dependencies to enforced platforms is a mistake: enforced 
     }
 
     @Issue("https://github.com/gradle/gradle/issues/15009")
-    @ToBeFixedForConfigurationCache(because = "configuration cache doesn't support task failures")
     def "can disable validation of publication of dependencies on enforced platforms"() {
         settingsFile << """
             rootProject.name = 'publish'
@@ -360,6 +353,8 @@ In general publishing dependencies to enforced platforms is a mistake: enforced 
 
             group = 'com.acme'
             version = '0.999'
+
+            ${emptyJavaClasspath()}
 
             dependencies {
                 implementation enforcedPlatform('org:platform:1.0')

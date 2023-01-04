@@ -78,62 +78,6 @@ BUILD SUCCESSFUL
 
 The `init` task generates the new project with the following structure:
 
-[source.multi-language-sample,groovy]
-----
-├── gradle // <1>
-│   └── wrapper
-│       ├── gradle-wrapper.jar
-│       └── gradle-wrapper.properties
-├── gradlew // <2>
-├── gradlew.bat // <2>
-├── settings.gradle // <3>
-├── buildSrc
-│   ├── build.gradle // <4>
-│   └── src
-│       └── main
-│           └── groovy // <5>
-│               ├── demo.${languageLC.raw}-application-conventions.gradle
-│               ├── demo.${languageLC.raw}-common-conventions.gradle
-│               └── demo.${languageLC.raw}-library-conventions.gradle
-├── app
-│   ├── build.gradle // <6>
-│   └── src
-│       ├── main // <7>
-│       │   └── java
-│       │       └── demo
-│       │           └── app
-│       │               ├── App.java
-│       │               └── MessageUtils.java
-│       └── test // <8>
-│           └── java
-│               └── demo
-│                   └── app
-│                       └── MessageUtilsTest.java
-├── list
-│   ├── build.gradle // <6>
-│   └── src
-│       ├── main // <7>
-│       │   └── java
-│       │       └── demo
-│       │           └── list
-│       │               └── LinkedList.java
-│       └── test // <8>
-│           └── java
-│               └── demo
-│                   └── list
-│                       └── LinkedListTest.java
-└── utilities
-    ├── build.gradle // <6>
-    └── src
-        └── main // <7>
-            └── java
-                └── demo
-                    └── utilities
-                        ├── JoinUtils.java
-                        ├── SplitUtils.java
-                        └── StringUtils.java
-----
-
 [source.multi-language-sample,kotlin]
 ----
 ├── gradle // <1>
@@ -190,6 +134,62 @@ The `init` task generates the new project with the following structure:
                         └── StringUtils.${languageExtension.raw}
 ----
 
+[source.multi-language-sample,groovy]
+----
+├── gradle // <1>
+│   └── wrapper
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+├── gradlew // <2>
+├── gradlew.bat // <2>
+├── settings.gradle // <3>
+├── buildSrc
+│   ├── build.gradle // <4>
+│   └── src
+│       └── main
+│           └── groovy // <5>
+│               ├── demo.${languageLC.raw}-application-conventions.gradle
+│               ├── demo.${languageLC.raw}-common-conventions.gradle
+│               └── demo.${languageLC.raw}-library-conventions.gradle
+├── app
+│   ├── build.gradle // <6>
+│   └── src
+│       ├── main // <7>
+│       │   └── java
+│       │       └── demo
+│       │           └── app
+│       │               ├── App.java
+│       │               └── MessageUtils.java
+│       └── test // <8>
+│           └── java
+│               └── demo
+│                   └── app
+│                       └── MessageUtilsTest.java
+├── list
+│   ├── build.gradle // <6>
+│   └── src
+│       ├── main // <7>
+│       │   └── java
+│       │       └── demo
+│       │           └── list
+│       │               └── LinkedList.java
+│       └── test // <8>
+│           └── java
+│               └── demo
+│                   └── list
+│                       └── LinkedListTest.java
+└── utilities
+    ├── build.gradle // <6>
+    └── src
+        └── main // <7>
+            └── java
+                └── demo
+                    └── utilities
+                        ├── JoinUtils.java
+                        ├── SplitUtils.java
+                        └── StringUtils.java
+----
+
 <1> Generated folder for wrapper files
 <2> Gradle wrapper start scripts
 <3> Settings file to define build name and subprojects
@@ -206,8 +206,8 @@ You now have the project setup to build a ${language.raw} ${componentType.raw} w
 The `settings.gradle(.kts)` file has two interesting lines:
 
 ====
-include::sample[dir="groovy",files="settings.gradle[]"]
 include::sample[dir="kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="groovy",files="settings.gradle[]"]
 ====
 - `rootProject.name` assigns a name to the build, which overrides the default behavior of naming the build after the directory it's in.
   It's recommended to set a fixed name as the folder might change if the project is shared - e.g. as root of a Git repository.
@@ -221,8 +221,8 @@ Convention plugins in `buildSrc` are an easy way to utilise Gradle's plugin syst
 in this sample, we can find three such convention plugins that are based on each other:
 
 ====
-include::sample[dir="groovy",files="buildSrc/src/main/groovy/demo.${languageLC.raw}-common-conventions.gradle[]"]
 include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/demo.${languageLC.raw}-common-conventions.gradle.kts[]"]
+include::sample[dir="groovy",files="buildSrc/src/main/groovy/demo.${languageLC.raw}-common-conventions.gradle[]"]
 ====
 
 The `${languageLC.raw}-common-conventions` defines some configuration that should be shared by all our ${language.raw} project -- independent of whether they represent a library or the actual application.
@@ -231,12 +231,12 @@ Then, we declare a repository -- `mavenCentral()` -- as source for external depe
 Other shared settings, like compiler flags or JVM version compatibilities, could also be set here.
 
 ====
-include::sample[dir="groovy",files="buildSrc/src/main/groovy/demo.${languageLC.raw}-library-conventions.gradle[]"]
 include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/demo.${languageLC.raw}-library-conventions.gradle.kts[]"]
+include::sample[dir="groovy",files="buildSrc/src/main/groovy/demo.${languageLC.raw}-library-conventions.gradle[]"]
 ====
 ====
-include::sample[dir="groovy",files="buildSrc/src/main/groovy/demo.${languageLC.raw}-application-conventions.gradle[]"]
 include::sample[dir="kotlin",files="buildSrc/src/main/kotlin/demo.${languageLC.raw}-application-conventions.gradle.kts[]"]
+include::sample[dir="groovy",files="buildSrc/src/main/groovy/demo.${languageLC.raw}-application-conventions.gradle[]"]
 ====
 
 
@@ -247,16 +247,16 @@ While there is no more fine grained configuration in this example, library or ap
 Lets have a look at the `build.gradle(.kts)` files in the subprojects.
 
 ====
-include::sample[dir="groovy",files="app/build.gradle[]"]
 include::sample[dir="kotlin",files="app/build.gradle.kts[]"]
+include::sample[dir="groovy",files="app/build.gradle[]"]
 ====
 ====
-include::sample[dir="groovy",files="list/build.gradle[]"]
 include::sample[dir="kotlin",files="list/build.gradle.kts[]"]
+include::sample[dir="groovy",files="list/build.gradle[]"]
 ====
 ====
-include::sample[dir="groovy",files="utilities/build.gradle[]"]
 include::sample[dir="kotlin",files="utilities/build.gradle.kts[]"]
+include::sample[dir="groovy",files="utilities/build.gradle[]"]
 ====
 
 Looking at the build scripts, we can see that they include up to three blocks
@@ -279,8 +279,8 @@ Looking at the build scripts, we can see that they include up to three blocks
 The last build file we have is the `build.gradle(.kts)` file in `buildSrc`.
 
 ====
-include::sample[dir="groovy",files="buildSrc/build.gradle[]"]
 include::sample[dir="kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="groovy",files="buildSrc/build.gradle[]"]
 ====
 
 This file is setting the stage to build the convention plugins themselves.

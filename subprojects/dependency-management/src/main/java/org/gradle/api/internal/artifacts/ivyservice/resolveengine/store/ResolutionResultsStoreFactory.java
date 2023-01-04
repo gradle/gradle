@@ -42,7 +42,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
     private CachedStoreFactory<TransientConfigurationResults> oldModelCache;
     private CachedStoreFactory<ResolvedComponentResult> newModelCache;
 
-    private final AtomicInteger storeSetBaseId = new AtomicInteger(0);
+    private final AtomicInteger storeSetBaseId = new AtomicInteger();
 
     public ResolutionResultsStoreFactory(TemporaryFileProvider temp) {
         this(temp, DEFAULT_MAX_SIZE);
@@ -62,7 +62,7 @@ public class ResolutionResultsStoreFactory implements Closeable {
 
     private synchronized DefaultBinaryStore createBinaryStore(String storeKey) {
         DefaultBinaryStore store = stores.get(storeKey);
-        if (store == null || isFull(store)) {
+        if (store == null || isFull(store) || store.isInUse()) {
             File storeFile = temp.createTemporaryFile("gradle", ".bin");
             storeFile.deleteOnExit();
             store = new DefaultBinaryStore(storeFile);

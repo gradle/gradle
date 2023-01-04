@@ -59,11 +59,11 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.internal.Factories
+import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -101,7 +101,7 @@ class DefaultConfigurationSpec extends Specification {
     def calculatedValueContainerFactory = Mock(CalculatedValueContainerFactory)
 
     def setup() {
-        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
+        _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener, Stub(Dispatch)) }
         _ * resolver.getRepositories() >> []
         _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
@@ -119,7 +119,6 @@ class DefaultConfigurationSpec extends Specification {
         configuration.description == null
         configuration.state == UNRESOLVED
         configuration.displayName == "configuration ':project:name'"
-        configuration.uploadTaskName == "uploadName"
         configuration.attributes.isEmpty()
         configuration.canBeResolved
         configuration.canBeConsumed
@@ -469,7 +468,7 @@ class DefaultConfigurationSpec extends Specification {
         def localComponentsResult = Stub(ResolvedLocalComponentsResult)
         def visitedArtifactSet = Stub(VisitedArtifactSet)
 
-        _ * visitedArtifactSet.select(_, _, _, _) >> Stub(SelectedArtifactSet) {
+        _ * visitedArtifactSet.select(_, _, _, _, _) >> Stub(SelectedArtifactSet) {
             visitArtifacts(_, _) >> { ArtifactVisitor visitor, boolean l ->
                 files.each {
                     def artifact = Stub(ResolvableArtifact)
@@ -506,7 +505,7 @@ class DefaultConfigurationSpec extends Specification {
         def visitedArtifactSet = Stub(VisitedArtifactSet)
         def resolvedConfiguration = Stub(ResolvedConfiguration)
 
-        _ * visitedArtifactSet.select(_, _, _, _) >> Stub(SelectedArtifactSet) {
+        _ * visitedArtifactSet.select(_, _, _, _, _) >> Stub(SelectedArtifactSet) {
             visitArtifacts(_, _) >> { ArtifactVisitor v, boolean l -> v.visitFailure(failure) }
         }
         _ * resolvedConfiguration.hasError() >> true
@@ -573,7 +572,7 @@ class DefaultConfigurationSpec extends Specification {
         def selectedArtifactSet = Mock(SelectedArtifactSet)
 
         given:
-        _ * visitedArtifactSet.select(_, _, _, _) >> selectedArtifactSet
+        _ * visitedArtifactSet.select(_, _, _, _, _) >> selectedArtifactSet
         _ * selectedArtifactSet.visitDependencies(_) >> { TaskDependencyResolveContext visitor -> visitor.add(artifactTaskDependencies) }
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
@@ -856,13 +855,13 @@ class DefaultConfigurationSpec extends Specification {
         def config = conf("conf")
 
         expect:
-        config.dependencyResolutionListeners.isEmpty()
+        config.dependencyResolutionListeners.size() == 1 // the listener that forwards to listener manager
 
         when:
         def copy = config.copy()
 
         then:
-        copy.dependencyResolutionListeners.isEmpty()
+        copy.dependencyResolutionListeners.size() == 1
     }
 
     private prepareConfigurationForCopyTest() {
@@ -1070,7 +1069,7 @@ class DefaultConfigurationSpec extends Specification {
         localComponentsResult.resolvedProjectConfigurations >> []
         def visitedArtifactSet = Mock(VisitedArtifactSet)
 
-        _ * visitedArtifactSet.select(_, _, _, _) >> Stub(SelectedArtifactSet) {
+        _ * visitedArtifactSet.select(_, _, _, _, _) >> Stub(SelectedArtifactSet) {
             collectFiles(_) >> { return it[0] }
         }
 
@@ -1767,8 +1766,8 @@ All Artifacts:
         def publishArtifactNotationParser = new PublishArtifactNotationParserFactory(
             instantiator,
             metaDataProvider,
-            Mock(TaskResolver),
             TestFiles.resolver(),
+            TestFiles.taskDependencyFactory(),
         )
         def defaultConfigurationFactory = new DefaultConfigurationFactory(
             DirectInstantiator.INSTANCE,
@@ -1786,7 +1785,8 @@ All Artifacts:
             projectStateRegistry,
             Stub(WorkerThreadRegistry),
             TestUtil.domainObjectCollectionFactory(),
-            calculatedValueContainerFactory
+            calculatedValueContainerFactory,
+            TestFiles.taskDependencyFactory()
         )
         defaultConfigurationFactory.create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder)
     }

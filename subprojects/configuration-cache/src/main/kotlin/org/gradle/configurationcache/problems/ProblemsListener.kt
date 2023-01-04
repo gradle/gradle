@@ -16,8 +16,12 @@
 
 package org.gradle.configurationcache.problems
 
+import org.gradle.configurationcache.ConfigurationCacheError
+import org.gradle.configurationcache.ConfigurationCacheThrowable
+import org.gradle.configurationcache.extensions.maybeUnwrapInvocationTargetException
 import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.Scopes
+import java.io.IOException
 
 
 @EventScope(Scopes.BuildTree::class)
@@ -25,5 +29,16 @@ interface ProblemsListener {
 
     fun onProblem(problem: PropertyProblem)
 
-    fun forIncompatibleType(): ProblemsListener = this
+    fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+        // Let IO and configuration cache exceptions surface to the top.
+        if (error is IOException || error is ConfigurationCacheThrowable) {
+            throw error
+        }
+        throw ConfigurationCacheError(
+            "Configuration cache state could not be cached: $trace: ${StructuredMessage.build(message)}",
+            error.maybeUnwrapInvocationTargetException()
+        )
+    }
+
+    fun forIncompatibleTask(path: String): ProblemsListener = this
 }

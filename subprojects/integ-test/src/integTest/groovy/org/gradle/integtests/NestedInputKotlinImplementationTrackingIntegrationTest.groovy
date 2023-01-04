@@ -133,10 +133,10 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         project2.file('build/tmp/myTask/output.txt').text == "hello"
     }
 
-    def "task action defined in Kotlin 1.6 can be tracked when using language version 1.4"() {
+    def "task action defined in latest Kotlin can be tracked when using language version #kotlinVersion"() {
         file("buildSrc/build.gradle.kts") << """
             plugins {
-                kotlin("jvm") version("1.6.10")
+                kotlin("jvm") version("1.8.0")
                 `java-gradle-plugin`
             }
 
@@ -157,8 +157,8 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
 
             tasks.withType<KotlinCompile>().configureEach {
                 kotlinOptions {
-                    apiVersion = "1.4"
-                    languageVersion = "1.4"
+                    apiVersion = "${kotlinVersion}"
+                    languageVersion = "${kotlinVersion}"
                 }
             }
         """
@@ -184,11 +184,22 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         """
 
         when:
-        executer.expectDeprecationWarning("w: Language version 1.4 is deprecated and its support will be removed in a future version of Kotlin")
+        if (kotlinVersion == "1.4") {
+            executer.expectDeprecationWarning("w: Language version 1.4 is deprecated and its support will be removed in a future version of Kotlin")
+        }
         run "myTask"
 
         then:
         executedAndNotSkipped(":myTask")
+
+        where:
+        kotlinVersion << [
+            "1.4",
+            "1.5",
+            "1.6",
+            "1.7",
+            "1.8",
+        ]
     }
 
     private void setupTaskWithNestedAction(String actionType, String actionInvocation, TestFile projectDir = temporaryFolder.testDirectory) {

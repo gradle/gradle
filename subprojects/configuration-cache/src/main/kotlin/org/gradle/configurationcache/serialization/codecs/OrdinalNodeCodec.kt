@@ -21,19 +21,21 @@ import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
 import org.gradle.configurationcache.serialization.readEnum
 import org.gradle.configurationcache.serialization.writeEnum
+import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.OrdinalNode
 
 
-class OrdinalNodeCodec() : Codec<OrdinalNode> {
+class OrdinalNodeCodec(
+    private val ordinalGroups: OrdinalGroupFactory
+) : Codec<OrdinalNode> {
     override suspend fun WriteContext.encode(value: OrdinalNode) {
         writeEnum(value.type)
-        writeInt(value.ordinal)
+        writeInt(value.ordinalGroup.ordinal)
     }
 
-    override suspend fun ReadContext.decode(): OrdinalNode? {
+    override suspend fun ReadContext.decode(): OrdinalNode {
         val ordinalType = readEnum<OrdinalNode.Type>()
         val ordinal = readInt()
-
-        return OrdinalNode(ordinalType, ordinal)
+        return ordinalGroups.group(ordinal).locationsNode(ordinalType)
     }
 }

@@ -25,7 +25,7 @@ import java.io.OutputStream;
 public class SafeStreams {
 
     public static OutputStream systemErr() {
-        return new CloseShieldOutputStream(System.err);
+        return CloseShieldOutputStream.wrap(System.err);
     }
 
     public static InputStream emptyInput() {
@@ -33,6 +33,6 @@ public class SafeStreams {
     }
 
     public static OutputStream systemOut() {
-        return new CloseShieldOutputStream(System.out);
+        return CloseShieldOutputStream.wrap(System.out);
     }
 }

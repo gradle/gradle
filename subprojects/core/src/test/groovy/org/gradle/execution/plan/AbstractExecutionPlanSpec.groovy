@@ -25,15 +25,16 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.internal.tasks.TaskContainerInternal
-import org.gradle.api.internal.tasks.TaskDependencyInternal
+import org.gradle.api.internal.tasks.TaskDependencyContainerInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
+import org.gradle.api.internal.tasks.TaskRequiredServices
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskDestroyables
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLock
-import org.gradle.internal.resources.ResourceLockState
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -48,8 +49,8 @@ abstract class AbstractExecutionPlanSpec extends Specification {
     private def acquired = new HashSet<MockLock>()
     def thisBuild = backing.gradle
     def project = project()
-    def resourceLockState = new MockResourceLockState(acquired)
     def nodeValidator = Mock(NodeValidator)
+    def coordinator = new DefaultResourceLockCoordinationService()
 
     protected Set<ProjectInternal> getLockedProjects() {
         return locks.findAll { it.locked }.collect { it.project } as Set
@@ -66,6 +67,8 @@ abstract class AbstractExecutionPlanSpec extends Specification {
 
         def project = Mock(ProjectInternal, name: name)
         _ * project.identityPath >> (parent == null ? Path.ROOT : Path.ROOT.child(name))
+        _ * project.projectPath(_) >> { taskName -> Path.ROOT.child(taskName) }
+        _ * project.identityPath(_) >> { taskName -> (parent == null ? Path.ROOT : Path.ROOT.child(name)).child(taskName) }
         _ * project.gradle >> thisBuild
         _ * project.owner >> projectState
         _ * project.services >> backing.services
@@ -95,8 +98,18 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         task.destroyables >> emptyTaskDestroys()
         task.localState >> emptyTaskLocalState()
         task.inputs >> emptyTaskInputs()
+        task.requiredServices >> emptyTaskRequiredServices()
         task.taskIdentity >> TaskIdentity.create(name, DefaultTask, project)
         return task
+    }
+
+    protected void relationships(Map options, TaskInternal task) {
+        dependsOn(task, options.dependsOn ?: [])
+        task.lifecycleDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
+        mustRunAfter(task, options.mustRunAfter ?: [])
+        shouldRunAfter(task, options.shouldRunAfter ?: [])
+        finalizedBy(task, options.finalizedBy ?: [])
+        task.getSharedResources() >> (options.resources ?: [])
     }
 
     protected void dependsOn(TaskInternal task, List<Task> dependsOnTasks) {
@@ -116,7 +129,7 @@ abstract class AbstractExecutionPlanSpec extends Specification {
     }
 
     protected TaskDependency taskDependencyResolvingTo(TaskInternal task, List<Task> tasks) {
-        Mock(TaskDependencyInternal) {
+        Mock(TaskDependencyContainerInternal) {
             visitDependencies(_) >> { TaskDependencyResolveContext context -> tasks.forEach { context.add(it) } }
         }
     }
@@ -137,26 +150,13 @@ abstract class AbstractExecutionPlanSpec extends Specification {
         Stub(TaskInputsInternal)
     }
 
-    private static class MockResourceLockState implements ResourceLockState {
-        final Collection<MockLock> locks
+    private TaskRequiredServices emptyTaskRequiredServices() {
+        Stub(TaskRequiredServices)
+    }
 
-        MockResourceLockState(Collection<MockLock> locks) {
-            this.locks = locks
-        }
-
-        @Override
-        void registerLocked(ResourceLock resourceLock) {
-        }
-
-        @Override
-        void registerUnlocked(ResourceLock resourceLock) {
-        }
-
-        @Override
-        void releaseLocks() {
-            locks.forEach { it.unlock() }
-            locks.clear()
-        }
+    void failure(TaskInternal task, final RuntimeException failure) {
+        task.state.getFailure() >> failure
+        task.state.rethrowFailure() >> { throw failure }
     }
 
     private static class MockLock implements ResourceLock {

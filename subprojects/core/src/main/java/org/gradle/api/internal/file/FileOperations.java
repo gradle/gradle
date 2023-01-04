@@ -23,6 +23,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.SyncSpec;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
@@ -64,13 +65,15 @@ public interface FileOperations {
 
     FileTree zipTree(Object zipPath);
 
+    FileTree zipTreeNoLocking(Object zipPath);
+
     FileTree tarTree(Object tarPath);
 
     CopySpec copySpec();
 
     WorkResult copy(Action<? super CopySpec> action);
 
-    WorkResult sync(Action<? super CopySpec> action);
+    WorkResult sync(Action<? super SyncSpec> action);
 
     File mkdir(Object path);
 

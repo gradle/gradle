@@ -47,17 +47,18 @@ You can now customize this to your own project needs.
 You will often want the name of the JAR file to include the library _version_.
 This is achieved by setting a top-level `version` property in the build script:
 
+.build.gradle.kts
+[source.multi-language-sample,kotlin]
+----
+version = "0.1.0"
+----
+
 .build.gradle
 [source.multi-language-sample,groovy]
 ----
 version = '0.1.0'
 ----
 
-.build.gradle.kts
-[source.multi-language-sample,kotlin]
-----
-version = "0.1.0"
-----
 
 [NOTE]
 ====
@@ -84,6 +85,17 @@ Another common requirement is customizing the manifest file, typically by adding
 Let's include the library name and version in the manifest file by link:{userManualPath}/more_about_tasks.html#sec:configuring_tasks[configuring the `jar` task].
 Add the following to the end of your build script:
 
+.build.gradle.kts
+[source.multi-language-sample,kotlin]
+----
+tasks.jar {
+    manifest {
+        attributes(mapOf("Implementation-Title" to project.name,
+                         "Implementation-Version" to project.version))
+    }
+}
+----
+
 .build.gradle
 [source.multi-language-sample,groovy]
 ----
@@ -95,16 +107,6 @@ tasks.named('jar') {
 }
 ----
 
-.build.gradle.kts
-[source.multi-language-sample,kotlin]
-----
-tasks.jar {
-    manifest {
-        attributes(mapOf("Implementation-Title" to project.name,
-                         "Implementation-Version" to project.version))
-    }
-}
-----
 
 To confirm that these changes work as expected, run the `jar` task again, and this time also unpack the manifest file from the JAR:
 
@@ -128,6 +130,14 @@ Implementation-Version: 0.1.0
 
 You can easily generate a sources JAR for your library:
 
+.build.gradle.kts
+[source.multi-language-sample,kotlin]
+----
+java {
+    withSourcesJar()
+}
+----
+
 .build.gradle
 [source.multi-language-sample,groovy]
 ----
@@ -136,13 +146,6 @@ java {
 }
 ----
 
-.build.gradle.kts
-[source.multi-language-sample,kotlin]
-----
-java {
-    withSourcesJar()
-}
-----
 
 The additional JAR will be produced as part of the `assemble` or `build` lifecycle tasks and will be part of the publication.
 The resulting file is found in `${subprojectName.raw}/build/libs`, with a name using the conventional classifier `-sources`.

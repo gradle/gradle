@@ -19,6 +19,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import groovy.util.Node;
 import groovy.xml.XmlParser;
 import org.gradle.api.Action;
@@ -78,7 +79,7 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
         // no-op
     }
 
-    public void transformAction(Closure action) {
+    public void transformAction(@DelegatesTo(XmlProvider.class) Closure action) {
         transformAction(configureUsing(action));
     }
 

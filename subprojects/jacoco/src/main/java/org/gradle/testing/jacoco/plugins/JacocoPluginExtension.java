@@ -35,12 +35,12 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskCollection;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaForkOptions;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 
@@ -49,14 +49,11 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 /**
  * Extension including common properties and methods for Jacoco.
  */
-public class JacocoPluginExtension {
+public abstract class JacocoPluginExtension {
 
     public static final String TASK_EXTENSION_NAME = "jacoco";
 
     private static final Logger LOGGER = Logging.getLogger(JacocoPluginExtension.class);
-
-    @Deprecated
-    protected final Project project;
 
     private final ProviderFactory providers;
     private final ObjectFactory objects;
@@ -73,8 +70,8 @@ public class JacocoPluginExtension {
      * @param project the project the extension is attached to
      * @param agent the agent JAR to be used by Jacoco
      */
+    @Inject
     public JacocoPluginExtension(Project project, JacocoAgentJar agent) {
-        this.project = project;
         this.agent = agent;
         this.providers = project.getProviders();
         this.objects = project.getObjects();
@@ -101,48 +98,6 @@ public class JacocoPluginExtension {
      */
     public DirectoryProperty getReportsDirectory() {
         return reportsDirectory;
-    }
-
-    /**
-     * The directory where reports will be generated.
-     */
-    @Deprecated
-    public File getReportsDir() {
-        nagReportsDirDeprecation();
-        return reportsDirectory.get().getAsFile();
-    }
-
-    /**
-     * Set the provider for calculating the report directory.
-     *
-     * @param reportsDir Reports directory provider
-     * @since 4.0
-     * @deprecated See {@link #getReportsDirectory()}
-     */
-    @Deprecated
-    public void setReportsDir(Provider<File> reportsDir) {
-        nagReportsDirDeprecation();
-        this.reportsDirectory.set(layout.dir(reportsDir));
-    }
-
-    /**
-     * Set the provider for calculating the report directory.
-     *
-     * @param reportsDir Reports directory
-     * @deprecated See {@link #getReportsDirectory()}
-     */
-    @Deprecated
-    public void setReportsDir(File reportsDir) {
-        nagReportsDirDeprecation();
-        this.reportsDirectory.set(reportsDir);
-    }
-
-    private void nagReportsDirDeprecation() {
-        DeprecationLogger.deprecateProperty(JacocoPluginExtension.class, "reportsDir")
-            .replaceWith("reportsDirectory")
-            .willBeRemovedInGradle8()
-            .withDslReference()
-            .nagUser();
     }
 
     /**

@@ -17,8 +17,6 @@
 package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -37,12 +35,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 
 public class JavaInstallationRegistry {
     private final BuildOperationExecutor executor;
-    private final Supplier<Set<InstallationLocation>> installations;
+    private final Installations installations;
     private final Logger logger;
     private final OperatingSystem os;
 
@@ -54,7 +53,7 @@ public class JavaInstallationRegistry {
     private JavaInstallationRegistry(List<InstallationSupplier> suppliers, Logger logger, BuildOperationExecutor executor, OperatingSystem os) {
         this.logger = logger;
         this.executor = executor;
-        this.installations = Suppliers.memoize(() -> collectInBuildOperation(suppliers));
+        this.installations = new Installations(() -> collectInBuildOperation(suppliers));
         this.os = os;
     }
 
@@ -69,6 +68,10 @@ public class JavaInstallationRegistry {
 
     public Set<InstallationLocation> listInstallations() {
         return installations.get();
+    }
+
+    public void addInstallation(InstallationLocation installation) {
+       installations.add(installation);
     }
 
     private Set<InstallationLocation> collectInstallations(List<InstallationSupplier> suppliers) {
@@ -144,6 +147,34 @@ public class JavaInstallationRegistry {
                 .displayName("Toolchain detection")
                 .progressDisplayName("Detecting local java toolchains");
         }
+    }
+
+    private static class Installations {
+
+        private final Supplier<Set<InstallationLocation>> initializer;
+
+        private Set<InstallationLocation> locations = null;
+
+        Installations(Supplier<Set<InstallationLocation>> initializer) {
+            this.initializer = initializer;
+        }
+
+        synchronized Set<InstallationLocation> get() {
+            initIfNeeded();
+            return locations;
+        }
+
+        synchronized void add(InstallationLocation location) {
+            initIfNeeded();
+            locations.add(location);
+        }
+
+        private void initIfNeeded() {
+            if (locations == null) {
+                locations = initializer.get();
+            }
+        }
+
     }
 
 }

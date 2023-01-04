@@ -16,6 +16,10 @@
 
 package org.gradle.language.scala.tasks;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.Incubating;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
@@ -25,12 +29,13 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaForkOptions;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.List;
 
 /**
  * Options for Scala platform compilation.
  */
-public class BaseScalaCompileOptions extends AbstractOptions {
+public abstract class BaseScalaCompileOptions extends AbstractOptions {
 
     private static final long serialVersionUID = 0;
 
@@ -56,9 +61,16 @@ public class BaseScalaCompileOptions extends AbstractOptions {
 
     private List<String> loggingPhases;
 
-    private ScalaForkOptions forkOptions = new ScalaForkOptions();
+    private ScalaForkOptions forkOptions = getObjectFactory().newInstance(ScalaForkOptions.class);
 
     private IncrementalCompileOptions incrementalOptions;
+
+    private final Property<KeepAliveMode> keepAliveMode = getObjectFactory().property(KeepAliveMode.class);
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Fail the build on compilation errors.
@@ -153,14 +165,18 @@ public class BaseScalaCompileOptions extends AbstractOptions {
     /**
      * Additional parameters passed to the compiler.
      * Each parameter must start with '-'.
+     *
+     * @return The immutable list of additional parameters.
      */
-    @Nullable @Optional @Input
+    @Nullable
+    @Optional
+    @Input
     public List<String> getAdditionalParameters() {
         return additionalParameters;
     }
 
     public void setAdditionalParameters(@Nullable List<String> additionalParameters) {
-        this.additionalParameters = additionalParameters;
+        this.additionalParameters = additionalParameters == null ? null : ImmutableList.copyOf(additionalParameters);
     }
 
     /**
@@ -224,5 +240,16 @@ public class BaseScalaCompileOptions extends AbstractOptions {
 
     public void setIncrementalOptions(IncrementalCompileOptions incrementalOptions) {
         this.incrementalOptions = incrementalOptions;
+    }
+
+    /**
+     * Keeps Scala compiler daemon alive across builds for faster build times
+     *
+     * @since 7.6
+     */
+    @Incubating
+    @Input
+    public Property<KeepAliveMode> getKeepAliveMode() {
+        return this.keepAliveMode;
     }
 }

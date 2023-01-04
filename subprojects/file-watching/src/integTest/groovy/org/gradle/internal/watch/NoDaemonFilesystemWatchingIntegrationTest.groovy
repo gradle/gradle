@@ -16,13 +16,14 @@
 
 package org.gradle.internal.watch
 
-
+import com.gradle.enterprise.testing.annotations.LocalOnly
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FileSystemWatchingFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Requires
 
+@LocalOnly
 @Requires({ GradleContextualExecuter.noDaemon })
 class NoDaemonFilesystemWatchingIntegrationTest extends AbstractIntegrationSpec implements FileSystemWatchingFixture {
 

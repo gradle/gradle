@@ -23,29 +23,24 @@ import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.same
-
+import org.gradle.api.JavaVersion
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
-
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.initialization.ClassLoaderScopeOrigin
 import org.gradle.internal.Describables
 import org.gradle.internal.classpath.ClassPath
-
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.fixtures.DummyCompiledScript
-
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
-
 import org.junit.Test
-
 import java.io.File
-
 import java.net.URLClassLoader
 
 
@@ -56,6 +51,9 @@ class InterpreterTest : TestWithTempFiles() {
 
         val scriptPath =
             "/src/settings.gradle.kts"
+
+        val shortScriptDisplayName = Describables.of("short display name")
+        val longScriptDisplayName = Describables.of("long display name")
 
         val text = """
 
@@ -69,20 +67,21 @@ class InterpreterTest : TestWithTempFiles() {
 
         """.trimIndent()
 
-        val sourceHash = HashCode.fromInt(42)
-        val compilationClassPathHash = HashCode.fromInt(11)
+        val sourceHash = TestHashCodes.hashCodeFrom(42)
+        val compilationClassPathHash = TestHashCodes.hashCodeFrom(11)
         val stage1TemplateId = "Settings/TopLevel/stage1"
         val stage2TemplateId = "Settings/TopLevel/stage2"
 
         val scriptSourceResource = mock<TextResource> {
             on { getText() } doReturn text
         }
-        val scriptSourceDisplayName = "source display name"
 
         val scriptSource = mock<ScriptSource> {
             on { fileName } doReturn scriptPath
             on { resource } doReturn scriptSourceResource
-            on { shortDisplayName } doReturn Describables.of(scriptSourceDisplayName)
+            on { shortDisplayName } doReturn shortScriptDisplayName
+            on { longDisplayName } doReturn longScriptDisplayName
+            on { displayName } doReturn longScriptDisplayName.displayName
         }
         val parentClassLoader = mock<ClassLoader>()
         val baseScope = mock<ClassLoaderScope> {
@@ -153,11 +152,11 @@ class InterpreterTest : TestWithTempFiles() {
             }
 
             on {
-                loadClassInChildScopeOf(any(), any(), any(), any(), same(ClassPath.EMPTY))
+                loadClassInChildScopeOf(any(), any(), any(), any(), any(), same(ClassPath.EMPTY))
             } doAnswer {
 
-                val location = it.getArgument<File>(2)
-                val className = it.getArgument<String>(3)
+                val location = it.getArgument<File>(3)
+                val className = it.getArgument<String>(4)
 
                 val newLocation = relocate(location)
 
@@ -167,6 +166,8 @@ class InterpreterTest : TestWithTempFiles() {
                         .loadClass(className)
                 )
             }
+
+            on { jvmTarget } doReturn JavaVersion.current()
         }
 
         try {
@@ -194,13 +195,14 @@ class InterpreterTest : TestWithTempFiles() {
 
                 verify(host).compilationClassPathOf(parentScope)
 
-                verify(host).startCompilerOperation(scriptSourceDisplayName)
+                verify(host).startCompilerOperation(shortScriptDisplayName.displayName)
 
                 verify(compilerOperation).close()
 
                 verify(host).loadClassInChildScopeOf(
                     baseScope,
                     "kotlin-dsl:$scriptPath:$stage1TemplateId",
+                    ClassLoaderScopeOrigin.Script(scriptPath, longScriptDisplayName, shortScriptDisplayName),
                     stage1CacheDir,
                     "Program",
                     ClassPath.EMPTY
@@ -218,13 +220,14 @@ class InterpreterTest : TestWithTempFiles() {
 
                 verify(host).compilationClassPathOf(targetScope)
 
-                verify(host).startCompilerOperation(scriptSourceDisplayName)
+                verify(host).startCompilerOperation(shortScriptDisplayName.displayName)
 
                 verify(compilerOperation).close()
 
                 verify(host).loadClassInChildScopeOf(
                     targetScope,
                     "kotlin-dsl:$scriptPath:$stage2TemplateId",
+                    ClassLoaderScopeOrigin.Script(scriptPath, longScriptDisplayName, shortScriptDisplayName),
                     stage2CacheDir,
                     "Program",
                     ClassPath.EMPTY

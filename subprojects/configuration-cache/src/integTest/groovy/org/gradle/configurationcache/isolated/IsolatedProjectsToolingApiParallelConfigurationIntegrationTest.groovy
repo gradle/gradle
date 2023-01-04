@@ -16,7 +16,7 @@
 
 package org.gradle.configurationcache.isolated
 
-import org.gradle.test.fixtures.Flaky
+
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -30,7 +30,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
         server.start()
     }
 
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3495")
+    @Ignore("https://github.com/gradle/gradle/issues/23196")
     def "projects are configured and models created in parallel when project scoped model is queried concurrently"() {
         withSomeToolingModelBuilderPluginInBuildSrc("""
             ${server.callFromBuildUsingExpression("'model-' + project.name")}
@@ -110,7 +110,7 @@ class IsolatedProjectsToolingApiParallelConfigurationIntegrationTest extends Abs
             projectConfigured(":buildSrc")
             projectConfigured(":")
             modelsCreated(":a", ":b")
-            modelsReused(":")
+            modelsReused(":", ":buildSrc")
         }
 
         when:

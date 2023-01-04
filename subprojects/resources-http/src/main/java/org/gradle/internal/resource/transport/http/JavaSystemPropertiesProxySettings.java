@@ -20,29 +20,22 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.regex.Pattern;
-
 public abstract class JavaSystemPropertiesProxySettings implements HttpProxySettings {
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaSystemPropertiesProxySettings.class);
 
     private final HttpProxy proxy;
-    private final List<Pattern> nonProxyHosts;
     private final String propertyPrefix;
     private final int defaultPort;
 
     public JavaSystemPropertiesProxySettings(String propertyPrefix, int defaultPort) {
         this(propertyPrefix, defaultPort,
-                System.getProperty(propertyPrefix + ".proxyHost"),
-                System.getProperty(propertyPrefix + ".proxyPort"),
-                System.getProperty(propertyPrefix + ".proxyUser"),
-                System.getProperty(propertyPrefix + ".proxyPassword"),
-                System.getProperty(propertyPrefix + ".nonProxyHosts"));
+                getAndTrimSystemProperty(propertyPrefix + ".proxyHost"),
+                getAndTrimSystemProperty(propertyPrefix + ".proxyPort"),
+                getAndTrimSystemProperty(propertyPrefix + ".proxyUser"),
+                getAndTrimSystemProperty(propertyPrefix + ".proxyPassword"));
     }
 
-    JavaSystemPropertiesProxySettings(String propertyPrefix, int defaultPort, String proxyHost, String proxyPortString, String proxyUser, String proxyPassword, String nonProxyHostsString) {
+    JavaSystemPropertiesProxySettings(String propertyPrefix, int defaultPort, String proxyHost, String proxyPortString, String proxyUser, String proxyPassword) {
         this.propertyPrefix = propertyPrefix;
         this.defaultPort = defaultPort;
         if (StringUtils.isBlank(proxyHost)) {
@@ -50,7 +43,6 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
         } else {
             this.proxy = new HttpProxy(proxyHost, initProxyPort(proxyPortString), proxyUser, proxyPassword);
         }
-        this.nonProxyHosts = initNonProxyHosts(nonProxyHostsString);
     }
 
     private int initProxyPort(String proxyPortString) {
@@ -61,55 +53,15 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
             return Integer.parseInt(proxyPortString);
         } catch (NumberFormatException e) {
             String key = propertyPrefix + ".proxyPort";
-            LOGGER.warn("Invalid value for java system property '{}': {}. Default port '{}' will be used.",
-                    key, System.getProperty(key), defaultPort);
+            LOGGER.warn("Invalid value for java system property '{}': '{}'. Value is not a valid number. Default port '{}' will be used.",
+                key, proxyPortString, defaultPort);
             return defaultPort;
         }
-    }
-
-    private List<Pattern> initNonProxyHosts(String nonProxyHostsString) {
-        if (StringUtils.isBlank(nonProxyHostsString)) {
-            return Collections.emptyList();
-        }
-
-        LOGGER.debug("Found java system property 'http.nonProxyHosts': {}. Will ignore proxy settings for these hosts.", nonProxyHostsString);
-        List<Pattern> patterns = new ArrayList<Pattern>();
-        for (String nonProxyHost : nonProxyHostsString.split("\\|")) {
-            patterns.add(createHostMatcher(nonProxyHost));
-        }
-        return patterns;
-    }
-
-    private Pattern createHostMatcher(String nonProxyHost) {
-        if (nonProxyHost.startsWith("*")) {
-            return Pattern.compile(".*" + Pattern.quote(nonProxyHost.substring(1)));
-        }
-        if (nonProxyHost.endsWith("*")) {
-            return Pattern.compile(Pattern.quote(nonProxyHost.substring(0, nonProxyHost.length() - 1)) + ".*");
-        }
-        return Pattern.compile(Pattern.quote(nonProxyHost));
     }
 
     @Override
     public HttpProxySettings.HttpProxy getProxy() {
         return proxy;
-    }
-
-    @Override
-    public HttpProxySettings.HttpProxy getProxy(String host) {
-        if (proxy == null || isNonProxyHost(host)) {
-            return null;
-        }
-        return proxy;
-    }
-
-    private boolean isNonProxyHost(String host) {
-        for (Pattern nonProxyHost : nonProxyHosts) {
-            if (nonProxyHost.matcher(host).matches()) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public String getPropertyPrefix() {
@@ -118,5 +70,10 @@ public abstract class JavaSystemPropertiesProxySettings implements HttpProxySett
 
     public int getDefaultPort() {
         return defaultPort;
+    }
+
+    private static String getAndTrimSystemProperty(String key) {
+        String value = System.getProperty(key);
+        return value != null ? value.trim() : null;
     }
 }

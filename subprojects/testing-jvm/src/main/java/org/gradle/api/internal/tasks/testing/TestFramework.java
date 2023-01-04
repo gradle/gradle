@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.detection.TestFrameworkDetector;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.testing.TestFilter;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
@@ -29,6 +30,15 @@ import java.util.List;
 
 @UsedByScanPlugin("test-retry")
 public interface TestFramework extends Closeable {
+
+    /**
+     * Returns a copy of the test framework but with the specified test filters.
+     *
+     * @param newTestFilters new test filters
+     * @return test framework with new test filters
+     */
+    @UsedByScanPlugin("test-retry")
+    TestFramework copyWithFilters(TestFilter newTestFilters);
 
     /**
      * Returns a detector which is used to determine which of the candidate class files correspond to test classes to be
@@ -57,8 +67,35 @@ public interface TestFramework extends Closeable {
     Action<WorkerProcessBuilder> getWorkerConfigurationAction();
 
     /**
-     * Returns a list of modules the test worker requires on the --module-path if it runs as a module.
+     * Returns a list of jars the test worker requires on the classpath.
+     * These dependencies are loaded from the Gradle distribution.
+     *
+     * @see #getUseDistributionDependencies()
      */
     @Internal
-    List<String> getTestWorkerImplementationModules();
+    List<String> getTestWorkerApplicationClasses();
+
+    /**
+     * Returns a list of modules the test worker requires on the modulepath if it runs as a module.
+     * These dependencies are loaded from the Gradle distribution.
+     *
+     * @see #getUseDistributionDependencies()
+     */
+    @Internal
+    List<String> getTestWorkerApplicationModules();
+
+    /**
+     * Whether the legacy behavior of loading test framework dependencies from the Gradle distribution
+     * is enabled. If true, jars and modules as specified by {@link #getTestWorkerApplicationClasses()}
+     * and {@link #getTestWorkerApplicationModules()} respectively are loaded from the Gradle distribution
+     * and placed on the test worker application classpath and/or modulepath.
+     * <p>
+     * This functionality is legacy and will eventually be deprecated and removed. Test framework dependencies
+     * should be managed externally from the Gradle distribution, as is done by test suites.
+     *
+     * @return Whether test framework dependencies should be loaded from the Gradle distribution.
+     */
+    @Internal
+    boolean getUseDistributionDependencies();
+
 }

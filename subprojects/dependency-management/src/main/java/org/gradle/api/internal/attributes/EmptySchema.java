@@ -86,7 +86,22 @@ public class EmptySchema implements AttributesSchemaInternal {
 
     @Override
     public boolean hasAttribute(Attribute<?> key) {
+        return false;
+    }
+
+    @Override
+    public void attributeDisambiguationPrecedence(Attribute<?>... attribute) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setAttributeDisambiguationPrecedence(List<Attribute<?>> attributes) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<Attribute<?>> getAttributeDisambiguationPrecedence() {
+        return Collections.emptyList();
     }
 
     private static class DoNothingCompatibilityRule implements CompatibilityRule<Object> {

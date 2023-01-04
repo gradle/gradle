@@ -16,14 +16,15 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.util.internal.VersionNumber
+import org.junit.Assume
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
-    @ToBeFixedForConfigurationCache(because = "Task.getProject() during execution")
     def 'can check for updated versions'() {
+        Assume.assumeTrue('Incompatible with Groovy 4: Execution failed for task \':dependencyUpdates\'. > groovy/util/XmlSlurper', VersionNumber.parse(GroovySystem.version).major < 4) // TODO Watch for merge and release of https://github.com/ben-manes/gradle-versions-plugin/pull/656
         given:
         buildFile << """
             plugins {
@@ -51,7 +52,10 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
 
         when:
-        def result = runner('dependencyUpdates', '-DoutputFormatter=txt').forwardOutput().build()
+        def result = runner('dependencyUpdates', '-DoutputFormatter=txt')
+            // TODO: com.github.benmanes.gradle.versions.updates.DependencyUpdates plugin triggers dependency resolution at execution time
+            .withJvmArguments("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
+            .forwardOutput().build()
 
         then:
         result.task(':dependencyUpdates').outcome == SUCCESS

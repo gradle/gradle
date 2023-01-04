@@ -17,11 +17,9 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
-    def "matching attribute combinations and capabilities triggers a warning"() {
+    def "matching attribute combinations and capability #capability fails to resolve"() {
         given:
         buildFile << """
             plugins {
@@ -37,6 +35,9 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
                     }
+                    if (!"${capability}".equals('default')) {
+                        outgoing.capability('org.test:sample:1.0')
+                    }
                 }
 
                 sample2 {
@@ -47,25 +48,45 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
                     }
+                    if (!"${capability}".equals('default')) {
+                        outgoing.capability('org.test:sample:1.0')
+                    }
                 }
-            }""".stripIndent()
+
+                resolver {
+                    canBeResolved = true
+                    canBeConsumed = false
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
+                    }
+                }
+            }
+
+            dependencies {
+                resolver(project)
+            }
+
+            tasks.register('resolveSample', Copy) {
+                from configurations.resolver
+                into layout.buildDirectory.dir('sampleContent')
+            }
+            """.stripIndent()
 
         expect:
-        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
-        succeeds("outgoingVariants")
+        fails("resolveSample")
+        failure.assertHasDocumentedCause("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but configuration ':sample2' and [configuration ':sample1'] contain identical attribute sets. Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details. See https://docs.gradle.org/current/userguide/upgrading_version_7.html#unique_attribute_sets for more details.")
+
+        where:
+        capability << ['default', 'org.test:sample:1.0']
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
-    def "matching attribute combinations using the default capability, triggers a warning"() {
+    def "matching attribute combinations and capability #capability triggers a warning in outgoingVariants report"() {
         given:
-        settingsFile << "rootProject.name = 'sample'"
         buildFile << """
             plugins {
                 id 'java'
             }
-
-            group = 'org.gradle'
-            version = '1.0'
 
             configurations {
                 sample1 {
@@ -76,6 +97,9 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
                     }
+                    if (!"${capability}".equals('default')) {
+                        outgoing.capability('org.test:sample:1.0')
+                    }
                 }
 
                 sample2 {
@@ -86,16 +110,20 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
                         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "custom"))
                     }
+                    if (!"${capability}".equals('default')) {
+                        outgoing.capability('org.test:sample:1.0')
+                    }
                 }
             }""".stripIndent()
 
         expect:
         succeeds("outgoingVariants")
-        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
-        outputContains("org.gradle:sample:1.0 (default capability)")
+        outputContains("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but configuration ':sample2' and [configuration ':sample1'] contain identical attribute sets. Consider adding an additional attribute to one of the configurations to disambiguate them.")
+
+        where:
+        capability << ['default', 'org.test:sample:1.0']
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "matching attribute combinations, where one uses the default capability and one uses a matching explicit capability, triggers a warning"() {
         given:
         settingsFile << "rootProject.name = 'sample'"
@@ -134,13 +162,12 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
                 }
             }""".stripIndent()
 
-        expect:
         succeeds("outgoingVariants")
-        executer.expectDeprecationWarning("Consumable configurations with identical capabilities within a project must have unique attributes, but configuration ':sample2' and configuration ':sample1' contain identical attribute sets.")
+        expect:
+        outputContains("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but configuration ':sample2' and [configuration ':sample1'] contain identical attribute sets.")
         outputContains("org.gradle:sample:1.0 (default capability)")
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "attribute combinations can be repeated if capabilities differ without a warning"() {
         given:
         settingsFile << "rootProject.name = 'sample'"
@@ -180,9 +207,9 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("outgoingVariants")
+        outputDoesNotContain('Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes')
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "attribute combinations can be repeated if capabilities differ, including the default capability without a warning"() {
         given:
         buildFile << """
@@ -222,9 +249,9 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("outgoingVariants")
+        outputDoesNotContain('Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes')
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "attribute and capability combinations can be repeated across projects without a warning"() {
         given:
         def subADir = createDir("subA")
@@ -286,9 +313,9 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("allOutgoingVariants")
+        outputDoesNotContain('Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes')
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "attribute and capability combinations, including the default capability, can be repeated across projects without a warning"() {
         given:
         def subADir = createDir("subA")
@@ -348,9 +375,9 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("allOutgoingVariants")
+        outputDoesNotContain('Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes')
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "attribute combinations and capabilities on resolvable configurations can match without a warning"() {
         given:
         buildFile << """
@@ -380,9 +407,9 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("outgoingVariants")
+        outputDoesNotContain('Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes')
     }
 
-    @ToBeFixedForConfigurationCache(because = "outgoing variants report isn't compatible")
     def "attribute combinations and capabilities on legacy resolvable configurations can match without a warning"() {
         given:
         buildFile << """
@@ -416,6 +443,7 @@ class ExclusiveVariantsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds("outgoingVariants")
+        outputDoesNotContain('Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes')
     }
 }
 

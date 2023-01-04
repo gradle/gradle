@@ -1,0 +1,12 @@
+plugins {
+    id "java-gradle-plugin"
+}
+
+gradlePlugin {
+    plugins {
+        dependencyReports {
+            id = "com.example.dependency-reports"
+            implementationClass = "com.example.DependencyReportsPlugin"
+        }
+    }
+}

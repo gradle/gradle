@@ -49,6 +49,7 @@ import org.gradle.util.GradleVersion
  */
 @TargetVersions("3.0+")
 class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
+
     @SuppressWarnings("UnnecessaryQualifiedReference")
     def "can use task subclass compiled using previous Gradle version"() {
         given:
@@ -85,10 +86,10 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
         // Task types added after 1.0
 
         if (previous.version >= GradleVersion.version("2.4")) {
-            taskClasses += org.gradle.jvm.application.tasks.CreateStartScripts
+            taskClasses.add(org.gradle.jvm.application.tasks.CreateStartScripts)
         }
         if (previous.version >= GradleVersion.version("2.3")) {
-            taskClasses += org.gradle.jvm.tasks.Jar
+            taskClasses.add(org.gradle.jvm.tasks.Jar)
         }
 
         // Some breakages that were not detected prior to release. Please do not add any more exceptions
@@ -102,7 +103,6 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             taskClasses.remove(JavaCompile)
         }
 
-        Map<String, String> subclasses = taskClasses.collectEntries { ["custom" + it.name.replace(".", "_"), it.name] }
         def apiDepConf = "implementation"
         if (previous.version < GradleVersion.version("7.0-rc-1")) {
             apiDepConf = "compile"
@@ -121,35 +121,41 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             }
         """
 
+        // Since Gradle 8.0 all task classes are abstract, and their injected properties can also be abstract methods
+        def abstractness = previous.version.baseVersion >= GradleVersion.version("8.0") ? "abstract" : ""
+
+        Map<String, String> subclassToTaskClass = taskClasses.collectEntries { ["custom_" + it.name.replace(".", "_"), it.name] }
+
         file("producer/src/main/groovy/SomePlugin.groovy") << """
             import org.gradle.api.Plugin
             import org.gradle.api.Project
 
             class SomePlugin implements Plugin<Project> {
-                void apply(Project p) { """ << \
-            subclasses.collect { "p.tasks.create('${it.key}', ${it.key})" }.join("\n") << """
+                void apply(Project p) {
+                    ${subclassToTaskClass.keySet().collect { "p.tasks.create('$it', $it)" }.join("\n")}
                 }
             }
-            """ << \
-            subclasses.collect {
-                def className = it.key
-                """class ${className} extends ${it.value} {
-    ${className}() {
-        // GRADLE-3185
-        project.logger.lifecycle('task created')
-        // GRADLE-3207
-        super.getServices()
-    }
-}"""
-            }.join("\n")
+
+            ${subclassToTaskClass.collect { className, taskClass ->
+            """
+            $abstractness class $className extends $taskClass {
+                $className() {
+                    // GRADLE-3185
+                    project.logger.lifecycle('task created')
+                    // GRADLE-3207
+                    super.getServices()
+                }
+            }
+            """ }.join("\n")}
+        """
 
         buildFile << """
-buildscript {
-    dependencies { classpath fileTree(dir: "producer/build/libs", include: '*.jar') }
-}
+            buildscript {
+                dependencies { classpath fileTree(dir: "producer/build/libs", include: '*.jar') }
+            }
 
-apply plugin: SomePlugin
-"""
+            apply plugin: SomePlugin
+        """
 
         expect:
         version previous withTasks 'assemble' inDirectory(file("producer")) run()
@@ -195,9 +201,7 @@ apply plugin: SomePlugin
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.file("someFile");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.files("anotherFile", "yetAnotherFile");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.dir("someDir");
-                    ${previous.version >= GradleVersion.version("4.3")
-                        ? 'getInputs().property("input", "value");'
-                        : ""}
+                    ${previous.version >= GradleVersion.version("4.3") ? 'getInputs().property("input", "value");' : ""}
                     Map<String, Object> mapValues = new HashMap<String, Object>();
                     mapValues.put("mapInput", "mapValue");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.properties(mapValues);

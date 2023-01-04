@@ -63,8 +63,9 @@ abstract class AbstractRedirectResolveBaseIntegrationTest extends AbstractHttpDe
             configurations { compile }
             dependencies { compile '$dependency' }
             task listJars {
+                def files = configurations.compile
                 doLast {
-                    assert configurations.compile.collect { it.name } == ['$expectedArtifact']
+                    assert files*.name == ['$expectedArtifact']
                 }
             }
         """

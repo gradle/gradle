@@ -18,7 +18,6 @@ package org.gradle.internal.vfs.impl
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.MutableReference
 import org.gradle.internal.file.FileException
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileType
@@ -35,6 +34,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import javax.annotation.Nullable
 import java.nio.file.Path
 import java.util.function.Predicate
 
@@ -62,13 +62,13 @@ abstract class AbstractFileSystemAccessTest extends Specification {
     }
 
     FileSystemLocationSnapshot read(File file) {
-        return fileSystemAccess.read(file.absolutePath, { it })
+        return fileSystemAccess.read(file.absolutePath)
     }
 
+    @Nullable
     FileSystemLocationSnapshot read(File file, SnapshottingFilter filter) {
-        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
-        fileSystemAccess.read(file.absolutePath, filter, result.&set)
-        return result.get()
+        return fileSystemAccess.read(file.absolutePath, filter)
+            .orElse(null)
     }
 
     static class AllowingHasher implements FileHasher {

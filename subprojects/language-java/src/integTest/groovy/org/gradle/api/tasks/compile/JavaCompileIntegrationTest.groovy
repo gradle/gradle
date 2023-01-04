@@ -26,10 +26,46 @@ import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
 
+import java.nio.file.Paths
+
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     Resources resources = new Resources()
+
+    def "task does nothing when only minimal configuration applied"() {
+        buildFile << """
+            // No plugins applied
+            task compile(type: JavaCompile)
+        """
+
+        when:
+        run("compile")
+
+        then:
+        result.assertTasksSkipped(":compile")
+    }
+
+    @Issue("GRADLE-3152")
+    def "can use the task without applying java-base plugin"() {
+        buildFile << """
+            task compile(type: JavaCompile) {
+                classpath = files()
+                sourceCompatibility = JavaVersion.current()
+                targetCompatibility = JavaVersion.current()
+                destinationDirectory = file("build/classes")
+                source "src/main/java"
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        run("compile")
+
+        then:
+        file("build/classes/Foo.class").exists()
+    }
 
     def "uses default platform settings when applying java plugin"() {
         buildFile << """
@@ -58,7 +94,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                     implementation project(':a')
                 }
             }
-"""
+        """
 
         file("a/src/main/resources/Foo.java") << "public class Foo {}"
 
@@ -228,8 +264,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task checkClasspath {
+                def classpath = compileJava.classpath
                 doLast {
-                    def compileClasspath = compileJava.classpath.files*.name
+                    def compileClasspath = classpath.files*.name
                     assert !compileClasspath.contains('b.jar')
                     assert compileClasspath.contains('other-1.0.jar')
                     assert !compileClasspath.contains('shared-1.0.jar')
@@ -379,8 +416,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             }
 
         task checkClasspath {
+            def runtimeClasspathFiles = test.classpath.files
             doLast {
-                def runtimeClasspath = test.classpath.files*.name
+                def runtimeClasspath = runtimeClasspathFiles*.name
                 assert runtimeClasspath.contains('compile-1.0.jar')
                 assert !runtimeClasspath.contains('compileonly-1.0.jar')
                 assert runtimeClasspath.contains('runtimeonly-1.0.jar')
@@ -583,7 +621,8 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped ':fooJar', ':compileJava'
-        outputContains "Malformed archive 'foo.jar'"
+        outputContains "Could not analyze foo.class for incremental compilation"
+        outputContains "Unsupported class file major version"
     }
 
     @Issue("gradle/gradle#1358")
@@ -898,11 +937,35 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "clean", "compileJava"
 
-        executer.withStacktraceDisabled()
         fails "-Pjava7", "clean", "compileJava"
         failure.assertHasErrorOutput "Main.java:8: error: cannot find symbol"
 
         succeeds "-Pjava8", "clean", "compileJava"
+    }
+
+    // bootclasspath has been removed in Java 9+
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Issue("https://github.com/gradle/gradle/issues/19817")
+    def "fails if bootclasspath is provided as a path instead of a single file"() {
+        def jre = AvailableJavaHomes.getBestJre()
+        def bootClasspath = TextUtil.escapeString(jre.absolutePath) + "/lib/rt.jar${File.pathSeparator}someotherpath"
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+            tasks.withType(JavaCompile) {
+                options.bootstrapClasspath = project.layout.files("$bootClasspath")
+            }
+        """
+        file('src/main/java/Foo.java') << 'public class Foo {}'
+
+        when:
+        runAndFail "compileJava"
+        then:
+        failure.assertHasDocumentedCause("Converting files to a classpath string when their paths contain the path separator '${File.pathSeparator}' is not supported." +
+            " The path separator is not a valid element of a file path. Problematic paths in 'file collection' are: '${Paths.get(bootClasspath)}'." +
+            " Add the individual files to the file collection instead." +
+            " Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#file_collection_to_classpath")
     }
 
     def "deletes empty packages dirs"() {
@@ -1042,7 +1105,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             package com.example;
             public class Main {}
         """
-        executer.expectDocumentedDeprecationWarning("The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the generatedSourceOutputDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory for more details.")
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the generatedSourceOutputDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory for more details.")
 
         then:
         succeeds("compileJava")

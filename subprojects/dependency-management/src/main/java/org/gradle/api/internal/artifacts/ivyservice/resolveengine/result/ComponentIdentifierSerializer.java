@@ -24,53 +24,69 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier;
 import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
+import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * A thread-safe and reusable serializer for {@link ComponentIdentifier}.
+ */
 public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentIdentifier> {
     private final BuildIdentifierSerializer buildIdentifierSerializer = new BuildIdentifierSerializer();
 
     @Override
     public ComponentIdentifier read(Decoder decoder) throws IOException {
         byte id = decoder.readByte();
-
-        if (Implementation.ROOT_PROJECT.getId() == id) {
-            BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
-            String projectName = decoder.readString();
-            return new DefaultProjectComponentIdentifier(buildIdentifier, Path.ROOT, Path.ROOT, projectName);
-        } else if (Implementation.ROOT_BUILD_PROJECT.getId() == id) {
-            BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
-            Path projectPath = Path.path(decoder.readString());
-            return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath, projectPath, projectPath.getName());
-        } else if (Implementation.OTHER_BUILD_ROOT_PROJECT.getId() == id) {
-            BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
-            Path identityPath = Path.path(decoder.readString());
-            return new DefaultProjectComponentIdentifier(buildIdentifier, identityPath, Path.ROOT, identityPath.getName());
-        } else if (Implementation.OTHER_BUILD_PROJECT.getId() == id) {
-            BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
-            Path identityPath = Path.path(decoder.readString());
-            Path projectPath = Path.path(decoder.readString());
-            return new DefaultProjectComponentIdentifier(buildIdentifier, identityPath, projectPath, identityPath.getName());
-        } else if (Implementation.MODULE.getId() == id) {
-            return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), decoder.readString());
-        } else if (Implementation.SNAPSHOT.getId() == id) {
-            return new MavenUniqueSnapshotComponentIdentifier(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), decoder.readString(), decoder.readString());
-        } else if (Implementation.LIBRARY.getId() == id) {
-            return new DefaultLibraryBinaryIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
-        } else if (Implementation.OPAQUE.getId() == id) {
-            return new OpaqueComponentArtifactIdentifier(new File(decoder.readString()));
+        Implementation implementation = Implementation.valueOf(id);
+        if (implementation == null) {
+            throw new IllegalArgumentException("Unable to find component identifier type with id: " + id);
         }
-
-        throw new IllegalArgumentException("Unable to find component identifier type with id: " + id);
+        switch (implementation) {
+            case ROOT_PROJECT: {
+                BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
+                String projectName = decoder.readString();
+                return new DefaultProjectComponentIdentifier(buildIdentifier, Path.ROOT, Path.ROOT, projectName);
+            }
+            case ROOT_BUILD_PROJECT: {
+                BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
+                Path projectPath = Path.path(decoder.readString());
+                return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath, projectPath, projectPath.getName());
+            }
+            case OTHER_BUILD_ROOT_PROJECT: {
+                BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
+                Path identityPath = Path.path(decoder.readString());
+                return new DefaultProjectComponentIdentifier(buildIdentifier, identityPath, Path.ROOT, identityPath.getName());
+            }
+            case OTHER_BUILD_PROJECT: {
+                BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
+                Path identityPath = Path.path(decoder.readString());
+                Path projectPath = Path.path(decoder.readString());
+                return new DefaultProjectComponentIdentifier(buildIdentifier, identityPath, projectPath, identityPath.getName());
+            }
+            case MODULE:
+                return new DefaultModuleComponentIdentifier(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), decoder.readString());
+            case SNAPSHOT:
+                return new MavenUniqueSnapshotComponentIdentifier(DefaultModuleIdentifier.newId(decoder.readString(), decoder.readString()), decoder.readString(), decoder.readString());
+            case LIBRARY:
+                return new DefaultLibraryBinaryIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
+            case OPAQUE:
+                return new OpaqueComponentArtifactIdentifier(new File(decoder.readString()));
+            case OPAQUE_NOTATION:
+                return new OpaqueComponentIdentifier(readClassPathNotation(decoder));
+            default:
+                throw new IllegalArgumentException("Unsupported component identifier implementation: " + implementation);
+        }
     }
 
     @Override
@@ -81,50 +97,65 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
 
         Implementation implementation = resolveImplementation(value);
 
-        encoder.writeByte(implementation.getId());
+        encoder.writeByte(implementation.id);
 
-        if (implementation == Implementation.MODULE) {
-            ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) value;
-            encoder.writeString(moduleComponentIdentifier.getGroup());
-            encoder.writeString(moduleComponentIdentifier.getModule());
-            encoder.writeString(moduleComponentIdentifier.getVersion());
-        } else if (implementation == Implementation.SNAPSHOT) {
-            MavenUniqueSnapshotComponentIdentifier snapshotIdentifier = (MavenUniqueSnapshotComponentIdentifier) value;
-            encoder.writeString(snapshotIdentifier.getGroup());
-            encoder.writeString(snapshotIdentifier.getModule());
-            encoder.writeString(snapshotIdentifier.getVersion());
-            encoder.writeString(snapshotIdentifier.getTimestamp());
-        } else if (implementation == Implementation.ROOT_PROJECT) {
-            ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) value;
-            BuildIdentifier build = projectComponentIdentifier.getBuild();
-            buildIdentifierSerializer.write(encoder, build);
-            encoder.writeString(projectComponentIdentifier.getProjectName());
-        } else if (implementation == Implementation.ROOT_BUILD_PROJECT) {
-            ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) value;
-            BuildIdentifier build = projectComponentIdentifier.getBuild();
-            buildIdentifierSerializer.write(encoder, build);
-            encoder.writeString(projectComponentIdentifier.getProjectPath());
-        } else if (implementation == Implementation.OTHER_BUILD_ROOT_PROJECT) {
-            DefaultProjectComponentIdentifier projectComponentIdentifier = (DefaultProjectComponentIdentifier) value;
-            BuildIdentifier build = projectComponentIdentifier.getBuild();
-            buildIdentifierSerializer.write(encoder, build);
-            encoder.writeString(projectComponentIdentifier.getIdentityPath().getPath());
-        } else if (implementation == Implementation.OTHER_BUILD_PROJECT) {
-            DefaultProjectComponentIdentifier projectComponentIdentifier = (DefaultProjectComponentIdentifier) value;
-            BuildIdentifier build = projectComponentIdentifier.getBuild();
-            buildIdentifierSerializer.write(encoder, build);
-            encoder.writeString(projectComponentIdentifier.getIdentityPath().getPath());
-            encoder.writeString(projectComponentIdentifier.getProjectPath());
-        } else if (implementation == Implementation.LIBRARY) {
-            LibraryBinaryIdentifier libraryIdentifier = (LibraryBinaryIdentifier) value;
-            encoder.writeString(libraryIdentifier.getProjectPath());
-            encoder.writeString(libraryIdentifier.getLibraryName());
-            encoder.writeString(libraryIdentifier.getVariant());
-        } else if (implementation == Implementation.OPAQUE) {
-            OpaqueComponentArtifactIdentifier opaqueComponentIdentifier = (OpaqueComponentArtifactIdentifier) value;
-            encoder.writeString(opaqueComponentIdentifier.getFile().getPath());
-        } else {
-            throw new IllegalStateException("Unsupported implementation type: " + implementation);
+        switch (implementation) {
+            case MODULE:
+                ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier) value;
+                encoder.writeString(moduleComponentIdentifier.getGroup());
+                encoder.writeString(moduleComponentIdentifier.getModule());
+                encoder.writeString(moduleComponentIdentifier.getVersion());
+                break;
+            case SNAPSHOT:
+                MavenUniqueSnapshotComponentIdentifier snapshotIdentifier = (MavenUniqueSnapshotComponentIdentifier) value;
+                encoder.writeString(snapshotIdentifier.getGroup());
+                encoder.writeString(snapshotIdentifier.getModule());
+                encoder.writeString(snapshotIdentifier.getVersion());
+                encoder.writeString(snapshotIdentifier.getTimestamp());
+                break;
+            case ROOT_PROJECT: {
+                ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) value;
+                writeBuildIdentifierOf(projectComponentIdentifier, encoder);
+                encoder.writeString(projectComponentIdentifier.getProjectName());
+                break;
+            }
+            case ROOT_BUILD_PROJECT: {
+                ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier) value;
+                writeBuildIdentifierOf(projectComponentIdentifier, encoder);
+                encoder.writeString(projectComponentIdentifier.getProjectPath());
+                break;
+            }
+            case OTHER_BUILD_ROOT_PROJECT: {
+                DefaultProjectComponentIdentifier projectComponentIdentifier = (DefaultProjectComponentIdentifier) value;
+                writeBuildIdentifierOf(projectComponentIdentifier, encoder);
+                encoder.writeString(projectComponentIdentifier.getIdentityPath().getPath());
+                break;
+            }
+            case OTHER_BUILD_PROJECT: {
+                DefaultProjectComponentIdentifier projectComponentIdentifier = (DefaultProjectComponentIdentifier) value;
+                writeBuildIdentifierOf(projectComponentIdentifier, encoder);
+                encoder.writeString(projectComponentIdentifier.getIdentityPath().getPath());
+                encoder.writeString(projectComponentIdentifier.getProjectPath());
+                break;
+            }
+            case LIBRARY:
+                LibraryBinaryIdentifier libraryIdentifier = (LibraryBinaryIdentifier) value;
+                encoder.writeString(libraryIdentifier.getProjectPath());
+                encoder.writeString(libraryIdentifier.getLibraryName());
+                encoder.writeString(libraryIdentifier.getVariant());
+                break;
+            case OPAQUE: {
+                OpaqueComponentArtifactIdentifier opaqueIdentifier = (OpaqueComponentArtifactIdentifier) value;
+                encoder.writeString(opaqueIdentifier.getFile().getPath());
+                break;
+            }
+            case OPAQUE_NOTATION: {
+                OpaqueComponentIdentifier opaqueIdentifier = (OpaqueComponentIdentifier) value;
+                writeClassPathNotation(encoder, opaqueIdentifier.getClassPathNotation());
+                break;
+            }
+            default:
+                throw new IllegalStateException("Unsupported implementation type: " + implementation);
         }
     }
 
@@ -141,6 +172,19 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
     @Override
     public int hashCode() {
         return Objects.hashCode(super.hashCode(), buildIdentifierSerializer);
+    }
+
+    private static void writeClassPathNotation(Encoder encoder, DependencyFactoryInternal.ClassPathNotation classPathNotation) throws IOException {
+        encoder.writeSmallInt(classPathNotation.ordinal());
+    }
+
+    private static DependencyFactoryInternal.ClassPathNotation readClassPathNotation(Decoder decoder) throws IOException {
+        int ordinal = decoder.readSmallInt();
+        return DependencyFactoryInternal.ClassPathNotation.values()[ordinal];
+    }
+
+    private void writeBuildIdentifierOf(ProjectComponentIdentifier projectComponentIdentifier, Encoder encoder) throws IOException {
+        buildIdentifierSerializer.write(encoder, projectComponentIdentifier.getBuild());
     }
 
     private Implementation resolveImplementation(ComponentIdentifier value) {
@@ -166,22 +210,37 @@ public class ComponentIdentifierSerializer extends AbstractSerializer<ComponentI
             return Implementation.LIBRARY;
         } else if (value instanceof OpaqueComponentArtifactIdentifier) {
             return Implementation.OPAQUE;
+        } else if (value instanceof OpaqueComponentIdentifier) {
+            return Implementation.OPAQUE_NOTATION;
         } else {
             throw new IllegalArgumentException("Unsupported component identifier class: " + value.getClass());
         }
     }
 
     private enum Implementation {
-        MODULE(1), ROOT_PROJECT(2), ROOT_BUILD_PROJECT(3), OTHER_BUILD_ROOT_PROJECT(4), OTHER_BUILD_PROJECT(5), LIBRARY(6), SNAPSHOT(7), OPAQUE(8);
+        MODULE(1),
+        ROOT_PROJECT(2),
+        ROOT_BUILD_PROJECT(3),
+        OTHER_BUILD_ROOT_PROJECT(4),
+        OTHER_BUILD_PROJECT(5),
+        LIBRARY(6),
+        SNAPSHOT(7),
+        OPAQUE(8),
+        OPAQUE_NOTATION(9);
+
+        @Nullable
+        public static Implementation valueOf(int id) {
+            Implementation[] values = values();
+            if (id >= values[0].id && id <= values[values.length - 1].id) {
+                return values[id - 1];
+            }
+            return null;
+        }
 
         private final byte id;
 
         Implementation(int id) {
             this.id = (byte) id;
-        }
-
-        private byte getId() {
-            return id;
         }
     }
 }

@@ -7,6 +7,7 @@ description = "Implementation for launching, controlling and communicating with 
 
 dependencies {
     implementation(project(":base-services"))
+    implementation(project(":functional"))
     implementation(project(":enterprise-operations"))
     implementation(project(":cli"))
     implementation(project(":messaging"))
@@ -17,6 +18,7 @@ dependencies {
     implementation(project(":files"))
     implementation(project(":file-collections"))
     implementation(project(":snapshots"))
+    implementation(project(":execution"))
     implementation(project(":persistent-cache"))
     implementation(project(":core-api"))
     implementation(project(":core"))
@@ -73,8 +75,8 @@ dependencies {
     testRuntimeOnly(project(":distributions-core")) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-    integTestDistributionRuntimeOnly(project(":distributions-native")) {
-        because("'native' distribution required for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'")
+    integTestDistributionRuntimeOnly(project(":distributions-full")) {
+        because("built-in options are required to be present at runtime for 'TaskOptionsSpec'")
     }
 }
 
@@ -83,3 +85,8 @@ strictCompile {
 }
 
 testFilesCleanup.reportOnly.set(true)
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}

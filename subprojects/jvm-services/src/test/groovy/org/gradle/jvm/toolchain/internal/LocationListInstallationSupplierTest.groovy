@@ -16,7 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal
 
-
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.ProviderFactory
 import spock.lang.Specification
@@ -69,13 +69,19 @@ class LocationListInstallationSupplierTest extends Specification {
     }
 
     private createSupplier(String propertyValue) {
-        new LocationListInstallationSupplier(createProviderFactory(propertyValue))
+        new LocationListInstallationSupplier(createProviderFactory(propertyValue), createFileResolver())
     }
 
     private ProviderFactory createProviderFactory(String propertyValue) {
         def providerFactory = Mock(ProviderFactory)
         providerFactory.gradleProperty("org.gradle.java.installations.paths") >> Providers.ofNullable(propertyValue)
         providerFactory
+    }
+
+    private FileResolver createFileResolver() {
+        def fileResolver = Mock(FileResolver)
+        fileResolver.resolve(_) >> {String path -> new File(path)}
+        fileResolver
     }
 
 }

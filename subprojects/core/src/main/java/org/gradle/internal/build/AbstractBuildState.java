@@ -18,6 +18,7 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.Describables;
@@ -27,9 +28,11 @@ import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 
 import javax.annotation.Nullable;
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.function.Function;
 
-public abstract class AbstractBuildState implements BuildState {
+public abstract class AbstractBuildState implements BuildState, Closeable {
     private final BuildScopeServices buildServices;
     private final Lazy<BuildLifecycleController> buildLifecycleController;
     private final Lazy<ProjectStateRegistry> projectStateRegistry;
@@ -54,6 +57,11 @@ public abstract class AbstractBuildState implements BuildState {
     }
 
     @Override
+    public void close() throws IOException {
+        buildServices.close();
+    }
+
+    @Override
     public DisplayName getDisplayName() {
         return Describables.of(getBuildIdentifier());
     }
@@ -61,6 +69,16 @@ public abstract class AbstractBuildState implements BuildState {
     @Override
     public String toString() {
         return getDisplayName().getDisplayName();
+    }
+
+    @Override
+    public void resetLifecycle() {
+        projectStateRegistry.get().discardProjectsFor(this);
+        workGraphController.get().resetState();
+        buildLifecycleController.get().resetLifecycle();
+        for (HoldsProjectState service : buildLifecycleController.get().getGradle().getServices().getAll(HoldsProjectState.class)) {
+            service.discardAll();
+        }
     }
 
     @Override
@@ -89,6 +107,11 @@ public abstract class AbstractBuildState implements BuildState {
     @Override
     public void ensureProjectsLoaded() {
         getBuildController().loadSettings();
+    }
+
+    @Override
+    public boolean isProjectsLoaded() {
+        return getProjectStateRegistry().findProjectsFor(getBuildIdentifier()) != null;
     }
 
     @Override

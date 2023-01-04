@@ -75,6 +75,10 @@ import java.nio.file.Files
 import javax.inject.Inject
 
 
+internal
+const val strictModeSystemPropertyName = "org.gradle.kotlin.dsl.precompiled.accessors.strict"
+
+
 @CacheableTask
 abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constructor(
 
@@ -120,12 +124,14 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         get() = scriptPluginFilesOf(plugins)
 
     @get:Input
+    @Deprecated("Will be removed in Gradle 9.0")
     abstract val strict: Property<Boolean>
 
     init {
         outputs.doNotCacheIf(
             "Generated accessors can only be cached in strict mode."
         ) {
+            @Suppress("DEPRECATION")
             !strict.get()
         }
     }
@@ -326,13 +332,13 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
             controller.withEmptyBuild { settings ->
                 Try.ofFailable {
                     val gradle = settings.gradle
-                    val baseScope = classLoaderScopeRegistry.coreAndPluginsScope.createChild("accessors-classpath").apply {
+                    val baseScope = classLoaderScopeRegistry.coreAndPluginsScope.createChild("accessors-classpath", null).apply {
                         // we export the build logic classpath to the base scope here so that all referenced plugins
                         // can be resolved in the root project scope created below.
                         export(buildLogicClassPath)
                         lock()
                     }
-                    val rootProjectScope = baseScope.createChild("accessors-root-project")
+                    val rootProjectScope = baseScope.createChild("accessors-root-project", null)
                     settings.rootProject.name = "gradle-kotlin-dsl-accessors"
                     val projectState = gradle.serviceOf<ProjectStateRegistry>().registerProject(gradle.owner, settings.rootProject as DefaultProjectDescriptor)
                     projectState.createMutableModel(rootProjectScope, baseScope)
@@ -356,7 +362,9 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
                     startParameter.gradleHomeDir,
                     startParameter.gradleUserHomeDir,
                     projectDir,
-                    projectDir
+                    projectDir,
+                    null,
+                    null
                 )
             )
         }
@@ -403,6 +411,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
     private
     fun reportProjectSchemaError(plugins: List<PrecompiledScriptPlugin>, error: Throwable) {
+        @Suppress("DEPRECATION")
         if (strict.get()) throw GradleException(failedToGenerateAccessorsFor(plugins), error)
         else logger.warn(failedToGenerateAccessorsFor(plugins), error)
     }

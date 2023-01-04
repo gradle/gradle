@@ -34,13 +34,24 @@ class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec {
         buildScript("""
             apply plugin: 'java'
 
-            repositories {
-                ${mavenCentralRepository()}
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'org.junit.jupiter:junit-jupiter:${LATEST_JUPITER_VERSION}'
             }
             $script
         """)
+    }
+
+    void createSimpleJupiterTest() {
+        file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
+            package org.gradle;
+
+            import org.junit.jupiter.api.Test;
+
+            public class JUnitJupiterTest {
+                @Test
+                public void ok() { }
+            }
+            '''
     }
 }

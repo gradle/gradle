@@ -33,7 +33,6 @@ import org.gradle.api.internal.artifacts.ConfigurationVariantInternal
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.util.AttributeTestUtil
@@ -48,7 +47,6 @@ import static org.gradle.api.attributes.Category.LIBRARY
 import static org.gradle.api.attributes.Category.REGULAR_PLATFORM
 import static org.gradle.api.attributes.DocsType.DOCS_TYPE_ATTRIBUTE
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE
-import static org.gradle.api.attributes.Usage.JAVA_API
 import static org.gradle.api.attributes.Usage.JAVA_RUNTIME
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
 import static org.gradle.api.attributes.java.TargetJvmEnvironment.STANDARD_JVM
@@ -80,7 +78,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         0 * _
         mutable.asMap() == [
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
+            (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API),
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
             (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
         ]
@@ -92,7 +90,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         then:
         mutable.asMap() == [
             (CATEGORY_ATTRIBUTE): named(Category, LIBRARY),
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_API),
+            (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API),
             (BUNDLING_ATTRIBUTE): named(Bundling, EXTERNAL),
             (TARGET_JVM_ENVIRONMENT_ATTRIBUTE): named(TargetJvmEnvironment, STANDARD_JVM),
             (TARGET_JVM_VERSION_ATTRIBUTE): 8
@@ -163,11 +161,9 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
         }
 
         when:
-        services.configureClassesDirectoryVariant("apiElements", sourceSet)
+        services.configureClassesDirectoryVariant(apiElements, sourceSet)
 
         then:
-        1 * configurations.all(_) >> { args -> args[0].execute(apiElements) }
-        1 * apiElements.getName() >> 'apiElements'
         1 * apiElements.getOutgoing() >> outgoing
         1 * outgoing.getVariants() >> variants
         1 * variants.maybeCreate('classes') >> variant
@@ -178,9 +174,10 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
             PublishArtifact artifact = artifacts[0]
             assert artifact.name == 'toto'
         }
+        1 * variant.setDescription(_)
         _ * sourceSet.getOutput() >> output
         1 * output.getClassesDirs() >> classes
-        1 * output.getClassesContributors() >> Stub(TaskDependency)
+        1 * sourceSet.getName()
         0 * _
     }
 
@@ -251,7 +248,7 @@ class DefaultJvmPluginServicesTest extends AbstractJvmPluginServicesTest {
 
         then:
         attrs.asMap() == [
-            (USAGE_ATTRIBUTE): named(Usage, JAVA_API)
+            (USAGE_ATTRIBUTE): named(Usage, Usage.JAVA_API)
         ]
 
         when:

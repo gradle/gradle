@@ -16,22 +16,22 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
 
 class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
+    private ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
+
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
         """
-        new ResolveTestFixture(buildFile, "compile").addDefaultVariantDerivationStrategy()
+        resolve.expectDefaultConfiguration("runtime")
+        resolve.addDefaultVariantDerivationStrategy()
     }
 
-
-    @ToBeFixedForConfigurationCache
     void "strict conflict resolution should fail due to conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
@@ -73,7 +73,6 @@ project(':tool') {
         failure.assertThatCause(containsString('Conflict(s) found for the following module(s):'))
     }
 
-    @ToBeFixedForConfigurationCache
     void "strict conflict resolution should pass when no conflicts"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
 
@@ -118,7 +117,6 @@ project(':tool') {
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
         settingsFile << """
-rootProject.name = 'test'
 include 'api', 'impl', 'tool'
 """
 
@@ -176,10 +174,6 @@ project(':tool') {
         def foo144 = mavenRepo.module("org", "foo", '1.4.4').publish()
         mavenRepo.module("org", "bar", "1.0").dependsOn(foo133).publish()
         mavenRepo.module("org", "baz", "1.0").dependsOn(foo144).publish()
-
-        settingsFile << """
-rootProject.name = 'test'
-"""
 
         buildFile << """
 apply plugin: 'java'
@@ -247,7 +241,6 @@ dependencies {
 }
 """
 
-        def resolve = new ResolveTestFixture(buildFile, "compile").expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -277,8 +270,6 @@ dependencies {
         mavenRepo.module("org", "external", "1.2").publish()
         mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.0").publish()
 
-        settingsFile << "rootProject.name = 'test'"
-
         buildFile << """
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -291,8 +282,6 @@ dependencies {
     compile 'org:dep:2.2'
 }
 """
-
-        def resolve = new ResolveTestFixture(buildFile, "compile").expectDefaultConfiguration("runtime")
         resolve.prepare()
 
         when:
@@ -329,17 +318,24 @@ dependencies {
     compile 'org:child:2'
     compile 'org:dep:2'
 }
-task checkDeps(dependsOn: configurations.compile) {
-    doLast {
-        assert configurations.compile*.name == ['dep-2.jar', 'parent-2.jar', 'child-2.jar']
-        configurations.compile.resolvedConfiguration.firstLevelModuleDependencies*.name
-        configurations.compile.incoming.resolutionResult.allComponents*.id
-    }
-}
 """
+        resolve.prepare()
 
-        expect:
+        when:
         run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:child:2")
+                edge("org:parent:1", "org:parent:2") {
+                    module("org:child:2")
+                }
+                module("org:dep:2") {
+                    module("org:parent:2")
+                }
+            }
+        }
     }
 
     void "resolves dynamic dependency before resolving conflict"() {
@@ -359,16 +355,21 @@ dependencies {
     compile 'org:external:1.2'
     compile 'org:dep:2.2'
 }
-
-task checkDeps {
-    doLast {
-        assert configurations.compile*.name == ['dep-2.2.jar', 'external-1.4.jar']
-    }
-}
 """
+        resolve.prepare()
 
-        expect:
+        when:
         run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:external:1.2", "org:external:1.4")
+                module("org:dep:2.2") {
+                    edge("org:external:[1.3,)", "org:external:1.4")
+                }
+            }
+        }
     }
 
     void "fails when version selected by conflict resolution does not exist"() {
@@ -388,8 +389,9 @@ dependencies {
 }
 
 task checkDeps {
+    def files = configurations.compile
     doLast {
-        assert configurations.compile*.name == ['external-1.2.jar', 'dep-2.2.jar']
+        files.files
     }
 }
 """
@@ -414,16 +416,21 @@ dependencies {
     compile 'org:external:1.2'
     compile 'org:dep:2.2'
 }
-
-task checkDeps {
-    doLast {
-        assert configurations.compile*.name == ['dep-2.2.jar', 'external-1.4.jar']
-    }
-}
 """
+        resolve.prepare()
 
-        expect:
+        when:
         run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:external:1.2", "org:external:1.4")
+                module("org:dep:2.2") {
+                    module("org:external:1.4")
+                }
+            }
+        }
     }
 
     void "takes newest dynamic version when dynamic version forced"() {
@@ -469,18 +476,26 @@ project(':tool') {
 	        failOnVersionConflict()
 	    }
 	}
-
-	task checkDeps {
-        doLast {
-            assert configurations.runtimeClasspath*.name.contains('foo-1.4.9.jar')
-        }
-    }
 }
 
 """
+        resolve.prepare("runtimeClasspath")
 
-        expect:
+        when:
         run("tool:checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":tool", "test:tool:") {
+                project(":api", "test:api:") {
+                    edge("org:foo:1.4.4", "org:foo:1.4.9")
+                }
+                project(":impl", "test:impl:") {
+                    edge("org:foo:1.4.1", "org:foo:1.4.9")
+                }
+                edge("org:foo:1.3.0", "org:foo:1.4.9")
+            }
+        }
     }
 
     void "parent pom does not participate in forcing mechanism"() {
@@ -497,9 +512,9 @@ project(':tool') {
         otherParent.dependsOn("org", "foo", "2.4.0")
         otherParent.publish()
 
-        def module = mavenRepo.module("org", "someArtifact", '1.0')
-        module.parent("org", "someParent", "1.0")
-        module.publish()
+        def dep = mavenRepo.module("org", "someArtifact", '1.0')
+        dep.parent("org", "someParent", "1.0")
+        dep.publish()
 
         buildFile << """
 apply plugin: 'java'
@@ -517,19 +532,20 @@ configurations.all {
         failOnVersionConflict()
     }
 }
-
-task checkDeps {
-    doLast {
-        def deps = configurations.runtimeClasspath*.name
-        assert deps.contains('someArtifact-1.0.jar')
-        assert deps.contains('foo-1.3.0.jar')
-        assert deps.size() == 2
-    }
-}
 """
+        resolve.prepare("runtimeClasspath")
 
-        expect:
+        when:
         run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:someArtifact:1.0") {
+                    module("org:foo:1.3.0")
+                }
+            }
+        }
     }
 
     void "previously evicted nodes should contain correct target version"() {
@@ -558,28 +574,29 @@ task checkDeps {
             }
 
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1.0', 'org:a:2.0'
-            }
-            task checkDeps {
-                doLast {
-                    assert configurations.conf*.name == ['b-2.0.jar', 'a-2.0.jar']
-                    def result = configurations.conf.incoming.resolutionResult
-                    assert result.allComponents.size() == 3
-                    def root = result.root
-                    assert root.dependencies*.toString() == ['org:a:1.0 -> org:a:2.0', 'org:a:2.0']
-                    def a = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'a' }
-                    assert a.dependencies*.toString() == ['org:b:2.0']
-                    def b = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b' }
-                    assert b.dependencies*.toString() == ['org:a:1.0 -> org:a:2.0']
-                }
+                compile 'org:a:1.0', 'org:a:2.0'
             }
         """
+        resolve.prepare()
 
-        expect:
+        when:
         run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:1.0", "org:a:2.0")
+                module("org:a:2.0") {
+                    configuration = "default"
+                    module("org:b:2.0") {
+                        edge("org:a:1.0", "org:a:2.0")
+                    }
+                }
+            }
+        }
     }
 
     @Issue("GRADLE-2555")
@@ -614,33 +631,37 @@ task checkDeps {
         buildFile << """
             repositories { maven { url "${mavenRepo.uri}" } }
 
-            configurations { conf }
+            configurations { compile }
 
             dependencies {
-                conf "org:a:1.0", "org:b:1.0"
+                compile "org:a:1.0", "org:b:1.0"
             }
+        """
+        resolve.prepare()
 
-        task checkDeps {
-            doLast {
-                assert configurations.conf*.name == ['a-1.0.jar', 'b-1.0.jar', 'b-child-1.0.jar', 'in-conflict-2.0.jar', 'target-1.0.jar', 'target-child-1.0.jar']
-                def result = configurations.conf.incoming.resolutionResult
-                assert result.allComponents.size() == 7
-                def a = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'a' }
-                assert a.dependencies*.toString() == ['org:in-conflict:1.0 -> org:in-conflict:2.0']
-                def bChild = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b-child' }
-                assert bChild.dependencies*.toString() == ['org:in-conflict:2.0']
-                def target = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'target' }
-                assert target.dependents*.from*.toString() == ['org:in-conflict:2.0']
+        when:
+        run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:1.0") {
+                    edge("org:in-conflict:1.0", "org:in-conflict:2.0")
+                }
+                module("org:b:1.0") {
+                    module("org:b-child:1.0") {
+                        module("org:in-conflict:2.0") {
+                            module("org:target:1.0") {
+                                module("org:target-child:1.0")
+                            }
+                        }
+                    }
+                }
             }
         }
-        """
-
-        expect:
-        run("checkDeps")
     }
 
     @Issue("GRADLE-2555")
-    @ToBeFixedForConfigurationCache
     void "batched up conflicts with conflicted parent and child"() {
         /*
         Dependency tree:
@@ -714,8 +735,6 @@ parentFirst
         mavenRepo.module("org", "test", "1.2").publish()
         mavenRepo.module("org", "other", "1.7").dependsOn("org", "test", "1.2").publish()
 
-        settingsFile << "rootProject.name= 'test'"
-
         buildFile << """
 apply plugin: 'java'
 
@@ -751,8 +770,6 @@ dependencies {
     void "selects later version of root module when requested"() {
         mavenRepo.module("org", "test", "2.1").publish()
         mavenRepo.module("org", "other", "1.7").dependsOn("org", "test", "2.1").publish()
-
-        settingsFile << "rootProject.name = 'test'"
 
         buildFile << """
 apply plugin: 'java'
@@ -797,8 +814,6 @@ dependencies {
         mavenRepo.module("org", "c", "1").publish()
         mavenRepo.module("org", "c", "2").publish()
 
-        settingsFile << "rootProject.name= 'test'"
-
         buildFile << """
 repositories {
     maven { url "${mavenRepo.uri}" }
@@ -811,17 +826,24 @@ dependencies {
     compile "org:a:1"
     compile "org:c:2"
 }
-
-task checkDeps(dependsOn: configurations.compile) {
-    doLast {
-        assert configurations.compile*.name.sort() == ['a-2.jar', 'b-1.jar', 'c-2.jar']
-        assert configurations.compile.incoming.resolutionResult.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b' }.dependencies.size() == 1
-    }
-}
 """
+        resolve.prepare()
 
-        expect:
+        when:
         run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:2")
+                edge("org:a:1", "org:a:2") {
+                    module("org:b:1") {
+                        edge("org:c:1", "org:c:2")
+                    }
+                }
+                module("org:c:2")
+            }
+        }
     }
 
     @Issue("GRADLE-2738")
@@ -835,7 +857,6 @@ task checkDeps(dependsOn: configurations.compile) {
         mavenRepo.module("org", "c", "1.0").dependsOn("org", "leaf", "[1.5,1.9]").publish()
         mavenRepo.module("org", "d", "1.0").dependsOn("org", "leaf", "2.0+").publish()
 
-        settingsFile << "rootProject.name = 'broken'"
         buildFile << """
             version = 12
             repositories {
@@ -848,19 +869,20 @@ task checkDeps(dependsOn: configurations.compile) {
                 conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0', 'org:d:1.0'
             }
             task resolve {
+                def files = configurations.conf
                 doLast {
-                    configurations.conf.files
+                    files.files
                 }
             }
             task checkGraph {
+                def result = configurations.conf.incoming.resolutionResult.rootComponent
                 doLast {
-                    def result = configurations.conf.incoming.resolutionResult
-                    assert result.allComponents*.toString() as Set == ['project :', 'org:a:1.0', 'org:b:1.0', 'org:c:1.0', 'org:d:1.0', 'org:leaf:1.5'] as Set
-                    def a = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'a' }
-                    def b = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b' }
-                    def c = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'c' }
-                    def d = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'd' }
-                    def leaf = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'leaf' }
+                    def root = result.get()
+                    def components = root.dependencies.collect { it.selected }
+                    def a = components.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'a' }
+                    def b = components.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b' }
+                    def c = components.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'c' }
+                    def d = components.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'd' }
 
                     a.dependencies.each {
                         assert it instanceof UnresolvedDependencyResult
@@ -870,12 +892,12 @@ task checkDeps(dependsOn: configurations.compile) {
                     b.dependencies.each {
                         assert it instanceof ResolvedDependencyResult
                         assert it.requested.toString() == 'org:leaf:1.0'
-                        assert it.selected == leaf
+                        assert it.selected.id.module == 'leaf'
                     }
                     c.dependencies.each {
                         assert it instanceof ResolvedDependencyResult
                         assert it.requested.toString() == 'org:leaf:[1.5,1.9]'
-                        assert it.selected == leaf
+                        assert it.selected.id.module == 'leaf'
                     }
                     d.dependencies.each {
                         assert it instanceof UnresolvedDependencyResult
@@ -909,24 +931,68 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-6.jar']
-                }
+                compile 'org:a:1.0', 'org:b:1.0'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:1.0") {
+                    edge("org:leaf:[2,6]", "org:leaf:6")
+                }
+                module("org:b:1.0") {
+                    edge("org:leaf:[4,8]", "org:leaf:6")
+                }
+            }
+        }
+    }
+
+    def "chooses highest version that is included in both ranges, with the highest version in the intersection missing"() {
+        given:
+        (1..10).findAll {
+            // We skip v6, as we test what happens when the top version of the intersection is missing
+            it != 6
+        }.each {
+            mavenRepo.module("org", "leaf", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[2,6]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[4,8]").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                compile
+            }
+            dependencies {
+                compile 'org:a:1.0', 'org:b:1.0'
+            }
+        """
+        resolve.prepare()
+
+        when:
+        run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:1.0") {
+                    edge("org:leaf:[2,6]", "org:leaf:5")
+                }
+                module("org:b:1.0") {
+                    edge("org:leaf:[4,8]", "org:leaf:5")
+                }
+            }
+        }
     }
 
     def "chooses highest version that is included in both ranges when fail on conflict is set"() {
@@ -942,28 +1008,32 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf {
+                compile {
                     resolutionStrategy {
                         failOnVersionConflict()
                     }
                 }
             }
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-6.jar']
-                }
+                compile 'org:a:1.0', 'org:b:1.0'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:1.0") {
+                    edge("org:leaf:[2,6]", "org:leaf:6")
+                }
+                module("org:b:1.0") {
+                    edge("org:leaf:[4,8]", "org:leaf:6")
+                }
+            }
+        }
     }
 
     def "chooses highest version that is included in all ranges"() {
@@ -980,24 +1050,31 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'leaf-5.jar']
-                }
+                compile 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:1.0") {
+                    edge("org:leaf:[2,6]", "org:leaf:5")
+                }
+                module("org:b:1.0") {
+                    edge("org:leaf:[4,8]", "org:leaf:5")
+                }
+                module("org:c:1.0") {
+                    edge("org:leaf:[3,5]", "org:leaf:5")
+                }
+            }
+        }
     }
 
     def "chooses highest version that is included in all ranges, when dependencies are included at different transitivity levels"() {
@@ -1022,24 +1099,41 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'b2-1.0.jar', 'c-1.0.jar', 'c2-1.0.jar','c3-1.0.jar', 'leaf-5.jar']
-                }
+                compile 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:1.0") {
+                    edge("org:leaf:[2,6]", "org:leaf:5") {
+                        byReason("didn't match versions 10, 9, 8, 7")
+                    }
+                }
+                module("org:b:1.0") {
+                    module("org:b2:1.0") {
+                        edge("org:leaf:[3,5]", "org:leaf:5") {
+                            byReason("didn't match versions 10, 9, 8, 7, 6")
+                        }
+                    }
+                }
+                module("org:c:1.0") {
+                    module("org:c2:1.0") {
+                        module("org:c3:1.0") {
+                            edge("org:leaf:[3,5]", "org:leaf:5")
+                        }
+                    }
+                }
+            }
+        }
     }
 
     def "upgrades version when ranges are disjoint"() {
@@ -1055,24 +1149,66 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
+                compile
+            }
+            dependencies {
+                compile 'org:a:1.0', 'org:b:1.0'
+            }
+        """
+        resolve.prepare()
+
+        when:
+        run("checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:1.0") {
+                    edge("org:leaf:[2,3]", "org:leaf:8") {
+                        byReason("didn't match versions 10, 9, 8, 7, 6, 5, 4")
+                        byReason("conflict resolution: between versions 3 and 8")
+                    }
+                }
+                module("org:b:1.0") {
+                    edge("org:leaf:[5,8]", "org:leaf:8") {
+                        byReason("didn't match versions 10, 9")
+                    }
+                }
+            }
+        }
+    }
+
+    def "fail when ranges are disjoint and no top range artifact is present"() {
+        given:
+        (1..10).each {
+            mavenRepo.module("org", "leaf", "$it").publish()
+        }
+        mavenRepo.module("org", "a", "1.0").dependsOn("org", "leaf", "[1,5]").publish()
+        mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[11,15]").publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
                 conf
             }
             dependencies {
                 conf 'org:a:1.0', 'org:b:1.0'
             }
             task checkDeps {
+                def files = configurations.conf
                 doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-8.jar']
+                    files.files
                 }
             }
         """
 
         when:
-        run 'checkDeps'
+        fails 'checkDeps'
 
         then:
-        noExceptionThrown()
+        failure.assertThatCause(containsString("Could not find any version that matches org:leaf:[11,15]."))
     }
 
     def "upgrades version when ranges are disjoint unless failOnVersionConflict is set"() {
@@ -1096,8 +1232,9 @@ task checkDeps(dependsOn: configurations.compile) {
                 conf 'org:a:1.0', 'org:b:1.0'
             }
             task checkDeps {
+                def files = configurations.conf
                 doLast {
-                    def files = configurations.conf*.name.sort()
+                    files.files
                 }
             }
         """
@@ -1123,24 +1260,38 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'leaf-8.jar']
-                }
+                compile 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:1.0") {
+                    edge("org:leaf:[2,6]", "org:leaf:8") {
+                        byReason("didn't match versions 10, 9, 8, 7")
+                        byReason("conflict resolution: between versions 8 and 4")
+                    }
+                }
+                module("org:b:1.0") {
+                    edge("org:leaf:[3,4]", "org:leaf:8") {
+                        byReason("didn't match versions 10, 9, 8, 7, 6, 5")
+                    }
+                }
+                module("org:c:1.0") {
+                    edge("org:leaf:[7,8]", "org:leaf:8") {
+                        byReason("didn't match versions 10, 9")
+                    }
+                }
+            }
+        }
     }
 
     def "fails when one of the ranges is disjoint and fail on conflict is set"() {
@@ -1167,8 +1318,9 @@ task checkDeps(dependsOn: configurations.compile) {
                 conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
             }
             task checkDeps {
+                def files = configurations.conf
                 doLast {
-                    def files = configurations.conf*.name.sort()
+                    files.files
                 }
             }
         """
@@ -1196,24 +1348,37 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0', 'org:d:1.0', 'org:e:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-1.0.jar', 'leaf-7.jar']
-                }
+                compile 'org:a:1.0', 'org:b:1.0', 'org:c:1.0', 'org:d:1.0', 'org:e:1.0'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:1.0") {
+                    edge("org:leaf:[1,12]", "org:leaf:7")
+                }
+                module("org:b:1.0") {
+                    edge("org:leaf:[3,8]", "org:leaf:7")
+                }
+                module("org:c:1.0") {
+                    edge("org:leaf:[2,10]", "org:leaf:7")
+                }
+                module("org:d:1.0") {
+                    edge("org:leaf:[4,7]", "org:leaf:7")
+                }
+                module("org:e:1.0") {
+                    edge("org:leaf:[4,11]", "org:leaf:7")
+                }
+            }
+        }
     }
 
     def "selects the minimal version when in there's an open range"() {
@@ -1229,24 +1394,28 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-6.jar']
-                }
+                compile 'org:a:1.0', 'org:b:1.0'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:1.0") {
+                    edge("org:leaf:[2,6]", "org:leaf:6")
+                }
+                module("org:b:1.0") {
+                    edge("org:leaf:[5,)", "org:leaf:6")
+                }
+            }
+        }
     }
 
     def "range selector should not win over sub-version selector"() {
@@ -1262,24 +1431,28 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-1.10.jar']
-                }
+                compile 'org:a:1.0', 'org:b:1.0'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:1.0") {
+                    edge("org:leaf:[1.2,1.6]", "org:leaf:1.10")
+                }
+                module("org:b:1.0") {
+                    edge("org:leaf:1.+", "org:leaf:1.10")
+                }
+            }
+        }
     }
 
     def "range conflict resolution not interfering between distinct configurations"() {
@@ -1309,14 +1482,18 @@ task checkDeps(dependsOn: configurations.compile) {
                 conf4 'org:b:1.0', 'org:c:1.0', 'org:d:1.0'
             }
             task checkDeps {
+                def files1 = configurations.conf
+                def files2 = configurations.conf2
+                def files3 = configurations.conf3
+                def files4 = configurations.conf4
                 doLast {
-                    def files = configurations.conf*.name.sort()
+                    def files = files1*.name.sort()
                     assert files == ['a-1.0.jar', 'b-1.0.jar', 'leaf-6.jar']
-                    files = configurations.conf2*.name.sort()
+                    files = files2*.name.sort()
                     assert files == ['a-1.0.jar', 'c-1.0.jar', 'leaf-5.jar']
-                    files = configurations.conf3*.name.sort()
+                    files = files3*.name.sort()
                     assert files == ['b-1.0.jar', 'c-1.0.jar', 'leaf-5.jar']
-                    files = configurations.conf4*.name.sort()
+                    files = files4*.name.sort()
                     assert files == ['b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'leaf-8.jar']
                 }
             }
@@ -1345,24 +1522,34 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0', 'org:d:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'leaf-6.jar', 'leaf2-4.jar']
-                }
+                compile 'org:a:1.0', 'org:b:1.0', 'org:c:1.0', 'org:d:1.0'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:1.0") {
+                    edge("org:leaf:[2,6]", "org:leaf:6")
+                }
+                module("org:b:1.0") {
+                    edge("org:leaf:[4,8]", "org:leaf:6")
+                }
+                module("org:c:1.0") {
+                    edge("org:leaf2:[3,4]", "org:leaf2:4")
+                }
+                module("org:d:1.0") {
+                    edge("org:leaf2:[1,7]", "org:leaf2:4")
+                }
+            }
+        }
     }
 
     def "previously selected transitive dependency is not used when it becomes orphaned because of selection of a different version of its dependent module"() {
@@ -1384,24 +1571,36 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-1.0.jar', 'b-1.0.jar', 'c-1.1.jar', 'leaf-6.jar', 'zdep-6.jar']
-                }
+                compile 'org:a:1.0', 'org:b:1.0'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:1.0") {
+                    edge("org:leaf:[1,8]", "org:leaf:6") {
+                        byReason("didn't match versions 10, 9")
+                    }
+                    edge("org:c:1.0", "org:c:1.1") {
+                        edge("org:leaf:[4,6]", "org:leaf:6") {
+                            byReason("didn't match versions 10, 9, 8, 7")
+                            module("org:zdep:6")
+                        }
+                    }
+                }
+                module("org:b:1.0") {
+                    module("org:c:1.1")
+                }
+            }
+        }
     }
 
     def "evicted version removes range constraint from transitive dependency"() {
@@ -1420,24 +1619,31 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-2.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'e-8.jar']
-                }
+                compile 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:1.0", "org:a:2.0") {
+                    edge("org:e:[4,8]", "org:e:8")
+                }
+                module("org:b:1.0") {
+                    edge("org:e:[1,10]", "org:e:8")
+                }
+                module("org:c:1.0") {
+                    module("org:a:2.0")
+                }
+            }
+        }
     }
 
     def "orphan node can be re-selected later with a non short-circuiting selector"() {
@@ -1457,24 +1663,31 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-2.0.jar', 'b-1.0.jar', 'c-1.0.jar', 'd-1.0.jar', 'e-10.jar']
-                }
+                compile 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:1.0", "org:a:2.0")
+                module("org:b:1.0") {
+                    module("org:a:2.0")
+                }
+                module("org:c:1.0") {
+                    module("org:d:1.0") {
+                        edge("org:e:latest.release", "org:e:10")
+                    }
+                }
+            }
+        }
     }
 
     def "presence of evicted and orphan node for a module do not fail selection"() {
@@ -1493,26 +1706,33 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1.0', 'org:c:1.0', 'org:d:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-2.0.jar', 'c-2.0.jar', 'd-1.0.jar', 'e-1.0.jar']
-                }
+                compile 'org:a:1.0', 'org:c:1.0', 'org:d:1.0'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:1.0", "org:a:2.0") {
+                    module("org:c:2.0")
+                }
+                edge("org:c:1.0", "org:c:2.0")
+                module("org:d:1.0") {
+                    module("org:e:1.0") {
+                        module("org:a:2.0")
+                        edge("org:c:1.0", "org:c:2.0")
+                    }
+                }
+            }
+        }
     }
-
 
     def "can have a dependency on evicted node"() {
         given:
@@ -1527,30 +1747,35 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1.0', 'org:c:1.0', 'org:d:1.0'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-2.0.jar', 'c-1.0.jar', 'd-1.0.jar']
-                }
+                compile 'org:a:1.0', 'org:c:1.0', 'org:d:1.0'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:1.0", "org:a:2.0")
+                module("org:c:1.0") {
+                    edge("org:a:1.0", "org:a:2.0")
+                }
+                module("org:d:1.0") {
+                    module("org:a:2.0")
+                }
+            }
+        }
     }
 
     def "evicted hard dependency shouldn't add constraint on range"() {
         given:
-        4.times { mavenRepo.module("org", "e", "${it+1}").publish() }
-        4.times { mavenRepo.module("org", "a", "${it+1}").dependsOn('org', 'e', "${it+1}").publish() }
+        4.times { mavenRepo.module("org", "e", "${it + 1}").publish() }
+        4.times { mavenRepo.module("org", "a", "${it + 1}").dependsOn('org', 'e', "${it + 1}").publish() }
         mavenRepo.module("org", "b", "1").dependsOn('org', 'a', '4').publish() // this will be evicted
         mavenRepo.module('org', 'c', '1').dependsOn('org', 'd', '1').publish()
         mavenRepo.module('org', 'd', '1').dependsOn('org', 'b', '2').publish()
@@ -1561,24 +1786,32 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:[1,3]', 'org:b:1', 'org:c:1'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-3.jar', 'b-2.jar', 'c-1.jar', 'd-1.jar', 'e-3.jar']
-                }
+                compile 'org:a:[1,3]', 'org:b:1', 'org:c:1'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:[1,3]", "org:a:3") {
+                    byReason("didn't match version 4")
+                    module("org:e:3")
+                }
+                edge("org:b:1", "org:b:2")
+                module("org:c:1") {
+                    module("org:d:1") {
+                        module("org:b:2")
+                    }
+                }
+            }
+        }
     }
 
     def "evicted hard dependency shouldn't add constraint on version"() {
@@ -1595,24 +1828,29 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1', 'org:b:1', 'org:c:1'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-1.jar', 'b-2.jar', 'c-1.jar', 'd-1.jar']
-                }
+                compile 'org:a:1', 'org:b:1', 'org:c:1'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("org:a:1")
+                edge("org:b:1", "org:b:2")
+                module("org:c:1") {
+                    module("org:d:1") {
+                        module("org:b:2")
+                    }
+                }
+            }
+        }
     }
 
     def "doesn't include evicted version from branch which has been deselected"() {
@@ -1628,27 +1866,29 @@ task checkDeps(dependsOn: configurations.compile) {
                 maven { url "${mavenRepo.uri}" }
             }
             configurations {
-                conf
+                compile
             }
             dependencies {
-                conf 'org:a:1', 'org:b:1', 'org:c:1'
-            }
-            task checkDeps {
-                doLast {
-                    def files = configurations.conf*.name.sort()
-                    assert files == ['a-2.jar', 'b-1.jar', 'c-1.jar']
-                }
+                compile 'org:a:1', 'org:b:1', 'org:c:1'
             }
         """
+        resolve.prepare()
 
         when:
-        run 'checkDeps'
+        run("checkDeps")
 
         then:
-        noExceptionThrown()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:1", "org:a:2")
+                module("org:b:1")
+                module("org:c:1") {
+                    module("org:a:2")
+                }
+            }
+        }
     }
 
-    @ToBeFixedForConfigurationCache
     def 'order of dependency declaration does not effect transitive dependency versions'() {
         given:
         def foo11 = mavenRepo.module('org', 'foo', '1.1').publish()
@@ -1699,7 +1939,6 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @Issue("gradle/gradle-private#1268")
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "shouldn't fail if root component is also added through cycle, and that failOnVersionConflict() is used"() {
         settingsFile << """
             include "testlib", "common"
@@ -1734,7 +1973,6 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @Issue("gradle/gradle#6403")
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "shouldn't fail when forcing a dynamic version in resolution strategy"() {
 
         given:
@@ -1768,7 +2006,6 @@ task checkDeps(dependsOn: configurations.compile) {
 
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def 'optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)'() {
         given:
         def optional = mavenRepo.module('org', 'optional', '1.0').publish()
@@ -1819,7 +2056,6 @@ dependencies {
     }
 
     @Issue("gradle/gradle#8944")
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def 'verify that cleaning up constraints no longer causes a ConcurrentModificationException'() {
         given:
         // Direct dependency with transitive to be substituted by project
@@ -1882,7 +2118,6 @@ project(':sub') {
     }
 
     @Issue("gradle/gradle#11844")
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def 'does not fail serialization in recursive error case'() {
         // org:lib:1.0 -> org:between:1.0 -> org:lib:1.1
         //
@@ -1913,13 +2148,12 @@ project(':sub') {
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def 'local cycle between dependencies does not causes a ConcurrentModificationException during selector removal'() {
         given:
         def lib2 = mavenRepo.module('org', 'lib', '2.0').publish()
         def lib3 = mavenRepo.module('org', 'lib', '3.0').publish()
         def lib1 = mavenRepo.module('org', 'lib', '1.0')
-            // recursive dependencies between different versions of 'lib'
+        // recursive dependencies between different versions of 'lib'
             .dependencyConstraint(lib3).dependencyConstraint(lib2).withModuleMetadata().publish()
 
         mavenRepo.module('org', 'direct', '1.0').dependsOn(lib1).publish()
@@ -1947,7 +2181,6 @@ project(':sub') {
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def 'local cycle between dependencies does not causes a ConcurrentModificationException during selector removal with strict version endorsement'() {
         given:
         def direct11 = mavenRepo.module('org', 'direct', '1.1')
@@ -1981,7 +2214,6 @@ project(':sub') {
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def 'local cycle between dependencies does not causes a ConcurrentModificationException during selector removal with multiple strict version endorsements'() {
         given:
         def foo2 = mavenRepo.module('org', 'foo', '2.0').publish()
@@ -2021,7 +2253,6 @@ project(':sub') {
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "can resolve a graph with an obvious version cycle by breaking the cycle"() {
         given:
         def direct2 = mavenRepo.module('org', 'direct', '2.0').publish()
@@ -2048,7 +2279,6 @@ dependencies {
         succeeds 'dependencies', '--configuration', 'conf'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def "can resolve a graph with a local cycle caused by module replacement"() {
         given:
         def child1 = mavenRepo.module('org', 'child1', '1.0').publish()
@@ -2081,7 +2311,6 @@ dependencies {
         succeeds 'dependencies', '--configuration', 'conf'
     }
 
-    @ToBeFixedForConfigurationCache(because = ":dependencies")
     def 'does not cache node dependencies when node is deselected then reselected with different exclude filter'() {
         given:
         // Excluded module

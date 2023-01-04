@@ -16,26 +16,20 @@
 
 package gradlebuild.pluginpublish.extension
 
-import com.gradle.publish.PluginBundleExtension
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 
 
 abstract class PluginPublishExtension(
-    private val gradlePlugin: GradlePluginDevelopmentExtension,
-    private val pluginBundle: PluginBundleExtension
+    private val gradlePlugin: GradlePluginDevelopmentExtension
 ) {
 
     fun bundledGradlePlugin(name: String, shortDescription: String, pluginId: String, pluginClass: String) {
         gradlePlugin.plugins {
             register(name) {
                 id = pluginId
-                implementationClass = pluginClass
-            }
-        }
-        pluginBundle.plugins {
-            named(name).configure {
                 displayName = shortDescription
                 description = shortDescription
+                implementationClass = pluginClass
             }
         }
     }

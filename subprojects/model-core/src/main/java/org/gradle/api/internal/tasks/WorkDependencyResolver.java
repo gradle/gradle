@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
 
+import java.util.Set;
+
 public interface WorkDependencyResolver<T> {
     /**
      * Resolves dependencies to a specific type.
@@ -27,8 +29,6 @@ public interface WorkDependencyResolver<T> {
      * @return {@code true} if this resolver could resolve the given node, {@code false} otherwise.
      */
     boolean resolve(Task task, Object node, Action<? super T> resolveAction);
-
-    boolean attachActionTo(T value, Action<? super Task> action);
 
     /**
      * Resolves dependencies to {@link Task} objects.
@@ -38,7 +38,9 @@ public interface WorkDependencyResolver<T> {
         public boolean resolve(Task originalTask, Object node, Action<? super Task> resolveAction) {
             if (node instanceof TaskDependency) {
                 TaskDependency taskDependency = (TaskDependency) node;
-                for (Task dependencyTask : taskDependency.getDependencies(originalTask)) {
+                Set<? extends Task> dependenciesForInternalUse = TaskDependencyUtil.getDependenciesForInternalUse(taskDependency, originalTask);
+
+                for (Task dependencyTask : dependenciesForInternalUse) {
                     resolveAction.execute(dependencyTask);
                 }
                 return true;
@@ -47,11 +49,6 @@ public interface WorkDependencyResolver<T> {
                 resolveAction.execute((Task) node);
                 return true;
             }
-            return false;
-        }
-
-        @Override
-        public boolean attachActionTo(Task task, Action<? super Task> action) {
             return false;
         }
     };

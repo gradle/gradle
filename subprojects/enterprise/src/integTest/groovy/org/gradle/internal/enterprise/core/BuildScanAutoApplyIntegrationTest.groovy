@@ -18,7 +18,7 @@ package org.gradle.internal.enterprise.core
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.enterprise.GradleEnterprisePluginCheckInFixture
-import org.gradle.internal.enterprise.impl.DefautGradleEnterprisePluginCheckInService
+import org.gradle.internal.enterprise.impl.DefaultGradleEnterprisePluginCheckInService
 import org.gradle.internal.enterprise.impl.legacy.LegacyGradleEnterprisePluginCheckInService
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.util.internal.VersionNumber
@@ -57,7 +57,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     def "only applies once when -b used"() {
         when:
         file("other-build.gradle") << "task dummy {}"
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
+        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout")
         runBuildWithScanRequest("-b", "other-build.gradle")
 
         then:
@@ -257,10 +257,10 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         applyPlugin()
 
         when:
-        succeeds "dummy", "--scan", "-D${DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE}=true"
+        succeeds "dummy", "--scan", "-D${DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE}=true"
 
         then:
-        fixture.assertUnsupportedMessage(output, DefautGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE)
+        fixture.assertUnsupportedMessage(output, DefaultGradleEnterprisePluginCheckInService.UNSUPPORTED_TOGGLE_MESSAGE)
         fixture.didNotIssuedNoPluginWarning(output)
     }
 

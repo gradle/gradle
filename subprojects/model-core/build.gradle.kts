@@ -60,11 +60,16 @@ tasks.withType<JavaCompile>().configureEach {
 
 integTest.usesJavadocCodeSnippets.set(true)
 
-classycle {
+packageCycles {
     excludePatterns.add("org/gradle/model/internal/core/**")
     excludePatterns.add("org/gradle/model/internal/inspect/**")
     excludePatterns.add("org/gradle/api/internal/tasks/**")
     excludePatterns.add("org/gradle/model/internal/manage/schema/**")
     excludePatterns.add("org/gradle/model/internal/type/**")
     excludePatterns.add("org/gradle/api/internal/plugins/*")
+}
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

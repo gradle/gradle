@@ -210,7 +210,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      *
      * @param name The name of the task.
      * @param configurationAction The action to run to configure the task. This action runs when the task is required.
-     * @return A {@link Provider} that whose value will be the task, when queried.
+     * @return A {@link Provider} whose value will be the task, when queried.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @since 4.9
      */
@@ -226,7 +226,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param type The task type.
      * @param configurationAction The action to run to configure the task. This action runs when the task is required.
      * @param <T> The task type
-     * @return A {@link Provider} that whose value will be the task, when queried.
+     * @return A {@link Provider} whose value will be the task, when queried.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @since 4.9
      */
@@ -241,7 +241,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param name The name of the task.
      * @param type The task type.
      * @param <T> The task type
-     * @return A {@link Provider} that whose value will be the task, when queried.
+     * @return A {@link Provider} whose value will be the task, when queried.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @since 4.9
      */
@@ -257,7 +257,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param type The task type.
      * @param constructorArgs The arguments to pass to the task constructor
      * @param <T> The task type
-     * @return A {@link Provider} that whose value will be the task, when queried.
+     * @return A {@link Provider} whose value will be the task, when queried.
      * @throws NullPointerException If any of the values in {@code constructorArgs} is null.
      * @since 4.9
      */
@@ -269,7 +269,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * <p>It is generally more efficient to use this method instead of {@link #create(java.lang.String)}, as that method will eagerly create the task, regardless of whether that task is required for the current build or not. This method, on the other hand, will defer creation until required.</p>
      *
      * @param name The name of the task.
-     * @return A {@link Provider} that whose value will be the task, when queried.
+     * @return A {@link Provider} whose value will be the task, when queried.
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
      * @since 4.9
      */

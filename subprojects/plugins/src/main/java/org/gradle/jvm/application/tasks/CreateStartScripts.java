@@ -25,7 +25,6 @@ import org.gradle.api.internal.plugins.UnixStartScriptGenerator;
 import org.gradle.api.internal.plugins.WindowsStartScriptGenerator;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -113,7 +112,7 @@ import java.util.stream.Collectors;
  * </pre>
  */
 @DisableCachingByDefault(because = "Not worth caching")
-public class CreateStartScripts extends ConventionTask {
+public abstract class CreateStartScripts extends ConventionTask {
 
     private File outputDir;
     private String executableDir = "bin";
@@ -240,8 +239,6 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * The main class name used to start the Java application.
      *
-     * Use this property instead of {@link #getMainClassName()} and {@link #setMainClassName(String)}.
-     *
      * @since 6.4
      */
     @Optional
@@ -253,13 +250,14 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * The main class name used to start the Java application.
      */
-    @ReplacedBy("mainClass")
+    @Input
+    @Optional
     @Nullable
     @Deprecated
     public String getMainClassName() {
         DeprecationLogger.deprecateProperty(CreateStartScripts.class, "mainClassName")
             .replaceWith("mainClass")
-            .willBeRemovedInGradle8()
+            .willBeRemovedInGradle9()
             .withDslReference()
             .nagUser();
 
@@ -270,7 +268,7 @@ public class CreateStartScripts extends ConventionTask {
     public void setMainClassName(@Nullable String mainClassName) {
         DeprecationLogger.deprecateProperty(CreateStartScripts.class, "mainClassName")
             .replaceWith("mainClass")
-            .willBeRemovedInGradle8()
+            .willBeRemovedInGradle9()
             .withDslReference()
             .nagUser();
 

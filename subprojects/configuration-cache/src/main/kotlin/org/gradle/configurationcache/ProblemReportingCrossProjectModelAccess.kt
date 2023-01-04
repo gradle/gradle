@@ -30,6 +30,7 @@ import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
+import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
@@ -40,6 +41,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.file.SyncSpec
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
@@ -56,6 +58,8 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateInternal
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.api.internal.tasks.TaskDependencyFactory
+import org.gradle.api.internal.tasks.TaskDependencyUsageTracker
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.model.ObjectFactory
@@ -68,15 +72,15 @@ import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ConfigurationTargetIdentifier
-import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.configurationcache.extensions.capitalized
 import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.ProblemsListener
-import org.gradle.configurationcache.problems.PropertyProblem
 import org.gradle.configurationcache.problems.StructuredMessage
-import org.gradle.configurationcache.problems.location
+import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse
 import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.metaobject.BeanDynamicObject
 import org.gradle.internal.metaobject.DynamicObject
@@ -97,11 +101,13 @@ import java.net.URI
 import java.util.concurrent.Callable
 
 
+internal
 class ProblemReportingCrossProjectModelAccess(
     private val delegate: CrossProjectModelAccess,
     private val problems: ProblemsListener,
     private val coupledProjectsListener: CoupledProjectsListener,
-    private val userCodeContext: UserCodeApplicationContext
+    private val problemFactory: ProblemFactory,
+    private val dynamicCallProblemReporting: DynamicCallProblemReporting
 ) : CrossProjectModelAccess {
     override fun findProject(referrer: ProjectInternal, relativeTo: ProjectInternal, path: String): ProjectInternal? {
         return delegate.findProject(referrer, relativeTo, path)?.wrap(referrer)
@@ -119,12 +125,31 @@ class ProblemReportingCrossProjectModelAccess(
         return delegate.getAllprojects(referrer, relativeTo).mapTo(LinkedHashSet()) { it.wrap(referrer) }
     }
 
+    override fun gradleInstanceForProject(referrerProject: ProjectInternal, gradle: GradleInternal): GradleInternal {
+        return CrossProjectConfigurationReportingGradle.from(gradle, referrerProject)
+    }
+
+    override fun taskDependencyUsageTracker(referrerProject: ProjectInternal): TaskDependencyUsageTracker {
+        return ReportingTaskDependencyUsageTracker(referrerProject, coupledProjectsListener, problems, problemFactory)
+    }
+
+    override fun taskGraphForProject(referrerProject: ProjectInternal, taskGraph: TaskExecutionGraphInternal): TaskExecutionGraphInternal {
+        return CrossProjectConfigurationReportingTaskExecutionGraph(taskGraph, referrerProject, problems, this, coupledProjectsListener, problemFactory)
+    }
+
+    override fun parentProjectDynamicInheritedScope(referrerProject: ProjectInternal): DynamicObject? {
+        val parent = referrerProject.parent ?: return null
+        return CrossProjectModelAccessTrackingParentDynamicObject(
+            parent, parent.inheritedScope, referrerProject, problems, coupledProjectsListener, problemFactory, dynamicCallProblemReporting
+        )
+    }
+
     private
     fun ProjectInternal.wrap(referrer: ProjectInternal): ProjectInternal {
         return if (this == referrer) {
             this
         } else {
-            ProblemReportingProject(this, referrer, problems, coupledProjectsListener, userCodeContext)
+            ProblemReportingProject(this, referrer, problems, coupledProjectsListener, problemFactory)
         }
     }
 
@@ -134,7 +159,7 @@ class ProblemReportingCrossProjectModelAccess(
         val referrer: ProjectInternal,
         val problems: ProblemsListener,
         val coupledProjectsListener: CoupledProjectsListener,
-        val userCodeContext: UserCodeApplicationContext
+        val problemFactory: ProblemFactory
     ) : ProjectInternal, GroovyObjectSupport() {
 
         override fun toString(): String {
@@ -270,8 +295,13 @@ class ProblemReportingCrossProjectModelAccess(
             delegate.status = status
         }
 
+        @AllowUsingApiForExternalUse
         override fun getChildProjects(): MutableMap<String, Project> {
             return delegate.childProjects
+        }
+
+        override fun getChildProjectsUnchecked(): MutableMap<String, Project> {
+            return delegate.childProjectsUnchecked
         }
 
         override fun setProperty(name: String, value: Any?) {
@@ -416,7 +446,7 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.tarTree(tarPath)
         }
 
-        override fun <T : Any?> provider(value: Callable<T>): Provider<T> {
+        override fun <T : Any> provider(value: Callable<out T?>): Provider<T> {
             onAccess()
             return delegate.provider(value)
         }
@@ -676,6 +706,11 @@ class ProblemReportingCrossProjectModelAccess(
             delegate.dependencies(configureClosure)
         }
 
+        override fun getDependencyFactory(): DependencyFactory {
+            onAccess()
+            return delegate.dependencyFactory
+        }
+
         override fun buildscript(configureClosure: Closure<*>) {
             onAccess()
             delegate.buildscript(configureClosure)
@@ -706,7 +741,7 @@ class ProblemReportingCrossProjectModelAccess(
             return delegate.copySpec()
         }
 
-        override fun sync(action: Action<in CopySpec>): WorkResult {
+        override fun sync(action: Action<in SyncSpec>): WorkResult {
             onAccess()
             return delegate.sync(action)
         }
@@ -879,7 +914,7 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getInheritedScope(): DynamicObject {
-            shouldNotBeUsed()
+            return delegate.inheritedScope
         }
 
         override fun getGradle(): GradleInternal {
@@ -900,6 +935,10 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getFileResolver(): FileResolver {
+            shouldNotBeUsed()
+        }
+
+        override fun getTaskDependencyFactory(): TaskDependencyFactory {
             shouldNotBeUsed()
         }
 
@@ -984,7 +1023,6 @@ class ProblemReportingCrossProjectModelAccess(
 
         private
         fun onAccess() {
-            val location = userCodeContext.location(null)
             val message = StructuredMessage.build {
                 text("Cannot access project ")
                 reference(delegate.identityPath.toString())
@@ -992,12 +1030,11 @@ class ProblemReportingCrossProjectModelAccess(
                 reference(referrer.identityPath.toString())
             }
             val exception = InvalidUserCodeException(message.toString().capitalized())
-            problems.onProblem(
-                PropertyProblem(location, message, exception, null)
-            )
+            val problem = problemFactory.problem(message, exception)
+            problems.onProblem(problem)
             coupledProjectsListener.onProjectReference(referrer.owner, delegate.owner)
             // Configure the target project, if it would normally be configured before the referring project
-            if (delegate.compareTo(referrer) < 0) {
+            if (delegate.compareTo(referrer) < 0 && delegate.parent != null) {
                 delegate.owner.ensureConfigured()
             }
         }

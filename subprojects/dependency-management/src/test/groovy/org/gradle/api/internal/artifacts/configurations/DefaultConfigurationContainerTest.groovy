@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations
 
+import groovy.test.NotYetImplemented
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -34,7 +35,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.RootScriptDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
@@ -58,7 +58,6 @@ class DefaultConfigurationContainerTest extends Specification {
     private DependencySubstitutionRules globalSubstitutionRules = Mock(DependencySubstitutionRules)
     private VcsMappingsStore vcsMappingsInternal = Mock(VcsMappingsStore)
     private BuildOperationExecutor buildOperationExecutor = Mock(BuildOperationExecutor)
-    private TaskResolver taskResolver = Mock(TaskResolver)
     private DependencyLockingProvider lockingProvider = Mock(DependencyLockingProvider)
     private ProjectStateRegistry projectStateRegistry = Mock(ProjectStateRegistry)
     private DocumentationRegistry documentationRegistry = Mock(DocumentationRegistry)
@@ -86,10 +85,10 @@ class DefaultConfigurationContainerTest extends Specification {
         TestFiles.fileCollectionFactory(),
         buildOperationExecutor,
         new PublishArtifactNotationParserFactory(
-            instantiator,
-            metaDataProvider,
-            taskResolver,
-            TestFiles.resolver(),
+                instantiator,
+                metaDataProvider,
+                TestFiles.resolver(),
+                TestFiles.taskDependencyFactory(),
         ),
         immutableAttributesFactory,
         documentationRegistry,
@@ -97,7 +96,8 @@ class DefaultConfigurationContainerTest extends Specification {
         projectStateRegistry,
         Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
-        calculatedValueContainerFactory
+        calculatedValueContainerFactory,
+        TestFiles.taskDependencyFactory()
     )
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
         instantiator,
@@ -189,5 +189,15 @@ class DefaultConfigurationContainerTest extends Specification {
 
         then:
         thrown MissingMethodException
+    }
+
+    // withType when used with a class that is not a super-class of the container does not work with registered elements
+    @NotYetImplemented
+    def "can find all configurations even when they're registered"() {
+        when:
+        configurationContainer.register("foo")
+        configurationContainer.create("bar")
+        then:
+        configurationContainer.withType(ConfigurationInternal).toList()*.name == ["bar", "foo"]
     }
 }

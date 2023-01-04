@@ -44,7 +44,7 @@ import java.io.File;
  * Runs CodeNarc against some source files.
  */
 @CacheableTask
-public class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNarcReports> {
+public abstract class CodeNarc extends SourceTask implements VerificationTask, Reporting<CodeNarcReports> {
 
     private FileCollection codenarcClasspath;
 

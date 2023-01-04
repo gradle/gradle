@@ -18,14 +18,14 @@ package org.gradle.configurationcache
 
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider
 import org.gradle.api.internal.project.ProjectState
-import org.gradle.internal.component.local.model.LocalComponentMetadata
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 
 
 class ConfigurationCacheAwareLocalComponentProvider(
     private val delegate: LocalComponentProvider,
     private val cache: BuildTreeConfigurationCache
 ) : LocalComponentProvider {
-    override fun getComponent(project: ProjectState): LocalComponentMetadata {
+    override fun getComponent(project: ProjectState): LocalComponentGraphResolveState {
         return cache.loadOrCreateProjectMetadata(project.identityPath) {
             delegate.getComponent(project)
         }

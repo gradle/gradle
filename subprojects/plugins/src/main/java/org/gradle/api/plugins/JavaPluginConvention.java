@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -29,7 +30,7 @@ import java.io.File;
  * Is mixed into the project when applying the {@link org.gradle.api.plugins.JavaBasePlugin} or the
  * {@link org.gradle.api.plugins.JavaPlugin}.
  *
- * @deprecated Replaced by {@link JavaPluginExtension}. This class is scheduled for removal in Gradle 8.0.
+ * @deprecated Replaced by {@link JavaPluginExtension}. This class is scheduled for removal in Gradle 9.0.
  */
 @Deprecated
 public abstract class JavaPluginConvention {
@@ -125,7 +126,7 @@ public abstract class JavaPluginConvention {
      *
      * @param closure The closure to use to configure the manifest.
      */
-    public abstract Manifest manifest(Closure closure);
+    public abstract Manifest manifest(@DelegatesTo(Manifest.class) Closure closure);
 
     /**
      * Creates and configures a new instance of a {@link Manifest}.

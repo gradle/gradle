@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
 import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.configuration.internal.DefaultDynamicCallContextTracker;
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
 import org.gradle.configuration.internal.DefaultUserCodeApplicationContext;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -40,6 +41,7 @@ import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroad
 import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -93,7 +95,9 @@ public class CrossBuildSessionState implements Closeable {
         }
 
         void configure(ServiceRegistration registration) {
+            registration.add(DefaultResourceLockCoordinationService.class);
             registration.add(DefaultWorkerLeaseService.class);
+            registration.add(DefaultDynamicCallContextTracker.class);
         }
 
         CrossBuildSessionState createCrossBuildSessionState() {
