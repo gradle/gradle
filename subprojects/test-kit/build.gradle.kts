@@ -1,3 +1,4 @@
+import gradlebuild.basics.isBundleGroovy4
 import gradlebuild.basics.tasks.PackageListGenerator
 
 plugins {
@@ -63,4 +64,12 @@ tasks.integMultiVersionTest {
 // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
 tasks.configCacheIntegTest {
     systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}
+
+tasks {
+    withType<Test>().configureEach {
+        if (project.isBundleGroovy4) {
+            exclude("org/gradle/testkit/runner/enduser/GradleRunnerSamplesEndUserIntegrationTest*") // cannot be parameterized for both Groovy 3 and 4
+        }
+    }
 }
