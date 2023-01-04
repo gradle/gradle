@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
 
 package org.gradle.internal.agents;
 
-public class DefaultAgentStatus implements AgentStatus {
+public class DisabledAgentStatus implements AgentStatus {
     @Override
     public boolean isAgentInstrumentationEnabled() {
-        return AgentControl.isInstrumentationAgentApplied();
+        return false;
     }
 }

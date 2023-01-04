@@ -252,7 +252,7 @@ class BuildProcessTest extends Specification {
 
         when:
         def currentAgentStatus = Stub(AgentStatus) {
-            isInstrumentationAgentApplied() >> currentStatus
+            isAgentInstrumentationEnabled() >> currentStatus
         }
         BuildProcess buildProcess = createBuildProcess(currentAgentStatus)
 
