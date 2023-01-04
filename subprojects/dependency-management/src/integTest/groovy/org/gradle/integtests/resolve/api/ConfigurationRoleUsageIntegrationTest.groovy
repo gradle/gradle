@@ -429,7 +429,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'help'
     }
 
-    def "can update all plugins' configurations with all"() {
+    def "can update all roles for non-locked configurations"() {
         given:
         buildFile << """
             import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles
