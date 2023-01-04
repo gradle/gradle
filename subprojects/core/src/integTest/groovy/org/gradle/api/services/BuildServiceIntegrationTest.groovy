@@ -878,7 +878,8 @@ service: closed with value 12
         outputContains """
 > Task :subproject1:hello
 Hello, subproject1
-
+"""
+        outputContains """
 > Task :subproject2:hello FAILED
 """
         failureDescriptionContains("Execution failed for task ':subproject2:hello'.")
