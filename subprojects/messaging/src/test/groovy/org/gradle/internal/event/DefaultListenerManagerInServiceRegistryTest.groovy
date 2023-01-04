@@ -18,6 +18,7 @@ package org.gradle.internal.event
 
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.scopes.EventScope
+import org.gradle.internal.service.scopes.ListenerService
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.StatefulListener
 import spock.lang.Specification
@@ -80,7 +81,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         0 * _
     }
 
-    def "registers listeners that have already been created prior to first event"() {
+    def "registers stateful listeners that have already been created prior to first event"() {
         def listener = Mock(TestListener)
 
         when:
@@ -128,7 +129,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         0 * _
     }
 
-    def "does not create listeners of other types when event is fired"() {
+    def "does not create stateful listeners of other types when event is fired"() {
         def listener = Mock(TestListener)
 
         when:
@@ -154,7 +155,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         0 * _
     }
 
-    def "creates listener registered after broadcaster is created"() {
+    def "creates stateful listener registered after broadcaster is created"() {
         def created = Mock(Runnable)
         def listener = Mock(TestListener)
 
@@ -179,7 +180,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         0 * _
     }
 
-    def "creates listener registered after another listener added"() {
+    def "creates stateful listener registered after another listener added"() {
         def created = Mock(Runnable)
         def listener = Mock(TestListener)
 
@@ -205,7 +206,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         0 * _
     }
 
-    def "listener can implement multiple listener interfaces"() {
+    def "service can implement multiple stateful listener interfaces"() {
         def created = Mock(Runnable)
         def listener = Mock(MultipleListeners)
 
@@ -238,7 +239,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         0 * _
     }
 
-    def "registers listeners that are registered before listener manager"() {
+    def "registers stateful listeners that are registered before listener manager"() {
         given:
         def created = Mock(Runnable)
         def listener = Mock(TestListener)
@@ -299,7 +300,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         e.message == 'Service ListenerManager at DefaultListenerManagerInServiceRegistryTest$.createListenerManager() implements AnnotatedServiceLifecycleHandler but is not declared as a service of this type. This service is declared as having type ListenerManager.'
     }
 
-    def "fails when listener instance is not declared as listener type"() {
+    def "fails when listener service is not declared as listener type"() {
         def listener = Mock(SubListener)
         services.addProvider(new Object() {
             Runnable createListener() {
@@ -315,7 +316,7 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         e.message == 'Service Runnable at DefaultListenerManagerInServiceRegistryTest$.createListener() is annotated with @StatefulListener but is not declared as a service with this annotation. This service is declared as having type Runnable.'
     }
 
-    def "fails when listener added after first event"() {
+    def "fails when stateful listener registered after first event"() {
         def created = Mock(Runnable)
         def listener = Mock(TestListener)
 
@@ -334,6 +335,70 @@ class DefaultListenerManagerInServiceRegistryTest extends Specification {
         e.message == "Cannot add listener of type TestListener after events have been broadcast."
 
         0 * _
+    }
+
+    def "automatically creates and registers listener service when any event is fired"() {
+        def created = Mock(Runnable)
+        def service = Mock(TestListenerService)
+
+        when:
+        services.addProvider(new Object() {
+            TestListenerService createListener() {
+                created.run()
+                return service
+            }
+        })
+
+        then:
+        0 * _
+
+        when:
+        listenerManager.getBroadcaster(TestListener).something("12")
+
+        then:
+        1 * created.run()
+        0 * _
+
+        when:
+        listenerManager.getBroadcaster(NotStatefulListener).something("12")
+
+        then:
+        1 * service.something("12")
+        0 * _
+    }
+
+    def "listener service can take dependency that is registered later"() {
+        def created = Mock(Runnable)
+        def service = Mock(TestListenerService)
+
+        when:
+        services.addProvider(new Object() {
+            TestListenerService createListener(Runnable action) {
+                action.run()
+                return service
+            }
+        })
+
+        then:
+        0 * _
+
+        when:
+        services.add(Runnable, created)
+        listenerManager.getBroadcaster(NotStatefulListener).something("12")
+
+        then:
+        1 * created.run()
+        1 * service.something("12")
+        0 * _
+    }
+
+    @EventScope(Scopes.BuildTree)
+    interface NotStatefulListener {
+        void something(String param)
+    }
+
+    @ListenerService
+    abstract class TestListenerService implements NotStatefulListener {
     }
 
     @EventScope(Scopes.BuildTree)
