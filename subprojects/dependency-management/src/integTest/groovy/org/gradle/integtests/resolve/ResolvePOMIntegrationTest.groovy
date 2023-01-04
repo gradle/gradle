@@ -26,15 +26,15 @@ class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
         def mainProjectDir = file("main-project")
         def includedLoggingProjectDir = file("included-logging")
 
-        mainProjectDir.file("settings.gradle.kts").text = """
+        mainProjectDir.file("settings.gradle").text = """
             rootProject.name = "main-project"
             include("app")
             includeBuild("../included-logging")
         """
 
-        mainProjectDir.file("app/build.gradle.kts").text = """
+        mainProjectDir.file("app/build.gradle").text = """
             plugins {
-                application
+                id 'application'
             }
 
             dependencies {
@@ -42,14 +42,14 @@ class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        includedLoggingProjectDir.file("settings.gradle.kts").text = """
+        includedLoggingProjectDir.file("settings.gradle").text = """
             rootProject.name = "included-logging"
             include("lib")
         """
 
-        includedLoggingProjectDir.file("lib/build.gradle.kts").text = """
+        includedLoggingProjectDir.file("lib/build.gradle").text = """
             plugins {
-                `java-library`
+                id 'java-library'
             }
         """
 
@@ -71,15 +71,15 @@ class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
         def mainProjectDir = file("main-project")
         def includedLoggingProjectDir = file("included-logging")
 
-        mainProjectDir.file("settings.gradle.kts").text = """
+        mainProjectDir.file("settings.gradle").text = """
             rootProject.name = "main-project"
             include("app")
             includeBuild("../included-logging")
         """
 
-        mainProjectDir.file("app/build.gradle.kts").text = """
+        mainProjectDir.file("app/build.gradle").text = """
             plugins {
-                application
+                id 'application'
             }
 
             dependencies {
@@ -87,29 +87,31 @@ class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.register("resolve") {
-                doLast {
-                    val c: Configuration = configurations.getByName("compileClasspath")
-                    c.getResolvedConfiguration()
+                FileCollection artifacts = project.objects.fileCollection()
+                artifacts.from {
+                    configurations.getByName("compileClasspath").getResolvedConfiguration()
                         .getLenientConfiguration()
                         .getAllModuleDependencies()
-                        .map { it.getAllModuleArtifacts() }
-                        .forEach { mas ->
-                            mas.forEach { a ->
-                                println(a.getFile())
-                            }
+                        .collect {
+                            it.getAllModuleArtifacts().collect { mas ->
+                                mas.collect { a -> a.getFile() }
+                            }.flatten()
                         }
+                }
+                doLast {
+                    artifacts.each { a -> println(a.getFile()) }
                 }
             }
         """
 
-        includedLoggingProjectDir.file("settings.gradle.kts").text = """
+        includedLoggingProjectDir.file("settings.gradle").text = """
             rootProject.name = "included-logging"
             include("lib")
         """
 
-        includedLoggingProjectDir.file("lib/build.gradle.kts").text = """
+        includedLoggingProjectDir.file("lib/build.gradle").text = """
             plugins {
-                `java-library`
+                id 'java-library'
             }
         """
 
