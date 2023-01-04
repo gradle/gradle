@@ -233,7 +233,7 @@ public abstract class InitBuild extends DefaultTask {
         }
     }
 
-    static class JavaVersionSelection{
+    static class JavaVersionSelection {
         private final JavaLanguageVersion languageVersion;
 
         JavaVersionSelection(JavaLanguageVersion ver) {
@@ -249,17 +249,22 @@ public abstract class InitBuild extends DefaultTask {
             return languageVersion;
         }
     }
+
     java.util.Optional<JavaLanguageVersion> getJavaLanguageVersion(boolean useIncubatingAPIs, UserInputHandler inputHandler, Language language) {
-        if(isJvmLanguage(language) && useIncubatingAPIs) {
+        if (isJvmLanguage(language) && useIncubatingAPIs) {
             JavaLanguageVersion current = JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion());
-            return of(inputHandler.selectOption("Which version of Java is this Project targeting",
-                DefaultJavaLanguageVersion.getKnownVersions().map(version -> new JavaVersionSelection(version)).collect(toList()), new JavaVersionSelection(current)))
+            List<JavaVersionSelection> knownVersionSelections = DefaultJavaLanguageVersion.getKnownVersions().map(version -> new JavaVersionSelection(version)).collect(toList());
+            return of(inputHandler.selectOption(
+                "Which version of Java is this Project targeting",
+                knownVersionSelections,
+                new JavaVersionSelection(current)))
                 .map(JavaVersionSelection::getLanguageVersion);
         }
         return empty();
     }
 
     private static final List<Language> JVM_LANGUAGES = Arrays.asList(Language.SCALA, Language.GROOVY, Language.GROOVY, Language.JAVA, Language.KOTLIN);
+
     private static boolean isJvmLanguage(Language language) {
         return JVM_LANGUAGES.contains(language);
     }
