@@ -58,8 +58,8 @@ class WritePropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private expectOutputDeprecation(GradleExecuter runWithTasks) {
-        runWithTasks.expectDocumentedDeprecationWarning("he WriteProperties_Decorated.outputFile property has been deprecated. This is scheduled to be removed in Gradle 9.0. " +
-            "Please use the destinationFile property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.WriteProperties_Decorated.html#org.gradle.api.tasks.WriteProperties_Decorated:outputFile for more details.")
+        runWithTasks.expectDocumentedDeprecationWarning("The WriteProperties.outputFile property has been deprecated. This is scheduled to be removed in Gradle 9.0." +
+            " Please use the destinationFile property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.WriteProperties.html#org.gradle.api.tasks.WriteProperties:outputFile for more details.")
     }
 
     def "simple properties are written sorted alphabetically with #outputProprertyName"() {
