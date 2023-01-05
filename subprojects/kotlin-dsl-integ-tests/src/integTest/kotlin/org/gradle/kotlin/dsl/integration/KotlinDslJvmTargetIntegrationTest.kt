@@ -104,36 +104,65 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
         val newerJvm = AvailableJavaHomes.getDifferentVersion { it.languageVersion > currentJvm.javaVersion }
         assumeNotNull(newerJvm)
 
-        withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
+        val installationPaths = listOf(currentJvm!!, newerJvm!!)
+            .joinToString(",") { it.javaHome.absolutePath }
 
-        withDefaultSettingsIn("buildSrc")
-        withKotlinDslPluginIn("buildSrc").appendText("""
+        val utils = withClassJar("utils.jar", JavaClassUtil::class.java)
+        mavenRepo.module("test", "utils", "1.0")
+            .mainArtifact(mapOf("content" to utils.readBytes()))
+            .publish()
 
+        withDefaultSettingsIn("plugin")
+        withBuildScriptIn("plugin", """
+            plugins {
+                `kotlin-dsl`
+                `maven-publish`
+            }
+            group = "test"
+            version = "1.0"
             java {
                 toolchain {
                     languageVersion.set(JavaLanguageVersion.of(11))
                 }
             }
-
             dependencies {
-                implementation(files("utils.jar"))
+                implementation("test:utils:1.0")
+            }
+            repositories {
+                maven(url = "${mavenRepo.uri}")
+                gradlePluginPortal()
+            }
+            publishing {
+                repositories {
+                    maven(url = "${mavenRepo.uri}")
+                }
             }
         """)
+        withFile("plugin/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
 
-        withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
-        withBuildScript("""plugins { id("some") }""")
-
-        val installationPaths = listOf(currentJvm!!, newerJvm!!).joinToString(",") {
-            it.javaHome.absolutePath
-        }
-
-        gradleExecuterFor(arrayOf("help"))
+        gradleExecuterFor(arrayOf("check", "publish"), rootDir = file("plugin"))
             .withJavaHome(currentJvm.javaHome)
             .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
             .run()
 
-        val helpResult = gradleExecuterFor(arrayOf("help"))
-            .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
+        withSettingsIn("consumer", """
+            pluginManagement {
+                repositories {
+                    maven(url = "${mavenRepo.uri}")
+                }
+                resolutionStrategy {
+                    eachPlugin {
+                        if (requested.id.id == "some") {
+                            useModule("test:plugin:1.0")
+                        }
+                    }
+                }
+            }
+        """.trimIndent())
+        withBuildScriptIn("consumer", """plugins { id("some") }""")
+
+        val helpResult = gradleExecuterFor(arrayOf("help"), rootDir = file("consumer"))
+            .withJavaHome(newerJvm.javaHome)
             .run()
 
         assertThat(helpResult.output, containsString(outputFor(JavaVersion.VERSION_11)))
