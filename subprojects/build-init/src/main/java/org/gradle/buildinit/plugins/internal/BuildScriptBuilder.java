@@ -333,6 +333,7 @@ public class BuildScriptBuilder {
     /**
      * Adds a top level block statement.
      *
+     *
      * @return The body of the block, to which further statements can be added.
      */
     public ScriptBlockBuilder block(@Nullable String comment, String methodName) {
@@ -347,7 +348,7 @@ public class BuildScriptBuilder {
         return this;
     }
 
-    public BuildScriptBuilder javaLanguageVersion(JavaLanguageVersion languageVersion) {
+    public BuildScriptBuilder javaToolchainFor(JavaLanguageVersion languageVersion) {
         return block(null, "java", t -> {
             t.block(null, "toolchain", t1 -> {
                 t1.propertyAssignment(null, "languageVersion",
