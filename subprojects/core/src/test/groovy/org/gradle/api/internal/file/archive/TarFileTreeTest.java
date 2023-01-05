@@ -27,7 +27,12 @@ import org.gradle.cache.internal.TestCaches;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
+import spock.lang.Issue;
 
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -109,6 +114,20 @@ public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
     }
 
     @Test
+    @Issue("https://github.com/gradle/gradle/issues/23391")
+    public void readsTruncatedGzippedTarFile() throws Exception {
+        TestFile tgz = tempDirProvider.getTestDirectory().file("test.tgz");
+
+        InputStream in = new URL("https://github.com/sass/dart-sass/releases/download/1.57.1/dart-sass-1.57.1-linux-x64.tar.gz").openStream();
+        Files.copy(in, tgz.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        MaybeCompressedFileResource resource = new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tgz)));
+        TarFileTree tree = new TarFileTree(asProvider(tgz), asProvider(resource), fileSystem(), directoryFileTreeFactory(), fileHasher(), TestCaches.decompressionCache(tempDirProvider.getTestDirectory().createDir("cache-dir")));
+
+        assertSetContainsForAllTypes(tree, toList("dart-sass/sass", "dart-sass/src/LICENSE"));
+    }
+
+    @Test
     public void failsWhenArchiveFileDoesNotExist() {
         try {
             tree.visit(new EmptyFileVisitor());
@@ -160,7 +179,7 @@ public class TarFileTreeTest extends AbstractArchiveFileTreeTest {
     public void readsTarFileWithNullPermissions() {
         resources.findResource("nullpermissions.tar").copyTo(archiveFile);
 
-        final Map<String, Integer> expected = new HashMap<String, Integer>();
+        final Map<String, Integer> expected = new HashMap<>();
         expected.put("bin", 0755);
 
         assertVisitsPermissions(tree, expected);
