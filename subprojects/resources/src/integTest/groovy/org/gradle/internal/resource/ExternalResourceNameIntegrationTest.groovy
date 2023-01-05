@@ -33,7 +33,8 @@ class ExternalResourceNameIntegrationTest extends AbstractIntegrationSpec {
             conf "org:name:1.0"
         }
         task resolve {
-            doLast { configurations.conf.files.each {} }
+            def conf = configurations.conf
+            doLast { conf.files.each {} }
         }
         """
 
