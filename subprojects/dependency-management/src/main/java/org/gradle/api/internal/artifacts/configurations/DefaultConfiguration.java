@@ -1316,7 +1316,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             childResolutionStrategy,
             rootComponentMetadataBuilder,
             role,
-            !usageCanBeMutated
+            usageCanBeMutated
         );
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         return copiedConfiguration;
