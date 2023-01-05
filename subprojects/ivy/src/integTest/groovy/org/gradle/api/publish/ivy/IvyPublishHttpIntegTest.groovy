@@ -20,6 +20,7 @@ import org.eclipse.jetty.http.HttpStatus
 import org.gradle.api.artifacts.repositories.PasswordCredentials
 import org.gradle.api.credentials.Credentials
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
+import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.file.TestFile
@@ -137,6 +138,37 @@ class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
         org.gradle.api.credentials.PasswordCredentials credentials = new DefaultPasswordCredentials('testuser', 'password')
         configureRepositoryCredentials(credentials.username, credentials.password, "ivy")
         buildFile << publicationBuild(version, group, ivyHttpRepo.uri)
+
+        and:
+        server.authenticationScheme = authScheme
+        expectPublishModuleWithCredentials(module, credentials)
+
+        when:
+        run 'publish'
+
+        then:
+        module.assertMetadataAndJarFilePublished()
+        module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
+
+        and:
+        progressLogging.uploadProgressLogged(module.ivy.uri)
+        progressLogging.uploadProgressLogged(module.moduleMetadata.uri)
+        progressLogging.uploadProgressLogged(module.jar.uri)
+
+        where:
+        authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
+    }
+
+    @UnsupportedWithConfigurationCache(because = "inline credentials")
+    def "can publish to authenticated repository using inline credentials and #authScheme auth"() {
+        given:
+        PasswordCredentials credentials = new DefaultPasswordCredentials('testuser', 'password')
+        buildFile << publicationBuild(version, group, ivyHttpRepo.uri, "ivy","""
+        credentials(PasswordCredentials) {
+            username = "${credentials.username}"
+            password = "${credentials.password}"
+        }
+        """)
 
         and:
         server.authenticationScheme = authScheme
