@@ -34,6 +34,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.authentication.Authentication;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
@@ -42,6 +43,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
 import java.net.URI;
+import java.util.Collection;
 
 import static org.gradle.internal.serialization.Transient.varOf;
 
@@ -164,7 +166,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
 
             private Object writeReplace() {
                 CredentialsSpec credentialsSpec = repository.getConfiguredCredentials().map(it -> CredentialsSpec.of(repository.getName(), it)).getOrNull();
-                return new DefaultRepositorySpec(repository.getName(), repository.getUrl(), repository.isAllowInsecureProtocol(), credentialsSpec);
+                return new DefaultRepositorySpec(repository.getName(), repository.getUrl(), repository.isAllowInsecureProtocol(), credentialsSpec, repository.getConfiguredAuthentication());
             }
         }
 
@@ -173,12 +175,14 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
             private final CredentialsSpec credentials;
             private final boolean allowInsecureProtocol;
             private final String name;
+            private final Collection<Authentication> authentications;
 
-            public DefaultRepositorySpec(String name, URI repositoryUrl, boolean allowInsecureProtocol, CredentialsSpec credentials) {
+            public DefaultRepositorySpec(String name, URI repositoryUrl, boolean allowInsecureProtocol, CredentialsSpec credentials, Collection<Authentication> authentications) {
                 this.name = name;
                 this.repositoryUrl = repositoryUrl;
                 this.allowInsecureProtocol = allowInsecureProtocol;
                 this.credentials = credentials;
+                this.authentications = authentications;
             }
             @Override
             MavenArtifactRepository get(ServiceRegistry services) {
@@ -190,6 +194,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
                     Provider<? extends Credentials> provider = services.get(ProviderFactory.class).credentials(credentials.getType(), name);
                     repository.setConfiguredCredentials(provider.get());
                 }
+                repository.authentication(container -> container.addAll(authentications));
                 return repository;
             }
         }
