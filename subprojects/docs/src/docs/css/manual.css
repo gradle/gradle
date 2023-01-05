@@ -1119,6 +1119,11 @@ body.book #header > h1 {
     padding: 1em 1em 0;
 }
 
+.exampleblock > .title > a {
+    text-decoration: none;
+    color: rgba(0, 0, 0, 0.8);
+}
+
 .exampleblock .listingblock {
     margin: 0;
 }
@@ -1666,7 +1671,7 @@ div.screenshot {
 }
 
 .docs-navigation a.active {
-    color: #06A0CE; 
+    color: #06A0CE;
     outline: 0;
     border: none;
     -moz-outline-style: none;
