@@ -26,7 +26,7 @@ import java.util.Optional;
  * These should be preferred over defining custom roles; whenever possible.  Use {@link #byUsage(boolean, boolean, boolean, boolean, boolean, boolean)}
  * to attempt to locate a matching role by its usage characteristics.
  *
- * @since 8.0
+ * @since 8.1
  */
 public enum ConfigurationRoles implements ConfigurationRole {
     /**

@@ -28,7 +28,7 @@ import java.util.List;
  *
  * Standard roles are defined in {@link ConfigurationRoles}.
  *
- * @since 8.0
+ * @since 8.1
  */
 public interface ConfigurationRole {
     /**
