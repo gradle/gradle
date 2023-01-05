@@ -17,21 +17,25 @@
 package org.gradle.buildinit.tasks
 
 import org.gradle.api.GradleException
+import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler
+import org.gradle.api.internal.tasks.userinput.UserInputHandler
 import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.BuildConverter
 import org.gradle.buildinit.plugins.internal.BuildInitializer
 import org.gradle.buildinit.plugins.internal.InitSettings
+import org.gradle.buildinit.plugins.internal.PackageNameBuilder
 import org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType
 import org.gradle.buildinit.plugins.internal.modifiers.Language
 import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import org.gradle.util.internal.TextUtil
 import org.gradle.util.UsesNativeServices
+import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 
+import static java.util.Optional.empty
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.GROOVY
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl.KOTLIN
 import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework.JUNIT
@@ -52,9 +56,9 @@ class InitBuildSpec extends Specification {
 
     def setup() {
         init = TestUtil.create(testDir.testDirectory).task(InitBuild)
-        projectLayoutRegistry = Mock(ProjectLayoutSetupRegistry.class)
-        projectSetupDescriptor = Mock(BuildInitializer.class)
-        buildConverter = Mock(BuildConverter.class)
+        projectLayoutRegistry = Mock()
+        projectSetupDescriptor = Mock()
+        buildConverter = Mock()
         init.projectLayoutRegistry = projectLayoutRegistry
         init.insecureProtocol.convention(InsecureProtocolOption.WARN)
     }
@@ -72,7 +76,7 @@ class InitBuildSpec extends Specification {
         projectSetupDescriptor.defaultDsl >> GROOVY
         projectSetupDescriptor.testFrameworks >> [NONE]
         projectSetupDescriptor.defaultTestFramework >> NONE
-        projectSetupDescriptor.getFurtherReading(_ as InitSettings) >> Optional.empty()
+        projectSetupDescriptor.getFurtherReading(_ as InitSettings) >> empty()
 
         when:
         init.setupProjectLayout()
@@ -87,7 +91,7 @@ class InitBuildSpec extends Specification {
         projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
         projectSetupDescriptor.testFrameworks >> [SPOCK]
         projectSetupDescriptor.dsls >> [GROOVY, KOTLIN]
-        projectSetupDescriptor.getFurtherReading(_ as InitSettings) >> Optional.empty()
+        projectSetupDescriptor.getFurtherReading(_ as InitSettings) >> empty()
         projectSetupDescriptor.componentType >> ComponentType.LIBRARY
         init.type = "java-library"
         init.dsl = "kotlin"
@@ -137,19 +141,40 @@ class InitBuildSpec extends Specification {
         e.message == "The requested DSL 'kotlin' is not supported for 'some-type' build type"
     }
 
-    def "should throw exception if project name is not supported for the specified type"() {
+    def "should use project name as specified"() {
         given:
-        projectLayoutRegistry.get("some-type") >> projectSetupDescriptor
-        projectSetupDescriptor.id >> "some-type"
-        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
-        projectSetupDescriptor.dsls >> [GROOVY]
-        projectSetupDescriptor.testFrameworks >> [NONE]
-        projectSetupDescriptor.supportsProjectName()
-        init.type = "some-type"
+        projectSetupDescriptor.supportsProjectName() >> true
         init.projectName = "other"
 
         when:
-        init.setupProjectLayout()
+        def projectName = init.getProjectName(Mock(UserInputHandler), projectSetupDescriptor)
+
+        then:
+        projectName == "other"
+    }
+
+    def "should use project name as asked for"() {
+        given:
+        projectSetupDescriptor.supportsProjectName() >> true
+        def userInputHandler = Mock(UserInputHandler)
+        userInputHandler.askQuestion("Project name", _ as String) >> "newProjectName"
+
+
+        when:
+        def projectName = init.getProjectName(userInputHandler, projectSetupDescriptor)
+
+        then:
+        projectName == "newProjectName"
+    }
+
+
+    def "should throw exception if project name is not supported for the specified type"() {
+        given:
+        projectSetupDescriptor.id >> "some-type"
+        init.projectName = "invalidProjectName"
+
+        when:
+        init.getProjectName(Mock(UserInputHandler), projectSetupDescriptor)
 
         then:
         GradleException e = thrown()
@@ -158,23 +183,43 @@ class InitBuildSpec extends Specification {
 
     def "should throw exception if package name is not supported for the specified type"() {
         given:
-        projectLayoutRegistry.get("some-type") >> projectSetupDescriptor
         projectSetupDescriptor.id >> "some-type"
-        projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
-        projectSetupDescriptor.dsls >> [GROOVY]
-        projectSetupDescriptor.testFrameworks >> [NONE]
-        projectSetupDescriptor.supportsPackage()
-        init.type = "some-type"
         init.packageName = "other"
 
         when:
-        init.setupProjectLayout()
+        init.getPackageName(Mock(UserInputHandler), projectSetupDescriptor, "myProjectName")
 
         then:
         GradleException e = thrown()
         e.message == "Package name is not supported for 'some-type' build type."
     }
 
+    def "should use package name as asked for"() {
+        given:
+        projectSetupDescriptor.id >> "some-type"
+        projectSetupDescriptor.supportsPackage() >> true
+        def userInputHandler = new NonInteractiveUserInputHandler()
+        def myProjectName = "myProjectName"
+        def packageNameFromProject = PackageNameBuilder.toPackageName(myProjectName).toLowerCase(Locale.US)
+
+        when:
+        def packageName = init.getPackageName(userInputHandler, projectSetupDescriptor, myProjectName)
+
+        then:
+        packageName == packageNameFromProject
+    }
+
+    def "should use package name as specified"() {
+        given:
+        projectSetupDescriptor.id >> "some-type"
+        projectSetupDescriptor.supportsPackage() >> true
+        init.packageName = "myPackageName"
+        when:
+        def packageName = init.getPackageName(Mock(UserInputHandler), projectSetupDescriptor, "myProjectName")
+
+        then:
+        packageName == "myPackageName"
+    }
     def "should reject invalid package name: #invalidPackageName"() {
         given:
         projectLayoutRegistry.get("java-library") >> projectSetupDescriptor
@@ -212,7 +257,7 @@ class InitBuildSpec extends Specification {
         projectSetupDescriptor.modularizationOptions >> [ModularizationOption.SINGLE_PROJECT]
         projectSetupDescriptor.testFrameworks >> [SPOCK]
         projectSetupDescriptor.dsls >> [GROOVY]
-        projectSetupDescriptor.getFurtherReading(_ as InitSettings) >> Optional.empty()
+        projectSetupDescriptor.getFurtherReading(_ as InitSettings) >> empty()
         projectSetupDescriptor.componentType >> ComponentType.LIBRARY
         projectSetupDescriptor.supportsPackage() >> true
         init.type = "java-library"

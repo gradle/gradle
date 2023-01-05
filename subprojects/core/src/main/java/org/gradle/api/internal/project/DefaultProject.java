@@ -17,7 +17,6 @@
 package org.gradle.api.internal.project;
 
 import com.google.common.collect.Maps;
-import com.google.common.primitives.Ints;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.Action;
@@ -619,17 +618,12 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     @Override
     public int depthCompare(Project otherProject) {
-        return Ints.compare(getDepth(), otherProject.getDepth());
+        return ProjectOrderingUtil.depthCompare(this, otherProject);
     }
 
     @Override
     public int compareTo(Project otherProject) {
-        int depthCompare = depthCompare(otherProject);
-        if (depthCompare == 0) {
-            return getProjectPath().compareTo(((ProjectInternal) otherProject).getProjectPath());
-        } else {
-            return depthCompare;
-        }
+        return ProjectOrderingUtil.compare(this, otherProject);
     }
 
     @Override

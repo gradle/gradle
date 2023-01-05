@@ -16,10 +16,15 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier
+import org.gradle.api.internal.tasks.TaskExecutionAccessChecker
+import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprintController
-import org.gradle.configurationcache.initialization.DefaultConfigurationCacheProblemsListener
+import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
+import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 
@@ -41,7 +46,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(ConfigurationCacheKey::class.java)
             add(ConfigurationCacheReport::class.java)
-            add(DefaultConfigurationCacheProblemsListener::class.java)
+            add(DeprecatedFeaturesListener::class.java)
             add(DefaultBuildModelControllerServices::class.java)
             add(DefaultBuildToolingModelControllerFactory::class.java)
             add(ConfigurationCacheRepository::class.java)
@@ -54,6 +59,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.run {
             add(RelevantProjectsRegistry::class.java)
+            addProvider(TaskExecutionAccessCheckerProvider())
         }
     }
 
@@ -61,6 +67,24 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(ConfigurationCacheHost::class.java)
             add(ConfigurationCacheIO::class.java)
+        }
+    }
+
+    private
+    class TaskExecutionAccessCheckerProvider {
+        fun createTaskExecutionAccessChecker(
+            configurationTimeBarrier: ConfigurationTimeBarrier,
+            modelParameters: BuildModelParameters,
+            /** In non-CC builds, [ConfigurationCacheStartParameter] is not registered; accepting a list here is a way to ignore its absence. */
+            configurationCacheStartParameter: List<ConfigurationCacheStartParameter>,
+            listenerManager: ListenerManager
+        ): TaskExecutionAccessChecker {
+            val broadcast = listenerManager.getBroadcaster(TaskExecutionAccessListener::class.java)
+            return when {
+                !modelParameters.isConfigurationCache -> TaskExecutionAccessCheckers.TaskStateBased(broadcast)
+                configurationCacheStartParameter.single().taskExecutionAccessPreStable -> TaskExecutionAccessCheckers.TaskStateBased(broadcast)
+                else -> TaskExecutionAccessCheckers.ConfigurationTimeBarrierBased(configurationTimeBarrier, broadcast)
+            }
         }
     }
 }

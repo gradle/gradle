@@ -35,7 +35,6 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.internal.classpath.Instrumented.fileCollectionObserved
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
@@ -398,9 +397,6 @@ fun Project.collectScriptPluginFiles(): Set<File> =
         it.include("**/*.gradle.kts")
     }.filter {
         it.isFile
-    }.also {
-        // Declare build configuration input
-        fileCollectionObserved(it, "Kotlin DSL")
     }.files
 
 

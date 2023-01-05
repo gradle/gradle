@@ -128,6 +128,10 @@ public class DefaultGradleRunner extends GradleRunner {
         return this;
     }
 
+    public List<String> getJvmArguments() {
+        return jvmArguments;
+    }
+
     public DefaultGradleRunner withJvmArguments(List<String> jvmArguments) {
         this.jvmArguments = Collections.unmodifiableList(new ArrayList<>(jvmArguments));
         return this;

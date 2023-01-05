@@ -305,7 +305,7 @@ class DefaultGradleDistribution implements GradleDistribution {
 
     @Override
     boolean isLoadsFromConfigurationCacheAfterStore() {
-        return isSameOrNewer("8.0")
+        return isSameOrNewer("8.0-milestone-5")
     }
 
     @Override

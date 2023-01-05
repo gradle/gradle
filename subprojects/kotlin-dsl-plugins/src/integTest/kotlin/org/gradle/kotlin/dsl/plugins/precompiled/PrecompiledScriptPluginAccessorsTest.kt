@@ -373,7 +373,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
             kotlin { }
 
-            tasks.compileKotlin { kotlinOptions { } }
+            tasks.compileKotlin { compilerOptions { } }
 
             """
         )

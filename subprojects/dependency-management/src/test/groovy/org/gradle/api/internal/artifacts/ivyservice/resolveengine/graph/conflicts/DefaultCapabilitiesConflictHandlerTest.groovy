@@ -108,7 +108,7 @@ class DefaultCapabilitiesConflictHandlerTest extends Specification {
     }
 
     NodeState node(ComponentState cs) {
-        return new NodeState(id++, Mock(ResolvedConfigurationIdentifier) { getId() >> Mock(ModuleVersionIdentifier) }, cs, null, Mock(VariantGraphResolveMetadata) {
+        return new NodeState(id++, Mock(ResolvedConfigurationIdentifier) { getId() >> Mock(ModuleVersionIdentifier) }, cs, Mock(VariantGraphResolveMetadata) {
             getDependencies() >> []
             getCapabilities() >> Mock(CapabilitiesMetadata) {
                 getCapabilities() >> []

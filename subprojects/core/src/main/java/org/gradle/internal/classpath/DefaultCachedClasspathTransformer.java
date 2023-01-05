@@ -22,6 +22,7 @@ import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.scopes.GlobalScopedCache;
 import org.gradle.internal.Either;
+import org.gradle.internal.agents.AgentControl;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -91,10 +92,51 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         if (classPath.isEmpty()) {
             return classPath;
         }
-        return transformFiles(
-            classPath,
-            fileTransformerFor(transform)
-        );
+        return transformPipelineFor(transform).transform(classPath);
+
+    }
+
+    @FunctionalInterface
+    private interface TransformPipeline {
+        ClassPath transform(ClassPath original);
+    }
+
+    private TransformPipeline transformPipelineFor(StandardTransform transform) {
+        switch (transform) {
+            case None:
+                return copyingPipeline();
+            case BuildLogic:
+                if (!AgentControl.isInstrumentationAgentApplied()) {
+                    return instrumentingPipeline(InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader());
+                }
+                return agentInstrumentingPipeline(copyingPipeline(), instrumentingPipeline(InstrumentingClasspathFileTransformer.instrumentForLoadingWithAgent()));
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+    private TransformPipeline copyingPipeline() {
+        return cp -> transformFiles(cp, new CopyingClasspathFileTransformer(globalCacheLocations));
+    }
+
+    private TransformPipeline instrumentingPipeline(InstrumentingClasspathFileTransformer.Policy policy) {
+        return cp -> transformFiles(cp, instrumentingClasspathFileTransformerFor(policy, new InstrumentingTransformer()));
+    }
+
+    private TransformPipeline agentInstrumentingPipeline(TransformPipeline originalsPipeline, TransformPipeline transformedPipeline) {
+        return classPath -> {
+            ClassPath copiedClassPath = originalsPipeline.transform(classPath);
+            ClassPath transformedClassPath = transformedPipeline.transform(classPath);
+            List<File> copiedOriginalJars = copiedClassPath.getAsFiles();
+            List<File> transformedJars = transformedClassPath.getAsFiles();
+            int size = copiedOriginalJars.size();
+            assert size == transformedJars.size();
+            TransformedClassPath.Builder result = TransformedClassPath.Builder.withExpectedSize(size);
+            for (int i = 0; i < size; ++i) {
+                result.add(copiedOriginalJars.get(i), transformedJars.get(i));
+            }
+            return result.build();
+        };
     }
 
     @Override
@@ -105,6 +147,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         return transformFiles(
             classPath,
             instrumentingClasspathFileTransformerFor(
+                InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader(),
                 new CompositeTransformer(additional, transformerFor(transform))
             )
         );
@@ -142,7 +185,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private ClasspathFileTransformer fileTransformerFor(StandardTransform transform) {
         switch (transform) {
             case BuildLogic:
-                return instrumentingClasspathFileTransformerFor(new InstrumentingTransformer());
+                return instrumentingClasspathFileTransformerFor(InstrumentingClasspathFileTransformer.instrumentForLoadingWithClassLoader(), new InstrumentingTransformer());
             case None:
                 return new CopyingClasspathFileTransformer(globalCacheLocations);
             default:
@@ -150,8 +193,8 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         }
     }
 
-    private InstrumentingClasspathFileTransformer instrumentingClasspathFileTransformerFor(CachedClasspathTransformer.Transform transform) {
-        return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, transform);
+    private InstrumentingClasspathFileTransformer instrumentingClasspathFileTransformerFor(InstrumentingClasspathFileTransformer.Policy policy, Transform transform) {
+        return new InstrumentingClasspathFileTransformer(fileLockManager, classpathWalker, classpathBuilder, policy, transform);
     }
 
     private Optional<Either<URL, Callable<URL>>> cachedURL(URL original, ClasspathFileTransformer transformer, Set<HashCode> seen) {

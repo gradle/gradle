@@ -19,6 +19,7 @@ package org.gradle.configurationcache
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.cache.Cleanup
 import org.gradle.api.file.FileCollection
+import org.gradle.api.flow.FlowScope
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.GradleInternal
@@ -31,7 +32,9 @@ import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
 import org.gradle.configurationcache.extensions.serviceOf
+import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.extensions.unsafeLazy
+import org.gradle.configurationcache.flow.BuildFlowScope
 import org.gradle.configurationcache.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.configurationcache.serialization.DefaultReadContext
 import org.gradle.configurationcache.serialization.DefaultWriteContext
@@ -239,27 +242,36 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultWriteContext.writeBuildState(build: BuildToStore, buildTreeState: StoredBuildTreeState, rootBuild: VintageGradleBuild) {
         val state = build.build.state
-        if (!build.hasWork && !build.hasChildren) {
-            writeEnum(BuildType.BuildWithNoWork)
-            writeBuildWithNoWork(state, rootBuild)
-        } else if (state is RootBuildState) {
-            writeEnum(BuildType.RootBuild)
-            writeBuildContent(build.build, buildTreeState)
-        } else if (state is IncludedBuildState) {
-            writeEnum(BuildType.IncludedBuild)
-            writeIncludedBuild(state, buildTreeState)
-        } else if (state is StandAloneNestedBuild) {
-            writeEnum(BuildType.BuildSrcBuild)
-            writeBuildSrcBuild(state, buildTreeState)
-        } else {
-            throw IllegalArgumentException()
+        when {
+            !build.hasWork && !build.hasChildren -> {
+                writeEnum(BuildType.BuildWithNoWork)
+                writeBuildWithNoWork(state, rootBuild)
+            }
+
+            state is RootBuildState -> {
+                writeEnum(BuildType.RootBuild)
+                writeBuildContent(build.build, buildTreeState)
+            }
+
+            state is IncludedBuildState -> {
+                writeEnum(BuildType.IncludedBuild)
+                writeIncludedBuild(state, buildTreeState)
+            }
+
+            state is StandAloneNestedBuild -> {
+                writeEnum(BuildType.BuildSrcBuild)
+                writeBuildSrcBuild(state, buildTreeState)
+            }
+
+            else -> {
+                throw IllegalArgumentException()
+            }
         }
     }
 
     private
     suspend fun DefaultReadContext.readBuildState(rootBuild: ConfigurationCacheBuild): CachedBuildState {
-        val type = readEnum<BuildType>()
-        return when (type) {
+        return when (readEnum<BuildType>()) {
             BuildType.BuildWithNoWork -> readBuildWithNoWork(rootBuild)
             BuildType.RootBuild -> readBuildContent(rootBuild)
             BuildType.IncludedBuild -> readIncludedBuild(rootBuild)
@@ -336,7 +348,7 @@ class ConfigurationCacheState(
             val hasProjects = readBoolean()
             if (hasProjects) {
                 val rootProjectName = readString()
-                val projects = readList() as List<ProjectWithNoWork>
+                val projects: List<ProjectWithNoWork> = readList().uncheckedCast()
                 BuildWithNoWork(identityPath, rootProjectName, projects)
             } else {
                 BuildWithNoProjects(identityPath)
@@ -358,6 +370,9 @@ class ConfigurationCacheState(
             }
             withDebugFrame({ "Work Graph" }) {
                 writeWorkGraphOf(gradle, scheduledNodes)
+            }
+            withDebugFrame({ "Flow Scope" }) {
+                writeFlowScopeOf(gradle)
             }
             withDebugFrame({ "Cleanup registrations" }) {
                 writeBuildOutputCleanupRegistrations(gradle)
@@ -382,6 +397,7 @@ class ConfigurationCacheState(
             readRequiredBuildServicesOf(gradle)
 
             val workGraph = readWorkGraph(gradle)
+            readFlowScopeOf(gradle)
             readBuildOutputCleanupRegistrations(gradle)
             return BuildWithWork(build.state.identityPath, build, gradle.rootProject.name, projects, workGraph)
         } else {
@@ -401,6 +417,25 @@ class ConfigurationCacheState(
         workNodeCodec(gradle).run {
             readWork()
         }
+
+    private
+    suspend fun WriteContext.writeFlowScopeOf(gradle: GradleInternal) {
+        withGradleIsolate(gradle, userTypesCodec) {
+            val flowScopeState = buildFlowScopeOf(gradle).store()
+            write(flowScopeState)
+        }
+    }
+
+    private
+    suspend fun DefaultReadContext.readFlowScopeOf(gradle: GradleInternal) {
+        withGradleIsolate(gradle, userTypesCodec) {
+            buildFlowScopeOf(gradle).load(readNonNull())
+        }
+    }
+
+    private
+    fun buildFlowScopeOf(gradle: GradleInternal) =
+        gradle.serviceOf<FlowScope>().uncheckedCast<BuildFlowScope>()
 
     private
     fun workNodeCodec(gradle: GradleInternal) =
