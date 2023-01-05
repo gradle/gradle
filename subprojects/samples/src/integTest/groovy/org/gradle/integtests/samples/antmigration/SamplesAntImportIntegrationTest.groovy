@@ -59,8 +59,8 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
 
         then: "The JARs are copied to the destination directory"
         dslDir.file('build/libs/our-custom.jar').isFile()G
-        dslDir.file('build/libs/log4j-core-2.19.0.jar').isFile()
-        dslDir.file('build/libs/commons-io-2.11.0.jar').isFile()
+        dslDir.file('build/libs/awesome-framework-2.0.jar').isFile()
+        dslDir.file('build/libs/utility-library-1.0.jar').isFile()
 
         where:
         dsl << ['groovy', 'kotlin']
