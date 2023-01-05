@@ -286,8 +286,6 @@ fun configureTests() {
         }
 
         if (project.testDistributionEnabled && !isUnitTest() && !isPerformanceProject()) {
-            println("Remote test distribution has been enabled for $testName")
-
             distribution {
                 this as TestDistributionExtensionInternal
                 enabled.set(true)

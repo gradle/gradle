@@ -17,6 +17,7 @@ package org.gradle.plugins.signing;
 
 import groovy.lang.Closure;
 import org.gradle.api.Buildable;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
@@ -94,6 +95,7 @@ public class Signature extends AbstractPublishArtifact {
 
     private Callable<String> classifierGenerator;
 
+    @Nullable
     private Callable<String> nameGenerator;
 
     /**
@@ -175,12 +177,10 @@ public class Signature extends AbstractPublishArtifact {
     public Signature(Callable<File> toSign, Callable<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
         // TODO: find a way to inject a proper task dependency factory without breaking the public API
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
-        this.toSignGenerator = toSign;
-        this.classifierGenerator = classifier;
-        this.signatureSpec = signatureSpec;
+        init(toSign, classifier, null, signatureSpec);
     }
 
-    private void init(Callable<File> toSign, Callable<String> classifier, Callable<String> name, SignatureSpec signatureSpec) {
+    private void init(Callable<File> toSign, Callable<String> classifier, @Nullable Callable<String> name, SignatureSpec signatureSpec) {
         this.toSignGenerator = toSign;
         this.classifierGenerator = classifier;
         this.nameGenerator = name;
@@ -397,6 +397,11 @@ public class Signature extends AbstractPublishArtifact {
         return super.getBuildDependencies();
     }
 
+    @Override
+    public boolean shouldBePublished() {
+        return true;
+    }
+
     /**
      * Generates the signature file.
      *
@@ -406,12 +411,21 @@ public class Signature extends AbstractPublishArtifact {
      * @throws InvalidUserDataException if the there is insufficient information available to generate the signature.
      */
     public void generate() {
+        Generator generator = getGenerator();
+        if (generator == null) {
+            return;
+        }
+        generator.generate();
+    }
+
+    @Nullable
+    Generator getGenerator() {
         File toSign = getToSign();
         if (toSign == null) {
             if (signatureSpec.isRequired()) {
                 throw new InvalidUserDataException("Unable to generate signature as the file to sign has not been specified");
             } else {
-                return;
+                return null;
             }
         }
 
@@ -420,7 +434,7 @@ public class Signature extends AbstractPublishArtifact {
             if (signatureSpec.isRequired()) {
                 throw new InvalidUserDataException("Unable to generate signature for '" + toSign + "' as no signatory is available to sign");
             } else {
-                return;
+                return null;
             }
         }
 
@@ -429,15 +443,44 @@ public class Signature extends AbstractPublishArtifact {
             if (signatureSpec.isRequired()) {
                 throw new InvalidUserDataException("Unable to generate signature for '" + toSign + "' as no signature type has been configured");
             } else {
-                return;
+                return null;
             }
         }
 
-        signatureType.sign(signatory, toSign);
+        return new Generator(signatureType, signatory, toSign);
     }
 
-    @Override
-    public boolean shouldBePublished() {
-        return true;
+    /**
+     * Configuration-cache compatible signature generator.
+     *
+     * @since 8.1
+     */
+    @Incubating
+    public static class Generator {
+
+        private final SignatureType signatureType;
+        private final Signatory signatory;
+        private final File toSign;
+
+        public Generator(SignatureType signatureType, Signatory signatory, File toSign) {
+            this.signatureType = signatureType;
+            this.signatory = signatory;
+            this.toSign = toSign;
+        }
+
+        @PathSensitive(PathSensitivity.NONE)
+        @InputFile
+        public File getToSign() {
+            return toSign;
+        }
+
+        @OutputFile
+        public File getFile() {
+            return signatureType.fileFor(toSign);
+        }
+
+        public void generate() {
+            signatureType.sign(signatory, toSign);
+        }
     }
 }

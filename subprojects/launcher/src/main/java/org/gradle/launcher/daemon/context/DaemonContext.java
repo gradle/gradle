@@ -68,5 +68,12 @@ public interface DaemonContext extends Serializable {
      */
     List<String> getDaemonOpts();
 
+    /**
+     * Returns whether the instrumentation agent should be applied to the daemon
+     *
+     * @return {@code true} if the agent should be applied
+     */
+    boolean shouldApplyInstrumentationAgent();
+
     DaemonParameters.Priority getPriority();
 }

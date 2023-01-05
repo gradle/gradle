@@ -23,14 +23,14 @@ import org.gradle.util.TestPrecondition
 class GradlePluginPortalDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
 
     def gradlePluginPortalRepository = """
-        repositories { 
-            gradlePluginPortal() 
+        repositories {
+            gradlePluginPortal()
             gradlePluginPortal { // just test this syntax works.
                 name = "otherPluginPortal"
                 content {
                     includeGroup 'org.sample'
                 }
-            }            
+            }
         }
     """
     def pluginClasspathDependency = "org.gradle:gradle-hello-world-plugin:0.2"
@@ -66,12 +66,13 @@ class GradlePluginPortalDependencyResolveIntegrationTest extends AbstractDepende
             dependencies {
                 implementation("$pluginClasspathDependency")
             }
-            
+
             task("resolveDependencies") {
+                def runtimeClasspath = configurations.runtimeClasspath
                 doLast {
-                    println(configurations.runtimeClasspath.files)
+                    println(runtimeClasspath.files)
                 }
-            } 
+            }
         """
 
         expect:

@@ -19,8 +19,8 @@ package org.gradle.internal.properties.annotations;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.provider.Provider;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-import java.util.function.Supplier;
 
 /***
  * A generalized type metadata walker for traversing annotated types and instances using their {@link TypeMetadata}.
@@ -35,7 +35,7 @@ import java.util.function.Supplier;
  * Nested iterables and maps can be further nested, i.e. {@code Map<String, Iterable<Iterable<String>>>} is supported.
  * Nested {@link Provider}s are unpacked, and the provided type is traversed transparently.
  */
-public interface TypeMetadataWalker<T> {
+public interface TypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMetadataVisitor<T>> {
 
     /**
      * A factory method for a walker that can visit the property hierarchy of an instance.
@@ -46,7 +46,7 @@ public interface TypeMetadataWalker<T> {
      *
      * Instance walker will throw {@link IllegalStateException} in case a nested property cycle is detected.
      */
-    static TypeMetadataWalker<Object> instanceWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
+    static InstanceMetadataWalker instanceWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
         return new AbstractTypeMetadataWalker.InstanceTypeMetadataWalker(typeMetadataStore, nestedAnnotation);
     }
 
@@ -55,17 +55,27 @@ public interface TypeMetadataWalker<T> {
      *
      * Type walker can detect a nested property cycle and stop walking the path with a cycle, no exception is thrown.
      */
-    static TypeMetadataWalker<TypeToken<?>> typeWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
+    static StaticMetadataWalker typeWalker(TypeMetadataStore typeMetadataStore, Class<? extends Annotation> nestedAnnotation) {
         return new AbstractTypeMetadataWalker.StaticTypeMetadataWalker(typeMetadataStore, nestedAnnotation);
     }
 
-    void walk(T root, TypeMetadataVisitor<T> visitor);
+    void walk(T root, V visitor);
+
+    interface StaticMetadataWalker extends TypeMetadataWalker<TypeToken<?>, StaticMetadataVisitor> {}
+
+    interface InstanceMetadataWalker extends TypeMetadataWalker<Object, InstanceMetadataVisitor> {}
 
     interface TypeMetadataVisitor<T> {
         void visitRoot(TypeMetadata typeMetadata, T value);
-
         void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, T value);
+    }
 
-        void visitLeaf(String qualifiedName, PropertyMetadata propertyMetadata, Supplier<T> value);
+    interface StaticMetadataVisitor extends TypeMetadataVisitor<TypeToken<?>> {}
+
+    interface InstanceMetadataVisitor extends TypeMetadataVisitor<Object> {
+        @Override
+        void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable Object value);
+        void visitNestedUnpackingError(String qualifiedName, Exception e);
+        void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata);
     }
 }

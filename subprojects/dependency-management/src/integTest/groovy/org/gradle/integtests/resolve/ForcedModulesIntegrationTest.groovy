@@ -41,8 +41,9 @@ configurations.all {
 }
 
 task checkDeps {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        assert configurations.compileClasspath*.name == ['foo-1.4.4.jar']
+        assert compileClasspath*.name == ['foo-1.4.4.jar']
     }
 }
 """
@@ -70,8 +71,9 @@ configurations.all {
 }
 
 task checkDeps {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        assert configurations.compileClasspath*.name == ['foo-1.3.3.jar', 'bar-1.0.jar']
+        assert compileClasspath*.name == ['foo-1.3.3.jar', 'bar-1.0.jar']
     }
 }
 """
@@ -161,8 +163,9 @@ project(':tool') {
 		implementation project(':impl')
 	}
     task checkDeps {
+        def runtimeClasspath = configurations.runtimeClasspath
         doLast {
-            assert configurations.runtimeClasspath*.name == ['api-1.0.jar', 'impl-1.0.jar', 'foo-1.5.5.jar']
+            assert runtimeClasspath*.name == ['api-1.0.jar', 'impl-1.0.jar', 'foo-1.5.5.jar']
             def metadata = configurations.runtimeClasspath.resolvedConfiguration
             def api = metadata.firstLevelModuleDependencies.find { it.moduleName == 'api' }
             assert api.children.size() == 1
@@ -225,8 +228,9 @@ project(':tool') {
 	    }
 	}
     task checkDeps {
+        def runtimeClasspath = configurations.runtimeClasspath
         doLast {
-            assert configurations.runtimeClasspath*.name == ['api.jar', 'impl.jar', 'foo-1.3.3.jar']
+            assert runtimeClasspath*.name == ['api.jar', 'impl.jar', 'foo-1.3.3.jar']
         }
     }
 }
@@ -253,8 +257,9 @@ configurations.all {
 }
 
 task checkDeps {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        assert configurations.compileClasspath*.name == ['foo-1.3.3.jar']
+        assert compileClasspath*.name == ['foo-1.3.3.jar']
     }
 }
 """
@@ -283,8 +288,9 @@ configurations.all {
 }
 
 task checkDeps {
+    def compileClasspath = configurations.compileClasspath
     doLast {
-        assert configurations.compileClasspath*.name == ['foo-1.9.jar']
+        assert compileClasspath*.name == ['foo-1.9.jar']
     }
 }
 """

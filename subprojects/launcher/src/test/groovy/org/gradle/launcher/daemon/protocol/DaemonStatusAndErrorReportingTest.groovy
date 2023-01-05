@@ -26,7 +26,7 @@ class DaemonStatusAndErrorReportingTest extends Specification {
 
     def "PID can be null"() {
         given:
-        def daemonContext = new DefaultDaemonContext(null, null, null, null, null, null, null)
+        def daemonContext = new DefaultDaemonContext(null, null, null, null, null, null, false, null)
 
         when:
         def pid = daemonContext.pid;

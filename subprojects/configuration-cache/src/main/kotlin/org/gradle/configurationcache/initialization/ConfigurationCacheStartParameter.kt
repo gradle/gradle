@@ -38,6 +38,8 @@ class ConfigurationCacheStartParameter(
 ) {
     val loadAfterStore: Boolean = !modelParameters.isRequiresBuildModel && options.getOption(InternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)).get()
 
+    val taskExecutionAccessPreStable: Boolean = options.getOption(InternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")).get()
+
     val gradleProperties: Map<String, Any?>
         get() = startParameter.projectProperties
 
@@ -86,6 +88,9 @@ class ConfigurationCacheStartParameter(
 
     val isUpdateDependencyLocks
         get() = startParameter.lockedDependenciesToUpdate.isNotEmpty()
+
+    val isWriteDependencyVerifications
+        get() = startParameter.writeDependencyVerifications.isNotEmpty()
 
     val requestedTaskNames: List<String> by unsafeLazy {
         startParameter.taskNames

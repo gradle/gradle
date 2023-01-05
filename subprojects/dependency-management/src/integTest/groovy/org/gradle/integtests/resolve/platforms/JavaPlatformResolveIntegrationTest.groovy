@@ -900,9 +900,10 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
             }
 
             tasks.register('resolve') {
+                def conf = configurations.conf
                 doLast {
                     // Need a specific path for restoring serialized version, other paths work
-                    println configurations.conf.resolvedConfiguration.lenientConfiguration.allModuleDependencies
+                    println conf.resolvedConfiguration.lenientConfiguration.allModuleDependencies
                 }
             }
 """

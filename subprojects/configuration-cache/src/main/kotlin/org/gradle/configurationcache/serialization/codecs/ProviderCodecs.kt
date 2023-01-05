@@ -19,6 +19,7 @@ package org.gradle.configurationcache.serialization.codecs
 import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
+import org.gradle.api.flow.FlowProviders
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultDirectoryVar
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultRegularFileVar
 import org.gradle.api.internal.file.FilePropertyFactory
@@ -40,6 +41,7 @@ import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.configurationcache.extensions.serviceOf
 import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.configurationcache.flow.RequestedTasksResultProvider
 import org.gradle.configurationcache.serialization.Codec
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.serialization.WriteContext
@@ -59,12 +61,14 @@ import org.gradle.internal.build.BuildStateRegistry
 internal
 class FixedValueReplacingProviderCodec(
     valueSourceProviderFactory: ValueSourceProviderFactory,
-    buildStateRegistry: BuildStateRegistry
+    buildStateRegistry: BuildStateRegistry,
+    flowProviders: FlowProviders
 ) {
     private
     val providerWithChangingValueCodec = Bindings.of {
         bind(ValueSourceProviderCodec(valueSourceProviderFactory))
         bind(BuildServiceProviderCodec(buildStateRegistry))
+        bind(FlowProvidersCodec(flowProviders))
         bind(BeanCodec)
     }.build()
 
@@ -123,6 +127,20 @@ class FixedValueReplacingProviderCodec(
             4.toByte() -> ValueSupplier.ExecutionTimeValue.changingValue<Any>(providerWithChangingValueCodec.run { decode() }!!.uncheckedCast())
             else -> throw IllegalStateException("Unexpected provider value")
         }
+}
+
+
+internal
+class FlowProvidersCodec(
+    private val flowProviders: FlowProviders
+) : Codec<RequestedTasksResultProvider> {
+
+    override suspend fun WriteContext.encode(value: RequestedTasksResultProvider) {
+    }
+
+    override suspend fun ReadContext.decode(): RequestedTasksResultProvider {
+        return flowProviders.requestedTasksResult.uncheckedCast()
+    }
 }
 
 
