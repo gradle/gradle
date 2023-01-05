@@ -402,8 +402,8 @@ project(':common') {
                 implementation project('a')
             }
 
-            // Explicitly set color = blue on the "extender" configuration here, to avoid issues with allprojects execution ordering
-            configurations.extender.attributes.attribute(color, 'blue')
+            // Explicitly set color = blue on the "resolver" configuration here, to avoid issues with allprojects execution ordering
+            configurations.resolver.attributes.attribute(color, 'blue')
 
             interface Params extends TransformParameters {
                 @Input
