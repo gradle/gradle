@@ -30,7 +30,14 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifac
 
 public class DefaultVisitedArtifactResults implements VisitedArtifactsResults {
     private static final Function<ResolvedArtifactSet, ResolvedArtifactSet> DO_NOTHING = resolvedArtifactSet -> resolvedArtifactSet;
-    private static final Function<ResolvedArtifactSet, ResolvedArtifactSet> ALLOW_UNAVAILABLE = resolvedArtifactSet -> resolvedArtifactSet instanceof UnavailableResolvedArtifactSet ? ResolvedArtifactSet.EMPTY : resolvedArtifactSet;
+    private static final Function<ResolvedArtifactSet, ResolvedArtifactSet> ALLOW_UNAVAILABLE = resolvedArtifactSet -> {
+        if (resolvedArtifactSet instanceof UnavailableResolvedArtifactSet) {
+            return ResolvedArtifactSet.EMPTY;
+        } else {
+            return resolvedArtifactSet;
+        }
+    };
+
     private final ResolutionStrategy.SortOrder sortOrder;
     // Index of the artifact set == the id of the artifact set
     private final List<ArtifactSet> artifactsById;
