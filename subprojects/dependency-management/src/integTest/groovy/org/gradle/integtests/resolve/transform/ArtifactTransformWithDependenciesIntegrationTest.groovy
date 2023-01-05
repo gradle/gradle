@@ -27,7 +27,6 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.CoreMatchers
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -352,7 +351,6 @@ project(':common') {
         )
     }
 
-    @Ignore // TODO: understand what's going on in this test
     def "transform of project artifact can consume different transform of external artifact as dependency"() {
         given:
         mavenHttpRepo.module("test", "test", "1.2")
@@ -403,6 +401,9 @@ project(':common') {
             dependencies {
                 implementation project('a')
             }
+
+            // Explicitly set color = blue on the "extender" configuration here, to avoid issues with allprojects execution ordering
+            configurations.extender.attributes.attribute(color, 'blue')
 
             interface Params extends TransformParameters {
                 @Input
