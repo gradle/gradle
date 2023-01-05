@@ -37,6 +37,10 @@
                 <td><literal>null</literal></td>
             </tr>
             <tr>
+                <td>destinationFile</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
                 <td>comment</td>
                 <td><literal>null</literal></td>
             </tr>
