@@ -57,7 +57,7 @@ Usage of the following `@link:{javadocPath}/javadoc/org/gradle/api/internal/arti
 Custom roles have been deprecated. Use pre-defined roles from `@link:{javadocPath}/javadoc/org/gradle/api/internal/artifacts/configurations/ConfigurationRoles.htm[ConfigurationRoles]` instead.
 
 [[reserved_configuration_names]]
-The `java-base` plugin will create configurations with for every sourceset using these patterns:
+The `java-base` plugin will create configurations for every sourceset using these patterns:
 
  - `<SourceSet Name>Implementation`
  - `<SourceSet Name>CompileOnly`
