@@ -19,14 +19,11 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.classanalysis.JavaClassUtil
+import org.gradle.internal.jvm.Jvm
 import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.not
-import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assume.assumeNotNull
-import org.junit.Assume.assumeThat
 import org.junit.Test
-
 
 class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
 
@@ -101,11 +98,11 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `can use Java Toolchain to compile precompiled scripts`() {
 
-        val jdk8 = AvailableJavaHomes.getJdk8()
-        assumeNotNull(jdk8)
+        val currentJvm = Jvm.current()
+        assumeNotNull(currentJvm)
 
-        val jdk11 = AvailableJavaHomes.getJdk11()
-        assumeNotNull(jdk11)
+        val newerJvm = AvailableJavaHomes.getDifferentVersion { it.languageVersion > currentJvm.javaVersion }
+        assumeNotNull(newerJvm)
 
         withClassJar("buildSrc/utils.jar", JavaClassUtil::class.java)
 
@@ -126,17 +123,16 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
         withFile("buildSrc/src/main/kotlin/some.gradle.kts", printScriptJavaClassFileMajorVersion)
         withBuildScript("""plugins { id("some") }""")
 
-        val installationPaths = listOf(jdk8!!, jdk11!!).joinToString(",") {
+        val installationPaths = listOf(currentJvm!!, newerJvm!!).joinToString(",") {
             it.javaHome.absolutePath
         }
 
-        gradleExecuterFor(arrayOf("build"))
-            .withJavaHome(jdk8?.javaHome)
+        gradleExecuterFor(arrayOf("help"))
+            .withJavaHome(currentJvm.javaHome)
             .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
             .run()
 
         val helpResult = gradleExecuterFor(arrayOf("help"))
-            .withJavaHome(jdk11.javaHome)
             .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
             .run()
 
