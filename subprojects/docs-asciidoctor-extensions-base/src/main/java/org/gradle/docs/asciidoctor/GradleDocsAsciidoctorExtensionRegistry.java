@@ -32,6 +32,8 @@ public class GradleDocsAsciidoctorExtensionRegistry implements ExtensionRegistry
         registry.includeProcessor(GuidesContributeIncludeProcessor.class);
         registry.includeProcessor(SampleIncludeProcessor.class);
 
+        registry.treeprocessor(ExampleSelfLinkProcessor.class);
+
 //        registry.docinfoProcessor(new LinkingDataDocinfoProcessor(footerOptions));
         // TODO: satisfaction widget processor
 
