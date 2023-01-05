@@ -22,7 +22,10 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 
-public class AbstractFailedResolvedArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
+/**
+ * An artifact set that is failed, capturing the failure and rethrowing when visited or transformed.
+ */
+public abstract class AbstractFailedResolvedArtifactSet implements ResolvedArtifactSet, ResolvedArtifactSet.Artifacts {
     protected final Throwable failure;
 
     public AbstractFailedResolvedArtifactSet(Throwable failure) {

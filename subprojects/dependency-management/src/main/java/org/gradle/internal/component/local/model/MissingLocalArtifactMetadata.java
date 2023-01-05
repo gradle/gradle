@@ -98,9 +98,4 @@ public class MissingLocalArtifactMetadata implements LocalComponentArtifactMetad
         MissingLocalArtifactMetadata other = (MissingLocalArtifactMetadata) obj;
         return other.componentIdentifier.equals(componentIdentifier) && other.name.equals(name);
     }
-
-    @Override
-    public boolean isOptionalArtifact() {
-        return false;
-    }
 }
