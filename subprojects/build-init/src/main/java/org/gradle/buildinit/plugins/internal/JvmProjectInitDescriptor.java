@@ -105,7 +105,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
         });
 
         settings.getJavaLanguageVersion().ifPresent(languageVersion -> {
-            buildScriptBuilder.javaLanguageVersion(languageVersion);
+            buildScriptBuilder.javaToolchainFor(languageVersion);
         });
 
         buildScriptBuilder

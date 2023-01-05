@@ -42,7 +42,7 @@ class BuildScriptBuilderGroovyTest extends AbstractBuildScriptBuilderTest {
 
     def "generates toolchain entry"() {
         when:
-        builder.javaLanguageVersion(JavaLanguageVersion.of(11))
+        builder.javaToolchainFor(JavaLanguageVersion.of(11))
         builder.create(target).generate()
 
         then:

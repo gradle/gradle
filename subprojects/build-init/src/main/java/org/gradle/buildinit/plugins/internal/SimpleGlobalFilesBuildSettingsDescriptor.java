@@ -49,10 +49,6 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
             builder.block(null, "pluginManagement").methodInvocation(
                 "Include 'plugins build' to define convention plugins.", "includeBuild", PLUGINS_BUILD_LOCATION);
         }
-        builder.propertyAssignment(null, "rootProject.name", settings.getProjectName());
-        if (!settings.getSubprojects().isEmpty()) {
-            builder.methodInvocation(null, "include", settings.getSubprojects().toArray());
-        }
 
         if(settings.getJavaLanguageVersion().isPresent()){
             builder.plugin(
@@ -61,6 +57,10 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
                 "0.4.0");
         }
 
+        builder.propertyAssignment(null, "rootProject.name", settings.getProjectName());
+        if (!settings.getSubprojects().isEmpty()) {
+            builder.methodInvocation(null, "include", settings.getSubprojects().toArray());
+        }
         return builder;
     }
 }
