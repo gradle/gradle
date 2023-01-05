@@ -15,7 +15,6 @@ dependencies {
     implementation("org.ow2.asm:asm")
     implementation("org.ow2.asm:asm-commons")
     implementation("com.google.code.gson:gson")
-    implementation("org.gradle:test-retry-gradle-plugin")
     implementation("com.gradle:gradle-enterprise-gradle-plugin")
 
     implementation("com.thoughtworks.qdox:qdox") {
