@@ -23,7 +23,7 @@ We recommend the following steps for all users:
 +
 image::deprecations.png[Deprecations View of a Gradle Build Scan]
 +
-This is so that you can see any deprecation warnings that apply to your build.
+This is so you can see any deprecation warnings that apply to your build.
 +
 Alternatively, you could run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
 . Update your plugins.
