@@ -1253,11 +1253,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.canBeResolved = true;
         copiedConfiguration.canBeDeclaredAgainst = true;
         copiedConfiguration.declarationAlternatives =
-            canBeDeclaredAgainst ? declarationAlternatives : Collections.emptyList();
+            canBeDeclaredAgainst || declarationAlternatives != null ? declarationAlternatives : Collections.emptyList();
         copiedConfiguration.resolutionAlternatives =
-            canBeResolved ? resolutionAlternatives : Collections.emptyList();
+            canBeResolved || resolutionAlternatives != null ? resolutionAlternatives : Collections.emptyList();
         copiedConfiguration.consumptionDeprecation =
-            canBeConsumed ? consumptionDeprecation
+            canBeConsumed || consumptionDeprecation != null ? consumptionDeprecation
                 : DeprecationLogger.deprecateConfiguration(name).forConsumption()
                     .willBecomeAnErrorInGradle9().undocumented();
 

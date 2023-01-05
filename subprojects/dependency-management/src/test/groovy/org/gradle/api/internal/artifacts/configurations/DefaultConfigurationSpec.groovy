@@ -759,27 +759,57 @@ class DefaultConfigurationSpec extends Specification {
         checkCopiedConfiguration(configuration, copied3Configuration, resolutionStrategyCopy, 3)
     }
 
-    void "copies configuration role"() {
+    void "deprecations are passed to copies when corresponding role is #state"() {
         def configuration = prepareConfigurationForCopyTest()
         def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
         1 * resolutionStrategy.copy() >> resolutionStrategyCopy
 
         when:
-        configuration.canBeResolved = resolveAllowed
-        configuration.canBeConsumed = consumeAllowed
+        configuration.deprecateForConsumption(x -> x.willBecomeAnErrorInGradle9().undocumented())
+        configuration.deprecateForDeclaration("declaration")
+        configuration.deprecateForResolution("resolution")
+        configuration.canBeConsumed = enabled
+        configuration.canBeResolved = enabled
+        configuration.canBeDeclaredAgainst = enabled
+
         def copy = configuration.copy()
 
-
         then:
-        copy.canBeResolved == configuration.canBeResolved
-        copy.canBeConsumed == configuration.canBeConsumed
+        // This is not desired behavior. Roles should be copied without modification.
+        copy.canBeDeclaredAgainst
+        copy.canBeResolved
+        copy.canBeConsumed
+        copy.consumptionDeprecation != null
+        copy.declarationAlternatives == ["declaration"]
+        copy.resolutionAlternatives == ["resolution"]
 
         where:
-        resolveAllowed | consumeAllowed
-        false          | false
-        true           | false
-        false          | true
-        true           | true
+        state | enabled
+        "enabled" | true
+        "disabled" | false
+    }
+
+    void "copies disabled configuration role as a deprecation"() {
+        def configuration = prepareConfigurationForCopyTest()
+        def resolutionStrategyCopy = Mock(ResolutionStrategyInternal)
+        1 * resolutionStrategy.copy() >> resolutionStrategyCopy
+
+        when:
+        configuration.canBeConsumed = false
+        configuration.canBeResolved = false
+        configuration.canBeDeclaredAgainst = false
+
+
+        def copy = configuration.copy()
+
+        then:
+        // This is not desired behavior. Roles and deprecations should be copied without modification.
+        copy.canBeDeclaredAgainst
+        copy.canBeResolved
+        copy.canBeConsumed
+        copy.consumptionDeprecation != null
+        copy.declarationAlternatives == []
+        copy.resolutionAlternatives == []
     }
 
     def "can copy with spec"() {
