@@ -202,8 +202,11 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
             }
 
             task touchFile {
+                // explicit dependency otherwise this task may run before the Jar task
+                dependsOn tasks.jar
+                def featureFile = file("\$buildDir/$optionalFeatureFileName")
                 doLast {
-                    file("\$buildDir/$optionalFeatureFileName") << "test"
+                    featureFile << "test"
                 }
             }
         """
