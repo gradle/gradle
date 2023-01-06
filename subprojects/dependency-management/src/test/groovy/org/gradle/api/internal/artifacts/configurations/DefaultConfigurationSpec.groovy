@@ -782,6 +782,9 @@ class DefaultConfigurationSpec extends Specification {
         copy.consumptionDeprecation != null
         copy.declarationAlternatives == ["declaration"]
         copy.resolutionAlternatives == ["resolution"]
+        copy.roleAtCreation.consumptionDeprecated
+        copy.roleAtCreation.resolutionDeprecated
+        copy.roleAtCreation.declarationAgainstDeprecated
 
         where:
         state | enabled
@@ -810,6 +813,9 @@ class DefaultConfigurationSpec extends Specification {
         copy.consumptionDeprecation != null
         copy.declarationAlternatives == []
         copy.resolutionAlternatives == []
+        copy.roleAtCreation.consumptionDeprecated
+        copy.roleAtCreation.resolutionDeprecated
+        copy.roleAtCreation.declarationAgainstDeprecated
     }
 
     def "can copy with spec"() {
