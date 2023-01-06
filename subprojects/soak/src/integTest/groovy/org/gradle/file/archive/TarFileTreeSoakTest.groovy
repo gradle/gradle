@@ -49,8 +49,9 @@ class TarFileTreeSoakTest extends Specification {
         given:
         TestFile tgz = temporaryFolder.file("test.tgz")
 
-        InputStream input = new URL("https://github.com/sass/dart-sass/releases/download/1.57.1/dart-sass-1.57.1-linux-x64.tar.gz").openStream()
-        Files.copy(input, tgz.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        try (InputStream input = new URL("https://github.com/sass/dart-sass/releases/download/1.57.1/dart-sass-1.57.1-linux-x64.tar.gz").openStream()) {
+            Files.copy(input, tgz.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        }
 
         when:
         MaybeCompressedFileResource resource = new MaybeCompressedFileResource(new LocalResourceAdapter(TestFiles.fileRepository().localResource(tgz)))
