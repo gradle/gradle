@@ -58,7 +58,7 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
         succeeds('retrieveRuntimeDependencies')
 
         then: "The JARs are copied to the destination directory"
-        dslDir.file('build/libs/our-custom.jar').isFile()G
+        dslDir.file('build/libs/our-custom.jar').isFile()
         dslDir.file('build/libs/awesome-framework-2.0.jar').isFile()
         dslDir.file('build/libs/utility-library-1.0.jar').isFile()
 
