@@ -262,8 +262,6 @@ fun configureTests() {
         configureJvmForTest()
         addOsAsInputs()
 
-        val testName = name
-
         if (BuildEnvironment.isCiServer) {
             configureRerun()
             retry {

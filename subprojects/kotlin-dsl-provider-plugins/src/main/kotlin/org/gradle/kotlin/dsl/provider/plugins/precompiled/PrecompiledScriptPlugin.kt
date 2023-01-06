@@ -24,6 +24,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.KotlinScriptTypeMatch
+import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 
 import org.gradle.util.internal.TextUtil.convertLineSeparatorsToUnix
 
@@ -32,6 +33,7 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.NameUtils
 
 import java.io.File
+import java.util.Locale
 
 
 internal
@@ -160,12 +162,12 @@ fun scriptClassNameForFile(file: File) =
 
 private
 fun CharSequence.kebabCaseToPascalCase() =
-    kebabCaseToCamelCase().capitalize()
+    kebabCaseToCamelCase().uppercaseFirstChar()
 
 
 private
 fun CharSequence.kebabCaseToCamelCase() =
-    replace("-[a-z]".toRegex()) { it.value.drop(1).toUpperCase() }
+    replace("-[a-z]".toRegex()) { it.value.drop(1).uppercase(Locale.US) }
 
 
 private

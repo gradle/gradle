@@ -48,6 +48,7 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
                 tasks.withType<KotlinCompile>().configureEach {
                     it.compilerOptions {
                         DeprecationLogger.whileDisabled {
+                            @Suppress("DEPRECATION")
                             if (this@kotlinDslPluginOptions.jvmTarget.isPresent) {
                                 jvmTarget.set(JvmTarget.fromTarget(this@kotlinDslPluginOptions.jvmTarget.get()))
                             }

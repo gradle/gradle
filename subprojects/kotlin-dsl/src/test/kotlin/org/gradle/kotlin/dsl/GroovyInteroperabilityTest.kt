@@ -20,6 +20,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.util.Locale
 
 
 class GroovyInteroperabilityTest {
@@ -86,7 +87,7 @@ class GroovyInteroperabilityTest {
 
         assertEquals(
             "GROOVY",
-            closure { toUpperCase() }.call("groovy")
+            closure { uppercase(Locale.US) }.call("groovy")
         )
     }
 
