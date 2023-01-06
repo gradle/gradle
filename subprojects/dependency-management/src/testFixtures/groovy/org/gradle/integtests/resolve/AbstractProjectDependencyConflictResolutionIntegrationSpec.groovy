@@ -28,7 +28,7 @@ import org.gradle.util.Path
  *  └> myorg.ModuleB(1.0) ────────> myorg.ModuleC($versionExternal)
  *
  * Of myorg.ModuleC...
- * - ...all referenced version exist in a repository as 'module' (see test setup)
+ * - ...all referenced versions exist in a repository as 'module' (see test setup)
  * - ...one version exists as 'project' in the build (either through multi-project or composite)
  *
  * This abstract specification leaves out the concrete implementation of setting up the project structure.
@@ -139,18 +139,19 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
         "2.1"      | "2.0"         | 'projectId("ModuleC")'                | false                | "substitute module('myorg:ModuleC') using project(':ModuleC')"
     }
 
-
     static String check(String moduleName, String declaredDependencyId, String confName, String winner) { """
         task check${moduleName}_${confName} {
             def result = configurations.${confName}.incoming.resolutionResult.rootComponent
+            def declared = $declaredDependencyId
+            def expected = $winner
             doLast {
                 def deps = result.get().dependencies as List
                 def projectDependency = deps.find {
                     it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.requested.matchesStrictly($declaredDependencyId)
+                        it.requested.matchesStrictly(declared)
                 }
 
-                assert projectDependency && projectDependency.selected.componentId == $winner
+                assert projectDependency && projectDependency.selected.componentId == expected
             }
         }
 """
