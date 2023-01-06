@@ -208,8 +208,10 @@ public abstract class Checkstyle extends SourceTask implements VerificationTask,
         parameters.getSource().setFrom(getSource());
         parameters.getIsHtmlRequired().set(getReports().getHtml().getRequired());
         parameters.getIsXmlRequired().set(getReports().getXml().getRequired());
+        parameters.getIsSarifRequired().set(getReports().getSarif().getRequired());
         parameters.getXmlOuputLocation().set(getReports().getXml().getOutputLocation());
         parameters.getHtmlOuputLocation().set(getReports().getHtml().getOutputLocation());
+        parameters.getSarifOutputLocation().set(getReports().getSarif().getOutputLocation());
         parameters.getTemporaryDir().set(getTemporaryDir());
         parameters.getConfigProperties().set(getConfigProperties());
         TextResource stylesheetString = getReports().getHtml().getStylesheet();
