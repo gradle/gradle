@@ -368,7 +368,7 @@ project(':common') {
                 repositories {
                     maven { url = '${mavenHttpRepo.uri}' }
                 }
-                configurations.implementation.outgoing.variants {
+                configurations.outgoing.outgoing.variants {
                     additional {
                         attributes {
                             attribute(color, 'purple')
@@ -401,9 +401,6 @@ project(':common') {
             dependencies {
                 implementation project('a')
             }
-
-            // Explicitly set color = blue on the "resolver" configuration here, to avoid issues with allprojects execution ordering
-            configurations.resolver.attributes.attribute(color, 'blue')
 
             interface Params extends TransformParameters {
                 @Input
@@ -542,7 +539,7 @@ project(':common') {
                 implementation 'test:test3:1.5'
             }
 
-            def view = configurations.implementation.incoming.artifactView {
+            def view = configurations.resolver.incoming.artifactView {
                 attributes.attribute(color, 'green')
                 // NOTE: filter out the dependency to trigger the problem, so that the main thread, which holds the project lock, does not see and isolate the second transform while
                 // queuing the transforms for execution
@@ -679,7 +676,7 @@ project(':common') {
 
             allprojects {
                 configurations {
-                    implementation.outgoing.variants {
+                    outgoing.outgoing.variants {
                         one {
                             attributes.attribute(flavor, 'bland')
                             artifact(producer.output)
@@ -701,7 +698,7 @@ project(':common') {
                     }
                 }
 
-                def view = configurations.implementation.incoming.artifactView {
+                def view = configurations.resolver.incoming.artifactView {
                     attributes {
                         it.attribute(color, 'green')
                         it.attribute(flavor, 'tasty')
@@ -713,7 +710,7 @@ project(':common') {
                 }
 
                 task broken(type: ShowFilesTask) {
-                    inFiles.from(configurations.implementation)
+                    inFiles.from(configurations.resolver)
                 }
             }
 
