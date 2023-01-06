@@ -298,6 +298,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             cnf.setVisible(false);
             cnf.setCanBeConsumed(true);
             cnf.setCanBeResolved(false);
+            ((ConfigurationInternal) cnf).setCanBeDeclaredAgainst(false);
             Configuration[] extendsFrom = buildExtendsFrom();
             if (extendsFrom != null) {
                 cnf.extendsFrom(extendsFrom);
