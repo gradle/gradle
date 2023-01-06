@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -41,6 +42,6 @@ public abstract class AbstractSoftwareComponentVariant implements UsageContext {
 
     @Override
     public Set<? extends PublishArtifact> getArtifacts() {
-        return artifacts;
+        return Collections.unmodifiableSet(artifacts);
     }
 }

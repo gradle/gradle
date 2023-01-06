@@ -328,7 +328,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                         if (dependency instanceof ProjectDependency) {
                             addImportDependencyConstraint((ProjectDependency) dependency);
                         } else {
-                            if (isVersionMavenIncompatible(dependency.getVersion())) {
+                            if (isMavenIncompatibleVersionInUse(dependency.getVersion())) {
                                 publicationWarningsCollector.addIncompatible(String.format("%s:%s:%s declared with a Maven incompatible version notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                             }
                             addImportDependencyConstraint(dependency);
@@ -340,7 +340,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                         if (dependency instanceof ProjectDependency) {
                             addProjectDependency((ProjectDependency) dependency, globalExcludes, dependencies);
                         } else {
-                            if (isVersionMavenIncompatible(dependency.getVersion())) {
+                            if (isMavenIncompatibleVersionInUse(dependency.getVersion())) {
                                 publicationWarningsCollector.addIncompatible(String.format("%s:%s:%s declared with a Maven incompatible version notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                             }
                             addModuleDependency(dependency, globalExcludes, dependencies);
@@ -354,7 +354,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                     if (dependency instanceof DefaultProjectDependencyConstraint) {
                         addDependencyConstraint((DefaultProjectDependencyConstraint) dependency, dependencyConstraints);
                     } else if (dependency.getVersion() != null) {
-                        if (isVersionMavenIncompatible(dependency.getVersion())) {
+                        if (isMavenIncompatibleVersionInUse(dependency.getVersion())) {
                             publicationWarningsCollector.addIncompatible(String.format("constraint %s:%s:%s declared with a Maven incompatible version notation", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                         }
                         addDependencyConstraint(dependency, dependencyConstraints);
@@ -392,7 +392,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         return getCoordinates().getModule().equals(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getName()));
     }
 
-    private boolean isVersionMavenIncompatible(String version) {
+    private boolean isMavenIncompatibleVersionInUse(String version) {
         if (versionMappingInUse) {
             return false;
         }
