@@ -2,7 +2,7 @@
 The Gradle team is excited to announce Gradle @version@.
 
 This release includes several improvements to the [Kotlin DSL](userguide/kotlin_dsl.html), testing on internal classes with the [JVM test suite](userguide/jvm_test_suite_plugin.html),
-and many improvements to `buildSrc` to behave more like included builds such as running `buildSrc` tasks directly, skipping tests, having init scripts and including other builds with  `buildSrc`. 
+and many improvements to `buildSrc` to behave more like included builds such as running `buildSrc` tasks directly, skipping tests, having init scripts and including other builds with  `buildSrc`.
 
 As always, there are also performance improvements like enhancements to the [configuration cache](userguide/configuration_cache.html).
 
@@ -44,6 +44,7 @@ We would like to thank the following community members for their contributions t
 [Pankaj](https://github.com/p1729),
 [prasad-333](https://github.com/prasad-333),
 [RicardoJiang](https://github.com/RicardoJiang),
+[Róbert Papp](https://github.com/TWiStErRob),
 [Siddardha Bezawada](https://github.com/SidB3),
 [Stephen Topley](https://github.com/stopley),
 [Victor Maldonado](https://github.com/vmmaldonadoz),
@@ -139,7 +140,7 @@ Starting with Gradle 8.0, it now uses the configured Java Toolchain, or Java 8 i
 
 See the [`kotlin-dsl` plugin manual](userguide/kotlin_dsl.html#sec:kotlin-dsl_plugin) for more information on how to configure the Java Toolchain for precompiled script plugins and the [migration guide](userguide/upgrading_version_7.html#kotlin_dsl_plugin_toolchains) for more information on changed behaviour.
 
-#### Improved Script compilation performance 
+#### Improved Script compilation performance
 
 Gradle 8.0 introduces an interpreter for the [declarative plugins {} blocks](userguide/plugins.html#sec:constrained_syntax) in `.gradle.kts` scripts that make the overall build time around 20% faster.
 By default, calling the Kotlin compiler for declarative `plugins {}` blocks is avoided.
@@ -216,7 +217,7 @@ There are some additional advantages to this new behavior:
 - Any problems that happen during deserialization will be reported in the cache miss build, making it easier to spot such problems.
 - Tasks have access to the same state in cache miss and cache hit builds.
 - Gradle can release all memory used by the configuration state prior to task execution in the cache miss build. Previously it would retain this state because the non-isolated tasks were able to access it.
-- This reduces the peak memory usage for a given set of tasks. 
+- This reduces the peak memory usage for a given set of tasks.
 
 This consistent behavior for cache miss and cache hit builds can help people who are migrating to use the configuration cache, as more problems can now be discovered on the first (cache miss) build.
 
