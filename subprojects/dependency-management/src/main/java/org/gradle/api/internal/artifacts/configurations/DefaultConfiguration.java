@@ -1244,9 +1244,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.withDependencyActions = withDependencyActions;
         copiedConfiguration.dependencyResolutionListeners = dependencyResolutionListeners.copy();
 
-        copiedConfiguration.canBeConsumed = canBeConsumed;
-        copiedConfiguration.canBeResolved = canBeResolved;
-        copiedConfiguration.canBeDeclaredAgainst = canBeDeclaredAgainst;
+        // Instead of copying a configuration's roles outright, we allow copied configurations
+        // to assume any role. However, any roles which were previously disabled will become
+        // deprecated in the copied configuration. In 9.0, we will update this to copy
+        // roles and deprecations without modification. Or, better yet, we will remove support
+        // for copying configurations altogether.
+        copiedConfiguration.canBeConsumed = true;
+        copiedConfiguration.canBeResolved = true;
+        copiedConfiguration.canBeDeclaredAgainst = true;
+        copiedConfiguration.declarationAlternatives =
+            canBeDeclaredAgainst || declarationAlternatives != null ? declarationAlternatives : Collections.emptyList();
+        copiedConfiguration.resolutionAlternatives =
+            canBeResolved || resolutionAlternatives != null ? resolutionAlternatives : Collections.emptyList();
+        copiedConfiguration.consumptionDeprecation =
+            canBeConsumed || consumptionDeprecation != null ? consumptionDeprecation
+                : DeprecationLogger.deprecateConfiguration(name).forConsumption()
+                    .willBecomeAnErrorInGradle9().undocumented();
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 
