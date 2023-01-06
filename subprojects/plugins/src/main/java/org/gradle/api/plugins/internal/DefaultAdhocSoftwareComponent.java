@@ -63,7 +63,7 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     public Set<? extends UsageContext> getUsages() {
         ImmutableSet.Builder<UsageContext> builder = new ImmutableSet.Builder<>();
         for (ConfigurationVariantMapping variant : variants.values()) {
-            variant.collectUsageContexts(builder);
+            variant.collectVariants(builder);
         }
         return builder.build();
     }

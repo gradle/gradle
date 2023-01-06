@@ -13,23 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.component;
 
-public interface MavenPublishingAwareContext extends UsageContext {
-    ScopeMapping getScopeMapping();
+import org.gradle.api.component.SoftwareComponentVariant;
 
-    // Order is important!
-    enum ScopeMapping {
-        compile,
-        runtime,
-        compile_optional,
-        runtime_optional;
+public interface IvyPublishingAwareVariant extends SoftwareComponentVariant {
 
-        public static ScopeMapping of(String scope, boolean optional) {
-            if (optional) {
-                scope += "_optional";
-            }
-            return ScopeMapping.valueOf(scope);
-        }
-    }
+    boolean isOptional();
 }
