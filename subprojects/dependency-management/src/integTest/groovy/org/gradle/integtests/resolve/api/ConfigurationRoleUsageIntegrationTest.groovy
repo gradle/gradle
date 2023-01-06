@@ -109,7 +109,7 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec {
         fails 'help'
 
         and:
-        assertUsageLockedFailure(configuration, 'Intended Consumable')
+        assertUsageLockedFailure(configuration)
 
         where:
         configuration << ['runtimeElements', 'apiElements']
