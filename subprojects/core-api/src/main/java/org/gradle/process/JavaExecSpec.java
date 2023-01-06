@@ -17,13 +17,11 @@ package org.gradle.process;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -53,28 +51,6 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     @Optional
     @Input
     Property<String> getMainClass();
-
-    /**
-     * Sets the fully qualified name of the main class to be executed.
-     *
-     * @param main the fully qualified name of the main class to be executed.
-     *
-     * @return this
-     *
-     * @deprecated Use {@link #getMainClass()}.set(main) instead. This method will be removed in Gradle 9.0.
-     */
-    @Deprecated
-    @ReplacedBy("mainClass")
-    default JavaExecSpec setMain(@Nullable String main) {
-        DeprecationLogger.deprecateProperty(JavaExecSpec.class, "main")
-                .replaceWith("mainClass")
-                .willBeRemovedInGradle9()
-                .withDslReference()
-                .nagUser();
-
-        getMainClass().set(main);
-        return this;
-    }
 
     /**
      * Returns the arguments passed to the main class to be executed.

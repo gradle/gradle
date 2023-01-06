@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.process.JavaExecSpec",
+            "member": "Method org.gradle.process.JavaExecSpec.setMain(java.lang.String)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }
