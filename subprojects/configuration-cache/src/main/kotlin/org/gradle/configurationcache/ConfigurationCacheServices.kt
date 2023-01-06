@@ -28,10 +28,11 @@ import org.gradle.configurationcache.initialization.DefaultConfigurationCachePro
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
 import org.gradle.configurationcache.serialization.beans.BeanConstructors
 import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
-import org.gradle.internal.resource.connector.ResourceConnectorFactory
-import org.gradle.internal.resource.connector.ResourceConnectorSpecification
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.resource.connector.ResourceConnectorFactory
+import org.gradle.internal.resource.connector.ResourceConnectorSpecification
+import org.gradle.internal.resource.transfer.ExternalResourceConnector
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 
@@ -60,14 +61,14 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             add(InputTrackingState::class.java)
             add(InstrumentedInputAccessListener::class.java)
             add(ConfigurationCacheFingerprintController::class.java)
-            addProvider(RemoteScriptUpToDateCheckerProvider())
+            addProvider(RemoteScriptUpToDateCheckerProvider)
         }
     }
 
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.run {
             add(RelevantProjectsRegistry::class.java)
-            addProvider(TaskExecutionAccessCheckerProvider())
+            addProvider(TaskExecutionAccessCheckerProvider)
         }
     }
 
@@ -79,7 +80,7 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
     }
 
     private
-    class RemoteScriptUpToDateCheckerProvider {
+    object RemoteScriptUpToDateCheckerProvider {
         fun createRemoteScriptUpToDateChecker(
             artifactCachesProvider: ArtifactCachesProvider,
             startParameter: ConfigurationCacheStartParameter,
@@ -88,24 +89,25 @@ class ConfigurationCacheServices : AbstractPluginServiceRegistry() {
             resourceConnectorFactories: List<ResourceConnectorFactory>
         ): RemoteScriptUpToDateChecker =
             artifactCachesProvider.withWritableCache { _, cacheLockingManager ->
-                val externalResourceConnector =
-                    resourceConnectorFactories
-                        .single { it.supportedProtocols.contains("http") }
-                        .createResourceConnector(object : ResourceConnectorSpecification {})
-
                 RemoteScriptUpToDateChecker(
                     cacheLockingManager,
                     startParameter,
                     temporaryFileProvider,
                     fileStoreAndIndexProvider.externalResourceFileStore,
-                    externalResourceConnector,
+                    httpResourceConnectorFrom(resourceConnectorFactories),
                     fileStoreAndIndexProvider.externalResourceIndex
                 )
             }
+
+        private
+        fun httpResourceConnectorFrom(resourceConnectorFactories: List<ResourceConnectorFactory>): ExternalResourceConnector =
+            resourceConnectorFactories
+                .single { "https" in it.supportedProtocols }
+                .createResourceConnector(object : ResourceConnectorSpecification {})
     }
 
     private
-    class TaskExecutionAccessCheckerProvider {
+    object TaskExecutionAccessCheckerProvider {
         fun createTaskExecutionAccessChecker(
             configurationTimeBarrier: ConfigurationTimeBarrier,
             modelParameters: BuildModelParameters,
