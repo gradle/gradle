@@ -49,7 +49,7 @@ tasks {
 
 // -- Version manifest properties --------------------------------------
     val writeVersionsManifest by registering(WriteProperties::class) {
-        outputFile = buildDir.resolve("versionsManifest/gradle-kotlin-dsl-versions.properties")
+        destinationFile.set(layout.buildDirectory.file("versionsManifest/gradle-kotlin-dsl-versions.properties"))
         property("kotlin", libs.kotlinVersion)
     }
 
