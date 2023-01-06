@@ -42,9 +42,13 @@ public interface CheckstyleActionParameters extends WorkParameters {
 
     Property<Boolean> getIsHtmlRequired();
 
+    Property<Boolean> getIsSarifRequired();
+
     RegularFileProperty getXmlOuputLocation();
 
     RegularFileProperty getHtmlOuputLocation();
+
+    RegularFileProperty getSarifOutputLocation();
 
     DirectoryProperty getTemporaryDir();
 

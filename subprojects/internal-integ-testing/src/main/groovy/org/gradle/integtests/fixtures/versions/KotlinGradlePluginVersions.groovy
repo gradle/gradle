@@ -25,7 +25,7 @@ class KotlinGradlePluginVersions {
     private static final List<String> LATEST_VERSIONS = [
         '1.6.10', '1.6.21',
         '1.7.0', '1.7.10', "1.7.22",
-        "1.8.0-RC2",
+        "1.8.0",
     ]
 
     List<String> getLatests() {

@@ -25,6 +25,6 @@ enum class JvmCategory(
     MIN_VERSION_WINDOWS(JvmVendor.openjdk, JvmVersion.java8),
     MAX_LTS_VERSION(JvmVendor.openjdk, JvmVersion.java17),
     MAX_VERSION(JvmVendor.openjdk, JvmVersion.java18),
-    SANTA_TRACKER_SMOKE_TEST_VERSION(JvmVendor.openjdk, JvmVersion.java11),
+    SANTA_TRACKER_SMOKE_TEST_VERSION(JvmVendor.openjdk, JvmVersion.java17),
     EXPERIMENTAL_VERSION(JvmVendor.openjdk, JvmVersion.java18)
 }
