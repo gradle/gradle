@@ -1262,9 +1262,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return createCopy(CollectionUtils.filter(getAllDependencies(), dependencySpec), getAllDependencyConstraints());
     }
 
+    /**
+     * Instead of copying a configuration's roles outright, we allow copied configurations
+     * to assume any role. However, any roles which were previously disabled will become
+     * deprecated in the copied configuration. In 9.0, we will update this to copy
+     * roles and deprecations without modification. Or, better yet, we will remove support
+     * for copying configurations altogether.
+     */
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, Set<DependencyConstraint> dependencyConstraints) {
-        ConfigurationRole currentUsage = ConfigurationRole.forUsage(this.canBeConsumed, this.canBeResolved, this.canBeDeclaredAgainst, this.consumptionDeprecated, this.resolutionDeprecated, this.declarationDeprecated);
-        DefaultConfiguration copiedConfiguration = newConfiguration(currentUsage, this.usageCanBeMutated);
+        // Begin by allowing everything, and setting deprecations for disallowed roles
+        ConfigurationRole adjustedCurrentUsage = ConfigurationRole.forUsage(true, true, true, canBeConsumed, canBeResolved, canBeDeclaredAgainst);
+        DefaultConfiguration copiedConfiguration = newConfiguration(adjustedCurrentUsage, this.usageCanBeMutated);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
 
@@ -1276,14 +1284,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.withDependencyActions = withDependencyActions;
         copiedConfiguration.dependencyResolutionListeners = dependencyResolutionListeners.copy();
 
-        // Instead of copying a configuration's roles outright, we allow copied configurations
-        // to assume any role. However, any roles which were previously disabled will become
-        // deprecated in the copied configuration. In 9.0, we will update this to copy
-        // roles and deprecations without modification. Or, better yet, we will remove support
-        // for copying configurations altogether.
-        copiedConfiguration.canBeConsumed = true;
-        copiedConfiguration.canBeResolved = true;
-        copiedConfiguration.canBeDeclaredAgainst = true;
         copiedConfiguration.declarationAlternatives =
             canBeDeclaredAgainst || declarationAlternatives != null ? declarationAlternatives : Collections.emptyList();
         copiedConfiguration.resolutionAlternatives =
