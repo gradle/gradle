@@ -28,7 +28,7 @@ class TestTest extends AbstractProjectBuilderSpec {
         def task = project.tasks.create("test", Test)
         task.testClassesDirs = TestFiles.fixed(new File("tmp"))
         task.binaryResultsDirectory.fileValue(new File("out"))
-        def invalidExecutable = "invalidExecutable"
+        def invalidExecutable = temporaryFolder.file("invalidExecutable")
 
         when:
         task.executable = invalidExecutable
@@ -38,7 +38,7 @@ class TestTest extends AbstractProjectBuilderSpec {
         def e = thrown(AbstractProperty.PropertyQueryException)
         def cause = TestUtil.getRootCause(e) as InvalidUserDataException
         cause.message.contains("The configured executable does not exist")
-        cause.message.contains(invalidExecutable)
+        cause.message.contains(invalidExecutable.absolutePath)
     }
 
     def "fails if custom executable is a directory"() {

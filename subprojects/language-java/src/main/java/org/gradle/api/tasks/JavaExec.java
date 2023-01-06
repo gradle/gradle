@@ -31,6 +31,7 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -50,8 +51,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Executes a Java application in a child process.
@@ -155,10 +154,9 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     private void validateExecutableMatchesToolchain() {
         File toolchainExecutable = getJavaLauncher().get().getExecutablePath().getAsFile();
         String customExecutable = getExecutable();
-        checkState(
-            customExecutable == null || new File(customExecutable).equals(toolchainExecutable),
-            "Toolchain from `executable` property does not match toolchain from `javaLauncher` property"
-        );
+        JavaExecutableUtils.validateExecutable(
+                customExecutable, "Toolchain from `executable` property",
+                toolchainExecutable, "toolchain from `javaLauncher` property");
     }
 
     /**
