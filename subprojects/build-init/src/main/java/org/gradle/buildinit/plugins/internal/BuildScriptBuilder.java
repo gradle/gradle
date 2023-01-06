@@ -37,6 +37,7 @@ import org.gradle.util.internal.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileWriter;
@@ -52,6 +53,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.singletonList;
 
 /**
  * Assembles the parts of a build script.
@@ -499,7 +502,9 @@ public class BuildScriptBuilder {
     }
 
     private interface ExpressionValue extends Expression {
-        boolean isBooleanType();
+        default boolean isBooleanType() {
+            return false;
+        }
 
         String with(Syntax syntax);
     }
@@ -514,11 +519,6 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public boolean isBooleanType() {
-            return false;
-        }
-
-        @Override
         public String with(Syntax syntax) {
             return left.with(syntax) + "." + right.with(syntax);
         }
@@ -529,11 +529,6 @@ public class BuildScriptBuilder {
 
         StringValue(CharSequence value) {
             this.value = value;
-        }
-
-        @Override
-        public boolean isBooleanType() {
-            return false;
         }
 
         @Override
@@ -568,11 +563,6 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public boolean isBooleanType() {
-            return false;
-        }
-
-        @Override
         public String with(Syntax syntax) {
             return literal.getClass().getSimpleName() + "." + literal.name();
         }
@@ -583,11 +573,6 @@ public class BuildScriptBuilder {
 
         public MapLiteralValue(Map<String, ExpressionValue> literal) {
             this.literal = literal;
-        }
-
-        @Override
-        public boolean isBooleanType() {
-            return false;
         }
 
         @Override
@@ -608,11 +593,6 @@ public class BuildScriptBuilder {
 
         NoArgClosureExpression(MethodInvocation... calls) {
             this.calls.addAll(Arrays.asList(calls));
-        }
-
-        @Override
-        public boolean isBooleanType() {
-            return false;
         }
 
         @Override
@@ -639,16 +619,11 @@ public class BuildScriptBuilder {
         MethodInvocationExpression(@Nullable ExpressionValue target, String methodName, NoArgClosureExpression closureArg) {
             this.target = target;
             this.methodName = methodName;
-            this.arguments = Collections.singletonList(closureArg);
+            this.arguments = singletonList(closureArg);
         }
 
         MethodInvocationExpression(String methodName) {
             this(null, methodName, Collections.emptyList());
-        }
-
-        @Override
-        public boolean isBooleanType() {
-            return false;
         }
 
         @Override
@@ -695,11 +670,6 @@ public class BuildScriptBuilder {
         public ContainerElementExpression(String container, String element) {
             this.container = container;
             this.element = element;
-        }
-
-        @Override
-        public boolean isBooleanType() {
-            return false;
         }
 
         @Override
@@ -966,11 +936,6 @@ public class BuildScriptBuilder {
             this.elementName = elementName;
             this.elementType = elementType;
             this.varName = varName;
-        }
-
-        @Override
-        public boolean isBooleanType() {
-            return false;
         }
 
         @Override
@@ -1421,7 +1386,7 @@ public class BuildScriptBuilder {
         }
 
         private void configureShouldRunAfterTest() {
-            final MethodInvocation shouldRunAfterCall = new MethodInvocation(null, new MethodInvocationExpression(null, "shouldRunAfter", Collections.singletonList(new LiteralValue("test"))));
+            final MethodInvocation shouldRunAfterCall = new MethodInvocation(null, new MethodInvocationExpression(null, "shouldRunAfter", singletonList(new LiteralValue("test"))));
             final NoArgClosureExpression configBlock = new NoArgClosureExpression(shouldRunAfterCall);
             final MethodInvocation functionalTestConfiguration = new MethodInvocation("This test suite should run after the built-in test suite has run its tests", new MethodInvocationExpression(expressionValue(builder.propertyExpression("testTask")), "configure", configBlock));
             add(functionalTestConfiguration);
@@ -1574,7 +1539,7 @@ public class BuildScriptBuilder {
                 final Expression suiteDependedUpon = builder.propertyExpression(testSuites, suite.getName());
                 builder.taskMethodInvocation("Include " + suite.getName() + " as part of the check lifecycle", "check", Task.class.getSimpleName(), "dependsOn", suiteDependedUpon);
             } else {
-                final ExpressionValue namedMethod = new MethodInvocationExpression(testSuites, "named", Collections.singletonList(new StringValue(suite.getName())));
+                final ExpressionValue namedMethod = new MethodInvocationExpression(testSuites, "named", singletonList(new StringValue(suite.getName())));
                 builder.taskMethodInvocation("Include " + suite.getName() + " as part of the check lifecycle", "check", Task.class.getSimpleName(), "dependsOn", namedMethod);
             }
         }
@@ -1631,11 +1596,6 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public boolean isBooleanType() {
-            return false;
-        }
-
-        @Override
         public String with(Syntax syntax) {
             return syntax.referenceTask(taskName);
         }
@@ -1667,11 +1627,6 @@ public class BuildScriptBuilder {
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
             printer.printBlock(printer.syntax.taskRegistration(taskName, taskType), body);
-        }
-
-        @Override
-        public boolean isBooleanType() {
-            return false;
         }
 
         @Override
@@ -1709,11 +1664,6 @@ public class BuildScriptBuilder {
         }
 
         @Override
-        public boolean isBooleanType() {
-            return false;
-        }
-
-        @Override
         public String with(Syntax syntax) {
             return syntax.referenceSuite(suiteName);
         }
@@ -1745,11 +1695,6 @@ public class BuildScriptBuilder {
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
             printer.printBlock(printer.syntax.suiteRegistration(suiteName, suiteType), body);
-        }
-
-        @Override
-        public boolean isBooleanType() {
-            return false;
         }
 
         @Override
@@ -2093,25 +2038,26 @@ public class BuildScriptBuilder {
 
         @Override
         public Statement createContainerElement(String comment, String container, String elementName, @Nullable String elementType, String varName, List<Statement> body) {
-            String literal;
-            if (varName == null) {
-                if (elementType == null) {
-                    literal = "val " + elementName + " by " + container + ".creating";
-                } else {
-                    literal = container + ".create<" + elementType + ">(" + string(elementName) + ")";
-                }
-            } else {
-                if (elementType == null) {
-                    literal = "val " + varName + " = " + container + ".create(" + string(elementName) + ")";
-                } else {
-                    literal = "val " + varName + " = " + container + ".create<" + elementType + ">(" + string(elementName) + ")";
-                }
-            }
+            String literal = getLiteral(container, elementName, elementType, varName);
             BlockStatement blockStatement = new ScriptBlock(comment, literal);
             for (Statement statement : body) {
                 blockStatement.add(statement);
             }
             return blockStatement;
+        }
+
+        @Nonnull
+        private String getLiteral(String container, String elementName, @Nullable String elementType, String varName) {
+            if (varName == null) {
+                if (elementType == null) {
+                    return "val " + elementName + " by " + container + ".creating";
+                }
+                return container + ".create<" + elementType + ">(" + string(elementName) + ")";
+            }
+            if (elementType == null) {
+                return "val " + varName + " = " + container + ".create(" + string(elementName) + ")";
+            }
+            return "val " + varName + " = " + container + ".create<" + elementType + ">(" + string(elementName) + ")";
         }
 
         @Override
@@ -2312,7 +2258,7 @@ public class BuildScriptBuilder {
             }
 
             protected void handleSecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
-                statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(repoLocation.toString()))), true);
+                statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", singletonList(new StringValue(repoLocation.toString()))), true);
             }
 
             protected abstract void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements);
@@ -2345,7 +2291,7 @@ public class BuildScriptBuilder {
             protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
                 LOGGER.warn("Gradle found an insecure protocol in a repository definition. You will have to opt into allowing insecure protocols in the generated build file. See {}.", documentationRegistry.getDocumentationFor("build_init_plugin", "allow_insecure"));
                 // use the insecure URL as-is
-                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
+                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
                 // Leave a commented out block for opting into using the insecure repository
                 statements.comment(buildAllowInsecureProtocolComment(dsl));
             }
@@ -2369,7 +2315,7 @@ public class BuildScriptBuilder {
             protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
                 // convert the insecure url for this repository from http to https
                 final URI secureUri = GUtil.toSecureUrl(repoLocation);
-                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(secureUri.toString()))), true);
+                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", singletonList(new BuildScriptBuilder.StringValue(secureUri.toString()))), true);
             }
         }
 
@@ -2377,7 +2323,7 @@ public class BuildScriptBuilder {
             @Override
             protected void handleInsecureURL(URI repoLocation, BuildScriptBuilder.ScriptBlockImpl statements) {
                 // use the insecure URL as-is
-                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", Collections.singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
+                statements.propertyAssignment(null, "url", new BuildScriptBuilder.MethodInvocationExpression(null, "uri", singletonList(new BuildScriptBuilder.StringValue(repoLocation.toString()))), true);
                 // Opt into using an insecure protocol with this repository
                 statements.propertyAssignment(null, "allowInsecureProtocol", new BuildScriptBuilder.LiteralValue(true), true);
             }

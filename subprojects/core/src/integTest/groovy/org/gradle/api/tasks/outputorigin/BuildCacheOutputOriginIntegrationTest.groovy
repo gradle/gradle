@@ -49,7 +49,7 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
         buildScript """
             apply plugin: "base"
             def write = tasks.create("write", WriteProperties) {
-                outputFile = "build/out.properties"
+                destinationFile = file("build/out.properties")
                 properties = [v: 1]
             }
         """

@@ -22,13 +22,12 @@ val kotlinVersion = providers.gradleProperty("buildKotlinVersion")
 dependencies {
     constraints {
         api("org.gradle.guides:gradle-guides-plugin:0.21")
-        api("com.gradle:gradle-enterprise-gradle-plugin:3.12.1") // Sync with `settings.gradle.kts`
+        api("com.gradle:gradle-enterprise-gradle-plugin:3.12.2") // Sync with `settings.gradle.kts`
         api("com.gradle.publish:plugin-publish-plugin:1.1.0")
         api("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:1.0.1")
         api("me.champeau.gradle:japicmp-gradle-plugin:0.4.1")
         api("me.champeau.jmh:jmh-gradle-plugin:0.6.8")
         api("org.asciidoctor:asciidoctor-gradle-jvm:3.3.2")
-        api("org.gradle:test-retry-gradle-plugin:1.5.0")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
         api("org.jlleitschuh.gradle:ktlint-gradle:10.3.0")

@@ -34,8 +34,8 @@ kotlin.sourceSets.all {
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    kotlinOptions.apply {
-        freeCompilerArgs += listOf(
+    compilerOptions {
+        freeCompilerArgs.addAll(
             "-opt-in=kotlin.contracts.ExperimentalContracts",
         )
     }

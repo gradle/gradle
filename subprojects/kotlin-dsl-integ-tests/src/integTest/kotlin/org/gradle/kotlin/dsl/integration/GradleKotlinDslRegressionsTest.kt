@@ -135,7 +135,7 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
                 implementation(gradleKotlinDsl())
             }
             tasks.withType<KotlinCompile>().configureEach {
-                kotlinOptions.freeCompilerArgs += "-Xjsr305=strict"
+                compilerOptions.freeCompilerArgs.add("-Xjsr305=strict")
             }
         """)
 

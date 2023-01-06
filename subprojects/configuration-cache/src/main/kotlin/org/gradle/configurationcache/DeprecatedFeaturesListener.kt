@@ -30,8 +30,9 @@ internal
 class DeprecatedFeaturesListener(
     private val featureFlags: FeatureFlags
 ) : BuildScopeListenerRegistrationListener, TaskExecutionAccessListener {
+
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
-        if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
+        if (isStableConfigurationCacheEnabled()) {
             DeprecationLogger.deprecateAction("Listener registration using $invocationDescription()")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(7, "task_execution_events")
@@ -40,7 +41,7 @@ class DeprecatedFeaturesListener(
     }
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal) {
-        if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
+        if (isStableConfigurationCacheEnabled()) {
             DeprecationLogger.deprecateAction("Invocation of $invocationDescription at execution time")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(7, "task_project")
@@ -49,10 +50,14 @@ class DeprecatedFeaturesListener(
     }
 
     override fun onTaskDependenciesAccess(invocationDescription: String, task: TaskInternal) {
-        if (featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)) {
+        if (isStableConfigurationCacheEnabled()) {
             throwUnsupported("Invocation of $invocationDescription at execution time")
         }
     }
+
+    private
+    fun isStableConfigurationCacheEnabled(): Boolean =
+        featureFlags.isEnabled(FeaturePreviews.Feature.STABLE_CONFIGURATION_CACHE)
 
     private
     fun throwUnsupported(reason: String): Nothing =
