@@ -38,7 +38,7 @@ class DefaultProblemLocationAnalyzerTest extends Specification {
         analyzer.childScopeCreated(Stub(ClassLoaderScopeId), Stub(ClassLoaderScopeId), new ClassLoaderScopeOrigin.Script("filename", longDisplayName, shortDisplayName))
 
         when:
-        def location = analyzer.locationForUsage([elementWithNoSourceFile, elementWithNoLineNumber, otherElement, element, callerElement])
+        def location = analyzer.locationForUsage([elementWithNoSourceFile, elementWithNoLineNumber, otherElement, element, callerElement], false)
 
         then:
         location.sourceLongDisplayName == longDisplayName

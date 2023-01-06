@@ -94,7 +94,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         def result = []
 
         given:
-        _ * locationAnalyzer.locationForUsage(stackTrace) >> location("<source>", 7)
+        _ * locationAnalyzer.locationForUsage(stackTrace, true) >> location("<source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -121,8 +121,8 @@ class DefaultExceptionAnalyserTest extends Specification {
         def result = []
 
         given:
-        _ * locationAnalyzer.locationForUsage(stackTrace1) >> location("<source>", 12)
-        _ * locationAnalyzer.locationForUsage(stackTrace2) >> location("<source>", 7)
+        _ * locationAnalyzer.locationForUsage(stackTrace1, true) >> location("<source>", 12)
+        _ * locationAnalyzer.locationForUsage(stackTrace2, true) >> location("<source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -140,7 +140,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         def result = []
 
         given:
-        _ * locationAnalyzer.locationForUsage(_) >> null
+        _ * locationAnalyzer.locationForUsage(_, _) >> null
 
         when:
         analyser().collectFailures(failure, result)
@@ -254,7 +254,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         def result = []
 
         given:
-        _ * locationAnalyzer.locationForUsage(stackTrace) >> location("<source>", 7)
+        _ * locationAnalyzer.locationForUsage(stackTrace, true) >> location("<source>", 7)
 
         when:
         analyser.collectFailures(failure, result)

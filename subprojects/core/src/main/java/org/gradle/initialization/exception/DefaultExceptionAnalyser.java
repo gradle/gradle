@@ -83,7 +83,7 @@ public class DefaultExceptionAnalyser implements ExceptionCollector {
                 currentException != null;
                 currentException = currentException.getCause()
             ) {
-                Location location = locationAnalyzer.locationForUsage(Arrays.asList(currentException.getStackTrace()));
+                Location location = locationAnalyzer.locationForUsage(Arrays.asList(currentException.getStackTrace()), true);
                 if (location != null) {
                     source = location.getSourceLongDisplayName().getCapitalizedDisplayName();
                     lineNumber = location.getLineNumber();
