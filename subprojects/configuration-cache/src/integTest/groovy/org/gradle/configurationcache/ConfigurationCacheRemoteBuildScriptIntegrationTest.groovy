@@ -16,6 +16,8 @@
 
 package org.gradle.configurationcache
 
+
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 import spock.lang.Issue
@@ -25,10 +27,10 @@ class ConfigurationCacheRemoteBuildScriptIntegrationTest extends AbstractConfigu
     @Rule
     HttpServer server = new HttpServer()
 
-    def scriptUrl
-    def scriptFile
+    String scriptUrl
+    TestFile scriptFile
+    String scriptName = "remote-script.gradle"
     def configurationCache
-    def scriptName = "remote-script.gradle"
 
     def setup() {
         server.start()
@@ -37,7 +39,7 @@ class ConfigurationCacheRemoteBuildScriptIntegrationTest extends AbstractConfigu
         scriptFile = file("remote-script.gradle") << """
             println 'loaded remote script'
         """
-        server.expectGet("/$scriptName", scriptFile)
+        server.expectGet "/$scriptName", scriptFile
 
         buildFile << """
             apply from: '$scriptUrl'
@@ -55,20 +57,18 @@ class ConfigurationCacheRemoteBuildScriptIntegrationTest extends AbstractConfigu
         then:
         configurationCache.assertStateStored()
 
-        and:
-        server.expectHead("/$scriptName", scriptFile)
-        server.expectGet("/$scriptName", scriptFile)
-
         when:
         scriptFile << """
             print 'update remote script'
         """
+        server.expectHead "/$scriptName", scriptFile
+        server.expectGet "/$scriptName", scriptFile
 
         and:
         configurationCacheRun 'ok'
 
         then:
-        output.contains("Calculating task graph as configuration cache cannot be reused because remote script $scriptUrl has changed.")
+        output.contains "Calculating task graph as configuration cache cannot be reused because remote script $scriptUrl has changed."
         configurationCache.assertStateStored()
     }
 
@@ -80,7 +80,9 @@ class ConfigurationCacheRemoteBuildScriptIntegrationTest extends AbstractConfigu
         configurationCache.assertStateStored()
 
         and:
-        server.expectHead("/$scriptName", scriptFile)
+        server.expectHead "/$scriptName", scriptFile
+
+        when:
         configurationCacheRun 'ok'
 
         then:
@@ -94,19 +96,22 @@ class ConfigurationCacheRemoteBuildScriptIntegrationTest extends AbstractConfigu
         then:
         configurationCache.assertStateStored()
 
-        and:
-        executer.withArgument("--offline")
-        configurationCacheRun 'ok'
-
         when:
         scriptFile << """
             print 'update remote script'
         """
 
+        and:
+        executer.withArgument("--offline")
+        configurationCacheRun 'ok'
+
         then:
         configurationCache.assertStateStored()
 
         and:
+        outputDoesNotContain 'update remote script'
+
+        when:
         executer.withArgument("--offline")
         configurationCacheRun 'ok'
 
