@@ -183,6 +183,8 @@ class DefaultConfigurationCache internal constructor(
             }
             problems.projectStateStats(reusedProjects.size, updatedProjects.size)
             cacheEntryRequiresCommit = false
+            // Can reuse the cache entry for the rest of this build invocation
+            cacheAction = ConfigurationCacheAction.LOAD
         }
     }
 
