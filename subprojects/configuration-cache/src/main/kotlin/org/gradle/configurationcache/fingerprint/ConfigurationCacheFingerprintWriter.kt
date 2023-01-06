@@ -51,6 +51,7 @@ import org.gradle.configurationcache.InputTrackingState
 import org.gradle.configurationcache.UndeclaredBuildInputListener
 import org.gradle.configurationcache.extensions.fileSystemEntryType
 import org.gradle.configurationcache.extensions.uncheckedCast
+import org.gradle.configurationcache.extensions.uri
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFile
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.InputFileSystemEntry
 import org.gradle.configurationcache.fingerprint.ConfigurationCacheFingerprint.ValueSource
@@ -199,12 +200,17 @@ class ConfigurationCacheFingerprintWriter(
             return
         }
 
-        scriptSource.resource.location.uri?.let { uri ->
-            if (uri.scheme.startsWith("http")) {
-                sink().captureRemoteScript(uri)
-            }
+        scriptSource.uri?.takeIf { it.isHttp }?.let { uri ->
+            sink().captureRemoteScript(uri)
         }
     }
+
+    /**
+     * Returns `true` if [scheme][URI.scheme] starts with `http`.
+     */
+    private
+    val URI.isHttp: Boolean
+        get() = scheme.startsWith("http")
 
     override fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: Expiry, versions: Set<ModuleVersionIdentifier>) {
         // Only consider repositories serving at least one version of the requested module.
