@@ -24,12 +24,10 @@ import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.api.provider.Provider
 import org.gradle.api.resources.internal.LocalResourceAdapter
 import org.gradle.cache.internal.TestCaches
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Specification
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -39,10 +37,7 @@ import static org.gradle.api.internal.file.TestFiles.fileHasher
 import static org.gradle.api.internal.file.TestFiles.fileSystem
 import static org.gradle.util.internal.WrapUtil.toList
 
-class TarFileTreeSoakTest extends Specification {
-
-    @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+class TarFileTreeSoakTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/23391")
     def "can decompress TAR archive with truncated header"() {
