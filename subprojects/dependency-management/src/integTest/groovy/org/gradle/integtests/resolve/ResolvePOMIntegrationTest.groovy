@@ -21,11 +21,10 @@ import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/22875")
 class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
-    def "resolving a @pom artifact from an included build replacing an external library fails the build"() {
-        given:
-        def mainProjectDir = file("main-project")
-        def includedLoggingProjectDir = file("included-logging")
+    def mainProjectDir
 
+    def setup() {
+        mainProjectDir = file("main-project")
         mainProjectDir.file("settings.gradle").text = """
             rootProject.name = "main-project"
             include("app")
@@ -40,7 +39,19 @@ class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 implementation("org.gradle.repro:lib@pom")
             }
+            
+            abstract class Resolve extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getArtifactFiles()
+                
+                @TaskAction
+                void printThem() {
+                    assert artifactFiles.size() == 0
+                }
+            }
         """
+
+        def includedLoggingProjectDir = file("included-logging")
 
         includedLoggingProjectDir.file("settings.gradle").text = """
             rootProject.name = "included-logging"
@@ -59,6 +70,15 @@ class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
         """
 
         executer.inDirectory(mainProjectDir)
+    }
+
+    def "resolving a @pom artifact from an included build replacing an external library fails the build"() {
+        given:
+        mainProjectDir.file("app/build.gradle") << """
+            tasks.register("resolve", Resolve) {
+                artifactFiles.from(configurations.getByName("compileClasspath"))
+            }
+        """
 
         expect:
         fails "build"
@@ -66,61 +86,31 @@ class ResolvePOMIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not find lib.pom (project :included-logging:lib)")
     }
 
-    def "getting the file for a @pom artifact from an included build replacing an external library doesn't fail the build"() {
+    def "resolving a @pom artifact from an included build replacing an external library does not fail the build with a lenient configuration"() {
         given:
-        def mainProjectDir = file("main-project")
-        def includedLoggingProjectDir = file("included-logging")
-
-        mainProjectDir.file("settings.gradle").text = """
-            rootProject.name = "main-project"
-            include("app")
-            includeBuild("../included-logging")
-        """
-
-        mainProjectDir.file("app/build.gradle").text = """
-            plugins {
-                id 'application'
-            }
-
-            dependencies {
-                implementation("org.gradle.repro:lib@pom")
-            }
-
-            tasks.register("resolve") {
-                FileCollection artifacts = project.objects.fileCollection()
-                artifacts.from {
+        mainProjectDir.file("app/build.gradle") << """
+            tasks.register("resolve", Resolve) {
+                artifactFiles.from {
                     configurations.getByName("compileClasspath").getResolvedConfiguration()
                         .getLenientConfiguration()
-                        .getAllModuleDependencies()
-                        .collect {
-                            it.getAllModuleArtifacts().collect { mas ->
-                                mas.collect { a -> a.getFile() }
-                            }.flatten()
-                        }
-                }
-                doLast {
-                    artifacts.each { a -> println(a.getFile()) }
+                        .getFiles()
                 }
             }
         """
 
-        includedLoggingProjectDir.file("settings.gradle").text = """
-            rootProject.name = "included-logging"
-            include("lib")
-        """
+        expect:
+        succeeds "resolve"
+    }
 
-        includedLoggingProjectDir.file("lib/build.gradle").text = """
-            plugins {
-                id 'java-library'
+    def "resolving a @pom artifact from an included build replacing an external library does not fail the build with a lenient artifact view"() {
+        given:
+        mainProjectDir.file("app/build.gradle") << """
+            tasks.register("resolve", Resolve) {
+                artifactFiles.from(configurations.getByName("compileClasspath").incoming.artifactView {
+                    lenient = true
+                }.getFiles())
             }
         """
-
-        includedLoggingProjectDir.file("gradle.properties").text = """
-            group=org.gradle.repro
-            version=0.1.0-SNAPSHOT
-        """
-
-        executer.inDirectory(mainProjectDir)
 
         expect:
         succeeds "resolve"
