@@ -256,5 +256,4 @@ class CompositeBuildTaskExcludeIntegrationTest extends AbstractCompositeBuildTas
             result.assertTaskNotExecuted(":app:processResources")
         }
     }
-
 }
