@@ -137,29 +137,41 @@ Required by:
 
         buildA.buildFile << """
             def runtimeClasspath = configurations.runtimeClasspath
+            def rootProvider = runtimeClasspath.incoming.resolutionResult.rootComponent
             classes.doLast {
-                def components = runtimeClasspath.incoming.resolutionResult.allComponents.id
-                assert components.size() == 3
-                assert components[0].build.name == ':'
-                assert components[0].build.currentBuild
-                assert components[0].projectPath == ':'
-                assert components[0].projectName == 'buildA'
-                assert components[1].build.name == '${buildName}'
-                assert !components[1].build.currentBuild
-                assert components[1].projectPath == ':'
-                assert components[1].projectName == '${buildName}'
-                assert components[2].build.name == '${buildName}'
-                assert !components[2].build.currentBuild
-                assert components[2].projectPath == ':b1'
-                assert components[2].projectName == 'b1'
+                def rootComponent = rootProvider.get()
+                assert rootComponent.id.build.name == ':'
+                assert rootComponent.id.build.currentBuild
+                assert rootComponent.id.projectPath == ':'
+                assert rootComponent.id.projectName == 'buildA'
 
-                def selectors = configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.requested
-                assert selectors.size() == 2
+                def components = rootComponent.dependencies.selected
+                assert components.size() == 1
+                def buildRootProject = components[0]
+                def componentId = components[0].id
+                assert componentId.build.name == '${buildName}'
+                assert !componentId.build.currentBuild
+                assert componentId.projectPath == ':'
+                assert componentId.projectName == '${buildName}'
+
+                components = buildRootProject.dependencies.selected
+                assert components.size() == 1
+                componentId = components[0].id
+                assert componentId.build.name == '${buildName}'
+                assert !componentId.build.currentBuild
+                assert componentId.projectPath == ':b1'
+                assert componentId.projectName == 'b1'
+
+                def selectors = rootComponent.dependencies.requested
+                assert selectors.size() == 1
                 assert selectors[0].displayName == 'org.test:${dependencyName}:1.0'
-                assert selectors[1].displayName == 'project :${buildName}:b1'
+
+                selectors = buildRootProject.dependencies.requested
+                assert selectors.size() == 1
+                assert selectors[0].displayName == 'project :${buildName}:b1'
                 // TODO - should be build name
-                assert selectors[1].buildName == 'buildB'
-                assert selectors[1].projectPath == ':b1'
+                assert selectors[0].buildName == 'buildB'
+                assert selectors[0].projectPath == ':b1'
             }
         """
 
