@@ -45,7 +45,7 @@ Some plugins will break with this new version of Gradle, for example because the
 === Deprecations
 
 [[custom_configuration_roles]]
-Custom roles have been deprecated. Use pre-defined roles from `@link:{javadocPath}/javadoc/org/gradle/api/internal/artifacts/configurations/ConfigurationRoles.htm[ConfigurationRoles]` instead.
+Custom roles have been deprecated. Use a pre-defined role instead.
 
 [[upgrading_version_8:changes_8.0]]
 
