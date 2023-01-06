@@ -31,6 +31,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.util.NumberUtil.ordinal
 import org.gradle.util.Path
 import java.io.File
+import java.net.URI
 import java.util.function.Consumer
 
 
@@ -54,6 +55,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun hashCodeOfDirectoryContent(file: File): HashCode?
         fun displayNameOf(fileOrDirectory: File): String
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
+        fun isRemoteScriptUpToDate(uri: URI): Boolean
     }
 
     suspend fun ReadContext.checkBuildScopedFingerprint(): CheckedFingerprint {
@@ -193,6 +195,11 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             is ConfigurationCacheFingerprint.ChangingDependencyResolutionValue -> input.run {
                 if (host.buildStartTime >= expireAt) {
                     return reason
+                }
+            }
+            is ConfigurationCacheFingerprint.RemoteScript -> input.run {
+                if (!host.isRemoteScriptUpToDate(uri)) {
+                    return "remote script $uri has changed"
                 }
             }
             is ConfigurationCacheFingerprint.GradleEnvironment -> input.run {
