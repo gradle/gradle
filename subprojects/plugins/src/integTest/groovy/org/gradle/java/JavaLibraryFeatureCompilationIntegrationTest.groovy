@@ -22,18 +22,6 @@ import spock.lang.Issue
 
 class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSpec {
 
-    def setup() {
-        settingsFile << """
-            rootProject.name = "test"
-        """
-        buildFile << """
-            allprojects {
-                group = 'org.gradle.test'
-                version = '1.0'
-            }
-        """
-    }
-
     private toggleCompileClasspathPackaging(boolean activate) {
         if (activate) {
             propertiesFile << """
@@ -106,6 +94,8 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         given:
         file("b/build.gradle") << """
             apply plugin: 'java-library'
+
+            group = 'org.gradle.test'
 
             java {
                 registerFeature("myFeature") {
@@ -231,7 +221,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
             task resolveRuntime {
                 dependsOn(configurations.runtimeClasspath)
                 doLast {
-                    assert configurations.runtimeClasspath.files.name as Set == ['b-1.0.jar'] as Set
+                    assert configurations.runtimeClasspath.files.name as Set == ['b.jar'] as Set
                 }
             }
         """
@@ -350,10 +340,13 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         toggleCompileClasspathPackaging(compileClasspathPackaging)
         settingsFile << """
             include 'b', 'c', 'd'
+            rootProject.name = 'test'
         """
         given:
         file("b/build.gradle") << """
             apply plugin: 'java-library'
+
+            group = 'org.gradle.test'
 
             sourceSets {
                 myFeature {
@@ -396,18 +389,19 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
                     assert configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.collect {
                         it.toString()
                     } as Set == ['project :b', 'project :c', 'project :d'] as Set // all dependencies
-                    assert configurations.runtimeClasspath.files.name as Set == ['b-1.0-my-feature.jar', 'c-1.0.jar', 'd-1.0.jar'] as Set
+                    assert configurations.runtimeClasspath.files.name as Set == ['b-my-feature.jar', 'c.jar', 'd.jar'] as Set
                 }
             }
         """
         ['c', 'd'].each {
             file("$it/build.gradle") << """
-            apply plugin: 'java-library'
-        """
+                apply plugin: 'java-library'
+            """
+
             file("$it/src/main/java/com/baz/Baz${it}.java") << """
-            package com.baz;
-            public class Baz${it} {}
-        """
+                package com.baz;
+                public class Baz${it} {}
+            """
         }
 
         file("b/src/myFeature/java/com/foo/Foo.java") << """
@@ -530,6 +524,43 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
 
         then:
         executedAndNotSkipped ':compileMain211Java', ':compileMain212Java'
+    }
+
+    def "elements configurations have the correct roles"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'java-library'
+            }
+
+            sourceSets {
+                sources
+            }
+
+            java {
+                registerFeature("example") {
+                    usingSourceSet(sourceSets.sources)
+                }
+            }
+
+            task verifyConfigurations {
+                def apiElements = configurations.sourcesApiElements
+                def runtimeElements = configurations.sourcesRuntimeElements
+
+                [apiElements, runtimeElements].each {
+                    assert it.canBeConsumed == true
+                    assert it.canBeResolved == false
+                    assert it.canBeDeclaredAgainst == true
+
+                    assert it.declarationAlternatives == null
+                    assert it.resolutionAlternatives == null
+                    assert it.consumptionDeprecation == null
+                }
+            }
+        """
+
+        expect:
+        succeeds("verifyConfigurations")
     }
 
     private void packagingTasks(boolean expectExecuted, String subproject, String feature = '') {
