@@ -27,7 +27,6 @@ import org.gradle.api.internal.SettingsInternal.BUILD_SRC
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.internal.BuildServiceProvider
-import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheServiceRegistration
@@ -449,10 +448,9 @@ class ConfigurationCacheState(
     private
     suspend fun DefaultReadContext.readRequiredBuildServicesOf(gradle: GradleInternal) {
         val eventListenerRegistry by lazy { gradle.serviceOf<BuildEventListenerRegistryInternal>() }
-        val buildServiceRegistry by lazy { gradle.serviceOf<BuildServiceRegistryInternal>() }
         withGradleIsolate(gradle, userTypesCodec) {
             readCollection {
-                readBuildEventListenerSubscription(eventListenerRegistry, buildServiceRegistry)
+                readBuildEventListenerSubscription(eventListenerRegistry)
             }
         }
     }
@@ -463,7 +461,7 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun DefaultReadContext.readBuildEventListenerSubscription(eventListenerRegistry: BuildEventListenerRegistryInternal, buildServiceRegistry: BuildServiceRegistryInternal) {
+    suspend fun DefaultReadContext.readBuildEventListenerSubscription(eventListenerRegistry: BuildEventListenerRegistryInternal) {
         val listener = readNonNull<Provider<*>>()
         eventListenerRegistry.subscribe(listener)
     }

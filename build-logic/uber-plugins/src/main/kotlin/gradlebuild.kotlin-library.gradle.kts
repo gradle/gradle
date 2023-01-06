@@ -62,7 +62,7 @@ tasks {
 
 fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
     compilerOptions {
-        // allWarningsAsErrors.set(true) // TODO let kotlin compiler fail on warnings
+        allWarningsAsErrors.set(true)
         apiVersion.set(KotlinVersion.KOTLIN_1_8)
         languageVersion.set(KotlinVersion.KOTLIN_1_8)
         jvmTarget.set(JvmTarget.JVM_1_8)
