@@ -81,6 +81,8 @@ class DefaultConfigurationContainerTest extends Specification {
         resolver,
         listenerManager,
         metaDataProvider,
+        componentIdentifierFactory,
+        lockingProvider,
         domainObjectContext,
         TestFiles.fileCollectionFactory(),
         buildOperationExecutor,

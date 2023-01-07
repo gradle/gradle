@@ -58,9 +58,4 @@ public interface BuildableLocalConfigurationMetadata {
      * Adds a variant to this component, extending from the given configuration. Every configuration should include at least one variant.
      */
     void addVariant(String name, VariantResolveMetadata.Identifier identifier, DisplayName displayName, ImmutableAttributes attributes, ImmutableCapabilities capabilities, Collection<? extends PublishArtifact> artifacts);
-
-    /**
-     * Enables dependency locking for this configuration.
-     */
-    void enableLocking();
 }

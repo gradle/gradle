@@ -18,6 +18,9 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
+
+import java.util.List;
 
 /**
  * Represents something that can be resolved.
@@ -34,4 +37,12 @@ public interface ResolveContext {
 
     AttributeContainer getAttributes();
 
+    /**
+     * Returns the synthetic dependencies for this context. Synthetic dependencies are dependencies which
+     * are an internal implementation detail of Gradle, used for example in dependency locking or
+     * consistent resolution. They are not "real" dependencies in the sense that they are not added by
+     * users, and they are not always used during resolution based on which phase of execution we are
+     * (task dependencies, execution, ...)
+     */
+    List<? extends DependencyMetadata> getSyntheticDependencies();
 }
