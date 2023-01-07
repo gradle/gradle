@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGraphNode;
+import org.gradle.internal.component.local.model.LocalConfigurationGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
-import org.gradle.internal.component.local.model.RootConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 
@@ -31,11 +31,11 @@ class RootNode extends NodeState implements RootGraphNode {
     private final ResolveOptimizations resolveOptimizations;
     private final List<? extends DependencyMetadata> generatedRootDependencies;
 
-    RootNode(Long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState, VariantGraphResolveMetadata configuration) {
+    RootNode(Long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState, List<? extends DependencyMetadata> generatedRootDependencies, VariantGraphResolveMetadata configuration) {
         super(resultId, id, moduleRevision, resolveState, configuration, false);
         moduleRevision.setRoot();
         this.resolveOptimizations = resolveState.getResolveOptimizations();
-        this.generatedRootDependencies = resolveState.getGeneratedRootDependencies();
+        this.generatedRootDependencies = generatedRootDependencies;
     }
 
     @Override
@@ -58,8 +58,8 @@ class RootNode extends NodeState implements RootGraphNode {
     }
 
     @Override
-    public RootConfigurationMetadata getMetadata() {
-        return (RootConfigurationMetadata) super.getMetadata();
+    public LocalConfigurationGraphResolveMetadata getMetadata() {
+        return (LocalConfigurationGraphResolveMetadata) super.getMetadata();
     }
 
     @Override

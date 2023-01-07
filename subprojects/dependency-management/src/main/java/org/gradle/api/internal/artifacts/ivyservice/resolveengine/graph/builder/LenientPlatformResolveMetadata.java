@@ -37,7 +37,6 @@ import org.gradle.internal.component.external.model.RealisedConfigurationMetadat
 import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
@@ -81,11 +80,6 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     @Override
     public AttributesSchemaInternal getAttributesSchema() {
         return EmptySchema.INSTANCE;
-    }
-
-    @Override
-    public List<? extends DependencyMetadata> getSyntheticDependencies(String configuration) {
-        return Collections.emptyList();
     }
 
     @Override

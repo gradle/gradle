@@ -144,7 +144,7 @@ class ProjectMetadataController(
     suspend fun ReadContext.readConfigurationInto(metadata: DefaultLocalComponentMetadata) {
         val configurationName = readString()
         val configurationAttributes = readNonNull<ImmutableAttributes>()
-        val configuration = metadata.addConfiguration(configurationName, null, emptySet(), ImmutableSet.of(configurationName), true, true, configurationAttributes, true, null, true, ImmutableCapabilities.EMPTY, { emptyList() })
+        val configuration = metadata.addConfiguration(configurationName, null, emptySet(), ImmutableSet.of(configurationName), true, true, configurationAttributes, true, null, true, ImmutableCapabilities.EMPTY)
         readDependenciesInto(metadata, configuration)
         readVariantsInto(configuration)
     }

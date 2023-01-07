@@ -84,8 +84,7 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
             configuration.isCanBeConsumed(),
             configuration.getConsumptionDeprecation(),
             configuration.isCanBeResolved(),
-            capabilities,
-            configuration.getConsistentResolutionConstraints());
+            capabilities);
     }
 
     private static class NestedVariantIdentifier implements VariantResolveMetadata.Identifier {

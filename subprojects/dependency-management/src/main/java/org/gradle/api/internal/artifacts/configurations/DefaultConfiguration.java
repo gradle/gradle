@@ -46,8 +46,10 @@ import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.DependencyResult;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -64,14 +66,19 @@ import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedArtifactCollectingVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.ResolvedFileCollectionVisitor;
@@ -112,8 +119,12 @@ import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
@@ -171,6 +182,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private final ConfigurationResolver resolver;
     private final DependencyMetaDataProvider metaDataProvider;
+    private final ComponentIdentifierFactory componentIdentifierFactory;
+    private final DependencyLockingProvider dependencyLockingProvider;
     private final DefaultDependencySet dependencies;
     private final DefaultDependencyConstraintSet dependencyConstraints;
     private final DefaultDomainObjectSet<Dependency> ownDependencies;
@@ -270,6 +283,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
             ProjectDependencyObservedListener dependencyObservedBroadcast,
             DependencyMetaDataProvider metaDataProvider,
+            ComponentIdentifierFactory componentIdentifierFactory,
+            DependencyLockingProvider dependencyLockingProvider,
             Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
             FileCollectionFactory fileCollectionFactory,
             BuildOperationExecutor buildOperationExecutor,
@@ -300,6 +315,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.configurationsProvider = configurationsProvider;
         this.resolver = resolver;
         this.metaDataProvider = metaDataProvider;
+        this.componentIdentifierFactory = componentIdentifierFactory;
+        this.dependencyLockingProvider = dependencyLockingProvider;
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.dependencyResolutionListeners = dependencyResolutionListeners;
@@ -1376,6 +1393,39 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public LocalComponentMetadata toRootComponentMetaData() {
         return rootComponentMetadataBuilder.toRootComponentMetaData();
+    }
+
+    @Override
+    public List<? extends DependencyMetadata> getSyntheticDependencies() {
+        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(getModule());
+
+        ImmutableList.Builder<LocalOriginDependencyMetadata> syntheticDependencies = ImmutableList.builder();
+        if (getResolutionStrategy().isDependencyLockingEnabled()) {
+            DependencyLockingState dependencyLockingState = dependencyLockingProvider.loadLockState(name);
+            boolean strict = dependencyLockingState.mustValidateLockState();
+            for (ModuleComponentIdentifier lockedDependency : dependencyLockingState.getLockedDependencies()) {
+                String lockedVersion = lockedDependency.getVersion();
+                VersionConstraint versionConstraint = strict
+                    ? DefaultMutableVersionConstraint.withStrictVersion(lockedVersion)
+                    : DefaultMutableVersionConstraint.withVersion(lockedVersion);
+                ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(lockedDependency.getGroup(), lockedDependency.getModule()), versionConstraint);
+                syntheticDependencies.add(new LocalComponentDependencyMetadata(componentIdentifier, selector, name, getAttributes(),  ImmutableAttributes.EMPTY, null,
+                    Collections.emptyList(),  Collections.emptyList(), false, false, false, true, false, true, getLockReason(strict, lockedVersion)));
+            }
+        }
+        for (DependencyConstraint dc : getConsistentResolutionConstraints().get()) {
+            ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dc.getGroup(), dc.getName()), dc.getVersionConstraint());
+            syntheticDependencies.add(new LocalComponentDependencyMetadata(componentIdentifier, selector, name, getAttributes(),  ImmutableAttributes.EMPTY, null,
+                Collections.emptyList(),  Collections.emptyList(), false, false, false, true, false, true, dc.getReason()));
+        }
+        return syntheticDependencies.build();
+    }
+
+    public String getLockReason(boolean strict, String lockedVersion) {
+        if (strict) {
+            return "dependency was locked to version '" + lockedVersion + "'";
+        }
+        return "dependency was locked to version '" + lockedVersion + "' (update/lenient mode)";
     }
 
     @Override
