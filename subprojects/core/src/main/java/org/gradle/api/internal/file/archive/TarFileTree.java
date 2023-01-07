@@ -163,11 +163,12 @@ public class TarFileTree extends AbstractArchiveFileTree {
 
         if (signatureLength >= tarHeaderSize) {
             try (TarArchiveInputStream tais = new TarArchiveInputStream(new ByteArrayInputStream(tarHeader))) {
-                if (tais.getNextTarEntry() == null) {
+                TarArchiveEntry tarEntry = tais.getNextTarEntry();
+                if (tarEntry == null) {
                     // empty TAR
                     return;
                 }
-                if (tais.getNextTarEntry().isCheckSumOK()) {
+                if (tarEntry.isCheckSumOK()) {
                     return;
                 }
             } catch (Exception e) {
@@ -230,7 +231,7 @@ public class TarFileTree extends AbstractArchiveFileTree {
             }
 
             @Override
-            public void close() throws IOException {
+            public void close() {
             }
         }
     }
