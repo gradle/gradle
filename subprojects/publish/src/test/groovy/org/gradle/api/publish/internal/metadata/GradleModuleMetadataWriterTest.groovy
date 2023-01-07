@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.VersionConstraint
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.component.ComponentWithVariants
+import org.gradle.api.component.SoftwareComponentVariant
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact
@@ -36,7 +37,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModu
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
-import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
@@ -98,12 +98,12 @@ class GradleModuleMetadataWriterTest extends Specification {
         def writer = new StringWriter()
         def component = Stub(TestComponent)
         def publication = publication(component, id, null, withBuildId)
-        def v1 = Stub(UsageContext)
+        def v1 = Stub(SoftwareComponentVariant)
         v1.name >> "v1"
         v1.attributes >> attributes(usage: "compile")
         v1.dependencies >> []
 
-        component.usages >> [v1]
+        component.outgoing >> [v1]
 
         when:
         publication.attributes >> attributes(status: 'release', 'test': 'value')
@@ -167,16 +167,16 @@ class GradleModuleMetadataWriterTest extends Specification {
         a2.classifier >> "windows"
         publication.getPublishedFile(a2) >> new SimplePublishedFile("a2.name", "a2.url")
 
-        def v1 = Stub(UsageContext)
+        def v1 = Stub(SoftwareComponentVariant)
         v1.name >> "v1"
         v1.attributes >> attributes(usage: "compile")
         v1.artifacts >> [a1]
-        def v2 = Stub(UsageContext)
+        def v2 = Stub(SoftwareComponentVariant)
         v2.name >> "v2"
         v2.attributes >> attributes(usage: "runtime")
         v2.artifacts >> [a2]
 
-        component.usages >> [v1, v2]
+        component.outgoing >> [v1, v2]
 
         when:
         writeTo(writer, publication, [publication])
@@ -300,17 +300,17 @@ class GradleModuleMetadataWriterTest extends Specification {
         d8.attributes >> ImmutableAttributes.EMPTY
         d8.requestedCapabilities >> [new ImmutableCapability("org", "test", "1.0")]
 
-        def v1 = Stub(UsageContext)
+        def v1 = Stub(SoftwareComponentVariant)
         v1.name >> "v1"
         v1.attributes >> attributes(usage: "compile")
         v1.dependencies >> [d1, d8]
 
-        def v2 = Stub(UsageContext)
+        def v2 = Stub(SoftwareComponentVariant)
         v2.name >> "v2"
         v2.attributes >> attributes(usage: "runtime")
         v2.dependencies >> [d2, d3, d4, d5, d6, d7]
 
-        component.usages >> [v1, v2]
+        component.outgoing >> [v1, v2]
 
         when:
         writeTo(writer, publication, [publication])
@@ -480,16 +480,16 @@ class GradleModuleMetadataWriterTest extends Specification {
         dc4.versionConstraint >> strictly("v4")
         dc4.attributes >> attributes(quality: 'awesome', channel: 'canary')
 
-        def v1 = Stub(UsageContext)
+        def v1 = Stub(SoftwareComponentVariant)
         v1.name >> "v1"
         v1.attributes >> attributes(usage: "compile")
         v1.dependencyConstraints >> [dc1]
-        def v2 = Stub(UsageContext)
+        def v2 = Stub(SoftwareComponentVariant)
         v2.name >> "v2"
         v2.attributes >> attributes(usage: "runtime")
         v2.dependencyConstraints >> [dc2, dc3, dc4]
 
-        component.usages >> [v1, v2]
+        component.outgoing >> [v1, v2]
 
         when:
         writeTo(writer, publication, [publication])
@@ -578,14 +578,14 @@ class GradleModuleMetadataWriterTest extends Specification {
 
         def platform = TestUtil.objectFactory().named(Named, "windows")
 
-        def v1 = Stub(UsageContext)
+        def v1 = Stub(SoftwareComponentVariant)
         v1.name >> "v1"
         v1.attributes >> attributesTyped(
                 (Attribute.of("usage", String)): "compile",
                 (Attribute.of("debuggable", Boolean)): true,
                 (Attribute.of("platform", Named)): platform,
                 (Attribute.of("linkage", SomeEnum)): SomeEnum.VALUE_1)
-        def v2 = Stub(UsageContext)
+        def v2 = Stub(SoftwareComponentVariant)
         v2.name >> "v2"
         v2.attributes >> attributesTyped(
                 (Attribute.of("usage", String)): "runtime",
@@ -593,7 +593,7 @@ class GradleModuleMetadataWriterTest extends Specification {
                 (Attribute.of("platform", Named)): platform,
                 (Attribute.of("linkage", SomeEnum)): SomeEnum.VALUE_2)
 
-        component.usages >> [v1, v2]
+        component.outgoing >> [v1, v2]
 
         when:
         writeTo(writer, publication, [publication])
@@ -654,18 +654,18 @@ class GradleModuleMetadataWriterTest extends Specification {
             getVersion() >> '1'
         }
 
-        def v1 = Stub(UsageContext)
+        def v1 = Stub(SoftwareComponentVariant)
         v1.name >> "v1"
         v1.attributes >> attributes(usage: "compile")
         v1.capabilities >> [c1]
-        def v2 = Stub(UsageContext)
+        def v2 = Stub(SoftwareComponentVariant)
         v2.name >> "v2"
         v2.attributes >> attributes(usage: "runtime")
 
         rootComponent.variants >> [comp1, comp2]
-        rootComponent.usages >> []
-        comp1.usages >> [v1]
-        comp2.usages >> [v2]
+        rootComponent.outgoing >> []
+        comp1.outgoing >> [v1]
+        comp2.outgoing >> [v2]
 
         when:
         writeTo(writer, rootPublication, [rootPublication, publication1, publication2])
@@ -736,14 +736,14 @@ class GradleModuleMetadataWriterTest extends Specification {
             getVersion() >> '1'
         }
 
-        def v1 = Stub(UsageContext)
+        def v1 = Stub(SoftwareComponentVariant)
         v1.name >> "v1"
         v1.attributes >> attributes(usage: "compile")
         v1.capabilities >> [c1]
 
         rootComponent.variants >> [comp1]
-        rootComponent.usages >> []
-        comp1.usages >> [v1]
+        rootComponent.outgoing >> []
+        comp1.outgoing >> [v1]
 
         when:
         writeTo(writer, rootPublication, [rootPublication, publication1])
@@ -762,13 +762,13 @@ class GradleModuleMetadataWriterTest extends Specification {
         def childComponent = Stub(TestComponent)
         def childPublication = publication(childComponent, child1)
 
-        def variant = Stub(UsageContext)
+        def variant = Stub(SoftwareComponentVariant)
         variant.name >> "v1"
         variant.attributes >> attributes(usage: "compile")
 
         rootComponent.variants >> [childComponent]
-        rootComponent.usages >> []
-        childComponent.usages >> [variant]
+        rootComponent.outgoing >> []
+        childComponent.outgoing >> [variant]
 
         when:
         writeTo(writer, childPublication, [rootPublication, childPublication])
@@ -816,19 +816,19 @@ class GradleModuleMetadataWriterTest extends Specification {
             getVersion() >> '2'
         }
 
-        def v1 = Stub(UsageContext)
+        def v1 = Stub(SoftwareComponentVariant)
         v1.name >> "v1"
         v1.attributes >> attributes(usage: "compile")
         v1.dependencies >> []
         v1.capabilities >> [c1]
 
-        def v2 = Stub(UsageContext)
+        def v2 = Stub(SoftwareComponentVariant)
         v2.name >> "v2"
         v2.attributes >> attributes(usage: "runtime")
         v2.dependencies >> []
         v2.capabilities >> [c1, c2]
 
-        component.usages >> [v1, v2]
+        component.outgoing >> [v1, v2]
 
         when:
         writeTo(writer, publication, [publication])
@@ -913,17 +913,17 @@ class GradleModuleMetadataWriterTest extends Specification {
         intransitiveDependency.transitive >> false
         intransitiveDependency.attributes >> ImmutableAttributes.EMPTY
 
-        def v1 = Stub(UsageContext)
+        def v1 = Stub(SoftwareComponentVariant)
         v1.name >> "v1"
         v1.dependencies >> [apiDependency]
         v1.globalExcludes >> [new DefaultExcludeRule("org.example.api", null)]
 
-        def v2 = Stub(UsageContext)
+        def v2 = Stub(SoftwareComponentVariant)
         v2.name >> "v2"
         v2.dependencies >> [runtimeDependency, intransitiveDependency]
         v2.globalExcludes >> [new DefaultExcludeRule("org.example.runtime", null)]
 
-        component.usages >> [v1, v2]
+        component.outgoing >> [v1, v2]
 
         when:
         writeTo(writer, publication, [publication])
@@ -1001,11 +1001,11 @@ class GradleModuleMetadataWriterTest extends Specification {
         apiDependency.excludeRules >> [new DefaultExcludeRule("com.example.bad", "api")]
         apiDependency.attributes >> ImmutableAttributes.EMPTY
 
-        def v1 = Stub(UsageContext)
+        def v1 = Stub(SoftwareComponentVariant)
         v1.name >> "v1"
         v1.dependencies >> [apiDependency]
 
-        component.usages >> [v1]
+        component.outgoing >> [v1]
 
         when:
         writeTo(writer, publication, [publication])
@@ -1072,17 +1072,17 @@ class GradleModuleMetadataWriterTest extends Specification {
         d6.transitive >> true
         d6.attributes >> ImmutableAttributes.EMPTY
 
-        def v1 = Stub(UsageContext)
+        def v1 = Stub(SoftwareComponentVariant)
         v1.name >> "v1"
         v1.attributes >> attributes(usage: "compile")
         v1.dependencies >> [d1, d6]
 
-        def v2 = Stub(UsageContext)
+        def v2 = Stub(SoftwareComponentVariant)
         v2.name >> "v2"
         v2.attributes >> attributes(usage: "runtime")
         v2.dependencies >> [d2, d3, d4, d5]
 
-        component.usages >> [v1, v2]
+        component.outgoing >> [v1, v2]
 
         when:
         writeTo(writer, publication, [publication])
@@ -1181,14 +1181,14 @@ class GradleModuleMetadataWriterTest extends Specification {
         def id2 = DefaultModuleVersionIdentifier.newId("group", "other-2", "2")
         def publication2 = publication(comp, id2)
 
-        def v1 = Stub(UsageContext)
+        def v1 = Stub(SoftwareComponentVariant)
         v1.name >> "v1"
         v1.attributes >> attributes(usage: "compile")
-        def v2 = Stub(UsageContext)
+        def v2 = Stub(SoftwareComponentVariant)
         v2.name >> "v2"
         v2.attributes >> attributes(usage: "runtime")
 
-        comp.usages >> [v1, v2]
+        comp.outgoing >> [v1, v2]
 
         when:
         writeTo(writer, publication1, [publication1, publication2])

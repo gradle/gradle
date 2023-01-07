@@ -22,9 +22,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.ConfigurationVariantDetails;
+import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.java.usagecontext.ConfigurationVariantMapping;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -60,8 +60,8 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
     }
 
     @Override
-    public Set<? extends UsageContext> getUsages() {
-        ImmutableSet.Builder<UsageContext> builder = new ImmutableSet.Builder<>();
+    public Set<? extends SoftwareComponentVariant> getOutgoing() {
+        ImmutableSet.Builder<SoftwareComponentVariant> builder = new ImmutableSet.Builder<>();
         for (ConfigurationVariantMapping variant : variants.values()) {
             variant.collectVariants(builder);
         }

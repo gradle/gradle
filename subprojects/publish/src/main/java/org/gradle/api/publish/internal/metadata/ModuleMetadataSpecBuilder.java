@@ -120,7 +120,7 @@ class ModuleMetadataSpecBuilder {
 
     private List<ModuleMetadataSpec.Variant> variants() {
         ArrayList<ModuleMetadataSpec.Variant> variants = new ArrayList<>();
-        for (SoftwareComponentVariant variant : component.getUsages()) {
+        for (SoftwareComponentVariant variant : component.getOutgoing()) {
             checkVariant(variant);
             variants.add(
                 new ModuleMetadataSpec.LocalVariant(
@@ -138,7 +138,7 @@ class ModuleMetadataSpecBuilder {
                 ModuleVersionIdentifier childCoordinates = coordinatesOf(childComponent);
                 assert childCoordinates != null;
                 if (childComponent instanceof SoftwareComponentInternal) {
-                    for (SoftwareComponentVariant variant : ((SoftwareComponentInternal) childComponent).getUsages()) {
+                    for (SoftwareComponentVariant variant : ((SoftwareComponentInternal) childComponent).getOutgoing()) {
                         checkVariant(variant);
                         variants.add(
                             new ModuleMetadataSpec.RemoteVariant(

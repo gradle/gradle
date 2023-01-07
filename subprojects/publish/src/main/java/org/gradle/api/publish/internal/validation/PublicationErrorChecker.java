@@ -37,7 +37,7 @@ public abstract class PublicationErrorChecker {
      * @throws PublishException if the component uses attributes invalid for publication
      */
     public static void checkForUnpublishableAttributes(SoftwareComponentInternal component, DocumentationRegistry documentationRegistry) {
-        for (final SoftwareComponentVariant variant : component.getUsages()) {
+        for (final SoftwareComponentVariant variant : component.getOutgoing()) {
             Optional<Attribute<?>> category = variant.getAttributes().keySet().stream()
                 .filter(a -> Category.CATEGORY_ATTRIBUTE.getName().equals(a.getName()))
                 .findFirst();

@@ -18,16 +18,16 @@ package org.gradle.api.internal.java;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.component.DefaultSoftwareComponentVariant;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.UsageContext;
 
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.Set;
 
 public class WebApplication implements SoftwareComponentInternal {
-    private final UsageContext variant;
+    private final SoftwareComponentVariant variant;
 
     @Inject
     public WebApplication(PublishArtifact warArtifact, String variantName, AttributeContainer attributes) {
@@ -40,7 +40,7 @@ public class WebApplication implements SoftwareComponentInternal {
     }
 
     @Override
-    public Set<UsageContext> getUsages() {
+    public Set<? extends SoftwareComponentVariant> getOutgoing() {
         return Collections.singleton(variant);
     }
 }

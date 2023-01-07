@@ -200,7 +200,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         SoftwareComponentInternal javaLibrary = project.components.getByName("java")
 
         then:
-        def runtime = javaLibrary.usages.find { it.name == 'runtimeElements' }
+        def runtime = javaLibrary.outgoing.find { it.name == 'runtimeElements' }
         runtime.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
         runtime.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies
     }

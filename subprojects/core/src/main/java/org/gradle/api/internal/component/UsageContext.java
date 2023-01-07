@@ -21,8 +21,15 @@ import org.gradle.api.component.SoftwareComponentVariant;
 
 /**
  * This is a legacy type and should be avoided if possible. Use {@link SoftwareComponentVariant} instead.
+ *
+ * @deprecated Use {@link SoftwareComponentVariant}. This class is scheduled for removal in Gradle 9.0.
  */
+@Deprecated
 public interface UsageContext extends SoftwareComponentVariant {
+
+    /**
+     * @deprecated This class is scheduled for removal in Gradle 9.0.
+     */
     @Deprecated
     default Usage getUsage(){
         // This method kept for backwards compatibility of plugins (like kotlin-multiplatform) using internal APIs.

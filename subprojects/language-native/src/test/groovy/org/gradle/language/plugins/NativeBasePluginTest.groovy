@@ -21,11 +21,11 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.component.ComponentWithVariants
 import org.gradle.api.component.PublishableComponent
 import org.gradle.api.component.SoftwareComponent
+import org.gradle.api.component.SoftwareComponentVariant
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
 import org.gradle.api.internal.component.SoftwareComponentInternal
-import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
@@ -411,22 +411,22 @@ class NativeBasePluginTest extends Specification {
     }
 
     def "adds Maven publications for component with main publication"() {
-        def variant1 = Stub(UsageContext)
+        def variant1 = Stub(SoftwareComponentVariant)
         def artifact1 = Stub(PublishArtifact)
         artifact1.getFile() >> projectDir.file("artifact1")
         variant1.artifacts >> [artifact1]
         def publishableVariant1 = Stub(PublishableVariant)
         publishableVariant1.name >> "debug"
-        publishableVariant1.usages >> [variant1]
+        publishableVariant1.outgoing >> [variant1]
         publishableVariant1.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_debug", "1.2")
 
-        def variant2 = Stub(UsageContext)
+        def variant2 = Stub(SoftwareComponentVariant)
         def artifact2 = Stub(PublishArtifact)
         artifact2.getFile() >> projectDir.file("artifact1")
         variant2.artifacts >> [artifact2]
         def publishableVariant2 = Stub(PublishableVariant)
         publishableVariant2.name >> "release"
-        publishableVariant2.usages >> [variant2]
+        publishableVariant2.outgoing >> [variant2]
         publishableVariant2.getCoordinates() >> new DefaultModuleVersionIdentifier("my.group", "test_app_release", "1.2")
 
         def doNotPublish = Stub(SoftwareComponentInternal)

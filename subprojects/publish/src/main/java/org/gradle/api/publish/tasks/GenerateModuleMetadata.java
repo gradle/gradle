@@ -317,7 +317,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
         }
 
         private void forEachArtifactOf(SoftwareComponentInternal component, Action<PublishArtifact> action) {
-            for (SoftwareComponentVariant variant : component.getUsages()) {
+            for (SoftwareComponentVariant variant : component.getOutgoing()) {
                 for (PublishArtifact publishArtifact : variant.getArtifacts()) {
                     action.execute(publishArtifact);
                 }

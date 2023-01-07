@@ -16,23 +16,62 @@
 
 package org.gradle.api.internal.component;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.component.SoftwareComponentVariant;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
- * This will be replaced by {@link org.gradle.api.component.ComponentWithVariants} and other public APIs.
+ * The internal counterpart to {@link SoftwareComponent}.
+ * <p>
+ * Implementations of this interface must implement either {@link #getOutgoing()} or {@link #getUsages()}.
  */
 public interface SoftwareComponentInternal extends SoftwareComponent {
+
     /**
-     * This should be called {@code getVariants} and return a set of {@link org.gradle.api.component.SoftwareComponentVariant}s,
-     * though this is currently used by KMP and perhaps AGP due to there being a missing public API. However, renaming is
-     * difficult since {@link org.gradle.api.component.ComponentWithVariants} already defines a {@code getVariants} method.
-     * The existing {@code getVariants} method however is misnamed and should probably be called {@code getChildren}, and its
-     * interface called {@code ComponentWithChildren}. The existing {@code ComponentWithVariants} actually defines an API for
-     * declaring child components, which contribute their variants as defined by this method, as remote variants in GMM.
+     * This should be called {@code getVariants}, but that name is already taken by
+     * {@link org.gradle.api.component.ComponentWithVariants}. Until that class is removed and
+     * this method renamed, this API will remain incubating.
      * <p>
-     * This method and {@link UsageContext} should both be deprecated in favor of a new public API.
+     * This method will be removed in favor of a public API.
+     *
+     * @return This component's variants.
      */
-    Set<? extends UsageContext> getUsages();
+    @Incubating
+    default Set<? extends SoftwareComponentVariant> getOutgoing() {
+        return DeprecationLogger.whileDisabled(() ->
+            getUsages().stream()
+                .map(x -> x instanceof UsageContextShim ? ((UsageContextShim) x).variant : x)
+                .collect(Collectors.toSet())
+        );
+    }
+
+    /**
+     * This method has been temporarily replaced by {@link #getOutgoing()} in order to change its return type.
+     * Eventually, this functionality will be merged into {@link SoftwareComponent}.
+     *
+     * @deprecated Use {@link #getOutgoing()} This method is scheduled for removal in Gradle 9.0.
+     */
+    @Deprecated
+    default Set<? extends UsageContext> getUsages() {
+        // TODO Gradle 8.1: Add a deprecation nag here.
+        return getOutgoing().stream().map(UsageContextShim::new).collect(Collectors.toSet());
+    }
+
+    /**
+     * An implementation of {@link UsageContext} which delegates to a {@link SoftwareComponentVariant} instance.
+     * This class should only be used to implement the deprecated {@link #getUsages()} method above, and
+     * should be removed once the above method is removed.
+     */
+    @SuppressWarnings("deprecation")
+    class UsageContextShim extends DelegatingSoftwareComponentVariant implements UsageContext {
+        private final SoftwareComponentVariant variant;
+        private UsageContextShim(SoftwareComponentVariant variant) {
+            super(variant);
+            this.variant = variant;
+        }
+    }
 }

@@ -23,10 +23,9 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * This extends {@link UsageContext} so that we can use it in {@link SoftwareComponentInternal#getUsages()}.
- * Once we remove {@link UsageContext}, this should implement {@link SoftwareComponentVariant} instead.
+ * Skeletal, immutable implementation of {@link SoftwareComponentVariant}.
  */
-public abstract class AbstractSoftwareComponentVariant implements UsageContext {
+public abstract class AbstractSoftwareComponentVariant implements SoftwareComponentVariant {
     private final ImmutableAttributes attributes;
     private final Set<? extends PublishArtifact> artifacts;
 

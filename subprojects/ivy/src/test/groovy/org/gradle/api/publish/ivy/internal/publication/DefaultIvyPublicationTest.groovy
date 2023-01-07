@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.component.ComponentWithVariants
+import org.gradle.api.component.SoftwareComponentVariant
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
@@ -35,7 +36,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
-import org.gradle.api.internal.component.UsageContext
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.publish.internal.PublicationInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
@@ -414,14 +414,14 @@ class DefaultIvyPublicationTest extends Specification {
     }
 
     def createComponent(def artifacts, def dependencies) {
-        def variant = Stub(UsageContext) {
+        def variant = Stub(SoftwareComponentVariant) {
             getName() >> 'runtime'
             getArtifacts() >> artifacts
             getDependencies() >> dependencies
             getAttributes() >> ImmutableAttributes.EMPTY
         }
         def component = Stub(SoftwareComponentInternal) {
-            getUsages() >> [variant]
+            getOutgoing() >> [variant]
         }
         return component
     }

@@ -27,8 +27,8 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.component.ConfigurationVariantDetails;
+import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.component.UsageContext;
 import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
@@ -57,7 +57,7 @@ public class ConfigurationVariantMapping {
         this.action = Actions.composite(this.action, action);
     }
 
-    public void collectVariants(final ImmutableCollection.Builder<UsageContext> outgoing) {
+    public void collectVariants(final ImmutableCollection.Builder<SoftwareComponentVariant> outgoing) {
         if (!outgoingConfiguration.isTransitive()) {
             DeprecationLogger.warnOfChangedBehaviour("Publication ignores 'transitive = false' at configuration level", "Consider using 'transitive = false' at the dependency level if you need this to be published.")
                 .withUserManual("publishing_ivy", "configurations_marked_as_non_transitive")
@@ -82,7 +82,7 @@ public class ConfigurationVariantMapping {
         }
     }
 
-    private void registerVariant(ImmutableCollection.Builder<UsageContext> outgoing, Set<String> seen, ConfigurationVariant variant, String name, String scope, boolean optional) {
+    private void registerVariant(ImmutableCollection.Builder<SoftwareComponentVariant> outgoing, Set<String> seen, ConfigurationVariant variant, String name, String scope, boolean optional) {
         assertNoDuplicateVariant(name, seen);
         outgoing.add(new FeatureConfigurationVariant(name, outgoingConfiguration, variant, scope, optional));
     }

@@ -22,7 +22,6 @@ import org.gradle.api.component.ComponentWithCoordinates;
 import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
-import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.TargetMachine;
@@ -41,13 +40,13 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
     private final SoftwareComponentVariant linkVariant;
     private final SoftwareComponentVariant runtimeVariant;
     private final Linkage linkage;
-    private final Set<UsageContext> variants;
+    private final Set<SoftwareComponentVariant> variants;
 
-    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine, UsageContext linkVariant, UsageContext runtimeVariant) {
+    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine, SoftwareComponentVariant linkVariant, SoftwareComponentVariant runtimeVariant) {
         this(name, baseName, group, version, debuggable, optimized, targetMachine, linkVariant, runtimeVariant, null);
     }
 
-    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine, UsageContext linkVariant, UsageContext runtimeVariant, Linkage linkage) {
+    public NativeVariantIdentity(String name, Provider<String> baseName, Provider<String> group, Provider<String> version, boolean debuggable, boolean optimized, TargetMachine targetMachine, SoftwareComponentVariant linkVariant, SoftwareComponentVariant runtimeVariant, Linkage linkage) {
         this.name = name;
         this.baseName = baseName;
         this.group = group;
@@ -89,7 +88,7 @@ public class NativeVariantIdentity implements SoftwareComponentInternal, Compone
     }
 
     @Override
-    public Set<? extends UsageContext> getUsages() {
+    public Set<? extends SoftwareComponentVariant> getOutgoing() {
         return variants;
     }
 
