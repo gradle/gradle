@@ -73,13 +73,26 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     }
 
     @Override
-    public Location locationForUsage(List<StackTraceElement> stack) {
-        int startPos = findFirstUserCode(stack);
-        if (startPos == stack.size()) {
-            // No user code in the stack
-            return null;
+    public Location locationForUsage(List<StackTraceElement> stack, boolean fromException) {
+        int startPos;
+        int endPos;
+        if (fromException) {
+            // When analysing an exception stack trace, consider all the user code in the stack.
+            // This is because we cannot tell the difference between:
+            // - a validation exception thrown in user code that is called from other user code, where the caller should be blamed
+            // - an unexpected exception thrown in user code, where this code should be blamed
+            // So, for now, just blame the first user code that can be identified
+            startPos = 0;
+            endPos = stack.size();
+        } else {
+            // When analysing a problem stack trace, consider only the deepest user code in the stack.
+            startPos = findFirstUserCode(stack);
+            if (startPos == stack.size()) {
+                // No user code in the stack
+                return null;
+            }
+            endPos = findNextGradleType(startPos, stack);
         }
-        int endPos = findNextGradleType(startPos, stack);
 
         lock.lock();
         try {
