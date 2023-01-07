@@ -422,17 +422,27 @@ You can find more information about this property <<upgrading_version_7.adoc#str
 
 ==== Init scripts are applied to `buildSrc` builds
 
-Init script specified using `--init-script` are now applied to `buildSrc` builds. In previous releases these were applied to included builds but not `buildSrc builds.
-This behaviour is now consistent for `buildSrc` and included builds.
+Init scripts specified using `--init-script` are now applied to `buildSrc` builds. In previous releases these were applied to included builds but not `buildSrc builds.
+
+This behavior is now consistent for `buildSrc` and included builds.
 
 ==== Gradle no longer runs the `build` task for `buildSrc` builds
 
-TODO - only the `jar` task and its dependencies are run, same as for included builds. Can run `buildSrc` tasks from the command-line, if required. If `buildSrc` contains
-subprojects that are not dependencies of `buildSrc`, these are not automatically built.
+When Gradle builds the output of `buildSrc` it runs only the tasks that produce that output, which is typically the `jar` task.
+In previous releases Gradle would run the `build` task.
+
+This means that the tests of `buildSrc` and its subprojects are not built and executed automatically and must now be explicitly requested.
+
+This behavior is now consistent for `buildSrc` and included builds.
+
+You can run the tests for `buildSrc` in the same way as projects in included builds, for example by running `gradle buildSrc:build`.
 
 ==== `buildFinished { }` hook for `buildSrc` runs after all tasks have executed
 
-TODO - hook runs at the same time as for included builds
+The `buildFinished {}` hook for `buildSrc` now runs after all tasks have completed. In previous releases this hook would run immediately after
+the tasks for `buildSrc` completed and before any requested tasks started.
+
+This behavior is now consistent for `buildSrc` and included builds.
 
 ==== Adding `jst.ejb` with the `eclipse wtp' plugin now removes the `jst.utility` facet
 
