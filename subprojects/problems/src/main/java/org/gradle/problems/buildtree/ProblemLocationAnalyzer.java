@@ -30,5 +30,5 @@ public interface ProblemLocationAnalyzer {
      * @return A display name for the location or null for an unknown location.
      */
     @Nullable
-    Location locationForUsage(List<StackTraceElement> stack);
+    Location locationForUsage(List<StackTraceElement> stack, boolean fromException);
 }

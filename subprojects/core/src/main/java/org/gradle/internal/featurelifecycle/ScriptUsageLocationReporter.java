@@ -34,7 +34,7 @@ public class ScriptUsageLocationReporter implements UsageLocationReporter {
 
     @Override
     public void reportLocation(FeatureUsage usage, StringBuilder target) {
-        Location location = locationAnalyzer.locationForUsage(usage.getStack());
+        Location location = locationAnalyzer.locationForUsage(usage.getStack(), false);
         if (location != null) {
             target.append(location.getFormatted());
         }
