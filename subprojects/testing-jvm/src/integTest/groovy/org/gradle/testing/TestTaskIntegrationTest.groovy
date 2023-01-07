@@ -455,6 +455,24 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         succeeds("test", "verifyTestOptions", "--warn")
     }
 
+    def "setForkEvery null emits deprecation warning"() {
+        given:
+        buildScript """
+            plugins {
+                id 'java'
+            }
+            tasks.withType(Test).configureEach {
+                forkEvery = null
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("Using method Test.setForkEvery(null) has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the Test.setForkEvery(0) method instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:forkEvery for more details.")
+
+        then:
+        succeeds "test", "--dry-run"
+    }
+
     private static String standaloneTestClass() {
         return testClass('MyTest')
     }
