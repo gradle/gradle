@@ -44,7 +44,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.DecompressionCacheFactory;
 import org.gradle.cache.internal.scopes.DefaultProjectScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.ProjectScopedCacheBuilderFactory;
@@ -154,11 +154,11 @@ public class WorkerSharedProjectScopeServices {
         return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 
-    protected ProjectScopedCacheBuilderFactory createProjectScopedCache(TemporaryFileProvider temporaryFileProvider, CacheRepository cacheRepository) {
-        return new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), cacheRepository);
+    protected ProjectScopedCacheBuilderFactory createProjectScopedCache(TemporaryFileProvider temporaryFileProvider, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        return new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory);
     }
 
-    protected DecompressionCacheFactory createDecompressionCacheFactory(TemporaryFileProvider temporaryFileProvider, CacheRepository cacheRepository) {
-        return new DefaultDecompressionCacheFactory(() -> new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), cacheRepository));
+    protected DecompressionCacheFactory createDecompressionCacheFactory(TemporaryFileProvider temporaryFileProvider, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        return new DefaultDecompressionCacheFactory(() -> new DefaultProjectScopedCacheBuilderFactory(temporaryFileProvider.newTemporaryFile(".cache"), unscopedCacheBuilderFactory));
     }
 }

@@ -26,7 +26,7 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
@@ -58,14 +58,14 @@ public class DependencyManagementGradleUserHomeScopeServices {
 
     ArtifactCachesProvider createArtifactCaches(
         GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-        CacheRepository cacheRepository,
+        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
         DefaultArtifactCaches.WritableArtifactCacheLockingParameters parameters,
         ListenerManager listenerManager,
         DocumentationRegistry documentationRegistry,
         CleanupActionDecorator cleanupActionDecorator,
         CacheConfigurationsInternal cacheConfigurations
     ) {
-        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(cacheBuilderFactory, cacheRepository, parameters, documentationRegistry, cleanupActionDecorator, cacheConfigurations);
+        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(cacheBuilderFactory, unscopedCacheBuilderFactory, parameters, documentationRegistry, cleanupActionDecorator, cacheConfigurations);
         listenerManager.addListener(new BuildAdapter() {
             @SuppressWarnings("deprecation")
             @Override
@@ -98,7 +98,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
 
     ImmutableTransformationWorkspaceServices createTransformerWorkspaceServices(
         ArtifactCachesProvider artifactCaches,
-        CacheRepository cacheRepository,
+        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
         CrossBuildInMemoryCacheFactory crossBuildInMemoryCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ExecutionHistoryStore executionHistoryStore,
@@ -106,7 +106,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CacheConfigurationsInternal cacheConfigurations
     ) {
         return new ImmutableTransformationWorkspaceServices(
-            cacheRepository
+            unscopedCacheBuilderFactory
                 .cache(artifactCaches.getWritableCacheMetadata().getTransformsStoreDirectory())
                 .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
                 .withDisplayName("Artifact transforms cache"),

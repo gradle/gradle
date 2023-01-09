@@ -31,7 +31,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -117,8 +117,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         return new GradleUserHomeCacheCleanupActionDecorator(gradleUserHomeDirProvider);
     }
 
-    DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(GlobalCacheDir globalCacheDir, CacheRepository cacheRepository) {
-        return new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.getDir(), cacheRepository);
+    DefaultGlobalScopedCacheBuilderFactory createGlobalScopedCache(GlobalCacheDir globalCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        return new DefaultGlobalScopedCacheBuilderFactory(globalCacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
     DefaultListenerManager createListenerManager(DefaultListenerManager parent) {

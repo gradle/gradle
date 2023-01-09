@@ -21,7 +21,7 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy;
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
@@ -48,14 +48,15 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class WritableArtifactCacheLockingManager implements ArtifactCacheLockingManager, Closeable {
     private final PersistentCache cache;
 
-    public WritableArtifactCacheLockingManager(CacheRepository cacheRepository,
-                                               ArtifactCacheMetadata cacheMetaData,
-                                               FileAccessTimeJournal fileAccessTimeJournal,
-                                               UsedGradleVersions usedGradleVersions,
-                                               CleanupActionDecorator cleanupActionDecorator,
-                                               CacheConfigurationsInternal cacheConfigurations
+    public WritableArtifactCacheLockingManager(
+            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
+            ArtifactCacheMetadata cacheMetaData,
+            FileAccessTimeJournal fileAccessTimeJournal,
+            UsedGradleVersions usedGradleVersions,
+            CleanupActionDecorator cleanupActionDecorator,
+            CacheConfigurationsInternal cacheConfigurations
                                                ) {
-        cache = cacheRepository
+        cache = unscopedCacheBuilderFactory
                 .cache(cacheMetaData.getCacheDir())
                 .withCrossVersionCache(CacheBuilder.LockTarget.CacheDirectory)
                 .withDisplayName("artifact cache")

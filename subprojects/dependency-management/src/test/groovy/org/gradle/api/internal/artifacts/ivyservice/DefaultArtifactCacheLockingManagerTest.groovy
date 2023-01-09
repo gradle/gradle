@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
-import org.gradle.cache.internal.DefaultCacheRepository
+import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory
 import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
 import org.gradle.internal.time.TimestampSuppliers
@@ -30,12 +30,10 @@ import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES
-
 class DefaultArtifactCacheLockingManagerTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    def cacheRepository = new DefaultCacheRepository(null, new TestInMemoryCacheFactory())
+    def cacheRepository = new DefaultUnscopedCacheBuilderFactory(null, new TestInMemoryCacheFactory())
     def cacheDir = temporaryFolder.createDir(CacheLayout.ROOT.key)
     def resourcesDir = cacheDir.createDir(CacheLayout.RESOURCES.key)
     def filesDir = cacheDir.createDir(CacheLayout.FILE_STORE.key)

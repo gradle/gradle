@@ -27,7 +27,7 @@ import static org.gradle.cache.FileLockManager.LockMode.OnDemand
 import static org.gradle.cache.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
-class DefaultCacheRepositoryTest extends Specification {
+class DefaultUnscopedCacheBuilderFactoryTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private final TestFile homeDir = tmpDir.createDir("home")
@@ -36,7 +36,7 @@ class DefaultCacheRepositoryTest extends Specification {
     private final CacheFactory cacheFactory = Mock()
     private final PersistentCache cache = Mock()
     private final CacheScopeMapping scopeMapping = Mock()
-    private final DefaultCacheRepository repository = new DefaultCacheRepository(scopeMapping, cacheFactory)
+    private final DefaultUnscopedCacheBuilderFactory repository = new DefaultUnscopedCacheBuilderFactory(scopeMapping, cacheFactory)
 
     void createsGlobalDirectoryBackedCache() {
         when:

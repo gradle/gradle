@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal.scopes;
 
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.scopes.ProjectScopedCacheBuilderFactory;
 
 import java.io.File;
@@ -25,7 +25,7 @@ import java.io.File;
  * Default implementation of {@link ProjectScopedCacheBuilderFactory}, implements interface using {@link AbstractScopedCacheBuilderFactory}.
  */
 public class DefaultProjectScopedCacheBuilderFactory extends AbstractScopedCacheBuilderFactory implements ProjectScopedCacheBuilderFactory {
-    public DefaultProjectScopedCacheBuilderFactory(File rootDir, CacheRepository cacheRepository) {
-        super(rootDir, cacheRepository);
+    public DefaultProjectScopedCacheBuilderFactory(File rootDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        super(rootDir, unscopedCacheBuilderFactory);
     }
 }

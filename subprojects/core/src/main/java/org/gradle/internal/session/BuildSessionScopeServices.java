@@ -34,7 +34,7 @@ import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cache.internal.BuildOperationCleanupActionDecorator;
@@ -163,8 +163,8 @@ public class BuildSessionScopeServices extends WorkerSharedBuildSessionScopeServ
         return new ProjectCacheDir(cacheDir.getDir(), progressLoggerFactory, deleter);
     }
 
-    BuildTreeScopedCacheBuilderFactory createBuildTreeScopedCache(ProjectCacheDir projectCacheDir, CacheRepository cacheRepository) {
-        return new DefaultBuildTreeScopedCacheBuilderFactory(projectCacheDir.getDir(), cacheRepository);
+    BuildTreeScopedCacheBuilderFactory createBuildTreeScopedCache(ProjectCacheDir projectCacheDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        return new DefaultBuildTreeScopedCacheBuilderFactory(projectCacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
     BuildSessionScopeFileTimeStampInspector createFileTimeStampInspector(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {

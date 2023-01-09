@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal.scopes;
 
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.GlobalCache;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 
@@ -25,8 +25,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class DefaultGlobalScopedCacheBuilderFactory extends AbstractScopedCacheBuilderFactory implements GlobalScopedCacheBuilderFactory, GlobalCache {
-    public DefaultGlobalScopedCacheBuilderFactory(File rootDir, CacheRepository cacheRepository) {
-        super(rootDir, cacheRepository);
+    public DefaultGlobalScopedCacheBuilderFactory(File rootDir, UnscopedCacheBuilderFactory unscopedCacheBuilderFactory) {
+        super(rootDir, unscopedCacheBuilderFactory);
     }
 
     @Override

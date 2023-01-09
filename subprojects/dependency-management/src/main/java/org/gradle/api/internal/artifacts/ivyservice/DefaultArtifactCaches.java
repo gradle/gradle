@@ -21,7 +21,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.UsedGradleVersions;
@@ -47,7 +47,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
 
     public DefaultArtifactCaches(
             GlobalScopedCacheBuilderFactory cacheBuilderFactory,
-            CacheRepository cacheRepository,
+            UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
             WritableArtifactCacheLockingParameters params,
             DocumentationRegistry documentationRegistry,
             CleanupActionDecorator cleanupActionDecorator,
@@ -55,7 +55,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
                                  ) {
         writableCacheMetadata = new DefaultArtifactCacheMetadata(cacheBuilderFactory);
         writableArtifactCacheLockingManager = new LateInitWritableArtifactCacheLockingManager(() -> {
-            return new WritableArtifactCacheLockingManager(cacheRepository, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions(), cleanupActionDecorator, cacheConfigurations);
+            return new WritableArtifactCacheLockingManager(unscopedCacheBuilderFactory, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions(), cleanupActionDecorator, cacheConfigurations);
         });
         String roCache = System.getenv(READONLY_CACHE_ENV_VAR);
         if (StringUtils.isNotEmpty(roCache)) {
@@ -63,7 +63,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
             File baseDir = validateReadOnlyCache(documentationRegistry, new File(roCache).getAbsoluteFile());
             if (baseDir != null) {
                 readOnlyCacheMetadata = new DefaultArtifactCacheMetadata(cacheBuilderFactory, baseDir);
-                readOnlyArtifactCacheLockingManager = new ReadOnlyArtifactCacheLockingManager(cacheRepository, readOnlyCacheMetadata);
+                readOnlyArtifactCacheLockingManager = new ReadOnlyArtifactCacheLockingManager(unscopedCacheBuilderFactory, readOnlyCacheMetadata);
                 LOGGER.info("The read-only dependency cache is enabled \nThe {} environment variable was set to {}", READONLY_CACHE_ENV_VAR, baseDir);
             } else {
                 readOnlyCacheMetadata = null;
