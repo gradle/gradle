@@ -80,7 +80,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
-import org.gradle.cache.CacheRepository;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cache.internal.scopes.DefaultBuildScopedCacheBuilderFactory;
@@ -276,10 +276,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         GradleUserHomeDirProvider userHomeDirProvider,
         BuildLayout buildLayout,
         StartParameter startParameter,
-        CacheRepository cacheRepository
+        UnscopedCacheBuilderFactory unscopedCacheBuilderFactory
     ) {
         BuildScopeCacheDir cacheDir = new BuildScopeCacheDir(userHomeDirProvider, buildLayout, startParameter);
-        return new DefaultBuildScopedCacheBuilderFactory(cacheDir.getDir(), cacheRepository);
+        return new DefaultBuildScopedCacheBuilderFactory(cacheDir.getDir(), unscopedCacheBuilderFactory);
     }
 
     protected BuildLayout createBuildLayout(BuildLayoutFactory buildLayoutFactory, BuildDefinition buildDefinition) {

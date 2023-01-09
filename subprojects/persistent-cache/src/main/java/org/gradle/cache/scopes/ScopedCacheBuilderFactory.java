@@ -17,6 +17,7 @@
 package org.gradle.cache.scopes;
 
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.UnscopedCacheBuilderFactory;
 
 import java.io.File;
 
@@ -25,14 +26,14 @@ import java.io.File;
  */
 public interface ScopedCacheBuilderFactory {
     /**
-     * Creates a builder for Gradle-version specific caches in this scope. See {@link org.gradle.cache.CacheRepository#cache(String)}.
+     * Creates a builder for Gradle-version specific caches in this scope. See {@link UnscopedCacheBuilderFactory#cache(String)}.
      *
      * @param key A unique name for the cache.
      */
     CacheBuilder createCacheBuilder(String key);
 
     /**
-     * Creates a builder for cross Gradle version caches in this scope. See {@link org.gradle.cache.CacheRepository#cache(String)}.
+     * Creates a builder for cross Gradle version caches in this scope. See {@link UnscopedCacheBuilderFactory#cache(String)}.
      *
      * @param key A unique name for the cache.
      */
