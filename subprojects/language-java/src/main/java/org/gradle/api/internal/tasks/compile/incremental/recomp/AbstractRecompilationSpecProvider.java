@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
 import org.gradle.api.internal.file.FileOperations;
@@ -41,6 +40,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 abstract class AbstractRecompilationSpecProvider implements RecompilationSpecProvider {
 
@@ -267,8 +267,17 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     private static void addAllUndeletedClasses(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
-//        Set<String> undeletedClasses = new HashSet<>(recompilationSpec.getAllClasses());
-//        undeletedClasses.removeAll(recompilationSpec.getClassesToCompile());
+        Set<String> undeletedClasses = new HashSet<>(recompilationSpec.getAllClasses());
+        undeletedClasses.removeAll(recompilationSpec.getClassesToCompile());
+        undeletedClasses = undeletedClasses.stream()
+                .map(it -> {
+                    int lastIndex = it.lastIndexOf(".");
+                    if (lastIndex < 0) {
+                        return it;
+                    } else {
+                        return it.substring(lastIndex + 1);
+                    }
+                }).collect(Collectors.toSet());
 //        spec.setUndeletedClasses(undeletedClasses);
     }
 
