@@ -482,7 +482,7 @@ task resolveChildFirst {
         fails()
 
         then:
-        failure.assertHasCause("Cannot change role of dependency configuration ':a' after it has been resolved")
+        failure.assertHasCause("Cannot change usage of dependency configuration ':a' after it has been resolved")
 
         where:
         role                      | code
