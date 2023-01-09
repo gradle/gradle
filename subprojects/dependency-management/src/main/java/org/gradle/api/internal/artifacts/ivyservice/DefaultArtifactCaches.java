@@ -25,7 +25,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.UsedGradleVersions;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.serialize.Serializer;
@@ -45,14 +45,15 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
     private final LateInitWritableArtifactCacheLockingManager writableArtifactCacheLockingManager;
     private final ReadOnlyArtifactCacheLockingManager readOnlyArtifactCacheLockingManager;
 
-    public DefaultArtifactCaches(GlobalScopedCache globalScopedCache,
-                                 CacheRepository cacheRepository,
-                                 WritableArtifactCacheLockingParameters params,
-                                 DocumentationRegistry documentationRegistry,
-                                 CleanupActionDecorator cleanupActionDecorator,
-                                 CacheConfigurationsInternal cacheConfigurations
+    public DefaultArtifactCaches(
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            CacheRepository cacheRepository,
+            WritableArtifactCacheLockingParameters params,
+            DocumentationRegistry documentationRegistry,
+            CleanupActionDecorator cleanupActionDecorator,
+            CacheConfigurationsInternal cacheConfigurations
                                  ) {
-        writableCacheMetadata = new DefaultArtifactCacheMetadata(globalScopedCache);
+        writableCacheMetadata = new DefaultArtifactCacheMetadata(cacheBuilderFactory);
         writableArtifactCacheLockingManager = new LateInitWritableArtifactCacheLockingManager(() -> {
             return new WritableArtifactCacheLockingManager(cacheRepository, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions(), cleanupActionDecorator, cacheConfigurations);
         });
@@ -61,7 +62,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
             IncubationLogger.incubatingFeatureUsed("Shared read-only dependency cache");
             File baseDir = validateReadOnlyCache(documentationRegistry, new File(roCache).getAbsoluteFile());
             if (baseDir != null) {
-                readOnlyCacheMetadata = new DefaultArtifactCacheMetadata(globalScopedCache, baseDir);
+                readOnlyCacheMetadata = new DefaultArtifactCacheMetadata(cacheBuilderFactory, baseDir);
                 readOnlyArtifactCacheLockingManager = new ReadOnlyArtifactCacheLockingManager(cacheRepository, readOnlyCacheMetadata);
                 LOGGER.info("The read-only dependency cache is enabled \nThe {} environment variable was set to {}", READONLY_CACHE_ENV_VAR, baseDir);
             } else {

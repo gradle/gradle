@@ -31,7 +31,7 @@ import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.UsedGradleVersions;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Try;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.ExecutionHistoryCacheAccess;
@@ -57,7 +57,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
     }
 
     ArtifactCachesProvider createArtifactCaches(
-        GlobalScopedCache globalScopedCache,
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         CacheRepository cacheRepository,
         DefaultArtifactCaches.WritableArtifactCacheLockingParameters parameters,
         ListenerManager listenerManager,
@@ -65,7 +65,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
         CleanupActionDecorator cleanupActionDecorator,
         CacheConfigurationsInternal cacheConfigurations
     ) {
-        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(globalScopedCache, cacheRepository, parameters, documentationRegistry, cleanupActionDecorator, cacheConfigurations);
+        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(cacheBuilderFactory, cacheRepository, parameters, documentationRegistry, cleanupActionDecorator, cacheConfigurations);
         listenerManager.addListener(new BuildAdapter() {
             @SuppressWarnings("deprecation")
             @Override
@@ -78,8 +78,8 @@ public class DependencyManagementGradleUserHomeScopeServices {
         return artifactCachesProvider;
     }
 
-    ExecutionHistoryCacheAccess createExecutionHistoryCacheAccess(GlobalScopedCache cacheRepository) {
-        return new DefaultExecutionHistoryCacheAccess(cacheRepository);
+    ExecutionHistoryCacheAccess createExecutionHistoryCacheAccess(GlobalScopedCacheBuilderFactory cacheBuilderFactory) {
+        return new DefaultExecutionHistoryCacheAccess(cacheBuilderFactory);
     }
 
     ExecutionHistoryStore createExecutionHistoryStore(

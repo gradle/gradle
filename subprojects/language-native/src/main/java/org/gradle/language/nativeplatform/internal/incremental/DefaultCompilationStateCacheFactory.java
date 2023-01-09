@@ -22,7 +22,7 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.scopes.BuildScopedCache;
+import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -36,9 +36,9 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
     private final PersistentIndexedCache<String, CompilationState> compilationStateIndexedCache;
     private final PersistentCache cache;
 
-    public DefaultCompilationStateCacheFactory(BuildScopedCache cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        cache = cacheRepository
-                .cache("nativeCompile")
+    public DefaultCompilationStateCacheFactory(BuildScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        cache = cacheBuilderFactory
+                .createCacheBuilder("nativeCompile")
                 .withDisplayName("native compile cache")
                 .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
                 .open();

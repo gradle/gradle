@@ -22,7 +22,7 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.CleanupAction
 import org.gradle.cache.internal.CleanupActionDecorator
-import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.local.DirectoryBuildCache
 import org.gradle.internal.file.FileAccessTimeJournal
@@ -39,7 +39,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def cacheRepository = Mock(CacheRepository)
-    def globalScopedCache = Mock(GlobalScopedCache)
+    def globalScopedCache = Mock(GlobalScopedCacheBuilderFactory)
     def resolver = Mock(FileResolver)
     def fileStoreFactory = Mock(DirectoryBuildCacheFileStoreFactory)
     def cleanupActionDecorator = Mock(CleanupActionDecorator)

@@ -29,7 +29,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -70,14 +70,15 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
     private final ProducerGuard<Fingerprint> fingerPrintguard = ProducerGuard.adaptive();
     private final ProducerGuard<Long> longIdGuard = ProducerGuard.adaptive();
 
-    public CrossBuildCachingKeyService(GlobalScopedCache cacheRepository,
-                                       InMemoryCacheDecoratorFactory decoratorFactory,
-                                       BuildOperationExecutor buildOperationExecutor,
-                                       PublicKeyService delegate,
-                                       BuildCommencedTimeProvider timeProvider,
-                                       boolean refreshKeys) {
-        cache = cacheRepository
-            .crossVersionCache("keyrings")
+    public CrossBuildCachingKeyService(
+            GlobalScopedCacheBuilderFactory cacheBuilderFactory,
+            InMemoryCacheDecoratorFactory decoratorFactory,
+            BuildOperationExecutor buildOperationExecutor,
+            PublicKeyService delegate,
+            BuildCommencedTimeProvider timeProvider,
+            boolean refreshKeys) {
+        cache = cacheBuilderFactory
+            .createCrossVersionCacheBuilder("keyrings")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
             .open();

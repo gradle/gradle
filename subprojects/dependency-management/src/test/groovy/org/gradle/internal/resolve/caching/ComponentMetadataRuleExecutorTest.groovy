@@ -34,7 +34,7 @@ import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.PersistentIndexedCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
-import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
@@ -61,7 +61,7 @@ import java.time.Duration
 class ComponentMetadataRuleExecutorTest extends Specification {
     @Subject
     ComponentMetadataRuleExecutor executor
-    GlobalScopedCache cacheRepository
+    GlobalScopedCacheBuilderFactory cacheBuilderFactory
     DefaultInMemoryCacheDecoratorFactory cacheDecoratorFactory
     ValueSnapshotter valueSnapshotter
     long time = 0
@@ -89,16 +89,16 @@ class ComponentMetadataRuleExecutorTest extends Specification {
                 }
             }
         }
-        cacheRepository = Mock()
+        cacheBuilderFactory = Mock()
         cacheDecoratorFactory = Mock()
-        cacheRepository.cache(_) >> cacheBuilder
+        cacheBuilderFactory.createCacheBuilder(_) >> cacheBuilder
         cacheDecoratorFactory.decorator(_, _) >> Mock(CacheDecorator)
         valueSnapshotter = Mock()
         serializer = Mock()
         cachePolicy = Mock()
         detailsToResult = Mock()
         onCacheMiss = Mock()
-        executor = new ComponentMetadataRuleExecutor(cacheRepository, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer)
+        executor = new ComponentMetadataRuleExecutor(cacheBuilderFactory, cacheDecoratorFactory, valueSnapshotter, timeProvider, serializer)
     }
 
     // Tests --refresh-dependencies behavior
