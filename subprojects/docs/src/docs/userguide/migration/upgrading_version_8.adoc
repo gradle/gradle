@@ -58,3 +58,46 @@ This includes calling any of the following `Configuration` methods:
 
 The ability to change the allowed usage of a configuration after
 creation will be removed in Gradle 9.0.
+
+[[gmm_modification_after_publication_populated]]
+==== Modifying Gradle Module Metadata after a publication has been populated
+
+Altering the link:publishing_gradle_module_metadata.html[GMM] (e.g., changing a component configuration variants) *after* a Maven or Ivy publication has been populated from their components is now deprecated. This feature will be removed in Gradle 9.0.
+
+Eager population of the publication can happen if the following methods are called:
+
+====== Maven
+
+* link:{javadocPath}/org/gradle/api/publish/maven/MavenPublication.html#getArtifacts--[MavenPublication.getArtifacts()]
+
+====== Ivy
+
+* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getArtifacts--[IvyPublication.getArtifacts()]
+* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getConfigurations--[IvyPublication.getConfigurations()]
+* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#configurations(Action)--[IvyPublication.configurations(Action)]
+
+Previously, this code block did not generate warnings, but it created inconsistencies between published artifacts:
+
+```kotlin
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+        create<IvyPublication>("ivy") {
+            from(components["java"])
+        }
+    }
+}
+
+// These calls eagerly populate the Maven and Ivy publications
+(publishing.publications["maven"] as MavenPublication).artifacts
+(publishing.publications["ivy"] as IvyPublication).artifacts
+
+(components["java"] as AdhocComponentWithVariants).apply {
+  withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
+  withVariantsFromConfiguration(configurations["runtimeElements"]) { skip() }
+}
+```
+
+In this example, the Maven and Ivy publications will contain the main JAR artifacts for the project, whereas the GMM link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[module file] will omit them.
