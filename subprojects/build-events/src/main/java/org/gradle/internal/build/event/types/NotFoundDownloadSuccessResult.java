@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,21 @@
 
 package org.gradle.internal.build.event.types;
 
-import org.gradle.tooling.internal.protocol.events.InternalFileDownloadResult;
+import org.gradle.tooling.internal.protocol.events.InternalNotFoundFileDownloadResult;
+import org.gradle.tooling.internal.protocol.events.InternalSuccessResult;
 
-public class DefaultFileDownloadSuccessResult extends DefaultSuccessResult implements InternalFileDownloadResult {
-    private final long bytesDownloaded;
-
-    public DefaultFileDownloadSuccessResult(long startTime, long endTime, long bytesDownloaded) {
-        super(startTime, endTime);
-        this.bytesDownloaded = bytesDownloaded;
+public class NotFoundDownloadSuccessResult extends AbstractOperationResult implements InternalSuccessResult, InternalNotFoundFileDownloadResult {
+    public NotFoundDownloadSuccessResult(long startTime, long endTime) {
+        super(startTime, endTime, "not found");
     }
 
     @Override
     public long getBytesDownloaded() {
-        return bytesDownloaded;
+        return 0;
     }
 
 //    @Override
 //    public FileDownloadResult toFileDownloadResult(){
-//        return new org.gradle.tooling.events.download.internal.DefaultFileDownloadSuccessResult(getStartTime(), getEndTime(), getBytesDownloaded());
+//        return new org.gradle.tooling.events.download.internal.NotFoundFileDownloadSuccessResult(getStartTime(), getEndTime());
 //    }
 }

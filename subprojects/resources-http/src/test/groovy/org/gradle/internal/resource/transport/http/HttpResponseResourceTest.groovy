@@ -19,6 +19,7 @@ package org.gradle.internal.resource.transport.http
 import org.apache.http.Header
 import org.apache.http.HttpEntity
 import org.apache.http.HttpHeaders
+import org.apache.http.StatusLine
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.message.BasicHeader
 
@@ -26,7 +27,13 @@ class HttpResponseResourceTest extends AbstractHttpClientTest {
 
     def sourceUrl = new URI("http://gradle.org")
     def method = "GET"
-    def response = Mock(CloseableHttpResponse)
+    def response = mockResponse()
+
+    private mockResponse() {
+        def response = Mock(CloseableHttpResponse)
+        response.getStatusLine() >> Mock(StatusLine)
+        response
+    }
 
     def "extracts etag"() {
         given:
