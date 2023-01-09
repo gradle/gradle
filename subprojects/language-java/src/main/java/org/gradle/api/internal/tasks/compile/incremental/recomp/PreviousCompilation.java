@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.compile.incremental.compilerapi.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysis;
 
@@ -58,11 +59,11 @@ public class PreviousCompilation {
         return classAnalysis.getTypesToReprocess(compiledClasses);
     }
 
-    public Set<String> getAllClasses() {
+    public ImmutableSet<String> getAllClasses() {
         return data.getCompilerApiData().getSourceToClassMapping().values()
             .stream()
             .flatMap(Collection::stream)
-            .collect(Collectors.toSet());
+            .collect(ImmutableSet.toImmutableSet());
     }
 
     public SourceFileClassNameConverter getSourceToClassConverter() {

@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
 import org.gradle.api.internal.file.FileOperations;
@@ -77,7 +78,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         processSourceChanges(current, sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
         processCompilerSpecificDependencies(spec, recompilationSpec, sourceFileChangeProcessor, sourceFileClassNameConverter);
         collectAllSourcePathsAndIndependentClasses(sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
-        recompilationSpec.addAllClasses(previous.getAllClasses());
+        recompilationSpec.setAllClasses(previous.getAllClasses());
 
         Set<String> typesToReprocess = previous.getTypesToReprocess(recompilationSpec.getClassesToCompile());
         processTypesToReprocess(typesToReprocess, recompilationSpec, sourceFileClassNameConverter);
@@ -266,9 +267,9 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     private static void addAllUndeletedClasses(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
-        Set<String> undeletedClasses = new HashSet<>(recompilationSpec.getAllClasses());
-        undeletedClasses.removeAll(recompilationSpec.getClassesToCompile());
-        spec.setUndeletedClasses(undeletedClasses);
+//        Set<String> undeletedClasses = new HashSet<>(recompilationSpec.getAllClasses());
+//        undeletedClasses.removeAll(recompilationSpec.getClassesToCompile());
+//        spec.setUndeletedClasses(undeletedClasses);
     }
 
     private static void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {

@@ -28,7 +28,7 @@ public class RecompilationSpec {
     private final Set<String> sourcePaths = new LinkedHashSet<>();
     private final Collection<String> classesToProcess = new LinkedHashSet<>();
     private final Collection<GeneratedResource> resourcesToGenerate = new LinkedHashSet<>();
-    private final Collection<String> allClasses = new LinkedHashSet<>();
+    private Set<String> allClasses = Collections.emptySet();
     private String fullRebuildCause;
 
     @Override
@@ -64,12 +64,12 @@ public class RecompilationSpec {
         return Collections.unmodifiableCollection(classesToProcess);
     }
 
-    public void addAllClasses(Collection<String> classes) {
-        this.allClasses.addAll(classes);
+    public void setAllClasses(Set<String> classes) {
+        this.allClasses = classes;
     }
 
-    public Collection<String> getAllClasses() {
-        return Collections.unmodifiableCollection(allClasses);
+    public Set<String> getAllClasses() {
+        return allClasses;
     }
 
     public void addResourcesToGenerate(Collection<GeneratedResource> resources) {

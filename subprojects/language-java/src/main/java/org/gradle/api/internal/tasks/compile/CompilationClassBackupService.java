@@ -56,14 +56,14 @@ public class CompilationClassBackupService {
     }
 
     public void maybeBackupClassFile(String classFqName) {
-        if (classBackupDir != null && undeletedClasses.contains(classFqName)) {
-            String classFilePath = classFqName.replace(".", "/").concat(".class");
-            maybeBackupFile(classFqName, destinationDir, classFilePath, ".class");
-            if (headerOutputDir != null) {
-                String headerFilePath = classFqName.replaceAll("[.$]", "_").concat(".h");
-                maybeBackupFile(classFqName, headerOutputDir, headerFilePath, ".h");
-            }
-        }
+//        if (classBackupDir != null && undeletedClasses.contains(classFqName)) {
+//            String classFilePath = classFqName.replace(".", "/").concat(".class");
+//            maybeBackupFile(classFqName, destinationDir, classFilePath, ".class");
+//            if (headerOutputDir != null) {
+//                String headerFilePath = classFqName.replaceAll("[.$]", "_").concat(".h");
+//                maybeBackupFile(classFqName, headerOutputDir, headerFilePath, ".h");
+//            }
+//        }
     }
 
     private void maybeBackupFile(String classFqName, File destinationDir, String relativePath, String suffix) {
