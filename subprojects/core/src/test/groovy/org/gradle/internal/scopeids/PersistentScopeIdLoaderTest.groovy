@@ -17,22 +17,22 @@
 package org.gradle.internal.scopeids
 
 import org.gradle.cache.PersistentStateCache
-import org.gradle.cache.scopes.BuildTreeScopedCache
-import org.gradle.cache.scopes.GlobalScopedCache
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.Factory
 import org.gradle.internal.id.UniqueId
 import spock.lang.Specification
 
 class PersistentScopeIdLoaderTest extends Specification {
     def projectCacheDirDir = Mock(File)
-    def globalScopedCache = Mock(GlobalScopedCache)
-    def buildTreeScopedCache = Mock(BuildTreeScopedCache)
+    def globalScopedCacheBuilderFactory = Mock(GlobalScopedCacheBuilderFactory)
+    def buildTreeScopedCacheBuilderFactory = Mock(BuildTreeScopedCacheBuilderFactory)
     def storeFile = Mock(File)
     def storeFactory = Mock(PersistentScopeIdStoreFactory)
     def idFactory = Mock(Factory) as Factory<UniqueId>
     def store = Mock(PersistentStateCache)
 
-    def loader = new DefaultPersistentScopeIdLoader(globalScopedCache, buildTreeScopedCache, storeFactory, idFactory)
+    def loader = new DefaultPersistentScopeIdLoader(globalScopedCacheBuilderFactory, buildTreeScopedCacheBuilderFactory, storeFactory, idFactory)
 
     def "generates user ID in expected location"() {
         given:
@@ -42,7 +42,7 @@ class PersistentScopeIdLoaderTest extends Specification {
         def id = loader.user.id
 
         then:
-        1 * globalScopedCache.baseDirForCrossVersionCache("user-id.txt") >> storeFile
+        1 * globalScopedCacheBuilderFactory.baseDirForCrossVersionCache("user-id.txt") >> storeFile
 
         and:
         1 * storeFactory.create(storeFile, _) >> store
@@ -67,7 +67,7 @@ class PersistentScopeIdLoaderTest extends Specification {
         def id = loader.workspace.id
 
         then:
-        1 * buildTreeScopedCache.baseDirForCrossVersionCache("workspace-id.txt") >> storeFile
+        1 * buildTreeScopedCacheBuilderFactory.baseDirForCrossVersionCache("workspace-id.txt") >> storeFile
 
         and:
         1 * storeFactory.create(storeFile, _) >> store
@@ -92,7 +92,7 @@ class PersistentScopeIdLoaderTest extends Specification {
         def id = loader.workspace.id
 
         then:
-        1 * buildTreeScopedCache.baseDirForCrossVersionCache("workspace-id.txt") >> storeFile
+        1 * buildTreeScopedCacheBuilderFactory.baseDirForCrossVersionCache("workspace-id.txt") >> storeFile
 
         and:
         1 * storeFactory.create(storeFile, _) >> store

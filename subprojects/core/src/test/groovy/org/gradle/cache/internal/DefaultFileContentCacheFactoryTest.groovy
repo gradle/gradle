@@ -22,7 +22,7 @@ import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CrossProcessCacheAccess
 import org.gradle.cache.MultiProcessSafePersistentIndexedCache
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
-import org.gradle.cache.internal.scopes.DefaultGlobalScopedCache
+import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.hash.HashCode
@@ -48,7 +48,7 @@ class DefaultFileContentCacheFactoryTest extends Specification {
     def cachesDir = tmpDir.file("caches")
     def cacheScopeMapping = new DefaultCacheScopeMapping(cachesDir, GradleVersion.current())
     def cacheRepository = new DefaultCacheRepository(cacheScopeMapping, new TestInMemoryCacheFactory())
-    def globalScopedCache = new DefaultGlobalScopedCache(cachesDir, cacheRepository)
+    def globalScopedCache = new DefaultGlobalScopedCacheBuilderFactory(cachesDir, cacheRepository)
     def inMemoryTaskArtifactCache = new DefaultInMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()) {
         @Override
         CacheDecorator decorator(int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {

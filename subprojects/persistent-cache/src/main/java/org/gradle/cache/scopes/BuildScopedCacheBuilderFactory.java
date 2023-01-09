@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.cache.internal.scopes;
+package org.gradle.cache.scopes;
 
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.scopes.BuildTreeScopedCache;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.io.File;
-
-public class DefaultBuildTreeScopedCache extends AbstractScopedCache implements BuildTreeScopedCache {
-    public DefaultBuildTreeScopedCache(File rootDir, CacheRepository cacheRepository) {
-        super(rootDir, cacheRepository);
-    }
+/**
+ * Factory for creating build scoped {@link org.gradle.cache.CacheBuilder}s. These typically live under the ~/.gradle directory of the build.
+ */
+@ServiceScope(Scopes.Build.class)
+public interface BuildScopedCacheBuilderFactory extends ScopedCacheBuilderFactory {
 }

@@ -15,9 +15,9 @@
  */
 package org.gradle.cache;
 
-import org.gradle.cache.scopes.BuildScopedCache;
-import org.gradle.cache.scopes.BuildTreeScopedCache;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -27,9 +27,9 @@ import java.io.File;
  * A repository of persistent caches. A cache is a store of persistent data backed by a directory.
  *
  * This is migrating to become an internal type for the caching infrastructure. Please use
- * {@link GlobalScopedCache}
- * or {@link BuildTreeScopedCache}
- * or {@link BuildScopedCache} instead.
+ * {@link GlobalScopedCacheBuilderFactory}
+ * or {@link BuildTreeScopedCacheBuilderFactory}
+ * or {@link BuildScopedCacheBuilderFactory} instead.
  */
 @ServiceScope(Scopes.UserHome.class)
 public interface CacheRepository {

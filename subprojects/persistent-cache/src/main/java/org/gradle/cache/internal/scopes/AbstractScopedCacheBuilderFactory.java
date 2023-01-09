@@ -20,17 +20,20 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
-import org.gradle.cache.scopes.ScopedCache;
+import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
 
-public abstract class AbstractScopedCache implements ScopedCache {
+/**
+ * Abstract implementation of {@link ScopedCacheBuilderFactory}, implements interface using {@link CacheScopeMapping}.
+ */
+public abstract class AbstractScopedCacheBuilderFactory implements ScopedCacheBuilderFactory {
     private final CacheScopeMapping cacheScopeMapping;
     private final CacheRepository cacheRepository;
     private final File rootDir;
 
-    public AbstractScopedCache(File rootDir, CacheRepository cacheRepository) {
+    public AbstractScopedCacheBuilderFactory(File rootDir, CacheRepository cacheRepository) {
         this.rootDir = rootDir;
         this.cacheScopeMapping = new DefaultCacheScopeMapping(rootDir, GradleVersion.current());
         this.cacheRepository = cacheRepository;
@@ -46,12 +49,12 @@ public abstract class AbstractScopedCache implements ScopedCache {
     }
 
     @Override
-    public CacheBuilder cache(String key) {
+    public CacheBuilder createCacheBuilder(String key) {
         return cacheRepository.cache(baseDirForCache(key));
     }
 
     @Override
-    public CacheBuilder crossVersionCache(String key) {
+    public CacheBuilder createCrossVersionCacheBuilder(String key) {
         return cacheRepository.cache(baseDirForCrossVersionCache(key));
     }
 

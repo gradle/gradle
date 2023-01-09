@@ -20,33 +20,36 @@ import org.gradle.cache.CacheBuilder;
 
 import java.io.File;
 
-public interface ScopedCache {
+/**
+ * A factory for creating {@link CacheBuilder}s that are scoped to a particular context.
+ */
+public interface ScopedCacheBuilderFactory {
     /**
-     * Creates a Gradle-version specific cache in this scope. See {@link org.gradle.cache.CacheRepository#cache(String)}.
+     * Creates a builder for Gradle-version specific caches in this scope. See {@link org.gradle.cache.CacheRepository#cache(String)}.
      *
      * @param key A unique name for the cache.
      */
-    CacheBuilder cache(String key);
+    CacheBuilder createCacheBuilder(String key);
 
     /**
-     * Creates a cross Gradle version cache in this scope. See {@link org.gradle.cache.CacheRepository#cache(String)}.
+     * Creates a builder for cross Gradle version caches in this scope. See {@link org.gradle.cache.CacheRepository#cache(String)}.
      *
      * @param key A unique name for the cache.
      */
-    CacheBuilder crossVersionCache(String key);
+    CacheBuilder createCrossVersionCacheBuilder(String key);
 
     /**
-     * Returns the root directory of this cache. You should avoid using this method and instead use one of the other methods.
+     * Returns the root directory of this cache builder factory. You should avoid using this method and instead use one of the other methods.
      */
     File getRootDir();
 
     /**
-     * Returns the base directory that would be used for a Gradle-version specific cache of this scope.
+     * Returns the base directory that would be used for a Gradle-version specific cache builder created by this factory.
      */
     File baseDirForCache(String key);
 
     /**
-     * Returns the base directory that would be used for a cross Gradle version specific cache of this scope.
+     * Returns the base directory that would be used for a cross Gradle version cache builder created by this factory.
      */
     File baseDirForCrossVersionCache(String key);
 }

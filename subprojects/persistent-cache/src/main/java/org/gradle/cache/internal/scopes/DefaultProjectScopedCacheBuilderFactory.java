@@ -17,15 +17,15 @@
 package org.gradle.cache.internal.scopes;
 
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.scopes.ProjectScopedCache;
+import org.gradle.cache.scopes.ProjectScopedCacheBuilderFactory;
 
 import java.io.File;
 
 /**
- * Default implementation of {@link ProjectScopedCache}, implements interface using {@link AbstractScopedCache}.
+ * Default implementation of {@link ProjectScopedCacheBuilderFactory}, implements interface using {@link AbstractScopedCacheBuilderFactory}.
  */
-public class DefaultProjectScopedCache extends AbstractScopedCache implements ProjectScopedCache {
-    public DefaultProjectScopedCache(File rootDir, CacheRepository cacheRepository) {
+public class DefaultProjectScopedCacheBuilderFactory extends AbstractScopedCacheBuilderFactory implements ProjectScopedCacheBuilderFactory {
+    public DefaultProjectScopedCacheBuilderFactory(File rootDir, CacheRepository cacheRepository) {
         super(rootDir, cacheRepository);
     }
 }
