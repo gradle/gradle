@@ -74,7 +74,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
     private static abstract class IncrementalCompilationCustomizer extends CompilationCustomizer {
         static IncrementalCompilationCustomizer fromSpec(GroovyJavaJointCompileSpec spec, ApiCompilerResult result) {
             if (spec.incrementalCompilationEnabled()) {
-                return new TrackingClassGenerationCompilationCustomizer(new CompilationSourceDirs(spec), result, new CompilationClassBackupService(spec, result));
+                return new TrackingClassGenerationCompilationCustomizer(new CompilationSourceDirs(spec), result, new CompilationClassBackupService(spec, null, result));
             } else {
                 return new NoOpCompilationCustomizer();
             }

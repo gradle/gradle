@@ -63,9 +63,14 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
 
     Set<String> getClasses();
 
-    void setUndeletedClasses(Set<String> classes);
+    void setClassesToRecompile(Set<String> classes);
 
-    Set<String> getUndeletedClasses();
+
+    Set<String> getClassesToRecompile();
+
+    void setUndeletedClasses(File value);
+
+    File getUndeletedClasses();
 
     List<File> getModulePath();
 

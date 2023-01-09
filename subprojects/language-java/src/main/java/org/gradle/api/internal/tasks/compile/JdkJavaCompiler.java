@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
@@ -30,8 +31,11 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
+import javax.tools.StandardLocation;
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -84,7 +88,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
                 result.getSourceClassesMapping(),
                 result.getConstantsAnalysisResult(),
                 new CompilationSourceDirs(spec),
-                new CompilationClassBackupService(spec, result)
+                new CompilationClassBackupService(spec, fileManager, result)
             );
         }
         Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();

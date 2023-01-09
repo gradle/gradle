@@ -36,9 +36,10 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     private Set<String> classes;
     private List<File> modulePath;
     private List<File> sourceRoots;
-    private Set<String> undeletedClasses = Collections.emptySet();
+    private File undeletedClasses;
     private File backupDestinationDir;
     private JavaClassCompileOrder javacCompilerOrder = JavaClassCompileOrder.UNORDERED;
+    private Set<String> classesToRecompile = Collections.emptySet();
 
     @Override
     public MinimalJavaCompileOptions getCompileOptions() {
@@ -96,12 +97,22 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     }
 
     @Override
-    public void setUndeletedClasses(Set<String> classes) {
+    public void setClassesToRecompile(Set<String> classes) {
+        this.classesToRecompile = classes;
+    }
+
+    @Override
+    public Set<String> getClassesToRecompile() {
+        return classesToRecompile;
+    }
+
+    @Override
+    public void setUndeletedClasses(File classes) {
         this.undeletedClasses = classes;
     }
 
     @Override
-    public Set<String> getUndeletedClasses() {
+    public File getUndeletedClasses() {
         return undeletedClasses;
     }
 

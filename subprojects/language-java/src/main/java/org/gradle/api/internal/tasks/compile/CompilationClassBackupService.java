@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import javax.tools.JavaFileManager;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -41,14 +42,14 @@ import java.util.Set;
  */
 public class CompilationClassBackupService {
 
-    private final Set<String> undeletedClasses;
+    private final Set<String> classesToRecompile;
     private final File destinationDir;
     private final File headerOutputDir;
     private final File classBackupDir;
     private final ApiCompilerResult result;
 
-    public CompilationClassBackupService(JavaCompileSpec spec, ApiCompilerResult result) {
-        this.undeletedClasses = spec.getUndeletedClasses();
+    public CompilationClassBackupService(JavaCompileSpec spec, JavaFileManager fileManager, ApiCompilerResult result) {
+        this.classesToRecompile = spec.getClassesToRecompile();
         this.destinationDir = spec.getDestinationDir();
         this.headerOutputDir = spec.getCompileOptions().getHeaderOutputDirectory();
         this.classBackupDir = spec.getClassBackupDir();
@@ -56,7 +57,7 @@ public class CompilationClassBackupService {
     }
 
     public void maybeBackupClassFile(String classFqName) {
-        if (classBackupDir != null && undeletedClasses.contains(classFqName)) {
+        if (classBackupDir != null && !classesToRecompile.contains(classFqName)) {
             String classFilePath = classFqName.replace(".", "/").concat(".class");
             maybeBackupFile(classFqName, destinationDir, classFilePath, ".class");
             if (headerOutputDir != null) {

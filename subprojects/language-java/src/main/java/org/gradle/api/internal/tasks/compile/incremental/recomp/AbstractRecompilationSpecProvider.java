@@ -30,6 +30,9 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.work.FileChange;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,7 +43,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 abstract class AbstractRecompilationSpecProvider implements RecompilationSpecProvider {
 
@@ -78,7 +80,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         processSourceChanges(current, sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
         processCompilerSpecificDependencies(spec, recompilationSpec, sourceFileChangeProcessor, sourceFileClassNameConverter);
         collectAllSourcePathsAndIndependentClasses(sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
-        recompilationSpec.setAllClasses(previous.getAllClasses());
+//        recompilationSpec.setAllClasses(previous.getAllClasses());
 
         Set<String> typesToReprocess = previous.getTypesToReprocess(recompilationSpec.getClassesToCompile());
         processTypesToReprocess(typesToReprocess, recompilationSpec, sourceFileClassNameConverter);
@@ -264,21 +266,25 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         Set<String> classesToProcess = new HashSet<>(recompilationSpec.getClassesToProcess());
         classesToProcess.removeAll(recompilationSpec.getClassesToCompile());
         spec.setClasses(classesToProcess);
+        spec.setClassesToRecompile(recompilationSpec.getClassesToCompile());
     }
 
     private static void addAllUndeletedClasses(JavaCompileSpec spec, RecompilationSpec recompilationSpec) {
-        Set<String> undeletedClasses = new HashSet<>(recompilationSpec.getAllClasses());
-        undeletedClasses.removeAll(recompilationSpec.getClassesToCompile());
-        undeletedClasses = undeletedClasses.stream()
-                .map(it -> {
-                    int lastIndex = it.lastIndexOf(".");
-                    if (lastIndex < 0) {
-                        return it;
-                    } else {
-                        return it.substring(lastIndex + 1);
-                    }
-                }).collect(Collectors.toSet());
-//        spec.setUndeletedClasses(undeletedClasses);
+//        Set<String> undeletedClasses = new HashSet<>(recompilationSpec.getAllClasses());
+//        undeletedClasses.removeAll(recompilationSpec.getClassesToCompile());
+//        File ct = new File(spec.getTempDir(), "compileTransaction2");
+//        ct.mkdirs();
+//        File uct = new File(ct, "undeleted-classes.txt");
+//        try {
+//            if (uct.exists()) {
+//                uct.delete();
+//            }
+//            uct.createNewFile();
+//            Files.write(uct.toPath(), undeletedClasses, StandardOpenOption.WRITE);
+//            spec.setUndeletedClasses(uct);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     private static void includePreviousCompilationOutputOnClasspath(JavaCompileSpec spec) {
