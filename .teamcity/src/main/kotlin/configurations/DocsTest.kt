@@ -4,19 +4,58 @@ import common.JvmCategory
 import common.Os
 import common.applyDefaultSettings
 import common.toCapitalized
+import configurations.TestSplitType.EXCLUDE
+import configurations.TestSplitType.INCLUDE
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import model.CIBuildModel
 import model.Stage
-import model.TestSplitType
-import model.TestSplitType.EXCLUDE
-import model.TestSplitType.INCLUDE
-import model.prepareTestClassesStep
+
+enum class TestSplitType(val action: String) {
+    INCLUDE("include"), EXCLUDE("exclude")
+}
+
+fun prepareTestClassesStep(os: Os, type: TestSplitType, testClasses: List<String>): BuildSteps.() -> Unit {
+    val action = type.action
+    val unixScript = """
+mkdir -p test-splits
+rm -rf test-splits/*-test-classes.properties
+cat > test-splits/$action-test-classes.properties << EOL
+${testClasses.joinToString("\n")}
+EOL
+echo "Tests to be ${action}d in this build"
+cat test-splits/$action-test-classes.properties
+"""
+
+    val linesWithEcho = testClasses.joinToString("\n") { "echo $it" }
+
+    val windowsScript = """
+mkdir test-splits
+del /f /q test-splits\include-test-classes.properties
+del /f /q test-splits\exclude-test-classes.properties
+(
+$linesWithEcho
+) > test-splits\$action-test-classes.properties
+echo "Tests to be ${action}d in this build"
+type test-splits\$action-test-classes.properties
+"""
+
+    return {
+        script {
+            name = "PREPARE_TEST_CLASSES"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            scriptContent = if (os == Os.WINDOWS) windowsScript else unixScript
+        }
+    }
+}
 
 class DocsTestProject(
     model: CIBuildModel,
     stage: Stage,
-    os: Os,
-    testJava: JvmCategory,
+    val os: Os,
+    val testJava: JvmCategory,
     testTypes: List<DocsTestType>
 ) : Project({
     id("${model.projectId}_DocsTest_${testJava.version.name.toCapitalized()}_${os.asName()}")
@@ -46,7 +85,7 @@ class DocsTestProject(
 }
 
 class DocsTestTrigger(model: CIBuildModel, docsTestProject: DocsTestProject) : BaseGradleBuildType(init = {
-    id("${docsTestProject.id}_Trigger")
+    id("${model.projectId}_DocsTest_${docsTestProject.testJava.version.name.toCapitalized()}_${docsTestProject.os.asName()}_Trigger")
     name = docsTestProject.name + " (Trigger)"
     type = Type.COMPOSITE
 

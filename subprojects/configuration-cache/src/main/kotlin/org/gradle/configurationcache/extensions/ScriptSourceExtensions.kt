@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.component;
 
-public interface MavenPublishingAwareContext extends UsageContext {
-    ScopeMapping getScopeMapping();
+package org.gradle.configurationcache.extensions
 
-    // Order is important!
-    enum ScopeMapping {
-        compile,
-        runtime,
-        compile_optional,
-        runtime_optional;
+import org.gradle.groovy.scripts.ScriptSource
+import java.net.URI
 
-        public static ScopeMapping of(String scope, boolean optional) {
-            if (optional) {
-                scope += "_optional";
-            }
-            return ScopeMapping.valueOf(scope);
-        }
-    }
-}
+
+/**
+ * Same as `resource.location.uri`.
+ */
+internal
+val ScriptSource.uri: URI?
+    get() = resource.location.uri

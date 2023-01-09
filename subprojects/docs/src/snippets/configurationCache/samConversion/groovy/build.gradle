@@ -26,6 +26,6 @@ repositories {
 
 // tag::configure[]
 tasks.withType(KotlinCompile).configureEach {
-    kotlinOptions.freeCompilerArgs += "-Xsam-conversions=class"
+    compilerOptions.freeCompilerArgs.add("-Xsam-conversions=class")
 }
 // tag::configure[]

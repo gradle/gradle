@@ -34,8 +34,8 @@ kotlin.sourceSets.all {
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    kotlinOptions.apply {
-        freeCompilerArgs += listOf(
+    compilerOptions {
+        freeCompilerArgs.addAll(
             "-opt-in=kotlin.contracts.ExperimentalContracts",
         )
     }
@@ -66,6 +66,7 @@ dependencies {
     implementation(project(":process-services"))
     implementation(project(":publish"))
     implementation(project(":resources"))
+    implementation(project(":resources-http"))
     implementation(project(":snapshots"))
 
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure

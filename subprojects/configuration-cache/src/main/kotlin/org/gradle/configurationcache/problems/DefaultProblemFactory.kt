@@ -78,7 +78,7 @@ class DefaultProblemFactory(
     private
     fun locationForCaller(exception: Throwable?): PropertyTrace {
         if (exception != null) {
-            val location = locationAnalyzer.locationForUsage(exception.stackTrace.toList())
+            val location = locationAnalyzer.locationForUsage(exception.stackTrace.toList(), false)
             if (location != null) {
                 return PropertyTrace.BuildLogic(location.sourceShortDisplayName, location.lineNumber)
             }

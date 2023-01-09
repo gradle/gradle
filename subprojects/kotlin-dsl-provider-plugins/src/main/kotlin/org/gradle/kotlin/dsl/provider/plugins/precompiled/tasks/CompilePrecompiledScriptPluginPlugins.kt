@@ -107,6 +107,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
         }
     }
 
+    @Suppress("DEPRECATION")
     private
     fun resolveJvmTarget(): JavaVersion =
         if (jvmTarget.isPresent) jvmTarget.get()
