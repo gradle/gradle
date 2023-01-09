@@ -76,6 +76,7 @@ public abstract class AbstractTransformedArtifactSet implements ResolvedArtifact
         // Calculate the artifacts now
         result.finalizeIfNotAlready();
         for (Artifacts artifacts : result.get()) {
+            artifacts.prepareForVisitingIfNotAlready();
             visitor.visitArtifacts(artifacts);
         }
         // Need to fire an "end collection" event. Should clean this up so it is not necessary

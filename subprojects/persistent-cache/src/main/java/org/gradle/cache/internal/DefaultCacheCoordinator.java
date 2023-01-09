@@ -68,7 +68,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
     private final String cacheDisplayName;
     private final File baseDir;
-    private final CacheCleanupAction cleanupAction;
+    private final CacheCleanupExecutor cleanupAction;
     private final ExecutorFactory executorFactory;
     private final FileAccess fileAccess;
     private final Map<String, IndexedCacheEntry<?, ?>> caches = new HashMap<String, IndexedCacheEntry<?, ?>>();
@@ -88,7 +88,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
     private int cacheClosedCount;
     private boolean alreadyCleaned;
 
-    public DefaultCacheCoordinator(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupAction cleanupAction, ExecutorFactory executorFactory) {
+    public DefaultCacheCoordinator(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupExecutor cleanupAction, ExecutorFactory executorFactory) {
         this.cacheDisplayName = cacheDisplayName;
         this.baseDir = baseDir;
         this.cleanupAction = cleanupAction;
@@ -147,7 +147,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
     @Override
     public void cleanup() {
-        if (cleanupAction != null && cleanupAction.requiresCleanup()) {
+        if (cleanupAction != null) {
             if (exclusiveCacheAccessingWorker != null) {
                 exclusiveCacheAccessingWorker.flush();
             }
@@ -185,7 +185,7 @@ public class DefaultCacheCoordinator implements CacheCreationCoordinator, Exclus
 
                 // If cleanup is required, but has not already been invoked (e.g. at the end of the build session)
                 // perform cleanup on close.
-                if (cleanupAction != null && cleanupAction.requiresCleanup() && !alreadyCleaned) {
+                if (cleanupAction != null && !alreadyCleaned) {
                     doCleanup();
                 }
 

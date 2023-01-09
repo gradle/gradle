@@ -16,7 +16,7 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.api.Transformer;
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.UncheckedException;
 
 import java.io.IOException;
@@ -24,7 +24,7 @@ import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
 public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
-    private Transformer<Object, Object> objectTransformer = new Transformer<Object, Object>() {
+    private InternalTransformer<Object, Object> objectTransformer = new InternalTransformer<Object, Object>() {
         @Override
         public Object transform(Object obj) {
             try {
@@ -40,8 +40,8 @@ public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
         enableReplaceObject(true);
     }
 
-    public final Transformer<ExceptionReplacingObjectOutputStream, OutputStream> getObjectOutputStreamCreator() {
-        return new Transformer<ExceptionReplacingObjectOutputStream, OutputStream>() {
+    public final InternalTransformer<ExceptionReplacingObjectOutputStream, OutputStream> getObjectOutputStreamCreator() {
+        return new InternalTransformer<ExceptionReplacingObjectOutputStream, OutputStream>() {
             @Override
             public ExceptionReplacingObjectOutputStream transform(OutputStream outputStream) {
                 try {
@@ -69,11 +69,11 @@ public class ExceptionReplacingObjectOutputStream extends ObjectOutputStream {
         return obj;
     }
 
-    public Transformer<Object, Object> getObjectTransformer() {
+    public InternalTransformer<Object, Object> getObjectTransformer() {
         return objectTransformer;
     }
 
-    public void setObjectTransformer(Transformer<Object, Object> objectTransformer) {
+    public void setObjectTransformer(InternalTransformer<Object, Object> objectTransformer) {
         this.objectTransformer = objectTransformer;
     }
 }

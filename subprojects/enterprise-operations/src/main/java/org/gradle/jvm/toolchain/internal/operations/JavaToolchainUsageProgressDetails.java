@@ -34,6 +34,7 @@ public interface JavaToolchainUsageProgressDetails {
      */
     JavaToolchain getToolchain();
 
+    @SuppressWarnings("unused")
     interface JavaToolchain {
 
         /**

@@ -183,44 +183,45 @@ public abstract class InitBuild extends DefaultTask {
         UserInputHandler inputHandler = getServices().get(UserInputHandler.class);
         ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
 
-        BuildInitializer initDescriptor = null;
-        if (isNullOrEmpty(type)) {
-            BuildConverter converter = projectLayoutRegistry.getBuildConverter();
-            if (converter.canApplyToCurrentDirectory(projectDir)) {
-                if (inputHandler.askYesNoQuestion("Found a " + converter.getSourceBuildDescription() + " build. Generate a Gradle build from this?", true)) {
-                    initDescriptor = converter;
-                }
-            }
-            if (initDescriptor == null) {
-                ComponentType componentType = inputHandler.selectOption("Select type of project to generate", projectLayoutRegistry.getComponentTypes(), projectLayoutRegistry.getDefault().getComponentType());
-                List<Language> languages = projectLayoutRegistry.getLanguagesFor(componentType);
-                if (languages.size() == 1) {
-                    initDescriptor = projectLayoutRegistry.get(componentType, languages.get(0));
-                } else {
-                    if (!languages.contains(Language.JAVA)) {
-                        // Not yet implemented
-                        throw new UnsupportedOperationException();
-                    }
-                    Language language = inputHandler.selectOption("Select implementation language", languages, Language.JAVA);
-                    initDescriptor = projectLayoutRegistry.get(componentType, language);
-                }
-            }
-        } else {
-            initDescriptor = projectLayoutRegistry.get(type);
-        }
+        BuildInitializer initDescriptor = getBuildInitializer(inputHandler, projectLayoutRegistry);
 
-        ModularizationOption modularizationOption;
-        if (splitProject.isPresent()) {
-            modularizationOption = splitProject.get() ? ModularizationOption.WITH_LIBRARY_PROJECTS : ModularizationOption.SINGLE_PROJECT;
-        } else if (initDescriptor.getModularizationOptions().size() == 1) {
-            modularizationOption = initDescriptor.getModularizationOptions().iterator().next();
-        } else if (!isNullOrEmpty(type)) {
-            modularizationOption = ModularizationOption.SINGLE_PROJECT;
-        } else {
-            modularizationOption = inputHandler.selectOption("Split functionality across multiple subprojects?",
-                initDescriptor.getModularizationOptions(), ModularizationOption.SINGLE_PROJECT);
-        }
+        ModularizationOption modularizationOption = getModularizationOption(inputHandler, initDescriptor);
 
+        BuildInitDsl dsl = getBuildInitDsl(inputHandler, initDescriptor);
+
+        boolean useIncubatingAPIs = shouldUseIncubatingAPIs(inputHandler);
+
+        BuildInitTestFramework testFramework = getBuildInitTestFramework(inputHandler, initDescriptor, modularizationOption);
+
+        String projectName = getProjectName(inputHandler, initDescriptor);
+
+        String packageName = getPackageName(inputHandler, initDescriptor, projectName);
+
+        validatePackageName(packageName);
+
+        List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
+        InitSettings settings = new InitSettings(
+            projectName,
+            useIncubatingAPIs,
+            subprojectNames,
+            modularizationOption,
+            dsl,
+            packageName,
+            testFramework,
+            insecureProtocol.get(),
+            projectDir);
+        initDescriptor.generate(settings);
+
+        initDescriptor.getFurtherReading(settings).ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
+    }
+
+    private static void validatePackageName(String packageName) {
+        if (!isNullOrEmpty(packageName) && !SourceVersion.isName(packageName)) {
+            throw new GradleException("Package name: '" + packageName + "' is not valid - it may contain invalid characters or reserved words.");
+        }
+    }
+
+    private BuildInitDsl getBuildInitDsl(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
         BuildInitDsl dsl;
         if (isNullOrEmpty(this.dsl)) {
             dsl = initDescriptor.getDefaultDsl();
@@ -233,72 +234,110 @@ public abstract class InitBuild extends DefaultTask {
                 throw new GradleException("The requested DSL '" + getDsl() + "' is not supported for '" + initDescriptor.getId() + "' build type");
             }
         }
+        return dsl;
+    }
 
-        boolean useIncubatingAPIs;
-        if (this.useIncubatingAPIs.isPresent()) {
-            useIncubatingAPIs = this.useIncubatingAPIs.get();
-        } else {
-            useIncubatingAPIs = inputHandler.askYesNoQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false);
+    private ModularizationOption getModularizationOption(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
+        if (splitProject.isPresent()) {
+            return splitProject.get() ? ModularizationOption.WITH_LIBRARY_PROJECTS : ModularizationOption.SINGLE_PROJECT;
         }
+        if (initDescriptor.getModularizationOptions().size() == 1) {
+            return initDescriptor.getModularizationOptions().iterator().next();
+        }
+        if (!isNullOrEmpty(type)) {
+            return ModularizationOption.SINGLE_PROJECT;
+        }
+        return inputHandler.selectOption("Split functionality across multiple subprojects?", initDescriptor.getModularizationOptions(), ModularizationOption.SINGLE_PROJECT);
+    }
 
-        BuildInitTestFramework testFramework = null;
+    private boolean shouldUseIncubatingAPIs(UserInputHandler inputHandler) {
+        if (this.useIncubatingAPIs.isPresent()) {
+            return this.useIncubatingAPIs.get();
+        }
+        return inputHandler.askYesNoQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false);
+    }
+
+    private BuildInitTestFramework getBuildInitTestFramework(UserInputHandler inputHandler, BuildInitializer initDescriptor, ModularizationOption modularizationOption) {
         if (modularizationOption == ModularizationOption.WITH_LIBRARY_PROJECTS) {
             // currently we only support JUnit5 tests for this combination
-            testFramework = BuildInitTestFramework.JUNIT_JUPITER;
-        } else if (isNullOrEmpty(this.testFramework)) {
-            testFramework = initDescriptor.getDefaultTestFramework();
-            if (initDescriptor.getTestFrameworks().size() > 1) {
-                testFramework = inputHandler.selectOption("Select test framework", initDescriptor.getTestFrameworks(), testFramework);
-            }
-        } else {
-            for (BuildInitTestFramework candidate : initDescriptor.getTestFrameworks()) {
-                if (this.testFramework.equals(candidate.getId())) {
-                    testFramework = candidate;
-                    break;
-                }
-            }
-            if (testFramework == null) {
-                TreeFormatter formatter = new TreeFormatter();
-                formatter.node("The requested test framework '" + getTestFramework() + "' is not supported for '" + initDescriptor.getId() + "' build type. Supported frameworks");
-                formatter.startChildren();
-                for (BuildInitTestFramework framework : initDescriptor.getTestFrameworks()) {
-                    formatter.node("'" + framework.getId() + "'");
-                }
-                formatter.endChildren();
-                throw new GradleException(formatter.toString());
-            }
+            return BuildInitTestFramework.JUNIT_JUPITER;
         }
 
+        if (!isNullOrEmpty(this.testFramework)) {
+            return initDescriptor.getTestFrameworks().stream()
+                .filter(candidate -> this.testFramework.equals(candidate.getId()))
+                .findFirst()
+                .orElseThrow(() -> createNotSupportedTestFrameWorkException(initDescriptor));
+        }
+
+        BuildInitTestFramework testFramework = initDescriptor.getDefaultTestFramework();
+        if (initDescriptor.getTestFrameworks().size() > 1) {
+            return inputHandler.selectOption("Select test framework", initDescriptor.getTestFrameworks(), testFramework);
+        }
+        return testFramework;
+    }
+
+    private GradleException createNotSupportedTestFrameWorkException(BuildInitializer initDescriptor) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("The requested test framework '" + getTestFramework() + "' is not supported for '" + initDescriptor.getId() + "' build type. Supported frameworks");
+        formatter.startChildren();
+        for (BuildInitTestFramework framework : initDescriptor.getTestFrameworks()) {
+            formatter.node("'" + framework.getId() + "'");
+        }
+        formatter.endChildren();
+        return new GradleException(formatter.toString());
+    }
+
+    String getProjectName(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
         String projectName = this.projectName;
         if (initDescriptor.supportsProjectName()) {
             if (isNullOrEmpty(projectName)) {
-                projectName = inputHandler.askQuestion("Project name", getProjectName());
+                return inputHandler.askQuestion("Project name", getProjectName());
             }
         } else if (!isNullOrEmpty(projectName)) {
             throw new GradleException("Project name is not supported for '" + initDescriptor.getId() + "' build type.");
         }
+        return projectName;
+    }
 
+    String getPackageName(UserInputHandler inputHandler, BuildInitializer initDescriptor, String projectName) {
         String packageName = this.packageName;
         if (initDescriptor.supportsPackage()) {
             if (isNullOrEmpty(packageName)) {
-                packageName = inputHandler.askQuestion("Source package", toPackageName(projectName).toLowerCase(Locale.US));
+                return inputHandler.askQuestion("Source package", toPackageName(projectName).toLowerCase(Locale.US));
             }
         } else if (!isNullOrEmpty(packageName)) {
             throw new GradleException("Package name is not supported for '" + initDescriptor.getId() + "' build type.");
         }
+        return packageName;
+    }
 
-        if (!isNullOrEmpty(packageName)) {
-            if (!SourceVersion.isName(packageName)) {
-                throw new GradleException("Package name: '" + packageName + "' is not valid - it may contain invalid characters or reserved words.");
-            }
+    private BuildInitializer getBuildInitializer(UserInputHandler inputHandler, ProjectLayoutSetupRegistry projectLayoutRegistry) {
+        if (!isNullOrEmpty(type)) {
+            return projectLayoutRegistry.get(type);
         }
 
-        List<String> subprojectNames = initDescriptor.getComponentType().getDefaultProjectNames();
-        InitSettings settings = new InitSettings(projectName, useIncubatingAPIs, subprojectNames,
-            modularizationOption, dsl, packageName, testFramework, insecureProtocol.get(), projectDir);
-        initDescriptor.generate(settings);
+        BuildConverter converter = projectLayoutRegistry.getBuildConverter();
+        if (converter.canApplyToCurrentDirectory(projectDir)) {
+            if (inputHandler.askYesNoQuestion("Found a " + converter.getSourceBuildDescription() + " build. Generate a Gradle build from this?", true)) {
+                return converter;
+            }
+        }
+        return selectTypeOfProject(inputHandler, projectLayoutRegistry);
+    }
 
-        initDescriptor.getFurtherReading(settings).ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
+    private static BuildInitializer selectTypeOfProject(UserInputHandler inputHandler, ProjectLayoutSetupRegistry projectLayoutRegistry) {
+        ComponentType componentType = inputHandler.selectOption("Select type of project to generate", projectLayoutRegistry.getComponentTypes(), projectLayoutRegistry.getDefault().getComponentType());
+        List<Language> languages = projectLayoutRegistry.getLanguagesFor(componentType);
+        if (languages.size() == 1) {
+            return projectLayoutRegistry.get(componentType, languages.get(0));
+        }
+        if (!languages.contains(Language.JAVA)) {
+            // Not yet implemented
+            throw new UnsupportedOperationException();
+        }
+        Language language = inputHandler.selectOption("Select implementation language", languages, Language.JAVA);
+        return projectLayoutRegistry.get(componentType, language);
     }
 
     @Option(option = "type", description = "Set the type of project to generate.")

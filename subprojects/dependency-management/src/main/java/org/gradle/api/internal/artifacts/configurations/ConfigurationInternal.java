@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
@@ -27,6 +28,7 @@ import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenci
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.FinalizableValue;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.util.Path;
 
@@ -36,7 +38,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public interface ConfigurationInternal extends ResolveContext, Configuration, DeprecatableConfiguration, DependencyMetaDataProvider {
+public interface ConfigurationInternal extends ResolveContext, Configuration, DeprecatableConfiguration, DependencyMetaDataProvider, FinalizableValue {
     enum InternalState {
         UNRESOLVED,
         BUILD_DEPENDENCIES_RESOLVED,
@@ -88,7 +90,15 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     boolean isCanBeMutated();
 
-    void preventFromFurtherMutation();
+    /**
+     * Locks the configuration for mutation
+     * <p>
+     * Any invalid state at this point will be added to the returned list of exceptions.
+     * Handling these becomes the responsibility of the caller.
+     *
+     * @return a list of validation failures when not empty
+     */
+    List<? extends GradleException> preventFromFurtherMutationLenient();
 
     /**
      * Reports whether this configuration uses {@link org.gradle.api.Incubating Incubating} attributes types, such as {@link org.gradle.api.attributes.Category#VERIFICATION}.

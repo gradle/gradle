@@ -31,6 +31,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resource.ExternalResourceRepository;
+import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.security.internal.EmptyPublicKeyService;
@@ -65,15 +66,18 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
     private final BuildScopedCacheBuilderFactory buildScopedCache;
     private final BuildCommencedTimeProvider timeProvider;
     private final boolean refreshKeys;
+    private final FileResourceListener fileResourceListener;
 
-    public DefaultSignatureVerificationServiceFactory(RepositoryTransportFactory transportFactory,
-                                                      GlobalScopedCacheBuilderFactory cacheRepository,
-                                                      InMemoryCacheDecoratorFactory decoratorFactory,
-                                                      BuildOperationExecutor buildOperationExecutor,
-                                                      FileHasher fileHasher,
-                                                      BuildScopedCacheBuilderFactory buildScopedCache,
-                                                      BuildCommencedTimeProvider timeProvider,
-                                                      boolean refreshKeys) {
+    public DefaultSignatureVerificationServiceFactory(
+            RepositoryTransportFactory transportFactory,
+            GlobalScopedCacheBuilderFactory cacheRepository,
+            InMemoryCacheDecoratorFactory decoratorFactory,
+            BuildOperationExecutor buildOperationExecutor,
+            FileHasher fileHasher,
+            BuildScopedCacheBuilderFactory buildScopedCache,
+            BuildCommencedTimeProvider timeProvider,
+            boolean refreshKeys,
+            FileResourceListener fileResourceListener) {
         this.transportFactory = transportFactory;
         this.cacheRepository = cacheRepository;
         this.decoratorFactory = decoratorFactory;
@@ -82,6 +86,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         this.buildScopedCache = buildScopedCache;
         this.timeProvider = timeProvider;
         this.refreshKeys = refreshKeys;
+        this.fileResourceListener = fileResourceListener;
     }
 
     @Override
@@ -97,7 +102,7 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
         }
         keyService = keyrings.applyTo(keyService);
         File effectiveKeyringsFile = keyrings.getEffectiveKeyringsFile();
-        HashCode keyringFileHash = effectiveKeyringsFile != null && effectiveKeyringsFile.exists()
+        HashCode keyringFileHash = effectiveKeyringsFile != null && observed(effectiveKeyringsFile).exists()
             ? fileHasher.hash(effectiveKeyringsFile)
             : NO_KEYRING_FILE_HASH;
         DefaultSignatureVerificationService delegate = new DefaultSignatureVerificationService(keyService);
@@ -111,6 +116,11 @@ public class DefaultSignatureVerificationServiceFactory implements SignatureVeri
             useKeyServers,
             keyringFileHash
         );
+    }
+
+    private File observed(File file) {
+        fileResourceListener.fileObserved(file);
+        return file;
     }
 
     private static class DefaultSignatureVerificationService implements SignatureVerificationService {

@@ -16,13 +16,13 @@
 
 package org.gradle.cache.internal.scopes;
 
-import org.gradle.cache.CacheBuilderFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
+import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
 
 import java.io.File;
 
 public class DefaultBuildTreeScopedCacheBuilderFactory extends AbstractScopedCacheBuilderFactory implements BuildTreeScopedCacheBuilderFactory {
-    public DefaultBuildTreeScopedCacheBuilderFactory(File rootDir, CacheBuilderFactory cacheBuilderFactory) {
+    public DefaultBuildTreeScopedCacheBuilderFactory(File rootDir, ScopedCacheBuilderFactory cacheBuilderFactory) {
         super(rootDir, cacheBuilderFactory);
     }
 }

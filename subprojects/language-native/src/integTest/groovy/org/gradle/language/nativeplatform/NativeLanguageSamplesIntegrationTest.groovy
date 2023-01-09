@@ -149,7 +149,7 @@ class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainInt
         when:
         // To get rid of the deprecation, the sample under test could be split into two or otherwise refactored to use a single build file
         // Since this one uses Software Model + Windows, for now letting it stay with the deprecation
-        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
+        executer.expectDocumentedDeprecationWarning("Specifying custom build file location has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#configuring_custom_build_layout");
         executer.usingBuildScript(windowsResources.dir.file('build-resource-only-dll.gradle'))
         run "helloResSharedLibrary"
 

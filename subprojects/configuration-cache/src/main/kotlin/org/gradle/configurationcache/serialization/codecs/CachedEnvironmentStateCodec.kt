@@ -34,7 +34,7 @@ object CachedEnvironmentStateCodec : Codec<EnvironmentChangeTracker.CachedEnviro
 
         writeCollection(value.updates) { update ->
             val keyString = update.key.toString()
-            withPropertyTrace(PropertyTrace.SystemProperty(keyString, update.location ?: PropertyTrace.Unknown)) {
+            withPropertyTrace(PropertyTrace.SystemProperty(keyString, update.location)) {
                 try {
                     write(update.key)
                     write(update.value)
@@ -57,7 +57,7 @@ object CachedEnvironmentStateCodec : Codec<EnvironmentChangeTracker.CachedEnviro
         val updates = readList {
             val key = read() as Any
             val value = read()
-            EnvironmentChangeTracker.SystemPropertySet(key, value, null)
+            EnvironmentChangeTracker.SystemPropertySet(key, value, PropertyTrace.Unknown)
         }
 
         val removals = readList {

@@ -34,6 +34,11 @@ Some plugins will break with this new version of Gradle, for example because the
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
 [[changes_7.0]]
+== Upgrading from 6.9
+
+Nothing to do.
+
+[[changes_6.9]]
 == Upgrading from 6.8
 
 === Changes in the IDE integration
@@ -444,7 +449,7 @@ See https://github.com/gradle/gradle/issues/16706[this issue] for more context.
 ==== Missing dependencies between tasks
 
 Having a task which produces an output in a location and another task consuming that location by referring to it as an input without the consumer task depending on the producer task has been deprecated.
-A fix for this problem is to <<more_about_tasks.adoc#sec:link_output_dir_to_input_files,add a dependency from the consumer to the producer>>.
+A fix for this problem is to <<incremental_build.adoc#sec:link_output_dir_to_input_files,add a dependency from the consumer to the producer>>.
 
 [[duplicates-strategy]]
 ==== Duplicates strategy

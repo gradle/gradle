@@ -18,12 +18,13 @@ package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
-import org.gradle.api.internal.cache.DefaultCacheCleanup;
+import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.CleanupActionDecorator;
+import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheVersionMapping;
+import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
@@ -67,12 +68,12 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
             .withDisplayName(CACHE_NAME)
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
-            .withCleanup(createCacheCleanup(fileAccessTimeJournal))
+            .withCleanupStrategy(createCacheCleanupStrategy(fileAccessTimeJournal))
             .open();
     }
 
-    private DefaultCacheCleanup createCacheCleanup(FileAccessTimeJournal fileAccessTimeJournal) {
-        return DefaultCacheCleanup.from(
+    private CacheCleanupStrategy createCacheCleanupStrategy(FileAccessTimeJournal fileAccessTimeJournal) {
+        return DefaultCacheCleanupStrategy.from(
             cleanupActionDecorator.decorate(createCleanupAction(fileAccessTimeJournal)),
             cacheConfigurations.getCleanupFrequency()
         );
@@ -85,7 +86,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
                 new LeastRecentlyUsedCacheCleanup(
                     new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP),
                     fileAccessTimeJournal,
-                    () -> cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesAfterDays().get()
+                    cacheConfigurations.getCreatedResources().getRemoveUnusedEntriesOlderThanAsSupplier()
                 )
             ).build();
     }

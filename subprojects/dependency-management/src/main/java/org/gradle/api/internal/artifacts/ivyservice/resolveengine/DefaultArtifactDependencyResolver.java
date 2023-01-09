@@ -152,7 +152,6 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
 
     private static void failOnDependencyLockingConflictingWith(String conflicting) {
         throw new InvalidUserCodeException("Resolution strategy has both dependency locking and " + conflicting + " enabled. You must choose between the two modes.");
-
     }
 
     private DependencyGraphBuilder createDependencyGraphBuilder(

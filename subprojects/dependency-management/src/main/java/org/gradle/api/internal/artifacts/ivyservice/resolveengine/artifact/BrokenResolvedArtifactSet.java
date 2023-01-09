@@ -54,10 +54,6 @@ public class BrokenResolvedArtifactSet implements ResolvedArtifactSet, ResolvedA
     }
 
     @Override
-    public void finalizeNow(boolean requireFiles) {
-    }
-
-    @Override
     public void visit(ArtifactVisitor visitor) {
         visitor.visitFailure(failure);
     }

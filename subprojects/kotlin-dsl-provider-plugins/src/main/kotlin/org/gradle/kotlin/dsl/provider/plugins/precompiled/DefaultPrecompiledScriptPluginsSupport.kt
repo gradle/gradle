@@ -28,16 +28,17 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.ClasspathNormalizer
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.internal.classpath.Instrumented.fileCollectionObserved
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
+import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
@@ -199,7 +200,8 @@ fun Project.enableScriptCompilationOf(
 
         val compilePluginsBlocks by registering(CompilePrecompiledScriptPluginPlugins::class) {
 
-            jvmTarget.set(jvmTargetProvider)
+            javaLauncher.set(javaToolchainService.launcherFor(java.toolchain))
+            @Suppress("DEPRECATION") jvmTarget.set(jvmTargetProvider)
 
             dependsOn(extractPrecompiledScriptPluginPlugins)
             sourceDir(extractedPluginsBlocks)
@@ -395,9 +397,6 @@ fun Project.collectScriptPluginFiles(): Set<File> =
         it.include("**/*.gradle.kts")
     }.filter {
         it.isFile
-    }.also {
-        // Declare build configuration input
-        fileCollectionObserved(it, "Kotlin DSL")
     }.files
 
 
@@ -479,3 +478,13 @@ fun Project.buildDir(path: String) = layout.buildDirectory.dir(path)
 private
 val Project.sourceSets
     get() = project.the<SourceSetContainer>()
+
+
+private
+val Project.javaToolchainService
+    get() = serviceOf<JavaToolchainService>()
+
+
+private
+val Project.java
+    get() = the<JavaPluginExtension>()

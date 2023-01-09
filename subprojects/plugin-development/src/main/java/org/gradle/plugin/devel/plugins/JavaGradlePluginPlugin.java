@@ -193,18 +193,22 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
             pluginUnderTestMetadataTask.getOutputDirectory().set(project.getLayout().getBuildDirectory().dir(pluginUnderTestMetadataTask.getName()));
 
-            pluginUnderTestMetadataTask.getPluginClasspath().from((Callable<FileCollection>) () -> {
-                SourceSet sourceSet = extension.getPluginSourceSet();
-                Configuration runtimeClasspath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
-                ArtifactView view = runtimeClasspath.getIncoming().artifactView(config -> {
-                    config.componentFilter(spec(JavaGradlePluginPlugin::excludeGradleApi));
-                });
-                return pluginUnderTestMetadataTask.getProject().getObjects().fileCollection().from(
-                    sourceSet.getOutput(),
-                    view.getFiles().getElements()
-                );
-            });
+            pluginUnderTestMetadataTask.getPluginClasspath().from(classpathForPlugin(project, extension));
         });
+    }
+
+    private static Callable<FileCollection> classpathForPlugin(Project project, GradlePluginDevelopmentExtension extension) {
+        return () -> {
+            SourceSet sourceSet = extension.getPluginSourceSet();
+            Configuration runtimeClasspath = project.getConfigurations().getByName(sourceSet.getRuntimeClasspathConfigurationName());
+            ArtifactView view = runtimeClasspath.getIncoming().artifactView(config ->
+                config.componentFilter(spec(JavaGradlePluginPlugin::excludeGradleApi))
+            );
+            return project.getObjects().fileCollection().from(
+                sourceSet.getOutput(),
+                view.getFiles().getElements()
+            );
+        };
     }
 
     private static boolean excludeGradleApi(ComponentIdentifier componentId) {

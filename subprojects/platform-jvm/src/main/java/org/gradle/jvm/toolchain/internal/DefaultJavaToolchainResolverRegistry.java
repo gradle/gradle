@@ -29,7 +29,6 @@ import org.gradle.api.services.BuildServiceSpec;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.jvm.toolchain.JavaToolchainRepository;
-import org.gradle.jvm.toolchain.JavaToolchainRepositoryHandler;
 import org.gradle.jvm.toolchain.JavaToolchainResolver;
 
 import javax.inject.Inject;
@@ -47,7 +46,7 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
 
     private final BuildServiceRegistry sharedServices;
 
-    private final DefaultJavaToolchainRepositoryHandler repositories;
+    private final DefaultJavaToolchainRepositoryHandler repositoryHandler;
 
     private final List<RealizedJavaToolchainRepository> realizedRepositories = new ArrayList<>();
 
@@ -62,12 +61,12 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
             AuthenticationSchemeRegistry authenticationSchemeRegistry
     ) {
         this.sharedServices = gradle.getSharedServices();
-        this.repositories = objectFactory.newInstance(DefaultJavaToolchainRepositoryHandler.class, this, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
+        this.repositoryHandler = objectFactory.newInstance(DefaultJavaToolchainRepositoryHandler.class, instantiator, objectFactory, providerFactory, authenticationSchemeRegistry);
     }
 
     @Override
-    public JavaToolchainRepositoryHandler getRepositories() {
-        return repositories;
+    public JavaToolchainRepositoryHandlerInternal getRepositories() {
+        return repositoryHandler;
     }
 
     @Override
@@ -82,7 +81,7 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
 
     @Override
     public List<RealizedJavaToolchainRepository> requestedRepositories() {
-        if (realizedRepositories.size() != repositories.size()) {
+        if (realizedRepositories.size() != repositoryHandler.size()) {
             realizeRepositories();
         }
         return realizedRepositories;
@@ -92,7 +91,7 @@ public abstract class DefaultJavaToolchainResolverRegistry implements JavaToolch
         realizedRepositories.clear();
 
         Set<Class<?>> resolvers = new HashSet<>();
-        for (JavaToolchainRepository repository : repositories) {
+        for (JavaToolchainRepository repository : repositoryHandler.getAsList()) {
             if (!resolvers.add(repository.getResolverClass().get())) {
                 throw new GradleException("Duplicate configuration for repository implementation '" + repository.getResolverClass().get().getName() + "'.");
             }

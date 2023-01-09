@@ -24,7 +24,7 @@ When configuring Gradle behavior you can use these methods, listed in order of h
 
 * <<command_line_interface.adoc#command_line_interface, Command-line flags>> such as `--build-cache`. These have precedence over properties and environment variables.
 * <<#sec:gradle_system_properties, System properties>> such as `systemProp.http.proxyHost=somehost.org` stored in a `gradle.properties` file in a root project directory.
-* <<#sec:gradle_configuration_properties, Gradle properties>> such as `org.gradle.caching=true` that are typically stored in a `gradle.properties` file in a project directory or in the `GRADLE_USER_HOME`.
+* <<#sec:gradle_configuration_properties, Gradle properties>> such as `org.gradle.caching=true` that are typically stored in a `gradle.properties` file in a project directory or in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`.
 * <<#sec:gradle_environment_variables, Environment variables>> such as `GRADLE_OPTS` sourced by the environment that executes Gradle.
 
 Aside from configuring Gradle behavior you can configure the build using the same mechanisms and reading the environment from the build logic.
@@ -37,7 +37,7 @@ Gradle provides several options that make it easy to configure the Java process 
 The final configuration taken into account by Gradle is a combination of all Gradle properties set on the command line and your `gradle.properties` files. If an option is configured in multiple locations, the _first one_ found in any of these locations wins:
 
 * command line, as set using `-D`.
-* `gradle.properties` in `GRADLE_USER_HOME` directory.
+* `gradle.properties` in `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory.
 * `gradle.properties` in the project's directory, then its parent project's directory up to the build's root directory.
 * `gradle.properties` in Gradle installation directory.
 
@@ -253,8 +253,8 @@ The following environment variables are available for the `gradle` command. Note
 `GRADLE_OPTS`::
 Specifies JVM arguments to use when starting the Gradle client VM. The client VM only handles command line input/output, so it is rare that one would need to change its VM options.
 The actual build is run by the Gradle daemon, which is not affected by this environment variable.
-`GRADLE_USER_HOME`::
-Specifies the Gradle user home directory (which defaults to `$USER_HOME/.gradle` if not set).
+`<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`::
+Specifies the Gradle user home directory (which defaults to `<home directory of the current user>/.gradle` if not set).
 `JAVA_HOME`::
 Specifies the JDK installation directory to use for the client VM. This VM is also used for the daemon, unless a different one is specified in a Gradle properties file with `org.gradle.java.home`.
 

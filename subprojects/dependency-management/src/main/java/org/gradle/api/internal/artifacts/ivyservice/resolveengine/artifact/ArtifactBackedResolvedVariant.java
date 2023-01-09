@@ -138,13 +138,6 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         }
 
         @Override
-        public void finalizeNow(boolean requireFiles) {
-            if (requireFiles) {
-                artifact.getFileSource().finalizeIfNotAlready();
-            }
-        }
-
-        @Override
         public void visit(ArtifactVisitor visitor) {
             if (visitor.requireArtifactFiles() && !artifact.getFileSource().getValue().isSuccessful()) {
                 visitor.visitFailure(artifact.getFileSource().getValue().getFailure().get());

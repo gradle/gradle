@@ -211,10 +211,6 @@ Optionally, the `buildSrc` directory can host a build script if additional confi
 =====
 ====
 
-NOTE: A change in `buildSrc` causes the whole project to become out-of-date.
-Thus, when making small incremental changes, the <<command_line_interface#sec:command_line_execution_options, `--no-rebuild` command-line option>> is often helpful to get faster feedback.
-Remember to run a full build regularly or at least when you're done, though.
-
 == Declare properties in `gradle.properties` file
 
 In Gradle, properties can be defined in the build script, in a `gradle.properties` file or as parameters on the command line.
@@ -226,7 +222,7 @@ The `gradle.properties` helps with keeping properties separate from the build sc
 It's a good location for placing <<build_environment.adoc#sec:gradle_configuration_properties,properties that control the build environment>>.
 
 A typical project setup places the `gradle.properties` file in the root directory of the build.
-Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you want to it apply to all builds on your machine.
+Alternatively, the file can also live in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory if you want it to apply to all builds on your machine.
 
 ====
 [.multi-language-sample]
@@ -259,7 +255,7 @@ Alternatively, the file can also live in the `GRADLE_USER_HOME` directory if you
 
 == Avoid overlapping task outputs
 
-Tasks should define inputs and outputs to get the performance benefits of <<more_about_tasks.adoc#sec:up_to_date_checks,incremental build functionality>>.
+Tasks should define inputs and outputs to get the performance benefits of <<incremental_build.adoc#incremental_build,incremental build functionality>>.
 When declaring the outputs of a task, make sure that the directory for writing outputs is unique among all the tasks in your project.
 
 Intermingling or overwriting output files produced by different tasks compromises up-to-date checking causing slower builds.

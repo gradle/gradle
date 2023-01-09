@@ -162,4 +162,24 @@ $t.buildResult.output"""
         t.buildResult.taskPaths(FAILED) == [':helloWorld']
     }
 
+    def "can expect a build failure without having to call buildAndFail"() {
+        given:
+        buildScript """
+            task helloWorld {
+                doLast {
+                    throw new GradleException('Expected exception')
+                }
+            }
+        """
+
+        when:
+        def result = runner('helloWorld').run()
+
+        then:
+        noExceptionThrown()
+
+        and:
+        result.taskPaths(FAILED) == [':helloWorld']
+    }
+
 }

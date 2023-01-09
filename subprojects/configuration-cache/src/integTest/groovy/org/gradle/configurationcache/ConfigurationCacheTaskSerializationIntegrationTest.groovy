@@ -313,7 +313,7 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
 
         then:
         outputContains("this.value = 123")
-        outputContains("ok.value = 123") // not isolated on first run
+        outputContains("ok.value = 42")
 
         when:
         configurationCacheRun "ok", "other"
@@ -357,7 +357,7 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
 
         then:
         outputContains("this.value = [file1.txt, file2.txt]")
-        outputContains("ok.value = [file1.txt, file2.txt]") // not isolated on first run
+        outputContains("ok.value = [file1.txt]")
 
         when:
         configurationCacheRun "ok", "other"

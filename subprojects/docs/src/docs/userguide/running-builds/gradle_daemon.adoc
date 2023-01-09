@@ -127,7 +127,7 @@ mkdir -p ~/.gradle && echo "org.gradle.daemon=false" >> ~/.gradle/gradle.propert
 
 There are two recommended ways to disable the Daemon globally across an environment:
 
-* add `org.gradle.daemon=false` to the `<GRADLE_USER_HOME>/gradle.properties` file
+* add `org.gradle.daemon=false` to the `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`/gradle.properties` file
 * add the flag `-Dorg.gradle.daemon=false` to the `GRADLE_OPTS` environment variable
 
 [[sec:stopping_an_existing_daemon]]

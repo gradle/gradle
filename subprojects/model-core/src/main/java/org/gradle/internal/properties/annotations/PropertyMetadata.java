@@ -16,10 +16,11 @@
 
 package org.gradle.internal.properties.annotations;
 
+import com.google.common.reflect.TypeToken;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.util.Optional;
 
 public interface PropertyMetadata {
@@ -35,5 +36,8 @@ public interface PropertyMetadata {
 
     Class<? extends Annotation> getPropertyType();
 
-    Method getGetterMethod();
+    TypeToken<?> getDeclaredType();
+
+    @Nullable
+    Object getPropertyValue(Object object);
 }

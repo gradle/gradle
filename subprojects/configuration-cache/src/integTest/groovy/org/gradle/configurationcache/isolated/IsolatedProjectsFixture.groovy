@@ -236,6 +236,7 @@ class IsolatedProjectsFixture {
          */
         void buildModelCreated(int count = 1) {
             runsTasks = false
+            loadsOnStore = false
             buildModelQueries += count
         }
 
@@ -245,6 +246,7 @@ class IsolatedProjectsFixture {
         void modelsCreated(String... paths) {
             projectsConfigured(paths)
             runsTasks = false
+            loadsOnStore = false
             models.addAll(paths.collect { new ModelDetails(it, 1) })
         }
 
@@ -254,6 +256,7 @@ class IsolatedProjectsFixture {
         void modelsCreated(String path, int count) {
             projectsConfigured(path)
             runsTasks = false
+            loadsOnStore = false
             models.add(new ModelDetails(path, count))
         }
 

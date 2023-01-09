@@ -45,14 +45,14 @@ class DefaultCacheCoordinatorTest extends ConcurrentSpec {
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final FileLockManager lockManager = Mock()
     final CacheInitializationAction initializationAction = Mock()
-    final CacheCleanupAction cleanupAction = Mock()
+    final CacheCleanupExecutor cleanupExecutor = Mock()
     final File lockFile = tmpDir.file('lock.bin')
     final File cacheDir = tmpDir.file('caches')
     final FileLock lock = Mock()
     final BTreePersistentIndexedCache<String, Integer> backingCache = Mock()
 
     private DefaultCacheCoordinator newAccess(FileLockManager.LockMode lockMode) {
-        new DefaultCacheCoordinator("<display-name>", lockFile, mode(lockMode), cacheDir, lockManager, initializationAction, cleanupAction, executorFactory) {
+        new DefaultCacheCoordinator("<display-name>", lockFile, mode(lockMode), cacheDir, lockManager, initializationAction, cleanupExecutor, executorFactory) {
             @Override
             <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
                 return backingCache
@@ -77,7 +77,7 @@ class DefaultCacheCoordinatorTest extends ConcurrentSpec {
 
         then:
         _ * lock.state
-        1 * cleanupAction.requiresCleanup() >> false
+        1 * cleanupExecutor.cleanup()
         1 * lock.close()
         0 * _._
     }
@@ -99,20 +99,19 @@ class DefaultCacheCoordinatorTest extends ConcurrentSpec {
 
         then:
         _ * lock.state
-        1 * cleanupAction.requiresCleanup() >> false
+        1 * cleanupExecutor.cleanup()
         1 * lock.close()
         0 * _._
     }
 
-    def "cleans up when cleanup action is required with access #accessType"() {
+    def "cleans up using cleanup executor with access #accessType"() {
         def access = newAccess(accessType)
         when:
         access.cleanup()
 
         then:
         _ * lock.state
-        1 * cleanupAction.requiresCleanup() >> true
-        1 * cleanupAction.cleanup()
+        1 * cleanupExecutor.cleanup()
         0 * _._
 
         where:
@@ -127,8 +126,7 @@ class DefaultCacheCoordinatorTest extends ConcurrentSpec {
         access.close()
 
         then:
-        1 * cleanupAction.requiresCleanup() >> true
-        1 * cleanupAction.cleanup()
+        1 * cleanupExecutor.cleanup()
         0 * _
     }
 
@@ -140,15 +138,13 @@ class DefaultCacheCoordinatorTest extends ConcurrentSpec {
         access.cleanup()
 
         then:
-        1 * cleanupAction.requiresCleanup() >> true
-        1 * cleanupAction.cleanup()
+        1 * cleanupExecutor.cleanup()
         0 * _
 
         when:
         access.close()
 
         then:
-        1 * cleanupAction.requiresCleanup() >> true
         0 * _
     }
 
@@ -159,16 +155,14 @@ class DefaultCacheCoordinatorTest extends ConcurrentSpec {
         access.cleanup()
 
         then:
-        1 * cleanupAction.requiresCleanup() >> true
-        1 * cleanupAction.cleanup()
+        1 * cleanupExecutor.cleanup()
         0 * _
 
         when:
         access.cleanup()
 
         then:
-        1 * cleanupAction.requiresCleanup() >> true
-        1 * cleanupAction.cleanup()
+        1 * cleanupExecutor.cleanup()
         0 * _
     }
 
@@ -318,7 +312,7 @@ class DefaultCacheCoordinatorTest extends ConcurrentSpec {
         access.close()
 
         then:
-        1 * cleanupAction.requiresCleanup() >> false
+        1 * cleanupExecutor.cleanup()
         0 * _._
 
         and:
@@ -594,7 +588,7 @@ class DefaultCacheCoordinatorTest extends ConcurrentSpec {
         access.close()
 
         then:
-        1 * cleanupAction.requiresCleanup() >> false
+        1 * cleanupExecutor.cleanup()
         0 * _
     }
 
@@ -682,8 +676,7 @@ class DefaultCacheCoordinatorTest extends ConcurrentSpec {
         access.cleanup()
 
         then:
-        1 * cleanupAction.requiresCleanup() >> true
-        1 * cleanupAction.cleanup()
+        1 * cleanupExecutor.cleanup()
         0 * lockManager._
     }
 
@@ -698,14 +691,13 @@ class DefaultCacheCoordinatorTest extends ConcurrentSpec {
         access.useCache { cache.getIfPresent("key") }
 
         when:
-        access.close()
+        access.cleanup()
 
         then:
         lock.close()
 
         then:
-        cleanupAction.requiresCleanup() >> true
-        cleanupAction.cleanup()
+        1 * cleanupExecutor.cleanup()
     }
 
     def "returns the same cache object when using same cache parameters"() {

@@ -18,7 +18,7 @@ package org.gradle.testfixtures.internal;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheCleanup;
+import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupProgressMonitor;
@@ -48,9 +48,9 @@ public class TestInMemoryCacheFactory implements CacheFactory {
     final Map<Pair<File, String>, IndexedCache<?, ?>> caches = Collections.synchronizedMap(Maps.newLinkedHashMap());
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanup cacheCleanup) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         GFileUtils.mkdirs(cacheDir);
-        InMemoryExclusiveCache cache = new InMemoryExclusiveCache(cacheDir, displayName, cacheCleanup != null ? cacheCleanup.getCleanupAction() : null);
+        InMemoryExclusiveCache cache = new InMemoryExclusiveCache(cacheDir, displayName, cacheCleanupStrategy != null ? cacheCleanupStrategy.getCleanupAction() : null);
         if (initializer != null) {
             initializer.execute(cache);
         }
@@ -162,7 +162,10 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         @Override
         public void useCache(Runnable action) {
             assertNotClosed();
-            action.run();
+            // The contract of useCache() means we have to provide some basic synchronization.
+            synchronized (this) {
+                action.run();
+            }
         }
 
         @Override

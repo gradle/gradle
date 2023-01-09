@@ -16,6 +16,7 @@
 
 package org.gradle.internal.event;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Cast;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
@@ -23,6 +24,7 @@ import org.gradle.internal.dispatch.ProxyDispatchAdapter;
 import org.gradle.internal.dispatch.ReflectionDispatch;
 import org.gradle.internal.service.AnnotatedServiceLifecycleHandler;
 import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.ListenerService;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.StatefulListener;
 
@@ -40,9 +42,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultListenerManager implements ListenerManager, AnnotatedServiceLifecycleHandler {
+    private static final List<Class<? extends Annotation>> ANNOTATIONS = ImmutableList.of(StatefulListener.class, ListenerService.class);
     private final Map<Object, ListenerDetails> allListeners = new LinkedHashMap<Object, ListenerDetails>();
     private final Map<Object, ListenerDetails> allLoggers = new LinkedHashMap<Object, ListenerDetails>();
     private final Map<Class<?>, EventBroadcast<?>> broadcasters = new ConcurrentHashMap<Class<?>, EventBroadcast<?>>();
+    private final List<Registration> pendingServices = new ArrayList<Registration>();
     private final List<Registration> pendingRegistrations = new ArrayList<Registration>();
     private final Object lock = new Object();
     private final Class<? extends Scope> scope;
@@ -58,22 +62,31 @@ public class DefaultListenerManager implements ListenerManager, AnnotatedService
     }
 
     @Override
-    public Class<? extends Annotation> getAnnotation() {
-        return StatefulListener.class;
+    public List<Class<? extends Annotation>> getAnnotations() {
+        return ANNOTATIONS;
     }
 
     @Override
-    public void whenRegistered(Registration registration) {
+    public void whenRegistered(Class<? extends Annotation> annotation, Registration registration) {
         synchronized (lock) {
-            pendingRegistrations.add(registration);
-            for (EventBroadcast<?> broadcast : broadcasters.values()) {
-                broadcast.checkRegistration(registration);
+            if (annotation == ListenerService.class) {
+                pendingServices.add(registration);
+            } else {
+                pendingRegistrations.add(registration);
+                for (EventBroadcast<?> broadcast : broadcasters.values()) {
+                    broadcast.checkRegistration(registration);
+                }
             }
         }
     }
 
     private void maybeAddPendingRegistrations(Class<?> type) {
         synchronized (lock) {
+            for (int i = 0; i < pendingServices.size(); i++) {
+                Registration registration = pendingServices.get(i);
+                addListener(registration.getInstance());
+            }
+            pendingServices.clear();
             for (int i = 0; i < pendingRegistrations.size();) {
                 Registration registration = pendingRegistrations.get(i);
                 if (type.isAssignableFrom(registration.getDeclaredType())) {
@@ -143,9 +156,7 @@ public class DefaultListenerManager implements ListenerManager, AnnotatedService
     @Override
     public <T> AnonymousListenerBroadcast<T> createAnonymousBroadcaster(Class<T> listenerClass) {
         assertCanBroadcast(listenerClass);
-        AnonymousListenerBroadcast<T> broadcast = new AnonymousListenerBroadcast<T>(listenerClass);
-        broadcast.add(getBroadcasterInternal(listenerClass).getDispatch(true));
-        return broadcast;
+        return new AnonymousListenerBroadcast<T>(listenerClass, getBroadcasterInternal(listenerClass).getDispatch(true));
     }
 
     private <T> EventBroadcast<T> getBroadcasterInternal(Class<T> listenerClass) {
@@ -315,7 +326,6 @@ public class DefaultListenerManager implements ListenerManager, AnnotatedService
                 } finally {
                     broadcasterLock.unlock();
                 }
-
             }
         }
 

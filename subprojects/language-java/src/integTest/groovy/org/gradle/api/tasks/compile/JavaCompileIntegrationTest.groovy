@@ -264,8 +264,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task checkClasspath {
+                def classpath = compileJava.classpath
                 doLast {
-                    def compileClasspath = compileJava.classpath.files*.name
+                    def compileClasspath = classpath.files*.name
                     assert !compileClasspath.contains('b.jar')
                     assert compileClasspath.contains('other-1.0.jar')
                     assert !compileClasspath.contains('shared-1.0.jar')
@@ -415,8 +416,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             }
 
         task checkClasspath {
+            def runtimeClasspathFiles = test.classpath.files
             doLast {
-                def runtimeClasspath = test.classpath.files*.name
+                def runtimeClasspath = runtimeClasspathFiles*.name
                 assert runtimeClasspath.contains('compile-1.0.jar')
                 assert !runtimeClasspath.contains('compileonly-1.0.jar')
                 assert runtimeClasspath.contains('runtimeonly-1.0.jar')
@@ -1103,7 +1105,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
             package com.example;
             public class Main {}
         """
-        executer.expectDocumentedDeprecationWarning("The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated. This is scheduled to be removed in Gradle 8.0. Please use the generatedSourceOutputDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory for more details.")
+        executer.expectDocumentedDeprecationWarning("The CompileOptions.annotationProcessorGeneratedSourcesDirectory property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the generatedSourceOutputDirectory property instead. See https://docs.gradle.org/current/dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorGeneratedSourcesDirectory for more details.")
 
         then:
         succeeds("compileJava")

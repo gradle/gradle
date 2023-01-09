@@ -24,6 +24,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -67,6 +68,7 @@ import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.Module;
+import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DependencyConstraintInternal;
@@ -115,6 +117,7 @@ import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
+import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -147,8 +150,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -611,7 +614,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 throw new IllegalStateException("The configuration " + identityPath.toString() + " was resolved from a thread not managed by Gradle.");
             } else {
                 DeprecationLogger.deprecateBehaviour("Resolution of the configuration " + identityPath.toString() + " was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved.")
-                        .willBeRemovedInGradle8()
+                        .willBecomeAnErrorInGradle9()
                         .withUserManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
                         .nagUser();
                 return domainObjectContext.getModel().fromMutableState(p -> resolveExclusively(requestedState));
@@ -1101,6 +1104,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public void preventFromFurtherMutation() {
+        preventFromFurtherMutation(false);
+    }
+
+    @Override
+    public List<? extends GradleException> preventFromFurtherMutationLenient() {
+        return preventFromFurtherMutation(true);
+    }
+
+    private List<? extends GradleException> preventFromFurtherMutation(boolean lenient) {
         // TODO This should use the same `MutationValidator` infrastructure that we use for other mutation types
         if (canBeMutated) {
             if (beforeLocking != null) {
@@ -1116,32 +1128,44 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
             // We will only check unique attributes if this configuration is consumable, not resolvable, and has attributes itself
             if (mustHaveUniqueAttributes(this) && !this.getAttributes().isEmpty()) {
-                ensureUniqueAttributes();
+                return ensureUniqueAttributes(lenient);
             }
+
         }
+        return Collections.emptyList();
     }
 
-    private void ensureUniqueAttributes() {
+    private List<? extends GradleException> ensureUniqueAttributes(boolean lenient) {
         final Set<? extends ConfigurationInternal> all = (configurationsProvider != null) ? configurationsProvider.getAll() : null;
         if (all != null) {
             final Collection<? extends Capability> allCapabilities = allCapabilitiesIncludingDefault(this);
 
-            final Consumer<ConfigurationInternal> warnIfDuplicate = otherConfiguration -> {
-                if (hasSameCapabilitiesAs(allCapabilities, otherConfiguration) && hasSameAttributesAs(otherConfiguration)) {
-                    DeprecationLogger.deprecateBehaviour("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but " + getDisplayName() + " and " + otherConfiguration.getDisplayName() + " contain identical attribute sets.")
-                        .withAdvice("Consider adding an additional attribute to one of the configurations to disambiguate them.  Run the 'outgoingVariants' task for more details.")
-                        .willBecomeAnErrorInGradle8()
-                        .withUpgradeGuideSection(7, "unique_attribute_sets")
-                        .nagUser();
-                }
-            };
-
-            all.stream()
+            final Predicate<ConfigurationInternal> isDuplicate = otherConfiguration -> hasSameCapabilitiesAs(allCapabilities, otherConfiguration) && hasSameAttributesAs(otherConfiguration);
+            List<String> collisions = all.stream()
                 .filter(c -> c != this)
                 .filter(this::mustHaveUniqueAttributes)
                 .filter(c -> !c.isCanBeMutated())
-                .forEach(warnIfDuplicate);
+                .filter(isDuplicate)
+                .map(ResolveContext::getDisplayName)
+                .collect(Collectors.toList());
+            if (!collisions.isEmpty()) {
+                DocumentedFailure.Builder builder = DocumentedFailure.builder();
+                String advice = "Consider adding an additional attribute to one of the configurations to disambiguate them.";
+                if (!lenient) {
+                    advice += "  Run the 'outgoingVariants' task for more details.";
+                }
+                GradleException gradleException = builder.withSummary("Consumable configurations with identical capabilities within a project (other than the default configuration) must have unique attributes, but " + getDisplayName() + " and " + collisions + " contain identical attribute sets.")
+                    .withAdvice(advice)
+                    .withUserManual("upgrading_version_7", "unique_attribute_sets")
+                    .build();
+                if (lenient) {
+                    return Collections.singletonList(gradleException);
+                } else {
+                    throw gradleException;
+                }
+            }
         }
+        return Collections.emptyList();
     }
 
     /**
@@ -1220,9 +1244,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         copiedConfiguration.withDependencyActions = withDependencyActions;
         copiedConfiguration.dependencyResolutionListeners = dependencyResolutionListeners.copy();
 
-        copiedConfiguration.canBeConsumed = canBeConsumed;
-        copiedConfiguration.canBeResolved = canBeResolved;
-        copiedConfiguration.canBeDeclaredAgainst = canBeDeclaredAgainst;
+        // Instead of copying a configuration's roles outright, we allow copied configurations
+        // to assume any role. However, any roles which were previously disabled will become
+        // deprecated in the copied configuration. In 9.0, we will update this to copy
+        // roles and deprecations without modification. Or, better yet, we will remove support
+        // for copying configurations altogether.
+        copiedConfiguration.canBeConsumed = true;
+        copiedConfiguration.canBeResolved = true;
+        copiedConfiguration.canBeDeclaredAgainst = true;
+        copiedConfiguration.declarationAlternatives =
+            canBeDeclaredAgainst || declarationAlternatives != null ? declarationAlternatives : Collections.emptyList();
+        copiedConfiguration.resolutionAlternatives =
+            canBeResolved || resolutionAlternatives != null ? resolutionAlternatives : Collections.emptyList();
+        copiedConfiguration.consumptionDeprecation =
+            canBeConsumed || consumptionDeprecation != null ? consumptionDeprecation
+                : DeprecationLogger.deprecateConfiguration(name).forConsumption()
+                    .willBecomeAnErrorInGradle9().undocumented();
 
         copiedConfiguration.getArtifacts().addAll(getAllArtifacts());
 

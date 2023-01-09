@@ -121,6 +121,16 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         }
 
         @Override
+        public void prepareForVisitingIfNotAlready() {
+            // The parameters of the transforms should already be isolated prior to visiting this set.
+            // However, in certain cases, the transform's parameters may not be isolated (eg https://github.com/gradle/gradle/issues/23116), so do this now
+            // Those cases should be improved so that the parameters are always isolated, for example by always using work nodes to do this work
+            for (BoundTransformationStep step : transformationSteps) {
+                step.getTransformation().isolateParametersIfNotAlready();
+            }
+        }
+
+        @Override
         public void startFinalization(BuildOperationQueue<RunnableBuildOperation> actions, boolean requireFiles) {
             if (prepareInvocation()) {
                 actions.add(this);
@@ -134,11 +144,6 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
         @Override
         public void run(@Nullable BuildOperationContext context) {
-            finalizeValue();
-        }
-
-        @Override
-        public void finalizeNow(boolean requireFiles) {
             finalizeValue();
         }
 

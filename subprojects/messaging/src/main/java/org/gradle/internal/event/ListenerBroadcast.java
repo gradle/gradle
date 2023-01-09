@@ -75,6 +75,13 @@ public class ListenerBroadcast<T> implements Dispatch<MethodInvocation> {
     }
 
     /**
+     * Returns the number of listeners that are registered with this object.
+     */
+    public int size() {
+        return broadcast.size();
+    }
+
+    /**
      * Adds a listener.
      *
      * @param listener The listener.

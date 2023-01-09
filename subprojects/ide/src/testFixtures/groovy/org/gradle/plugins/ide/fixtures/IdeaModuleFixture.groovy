@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.fixtures
 
 import groovy.transform.ToString
 import groovy.xml.slurpersupport.GPathResult
-import org.gradle.internal.Transformers
+import org.gradle.internal.InternalTransformers
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.CollectionUtils
 
@@ -71,7 +71,7 @@ class IdeaModuleFixture extends IdeProjectFixture {
                 it.url - 'file://$MODULE_DIR$/'
             } as Set
 
-            def setDiff = CollectionUtils.diffSetsBy(sourceRoots, CollectionUtils.toSet(paths as List), Transformers.noOpTransformer())
+            def setDiff = CollectionUtils.diffSetsBy(sourceRoots, CollectionUtils.toSet(paths as List), InternalTransformers.noOpTransformer())
             assert setDiff.leftOnly.empty
             assert setDiff.rightOnly.empty
         }
@@ -81,7 +81,7 @@ class IdeaModuleFixture extends IdeProjectFixture {
                 it.url - 'file://$MODULE_DIR$/'
             } as Set
 
-            def setDiff = CollectionUtils.diffSetsBy(excludeRoots, CollectionUtils.toSet(paths as List), Transformers.noOpTransformer())
+            def setDiff = CollectionUtils.diffSetsBy(excludeRoots, CollectionUtils.toSet(paths as List), InternalTransformers.noOpTransformer())
             assert setDiff.leftOnly.empty
             assert setDiff.rightOnly.empty
         }

@@ -16,31 +16,44 @@
 
 package org.gradle.internal.classpath;
 
+import kotlin.io.FilesKt;
 import org.codehaus.groovy.runtime.ProcessGroovyMethods;
+import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.codehaus.groovy.vmplugin.v8.IndyInterface;
-import org.gradle.api.file.FileCollection;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.intercept.CallInterceptor;
 import org.gradle.internal.classpath.intercept.CallInterceptorsSet;
 import org.gradle.internal.classpath.intercept.ClassBoundCallInterceptor;
 import org.gradle.internal.classpath.intercept.InterceptScope;
 import org.gradle.internal.classpath.intercept.Invocation;
+import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
+
+import static org.gradle.internal.classpath.InstrumentedUtil.findStaticOrThrowError;
+import static org.gradle.internal.classpath.InstrumentedUtil.kotlinDefaultMethodType;
 
 public class Instrumented {
     private static final Listener NO_OP = new Listener() {
@@ -77,7 +90,11 @@ public class Instrumented {
         }
 
         @Override
-        public void fileCollectionObserved(FileCollection fileCollection, String consumer) {
+        public void fileSystemEntryObserved(File file, String consumer) {
+        }
+
+        @Override
+        public void directoryContentObserved(File file, String consumer) {
         }
     };
 
@@ -102,6 +119,12 @@ public class Instrumented {
         new BooleanGetBooleanInterceptor(),
         new SystemGetenvInterceptor(),
         new RuntimeExecInterceptor(),
+        new FileCheckInterceptor.FileExistsInterceptor(),
+        new FileCheckInterceptor.FileIsFileInterceptor(),
+        new FileCheckInterceptor.FileIsDirectoryInterceptor(),
+        new FileListFilesInterceptor(),
+        new FilesReadStringInterceptor(),
+        new FileTextInterceptor(),
         new ProcessGroovyMethodsExecuteInterceptor(),
         new ProcessBuilderStartInterceptor(),
         new ProcessBuilderStartPipelineInterceptor(),
@@ -330,6 +353,75 @@ public class Instrumented {
         return builder.start();
     }
 
+    public static boolean fileExists(File file, String consumer) {
+        listener().fileSystemEntryObserved(file, consumer);
+        return file.exists();
+    }
+
+    public static boolean fileIsFile(File file, String consumer) {
+        listener().fileSystemEntryObserved(file, consumer);
+        return file.isFile();
+    }
+
+    public static boolean fileIsDirectory(File file, String consumer) {
+        listener().fileSystemEntryObserved(file, consumer);
+        return file.isDirectory();
+    }
+
+    public static File[] fileListFiles(File file, String consumer) {
+        listener().directoryContentObserved(file, consumer);
+        return file.listFiles();
+    }
+
+    public static File[] fileListFiles(File file, FileFilter fileFilter, String consumer) {
+        listener().directoryContentObserved(file, consumer);
+        return file.listFiles(fileFilter);
+    }
+
+    public static File[] fileListFiles(File file, FilenameFilter fileFilter, String consumer) {
+        listener().directoryContentObserved(file, consumer);
+        return file.listFiles(fileFilter);
+    }
+
+    public static String kotlinIoFilesKtReadText(File receiver, Charset charset, String consumer) {
+        listener().fileOpened(receiver, consumer);
+        return FilesKt.readText(receiver, charset);
+    }
+
+    public static String kotlinIoFilesKtReadTextDefault(File receiver, Charset charset, int defaultMask, Object defaultMarker, String consumer) throws Throwable {
+        listener().fileOpened(receiver, consumer);
+        return (String) FILESKT_READ_TEXT_DEFAULT.get().invokeExact(receiver, charset, defaultMask, defaultMarker);
+    }
+
+    private static final Lazy<MethodHandle> FILESKT_READ_TEXT_DEFAULT =
+        Lazy.locking().of(() -> findStaticOrThrowError(FilesKt.class, "readText$default", kotlinDefaultMethodType(String.class, File.class, Charset.class)));
+
+    public static String filesReadString(Path file, String consumer) throws Throwable {
+        listener().fileOpened(file.toFile(), consumer);
+        return (String) FILES_READ_STRING_PATH.get().invokeExact(file);
+    }
+
+    public static String filesReadString(Path file, Charset charset, String consumer) throws Throwable {
+        listener().fileOpened(file.toFile(), consumer);
+        return (String) FILES_READ_STRING_PATH_CHARSET.get().invokeExact(file, charset);
+    }
+
+    // These are initialized lazily, as we may be running a Java version < 11 which does not have the APIs.
+    private static final Lazy<MethodHandle> FILES_READ_STRING_PATH =
+        Lazy.locking().of(() -> findStaticOrThrowError(Files.class, "readString", MethodType.methodType(String.class, Path.class)));
+    private static final Lazy<MethodHandle> FILES_READ_STRING_PATH_CHARSET =
+        Lazy.locking().of(() -> findStaticOrThrowError(Files.class, "readString", MethodType.methodType(String.class, Path.class, Charset.class)));
+
+    public static String groovyFileGetText(File file, String consumer) throws IOException {
+        listener().fileOpened(file, consumer);
+        return ResourceGroovyMethods.getText(file);
+    }
+
+    public static String groovyFileGetText(File file, String charset, String consumer) throws IOException {
+        listener().fileOpened(file, consumer);
+        return ResourceGroovyMethods.getText(file, charset);
+    }
+
     @SuppressWarnings("unchecked")
     public static List<Process> startPipeline(List<ProcessBuilder> pipeline, String consumer) throws IOException {
         try {
@@ -352,10 +444,6 @@ public class Instrumented {
                 throw new RuntimeException("Unexpected exception thrown by ProcessBuilder.startPipeline", e);
             }
         }
-    }
-
-    public static void fileCollectionObserved(FileCollection fileCollection, String consumer) {
-        listener().fileCollectionObserved(fileCollection, consumer);
     }
 
     public static void fileObserved(File file, String consumer) {
@@ -483,10 +571,9 @@ public class Instrumented {
 
         void fileObserved(File file, String consumer);
 
-        /**
-         * Invoked when configuration logic observes the given file collection.
-         */
-        void fileCollectionObserved(FileCollection inputs, String consumer);
+        void fileSystemEntryObserved(File file, String consumer);
+
+        void directoryContentObserved(File file, String consumer);
     }
 
     /**
@@ -701,6 +788,122 @@ public class Instrumented {
         }
     }
 
+    private static abstract class FileCheckInterceptor extends CallInterceptor {
+        private final BiFunction<File, String, Boolean> invokeWhenIntercepted;
+
+        public FileCheckInterceptor(String methodName, BiFunction<File, String, Boolean> invokeWhenIntercepted) {
+            super(InterceptScope.methodsNamed(methodName));
+            this.invokeWhenIntercepted = invokeWhenIntercepted;
+        }
+
+        @Override
+        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+            if (invocation.getArgsCount() == 0) {
+                Object receiver = invocation.getReceiver();
+                if (receiver instanceof File) {
+                    File fileReceiver = (File) receiver;
+                    return invokeWhenIntercepted.apply(fileReceiver, consumer);
+                }
+            }
+            return invocation.callOriginal();
+        }
+
+        static class FileExistsInterceptor extends FileCheckInterceptor {
+            public FileExistsInterceptor() {
+                super("exists", Instrumented::fileExists);
+            }
+        }
+
+        static class FileIsFileInterceptor extends FileCheckInterceptor {
+            public FileIsFileInterceptor() {
+                super("isFile", Instrumented::fileIsFile);
+            }
+        }
+
+        static class FileIsDirectoryInterceptor extends FileCheckInterceptor {
+            public FileIsDirectoryInterceptor() {
+                super("isDirectory", Instrumented::fileIsDirectory);
+            }
+        }
+    }
+
+    private static class FileListFilesInterceptor extends CallInterceptor {
+        public FileListFilesInterceptor() {
+            super(InterceptScope.methodsNamed("listFiles"));
+        }
+
+        @Override
+        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+            if (invocation.getArgsCount() <= 1) {
+                Object receiver = invocation.getReceiver();
+                if (receiver instanceof File) {
+                    File fileReceiver = (File) receiver;
+                    if (invocation.getArgsCount() == 0) {
+                        return Instrumented.fileListFiles(fileReceiver, consumer);
+                    } else if (invocation.getArgsCount() == 1) {
+                        Object arg0 = invocation.getArgument(0);
+                        if (arg0 instanceof FileFilter) {
+                            return Instrumented.fileListFiles(fileReceiver, (FileFilter) arg0, consumer);
+                        } else if (arg0 instanceof FilenameFilter) {
+                            return Instrumented.fileListFiles(fileReceiver, (FilenameFilter) arg0, consumer);
+                        }
+                    }
+                }
+            }
+            return invocation.callOriginal();
+        }
+    }
+
+    private static class FilesReadStringInterceptor extends ClassBoundCallInterceptor {
+        public FilesReadStringInterceptor() {
+            super(Files.class, InterceptScope.methodsNamed("readString"));
+        }
+
+        @Override
+        protected Object doInterceptSafe(Invocation invocation, String consumer) throws Throwable {
+            if (invocation.getArgsCount() >= 1 && invocation.getArgsCount() <= 2) {
+                Object arg0 = invocation.getArgument(0);
+                if (arg0 instanceof Path) {
+                    Path arg0Path = (Path) arg0;
+                    if (invocation.getArgsCount() == 1) {
+                        return Instrumented.filesReadString(arg0Path, consumer);
+                    } else if (invocation.getArgsCount() == 2) {
+                        Object arg1 = invocation.getArgument(1);
+                        if (arg1 instanceof Charset) {
+                            Charset arg1Charset = (Charset) arg1;
+                            return Instrumented.filesReadString(arg0Path, arg1Charset, consumer);
+                        }
+                    }
+                }
+            }
+            return invocation.callOriginal();
+        }
+    }
+
+    private static class FileTextInterceptor extends CallInterceptor {
+        public FileTextInterceptor() {
+            super(InterceptScope.readsOfPropertiesNamed("text"), InterceptScope.methodsNamed("getText"));
+        }
+
+        @Override
+        protected Object doIntercept(Invocation invocation, String consumer) throws Throwable {
+            Object receiver = invocation.getReceiver();
+            if (receiver instanceof File) {
+                File receiverFile = (File) receiver;
+                if (invocation.getArgsCount() == 0) {
+                    return groovyFileGetText(receiverFile, consumer);
+                } else if (invocation.getArgsCount() == 1) {
+                    Object arg0 = invocation.getArgument(0);
+                    if (arg0 instanceof String) {
+                        String arg0String = (String) arg0;
+                        return groovyFileGetText(receiverFile, arg0String, consumer);
+                    }
+                }
+            }
+            return invocation.callOriginal();
+        }
+    }
+
     /**
      * The interceptor for Groovy's {@code String.execute}, {@code String[].execute}, and {@code List.execute}. This also handles {@code ProcessGroovyMethods.execute}.
      */
@@ -831,3 +1034,23 @@ public class Instrumented {
         }
     }
 }
+
+class InstrumentedUtil {
+    static MethodHandle findStaticOrThrowError(Class<?> refc, String name, MethodType methodType) {
+        try {
+            return MethodHandles.lookup().findStatic(refc, name, methodType);
+        } catch (NoSuchMethodException e) {
+            throw new NoSuchMethodError(e.getMessage());
+        } catch (IllegalAccessException e) {
+            throw new IllegalAccessError(e.getMessage());
+        }
+    }
+
+    static MethodType kotlinDefaultMethodType(Class<?> returnType, Class<?>... parameterTypes) {
+        Class<?>[] defaultParameterTypes = Arrays.copyOf(parameterTypes, parameterTypes.length + 2);
+        defaultParameterTypes[parameterTypes.length] = int.class; // default value mask
+        defaultParameterTypes[parameterTypes.length + 1] = Object.class; // default signature marker
+        return MethodType.methodType(returnType, defaultParameterTypes);
+    }
+}
+

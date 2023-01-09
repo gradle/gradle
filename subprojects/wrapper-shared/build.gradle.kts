@@ -11,6 +11,7 @@ dependencies {
     testImplementation(project(":base-services"))
     testImplementation(project(":core-api"))
     testImplementation(project(":native"))
+    testImplementation("org.apache.commons:commons-compress:1.21")
 
     integTestImplementation(project(":dependency-management"))
 

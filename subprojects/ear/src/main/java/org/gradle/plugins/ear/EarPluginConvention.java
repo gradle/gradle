@@ -24,7 +24,7 @@ import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 /**
  * Ear Plugin Convention.
  *
- * @deprecated Instead of using conventions, configure the tasks directly. This class is scheduled for removal in Gradle 8.0.
+ * @deprecated Instead of using conventions, configure the tasks directly. This class is scheduled for removal in Gradle 9.0.
  */
 @Deprecated
 public abstract class EarPluginConvention {

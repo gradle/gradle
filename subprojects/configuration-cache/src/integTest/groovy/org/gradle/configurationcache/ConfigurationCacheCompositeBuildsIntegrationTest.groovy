@@ -180,6 +180,7 @@ class ConfigurationCacheCompositeBuildsIntegrationTest extends AbstractConfigura
 
         then:
         problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(2)
             withUniqueProblems(expectedProblem)
             withProblemsWithStackTraceCount(0)
         }

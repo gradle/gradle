@@ -36,10 +36,5 @@ public class NestedBeanAnnotationHandler extends AbstractPropertyAnnotationHandl
 
     @Override
     public void visitPropertyValue(String propertyName, PropertyValue value, PropertyMetadata propertyMetadata, PropertyVisitor visitor) {
-        Object nested = value.call();
-        if (nested == null
-            && getAllowedModifiers().stream().noneMatch(propertyMetadata::isAnnotationPresent)) {
-            visitor.visitInputProperty(propertyName, PropertyValue.ABSENT, false);
-        }
     }
 }

@@ -16,19 +16,21 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.gradle.api.cache.CacheResourceConfiguration
+import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.cache.internal.CleanupActionDecorator
 import org.gradle.api.internal.cache.CacheConfigurationsInternal
-import org.gradle.api.provider.Property
 import org.gradle.cache.internal.DefaultCacheBuilderFactory
 import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
+import org.gradle.internal.time.TimestampSuppliers
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.TestInMemoryCacheFactory
 import org.junit.Rule
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.lang.Subject
+
+import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES
 
 class DefaultArtifactCacheLockingManagerTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
@@ -50,10 +52,8 @@ class DefaultArtifactCacheLockingManagerTest extends Specification {
         decorate(_) >> { args -> args[0] }
     }
     def cacheConfigurations = Stub(CacheConfigurationsInternal) {
-        getDownloadedResources() >> Stub(CacheResourceConfiguration) {
-            getRemoveUnusedEntriesAfterDays() >> Stub(Property) {
-                get() >> CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES
-            }
+        getDownloadedResources() >> Stub(CacheResourceConfigurationInternal) {
+            getRemoveUnusedEntriesOlderThanAsSupplier() >> TimestampSuppliers.daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES)
         }
     }
 

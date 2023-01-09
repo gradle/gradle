@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.util.internal.ToBeImplemented
 import org.junit.Test
 import spock.lang.Issue
 
@@ -39,6 +40,7 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @Issue("https://youtrack.jetbrains.com/issue/KT-44303")
     fun `can configure ext extension`() {
         withBuildScript(
             """
@@ -49,5 +51,109 @@ class GradleKotlinDslRegressionsTest : AbstractPluginIntegrationTest() {
         )
 
         build("help")
+    }
+
+    /**
+     * When this issue gets fixed in a future Kotlin version, remove -XXLanguage:+DisableCompatibilityModeForNewInference from Kotlin DSL compiler arguments.
+     */
+    @Test
+    @Issue("https://youtrack.jetbrains.com/issue/KT-44303")
+    @ToBeImplemented
+    fun `kotlin resolution and inference issue KT-44303`() {
+        withBuildScript("""
+            import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+            plugins { `embedded-kotlin` }
+            $repositoriesBlock
+            dependencies {
+                implementation(gradleKotlinDsl())
+            }
+        """)
+
+        withFile("src/main/kotlin/code.kt", """
+            import org.gradle.api.*
+
+            class MyPlugin : Plugin<Project> {
+                override fun apply(project: Project): Unit = project.run {
+                    ext {
+                        set("foo", "bar")
+                    }
+                }
+            }
+        """)
+
+        val result = buildAndFail("classes")
+
+        result.assertHasFailure("Execution failed for task ':compileKotlin'.") {
+            it.assertHasCause("Compilation error. See log for more details")
+        }
+        result.assertHasErrorOutput("src/main/kotlin/code.kt:7:25 Unresolved reference. None of the following candidates is applicable because of receiver type mismatch")
+    }
+
+
+    @Test
+    @Issue("https://youtrack.jetbrains.com/issue/KT-55068")
+    fun `kotlin ir backend issue kt-55068`() {
+
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            data class Container(val property: Property<String> = objects.property())
+        """)
+        withBuildScript("""plugins { id("my-plugin") }""")
+
+        build("help")
+    }
+
+    @Test
+    @Issue("https://youtrack.jetbrains.com/issue/KT-55065")
+    fun `kotlin ir backend issue kt-55065`() {
+
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            tasks.withType<DefaultTask>().configureEach {
+                val p: String by project
+            }
+        """)
+        withBuildScript("""plugins { id("my-plugin") }""")
+
+        build("help")
+    }
+
+    /**
+     * When this issue gets fixed in a future Kotlin version, remove -XXLanguage:-TypeEnhancementImprovementsInStrictMode from Kotlin DSL compiler arguments.
+     */
+    @Test
+    @Issue("https://youtrack.jetbrains.com/issue/KT-55542")
+    @ToBeImplemented
+    fun `nullable type parameters on non-nullable member works without disabling Koltlin type enhancement improvements in strict mode`() {
+        withBuildScript("""
+            import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+            plugins { `embedded-kotlin` }
+            $repositoriesBlock
+            dependencies {
+                implementation(gradleKotlinDsl())
+            }
+            tasks.withType<KotlinCompile>().configureEach {
+                compilerOptions.freeCompilerArgs.add("-Xjsr305=strict")
+            }
+        """)
+
+        withFile("src/main/kotlin/code.kt", """
+            import org.gradle.api.*
+
+            class MyPlugin : Plugin<Project> {
+                override fun apply(project: Project): Unit = project.run {
+                    provider { "thing" }.map { null }
+                }
+            }
+        """)
+
+        val result = buildAndFail("classes")
+
+        result.assertHasFailure("Execution failed for task ':compileKotlin'.") {
+            it.assertHasCause("Compilation error. See log for more details")
+        }
+        result.assertHasErrorOutput("src/main/kotlin/code.kt:6:48 Null can not be a value of a non-null type Nothing")
     }
 }
