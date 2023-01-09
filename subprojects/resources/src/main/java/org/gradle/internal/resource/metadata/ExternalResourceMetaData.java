@@ -65,4 +65,5 @@ public interface ExternalResourceMetaData {
     @Nullable
     HashCode getSha1();
 
+    boolean wasMissing();
 }

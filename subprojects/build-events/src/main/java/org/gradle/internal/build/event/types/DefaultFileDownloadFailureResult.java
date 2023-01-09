@@ -33,4 +33,9 @@ public class DefaultFileDownloadFailureResult extends DefaultFailureResult imple
     public long getBytesDownloaded() {
         return bytesDownloaded;
     }
+
+//    @Override
+//    public FileDownloadResult toFileDownloadResult(){
+//        return new org.gradle.tooling.events.download.internal.DefaultFileDownloadFailureResult(getStartTime(), getEndTime(), toFailures(getFailures()), getBytesDownloaded());
+//    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.events.download;
+
+import org.gradle.api.Incubating;
+import org.gradle.tooling.events.SuccessResult;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * The result of a file download operation with file not found.
  *
- * @since 7.3
+ * @since 8.1
  */
-public interface InternalFileDownloadResult {
-    long getBytesDownloaded();
-
-//    FileDownloadResult toFileDownloadResult();
+@Incubating
+public interface FileDownloadNotFoundResult extends FileDownloadResult, SuccessResult {
 }
