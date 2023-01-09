@@ -141,16 +141,6 @@ include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies/gr
 <2> Add the assertj library to the test's compile and runtime classpaths.  The `dependencies` block within a test suite is already scoped for that test suite.  Instead of having to know the global name of the configuration, test suites have a consistent name that you use in this block for declaring `implementation`, `compileOnly`, `runtimeOnly` and `annotationProcessor` dependencies.
 <3> Add the Auto Value annotation processor to the suite's annotation processor classpath so that it will be run when compiling the tests.
 
-== Configure dependencies of a test suite to reference project outputs
-====
-include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies-project/kotlin",files="build.gradle.kts[tags=configure-suite-dependencies-project]"]
-include::sample[dir="snippets/testing/test-suite-configure-suite-dependencies-project/groovy",files="build.gradle[tags=configure-suite-dependencies-project]"]
-====
-
-<1> Add a production dependency which is used as part of the library's public API.
-<2> Add a production dependency which is only used internally and is not exposed as part of this project's public classes.
-<3> Configure a new test suite which adds a `project()` dependency to the suite's compile and runtime classpaths. This dependency provides access to the project's outputs as well as any dependencies declared on its `api` and `compileOnlyApi` configurations.
-
 == Configure source directories of a test suite
 ====
 include::sample[dir="snippets/testing/test-suite-configure-source-dir/kotlin",files="build.gradle.kts[tags=configure-source-dir]"]
