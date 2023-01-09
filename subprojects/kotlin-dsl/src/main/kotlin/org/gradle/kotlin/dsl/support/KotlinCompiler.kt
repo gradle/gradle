@@ -191,7 +191,6 @@ fun compileKotlinScriptModuleTo(
             val configuration = compilerConfigurationFor(messageCollector, jvmTarget).apply {
                 put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
-                put(IR, true)
                 setModuleName(moduleName)
                 addScriptingCompilerComponents()
                 addScriptDefinition(scriptDef)

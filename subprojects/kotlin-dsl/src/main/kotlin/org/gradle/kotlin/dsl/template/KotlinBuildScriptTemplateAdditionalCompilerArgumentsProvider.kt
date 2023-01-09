@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION")
+
 package org.gradle.kotlin.dsl.template
 
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver.EnvironmentProperties
@@ -24,7 +26,6 @@ import kotlin.script.dependencies.Environment
 import kotlin.script.templates.ScriptTemplateAdditionalCompilerArgumentsProvider
 
 
-@Suppress("DEPRECATION")
 class KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider(additionalArguments: Iterable<String> = emptyList()) :
     ScriptTemplateAdditionalCompilerArgumentsProvider(additionalArguments) {
 
