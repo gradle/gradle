@@ -12,14 +12,18 @@ import model.TestSplitType.EXCLUDE
 import model.TestSplitType.INCLUDE
 import model.prepareTestClassesStep
 
+fun asDocsTestId(model: CIBuildModel, os: Os): String {
+    return "${model.projectId}_DocsTest_${os.asName()}"
+}
+
 class DocsTestProject(
     model: CIBuildModel,
     stage: Stage,
-    os: Os,
+    val os: Os,
     testJava: JvmCategory,
     testTypes: List<DocsTestType>
 ) : Project({
-    id("${model.projectId}_DocsTest_${testJava.version.name.toCapitalized()}_${os.asName()}")
+    id(asDocsTestId(model, os))
     name = "Docs Test - ${testJava.version.name.toCapitalized()} ${os.asName()}"
 }) {
     val docsTests: List<BaseGradleBuildType>
@@ -46,7 +50,7 @@ class DocsTestProject(
 }
 
 class DocsTestTrigger(model: CIBuildModel, docsTestProject: DocsTestProject) : BaseGradleBuildType(init = {
-    id("${docsTestProject.id}_Trigger")
+    id("${asDocsTestId(model, docsTestProject.os)}_Trigger")
     name = docsTestProject.name + " (Trigger)"
     type = Type.COMPOSITE
 
