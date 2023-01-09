@@ -1,8 +1,9 @@
 
 The Gradle team is excited to announce Gradle @version@.
 
-This release includes several improvements to the [Kotlin DSL](userguide/kotlin_dsl.html), testing on internal classes with the [JVM test suite](userguide/jvm_test_suite_plugin.html),
-and many improvements to `buildSrc` to behave more like included builds such as running `buildSrc` tasks directly, skipping tests, having init scripts and including other builds with  `buildSrc`.
+This release includes several improvements to the [Kotlin DSL](userguide/kotlin_dsl.html),
+as well as many improvements to `buildSrc` so that it behaves more like included builds such as: 
+running `buildSrc` tasks directly, skipping tests, applying init scripts, and including other builds from within `buildSrc`.
 
 As always, there are also performance improvements like enhancements to the [configuration cache](userguide/configuration_cache.html).
 
