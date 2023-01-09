@@ -54,8 +54,8 @@ type test-splits\$action-test-classes.properties
 class DocsTestProject(
     model: CIBuildModel,
     stage: Stage,
-    os: Os,
-    testJava: JvmCategory,
+    val os: Os,
+    val testJava: JvmCategory,
     testTypes: List<DocsTestType>
 ) : Project({
     id("${model.projectId}_DocsTest_${testJava.version.name.toCapitalized()}_${os.asName()}")
@@ -85,7 +85,7 @@ class DocsTestProject(
 }
 
 class DocsTestTrigger(model: CIBuildModel, docsTestProject: DocsTestProject) : BaseGradleBuildType(init = {
-    id("${docsTestProject.id}_Trigger")
+    id("${model.projectId}_DocsTest_${docsTestProject.testJava.version.name.toCapitalized()}_${docsTestProject.os.asName()}_Trigger")
     name = docsTestProject.name + " (Trigger)"
     type = Type.COMPOSITE
 
