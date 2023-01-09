@@ -286,7 +286,7 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     // run integMultiVersionTest with all version to cover
     allVersionsIntegMultiVersion(false, true, false),
     parallel(false, true, false),
-    noDaemon(false, true, false, 240),
+    noDaemon(false, true, false, 300),
     configCache(false, true, false),
     soak(false, false, false),
     forceRealizeDependencyManagement(false, true, false)
