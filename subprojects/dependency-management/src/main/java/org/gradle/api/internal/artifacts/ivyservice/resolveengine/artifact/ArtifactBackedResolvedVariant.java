@@ -59,7 +59,12 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     }
     private static Supplier<ResolvedArtifactSet> supplyResolvedArtifactSet(DisplayName displayName, AttributeContainerInternal attributes, CapabilitiesMetadata capabilities, Supplier<Collection<? extends ResolvableArtifact>> artifactsSupplier) {
         return () -> {
-            Collection<? extends ResolvableArtifact> artifacts = artifactsSupplier.get();
+            Collection<? extends ResolvableArtifact> artifacts;
+            try {
+                artifacts = artifactsSupplier.get();
+            } catch (Exception e) {
+                return new UnavailableResolvedArtifactSet(e);
+            }
             if (artifacts.isEmpty()) {
                 return EMPTY;
             }
