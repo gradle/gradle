@@ -16,7 +16,7 @@
 
 package org.gradle.internal.scopeids;
 
-import org.gradle.cache.PersistentStateCache;
+import org.gradle.cache.ObjectHolder;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.ScopedCacheBuilderFactory;
@@ -72,9 +72,9 @@ class DefaultPersistentScopeIdLoader implements PersistentScopeIdLoader {
     }
 
     private UniqueId get(ScopeParams params) {
-        PersistentStateCache<UniqueId> store = store(params);
+        ObjectHolder<UniqueId> store = store(params);
 
-        return store.maybeUpdate(new PersistentStateCache.UpdateAction<UniqueId>() {
+        return store.maybeUpdate(new ObjectHolder.UpdateAction<UniqueId>() {
             @Override
             public UniqueId update(UniqueId oldValue) {
                 if (oldValue == null) {
@@ -86,7 +86,7 @@ class DefaultPersistentScopeIdLoader implements PersistentScopeIdLoader {
         });
     }
 
-    private PersistentStateCache<UniqueId> store(ScopeParams params) {
+    private ObjectHolder<UniqueId> store(ScopeParams params) {
         File file = params.cacheBuilderFactory.baseDirForCrossVersionCache(params.fileName);
         return storeFactory.create(file, params.description);
     }

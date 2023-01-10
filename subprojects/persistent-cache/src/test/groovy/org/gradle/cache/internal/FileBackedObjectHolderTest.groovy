@@ -16,7 +16,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.FileAccess
-import org.gradle.cache.PersistentStateCache
+import org.gradle.cache.ObjectHolder
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.serialize.DefaultSerializer
 import org.gradle.internal.serialize.Serializer
@@ -28,16 +28,16 @@ import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createO
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.isIntegrityViolated
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
 
-class SimpleStateCacheTest extends Specification {
+class FileBackedObjectHolderTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final FileAccess fileAccess = Mock()
     final Chmod chmod = Mock()
     final File file = tmpDir.file("state.bin")
-    final SimpleStateCache<String> cache = createStateCache(fileAccess)
+    final FileBackedObjectHolder<String> cache = createStateCache(fileAccess)
 
-    private SimpleStateCache createStateCache(FileAccess fileAccess, File file = file, Serializer serializer = new DefaultSerializer()) {
-        return new SimpleStateCache(file, fileAccess, serializer, chmod)
+    private FileBackedObjectHolder createStateCache(FileAccess fileAccess, File file = file, Serializer serializer = new DefaultSerializer()) {
+        return new FileBackedObjectHolder(file, fileAccess, serializer, chmod)
     }
 
     def "returns null when file does not exist"() {
@@ -86,7 +86,7 @@ class SimpleStateCacheTest extends Specification {
         cache.update({ value ->
             assert value == "foo"
             return "foo bar"
-        } as PersistentStateCache.UpdateAction)
+        } as ObjectHolder.UpdateAction)
 
         then:
         1 * fileAccess.updateFile(!null) >> { it[0].run() }
@@ -104,7 +104,7 @@ class SimpleStateCacheTest extends Specification {
         cache.update({ value ->
             assert value == null
             return "bar"
-        } as PersistentStateCache.UpdateAction)
+        } as ObjectHolder.UpdateAction)
 
         then:
         1 * fileAccess.updateFile(!null) >> { it[0].run() }
