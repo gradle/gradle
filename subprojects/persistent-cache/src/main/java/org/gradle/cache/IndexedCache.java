@@ -21,7 +21,7 @@ import java.util.function.Function;
 /**
  * A persistent store of objects of type V indexed by a key of type K.
  */
-public interface PersistentIndexedCache<K, V> extends Cache<K, V> {
+public interface IndexedCache<K, V> extends Cache<K, V> {
     /**
      * Fetches the value mapped to the given key from this cache, blocking until it is available.
      *

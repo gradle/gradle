@@ -25,11 +25,11 @@ import org.gradle.cache.FileAccess;
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.InsufficientLockModeException;
 import org.gradle.cache.LockOptions;
 import org.gradle.cache.LockTimeoutException;
-import org.gradle.cache.MultiProcessSafePersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.gradle.cache.internal.btree.BTreePersistentIndexedCache;
 import org.gradle.cache.internal.cacheops.CacheAccessOperationsStack;
 import org.gradle.internal.Cast;
@@ -302,7 +302,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     }
 
     @Override
-    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> newCache(final PersistentIndexedCacheParameters<K, V> parameters) {
+    public <K, V> MultiProcessSafeIndexedCache<K, V> newCache(final IndexedCacheParameters<K, V> parameters) {
         stateLock.lock();
         IndexedCacheEntry<K, V> entry = Cast.uncheckedCast(caches.get(parameters.getCacheName()));
         try {
@@ -311,7 +311,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                 LOG.debug("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
                 Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = () -> doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
 
-                MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
+                MultiProcessSafeIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafeIndexedCache<K, V>(indexedCacheFactory, fileAccess);
                 CacheDecorator decorator = parameters.getCacheDecorator();
                 if (decorator != null) {
                     indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, crossProcessCacheAccess, getCacheAccessWorker());
@@ -333,12 +333,12 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
     }
 
-    private <K, V> File findCacheFile(PersistentIndexedCacheParameters<K, V> parameters) {
+    private <K, V> File findCacheFile(IndexedCacheParameters<K, V> parameters) {
         return new File(baseDir, parameters.getCacheName() + ".bin");
     }
 
     @Override
-    public <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters) {
+    public <K, V> boolean cacheExists(IndexedCacheParameters<K, V> parameters) {
         return findCacheFile(parameters).exists();
     }
 
@@ -481,23 +481,23 @@ public class DefaultCacheAccess implements CacheCoordinator {
     }
 
     private static class IndexedCacheEntry<K, V> {
-        private final MultiProcessSafePersistentIndexedCache<K, V> cache;
-        private final PersistentIndexedCacheParameters<K, V> parameters;
+        private final MultiProcessSafeIndexedCache<K, V> cache;
+        private final IndexedCacheParameters<K, V> parameters;
 
-        IndexedCacheEntry(PersistentIndexedCacheParameters<K, V> parameters, MultiProcessSafePersistentIndexedCache<K, V> cache) {
+        IndexedCacheEntry(IndexedCacheParameters<K, V> parameters, MultiProcessSafeIndexedCache<K, V> cache) {
             this.parameters = parameters;
             this.cache = cache;
         }
 
-        public MultiProcessSafePersistentIndexedCache<K, V> getCache() {
+        public MultiProcessSafeIndexedCache<K, V> getCache() {
             return cache;
         }
 
-        public PersistentIndexedCacheParameters<K, V> getParameters() {
+        public IndexedCacheParameters<K, V> getParameters() {
             return parameters;
         }
 
-        void assertCompatibleCacheParameters(PersistentIndexedCacheParameters<K, V> parameters) {
+        void assertCompatibleCacheParameters(IndexedCacheParameters<K, V> parameters) {
             List<String> faultMessages = new ArrayList<>();
 
             checkCacheNameMatch(faultMessages, parameters.getCacheName());

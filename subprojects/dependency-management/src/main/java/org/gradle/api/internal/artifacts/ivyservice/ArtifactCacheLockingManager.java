@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.cache.CacheAccess;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.IndexedCache;
 import org.gradle.internal.serialize.Serializer;
 
 /**
@@ -32,5 +32,5 @@ public interface ArtifactCacheLockingManager extends CacheAccess {
      * In this instance, an exclusive lock will be held on the cache.
      *
      */
-    <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer);
+    <K, V> IndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer);
 }

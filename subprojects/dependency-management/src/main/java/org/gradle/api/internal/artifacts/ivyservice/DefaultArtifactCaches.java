@@ -23,7 +23,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.CleanupActionDecorator;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.IndexedCache;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
@@ -181,7 +181,7 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
         }
 
         @Override
-        public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+        public <K, V> IndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
             return getDelegate().createCache(cacheName, keySerializer, valueSerializer);
         }
     }

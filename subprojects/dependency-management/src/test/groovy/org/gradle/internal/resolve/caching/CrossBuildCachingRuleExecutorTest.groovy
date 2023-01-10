@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePoli
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.PersistentIndexedCache
+import org.gradle.cache.IndexedCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.action.DefaultConfigurableRule
@@ -50,7 +50,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
     DefaultInMemoryCacheDecoratorFactory cacheDecoratorFactory = Mock()
     ValueSnapshotter valueSnapshotter = Mock()
     BuildCommencedTimeProvider timeProvider = Stub()
-    PersistentIndexedCache<ValueSnapshot, CrossBuildCachingRuleExecutor.CachedEntry<Result>> store = Mock()
+    IndexedCache<ValueSnapshot, CrossBuildCachingRuleExecutor.CachedEntry<Result>> store = Mock()
     CrossBuildCachingRuleExecutor.EntryValidator<Result> validator = Mock()
     Transformer<Serializable, Id> keyTransformer = new Transformer<Serializable, Id>() {
         @Override
@@ -96,7 +96,7 @@ class CrossBuildCachingRuleExecutorTest extends Specification {
             withLockOptions(_) >> { cacheBuilder }
             open() >> {
                 Mock(PersistentCache) {
-                    createCache(_) >> {
+                    createIndexedCache(_) >> {
                         store
                     }
                 }

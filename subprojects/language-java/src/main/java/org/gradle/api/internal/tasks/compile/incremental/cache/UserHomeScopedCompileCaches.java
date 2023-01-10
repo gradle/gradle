@@ -22,8 +22,8 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisDa
 import org.gradle.api.internal.tasks.compile.incremental.serialization.HierarchicalNameSerializer;
 import org.gradle.cache.Cache;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.MinimalPersistentCache;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
@@ -45,19 +45,19 @@ public class UserHomeScopedCompileCaches implements GeneralCompileCaches, Closea
             .withDisplayName("Java compile cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
-        PersistentIndexedCacheParameters<HashCode, ClassSetAnalysisData> jarCacheParameters = PersistentIndexedCacheParameters.of(
+        IndexedCacheParameters<HashCode, ClassSetAnalysisData> jarCacheParameters = IndexedCacheParameters.of(
             "jarAnalysis",
             new HashCodeSerializer(),
             new ClassSetAnalysisData.Serializer(() -> new HierarchicalNameSerializer(interner))
         ).withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
-        this.classpathEntrySnapshotCache = new MinimalPersistentCache<>(cache.createCache(jarCacheParameters));
+        this.classpathEntrySnapshotCache = new MinimalPersistentCache<>(cache.createIndexedCache(jarCacheParameters));
 
-        PersistentIndexedCacheParameters<HashCode, ClassAnalysis> classCacheParameters = PersistentIndexedCacheParameters.of(
+        IndexedCacheParameters<HashCode, ClassAnalysis> classCacheParameters = IndexedCacheParameters.of(
             "classAnalysis",
             new HashCodeSerializer(),
             new ClassAnalysis.Serializer(interner)
         ).withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(400000, true));
-        this.classAnalysisCache = new MinimalPersistentCache<>(cache.createCache(classCacheParameters));
+        this.classAnalysisCache = new MinimalPersistentCache<>(cache.createIndexedCache(classCacheParameters));
     }
 
     @Override

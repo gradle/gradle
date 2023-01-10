@@ -18,8 +18,8 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.CacheAccess;
 import org.gradle.cache.HasCleanupAction;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.IndexedCache;
+import org.gradle.cache.IndexedCacheParameters;
 
 import java.io.Closeable;
 
@@ -32,8 +32,8 @@ public interface CacheCoordinator extends CacheAccess, Closeable, HasCleanupActi
     @Override
     void close();
 
-    <K, V> PersistentIndexedCache<K, V> newCache(PersistentIndexedCacheParameters<K, V> parameters);
+    <K, V> IndexedCache<K, V> newCache(IndexedCacheParameters<K, V> parameters);
 
-    <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters);
+    <K, V> boolean cacheExists(IndexedCacheParameters<K, V> parameters);
 
 }

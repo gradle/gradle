@@ -31,7 +31,7 @@ import org.gradle.api.internal.artifacts.configurations.dynamicversion.Expiry
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.PersistentIndexedCache
+import org.gradle.cache.IndexedCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.action.DefaultConfigurableRule
@@ -61,7 +61,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
     BuildCommencedTimeProvider timeProvider = Stub(BuildCommencedTimeProvider) {
         getCurrentTime() >> 0
     }
-    PersistentIndexedCache<ValueSnapshot, CrossBuildCachingRuleExecutor.CachedEntry<ComponentMetadata>> store = Mock()
+    IndexedCache<ValueSnapshot, CrossBuildCachingRuleExecutor.CachedEntry<ComponentMetadata>> store = Mock()
     Serializer<ComponentMetadata> serializer
     InstantiatingAction<ComponentMetadataSupplierDetails> rule
     Transformer<ComponentMetadata, ComponentMetadataSupplierDetails> detailsToResult
@@ -76,7 +76,7 @@ class ComponentMetadataSupplierRuleExecutorTest extends Specification {
             withLockOptions(_) >> { cacheBuilder }
             open() >> {
                 Mock(PersistentCache) {
-                    createCache(_) >> {
+                    createIndexedCache(_) >> {
                         store
                     }
                 }

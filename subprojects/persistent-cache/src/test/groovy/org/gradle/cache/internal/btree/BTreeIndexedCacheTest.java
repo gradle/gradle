@@ -40,7 +40,7 @@ import static org.junit.Assert.assertNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-public class BTreePersistentIndexedCacheTest {
+public class BTreeIndexedCacheTest {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     private final Serializer<String> stringSerializer = new DefaultSerializer<String>();

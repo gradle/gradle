@@ -23,9 +23,9 @@ import org.bouncycastle.openpgp.PGPUtil;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.IndexedCache;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
@@ -64,9 +64,9 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
     private final PublicKeyService delegate;
     private final BuildCommencedTimeProvider timeProvider;
     private final boolean refreshKeys;
-    private final PersistentIndexedCache<Fingerprint, CacheEntry<PGPPublicKeyRing>> publicKeyRings;
+    private final IndexedCache<Fingerprint, CacheEntry<PGPPublicKeyRing>> publicKeyRings;
     // Some long key Id may have collisions. This is extremely unlikely but if it happens, we know how to workaround
-    private final PersistentIndexedCache<Long, CacheEntry<List<Fingerprint>>> longIdToFingerprint;
+    private final IndexedCache<Long, CacheEntry<List<Fingerprint>>> longIdToFingerprint;
     private final ProducerGuard<Fingerprint> fingerPrintguard = ProducerGuard.adaptive();
     private final ProducerGuard<Long> longIdGuard = ProducerGuard.adaptive();
 
@@ -87,23 +87,23 @@ public class CrossBuildCachingKeyService implements PublicKeyService, Closeable 
         this.timeProvider = timeProvider;
         this.refreshKeys = refreshKeys;
         FingerprintSerializer fingerprintSerializer = new FingerprintSerializer();
-        PersistentIndexedCacheParameters<Fingerprint, CacheEntry<PGPPublicKeyRing>> keyringParams = PersistentIndexedCacheParameters.of(
+        IndexedCacheParameters<Fingerprint, CacheEntry<PGPPublicKeyRing>> keyringParams = IndexedCacheParameters.of(
             "publickeyrings",
             fingerprintSerializer,
             new PublicKeyRingCacheEntrySerializer()
         ).withCacheDecorator(
             decoratorFactory.decorator(2000, true)
         );
-        publicKeyRings = cache.createCache(keyringParams);
+        publicKeyRings = cache.createIndexedCache(keyringParams);
 
-        PersistentIndexedCacheParameters<Long, CacheEntry<List<Fingerprint>>> mappingParameters = PersistentIndexedCacheParameters.of(
+        IndexedCacheParameters<Long, CacheEntry<List<Fingerprint>>> mappingParameters = IndexedCacheParameters.of(
             "keymappings",
             BaseSerializerFactory.LONG_SERIALIZER,
             new FingerprintListCacheEntrySerializer(new ListSerializer<>(fingerprintSerializer))
         ).withCacheDecorator(
             decoratorFactory.decorator(2000, true)
         );
-        longIdToFingerprint = cache.createCache(mappingParameters);
+        longIdToFingerprint = cache.createIndexedCache(mappingParameters);
     }
 
     @Override
