@@ -1147,7 +1147,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      * </p>
      *
      * @param forkEvery The maximum number of test classes. Use null or 0 to specify no maximum.
-     * @deprecated use the setter that takes a non-null long instead
+     * @deprecated Use {@link #setForkEvery(long)} instead.
      */
     @Deprecated
     public void setForkEvery(@Nullable Long forkEvery) {
