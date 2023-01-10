@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.component;
+
+package org.gradle.api.plugins.internal;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.FileCollection;
-
-import java.util.Collection;
+import org.gradle.api.component.SoftwareComponent;
 
 /**
- * Meta-info about a Java component.
- *
- * TODO - this is some legacy stuff, to be merged into other component interfaces
+ * Defines a software component which can be diagnosed via the constructs in the {@code :diagnostics} module.
  */
-public interface BuildableJavaComponent {
-    Collection<String> getBuildTasks();
-
-    FileCollection getRuntimeClasspath();
-
-    Configuration getCompileDependencies();
+public interface DiagnosableSoftwareComponent extends SoftwareComponent {
+    /**
+     * Get the compile classpath of the component.
+     */
+    Configuration getCompileClasspath();
 }

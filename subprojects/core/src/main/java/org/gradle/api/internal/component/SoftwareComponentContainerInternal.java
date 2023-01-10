@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,19 @@
 
 package org.gradle.api.internal.component;
 
+import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.provider.Property;
+
 /**
- * TODO - merge this and the component container
+ * Internal counterpart of {@link SoftwareComponentContainer}.
  */
-public class ComponentRegistry {
-    private BuildableJavaComponent mainComponent;
-
-    public BuildableJavaComponent getMainComponent() {
-        return mainComponent;
-    }
-
-    public void setMainComponent(BuildableJavaComponent mainComponent) {
-        this.mainComponent = mainComponent;
-    }
+public interface SoftwareComponentContainerInternal extends SoftwareComponentContainer {
+    /**
+     * Get the main component of a project.
+     * <p>
+     * This method will remain internal until we pinpoint what a "main" component truly is,
+     * and if it is conceptually necessary.
+     */
+    Property<SoftwareComponent> getMainComponent();
 }
