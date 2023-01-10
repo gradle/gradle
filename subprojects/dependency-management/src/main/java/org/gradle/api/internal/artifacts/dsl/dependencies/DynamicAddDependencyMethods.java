@@ -24,6 +24,7 @@ import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 class DynamicAddDependencyMethods implements MethodAccess {
     private final ConfigurationContainer configurationContainer;
@@ -55,10 +56,7 @@ class DynamicAddDependencyMethods implements MethodAccess {
         } else if (normalizedArgs.size() == 1) {
             return DynamicInvokeResult.found(dependencyAdder.add(configuration, normalizedArgs.get(0), null));
         } else {
-            for (Object arg : normalizedArgs) {
-                dependencyAdder.add(configuration, arg, null);
-            }
-            return DynamicInvokeResult.found();
+			return DynamicInvokeResult.found(normalizedArgs.stream().map(arg -> dependencyAdder.add(configuration, arg, null)).collect(Collectors.toList()));
         }
     }
 
