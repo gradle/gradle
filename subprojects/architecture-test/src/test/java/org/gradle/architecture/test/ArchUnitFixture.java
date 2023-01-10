@@ -81,7 +81,7 @@ public interface ArchUnitFixture {
     DescribedPredicate<JavaMember> kotlin_internal_methods = declaredIn(gradlePublicApi())
         .and(not(not_written_in_kotlin))
         .and(modifier(PUBLIC))
-        .and(nameMatching(".+\\$[a-z_]+"))
+        .and(nameMatching(".+\\$[a-z_]+")) // Kotlin internal methods have `$kotlin_module_name` appended to their name
         .as("Kotlin internal methods");
 
     DescribedPredicate<JavaMember> public_api_methods = declaredIn(gradlePublicApi())
