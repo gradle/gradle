@@ -19,7 +19,6 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.hash.Hashing
-import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.wrapper.WrapperExecutor
 import org.junit.Rule
