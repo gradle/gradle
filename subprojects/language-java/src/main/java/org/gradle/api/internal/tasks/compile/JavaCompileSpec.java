@@ -58,14 +58,13 @@ public interface JavaCompileSpec extends JvmLanguageCompileSpec {
 
     Set<AnnotationProcessorDeclaration> getEffectiveAnnotationProcessors();
 
-    void setClasses(Set<String> classes);
+    void setClassesToProcess(Set<String> classes);
 
+    Set<String> getClassesToProcess();
 
-    Set<String> getClasses();
+    void setClassesToCompile(Set<String> classes);
 
-    void setUndeletedClasses(Set<String> classes);
-
-    Set<String> getUndeletedClasses();
+    Set<String> getClassesToCompile();
 
     List<File> getModulePath();
 
