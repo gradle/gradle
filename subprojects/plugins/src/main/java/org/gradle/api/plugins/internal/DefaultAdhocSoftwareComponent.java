@@ -82,7 +82,7 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
         if (finalized) {
             DeprecationLogger.deprecateBehaviour("Gradle Module Metadata is modified after an eagerly populated publication.")
                 .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(7, "gmm_modification_after_publication_populated")
+                .withUpgradeGuideSection(8, "gmm_modification_after_publication_populated")
                 .nagUser();
         }
     }
