@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice
 
+import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.cache.internal.CleanupActionDecorator
-import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory
 import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.internal.resource.local.ModificationTimeFileAccessTimeJournal
@@ -51,7 +51,8 @@ class DefaultArtifactCacheLockingManagerTest extends Specification {
     }
     def cacheConfigurations = Stub(CacheConfigurationsInternal) {
         getDownloadedResources() >> Stub(CacheResourceConfigurationInternal) {
-            getRemoveUnusedEntriesOlderThanAsSupplier() >> TimestampSuppliers.daysAgo(DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES)
+            //noinspection UnnecessaryQualifiedReference
+            getRemoveUnusedEntriesOlderThanAsSupplier() >> TimestampSuppliers.daysAgo(CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES)
         }
     }
 
