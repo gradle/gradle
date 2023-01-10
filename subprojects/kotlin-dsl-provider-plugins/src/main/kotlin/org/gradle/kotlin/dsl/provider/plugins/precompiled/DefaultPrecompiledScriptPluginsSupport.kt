@@ -325,9 +325,7 @@ fun Task.configureKotlinCompilerArguments(
 
 private
 val Task.hasLazyKotlinCompilerOptions: Boolean
-    get() = withGroovyBuilder {
-        metaClass.hasProperty(this, "compilerOptions") != null
-    }
+    get() = withGroovyBuilder { hasProperty("compilerOptions") }
 
 
 private
