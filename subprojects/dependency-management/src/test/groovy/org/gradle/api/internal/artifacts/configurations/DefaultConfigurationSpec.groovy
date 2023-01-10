@@ -1823,8 +1823,8 @@ All Artifacts:
         child.extendsFrom(conf)
 
         then:
-        conf.syntheticDependencies.size() == 1
-        child.syntheticDependencies.size() == 0
+        conf.lockDependencyConstraints.size() == 1
+        child.lockDependencyConstraints.size() == 0
     }
 
     def 'locking constraints are not transitive'() {
@@ -1837,8 +1837,8 @@ All Artifacts:
         def conf = conf()
 
         then:
-        conf.syntheticDependencies.size() == 1
-        conf.syntheticDependencies.each {
+        conf.lockDependencyConstraints.size() == 1
+        conf.lockDependencyConstraints.each {
             assert !it.transitive
         }
     }
@@ -1853,8 +1853,8 @@ All Artifacts:
         def conf = conf()
 
         then:
-        conf.syntheticDependencies.size() == 1
-        conf.syntheticDependencies.each { DependencyMetadata dep ->
+        conf.lockDependencyConstraints.size() == 1
+        conf.lockDependencyConstraints.each { DependencyMetadata dep ->
             assert dep.reason == reason
         }
 

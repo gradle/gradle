@@ -124,7 +124,6 @@ import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
-import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
@@ -158,6 +157,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -165,6 +165,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED;
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED;
@@ -255,7 +256,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
-    private final Lazy<List<DependencyConstraint>> consistentResolutionConstraints = Lazy.unsafe().of(this::consistentResolutionConstraints);
+    private final Lazy<List<? extends DependencyMetadata>> lockDependencyConstraints = Lazy.unsafe().of(this::generateLockDependencyConstraints);
 
     private final AtomicInteger copyCount = new AtomicInteger();
 
@@ -780,9 +781,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return consistentResolutionSource;
     }
 
-    private List<DependencyConstraint> consistentResolutionConstraints() {
+    private Stream<DependencyConstraint> getConsistentResolutionConstraints() {
         if (consistentResolutionSource == null) {
-            return Collections.emptyList();
+            return Stream.empty();
         }
         assertThatConsistentResolutionIsPropertyConfigured();
         return consistentResolutionSource.getIncoming()
@@ -790,9 +791,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             .getAllComponents()
             .stream()
             .map(this::registerConsistentResolutionConstraint)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .collect(Collectors.toList());
+            .filter(Objects::nonNull);
     }
 
     private void assertThatConsistentResolutionIsPropertyConfigured() {
@@ -800,11 +799,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             throw new InvalidUserCodeException("You can't use " + consistentResolutionSource + " as a consistent resolution source for " + this + " because it isn't a resolvable configuration.");
         }
         assertNoDependencyResolutionConsistencyCycle();
-    }
-
-    @Override
-    public Supplier<List<DependencyConstraint>> getConsistentResolutionConstraints() {
-        return consistentResolutionConstraints;
     }
 
     @Override
@@ -850,7 +844,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
     }
 
-    private Optional<DependencyConstraint> registerConsistentResolutionConstraint(ResolvedComponentResult result) {
+    @Nullable
+    private DependencyConstraint registerConsistentResolutionConstraint(ResolvedComponentResult result) {
         if (result.getId() instanceof ModuleComponentIdentifier) {
             ModuleVersionIdentifier moduleVersion = result.getModuleVersion();
             DefaultDependencyConstraint constraint = DefaultDependencyConstraint.strictly(
@@ -858,9 +853,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 moduleVersion.getName(),
                 moduleVersion.getVersion());
             constraint.because(consistentResolutionReason);
-            return Optional.of(constraint);
+            return constraint;
         }
-        return Optional.empty();
+        return null;
     }
 
     private void performPreResolveActions(ResolvableDependencies incoming) {
@@ -1396,32 +1391,45 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public List<? extends DependencyMetadata> getSyntheticDependencies() {
+    public List<? extends DependencyMetadata> getLockDependencyConstraints() {
+        return lockDependencyConstraints.get();
+    }
+
+    private List<? extends DependencyMetadata> generateLockDependencyConstraints() {
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(getModule());
 
-        ImmutableList.Builder<LocalOriginDependencyMetadata> syntheticDependencies = ImmutableList.builder();
+        Stream<LocalComponentDependencyMetadata> dependencyLockingConstraintMetadata = Stream.empty();
         if (getResolutionStrategy().isDependencyLockingEnabled()) {
             DependencyLockingState dependencyLockingState = dependencyLockingProvider.loadLockState(name);
             boolean strict = dependencyLockingState.mustValidateLockState();
-            for (ModuleComponentIdentifier lockedDependency : dependencyLockingState.getLockedDependencies()) {
+            dependencyLockingConstraintMetadata = dependencyLockingState.getLockedDependencies().stream().map(lockedDependency -> {
                 String lockedVersion = lockedDependency.getVersion();
                 VersionConstraint versionConstraint = strict
                     ? DefaultMutableVersionConstraint.withStrictVersion(lockedVersion)
                     : DefaultMutableVersionConstraint.withVersion(lockedVersion);
                 ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(lockedDependency.getGroup(), lockedDependency.getModule()), versionConstraint);
-                syntheticDependencies.add(new LocalComponentDependencyMetadata(componentIdentifier, selector, name, getAttributes(),  ImmutableAttributes.EMPTY, null,
-                    Collections.emptyList(),  Collections.emptyList(), false, false, false, true, false, true, getLockReason(strict, lockedVersion)));
-            }
+                return new LocalComponentDependencyMetadata(
+                    componentIdentifier, selector, name, getAttributes(),
+                    ImmutableAttributes.EMPTY, null, Collections.emptyList(),  Collections.emptyList(),
+                    false, false, false, true, false, true, getLockReason(strict, lockedVersion)
+                );
+            });
         }
-        for (DependencyConstraint dc : getConsistentResolutionConstraints().get()) {
+
+        Stream<LocalComponentDependencyMetadata> consistentResolutionConstraintMetadata = getConsistentResolutionConstraints().map(dc -> {
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dc.getGroup(), dc.getName()), dc.getVersionConstraint());
-            syntheticDependencies.add(new LocalComponentDependencyMetadata(componentIdentifier, selector, name, getAttributes(),  ImmutableAttributes.EMPTY, null,
-                Collections.emptyList(),  Collections.emptyList(), false, false, false, true, false, true, dc.getReason()));
-        }
-        return syntheticDependencies.build();
+            return new LocalComponentDependencyMetadata(
+                componentIdentifier, selector, name, getAttributes(),
+                ImmutableAttributes.EMPTY, null, Collections.emptyList(), Collections.emptyList(),
+                false, false, false, true, false, true, dc.getReason()
+            );
+        });
+
+        return Stream.concat(dependencyLockingConstraintMetadata, consistentResolutionConstraintMetadata)
+                     .collect(ImmutableList.toImmutableList());
     }
 
-    public String getLockReason(boolean strict, String lockedVersion) {
+    private String getLockReason(boolean strict, String lockedVersion) {
         if (strict) {
             return "dependency was locked to version '" + lockedVersion + "'";
         }
