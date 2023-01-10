@@ -214,7 +214,7 @@ interface GroovyBuilderScope : GroovyObject {
     val delegate: Any
 
     /**
-     * Returns true if the object has a property names [name].
+     * Returns true if the object has a property named [name].
      *
      * Note that this method will only return true for realised Groovy properties and does not take into account implementation of Groovy's `getProperty` or `propertyMissing`.
      *
