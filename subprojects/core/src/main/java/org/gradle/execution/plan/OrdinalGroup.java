@@ -68,7 +68,6 @@ public class OrdinalGroup extends NodeGroup {
             if (previous != null) {
                 producerLocationsNode.addDependencySuccessor(previous.getProducerLocationsNode());
             }
-            producerLocationsNode.require();
         }
         return producerLocationsNode;
     }
@@ -79,7 +78,6 @@ public class OrdinalGroup extends NodeGroup {
             if (previous != null) {
                 destroyerLocationsNode.addDependencySuccessor(previous.getDestroyerLocationsNode());
             }
-            destroyerLocationsNode.require();
         }
         return destroyerLocationsNode;
     }
