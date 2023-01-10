@@ -33,7 +33,7 @@ import static java.util.concurrent.TimeUnit.DAYS
 import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES
 import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 
-class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, GradleUserHomeCleanupFixture {
+class DefaultArtifactCacheLockingAccessCoordinatorIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, GradleUserHomeCleanupFixture {
     public static final int HALF_DEFAULT_MAX_AGE_IN_DAYS = Math.max(1, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES / 2 as int)
 
     def snapshotModule = mavenHttpRepo.module('org.example', 'example', '1.0-SNAPSHOT').publish().allowAll()

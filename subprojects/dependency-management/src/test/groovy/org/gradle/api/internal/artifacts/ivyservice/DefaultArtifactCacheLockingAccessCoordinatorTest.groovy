@@ -30,7 +30,7 @@ import spock.lang.AutoCleanup
 import spock.lang.Specification
 import spock.lang.Subject
 
-class DefaultArtifactCacheLockingManagerTest extends Specification {
+class DefaultArtifactCacheLockingAccessCoordinatorTest extends Specification {
     @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def cacheRepository = new DefaultUnscopedCacheBuilderFactory(null, new TestInMemoryCacheFactory())
@@ -57,7 +57,7 @@ class DefaultArtifactCacheLockingManagerTest extends Specification {
     }
 
     @Subject @AutoCleanup
-    def cacheLockingManager = new WritableArtifactCacheLockingManager(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, usedGradleVersions, cleanupActionFactory, cacheConfigurations)
+    def cacheLockingManager = new WritableArtifactCacheLockingAccessCoordinator(cacheRepository, artifactCacheMetadata, fileAccessTimeJournal, usedGradleVersions, cleanupActionFactory, cacheConfigurations)
 
     def "cleans up resources"() {
         given:

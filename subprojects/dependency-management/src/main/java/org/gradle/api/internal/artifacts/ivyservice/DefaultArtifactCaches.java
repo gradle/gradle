@@ -42,8 +42,8 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
 
     private final DefaultArtifactCacheMetadata writableCacheMetadata;
     private final DefaultArtifactCacheMetadata readOnlyCacheMetadata;
-    private final LateInitWritableArtifactCacheLockingManager writableArtifactCacheLockingManager;
-    private final ReadOnlyArtifactCacheLockingManager readOnlyArtifactCacheLockingManager;
+    private final LateInitWritableArtifactCacheLockingAccessCoordinator writableCacheAccessCoordinator;
+    private final ReadOnlyArtifactCacheLockingAccessCoordinator readOnlyCacheAccessCoordinator;
 
     public DefaultArtifactCaches(
             GlobalScopedCacheBuilderFactory cacheBuilderFactory,
@@ -54,8 +54,8 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
             CacheConfigurationsInternal cacheConfigurations
                                  ) {
         writableCacheMetadata = new DefaultArtifactCacheMetadata(cacheBuilderFactory);
-        writableArtifactCacheLockingManager = new LateInitWritableArtifactCacheLockingManager(() -> {
-            return new WritableArtifactCacheLockingManager(unscopedCacheBuilderFactory, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions(), cleanupActionDecorator, cacheConfigurations);
+        writableCacheAccessCoordinator = new LateInitWritableArtifactCacheLockingAccessCoordinator(() -> {
+            return new WritableArtifactCacheLockingAccessCoordinator(unscopedCacheBuilderFactory, writableCacheMetadata, params.getFileAccessTimeJournal(), params.getUsedGradleVersions(), cleanupActionDecorator, cacheConfigurations);
         });
         String roCache = System.getenv(READONLY_CACHE_ENV_VAR);
         if (StringUtils.isNotEmpty(roCache)) {
@@ -63,15 +63,15 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
             File baseDir = validateReadOnlyCache(documentationRegistry, new File(roCache).getAbsoluteFile());
             if (baseDir != null) {
                 readOnlyCacheMetadata = new DefaultArtifactCacheMetadata(cacheBuilderFactory, baseDir);
-                readOnlyArtifactCacheLockingManager = new ReadOnlyArtifactCacheLockingManager(unscopedCacheBuilderFactory, readOnlyCacheMetadata);
+                readOnlyCacheAccessCoordinator = new ReadOnlyArtifactCacheLockingAccessCoordinator(unscopedCacheBuilderFactory, readOnlyCacheMetadata);
                 LOGGER.info("The read-only dependency cache is enabled \nThe {} environment variable was set to {}", READONLY_CACHE_ENV_VAR, baseDir);
             } else {
                 readOnlyCacheMetadata = null;
-                readOnlyArtifactCacheLockingManager = null;
+                readOnlyCacheAccessCoordinator = null;
             }
         } else {
             readOnlyCacheMetadata = null;
-            readOnlyArtifactCacheLockingManager = null;
+            readOnlyCacheAccessCoordinator = null;
         }
     }
 
@@ -104,13 +104,13 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
     }
 
     @Override
-    public ArtifactCacheLockingManager getWritableCacheLockingManager() {
-        return writableArtifactCacheLockingManager;
+    public ArtifactCacheLockingAccessCoordinator getWritableCacheAccessCoordinator() {
+        return writableCacheAccessCoordinator;
     }
 
     @Override
-    public Optional<ArtifactCacheLockingManager> getReadOnlyCacheLockingManager() {
-        return Optional.ofNullable(readOnlyArtifactCacheLockingManager);
+    public Optional<ArtifactCacheLockingAccessCoordinator> getReadOnlyCacheAccessCoordinator() {
+        return Optional.ofNullable(readOnlyCacheAccessCoordinator);
     }
 
     @Override
@@ -122,9 +122,9 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
 
     @Override
     public void close() {
-        writableArtifactCacheLockingManager.close();
-        if (readOnlyArtifactCacheLockingManager != null) {
-            readOnlyArtifactCacheLockingManager.close();
+        writableCacheAccessCoordinator.close();
+        if (readOnlyCacheAccessCoordinator != null) {
+            readOnlyCacheAccessCoordinator.close();
         }
     }
 
@@ -134,15 +134,15 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
         UsedGradleVersions getUsedGradleVersions();
     }
 
-    private static class LateInitWritableArtifactCacheLockingManager implements ArtifactCacheLockingManager, Closeable {
-        private final Factory<WritableArtifactCacheLockingManager> factory;
-        private volatile WritableArtifactCacheLockingManager delegate;
+    private static class LateInitWritableArtifactCacheLockingAccessCoordinator implements ArtifactCacheLockingAccessCoordinator, Closeable {
+        private final Factory<WritableArtifactCacheLockingAccessCoordinator> factory;
+        private volatile WritableArtifactCacheLockingAccessCoordinator delegate;
 
-        private LateInitWritableArtifactCacheLockingManager(Factory<WritableArtifactCacheLockingManager> factory) {
+        private LateInitWritableArtifactCacheLockingAccessCoordinator(Factory<WritableArtifactCacheLockingAccessCoordinator> factory) {
             this.factory = factory;
         }
 
-        private WritableArtifactCacheLockingManager getDelegate() {
+        private WritableArtifactCacheLockingAccessCoordinator getDelegate() {
             if (delegate == null) {
                 synchronized (factory) {
                     if (delegate == null) {

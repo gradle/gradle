@@ -19,7 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Interner;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
@@ -39,10 +39,10 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
 
     private IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
     private final ModuleMetadataStore moduleMetadataStore;
-    private final ArtifactCacheLockingManager artifactCacheLockingManager;
+    private final ArtifactCacheLockingAccessCoordinator artifactCacheLockingManager;
 
     public PersistentModuleMetadataCache(BuildCommencedTimeProvider timeProvider,
-                                         ArtifactCacheLockingManager artifactCacheLockingManager,
+                                         ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator,
                                          ArtifactCacheMetadata artifactCacheMetadata,
                                          ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                          AttributeContainerSerializer attributeContainerSerializer,
@@ -53,7 +53,7 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
                                          ChecksumService checksumService) {
         super(timeProvider);
         moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(checksumService, artifactCacheMetadata.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory, moduleSourcesSerializer), moduleIdentifierFactory, stringInterner);
-        this.artifactCacheLockingManager = artifactCacheLockingManager;
+        this.artifactCacheLockingManager = cacheAccessCoordinator;
     }
 
     private IndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> getCache() {
