@@ -264,8 +264,10 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     @Override
-    PatternSpecFactory createPatternSpecFactory() {
-        return new CachingPatternSpecFactory();
+    PatternSpecFactory createPatternSpecFactory(ListenerManager listenerManager) {
+        PatternSpecFactory patternSpecFactory = new CachingPatternSpecFactory();
+        listenerManager.addListener(patternSpecFactory);
+        return patternSpecFactory;
     }
 
     LoggingManagerInternal createLoggingManager(Factory<LoggingManagerInternal> loggingManagerFactory) {
