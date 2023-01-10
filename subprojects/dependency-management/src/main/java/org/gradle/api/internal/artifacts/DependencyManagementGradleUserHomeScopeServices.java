@@ -70,7 +70,7 @@ public class DependencyManagementGradleUserHomeScopeServices {
             @SuppressWarnings("deprecation")
             @Override
             public void buildFinished(BuildResult result) {
-                artifactCachesProvider.getWritableCacheLockingManager().useCache(() -> {
+                artifactCachesProvider.getWritableCacheAccessCoordinator().useCache(() -> {
                     // forces cleanup even if cache wasn't used
                 });
             }

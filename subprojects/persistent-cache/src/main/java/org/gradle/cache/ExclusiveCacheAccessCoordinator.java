@@ -20,7 +20,7 @@ import org.gradle.internal.Factory;
 /**
  * Provides synchronised access to a cache.
  */
-public interface CacheAccess {
+public interface ExclusiveCacheAccessCoordinator {
     /**
      * Performs some work against the cache. Acquires exclusive locks on the appropriate resources, so that the given action is the only action to execute across all processes (including this one). Releases the locks and all resources at the end of the action.
      *

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.cached;
 
-import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.cache.IndexedCache;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.serialize.Serializer;
@@ -27,17 +27,17 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
     private final String persistentCacheName;
     private final Serializer<K> keySerializer;
     private final Serializer<V> valueSerializer;
-    private final ArtifactCacheLockingManager artifactCacheLockingManager;
+    private final ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator;
     private final FileAccessTracker fileAccessTracker;
 
     private IndexedCache<K, V> indexedCache;
 
-    public AbstractCachedIndex(String persistentCacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, ArtifactCacheLockingManager artifactCacheLockingManager, FileAccessTracker fileAccessTracker) {
+    public AbstractCachedIndex(String persistentCacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer, ArtifactCacheLockingAccessCoordinator cacheAccessCoordinator, FileAccessTracker fileAccessTracker) {
 
         this.persistentCacheName = persistentCacheName;
         this.keySerializer = keySerializer;
         this.valueSerializer = valueSerializer;
-        this.artifactCacheLockingManager = artifactCacheLockingManager;
+        this.cacheAccessCoordinator = cacheAccessCoordinator;
         this.fileAccessTracker = fileAccessTracker;
     }
 
@@ -49,13 +49,13 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
     }
 
     private IndexedCache<K, V> initPersistentCache() {
-        return artifactCacheLockingManager.createCache(persistentCacheName, keySerializer, valueSerializer);
+        return cacheAccessCoordinator.createCache(persistentCacheName, keySerializer, valueSerializer);
     }
 
     public V lookup(final K key) {
         assertKeyNotNull(key);
 
-        V result = artifactCacheLockingManager.useCache(() -> {
+        V result = cacheAccessCoordinator.useCache(() -> {
             V found = getIndexedCache().getIfPresent(key);
             if (found == null) {
                 return null;
@@ -75,7 +75,7 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
     }
 
     protected void storeInternal(final K key, final V entry) {
-        artifactCacheLockingManager.useCache(() -> getIndexedCache().put(key, entry));
+        cacheAccessCoordinator.useCache(() -> getIndexedCache().put(key, entry));
     }
 
     protected void assertKeyNotNull(K key) {
@@ -92,6 +92,6 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
 
     public void clear(final K key) {
         assertKeyNotNull(key);
-        artifactCacheLockingManager.useCache(() -> getIndexedCache().remove(key));
+        cacheAccessCoordinator.useCache(() -> getIndexedCache().remove(key));
     }
 }

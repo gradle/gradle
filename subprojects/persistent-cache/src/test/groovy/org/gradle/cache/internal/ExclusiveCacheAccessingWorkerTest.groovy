@@ -16,18 +16,19 @@
 
 package org.gradle.cache.internal
 
-import org.gradle.cache.CacheAccess
+
+import org.gradle.cache.ExclusiveCacheAccessCoordinator
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
-class CacheAccessWorkerTest extends ConcurrentSpec {
-    CacheAccess cacheAccess
-    CacheAccessWorker cacheAccessWorker
+class ExclusiveCacheAccessingWorkerTest extends ConcurrentSpec {
+    ExclusiveCacheAccessCoordinator cacheAccess
+    ExclusiveCacheAccessingWorker cacheAccessWorker
 
     def setup() {
-        cacheAccess = Stub(CacheAccess) {
+        cacheAccess = Stub(ExclusiveCacheAccessCoordinator) {
             useCache(_) >> { Runnable action -> action.run() }
         }
-        cacheAccessWorker = new CacheAccessWorker("<cache>", cacheAccess)
+        cacheAccessWorker = new ExclusiveCacheAccessingWorker("<cache>", cacheAccess)
     }
 
     def "read runs after queued writes are processed"() {

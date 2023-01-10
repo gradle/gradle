@@ -39,7 +39,7 @@ import static org.gradle.cache.FileLockManager.LockMode.OnDemand
 import static org.gradle.cache.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
-class DefaultCacheAccessTest extends ConcurrentSpec {
+class DefaultExclusiveCacheAccessCoordinatorTest extends ConcurrentSpec {
     private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory()
 
     @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
@@ -51,8 +51,8 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     final FileLock lock = Mock()
     final BTreePersistentIndexedCache<String, Integer> backingCache = Mock()
 
-    private DefaultCacheAccess newAccess(FileLockManager.LockMode lockMode) {
-        new DefaultCacheAccess("<display-name>", lockFile, mode(lockMode), cacheDir, lockManager, initializationAction, cleanupExecutor, executorFactory) {
+    private DefaultCacheCoordinator newAccess(FileLockManager.LockMode lockMode) {
+        new DefaultCacheCoordinator("<display-name>", lockFile, mode(lockMode), cacheDir, lockManager, initializationAction, cleanupExecutor, executorFactory) {
             @Override
             <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
                 return backingCache
@@ -722,7 +722,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.newCache(IndexedCacheParameters.of('cache', String.class, String.class))
 
         then:
-        thrown(DefaultCacheAccess.InvalidCacheReuseException)
+        thrown(DefaultCacheCoordinator.InvalidCacheReuseException)
 
         cleanup:
         access?.close()
@@ -736,7 +736,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.newCache(IndexedCacheParameters.of('cache', Integer.class, Integer.class))
 
         then:
-        thrown(DefaultCacheAccess.InvalidCacheReuseException)
+        thrown(DefaultCacheCoordinator.InvalidCacheReuseException)
 
         cleanup:
         access?.close()
@@ -755,7 +755,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
         access.newCache(IndexedCacheParameters.of('cache', String.class, Integer.class).withCacheDecorator(decorator))
 
         then:
-        thrown(DefaultCacheAccess.InvalidCacheReuseException)
+        thrown(DefaultCacheCoordinator.InvalidCacheReuseException)
 
         cleanup:
         access?.close()

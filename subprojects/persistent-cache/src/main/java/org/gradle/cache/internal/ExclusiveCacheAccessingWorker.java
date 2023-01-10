@@ -17,7 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.AsyncCacheAccess;
-import org.gradle.cache.CacheAccess;
+import org.gradle.cache.ExclusiveCacheAccessCoordinator;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorPolicy;
@@ -35,10 +35,10 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
-class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
+class ExclusiveCacheAccessingWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private final BlockingQueue<Runnable> workQueue;
     private final String displayName;
-    private final CacheAccess cacheAccess;
+    private final ExclusiveCacheAccessCoordinator cacheAccess;
     private final long batchWindowMillis;
     private final long maximumLockingTimeMillis;
     private boolean closed;
@@ -47,7 +47,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     private final CountDownLatch doneSignal = new CountDownLatch(1);
     private final ExecutorPolicy.CatchAndRecordFailures failureHandler = new ExecutorPolicy.CatchAndRecordFailures();
 
-    CacheAccessWorker(String displayName, CacheAccess cacheAccess) {
+    ExclusiveCacheAccessingWorker(String displayName, ExclusiveCacheAccessCoordinator cacheAccess) {
         this.displayName = displayName;
         this.cacheAccess = cacheAccess;
         this.batchWindowMillis = 200;

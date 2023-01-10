@@ -45,10 +45,10 @@ import java.util.function.Supplier;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class WritableArtifactCacheLockingManager implements ArtifactCacheLockingManager, Closeable {
+public class WritableArtifactCacheLockingAccessCoordinator implements ArtifactCacheLockingAccessCoordinator, Closeable {
     private final PersistentCache cache;
 
-    public WritableArtifactCacheLockingManager(
+    public WritableArtifactCacheLockingAccessCoordinator(
             UnscopedCacheBuilderFactory unscopedCacheBuilderFactory,
             ArtifactCacheMetadata cacheMetaData,
             FileAccessTimeJournal fileAccessTimeJournal,

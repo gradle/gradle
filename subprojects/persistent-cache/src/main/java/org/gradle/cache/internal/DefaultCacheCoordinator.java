@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.cache.AsyncCacheAccess;
 import org.gradle.cache.CacheDecorator;
+import org.gradle.cache.ExclusiveCacheAccessCoordinator;
 import org.gradle.cache.FileAccess;
 import org.gradle.cache.FileIntegrityViolationException;
 import org.gradle.cache.FileLock;
@@ -59,8 +60,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 
 @ThreadSafe
-public class DefaultCacheAccess implements CacheCoordinator {
-    private final static Logger LOG = LoggerFactory.getLogger(DefaultCacheAccess.class);
+public class DefaultCacheCoordinator implements CacheCreationCoordinator, ExclusiveCacheAccessCoordinator {
+    private final static Logger LOG = LoggerFactory.getLogger(DefaultCacheCoordinator.class);
     private final static Runnable NO_OP = () -> {
         // Empty initial operation to trigger onStartWork calls
     };
@@ -75,7 +76,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private final CacheAccessOperationsStack operations;
 
     private ManagedExecutor cacheUpdateExecutor;
-    private CacheAccessWorker cacheAccessWorker;
+    private ExclusiveCacheAccessingWorker cacheAccessWorker;
     private final Lock stateLock = new ReentrantLock(); // protects the following state
     private final Condition condition = stateLock.newCondition();
 
@@ -87,7 +88,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     private int cacheClosedCount;
     private boolean alreadyCleaned;
 
-    public DefaultCacheAccess(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupExecutor cleanupAction, ExecutorFactory executorFactory) {
+    public DefaultCacheCoordinator(String cacheDisplayName, File lockTarget, LockOptions lockOptions, File baseDir, FileLockManager lockManager, CacheInitializationAction initializationAction, CacheCleanupExecutor cleanupAction, ExecutorFactory executorFactory) {
         this.cacheDisplayName = cacheDisplayName;
         this.baseDir = baseDir;
         this.cleanupAction = cleanupAction;
@@ -121,7 +122,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
 
     private synchronized AsyncCacheAccess getCacheAccessWorker() {
         if (cacheAccessWorker == null) {
-            cacheAccessWorker = new CacheAccessWorker(cacheDisplayName, this);
+            cacheAccessWorker = new ExclusiveCacheAccessingWorker(cacheDisplayName, this);
             cacheUpdateExecutor = executorFactory.create("Cache worker for " + cacheDisplayName);
             cacheUpdateExecutor.execute(cacheAccessWorker);
         }
