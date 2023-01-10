@@ -18,9 +18,9 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.IndexedCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.concurrent.Stoppable;
@@ -42,7 +42,7 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
     public static final String INCEPTION_TIMESTAMP_KEY = "inceptionTimestamp";
 
     private final PersistentCache cache;
-    private final PersistentIndexedCache<File, Long> store;
+    private final IndexedCache<File, Long> store;
     private final long inceptionTimestamp;
 
     public DefaultFileAccessTimeJournal(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
@@ -52,7 +52,7 @@ public class DefaultFileAccessTimeJournal implements FileAccessTimeJournal, Stop
             .withDisplayName("journal cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // lock on demand
             .open();
-        store = cache.createCache(PersistentIndexedCacheParameters.of(FILE_ACCESS_CACHE_NAME, FILE_SERIALIZER, LONG_SERIALIZER)
+        store = cache.createIndexedCache(IndexedCacheParameters.of(FILE_ACCESS_CACHE_NAME, FILE_SERIALIZER, LONG_SERIALIZER)
             .withCacheDecorator(cacheDecoratorFactory.decorator(10000, true)));
         inceptionTimestamp = loadOrPersistInceptionTimestamp();
     }

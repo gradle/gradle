@@ -20,7 +20,7 @@ package org.gradle.cache.internal
 import org.gradle.cache.AsyncCacheAccess
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CrossProcessCacheAccess
-import org.gradle.cache.MultiProcessSafePersistentIndexedCache
+import org.gradle.cache.MultiProcessSafeIndexedCache
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
 import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
 import org.gradle.internal.event.DefaultListenerManager
@@ -54,8 +54,8 @@ class DefaultFileContentCacheFactoryTest extends Specification {
         CacheDecorator decorator(int maxEntriesToKeepInMemory, boolean cacheInMemoryForShortLivedProcesses) {
             return new CacheDecorator() {
                 @Override
-                public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
-                    return persistentCache
+                public <K, V> MultiProcessSafeIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafeIndexedCache<K, V> indexedCache, CrossProcessCacheAccess crossProcessCacheAccess, AsyncCacheAccess asyncCacheAccess) {
+                    return indexedCache
                 }
             }
         }

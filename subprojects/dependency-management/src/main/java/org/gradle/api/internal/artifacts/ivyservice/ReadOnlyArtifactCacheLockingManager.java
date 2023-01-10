@@ -18,11 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheBuilder;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.IndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
 
@@ -82,16 +82,16 @@ public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLocking
     }
 
     @Override
-    public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+    public <K, V> IndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         String cacheFileInMetaDataStore = CacheLayout.META_DATA.getKey() + "/" + cacheName;
-        PersistentIndexedCacheParameters<K, V> parameters = PersistentIndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer);
-        if (cache.cacheExists(parameters)) {
-            return new TransparentCacheLockingPersistentCache<>(new FailSafePersistentCache<>(cache.createCache(parameters)));
+        IndexedCacheParameters<K, V> parameters = IndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer);
+        if (cache.indexedCacheExists(parameters)) {
+            return new TransparentCacheLockingIndexedCache<>(new FailSafeIndexedCache<>(cache.createIndexedCache(parameters)));
         }
-        return new EmptyCache<>();
+        return new EmptyIndexedCache<>();
     }
 
-    private static class EmptyCache<K, V> implements PersistentIndexedCache<K, V> {
+    private static class EmptyIndexedCache<K, V> implements IndexedCache<K, V> {
         @Nullable
         @Override
         public V getIfPresent(K key) {
@@ -114,11 +114,11 @@ public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLocking
         }
     }
 
-    private static class FailSafePersistentCache<K, V> implements PersistentIndexedCache<K, V> {
-        private final PersistentIndexedCache<K, V> delegate;
+    private static class FailSafeIndexedCache<K, V> implements IndexedCache<K, V> {
+        private final IndexedCache<K, V> delegate;
         private boolean failed;
 
-        private FailSafePersistentCache(PersistentIndexedCache<K, V> delegate) {
+        private FailSafeIndexedCache(IndexedCache<K, V> delegate) {
             this.delegate = delegate;
         }
 
@@ -156,32 +156,32 @@ public class ReadOnlyArtifactCacheLockingManager implements ArtifactCacheLocking
 
     }
 
-    private class TransparentCacheLockingPersistentCache<K, V> implements PersistentIndexedCache<K, V> {
-        private final PersistentIndexedCache<K, V> persistentCache;
+    private class TransparentCacheLockingIndexedCache<K, V> implements IndexedCache<K, V> {
+        private final IndexedCache<K, V> indexedCache;
 
-        public TransparentCacheLockingPersistentCache(PersistentIndexedCache<K, V> persistentCache) {
-            this.persistentCache = persistentCache;
+        public TransparentCacheLockingIndexedCache(IndexedCache<K, V> indexedCache) {
+            this.indexedCache = indexedCache;
         }
 
         @Nullable
         @Override
         public V getIfPresent(final K key) {
-            return cache.useCache(() -> persistentCache.getIfPresent(key));
+            return cache.useCache(() -> indexedCache.getIfPresent(key));
         }
 
         @Override
         public V get(final K key, final Function<? super K, ? extends V> producer) {
-            return cache.useCache(() -> persistentCache.get(key, producer));
+            return cache.useCache(() -> indexedCache.get(key, producer));
         }
 
         @Override
         public void put(final K key, final V value) {
-            cache.useCache(() -> persistentCache.put(key, value));
+            cache.useCache(() -> indexedCache.put(key, value));
         }
 
         @Override
         public void remove(final K key) {
-            cache.useCache(() -> persistentCache.remove(key));
+            cache.useCache(() -> indexedCache.remove(key));
         }
     }
 }

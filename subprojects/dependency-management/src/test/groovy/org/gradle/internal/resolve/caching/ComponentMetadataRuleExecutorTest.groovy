@@ -32,7 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorH
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.PersistentIndexedCache
+import org.gradle.cache.IndexedCache
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.action.DefaultConfigurableRule
@@ -68,7 +68,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
     BuildCommencedTimeProvider timeProvider = Stub(BuildCommencedTimeProvider) {
         getCurrentTime() >> { time }
     }
-    PersistentIndexedCache<ValueSnapshot, CrossBuildCachingRuleExecutor.CachedEntry<ModuleComponentResolveMetadata>> store = Mock()
+    IndexedCache<ValueSnapshot, CrossBuildCachingRuleExecutor.CachedEntry<ModuleComponentResolveMetadata>> store = Mock()
     Serializer<ModuleComponentResolveMetadata> serializer
     InstantiatingAction<ComponentMetadataContext> rule
     Transformer<ModuleComponentResolveMetadata, ComponentMetadataContext> detailsToResult
@@ -83,7 +83,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
             withLockOptions(_) >> { cacheBuilder }
             open() >> {
                 Mock(PersistentCache) {
-                    createCache(_) >> {
+                    createIndexedCache(_) >> {
                         store
                     }
                 }

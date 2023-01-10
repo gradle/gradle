@@ -24,9 +24,9 @@ import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePoli
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.IndexedCache;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.filelock.LockOptionsBuilder;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
@@ -62,7 +62,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     private final ValueSnapshotter snapshotter;
     private final Transformer<?, KEY> keyToSnapshottable;
     private final PersistentCache cache;
-    private final PersistentIndexedCache<HashCode, CachedEntry<RESULT>> store;
+    private final IndexedCache<HashCode, CachedEntry<RESULT>> store;
     private final BuildCommencedTimeProvider timeProvider;
     private final EntryValidator<RESULT> validator;
 
@@ -82,12 +82,12 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
             .createCacheBuilder(name)
             .withLockOptions(LockOptionsBuilder.mode(FileLockManager.LockMode.OnDemand))
             .open();
-        PersistentIndexedCacheParameters<HashCode, CachedEntry<RESULT>> cacheParams = createCacheConfiguration(name, resultSerializer, cacheDecoratorFactory);
-        this.store = this.cache.createCache(cacheParams);
+        IndexedCacheParameters<HashCode, CachedEntry<RESULT>> cacheParams = createCacheConfiguration(name, resultSerializer, cacheDecoratorFactory);
+        this.store = this.cache.createIndexedCache(cacheParams);
     }
 
-    private PersistentIndexedCacheParameters<HashCode, CachedEntry<RESULT>> createCacheConfiguration(String name, Serializer<RESULT> resultSerializer, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
-        return PersistentIndexedCacheParameters.of(
+    private IndexedCacheParameters<HashCode, CachedEntry<RESULT>> createCacheConfiguration(String name, Serializer<RESULT> resultSerializer, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {
+        return IndexedCacheParameters.of(
             name,
             new HashCodeSerializer(),
             createEntrySerializer(resultSerializer)

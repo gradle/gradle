@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager
-import org.gradle.cache.PersistentIndexedCache
+import org.gradle.cache.IndexedCache
 import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.file.FileAccessTracker
@@ -39,7 +39,7 @@ class DefaultModuleArtifactCacheTest extends Specification {
 
     ArtifactCacheLockingManager cacheLockingManager = Mock(ArtifactCacheLockingManager)
     BuildCommencedTimeProvider timeProvider = Mock(BuildCommencedTimeProvider)
-    PersistentIndexedCache persistentIndexedCache = Mock(PersistentIndexedCache)
+    IndexedCache persistentIndexedCache = Mock(IndexedCache)
     CachedArtifact cachedArtifact = Stub(CachedArtifact)
     FileAccessTracker fileAccessTracker = Stub(FileAccessTracker)
     String persistentCacheFile = "cacheFile"

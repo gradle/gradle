@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.cache.CacheCleanupStrategy;
+import org.gradle.cache.IndexedCache;
 import org.gradle.internal.time.TimestampSuppliers;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.api.internal.cache.DefaultCacheCleanupStrategy;
@@ -26,8 +27,7 @@ import org.gradle.cache.CleanupAction;
 import org.gradle.cache.internal.CleanupActionDecorator;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
@@ -121,38 +121,38 @@ public class WritableArtifactCacheLockingManager implements ArtifactCacheLocking
     }
 
     @Override
-    public <K, V> PersistentIndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
+    public <K, V> IndexedCache<K, V> createCache(String cacheName, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         String cacheFileInMetaDataStore = CacheLayout.META_DATA.getKey() + "/" + cacheName;
-        final PersistentIndexedCache<K, V> persistentCache = cache.createCache(PersistentIndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer));
-        return new CacheLockingPersistentCache<>(persistentCache);
+        final IndexedCache<K, V> indexedCache = cache.createIndexedCache(IndexedCacheParameters.of(cacheFileInMetaDataStore, keySerializer, valueSerializer));
+        return new CacheLockingIndexedCache<>(indexedCache);
     }
 
-    private class CacheLockingPersistentCache<K, V> implements PersistentIndexedCache<K, V> {
-        private final PersistentIndexedCache<K, V> persistentCache;
+    private class CacheLockingIndexedCache<K, V> implements IndexedCache<K, V> {
+        private final IndexedCache<K, V> indexedCache;
 
-        public CacheLockingPersistentCache(PersistentIndexedCache<K, V> persistentCache) {
-            this.persistentCache = persistentCache;
+        public CacheLockingIndexedCache(IndexedCache<K, V> indexedCache) {
+            this.indexedCache = indexedCache;
         }
 
         @Nullable
         @Override
         public V getIfPresent(final K key) {
-            return cache.useCache(() -> persistentCache.getIfPresent(key));
+            return cache.useCache(() -> indexedCache.getIfPresent(key));
         }
 
         @Override
         public V get(final K key, final Function<? super K, ? extends V> producer) {
-            return cache.useCache(() -> persistentCache.get(key, producer));
+            return cache.useCache(() -> indexedCache.get(key, producer));
         }
 
         @Override
         public void put(final K key, final V value) {
-            cache.useCache(() -> persistentCache.put(key, value));
+            cache.useCache(() -> indexedCache.put(key, value));
         }
 
         @Override
         public void remove(final K key) {
-            cache.useCache(() -> persistentCache.remove(key));
+            cache.useCache(() -> indexedCache.remove(key));
         }
     }
 }

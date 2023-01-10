@@ -15,7 +15,7 @@
  */
 package org.gradle.testfixtures.internal;
 
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.IndexedCache;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.InputStreamBackedDecoder;
@@ -32,12 +32,12 @@ import java.util.function.Function;
 /**
  * A simple in-memory cache, used by the testing fixtures.
  */
-public class TestInMemoryPersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
+public class TestInMemoryIndexedCache<K, V> implements IndexedCache<K, V> {
     private final Map<Object, byte[]> entries = new ConcurrentHashMap<>();
     private final ProducerGuard<K> producerGuard = ProducerGuard.serial();
     private final Serializer<V> valueSerializer;
 
-    public TestInMemoryPersistentIndexedCache(Serializer<V> valueSerializer) {
+    public TestInMemoryIndexedCache(Serializer<V> valueSerializer) {
         this.valueSerializer = valueSerializer;
     }
 
@@ -62,7 +62,7 @@ public class TestInMemoryPersistentIndexedCache<K, V> implements PersistentIndex
             if (!entries.containsKey(key)) {
                 put(key, producer.apply(key));
             }
-            return TestInMemoryPersistentIndexedCache.this.getIfPresent(key);
+            return TestInMemoryIndexedCache.this.getIfPresent(key);
         });
     }
 
