@@ -18,6 +18,7 @@ package org.gradle.quality.integtest.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.plugins.quality.CheckstylePlugin
+import org.gradle.util.internal.VersionNumber
 
 class CheckstyleCoverage {
     private final static List<String> JDK8_SUPPORTED = ['7.0', '7.6', '8.0', '8.12', '8.17', '8.24', CheckstylePlugin.DEFAULT_CHECKSTYLE_VERSION].asImmutable()
@@ -26,5 +27,13 @@ class CheckstyleCoverage {
 
     static List<String> getSupportedVersionsByJdk() {
         JavaVersion.current() >= JavaVersion.VERSION_11 ? ALL : JDK8_SUPPORTED
+    }
+
+    static JavaVersion getMinimumSupportedJdkVersion(VersionNumber checkstyleVersion) {
+        if (checkstyleVersion.getMajor() >= 10) {
+            return JavaVersion.VERSION_11
+        } else {
+            return JavaVersion.VERSION_1_8
+        }
     }
 }
