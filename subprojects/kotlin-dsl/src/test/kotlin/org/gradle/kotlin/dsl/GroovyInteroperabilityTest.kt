@@ -12,7 +12,6 @@ import groovy.lang.Closure
 import groovy.lang.GroovyObject
 import groovy.lang.MetaBeanProperty
 import groovy.lang.MetaClass
-import groovy.lang.MetaProperty
 
 import org.gradle.util.internal.ConfigureUtil
 
