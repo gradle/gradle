@@ -41,14 +41,14 @@ import java.util.Set;
  */
 public class CompilationClassBackupService {
 
-    private final Set<String> undeletedClasses;
+    private final Set<String> classesToCompile;
     private final File destinationDir;
     private final File headerOutputDir;
     private final File classBackupDir;
     private final ApiCompilerResult result;
 
     public CompilationClassBackupService(JavaCompileSpec spec, ApiCompilerResult result) {
-        this.undeletedClasses = spec.getUndeletedClasses();
+        this.classesToCompile = spec.getClassesToCompile();
         this.destinationDir = spec.getDestinationDir();
         this.headerOutputDir = spec.getCompileOptions().getHeaderOutputDirectory();
         this.classBackupDir = spec.getClassBackupDir();
@@ -56,7 +56,8 @@ public class CompilationClassBackupService {
     }
 
     public void maybeBackupClassFile(String classFqName) {
-        if (classBackupDir != null && undeletedClasses.contains(classFqName)) {
+        // Classes to compile are stashed before the compilation, so there is nothing to backup
+        if (classBackupDir != null && !classesToCompile.contains(classFqName)) {
             String classFilePath = classFqName.replace(".", "/").concat(".class");
             maybeBackupFile(classFqName, destinationDir, classFilePath, ".class");
             if (headerOutputDir != null) {

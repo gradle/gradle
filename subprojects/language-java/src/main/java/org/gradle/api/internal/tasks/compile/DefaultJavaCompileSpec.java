@@ -33,10 +33,10 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     private MinimalJavaCompileOptions compileOptions;
     private List<File> annotationProcessorPath;
     private Set<AnnotationProcessorDeclaration> effectiveAnnotationProcessors;
-    private Set<String> classes;
+    private Set<String> classesToProcess;
     private List<File> modulePath;
     private List<File> sourceRoots;
-    private Set<String> undeletedClasses = Collections.emptySet();
+    private Set<String> classesToCompile = Collections.emptySet();
     private File backupDestinationDir;
     private JavaClassCompileOrder javacCompilerOrder = JavaClassCompileOrder.UNORDERED;
 
@@ -91,23 +91,23 @@ public class DefaultJavaCompileSpec extends DefaultJvmLanguageCompileSpec implem
     }
 
     @Override
-    public Set<String> getClasses() {
-        return classes;
+    public Set<String> getClassesToProcess() {
+        return classesToProcess;
     }
 
     @Override
-    public void setUndeletedClasses(Set<String> classes) {
-        this.undeletedClasses = classes;
+    public void setClassesToProcess(Set<String> classes) {
+        this.classesToProcess = classes;
     }
 
     @Override
-    public Set<String> getUndeletedClasses() {
-        return undeletedClasses;
+    public void setClassesToCompile(Set<String> classes) {
+        this.classesToCompile = classes;
     }
 
     @Override
-    public void setClasses(Set<String> classes) {
-        this.classes = classes;
+    public Set<String> getClassesToCompile() {
+        return classesToCompile;
     }
 
     @Override
