@@ -18,6 +18,7 @@ package org.gradle.plugin.devel.tasks;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -146,7 +147,13 @@ public abstract class ValidatePlugins extends DefaultTask {
     @Classpath
     public abstract ConfigurableFileCollection getClasspath();
 
+    /**
+     * The toolchain launcher used to execute workers when forking.
+     *
+     * @since 8.1.
+     */
     @Nested
+    @Incubating
     public abstract Property<JavaLauncher> getLauncher();
 
     /**
