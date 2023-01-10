@@ -19,7 +19,7 @@ package org.gradle.cache;
 /**
  * A persistent store containing an object of type T.
  */
-public interface PersistentStateCache<T> {
+public interface ObjectHolder<T> {
     /**
      * Fetches the value from this cache. A shared or exclusive lock is held while fetching the value, depending on implementation.
      */

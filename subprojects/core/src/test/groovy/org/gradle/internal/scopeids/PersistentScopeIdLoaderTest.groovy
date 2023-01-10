@@ -16,7 +16,8 @@
 
 package org.gradle.internal.scopeids
 
-import org.gradle.cache.PersistentStateCache
+
+import org.gradle.cache.ObjectHolder
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.Factory
@@ -30,7 +31,7 @@ class PersistentScopeIdLoaderTest extends Specification {
     def storeFile = Mock(File)
     def storeFactory = Mock(PersistentScopeIdStoreFactory)
     def idFactory = Mock(Factory) as Factory<UniqueId>
-    def store = Mock(PersistentStateCache)
+    def store = Mock(ObjectHolder)
 
     def loader = new DefaultPersistentScopeIdLoader(globalScopedCacheBuilderFactory, buildTreeScopedCacheBuilderFactory, storeFactory, idFactory)
 
@@ -48,7 +49,7 @@ class PersistentScopeIdLoaderTest extends Specification {
         1 * storeFactory.create(storeFile, _) >> store
 
         and:
-        1 * store.maybeUpdate(_) >> { PersistentStateCache.UpdateAction action ->
+        1 * store.maybeUpdate(_) >> { ObjectHolder.UpdateAction action ->
             action.update(null)
         }
 
@@ -73,7 +74,7 @@ class PersistentScopeIdLoaderTest extends Specification {
         1 * storeFactory.create(storeFile, _) >> store
 
         and:
-        1 * store.maybeUpdate(_) >> { PersistentStateCache.UpdateAction action ->
+        1 * store.maybeUpdate(_) >> { ObjectHolder.UpdateAction action ->
             action.update(null)
         }
 
@@ -98,7 +99,7 @@ class PersistentScopeIdLoaderTest extends Specification {
         1 * storeFactory.create(storeFile, _) >> store
 
         and:
-        1 * store.maybeUpdate(_) >> { PersistentStateCache.UpdateAction action ->
+        1 * store.maybeUpdate(_) >> { ObjectHolder.UpdateAction action ->
             action.update(existingId)
         }
 
