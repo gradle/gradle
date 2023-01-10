@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.component.AdhocComponentWithVariants
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
@@ -200,6 +201,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         SoftwareComponentInternal javaLibrary = project.components.getByName("java")
 
         then:
+        javaLibrary instanceof AdhocComponentWithVariants
         def runtime = javaLibrary.usages.find { it.name == 'runtimeElements' }
         runtime.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
         runtime.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies
