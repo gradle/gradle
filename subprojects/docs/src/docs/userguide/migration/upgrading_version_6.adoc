@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[upgrading_version_6]]
-= Upgrading your build from Gradle 6.x to the latest
+= Upgrading your build from Gradle 6.x to 7.0
 
 This chapter provides the information you need to migrate your Gradle 6.x builds to the latest Gradle release. For migrating from Gradle 4.x or 5.x, see the <<upgrading_version_5.adoc#upgrading_version_5, older migration guide>> first.
 
@@ -34,7 +34,7 @@ Some plugins will break with this new version of Gradle, for example because the
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
 [[changes_7.0]]
-== Upgrading from 6.8
+== Upgrading from 6.9
 
 === Changes in the IDE integration
 
@@ -451,6 +451,11 @@ A fix for this problem is to <<more_about_tasks.adoc#sec:link_output_dir_to_inpu
 
 Gradle 7 now fails when a copy operation (or any operation which uses a `org.gradle.api.file.CopySpec`) encounters a duplicate entry, and that the duplicates strategy isn't set.
 Please look at link:{javadocPath}/org/gradle/api/file/CopySpec.html#setDuplicatesStrategy-org.gradle.api.file.DuplicatesStrategy-[the CopySpec docs] for details.
+
+[[changes_6.9]]
+== Upgrading from 6.8
+
+No upgrade notes from 6.8 to 6.9, as 6.9 only contains bug fixes.
 
 [[changes_6.8]]
 == Upgrading from 6.7
