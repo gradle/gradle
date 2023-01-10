@@ -1151,12 +1151,21 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      */
     @Deprecated
     public void setForkEvery(@Nullable Long forkEvery) {
-        DeprecationLogger.deprecateInvocation("Test.setForkEvery(null)")
-            .replaceWith("Test.setForkEvery(0)")
-            .willBeRemovedInGradle9()
-            .withDslReference(Test.class, "forkEvery")
-            .nagUser();
-        setForkEvery(forkEvery == null ? 0 : forkEvery);
+        if (forkEvery == null) {
+            DeprecationLogger.deprecateBehaviour("Setting Test.forkEvery with null.")
+                .withAdvice("Use '0' instead")
+                .willBecomeAnErrorInGradle9()
+                .withDslReference(Test.class, "forkEvery")
+                .nagUser();
+            setForkEvery(0);
+        } else {
+            DeprecationLogger.deprecateMethod(Test.class, "setForkEvery(Long)")
+                .replaceWith("Test.setForkEvery(long)")
+                .willBeRemovedInGradle9()
+                .withDslReference(Test.class, "forkEvery")
+                .nagUser();
+            setForkEvery(forkEvery.longValue());
+        }
     }
 
     /**
