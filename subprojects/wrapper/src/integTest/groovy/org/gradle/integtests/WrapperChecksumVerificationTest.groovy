@@ -84,9 +84,7 @@ Expected checksum: 'bad'
         file('gradle/wrapper/gradle-wrapper.properties') << "distributionSha256Sum=${Hashing.sha256().hashFile(distribution.binDistribution).toZeroPaddedString(Hashing.sha256().hexDigits)}"
 
         when:
-        def result = wrapperExecuter.withTasks("wrapper", "--gradle-version", "7.5")
-            .withCommandLineGradleOpts(JvmOptions.getDebugArgument(false, false, "localhost:5006"), "-Dorg.gradle.debug=true", "-Dorg.gradle.debug.server=false")
-            .runWithFailure()
+        def result = wrapperExecuter.withTasks("wrapper", "--gradle-version", "7.5").runWithFailure()
 
         then:
         result.assertHasErrorOutput("gradle-wrapper.properties contains distributionSha256Sum property, but the wrapper configuration does not have one. Specify one in the wrapped task configuration or with the --gradle-distribution-sha256-sum task option")
