@@ -38,11 +38,10 @@ public interface ResolveContext {
     AttributeContainer getAttributes();
 
     /**
-     * Returns the synthetic dependencies for this context. Synthetic dependencies are dependencies which
-     * are an internal implementation detail of Gradle, used for example in dependency locking or
-     * consistent resolution. They are not "real" dependencies in the sense that they are not added by
-     * users, and they are not always used during resolution based on which phase of execution we are
+     * Returns the lock dependency constraints for this context. Lock dependency constraints are generated
+     * by Gradle and not provided by the user, and are used for dependency locking and consistent resolution.
+     * These constraints are not always used during resolution, based on which phase of execution we are in
      * (task dependencies, execution, ...)
      */
-    List<? extends DependencyMetadata> getSyntheticDependencies();
+    List<? extends DependencyMetadata> getLockDependencyConstraints();
 }
