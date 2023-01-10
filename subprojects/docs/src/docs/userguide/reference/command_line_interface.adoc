@@ -416,8 +416,8 @@ If set to `true` and debugging is enabled, Gradle will run the build with the so
 `-Dorg.gradle.debug.suspend=(true,false)`::
 When set to `true` and debugging is enabled, the JVM running Gradle will suspend until a debugger is attached. _Default is `true`._
 
-`-Dorg.gradle.daemon.debug=true` (deprecated)::
-Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. (duplicate of `-Dorg.gradle.daemon`)
+`-Dorg.gradle.daemon.debug=true`::
+Debug <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> process. (duplicate of `-Dorg.gradle.debug`)
 
 [[sec:command_line_performance]]
 == Performance options
