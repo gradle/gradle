@@ -158,7 +158,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
                     }
                 }
             }
-        """.trimIndent())
+        """)
         withBuildScriptIn("consumer", """plugins { id("some") }""")
 
         val helpResult = gradleExecuterFor(arrayOf("help"), rootDir = file("consumer"))
