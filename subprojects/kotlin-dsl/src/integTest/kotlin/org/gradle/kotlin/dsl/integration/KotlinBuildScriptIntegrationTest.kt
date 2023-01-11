@@ -215,9 +215,9 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             """
             package my
 
-            fun <T> applyActionTo(value: T, action: org.gradle.api.Action<T>) = action.execute(value)
+            fun <T : Any> applyActionTo(value: T, action: org.gradle.api.Action<T>) = action.execute(value)
 
-            fun <T> create(name: String, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(name)
+            fun <T : Any> create(name: String, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(name)
 
             fun <T : Any> create(type: kotlin.reflect.KClass<T>, factory: org.gradle.api.NamedDomainObjectFactory<T>): T = factory.create(type.simpleName!!)
             """

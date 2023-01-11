@@ -84,12 +84,12 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api', 'org.gradle.compile-view': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category':'library', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
-                    artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
+                    variant "apiElements", ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', 'org.gradle.dependency.bundling': 'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
+                    artifact name: 'main', extension: '', type: 'java-classes-directory'
                 }
                 project(":lib", "test:lib:") {
-                    variant "testFixtures", ['org.gradle.usage':'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
-                    artifact group:'test', module:'lib', version:'unspecified', classifier: 'test-fixtures'
+                    variant "testFixtures", ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.dependency.bundling': 'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
+                    artifact name: 'lib-test-fixtures'
                 }
             }
         }
@@ -135,8 +135,8 @@ class CrossProjectMultipleVariantSelectionIntegrationTest extends AbstractDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib", "test:lib:") {
-                    variant "apiElements", ['org.gradle.usage':'java-api', 'org.gradle.compile-view': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category':'library', 'org.gradle.dependency.bundling':'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
-                    artifact group:'', module:'', version: '', type: '', name: 'main', noType: true
+                    variant "apiElements", ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', 'org.gradle.dependency.bundling': 'external', 'org.gradle.jvm.version': JavaVersion.current().majorVersion]
+                    artifact name: 'main', extension: '', type: 'java-classes-directory'
                 }
             }
         }

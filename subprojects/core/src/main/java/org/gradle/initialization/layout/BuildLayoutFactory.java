@@ -19,17 +19,28 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
+import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 
 @ServiceScope(Scope.Global.class)
 public class BuildLayoutFactory {
 
     private static final String DEFAULT_SETTINGS_FILE_BASENAME = "settings";
-    private final DefaultScriptFileResolver scriptFileResolver = new DefaultScriptFileResolver();
+    private final ScriptFileResolver scriptFileResolver;
+
+    @Inject
+    public BuildLayoutFactory(ScriptFileResolver scriptFileResolver) {
+        this.scriptFileResolver = scriptFileResolver;
+    }
+
+    public BuildLayoutFactory() {
+        this(new DefaultScriptFileResolver());
+    }
 
     /**
      * Determines the layout of the build, given a current directory and some other configuration.

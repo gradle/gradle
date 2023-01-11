@@ -50,7 +50,7 @@ import java.util.List;
  * a {@code validatePlugins} task, though if you cannot use this plugin then you need to register the task yourself.
  *
  * See the user guide for more information on
- * <a href="https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks" target="_top">incremental build</a> and
+ * <a href="https://docs.gradle.org/current/userguide/incremental_build.html" target="_top">incremental build</a> and
  * <a href="https://docs.gradle.org/current/userguide/build_cache.html#sec:task_output_caching" target="_top">caching task outputs</a>.
  *
  * @since 6.0
@@ -83,13 +83,13 @@ public abstract class ValidatePlugins extends DefaultTask {
             if (getFailOnWarning().get() || problemMessages.stream().anyMatch(line -> line.startsWith("Error:"))) {
                 if (getIgnoreFailures().get()) {
                     getLogger().warn("Plugin validation finished with errors. See {} for more information on how to annotate task properties.{}",
-                        getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations"),
+                        getDocumentationRegistry().getDocumentationFor("incremental_build", "sec:task_input_output_annotations"),
                         toMessageList(problemMessages));
                 } else {
                     throw WorkValidationException.forProblems(problemMessages)
                         .withSummaryForPlugin()
                         .getWithExplanation(String.format("See %s for more information on how to annotate task properties.",
-                            getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations")));
+                            getDocumentationRegistry().getDocumentationFor("incremental_build", "sec:task_input_output_annotations")));
                 }
             } else {
                 getLogger().warn("Plugin validation finished with warnings:{}",

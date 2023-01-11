@@ -146,6 +146,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         assumeFalse(kotlinVersion.startsWith("1.3."))
         assumeFalse(kotlinVersion.startsWith("1.4."))
         assumeFalse(kotlinVersion.startsWith("1.5."))
+        assumeFalse(kotlinVersion.startsWith("1.6."))
 
         given:
         buildFile << """
@@ -221,6 +222,61 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/22952")
+    def "kotlin project can consume kotlin multiplatform java project"() {
+        given:
+        buildFile << """
+            plugins {
+                id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
+            }
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation project(":other")
+            }
+
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast {
+                    println("Files: " + files.files)
+                }
+            }
+        """
+
+        settingsFile << "include 'other'"
+        file("other/build.gradle") << """
+            plugins {
+                id 'org.jetbrains.kotlin.multiplatform'
+            }
+
+            ${mavenCentralRepository()}
+
+            kotlin {
+                jvm {
+                    withJava()
+                }
+            }
+        """
+
+        when:
+        def versionNumber = VersionNumber.parse(kotlinVersion)
+        def testRunner = runner(false, versionNumber, ':resolve', '--stacktrace')
+
+        if (versionNumber < VersionNumber.parse('1.7.22')) {
+            testRunner.expectDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#compile_task_wiring", '')
+        }
+
+        def result = testRunner.build()
+
+        then:
+        result.output.contains("other-jvm.jar")
+
+        where:
+        // withJava is incompatible pre 1.6.20 since it attempts to set the `archiveName` convention property on the Jar task.
+        kotlinVersion << TestedVersions.kotlin.versions.findAll { VersionNumber.parse(it) > VersionNumber.parse("1.6.10")}
+    }
+
     private SmokeTestGradleRunner runner(boolean workers, VersionNumber kotlinVersion, String... tasks) {
         return runnerFor(this, workers, kotlinVersion, tasks)
     }
@@ -268,16 +324,16 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 """
             }
             alwaysPasses()
-            if (testedPluginId == 'org.jetbrains.kotlin.js' && version != '1.3.72') {
+            if (testedPluginId == 'org.jetbrains.kotlin.js') {
                 buildFile << """
-                    kotlin { js { browser() } }
+                    kotlin { js(IR) { browser() } }
                 """
             }
             if (testedPluginId == 'org.jetbrains.kotlin.multiplatform') {
                 buildFile << """
                     kotlin {
                         jvm()
-                        js { browser() }
+                        js(IR) { browser() }
                     }
                 """
             }

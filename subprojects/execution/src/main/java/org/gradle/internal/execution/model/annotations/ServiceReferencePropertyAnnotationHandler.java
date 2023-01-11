@@ -28,7 +28,6 @@ import org.gradle.internal.reflect.problems.ValidationProblemId;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.model.internal.type.ModelType;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.OPTIONAL;
@@ -54,8 +53,7 @@ public class ServiceReferencePropertyAnnotationHandler extends AbstractPropertyA
 
     @Override
     public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
-        Method getter = propertyMetadata.getGetterMethod();
-        ModelType<?> propertyType = ModelType.returnType(getter);
+        ModelType<?> propertyType = ModelType.of(propertyMetadata.getDeclaredType().getType());
         List<ModelType<?>> typeVariables = Cast.uncheckedNonnullCast(propertyType.getTypeVariables());
         if (typeVariables.size() != 1 || !BuildService.class.isAssignableFrom(typeVariables.get(0).getRawClass())) {
             validationContext.visitPropertyProblem(problem ->

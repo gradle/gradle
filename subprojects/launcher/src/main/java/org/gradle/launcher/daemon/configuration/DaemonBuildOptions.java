@@ -51,6 +51,7 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         options.add(new DebugPortOption());
         options.add(new DebugServerOption());
         options.add(new DebugSuspendOption());
+        options.add(new ApplyInstrumentationAgentOption());
         options.add(new DaemonOption());
         options.add(new ForegroundOption());
         options.add(new StopOption());
@@ -224,6 +225,22 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
             settings.setDebugServer(value);
+        }
+    }
+
+    /**
+     * This is a feature flag that enables the instrumentation Java agent for the daemon.
+     */
+    public static class ApplyInstrumentationAgentOption extends BooleanBuildOption<DaemonParameters> {
+        public static final String GRADLE_PROPERTY = "org.gradle.internal.instrumentation.agent";
+
+        public ApplyInstrumentationAgentOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(boolean value, DaemonParameters settings, Origin origin) {
+            settings.setApplyInstrumentationAgent(value);
         }
     }
 

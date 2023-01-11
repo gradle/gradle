@@ -27,6 +27,8 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
@@ -38,6 +40,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+@ServiceScope(Scopes.Project.class) //TODO: should be much higher scoped, as many other toolchain related services, but is bogged down by the scope of services it depends on
 public class JavaToolchainQueryService {
 
     // A key that matches only the fallback toolchain
@@ -126,27 +129,36 @@ public class JavaToolchainQueryService {
             // TODO (#22023) Look into checking if this optional is present and throwing an exception
             return asToolchain(new InstallationLocation(Jvm.current().getJavaHome(), "current JVM"), spec, isFallback).toolchain().get();
         }
+
         if (spec instanceof SpecificInstallationToolchainSpec) {
             final InstallationLocation installation = new InstallationLocation(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation");
             return asToolchainOrThrow(installation, spec);
         }
 
-        return registry.listInstallations().stream()
-            .map(javaHome -> asToolchain(javaHome, spec))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .filter(new JavaToolchainMatcher(spec))
-            .min(new JavaToolchainComparator())
-            .orElseGet(() -> downloadToolchain(spec));
+        Optional<JavaToolchain> detectedToolchain = registry.listInstallations().stream()
+                .map(javaHome -> asToolchain(javaHome, spec))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(new JavaToolchainMatcher(spec))
+                .min(new JavaToolchainComparator());
+
+        if (detectedToolchain.isPresent()) {
+            return detectedToolchain.get();
+        }
+
+        InstallationLocation downloadedInstallation = downloadToolchain(spec);
+        JavaToolchain downloadedToolchain = asToolchainOrThrow(downloadedInstallation, spec);
+        registry.addInstallation(downloadedInstallation);
+        return downloadedToolchain;
     }
 
-    private JavaToolchain downloadToolchain(JavaToolchainSpec spec) {
+    private InstallationLocation downloadToolchain(JavaToolchainSpec spec) {
         final Optional<File> installation = installService.tryInstall(spec);
         if (!installation.isPresent()) {
             throw new NoToolchainAvailableException(spec, detectEnabled.getOrElse(true), downloadEnabled.getOrElse(true));
         }
 
-        return asToolchainOrThrow(new InstallationLocation(installation.get(), "provisioned toolchain"), spec);
+        return new InstallationLocation(installation.get(), "provisioned toolchain");
     }
 
     private Optional<JavaToolchain> asToolchain(InstallationLocation javaHome, JavaToolchainSpec spec) {

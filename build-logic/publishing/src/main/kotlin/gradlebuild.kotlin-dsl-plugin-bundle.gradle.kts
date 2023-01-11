@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.capitalize
 import gradlebuild.pluginpublish.extension.PluginPublishExtension
 import java.time.Year
 
@@ -71,15 +72,21 @@ val publishPluginsToTestRepository by tasks.registering {
     }
 }
 
+val futurePluginVersionsPropertiesFile = layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties")
 val writeFuturePluginVersions by tasks.registering(WriteProperties::class) {
-    outputFile = layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties").get().asFile
+    destinationFile.set(futurePluginVersionsPropertiesFile)
 }
-sourceSets.main.get().output.dir(
-    writeFuturePluginVersions.map { it.outputFile.parentFile }
-)
-configurations.runtimeElements.get().outgoing {
-    variants.named("resources") {
-        artifact(writeFuturePluginVersions.map { it.outputFile.parentFile })
+val futurePluginVersionsDestDir = futurePluginVersionsPropertiesFile.map { it.asFile.parentFile }
+sourceSets.main {
+    output.dir(mapOf("builtBy" to writeFuturePluginVersions), futurePluginVersionsDestDir)
+}
+configurations.runtimeElements {
+    outgoing {
+        variants.named("resources") {
+            artifact(futurePluginVersionsDestDir) {
+                builtBy(writeFuturePluginVersions)
+            }
+        }
     }
 }
 

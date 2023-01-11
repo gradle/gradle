@@ -19,13 +19,11 @@ package org.gradle.integtests.resolve.catalog
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.resolve.PluginDslSupport
 import spock.lang.Issue
 
 class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogIntegrationTest implements PluginDslSupport, VersionCatalogErrorMessages {
 
-    @UnsupportedWithConfigurationCache(because = "the test uses an extension directly in the task body")
     def "dependencies declared in settings trigger the creation of an extension (notation=#notation)"() {
         settingsFile << """
             dependencyResolutionManagement {
@@ -41,9 +39,9 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
             apply plugin: 'java-library'
 
             tasks.register("verifyExtension") {
+                def lib = libs.foo
+                assert lib instanceof Provider
                 doLast {
-                    def lib = libs.foo
-                    assert lib instanceof Provider
                     def dep = lib.get()
                     assert dep instanceof MinimalExternalModuleDependency
                     assert dep.module.group == 'org.gradle.test'
@@ -900,7 +898,7 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("com.acme:included:1.0", "project :included", "com.acme:included:zloubi") {
+                edge("com.acme:included:1.0", ":included", "com.acme:included:zloubi") {
                     compositeSubstitute()
                     configuration = "runtimeElements"
                     module('org.gradle.test:other:1.1')
@@ -1691,9 +1689,11 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
 
         buildFile """
             tasks.register("dumpVersions") {
+                def first = libs.versions.my.asProvider()
+                def second = libs.versions.my.bottom
                 doLast {
-                    println "First: \${libs.versions.my.asProvider().get()}"
-                    println "Second: \${libs.versions.my.bottom.get()}"
+                    println "First: \${first.get()}"
+                    println "Second: \${second.get()}"
                 }
             }
         """
@@ -1720,9 +1720,11 @@ Second: 1.1"""
 
         buildFile """
             tasks.register("dumpVersions") {
+                def first = libs.versions.my.middle.asProvider()
+                def second = libs.versions.my.middle.bottom
                 doLast {
-                    println "First: \${libs.versions.my.middle.asProvider().get()}"
-                    println "Second: \${libs.versions.my.middle.bottom.get()}"
+                    println "First: \${first.get()}"
+                    println "Second: \${second.get()}"
                 }
             }
         """
@@ -1749,9 +1751,11 @@ Second: 1.1"""
 
         buildFile """
             tasks.register("dumpVersions") {
+                def first = libs.versions.my.asProvider()
+                def second = libs.versions.my.middle.bottom
                 doLast {
-                    println "First: \${libs.versions.my.asProvider().get()}"
-                    println "Second: \${libs.versions.my.middle.bottom.get()}"
+                    println "First: \${first.get()}"
+                    println "Second: \${second.get()}"
                 }
             }
         """
@@ -1916,14 +1920,47 @@ Second: 1.1"""
         verifyContains(failure.error, reservedAlias {
             inCatalog("libs")
             alias(reserved)
-            reservedAliases "extensions", "class", "convention"
+            reservedAliases "extensions", "convention"
         })
 
         where:
         reserved << [
             "extensions",
-            "class",
             "convention"
+        ]
+    }
+
+    @VersionCatalogProblemTestFor(
+        VersionCatalogProblemId.RESERVED_ALIAS_NAME
+    )
+    @Issue("https://github.com/gradle/gradle/issues/23106")
+    def "disallows aliases which contain a name that clashes with Java methods"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        library("$reserved", "org:lib1:1.0")
+                    }
+                }
+            }
+        """
+
+        when:
+        executer.withStacktraceEnabled()
+        fails "help"
+
+        then:
+        verifyContains(failure.error, reservedAlias {
+            inCatalog("libs")
+            shouldNotContain(reserved)
+            reservedNames "class"
+        })
+
+        where:
+        reserved << [
+            "class",
+            "my-class",
+            "my-class-lib"
         ]
     }
 
@@ -2260,5 +2297,115 @@ Second: 1.1"""
         "versions.myVersion" | "1.0"
         "plugins.myPlugin"   | "org.gradle.test:1.0"
         "bundles.myBundle"   | "[org.gradle.test:lib:3.0.5]"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23096")
+    def 'all properties of version catalog dependencies are copied when the dependency is copied'() {
+        given:
+        buildFile << """
+            configurations {
+                implementation
+                destination1
+                destination2
+            }
+
+            dependencies {
+                implementation(libs.test1) {
+                    because("reason1")
+
+                    exclude(group: "test-group", module: "test-module")
+                    artifact {
+                        name = "test-name"
+                        classifier = "test-classifier"
+                        extension = "test-ext"
+                        type = "test-type"
+                        url = "test-url"
+                    }
+                    transitive = true
+                    endorseStrictVersions()
+
+                    version {
+                        branch = "branch"
+                        strictly("123")
+                        prefer("789")
+                        reject("aaa")
+                    }
+
+                    changing = true
+                }
+                implementation(libs.test2) {
+                    transitive = false
+                    targetConfiguration = "abc"
+                    doNotEndorseStrictVersions()
+
+                    version {
+                        require("456")
+                    }
+
+                    changing = false
+                }
+                implementation(libs.test3) {
+                    attributes {
+                        attribute(Attribute.of('foo', String), 'bar')
+                    }
+                    capabilities {
+                        requireCapability("org:test-cap:1.1")
+                    }
+                }
+            }
+
+            def verifyDep(original, copied) {
+                // Dependency
+                assert original.group == copied.group
+                assert original.name == copied.name
+                assert original.version == copied.version
+                assert original.reason == copied.reason
+
+                // ModuleDependency
+                assert original.excludeRules == copied.excludeRules
+                assert original.artifacts == copied.artifacts
+                assert original.transitive == copied.transitive
+                assert original.targetConfiguration == copied.targetConfiguration
+                assert original.attributes == copied.attributes
+                assert original.requestedCapabilities == copied.requestedCapabilities
+
+                // ExternalDependency + ExternalModuleDependency
+                assert original.changing == copied.changing
+            }
+
+            def getOriginal(dep) {
+                configurations.implementation.dependencies.find { it.name == dep.name }
+            }
+
+            task copyAndVerifyDependencies {
+                configurations.implementation.dependencies.each {
+                    project.dependencies.add("destination1", it)
+                    configurations.destination2.dependencies.add(it)
+                }
+
+                doLast {
+                    configurations.destination1.dependencies.each {
+                        verifyDep(getOriginal(it), it)
+                    }
+
+                    configurations.destination2.dependencies.each {
+                        verifyDep(getOriginal(it), it)
+                    }
+
+                    configurations.implementation.copy().dependencies.each {
+                        verifyDep(getOriginal(it), it)
+                    }
+                }
+            }
+        """
+
+        file("gradle/libs.versions.toml") << """[libraries]
+test1 = { module = 'org:test1', version = '1.0' }
+test2 = { module = 'org:test2', version = '1.0' }
+test3 = { module = 'org:test3', version = '1.0' }
+"""
+
+        expect:
+        succeeds "copyAndVerifyDependencies"
     }
 }

@@ -41,7 +41,7 @@ class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Listener registration using ${registrationPoint}() has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
+        executer.expectDocumentedDeprecationWarning("Listener registration using ${registrationPoint}() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         run("broken")
 
         then:
@@ -65,7 +65,7 @@ class BuildExecutionEventsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Listener registration using ${registrationPoint}() has been deprecated. This will fail with an error in Gradle 8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
+        executer.expectDocumentedDeprecationWarning("Listener registration using ${registrationPoint}() has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_execution_events")
         run("broken")
 
         then:

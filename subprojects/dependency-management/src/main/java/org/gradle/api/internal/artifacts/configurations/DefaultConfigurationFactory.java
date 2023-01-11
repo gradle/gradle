@@ -108,19 +108,6 @@ public class DefaultConfigurationFactory {
     /**
      * Creates a new {@link DefaultConfiguration} instance.
      */
-    @SuppressWarnings("deprecation")
-    DefaultConfiguration create(
-        String name,
-        ConfigurationsProvider configurationsProvider,
-        Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder
-    ) {
-        return create(name, configurationsProvider, resolutionStrategyFactory, rootComponentMetadataBuilder, ConfigurationRoles.LEGACY, false);
-    }
-
-    /**
-     * Creates a new {@link DefaultConfiguration} instance.
-     */
     DefaultConfiguration create(
         String name,
         ConfigurationsProvider configurationsProvider,

@@ -64,6 +64,7 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         events.operation("Download ${modules.projectD.artifact.uri}").assertIsDownload(modules.projectD.artifact)
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3638")
     def "generates typed events for failed downloads during dependency resolution"() {
         def modules = setupBuildWithFailedArtifactDownloadDuringTaskExecution()
 

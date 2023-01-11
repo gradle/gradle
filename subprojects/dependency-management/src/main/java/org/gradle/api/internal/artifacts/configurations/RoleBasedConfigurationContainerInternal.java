@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.internal.Actions;
 
 /**
@@ -97,14 +98,19 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
      * using the role of {@link ConfigurationRoles#DEPRECATED_CONSUMABLE}.
      */
-    ConfigurationInternal deprecatedConsumable(String name, boolean lockRole);
+    @SuppressWarnings("deprecation")
+    default ConfigurationInternal deprecatedConsumable(String name, boolean lockRole) {
+        return createWithRole(name, ConfigurationRoles.DEPRECATED_CONSUMABLE, lockRole);
+    }
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
      * using the role of {@link ConfigurationRoles#DEPRECATED_RESOLVABLE}.
      */
-    ConfigurationInternal deprecatedResolvable(String name, boolean lockRole);
-
+    @SuppressWarnings("deprecation")
+    default ConfigurationInternal deprecatedResolvable(String name, boolean lockRole) {
+        return createWithRole(name, ConfigurationRoles.DEPRECATED_RESOLVABLE, lockRole);
+    }
 
     /**
      * Creates a new configuration in the same manner as {@link #createWithRole(String, ConfigurationRole, boolean)}
@@ -229,7 +235,7 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
          */
         public static void assertIsInRole(ConfigurationInternal configuration, ConfigurationRole role) {
             if (!isUsageConsistentWithRole(configuration, role)) {
-                throw new IllegalStateException(describeDifferenceFromRole(configuration, role));
+                throw new GradleException(describeDifferenceFromRole(configuration, role));
             }
         }
 

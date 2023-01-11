@@ -17,7 +17,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.api.Action;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheCleanup;
+import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
@@ -53,7 +53,7 @@ public class DefaultCacheRepository implements CacheRepository {
         final File baseDir;
         Map<String, ?> properties = Collections.emptyMap();
         Action<? super PersistentCache> initializer;
-        CacheCleanup cacheCleanup;
+        CacheCleanupStrategy cacheCleanupStrategy;
         LockOptions lockOptions = mode(FileLockManager.LockMode.Shared);
         String displayName;
         VersionStrategy versionStrategy = VersionStrategy.CachePerVersion;
@@ -101,8 +101,8 @@ public class DefaultCacheRepository implements CacheRepository {
         }
 
         @Override
-        public CacheBuilder withCleanup(CacheCleanup cacheCleanup) {
-            this.cacheCleanup = cacheCleanup;
+        public CacheBuilder withCleanupStrategy(CacheCleanupStrategy cacheCleanupStrategy) {
+            this.cacheCleanupStrategy = cacheCleanupStrategy;
             return this;
         }
 
@@ -115,7 +115,7 @@ public class DefaultCacheRepository implements CacheRepository {
                 cacheBaseDir = cacheScopeMapping.getBaseDirectory(null, key, versionStrategy);
             }
 
-            return factory.open(cacheBaseDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanup);
+            return factory.open(cacheBaseDir, displayName, properties, lockTarget, lockOptions, initializer, cacheCleanupStrategy);
         }
     }
 }

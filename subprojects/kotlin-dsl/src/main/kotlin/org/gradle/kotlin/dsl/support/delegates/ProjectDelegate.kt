@@ -252,7 +252,7 @@ abstract class ProjectDelegate : Project {
     override fun getDependencyLocking(): DependencyLockingHandler =
         delegate.dependencyLocking
 
-    override fun <T : Any?> provider(value: Callable<T>): Provider<T> =
+    override fun <T : Any> provider(value: Callable<out T?>): Provider<T> =
         delegate.provider(value)
 
     override fun findProperty(propertyName: String): Any? =

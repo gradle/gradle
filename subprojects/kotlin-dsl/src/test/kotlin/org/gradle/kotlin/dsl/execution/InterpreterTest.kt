@@ -23,6 +23,7 @@ import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.same
+import org.gradle.api.JavaVersion
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -51,7 +52,8 @@ class InterpreterTest : TestWithTempFiles() {
         val scriptPath =
             "/src/settings.gradle.kts"
 
-        val scriptSourceDisplayName = "source display name"
+        val shortScriptDisplayName = Describables.of("short display name")
+        val longScriptDisplayName = Describables.of("long display name")
 
         val text = """
 
@@ -77,8 +79,9 @@ class InterpreterTest : TestWithTempFiles() {
         val scriptSource = mock<ScriptSource> {
             on { fileName } doReturn scriptPath
             on { resource } doReturn scriptSourceResource
-            on { shortDisplayName } doReturn Describables.of(scriptSourceDisplayName)
-            on { displayName } doReturn scriptSourceDisplayName
+            on { shortDisplayName } doReturn shortScriptDisplayName
+            on { longDisplayName } doReturn longScriptDisplayName
+            on { displayName } doReturn longScriptDisplayName.displayName
         }
         val parentClassLoader = mock<ClassLoader>()
         val baseScope = mock<ClassLoaderScope> {
@@ -163,6 +166,8 @@ class InterpreterTest : TestWithTempFiles() {
                         .loadClass(className)
                 )
             }
+
+            on { jvmTarget } doReturn JavaVersion.current()
         }
 
         try {
@@ -190,14 +195,14 @@ class InterpreterTest : TestWithTempFiles() {
 
                 verify(host).compilationClassPathOf(parentScope)
 
-                verify(host).startCompilerOperation(scriptSourceDisplayName)
+                verify(host).startCompilerOperation(shortScriptDisplayName.displayName)
 
                 verify(compilerOperation).close()
 
                 verify(host).loadClassInChildScopeOf(
                     baseScope,
                     "kotlin-dsl:$scriptPath:$stage1TemplateId",
-                    ClassLoaderScopeOrigin.Script(scriptPath, scriptSourceDisplayName),
+                    ClassLoaderScopeOrigin.Script(scriptPath, longScriptDisplayName, shortScriptDisplayName),
                     stage1CacheDir,
                     "Program",
                     ClassPath.EMPTY
@@ -215,14 +220,14 @@ class InterpreterTest : TestWithTempFiles() {
 
                 verify(host).compilationClassPathOf(targetScope)
 
-                verify(host).startCompilerOperation(scriptSourceDisplayName)
+                verify(host).startCompilerOperation(shortScriptDisplayName.displayName)
 
                 verify(compilerOperation).close()
 
                 verify(host).loadClassInChildScopeOf(
                     targetScope,
                     "kotlin-dsl:$scriptPath:$stage2TemplateId",
-                    ClassLoaderScopeOrigin.Script(scriptPath, scriptSourceDisplayName),
+                    ClassLoaderScopeOrigin.Script(scriptPath, longScriptDisplayName, shortScriptDisplayName),
                     stage2CacheDir,
                     "Program",
                     ClassPath.EMPTY

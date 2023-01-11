@@ -15,6 +15,7 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":model-core"))
     implementation(project(":platform-jvm"))
+    implementation(project(":platform-base"))
     implementation(project(":plugins"))
 
     implementation(libs.groovy)
@@ -40,4 +41,9 @@ strictCompile {
 
 packageCycles {
     excludePatterns.add("org/gradle/plugins/ear/internal/*")
+}
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

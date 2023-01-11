@@ -158,18 +158,6 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         return reply.toString();
     }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public ConfigurationInternal deprecatedConsumable(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.DEPRECATED_CONSUMABLE, lockRole);
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public ConfigurationInternal deprecatedResolvable(String name, boolean lockRole) {
-        return createWithRole(name, ConfigurationRoles.DEPRECATED_RESOLVABLE, lockRole);
-    }
-
     @Override
     public ConfigurationInternal createWithRole(String name, ConfigurationRole role, boolean lockUsage, Action<? super ConfigurationInternal> configureAction) {
         assertMutable("createWithRole(String, ConfigurationRole, boolean, Action)");

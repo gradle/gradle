@@ -61,7 +61,7 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
         // https://github.com/spring-projects/spring-boot/issues/29074
         //        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>)")
         //            .replaceWith("constructor LazyPublishArtifact(Provider<?>, FileResolver)")
-        //            .willBeRemovedInGradle8()
+        //            .willBeRemovedInGradle9()
         //            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
         //            .nagUser();
     }
@@ -76,7 +76,7 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
         //        DeprecationLogger.deprecateInternalApi("constructor LazyPublishArtifact(Provider<?>, FileResolver) or constructor LazyPublishArtifact(Provider<?>, String, FileResolver)"
         //        + " with a null FileResolver")
         //            .replaceWith("a non-null FileResolver")
-        //            .willBeRemovedInGradle8()
+        //            .willBeRemovedInGradle9()
         //            .withUpgradeGuideSection(7, "lazypublishartifact_fileresolver")
         //            .nagUser();
         this.provider = Providers.internal(provider);

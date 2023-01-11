@@ -33,11 +33,6 @@ public class TransformedVariant implements HasAttributes {
         this.chain = chain;
     }
 
-    @Override
-    public String toString() {
-        return chain.toString();
-    }
-
     /**
      * @return The chain of variants which result from applying the transformation chain to the root variant.
      */
@@ -62,5 +57,10 @@ public class TransformedVariant implements HasAttributes {
     @Override
     public ImmutableAttributes getAttributes() {
         return chain.getTargetAttributes();
+    }
+
+    @Override
+    public String toString() {
+        return root.asDescribable().getDisplayName() + " <- " + chain + " = " + getAttributes();
     }
 }

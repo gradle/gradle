@@ -22,19 +22,20 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
-import org.gradle.configuration.internal.UserCodeApplicationContext
 import org.gradle.configurationcache.CheckedFingerprint
 import org.gradle.configurationcache.ConfigurationCacheStateFile
 import org.gradle.configurationcache.InputTrackingState
-import org.gradle.configurationcache.extensions.hashCodeOf
+import org.gradle.configurationcache.extensions.directoryContentHash
 import org.gradle.configurationcache.extensions.uncheckedCast
 import org.gradle.configurationcache.initialization.ConfigurationCacheStartParameter
 import org.gradle.configurationcache.problems.ConfigurationCacheReport
+import org.gradle.configurationcache.problems.ProblemFactory
 import org.gradle.configurationcache.problems.PropertyProblem
-import org.gradle.configurationcache.problems.location
 import org.gradle.configurationcache.serialization.DefaultWriteContext
 import org.gradle.configurationcache.serialization.ReadContext
 import org.gradle.configurationcache.services.EnvironmentChangeTracker
+import org.gradle.configurationcache.services.RemoteScriptUpToDateChecker
+import org.gradle.internal.agents.AgentControl
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.ListenerManager
@@ -46,6 +47,7 @@ import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.scripts.ScriptFileResolverListeners
 import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.vfs.FileSystemAccess
@@ -55,6 +57,7 @@ import org.gradle.util.internal.GFileUtils
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
+import java.net.URI
 import java.nio.file.Files
 
 
@@ -74,10 +77,12 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
     private val report: ConfigurationCacheReport,
-    private val userCodeApplicationContext: UserCodeApplicationContext,
+    private val problemFactory: ProblemFactory,
     private val taskExecutionTracker: TaskExecutionTracker,
     private val environmentChangeTracker: EnvironmentChangeTracker,
     private val inputTrackingState: InputTrackingState,
+    private val scriptFileResolverListeners: ScriptFileResolverListeners,
+    private val remoteScriptUpToDateChecker: RemoteScriptUpToDateChecker
 ) : Stoppable {
 
     interface Host {
@@ -262,10 +267,12 @@ class ConfigurationCacheFingerprintController internal constructor(
     fun addListener(listener: ConfigurationCacheFingerprintWriter) {
         listenerManager.addListener(listener)
         workInputListeners.addListener(listener)
+        scriptFileResolverListeners.addListener(listener)
     }
 
     private
     fun removeListener(listener: ConfigurationCacheFingerprintWriter) {
+        scriptFileResolverListeners.removeListener(listener)
         workInputListeners.removeListener(listener)
         listenerManager.removeListener(listener)
     }
@@ -289,8 +296,14 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val cacheIntermediateModels: Boolean
             get() = modelParameters.isIntermediateModelCache
 
+        override val instrumentationAgentUsed: Boolean
+            get() = AgentControl.isInstrumentationAgentApplied()
+
         override fun hashCodeOf(file: File) =
-            fileSystemAccess.hashCodeOf(file)
+            fileSystemAccess.read(file.absolutePath).hash
+
+        override fun hashCodeOfDirectoryContent(file: File): HashCode =
+            fileSystemAccess.directoryContentHash(file)
 
         override fun displayNameOf(file: File): String =
             GFileUtils.relativePathOf(file, rootDirectory)
@@ -302,7 +315,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             report.onInput(input)
 
         override fun location(consumer: String?) =
-            userCodeApplicationContext.location(consumer)
+            problemFactory.locationForCaller(consumer)
     }
 
     private
@@ -328,11 +341,17 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val invalidateCoupledProjects: Boolean
             get() = modelParameters.isInvalidateCoupledProjects
 
+        override val instrumentationAgentUsed: Boolean
+            get() = AgentControl.isInstrumentationAgentApplied()
+
         override fun gradleProperty(propertyName: String): String? =
             gradleProperties.find(propertyName)?.uncheckedCast()
 
         override fun hashCodeOf(file: File) =
-            fileSystemAccess.hashCodeOf(file)
+            fileSystemAccess.read(file.absolutePath).hash
+
+        override fun hashCodeOfDirectoryContent(file: File): HashCode? =
+            fileSystemAccess.directoryContentHash(file)
 
         override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode =
             fileCollectionFingerprinter.fingerprint(fileCollection).hash
@@ -346,6 +365,9 @@ class ConfigurationCacheFingerprintController internal constructor(
                 obtainedValue.valueSourceParametersType,
                 obtainedValue.valueSourceParameters
             )
+
+        override fun isRemoteScriptUpToDate(uri: URI): Boolean =
+            remoteScriptUpToDateChecker.isUpToDate(uri)
     }
 
     private

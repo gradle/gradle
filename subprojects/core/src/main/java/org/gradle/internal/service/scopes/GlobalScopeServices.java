@@ -80,6 +80,8 @@ import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.scripts.DefaultScriptFileResolver;
+import org.gradle.internal.scripts.DefaultScriptFileResolverListeners;
+import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.CachingServiceLocator;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -133,8 +135,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
             registration.add(PluginServiceRegistry.class, pluginServiceRegistry);
             pluginServiceRegistry.registerGlobalServices(registration);
         }
+        registration.add(DefaultScriptFileResolverListeners.class);
         registration.add(BuildLayoutFactory.class);
-        registration.add(DefaultScriptFileResolver.class);
     }
 
     CurrentBuildOperationRef createCurrentBuildOperationRef() {
@@ -143,6 +145,10 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     BuildOperationListenerManager createBuildOperationListenerManager() {
         return new DefaultBuildOperationListenerManager();
+    }
+
+    ScriptFileResolver createScriptFileResolver(DefaultScriptFileResolverListeners listeners) {
+        return new DefaultScriptFileResolver(listeners);
     }
 
     protected BuildOperationProgressEventEmitter createBuildOperationProgressEventEmitter(

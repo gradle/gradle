@@ -17,7 +17,6 @@
 package org.gradle.catalog
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements VersionCatalogSupport {
     def setup() {
@@ -113,7 +112,6 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
         expectPlatformContents 'expected3'
     }
 
-    @ToBeFixedForConfigurationCache(because="doesn't failing test yet")
     def "reasonable error message if there's a name clash between two dependencies"() {
         buildFile << """
             dependencies {
@@ -186,7 +184,6 @@ class VersionCatalogIntegrationTest extends AbstractIntegrationSpec implements V
         expectPlatformContents 'expected6'
     }
 
-    @ToBeFixedForConfigurationCache(because="doesn't failing test yet")
     def "can detect name clash between dependencies and constraints"() {
         buildFile << """
             dependencies {

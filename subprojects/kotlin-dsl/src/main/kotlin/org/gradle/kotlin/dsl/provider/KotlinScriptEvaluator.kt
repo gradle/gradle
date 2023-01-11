@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.provider
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -144,11 +145,15 @@ class StandardKotlinScriptEvaluator(
     }
 
     private
+    val jvmTarget: JavaVersion =
+        JavaVersion.current()
+
+    private
     val interpreter by lazy {
-        Interpreter(InterpreterHost())
+        Interpreter(InterpreterHost(jvmTarget))
     }
 
-    inner class InterpreterHost : Interpreter.Host {
+    inner class InterpreterHost(override val jvmTarget: JavaVersion) : Interpreter.Host {
 
         override fun pluginAccessorsFor(scriptHost: KotlinScriptHost<*>): ClassPath =
             (scriptHost.target as? ProjectInternal)?.let {
@@ -241,6 +246,7 @@ class StandardKotlinScriptEvaluator(
         ): File = try {
             executionEngineFor(scriptHost).createRequest(
                 CompileKotlinScript(
+                    jvmTarget,
                     templateId,
                     sourceHash,
                     compilationClassPath,
@@ -331,6 +337,7 @@ class StandardKotlinScriptEvaluator(
 
 internal
 class CompileKotlinScript(
+    private val jvmTarget: JavaVersion,
     private val templateId: String,
     private val sourceHash: HashCode,
     private val compilationClassPath: ClassPath,
@@ -345,6 +352,7 @@ class CompileKotlinScript(
     override fun visitIdentityInputs(
         visitor: InputVisitor
     ) {
+        visitor.visitInputProperty("jvmTarget") { jvmTarget.majorVersion }
         visitor.visitInputProperty("templateId") { templateId }
         visitor.visitInputProperty("sourceHash") { sourceHash }
         visitor.visitClassPathProperty("compilationClassPath", compilationClassPath)

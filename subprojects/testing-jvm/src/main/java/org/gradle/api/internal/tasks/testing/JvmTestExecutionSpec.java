@@ -23,7 +23,6 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.util.Path;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Set;
 
 @UsedByScanPlugin("test-distribution, test-retry")
@@ -41,17 +40,6 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final int maxParallelForks;
     private final Set<String> previousFailedTestClasses;
     private final boolean testIsModule;
-
-    @SuppressWarnings("unused")
-    @UsedByScanPlugin("test-retry <= 1.1.3")
-    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
-        this(testFramework, classpath, Collections.<File>emptyList(), candidateClassFiles, scanForTestClasses, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses);
-    }
-
-    @UsedByScanPlugin("test-retry <= 1.4.1")
-    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
-        this(testFramework, classpath, modulePath, candidateClassFiles, scanForTestClasses, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses, false);
-    }
 
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses, boolean testIsModule) {
         this.testFramework = testFramework;

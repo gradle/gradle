@@ -15,10 +15,12 @@
  */
 
 import gradlebuild.basics.testing.TestType
+import gradlebuild.capitalize
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.addSourceSet
 import gradlebuild.integrationtests.configureIde
 import gradlebuild.integrationtests.createTestTask
+import gradlebuild.integrationtests.setSystemPropertiesOfTestJVM
 
 plugins {
     java
@@ -49,7 +51,7 @@ fun createQuickFeedbackTasks() {
     testType.executers.forEach { executer ->
         val taskName = "$executer${prefix.capitalize()}Test"
         val testTask = createTestTask(taskName, executer, sourceSet, testType) {
-            this.systemProperties["org.gradle.integtest.versions"] = "latest"
+            this.setSystemPropertiesOfTestJVM("latest")
             this.systemProperties["org.gradle.integtest.crossVersion"] = "true"
 
             // We should always be using JUnitPlatform at this point, so don't call useJUnitPlatform(), else this will
@@ -74,7 +76,7 @@ fun createAggregateTasks(sourceSet: SourceSet) {
         description = "Runs the cross-version tests against a subset of selected Gradle versions with 'forking' executer for quick feedback"
     }
 
-    val releasedVersions = moduleIdentity.releasedVersions.getOrNull()
+    val releasedVersions = moduleIdentity.releasedVersions.orNull
     releasedVersions?.allTestedVersions?.forEach { targetVersion ->
         val crossVersionTest = createTestTask("gradle${targetVersion.version}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION) {
             this.description = "Runs the cross-version tests against Gradle ${targetVersion.version}"

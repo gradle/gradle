@@ -17,6 +17,7 @@
 package gradlebuild.basics
 
 import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
+import gradlebuild.toLowerCase
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
@@ -58,7 +59,7 @@ fun Project.releasedVersionsFile() = repoRoot().file("released-versions.json")
 
 
 /**
- * We use command line Git instead of JGit, because JGit's [Repository.resolve] does not work with worktrees.
+ * We use command line Git instead of JGit, because JGit's `Repository.resolve` does not work with worktrees.
  */
 fun Project.currentGitBranchViaFileSystemQuery(): Provider<String> = getBuildEnvironmentExtension()?.gitBranch ?: objects.property(String::class.java)
 
@@ -93,7 +94,7 @@ fun toPreTestedCommitBaseBranch(actualBranch: String): String = when {
 object BuildEnvironment {
 
     /**
-     * A selection of environment variables injected into the enviroment by the `codeql-env.sh` script.
+     * A selection of environment variables injected into the environment by the `codeql-env.sh` script.
      */
     private
     val CODEQL_ENVIRONMENT_VARIABLES = arrayOf(

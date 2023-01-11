@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
-import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -29,14 +28,14 @@ import org.junit.Test
 class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
     @Test
-    fun `can run with first version supporting Gradle 8_0 of current kotlin-dsl plugin version`() {
+    fun `can run with first version of kotlin-dsl plugin supporting Gradle 8_0`() {
 
         assumeNonEmbeddedGradleExecuter()
-        assumeJavaLessThan17() // Previous Kotlin versions did not work on Java 17
         executer.noDeprecationChecks()
 
         // Previous versions depend on Kotlin that is not supported with Gradle >= 8.0
-        val testedVersion = "2.2.0"
+        val testedVersion = "3.2.4"
+        val blessedVersion = org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 
         withDefaultSettingsIn("buildSrc")
         withBuildScriptIn("buildSrc", scriptWithKotlinDslPlugin(testedVersion)).appendText(
@@ -55,7 +54,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
             assertThat(
                 output,
-                containsString("This version of Gradle expects version '$expectedKotlinDslPluginsVersion' of the `kotlin-dsl` plugin but version '$testedVersion' has been applied to project ':buildSrc'. Let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic.")
+                containsString("This version of Gradle expects version '$blessedVersion' of the `kotlin-dsl` plugin but version '$testedVersion' has been applied to project ':buildSrc'. Let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic.")
             )
 
             assertThat(

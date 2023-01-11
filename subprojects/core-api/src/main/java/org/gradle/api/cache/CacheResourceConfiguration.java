@@ -17,7 +17,7 @@
 package org.gradle.api.cache;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.provider.Property;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Represents the configuration of a given type of cache resource.
@@ -25,9 +25,12 @@ import org.gradle.api.provider.Property;
  * @since 8.0
  */
 @Incubating
+@HasInternalProtocol
 public interface CacheResourceConfiguration {
+
     /**
-     * Configures the maximum number of days an unused entry will be retained in the cache.
+     * Sets the timestamp before which unused entries will be removed to be calculated exactly
+     * the given number of days previous to the current time.
      */
-    Property<Integer> getRemoveUnusedEntriesAfterDays();
+    void setRemoveUnusedEntriesAfterDays(int removeUnusedEntriesAfterDays);
 }

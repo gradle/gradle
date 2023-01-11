@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
-import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.Nullable;
 
 public class WithSideEffectProvider<T> extends AbstractMinimalProvider<T> {
 

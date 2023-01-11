@@ -17,17 +17,18 @@
 package org.gradle.internal.service;
 
 import java.lang.annotation.Annotation;
+import java.util.List;
 
 /**
  * Service instances can implement this interface to apply some lifecycle to all services annotation with a given annotation.
  */
 public interface AnnotatedServiceLifecycleHandler {
-    Class<? extends Annotation> getAnnotation();
+    List<Class<? extends Annotation>> getAnnotations();
 
     /**
      * Called when a service with the given annotation is registered.
      */
-    void whenRegistered(Registration registration);
+    void whenRegistered(Class<? extends Annotation> annotation, Registration registration);
 
     interface Registration {
         Class<?> getDeclaredType();

@@ -17,6 +17,7 @@
 package gradlebuild.performance
 
 import com.google.common.annotations.VisibleForTesting
+import com.gradle.enterprise.gradleplugin.testretry.retry
 import gradlebuild.basics.BuildEnvironment.isIntel
 import gradlebuild.basics.BuildEnvironment.isLinux
 import gradlebuild.basics.BuildEnvironment.isMacOsX
@@ -37,6 +38,7 @@ import gradlebuild.basics.propertiesForPerformanceDb
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
 import gradlebuild.basics.runAndroidStudioInHeadlessMode
+import gradlebuild.capitalize
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.performance.Config.androidStudioVersion
 import gradlebuild.performance.Config.defaultAndroidStudioJvmArgs
@@ -48,6 +50,7 @@ import gradlebuild.performance.tasks.BuildCommitDistribution
 import gradlebuild.performance.tasks.DetermineBaselines
 import gradlebuild.performance.tasks.PerformanceTest
 import gradlebuild.performance.tasks.PerformanceTestReport
+import gradlebuild.toLowerCase
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -93,6 +96,7 @@ object Config {
     const val performanceTestReportsDir = "performance-tests/report"
     const val performanceTestResultsJsonName = "perf-results.json"
     const val performanceTestResultsJson = "performance-tests/$performanceTestResultsJsonName"
+
     // Android Studio Electric Eel (2022.1.1) Beta 2
     const val androidStudioVersion = "2022.1.1.12"
     val defaultAndroidStudioJvmArgs = listOf("-Xms256m", "-Xmx4096m")
@@ -327,6 +331,7 @@ class PerformanceTestPlugin : Plugin<Project> {
         // determineBaselines.determinedBaselines -> buildCommitDistribution.baselines
         val determineBaselines = tasks.register("determineBaselines", DetermineBaselines::class, false)
         val buildCommitDistribution = tasks.register("buildCommitDistribution", BuildCommitDistribution::class)
+        val buildCommitDistributionsDir = project.rootProject.layout.buildDirectory.dir("commit-distributions")
 
         determineBaselines.configure {
             configuredBaselines.set(extension.baselines)
@@ -338,12 +343,13 @@ class PerformanceTestPlugin : Plugin<Project> {
             dependsOn(determineBaselines)
             releasedVersionsFile.set(project.releasedVersionsFile())
             commitBaseline.set(determineBaselines.flatMap { it.determinedBaselines })
-            commitDistribution.set(project.rootProject.layout.projectDirectory.file(commitBaseline.map { "intTestHomeDir/commit-distributions/gradle-$it.zip" }))
-            commitDistributionToolingApiJar.set(project.rootProject.layout.projectDirectory.file(commitBaseline.map { "intTestHomeDir/commit-distributions/gradle-$it-tooling-api.jar" }))
+            commitDistribution.set(buildCommitDistributionsDir.zip(commitBaseline) { dir, version -> dir.file("gradle-$version.zip") })
+            commitDistributionToolingApiJar.set(buildCommitDistributionsDir.zip(commitBaseline) { dir, version -> dir.file("gradle-$version-tooling-api.jar") })
         }
 
         tasks.withType<PerformanceTest>().configureEach {
             dependsOn(buildCommitDistribution)
+            commitDistributionsDir.set(buildCommitDistributionsDir)
             baselines.set(determineBaselines.flatMap { it.determinedBaselines })
         }
     }

@@ -19,9 +19,12 @@ package org.gradle.kotlin.dsl.plugins.dsl
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.KotlinDslPluginSupport
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverExtension
 import org.jetbrains.kotlin.samWithReceiver.gradle.SamWithReceiverGradleSubplugin
@@ -43,13 +46,21 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
         afterEvaluate {
             kotlinDslPluginOptions {
                 tasks.withType<KotlinCompile>().configureEach {
-                    it.kotlinOptions {
-                        jvmTarget = this@kotlinDslPluginOptions.jvmTarget.get()
-                        apiVersion = "1.4"
-                        languageVersion = "1.4"
-                        freeCompilerArgs += KotlinDslPluginSupport.kotlinCompilerArgs
+                    it.compilerOptions {
+                        DeprecationLogger.whileDisabled {
+                            @Suppress("DEPRECATION")
+                            if (this@kotlinDslPluginOptions.jvmTarget.isPresent) {
+                                jvmTarget.set(JvmTarget.fromTarget(this@kotlinDslPluginOptions.jvmTarget.get()))
+                            }
+                        }
+                        apiVersion.set(KotlinVersion.KOTLIN_1_8)
+                        languageVersion.set(KotlinVersion.KOTLIN_1_8)
+                        freeCompilerArgs.addAll(KotlinDslPluginSupport.kotlinCompilerArgs)
                     }
-                    it.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf("-XXLanguage:+DisableCompatibilityModeForNewInference")))
+                    it.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf(
+                        "-XXLanguage:+DisableCompatibilityModeForNewInference",
+                        "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
+                    )))
                 }
             }
         }

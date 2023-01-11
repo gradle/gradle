@@ -30,7 +30,7 @@ This feature is currently *_incubating_* and not enabled by default. This featur
 
 - The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress.
 - Your build and the plugins you depend on might require changes to fulfil the <<configuration_cache#config_cache:requirements, requirements>>.
-- IDE imports and syncs do not use the configuration cache.
+- IDE imports and syncs do not yet use the configuration cache.
 ====
 
 [[config_cache:intro:how_does_it_work]]
@@ -48,9 +48,9 @@ The first time you run a particular set of tasks, there will be no entry in the 
 4. Run the builds scripts for the build, applying any requested project plugins.
 5. Calculate the task graph for the requested tasks, running any deferred configuration actions.
 
-Following the configuration phase, Gradle writes the state of the task graph to the configuration cache, taking a snapshot for later Gradle invocations.
-The execution phase then runs as normal.
-This means you will not see any build performance improvement the first time you run a particular set of tasks.
+Following the configuration phase, Gradle writes a snapshot of the task graph to a new configuration cache entry, for later Gradle invocations.
+Gradle then loads the task graph from the configuration cache, so that it can apply optimizations to the tasks, and then runs the execution phase as normal.
+Generally, you will not see any build performance improvement the first time you run a particular set of tasks.
 
 When you subsequently run Gradle with this same set of tasks, for example by running `gradlew check` again, Gradle will load the tasks and their configuration directly from the configuration cache and skip the configuration phase entirely.
 Before using a configuration cache entry, Gradle checks that none of the "build configuration inputs", such as build scripts, for the entry have changed.
@@ -65,7 +65,7 @@ Build configuration inputs include:
 - Gradle properties used during the configuration phase
 - Environment variables used during the configuration phase
 - Configuration files accessed using value suppliers such as providers
-- `buildSrc` inputs, including build configuration inputs  and source files.
+- `buildSrc` and plugin included build inputs, including build configuration inputs and source files.
 
 Gradle uses its own optimized serialization mechanism and format to store the configuration cache entries.
 It automatically serializes the state of arbitrary object graphs.
@@ -78,8 +78,9 @@ As a fallback and to provide some aid in migrating existing tasks, some semantic
 
 Apart from skipping the configuration phase, the configuration cache provides some additional performance improvements:
 
-- All tasks run in parallel by default.
+- All tasks run in parallel by default, subject to dependency constraints.
 - Dependency resolution is cached.
+- Configuration state and dependency resolution state is discarded from heap after writing the task graph. This reduces the peak heap usage required for a given set of tasks.
 
 [[config_cache:in_action]]
 === Configuration caching in action
@@ -211,8 +212,8 @@ Working towards the stabilization of configuration caching we implement some str
 You can enable that feature flag as follows:
 
 ====
-include::sample[dir="snippets/configurationCache/stableFeatureFlag/groovy",files="settings.gradle[]"]
 include::sample[dir="snippets/configurationCache/stableFeatureFlag/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/configurationCache/stableFeatureFlag/groovy",files="settings.gradle[]"]
 ====
 
 The `STABLE_CONFIGURATION_CACHE` feature flag enables the following:
@@ -298,12 +299,12 @@ h| Packaging and distribution
 
 a|
 [horizontal]
-link:{gradle-issues}13455[[.green]#✓#]:: <<java_plugin.adoc#java_plugin,Java>>
-link:{gradle-issues}13455[[.green]#✓#]:: <<java_library_plugin.adoc#java_library_plugin,Java Library>>
-link:{gradle-issues}13455[[.green]#✓#]:: <<java_platform_plugin.adoc#java_platform_plugin,Java Platform>>
+link:{gradle-issues}13457[[.green]#✓#]:: <<java_plugin.adoc#java_plugin,Java>>
+link:{gradle-issues}13458[[.green]#✓#]:: <<java_library_plugin.adoc#java_library_plugin,Java Library>>
+link:{gradle-issues}13459[[.green]#✓#]:: <<java_platform_plugin.adoc#java_platform_plugin,Java Platform>>
 link:{gradle-issues}13460[[.green]#✓#]:: <<groovy_plugin.adoc#groovy_plugin,Groovy>>
 link:{gradle-issues}13461[[.green]#✓#]:: <<scala_plugin.adoc#scala_plugin,Scala>>
-link:{gradle-issues}13462[[.yellow]#⚠#]:: <<antlr_plugin.adoc#antlr_plugin,ANTLR>>
+link:{gradle-issues}13462[[.green]#✓#]:: <<antlr_plugin.adoc#antlr_plugin,ANTLR>>
 
 a|
 [horizontal]
@@ -316,13 +317,13 @@ link:{gradle-issues}13488[[.red]#✖#]:: <<xctest_plugin.adoc#xctest_plugin,XCTe
 
 a|
 [horizontal]
-link:{gradle-issues}13455[[.green]#✓#]:: <<application_plugin.adoc#application_plugin,Application>>
-link:{gradle-issues}13455[[.green]#✓#]:: <<war_plugin.adoc#war_plugin,WAR>>
-link:{gradle-issues}13455[[.green]#✓#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
-link:{gradle-issues}13468[[.yellow]#⚠#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
+link:{gradle-issues}13463[[.green]#✓#]:: <<application_plugin.adoc#application_plugin,Application>>
+link:{gradle-issues}13466[[.green]#✓#]:: <<war_plugin.adoc#war_plugin,WAR>>
+link:{gradle-issues}13467[[.red]#✖#]:: <<ear_plugin.adoc#ear_plugin,EAR>>
+link:{gradle-issues}13468[[.green]#✓#]:: <<publishing_maven.adoc#publishing_maven,Maven Publish>>
 link:{gradle-issues}13469[[.red]#✖#]:: <<publishing_ivy.adoc#publishing_ivy,Ivy Publish>>
-link:{gradle-issues}13455[[.green]#✓#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
-link:{gradle-issues}13455[[.green]#✓#]:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
+link:{gradle-issues}13464[[.green]#✓#]:: <<distribution_plugin.adoc#distribution_plugin,Distribution>>
+link:{gradle-issues}13465[[.green]#✓#]:: <<java_library_distribution_plugin.adoc#java_library_distribution_plugin,Java Library Distribution>>
 
 h| Code analysis
 h| IDE project files generation
@@ -347,10 +348,10 @@ link:{gradle-issues}13483[[.red]#✖#]:: <<xcode_plugin.adoc#xcode_plugin,Xcode>
 a|
 [horizontal]
 link:{gradle-issues}13455[[.green]#✓#]:: <<base_plugin.adoc#base_plugin,Base>>
-link:{gradle-issues}13466[[.yellow]#⚠#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
+link:{gradle-issues}13456[[.green]#✓#]:: <<build_init_plugin.adoc#build_init_plugin,Build Init>>
 link:{gradle-issues}13470[[.red]#✖#]:: <<signing_plugin.adoc#signing_plugin,Signing>>
-link:{gradle-issues}13455[[.green]#✓#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Java Plugin Development>>
-link:{gradle-issues}13472[[.red]#✖#]:: <<custom_plugins.adoc#sec:precompiled_plugins,Groovy DSL Plugin Development>>
+link:{gradle-issues}13471[[.green]#✓#]:: <<java_gradle_plugin.adoc#java_gradle_plugin,Java Plugin Development>>
+link:{gradle-issues}23029[[.green]#✓#]:: <<custom_plugins.adoc#sec:precompiled_plugins,Groovy DSL Plugin Development>>
 link:{gradle-issues}13472[[.green]#✓#]:: <<kotlin_dsl.adoc#sec:kotlin-dsl_plugin,Kotlin DSL Plugin Development>>
 link:{gradle-issues}13473[[.red]#✖#]:: <<project_report_plugin.adoc#project_report_plugin,Project Report Plugin>>
 
@@ -379,8 +380,8 @@ This report is useful and allows you to drill down into problems, understand wha
 Let's look at a simple example build script that contains a couple problems:
 
 ====
-include::sample[dir="snippets/configurationCache/problemsGroovy/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/configurationCache/problemsKotlin/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/configurationCache/problemsGroovy/groovy",files="build.gradle[]"]
 ====
 <1> <<config_cache:requirements:reading_sys_props_and_env_vars, A system property read at configuration time>>
 <2> <<config_cache:requirements:use_project_during_execution, Using the `Project` object at execution time>>
@@ -436,8 +437,8 @@ With the help of the links present in the console problem summary and in the HTM
 Here's a fixed version of the build script:
 
 ====
-include::sample[dir="snippets/configurationCache/problemsFixed/groovy",files="build.gradle[tags=fixed]"]
 include::sample[dir="snippets/configurationCache/problemsFixed/kotlin",files="build.gradle.kts[tags=fixed]"]
+include::sample[dir="snippets/configurationCache/problemsFixed/groovy",files="build.gradle[tags=fixed]"]
 ====
 <1> We turned our ad-hoc task into a proper task class,
 <2> with inputs and outputs declaration,
@@ -467,8 +468,8 @@ This is because we read the system property at configuration time, hence requiri
 Fixing that is as simple as obtaining the provider of the system property and wiring it to the task input, without reading it at configuration time.
 
 ====
-include::sample[dir="snippets/configurationCache/problemsFixedReuse/groovy",files="build.gradle[tags=fixed-reuse]"]
 include::sample[dir="snippets/configurationCache/problemsFixedReuse/kotlin",files="build.gradle.kts[tags=fixed-reuse]"]
+include::sample[dir="snippets/configurationCache/problemsFixedReuse/groovy",files="build.gradle[tags=fixed-reuse]"]
 ====
 <1> We wired the system property provider directly, without reading it at configuration time.
 
@@ -580,8 +581,8 @@ Once to reuse the configuration cache.
 
 .Testing the configuration cache
 ====
-include::sample[dir="snippets/configurationCache/testKit/groovy",files="src/test/groovy/org/example/BuildLogicFunctionalTest.groovy[tags=functional-test-configuration-cache]"]
 include::sample[dir="snippets/configurationCache/testKit/kotlin",files="src/test/kotlin/org/example/BuildLogicFunctionalTest.kt[tags=functional-test-configuration-cache]"]
+include::sample[dir="snippets/configurationCache/testKit/groovy",files="src/test/groovy/org/example/BuildLogicFunctionalTest.groovy[tags=functional-test-configuration-cache]"]
 ====
 <1> First run primes the configuration cache.
 <2> Second run reuses the configuration cache.
@@ -653,24 +654,24 @@ We may, if necessary, allow these to be used as task inputs directly.
 Here's an example of a problematic task type referencing a `SourceSet`:
 
 ====
-include::sample[dir="snippets/configurationCache/disallowedTypes/groovy",files="build.gradle[tags=task-type]"]
 include::sample[dir="snippets/configurationCache/disallowedTypes/kotlin",files="build.gradle.kts[tags=task-type]"]
+include::sample[dir="snippets/configurationCache/disallowedTypes/groovy",files="build.gradle[tags=task-type]"]
 ====
 <1> this will be reported as a problem because referencing `SourceSet` is not allowed
 
 The following is how it should be done instead:
 
 ====
-include::sample[dir="snippets/configurationCache/disallowedTypesFixed/groovy",files="build.gradle[tags=task-type]"]
 include::sample[dir="snippets/configurationCache/disallowedTypesFixed/kotlin",files="build.gradle.kts[tags=task-type]"]
+include::sample[dir="snippets/configurationCache/disallowedTypesFixed/groovy",files="build.gradle[tags=task-type]"]
 ====
 <1> no more problems reported, we now reference the supported type `FileCollection`
 
 In the same vein, if you encounter the same problem with an ad-hoc task declared in a script as follows:
 
 ====
-include::sample[dir="snippets/configurationCache/disallowedTypes/groovy",files="build.gradle[tags=ad-hoc-task]"]
 include::sample[dir="snippets/configurationCache/disallowedTypes/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
+include::sample[dir="snippets/configurationCache/disallowedTypes/groovy",files="build.gradle[tags=ad-hoc-task]"]
 ====
 <1> this will be reported as a problem because the `doLast {}` closure is capturing a reference to the `SourceSet`
 
@@ -678,8 +679,8 @@ You still need to fulfil the same requirement, that is not referencing a disallo
 Here's how the task declaration above can be fixed:
 
 ====
-include::sample[dir="snippets/configurationCache/disallowedTypesFixed/groovy",files="build.gradle[tags=ad-hoc-task]"]
 include::sample[dir="snippets/configurationCache/disallowedTypesFixed/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
+include::sample[dir="snippets/configurationCache/disallowedTypesFixed/groovy",files="build.gradle[tags=ad-hoc-task]"]
 ====
 <1> no more problems reported, the `doLast {}` closure now only captures `classpath` which is of the supported `FileCollection` type
 
@@ -704,32 +705,32 @@ Otherwise, you can use <<custom_gradle_types#service_injection,injected services
 Here's an example of a problematic task type using the `Project` object at execution time:
 
 ====
-include::sample[dir="snippets/configurationCache/projectAtExecution/groovy",files="build.gradle[tags=task-type]"]
 include::sample[dir="snippets/configurationCache/projectAtExecution/kotlin",files="build.gradle.kts[tags=task-type]"]
+include::sample[dir="snippets/configurationCache/projectAtExecution/groovy",files="build.gradle[tags=task-type]"]
 ====
 <1> this will be reported as a problem because the task action is using the `Project` object at execution time
 
 The following is how it should be done instead:
 
 ====
-include::sample[dir="snippets/configurationCache/projectAtExecutionFixed/groovy",files="build.gradle[tags=task-type]"]
 include::sample[dir="snippets/configurationCache/projectAtExecutionFixed/kotlin",files="build.gradle.kts[tags=task-type]"]
+include::sample[dir="snippets/configurationCache/projectAtExecutionFixed/groovy",files="build.gradle[tags=task-type]"]
 ====
 <1> no more problem reported, the injected `FileSystemOperations` service is supported as a replacement for `project.copy {}`
 
 In the same vein, if you encounter the same problem with an ad-hoc task declared in a script as follows:
 
 ====
-include::sample[dir="snippets/configurationCache/projectAtExecution/groovy",files="build.gradle[tags=ad-hoc-task]"]
 include::sample[dir="snippets/configurationCache/projectAtExecution/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
+include::sample[dir="snippets/configurationCache/projectAtExecution/groovy",files="build.gradle[tags=ad-hoc-task]"]
 ====
 <1> this will be reported as a problem because the task action is using the `Project` object at execution time
 
 Here's how the task declaration above can be fixed:
 
 ====
-include::sample[dir="snippets/configurationCache/projectAtExecutionFixed/groovy",files="build.gradle[tags=ad-hoc-task]"]
 include::sample[dir="snippets/configurationCache/projectAtExecutionFixed/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
+include::sample[dir="snippets/configurationCache/projectAtExecutionFixed/groovy",files="build.gradle[tags=ad-hoc-task]"]
 ====
 <1> services can't be injected directly in scripts, we need an extra type to convey the injection point
 <2> create an instance of the extra type using `project.object` outside the task action
@@ -857,23 +858,23 @@ link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec-org.gradle.
 link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec-org.gradle.api.Action-[providers.javaexec()] can be used:
 
 ====
-include::sample[dir="snippets/valueProviders/externalProcessProvider/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/valueProviders/externalProcessProvider/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/valueProviders/externalProcessProvider/groovy",files="build.gradle[]"]
 ====
 
 For more complex cases a custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[ValueSource] implementation with injected `ExecOperations` can be used.
 This `ExecOperations` instance can be used at configuration time without restrictions.
 
 ====
-include::sample[dir="snippets/valueProviders/externalProcessValueSource/groovy",files="build.gradle[tags=value-source]"]
 include::sample[dir="snippets/valueProviders/externalProcessValueSource/kotlin",files="build.gradle.kts[tags=value-source]"]
+include::sample[dir="snippets/valueProviders/externalProcessValueSource/groovy",files="build.gradle[tags=value-source]"]
 ====
 
 The `ValueSource` implementation can then be used to create a provider with link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#of-java.lang.Class-org.gradle.api.Action-[providers.of]:
 
 ====
-include::sample[dir="snippets/valueProviders/externalProcessValueSource/groovy",files="build.gradle[tags=create-provider]"]
 include::sample[dir="snippets/valueProviders/externalProcessValueSource/kotlin",files="build.gradle.kts[tags=create-provider]"]
+include::sample[dir="snippets/valueProviders/externalProcessValueSource/groovy",files="build.gradle[tags=create-provider]"]
 ====
 
 In both approaches, if the value of the provider is used at configuration time then it will become a build configuration input.
@@ -899,16 +900,16 @@ Even adding a new property will invalidate the cache if this pattern is used.
 Using a custom predicate to filter environment variables is an example of this discouraged pattern:
 
 ====
-include::sample[dir="snippets/valueProviders/envVarsSysPropsDont/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/valueProviders/envVarsSysPropsDont/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/valueProviders/envVarsSysPropsDont/groovy",files="build.gradle[]"]
 ====
 
 The logic in the predicate is opaque to the configuration cache, so all environment variables are considered inputs.
 One way to reduce the number of inputs is to always use methods that query a concrete variable name, such as `getenv(String)`, or `getenv().get()`:
 
 ====
-include::sample[dir="snippets/valueProviders/envVarsSysPropsDo/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/valueProviders/envVarsSysPropsDo/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/valueProviders/envVarsSysPropsDo/groovy",files="build.gradle[]"]
 ====
 
 The fixed code above, however, is not exactly equivalent to the original as only an explicit list of variables is supported.
@@ -917,8 +918,8 @@ link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#systemProperties
 link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#environmentVariablesPrefixedBy-java.lang.String-[environment variables]:
 
 ====
-include::sample[dir="snippets/valueProviders/envVarsSysPropsDoPrefix/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/valueProviders/envVarsSysPropsDoPrefix/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/valueProviders/envVarsSysPropsDoPrefix/groovy",files="build.gradle[]"]
 ====
 Note that the configuration cache would be invalidated not only when the value of the variable changes or the variable is removed but also
 when another variable with the matching prefix is added to the environment.
@@ -929,8 +930,8 @@ Instead, the value of the `ValueSource` is recomputed each time the build runs a
 For example, a `ValueSource` can be used to get all environment variables with names containing the substring `JDK`:
 
 ====
-include::sample[dir="snippets/valueProviders/envVarsSysPropsDoValueSource/groovy",files="build.gradle[tags=value-source,create-provider]"]
 include::sample[dir="snippets/valueProviders/envVarsSysPropsDoValueSource/kotlin",files="build.gradle.kts[tags=value-source,create-provider]"]
+include::sample[dir="snippets/valueProviders/envVarsSysPropsDoValueSource/groovy",files="build.gradle[tags=value-source,create-provider]"]
 ====
 
 [[config_cache:requirements:undeclared_file_read]]
@@ -942,34 +943,40 @@ Instead, declare files as potential build configuration inputs using the value s
 This problem is caused by build logic similar to this:
 
 ====
-include::sample[dir="snippets/valueProviders/fileContentsDont/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/valueProviders/fileContentsDont/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/valueProviders/fileContentsDont/groovy",files="build.gradle[]"]
 ====
 
 To fix this problem, read files using link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[providers.fileContents()] instead:
 
 ====
-include::sample[dir="snippets/valueProviders/fileContentsDo/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/valueProviders/fileContentsDo/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/valueProviders/fileContentsDo/groovy",files="build.gradle[]"]
 ====
 
 In general, you should avoid reading files at configuration time, to avoid invalidating configuration cache entries when the file content changes.
 Instead, you can connect the `Provider` returned by link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#fileContents-org.gradle.api.file.RegularFile-[providers.fileContents()] to task properties.
-
-[[config_cache:requirements:safe_credentials]]
-
-=== Safe credentials
-
-For security reasons, the configuration cache does not store credentials declared inline.
-
-To use credentials in build scripts with the configuration cache, declare credentials with Gradle Properties. To learn more about using credentials with Gradle Properties, check out the example in the
-<<declaring_repositories.adoc#sec:handling_credentials,credential handling documentation>>.
 
 [[config_cache:not_yet_implemented]]
 == Not yet implemented
 
 Support for using configuration caching with certain Gradle features is not yet implemented.
 Support for these features will be added in later Gradle releases.
+
+[[config_cache:not_yet_implemented:secrets]]
+=== Handling of credentials and secrets
+
+The configuration cache has currently no option to hide secrets that are used as inputs.
+It means that they end up in the serialized configuration cache entry.
+
+This means that you should:
+
+* Either secure access to configuration cache entries that may contain secrets
+* Or leverage `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/gradle.properties` for storing secrets.
+The content of that file is not part of the configuration cache, only its fingerprint.
+If you store secrets in that file, care must be taken to protect access to the file content.
+
+See link:{gradle-issues}22618[gradle/gradle#22618].
 
 [[config_cache:not_yet_implemented:sharing]]
 === Sharing the configuration cache
@@ -1004,7 +1011,7 @@ When running builds using <<test_kit#test_kit, TestKit>>, the configuration cach
 [[config_cache:not_yet_implemented:fine_grained_tracking_of_gradle_properties]]
 === Fine-grained tracking of Gradle properties as build configuration inputs
 
-Currently, all external sources of Gradle properties (`gradle.properties` in project directories and in the `GRADLE_USER_HOME`, environment variables and system properties that set properties, and properties specified with
+Currently, all external sources of Gradle properties (`gradle.properties` in project directories and in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`, environment variables and system properties that set properties, and properties specified with
 command-line flags) are considered build configuration inputs regardless of what properties are actually used at configuration time. These sources, however, are not included in the configuration cache report.
 
 [[config_cache:not_yet_implemented:java_serialization]]
@@ -1045,6 +1052,45 @@ Instead of a lambda, the argument should be provided as a typed object implement
 Alternatively, for Kotlin implementations, the Kotlin compiler can be configured to generate classes instead of lambdas during SAM conversion.
 
 ====
-include::sample[dir="snippets/configurationCache/samConversion/groovy",files="build.gradle[tags=configure]"]
 include::sample[dir="snippets/configurationCache/samConversion/kotlin",files="build.gradle.kts[tags=configure]"]
+include::sample[dir="snippets/configurationCache/samConversion/groovy",files="build.gradle[tags=configure]"]
 ====
+
+[[config_cache:not_yet_implemented:accessing_top_level_at_execution]]
+=== Accessing top-level methods and variables of a build script at execution time
+
+A common approach to reuse logic and data in a build script is to extract repeating bits into top-level methods and variables.
+However, calling such methods at execution time is not currently supported if the configuration cache is enabled.
+
+For builds scripts written in Groovy, the task fails because the method cannot be found.
+The following snippet uses a top-level method in the `listFiles` task:
+====
+include::sample[dir="snippets/configurationCache/topLevel/groovy",files="build.gradle[tags=not-supported]"]
+====
+
+Running the task with the configuration cache enabled produces the following error:
+----
+include::{snippetsPath}/configurationCache/topLevel/tests-groovy/notSupported.out[]
+----
+
+To prevent the task from failing, convert the referenced top-level method to a static method within a class:
+====
+include::sample[dir="snippets/configurationCache/topLevel/groovy",files="build.gradle[tags=workaround]"]
+====
+
+Build scripts written in Kotlin cannot store tasks that reference top-level methods or variables at execution time in the configuration cache at all.
+This limitation exists because the captured script object references cannot be serialized.
+The first run of the Kotlin version of the `listFiles` task fails with the configuration cache problem.
+
+====
+include::sample[dir="snippets/configurationCache/topLevel/kotlin",files="build.gradle.kts[tags=not-supported]"]
+====
+
+To make the Kotlin version of this task compatible with the configuration cache, make the following changes:
+====
+include::sample[dir="snippets/configurationCache/topLevel/kotlin",files="build.gradle.kts[tags=workaround]"]
+====
+<1> Define the method inside an object.
+<2> Define the variable in a smaller scope.
+
+See link:{gradle-issues}22879[gradle/gradle#22879].

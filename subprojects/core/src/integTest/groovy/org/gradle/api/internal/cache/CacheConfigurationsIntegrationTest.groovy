@@ -17,7 +17,7 @@
 package org.gradle.api.internal.cache
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
+import org.gradle.internal.time.TimestampSuppliers
 
 class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
     private static final int MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS = CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_RELEASED_DISTS + 1
@@ -45,10 +45,45 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
         settingsFile << """
             caches {
-                assert releasedWrappers.removeUnusedEntriesAfterDays.get() == ${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}
-                assert snapshotWrappers.removeUnusedEntriesAfterDays.get() == ${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}
-                assert downloadedResources.removeUnusedEntriesAfterDays.get() == ${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}
-                assert createdResources.removeUnusedEntriesAfterDays.get() == ${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}
+                releasedWrappers { ${assertValueIsSameInDays(MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS)} }
+                snapshotWrappers { ${assertValueIsSameInDays(MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS)} }
+                downloadedResources { ${assertValueIsSameInDays(MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES)} }
+                createdResources { ${assertValueIsSameInDays(MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES)} }
+            }
+        """
+
+        expect:
+        succeeds("help")
+    }
+
+    def "can configure caches to a custom timestamp"() {
+        def initDir = new File(executer.gradleUserHomeDir, "init.d")
+        initDir.mkdirs()
+
+        def releasedDistTimestamp = TimestampSuppliers.daysAgo(MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS).get()
+        def snapshotDistTimestamp = TimestampSuppliers.daysAgo(MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS).get()
+        def downloadedResourcesTimestamp = TimestampSuppliers.daysAgo(MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES).get()
+        def createdResourcesTimestamp = TimestampSuppliers.daysAgo(MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES).get()
+
+        new File(initDir, "cache-settings.gradle") << """
+            import java.util.function.Supplier
+
+            beforeSettings { settings ->
+                settings.caches {
+                    cleanup = Cleanup.DISABLED
+                    releasedWrappers.removeUnusedEntriesOlderThan = ${releasedDistTimestamp}
+                    snapshotWrappers.removeUnusedEntriesOlderThan = ${snapshotDistTimestamp}
+                    downloadedResources.removeUnusedEntriesOlderThan = ${downloadedResourcesTimestamp}
+                    createdResources.removeUnusedEntriesOlderThan = ${createdResourcesTimestamp}
+                }
+            }
+        """
+        settingsFile << """
+            caches {
+                assert releasedWrappers.removeUnusedEntriesOlderThan.get() == ${releasedDistTimestamp}
+                assert snapshotWrappers.removeUnusedEntriesOlderThan.get() == ${snapshotDistTimestamp}
+                assert downloadedResources.removeUnusedEntriesOlderThan.get() == ${downloadedResourcesTimestamp}
+                assert createdResources.removeUnusedEntriesOlderThan.get() == ${createdResourcesTimestamp}
             }
         """
 
@@ -65,20 +100,28 @@ class CacheConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("help")
-        failureCauseContains("The value for property '${name}' is final and cannot be changed any further")
+        failureCauseContains(String.format(DefaultCacheConfigurations.UNSAFE_MODIFICATION_ERROR, errorProperty))
 
         where:
-        property                                           | name                           | value
+        property                                           | errorProperty                  | value
         'cleanup'                                          | 'cleanup'                      | 'Cleanup.DISABLED'
-        'releasedWrappers.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesAfterDays' | "${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}"
-        'snapshotWrappers.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesAfterDays' | "${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}"
-        'downloadedResources.removeUnusedEntriesAfterDays' | 'removeUnusedEntriesAfterDays' | "${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}"
-        'createdResources.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesAfterDays' | "${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}"
+        'releasedWrappers.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesOlderThan' | "${MODIFIED_AGE_IN_DAYS_FOR_RELEASED_DISTS}"
+        'snapshotWrappers.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesOlderThan' | "${MODIFIED_AGE_IN_DAY_FOR_SNAPSHOT_DISTS}"
+        'downloadedResources.removeUnusedEntriesAfterDays' | 'removeUnusedEntriesOlderThan' | "${MODIFIED_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES}"
+        'createdResources.removeUnusedEntriesAfterDays'    | 'removeUnusedEntriesOlderThan' | "${MODIFIED_AGE_IN_DAYS_FOR_CREATED_CACHE_ENTRIES}"
     }
 
     static String modifyCacheConfiguration(String property, String value) {
         return """
             ${property} = ${value}
+        """
+    }
+
+    static String assertValueIsSameInDays(int configuredDaysAgo) {
+        return """
+            def timestamp = removeUnusedEntriesOlderThan.get()
+            def daysAgo = java.util.concurrent.TimeUnit.MILLISECONDS.toDays(System.currentTimeMillis() - timestamp)
+            assert daysAgo == ${configuredDaysAgo}
         """
     }
 }

@@ -28,7 +28,21 @@ trait VariantAwareDependencyResolutionTestFixture extends TasksWithInputsAndOutp
             allprojects {
                 configurations {
                     implementation {
+                        // TODO: Make this a bucket
+                        // canBeResolved = false
+                        // canBeConsumed = false
+                    }
+                    resolver {
                         attributes.attribute(color, 'blue')
+                        extendsFrom implementation
+                        canBeResolved = true
+                        canBeConsumed = false
+                    }
+                    outgoing {
+                        attributes.attribute(color, 'blue')
+                        extendsFrom implementation
+                        canBeResolved = false
+                        canBeConsumed = true
                     }
                 }
             }

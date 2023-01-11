@@ -18,7 +18,7 @@ package org.gradle.testfixtures.internal;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheCleanup;
+import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheOpenException;
 import org.gradle.cache.CleanupAction;
 import org.gradle.cache.CleanupProgressMonitor;
@@ -27,6 +27,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.CacheVisitor;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.Pair;
@@ -47,9 +48,9 @@ public class TestInMemoryCacheFactory implements CacheFactory {
     final Map<Pair<File, String>, PersistentIndexedCache<?, ?>> caches = Collections.synchronizedMap(Maps.newLinkedHashMap());
 
     @Override
-    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanup cacheCleanup) throws CacheOpenException {
+    public PersistentCache open(File cacheDir, String displayName, Map<String, ?> properties, CacheBuilder.LockTarget lockTarget, LockOptions lockOptions, Action<? super PersistentCache> initializer, @Nullable CacheCleanupStrategy cacheCleanupStrategy) throws CacheOpenException {
         GFileUtils.mkdirs(cacheDir);
-        InMemoryCache cache = new InMemoryCache(cacheDir, displayName, cacheCleanup != null ? cacheCleanup.getCleanupAction() : null);
+        InMemoryCache cache = new InMemoryCache(cacheDir, displayName, cacheCleanupStrategy != null ? cacheCleanupStrategy.getCleanupAction() : null);
         if (initializer != null) {
             initializer.execute(cache);
         }
@@ -58,6 +59,11 @@ public class TestInMemoryCacheFactory implements CacheFactory {
 
     public PersistentCache open(File cacheDir, String displayName) {
         return new InMemoryCache(cacheDir, displayName, CleanupAction.NO_OP);
+    }
+
+    @Override
+    public void visitCaches(CacheVisitor visitor) {
+        throw new UnsupportedOperationException();
     }
 
     private class InMemoryCache implements PersistentCache {
@@ -74,12 +80,17 @@ public class TestInMemoryCacheFactory implements CacheFactory {
 
         @Override
         public void close() {
+            cleanup();
+            closed = true;
+        }
+
+        @Override
+        public void cleanup() {
             if (cleanup!=null) {
                 synchronized (this) {
                     cleanup.clean(this, CleanupProgressMonitor.NO_OP);
                 }
             }
-            closed = true;
         }
 
         public boolean isClosed() {
@@ -151,7 +162,10 @@ public class TestInMemoryCacheFactory implements CacheFactory {
         @Override
         public void useCache(Runnable action) {
             assertNotClosed();
-            action.run();
+            // The contract of useCache() means we have to provide some basic synchronization.
+            synchronized (this) {
+                action.run();
+            }
         }
 
         @Override

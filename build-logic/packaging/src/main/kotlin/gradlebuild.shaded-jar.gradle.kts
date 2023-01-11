@@ -15,6 +15,8 @@
  */
 
 import gradlebuild.basics.classanalysis.Attributes
+import gradlebuild.capitalize
+import gradlebuild.decapitalize
 import gradlebuild.shade.ArtifactTypes.buildReceiptType
 import gradlebuild.shade.ArtifactTypes.classTreesType
 import gradlebuild.shade.ArtifactTypes.entryPointsType
@@ -185,6 +187,6 @@ fun Configuration.artifactViewForType(artifactTypeName: String) = incoming.artif
     attributes.attribute(Attributes.artifactType, artifactTypeName)
 }.files
 
-fun String.kebabToPascal() = split("-").map { it.capitalize() }.joinToString("")
+fun String.kebabToPascal() = split("-").joinToString("") { it.capitalize() }
 
 fun String.kebabToCamel() = kebabToPascal().decapitalize()

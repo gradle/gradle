@@ -24,6 +24,10 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
+/**
+ * A thread-safe and reusable serializer for {@link ComponentSelectionDescriptor} if and only if the passed in
+ * {@link ComponentSelectionDescriptorFactory} is thread-safe and reusable.
+ */
 public class ComponentSelectionDescriptorSerializer implements Serializer<ComponentSelectionDescriptor> {
 
     private final ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory;

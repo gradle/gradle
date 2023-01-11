@@ -23,7 +23,7 @@ We recommend the following steps for all users:
 +
 image::deprecations.png[Deprecations View of a Gradle Build Scan]
 +
-This is so that you can see any deprecation warnings that apply to your build.
+This is so you can see any deprecation warnings that apply to your build.
 +
 Alternatively, you could run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
 . Update your plugins.
@@ -38,15 +38,6 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Warnings that are now errors
 
-[[deprecated_configurations_should_not_be_used]]
-==== Usage of deprecated configurations is now an error
-
-Usage of the following `@link:{javadocPath}/javadoc/org/gradle/api/internal/artifacts/configurations/ConfigurationRoles.htm[ConfigurationRoles]` are now errors:
-
-- `LEGACY`
-- `DEPRECATED_CONSUMABLE`
-- `DEPRECATED_RESOLVABLE`
-
 === Removed APIs
 
 === Potential breaking changes
@@ -54,10 +45,16 @@ Usage of the following `@link:{javadocPath}/javadoc/org/gradle/api/internal/arti
 === Deprecations
 
 [[custom_configuration_roles]]
-The pre-defined roles in `@link:{javadocPath}/javadoc/org/gradle/api/internal/artifacts/configurations/ConfigurationRoles.htm[ConfigurationRoles]` should be used instead of custom roles wherever possible.
+Custom roles have been deprecated. Use a pre-defined role instead.
 
-[[reserved_configuration_names]]
-The names of standard configuration created for sourcesets by the `java-base` should be considered reserved - do not explicitly create them.
+[[upgrading_version_8:changes_8.0]]
 
 [[configurations_allowed_usage]]
-The usage of configurations is meant to be fixed at creation.  Mutating the allowed usage on a configuration is deprecated.
+The usage of configurations should be fixed at creation.  Mutating the allowed usage on a configuration is deprecated.
+This includes calling any of the following `Configuration` methods:
+
+- `setCanBeConsumed(boolean)`
+- `setCanBeResolved(boolean)`
+
+The ability to change the allowed usage of a configuration after
+creation will be removed in Gradle 9.0.

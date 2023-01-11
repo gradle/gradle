@@ -71,22 +71,14 @@ allprojects {
         implementation producer.output
     }
 
-    // implementation (as created by the automatically applied java-library plugin in some of these tests) is not resolvable
-    // so, to handle tests using buildSrc, we'll extend it with a new, resolvable configuration and resolving that one instead
-    configurations {
-        extender {
-            canBeResolved = true
-            extendsFrom implementation
-        }
-    }
     task resolve (type: ShowFileCollection) {
-        def view = configurations.extender.incoming.artifactView {
+        def view = configurations.resolver.incoming.artifactView {
             attributes.attribute(color, 'green')
         }.files
         files.from(view)
     }
     task resolveArtifacts(type: ShowArtifactCollection) {
-        collection = configurations.extender.incoming.artifactView {
+        collection = configurations.resolver.incoming.artifactView {
             attributes.attribute(color, 'green')
         }.artifacts
     }

@@ -54,7 +54,7 @@ public abstract class WarPlugin implements Plugin<Project> {
      * This is the resolvable configuration that should be used to resolve the classpath containing the dependencies
      * added to the {@link #PROVIDED_RUNTIME_CONFIGURATION_NAME} configuration.
      *
-     * @since 8.0
+     * @since 8.1
      */
     @Incubating
     public static final String PROVIDED_RUNTIME_CLASSPATH_CONFIGURATION_NAME = "providedRuntimeClasspath";

@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.util.GradleVersion
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
@@ -370,95 +369,5 @@ subprojects {
         publishedModule.parsedModuleMetadata.variant("javadocElements") {
             assert files*.name == []
         }
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/20581")
-    void "warn deprecated behavior when GMM is modified after a Maven publication is populated"() {
-
-        settingsFile << 'rootProject.name = "test"'
-        buildKotlinFile << """
-             plugins {
-                java
-                `maven-publish`
-                kotlin("jvm") version "1.7.21"
-            }
-            repositories {
-                mavenCentral()
-            }
-            dependencies {
-                implementation(kotlin("stdlib-jdk8"))
-            }
-            publishing {
-                publications {
-                    create<MavenPublication>("maven") {
-                        from(components["java"])
-                    }
-                }
-            }
-            (publishing.publications["maven"] as MavenPublication).artifacts
-            (components["java"] as org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent).apply {
-                withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
-            }
-        """
-
-        executer.beforeExecute {
-            executer.expectDeprecationWarning(
-                "Gradle Module Metadata is modified after an eagerly populated publication. " +
-                    "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#gmm_modification_after_publication_populated"
-            )
-        }
-
-        when:
-        succeeds "prepareKotlinBuildScriptModel"
-
-        then:
-        outputContains("Gradle Module Metadata is modified after an eagerly populated publication.")
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/20581")
-    void "warn deprecated behavior when GMM is modified after an Ivy publication is populated"() {
-
-        settingsFile << 'rootProject.name = "test"'
-        buildKotlinFile << """
-             plugins {
-                java
-                `ivy-publish`
-                kotlin("jvm") version "1.7.21"
-            }
-            repositories {
-                mavenCentral()
-            }
-            dependencies {
-                implementation(kotlin("stdlib-jdk8"))
-            }
-            publishing {
-                publications {
-                    create<IvyPublication>("ivy") {
-                        from(components["java"])
-                    }
-                }
-            }
-            (publishing.publications["ivy"] as IvyPublication).artifacts
-            (components["java"] as org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent).apply {
-                withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
-            }
-        """
-
-        executer.beforeExecute {
-            executer.expectDeprecationWarning(
-                "Gradle Module Metadata is modified after an eagerly populated publication. " +
-                    "This behavior has been deprecated. This will fail with an error in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#gmm_modification_after_publication_populated"
-            )
-        }
-
-        when:
-        succeeds "prepareKotlinBuildScriptModel"
-
-        then:
-        outputContains("Gradle Module Metadata is modified after an eagerly populated publication.")
     }
 }

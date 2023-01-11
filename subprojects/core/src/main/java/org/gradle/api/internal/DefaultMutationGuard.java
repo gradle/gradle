@@ -19,12 +19,13 @@ package org.gradle.api.internal;
 import org.gradle.api.Action;
 
 public class DefaultMutationGuard extends AbstractMutationGuard {
-    private final ThreadLocal<Boolean> mutationGuardState = new ThreadLocal<Boolean>() {
+    private final ThreadLocal<Boolean> mutationGuardState = new GuardState();
+    private static class GuardState extends ThreadLocal<Boolean> {
         @Override
         protected Boolean initialValue() {
             return Boolean.TRUE;
         }
-    };
+    }
 
     @Override
     public boolean isMutationAllowed() {

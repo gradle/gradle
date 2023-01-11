@@ -37,7 +37,6 @@ import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRoles;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -100,7 +99,7 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
     @Override
     public <T> void configureAsCompileClasspath(HasConfigurableAttributes<T> configuration) {
-        configureAttributes(configuration, details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM().apiCompileView());
+        configureAttributes(configuration, details -> details.library().apiUsage().withExternalDependencies().preferStandardJVM());
     }
 
     @Override
@@ -283,11 +282,13 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
 
         @Override
         Configuration build() {
-            Configuration cnf = ((RoleBasedConfigurationContainerInternal) configurations).maybeCreateWithRole(name, ConfigurationRoles.INTENDED_CONSUMABLE, false, true);
+            Configuration cnf = configurations.maybeCreate(name);
             if (description != null) {
                 cnf.setDescription(description);
             }
             cnf.setVisible(false);
+            cnf.setCanBeConsumed(true);
+            cnf.setCanBeResolved(false);
             Configuration[] extendsFrom = buildExtendsFrom();
             if (extendsFrom != null) {
                 cnf.extendsFrom(extendsFrom);

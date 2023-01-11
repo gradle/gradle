@@ -19,8 +19,18 @@ dependencies {
     }
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
-
     integTestLocalRepository(project(":kotlin-dsl-plugins"))
+
+    crossVersionTestImplementation(project(":core-api"))
+    crossVersionTestImplementation(project(":logging"))
+
+    crossVersionTestDistributionRuntimeOnly(project(":distributions-full"))
+    crossVersionTestLocalRepository(project(":kotlin-dsl-plugins"))
 }
 
 testFilesCleanup.reportOnly.set(true)
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
+}

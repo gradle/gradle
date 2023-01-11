@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations
 
+import org.gradle.api.GradleException
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal.RoleChecker
@@ -85,7 +86,7 @@ class RoleCheckerSpec extends Specification {
         RoleChecker.assertIsInRole(configuration, ConfigurationRoles.INTENDED_RESOLVABLE)
 
         then:
-        IllegalStateException e = thrown()
+        GradleException e = thrown()
         e.message.contains("Usage for configuration: custom is not consistent with the role: Intended Resolvable.")
     }
 }

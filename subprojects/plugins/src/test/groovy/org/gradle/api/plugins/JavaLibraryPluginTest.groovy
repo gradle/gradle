@@ -18,6 +18,7 @@ package org.gradle.api.plugins
 
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
@@ -217,22 +218,22 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
 
         when:
         def jarTask = project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)
-        def javaLibrary = project.components.getByName("java")
-        def runtimeUsage = javaLibrary.usages.find { it.name == 'runtimeElements' }
-        def apiUsage = javaLibrary.usages.find { it.name == 'apiElements' }
+        SoftwareComponentInternal javaLibrary = project.components.getByName("java")
+        def runtimeVariant = javaLibrary.usages.find { it.name == 'runtimeElements' }
+        def apiVariant = javaLibrary.usages.find { it.name == 'apiElements' }
 
         then:
-        runtimeUsage.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
-        runtimeUsage.dependencies.size() == 2
-        runtimeUsage.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
-        runtimeUsage.dependencyConstraints.size() == 2
-        runtimeUsage.dependencyConstraints == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencyConstraints
+        runtimeVariant.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
+        runtimeVariant.dependencies.size() == 2
+        runtimeVariant.dependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
+        runtimeVariant.dependencyConstraints.size() == 2
+        runtimeVariant.dependencyConstraints == project.configurations.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).allDependencyConstraints
 
-        apiUsage.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
-        apiUsage.dependencies.size() == 1
-        apiUsage.dependencies == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
-        apiUsage.dependencyConstraints.size() == 1
-        apiUsage.dependencyConstraints == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencyConstraints
+        apiVariant.artifacts.collect {it.file} == [jarTask.archiveFile.get().asFile]
+        apiVariant.dependencies.size() == 1
+        apiVariant.dependencies == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
+        apiVariant.dependencyConstraints.size() == 1
+        apiVariant.dependencyConstraints == project.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME).allDependencyConstraints
     }
 
 }

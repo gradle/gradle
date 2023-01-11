@@ -38,11 +38,6 @@ testing {
                 implementation(project()) // <3>
             }
         }
-        val customUnitTest by registering(JvmTestSuite::class) {
-            dependencies {
-                implementation(projectInternalView()) // <4>
-            }
-        }
     }
 }
 // tag::configure-suite-dependencies-project[]

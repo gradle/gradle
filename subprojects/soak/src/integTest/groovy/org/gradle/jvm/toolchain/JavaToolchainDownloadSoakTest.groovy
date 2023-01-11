@@ -24,6 +24,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     def setup() {
+        settingsFile << """
+            plugins {
+                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.3.0'
+            }
+        """
+
         buildFile << """
             plugins {
                 id "java"
@@ -31,7 +37,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
             java {
                 toolchain {
-                    languageVersion = JavaLanguageVersion.of(14)
+                    languageVersion = JavaLanguageVersion.of(16)
                 }
             }
         """
@@ -40,23 +46,18 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         executer.requireOwnGradleUserHomeDir()
         executer
-            .withToolchainDetectionEnabled()
             .withToolchainDownloadEnabled()
     }
 
     def "can download missing jdk automatically"() {
         when:
         result = executer
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
-                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                        "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
-                        "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                        "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
+                .withTasks("compileJava")
                 .run()
 
         then:
         javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded("adoptopenjdk")
+        assertJdkWasDownloaded("eclipse_foundation")
     }
 
     def "can download missing j9 jdk automatically"() {
@@ -70,12 +71,8 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         when:
         result = executer
-                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
-                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                        "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
-                        "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                        "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
-                .run()
+               .withTasks("compileJava")
+               .run()
 
         then:
         javaClassFile("Foo.class").assertExists()
@@ -86,15 +83,11 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         when: "build runs and doesn't have a local JDK to use for compilation"
         result = executer
                 .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
-                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                        "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
-                        "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                        "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
                 .run()
 
         then: "suitable JDK gets auto-provisioned"
         javaClassFile("Foo.class").assertExists()
-        assertJdkWasDownloaded("adoptopenjdk")
+        assertJdkWasDownloaded("eclipse_foundation")
 
         when: "the marker file of the auto-provisioned JDK is deleted, making the JDK not detectable"
         //delete marker file to make the previously downloaded installation undetectable
@@ -105,10 +98,6 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         and: "build runs again"
         executer
                 .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
-                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
-                        "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 8.0. " +
-                        "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
-                        "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
                 .run()
 
         then: "the JDK is auto-provisioned again and its files, even though they are already there don't trigger an error, they just get overwritten"
@@ -117,7 +106,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
     private void assertJdkWasDownloaded(String implementation) {
         assert executer.gradleUserHomeDir.file("jdks").listFiles({ file ->
-            file.name.contains("-14-") && file.name.contains(implementation)
+            file.name.contains("-16-") && file.name.contains(implementation)
         } as FileFilter)
     }
 

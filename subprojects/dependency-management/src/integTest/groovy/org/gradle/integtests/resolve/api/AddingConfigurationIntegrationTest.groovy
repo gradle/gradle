@@ -36,9 +36,11 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task addConfigs {
+                def files1 = configurations.conf1
+                def files2 = configurations.conf2
                 doLast {
-                    FileCollection sum = configurations.conf1
-                    sum += configurations.conf2
+                    FileCollection sum = files1
+                    sum += files2
                     assert sum.files.sort() == [ file1, file2 ]
                 }
             }
@@ -67,10 +69,13 @@ class AddingConfigurationIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task addConfigs {
+                def files1 = configurations.conf1
+                def files2 = configurations.conf2
+                def files3 = configurations.conf3
                 doLast {
-                    FileCollection difference = configurations.conf3
-                    difference -= configurations.conf2
-                    difference -= configurations.conf1
+                    FileCollection difference = files3
+                    difference -= files2
+                    difference -= files1
                     assert difference.files.sort() == [ file3 ]
                 }
             }

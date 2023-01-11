@@ -102,11 +102,9 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
@@ -146,7 +144,6 @@ import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.util.internal.SimpleMapInterner;
 import org.gradle.vcs.internal.VcsMappingsStore;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -392,25 +389,15 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         PublishArtifactNotationParserFactory createPublishArtifactNotationParserFactory(
             Instantiator instantiator,
             DependencyMetaDataProvider metaDataProvider,
-            DomainObjectContext domainObjectContext,
             FileResolver fileResolver,
             TaskDependencyFactory taskDependencyFactory
         ) {
             return new PublishArtifactNotationParserFactory(
                 instantiator,
                 metaDataProvider,
-                taskResolverFor(domainObjectContext),
                 fileResolver,
                 taskDependencyFactory
             );
-        }
-
-        @Nullable
-        private TaskResolver taskResolverFor(DomainObjectContext domainObjectContext) {
-            if (domainObjectContext instanceof ProjectInternal) {
-                return ((ProjectInternal) domainObjectContext).getTasks();
-            }
-            return null;
         }
 
         ArtifactTypeRegistry createArtifactTypeRegistry(Instantiator instantiator, ImmutableAttributesFactory immutableAttributesFactory, CollectionCallbackActionDecorator decorator, VariantTransformRegistry transformRegistry) {

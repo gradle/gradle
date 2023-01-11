@@ -259,7 +259,9 @@ dependencies {
     staticVersions group: "group", name: "projectA", version: "1.1"
     compile group: "group", name: "projectA", version: "latest.milestone"
 }
-task cache { doLast { configurations.staticVersions.files } }
+task cache {
+    def files = configurations.staticVersions
+    doLast { files*.name } }
 """
 
         and:
@@ -491,7 +493,7 @@ dependencies {
     }
 
     @Issue("gradle/gradle#3019")
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "Does not check for updates to remote artifact")
     def "should honour dynamic version cache expiry for subsequent resolutions in the same build"() {
         given:
         useRepository ivyHttpRepo
@@ -508,8 +510,10 @@ dependencies {
 }
 
 task resolveStaleThenFresh {
+    def stale = configurations.stale
+    def fresh = configurations.fresh
     doFirst {
-        println 'stale:' + configurations.stale.collect { it.name } + ',fresh:' + configurations.fresh.collect { it.name }
+        println 'stale:' + stale.collect { it.name } + ',fresh:' + fresh.collect { it.name }
     }
 }
 """

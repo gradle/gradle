@@ -26,7 +26,7 @@ plugins {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "3.1.0" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "4.0.1" // TODO:kotlin-dsl
 
 tasks {
     val generateKotlinDependencyExtensions by registering(GenerateKotlinDependencyExtensions::class) {
@@ -49,7 +49,7 @@ tasks {
 
 // -- Version manifest properties --------------------------------------
     val writeVersionsManifest by registering(WriteProperties::class) {
-        outputFile = buildDir.resolve("versionsManifest/gradle-kotlin-dsl-versions.properties")
+        destinationFile.set(layout.buildDirectory.file("versionsManifest/gradle-kotlin-dsl-versions.properties"))
         property("kotlin", libs.kotlinVersion)
     }
 

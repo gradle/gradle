@@ -31,5 +31,5 @@ public interface ScriptHandlerInternal extends ScriptHandler {
     /**
      * @return The resolved non-instrumented script classpath.
      */
-    ClassPath getNonInstrumentedScriptClassPath();
+    ClassPath getInstrumentedScriptClassPath();
 }

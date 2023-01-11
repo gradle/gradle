@@ -36,7 +36,7 @@ class ProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec im
                     throw new RuntimeException("broken")
                 }
                 tasks.register("resolve", ShowFileCollection) {
-                    def view = configurations.implementation.incoming.artifactView {
+                    def view = configurations.resolver.incoming.artifactView {
                         attributes.attribute(color, 'green')
                     }.files
                     files.from(view)
@@ -93,7 +93,7 @@ class ProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec im
                     throw new RuntimeException("broken")
                 }
                 tasks.register("resolve", ShowFileCollection) {
-                    def view = configurations.implementation.incoming.artifactView {
+                    def view = configurations.resolver.incoming.artifactView {
                         attributes.attribute(color, 'green')
                     }.files
                     files.from(view)
@@ -117,14 +117,14 @@ class ProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec im
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:resolve'.")
-        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:implementation'.")
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':a:resolver'.")
         failure.assertHasCause("Could not create task ':b:producer'.")
         failure.assertHasCause("broken")
 
         where:
         registerExpression                                                         | _
         "artifacts.implementation(p.flatMap { it.output })"                        | _
-        "configurations.implementation.outgoing.artifact(p.flatMap { it.output })" | _
+        "configurations.outgoing.outgoing.artifact(p.flatMap { it.output })" | _
         "artifacts.parent(p.flatMap { it.output })"                                | _
     }
 }

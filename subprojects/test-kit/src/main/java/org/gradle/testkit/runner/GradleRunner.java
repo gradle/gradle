@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.runner;
 
+import org.gradle.api.Incubating;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
 
 import javax.annotation.Nullable;
@@ -412,4 +413,14 @@ public abstract class GradleRunner {
      */
     public abstract BuildResult buildAndFail() throws InvalidRunnerConfigurationException, UnexpectedBuildSuccess;
 
+    /**
+     * Executes a build, without expecting a particular outcome.
+     * The outcome should then be tested by inspecting the returned {@link BuildResult}.
+     *
+     * @throws InvalidRunnerConfigurationException if the configuration of this runner is invalid (e.g. project directory not set)
+     * @return the build result
+     * @since 8.0
+     */
+    @Incubating
+    public abstract BuildResult run() throws InvalidRunnerConfigurationException;
 }

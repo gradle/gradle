@@ -82,7 +82,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
             root(":Subproject_with_preferProjectModules", "test:Subproject_with_preferProjectModules:") {
                 module("myorg:ModuleB:1.0") {
                     // Prefers project, regardless of version
-                    edge("myorg:ModuleC:2.0", "project :ModuleC", "myorg:ModuleC:1.0")
+                    edge("myorg:ModuleC:2.0", ":ModuleC", "myorg:ModuleC:1.0")
                 }
                 project(":ModuleC", "myorg:ModuleC:1.0") {
                     noArtifacts()
@@ -165,15 +165,14 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
         }
 
         when:
-        resolve.config = 'baseConf'
-        resolve.prepare()
+        resolve.prepare('baseConf')
         succeeds('ProjectA:checkDeps')
 
         then:
         resolve.expectGraph {
             root(":ProjectA", "test:ProjectA:") {
                 module("myorg:ModuleB:1.0") {
-                    edge("myorg:ModuleC:2.0", "project :ModuleC", "myorg:ModuleC:1.0")
+                    edge("myorg:ModuleC:2.0", ":ModuleC", "myorg:ModuleC:1.0")
                 }
                 project("project :ModuleC", "myorg:ModuleC:1.0") {
                     noArtifacts()

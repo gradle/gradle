@@ -56,6 +56,7 @@ import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFA
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
 import static org.gradle.util.Matchers.matchesRegexp
 import static org.gradle.util.Matchers.normalizedLineSeparators
+
 /**
  * Spockified version of AbstractIntegrationTest.
  *
@@ -158,16 +159,24 @@ abstract class AbstractIntegrationSpec extends Specification {
         testDirectory.file(getDefaultBuildFileName())
     }
 
+    void buildFile(@GroovyBuildScriptLanguage String script) {
+        groovyFile(buildFile, script)
+    }
+
+    void settingsFile(@GroovyBuildScriptLanguage String script) {
+        groovyFile(settingsFile, script)
+    }
+
     /**
      * Provides best-effort groovy script syntax highlighting.
      * The highlighting is imperfect since {@link GroovyBuildScriptLanguage} uses stub methods to create a simulated script target environment.
      */
-    void buildFile(@GroovyBuildScriptLanguage String script) {
-        buildFile << script
+    void groovyFile(TestFile targetBuildFile, @GroovyBuildScriptLanguage String script) {
+        targetBuildFile << script
     }
 
-    void settingsFile(@GroovyBuildScriptLanguage String script) {
-        settingsFile << script
+    String groovyScript(@GroovyBuildScriptLanguage String script) {
+        script
     }
 
     TestFile getBuildKotlinFile() {
@@ -599,7 +608,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         return zip
     }
 
-    def createDir(String name, @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
+    TestFile createDir(String name, @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         TestFile root = file(name)
         root.create(cl)
     }
@@ -693,6 +702,29 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         repositories {
             ${RepoScriptBlockUtil.repositoryDefinition(dsl, "maven", mavenRepo.rootDir.name, mavenRepo.uri.toString())}
         }
+        """
+    }
+
+    /**
+     * Generates a `repositories` block pointing to the standard Ivy repo fixture.
+     *
+     * This is often required for running with configuration cache enabled, as
+     * configuration cache eagerly resolves dependencies when storing the classpath.
+     */
+    protected String ivyTestRepository(GradleDsl dsl = GROOVY) {
+        """
+        repositories {
+            ${RepoScriptBlockUtil.repositoryDefinition(dsl, "ivy", ivyRepo.rootDir.name, ivyRepo.uri.toString())}
+        }
+        """
+    }
+
+    protected String emptyJavaClasspath() {
+        """
+            tasks.compileJava {
+                // Avoid resolving the classpath when caching the configuration
+                classpath = files()
+            }
         """
     }
 }

@@ -24,12 +24,14 @@ import org.gradle.cache.internal.GradleUserHomeCleanupFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
 
 import static java.util.concurrent.TimeUnit.DAYS
 import static org.gradle.api.internal.cache.CacheConfigurationsInternal.DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES
+import static org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES
 
 class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDependencyResolutionTest implements FileAccessTimeJournalFixture, GradleUserHomeCleanupFixture {
     public static final int HALF_DEFAULT_MAX_AGE_IN_DAYS = Math.max(1, DEFAULT_MAX_AGE_IN_DAYS_FOR_DOWNLOADED_CACHE_ENTRIES / 2 as int)
@@ -172,6 +174,52 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         findFiles(cacheDir, 'files-*/*').isEmpty()
     }
 
+    def "always cleans up resources and files not recently used from caches when configured"() {
+        given:
+        buildscriptWithDependency(snapshotModule)
+        withDownloadedResourcesRetentionInDays(HALF_DEFAULT_MAX_AGE_IN_DAYS)
+        alwaysCleanupCaches()
+
+        when:
+        executer.requireIsolatedDaemons() // needs to stop daemon
+        requireOwnGradleUserHomeDir() // needs its own journal
+        succeeds 'resolve'
+
+        then:
+        def resource = findFile(cacheDir, 'resources-*/**/maven-metadata.xml')
+        def files = findFiles(cacheDir, "files-*/**/*")
+        files.size() == 2
+        journal.assertExists()
+
+        when:
+        run '--stop' // ensure daemon does not cache file access times in memory
+
+        then:
+        gcFile.assertExists()
+
+        when:
+        writeLastFileAccessTimeToJournal(resource.parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+        writeLastFileAccessTimeToJournal(files[0].parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+        writeLastFileAccessTimeToJournal(files[1].parentFile, daysAgo(HALF_DEFAULT_MAX_AGE_IN_DAYS + 1))
+
+        and:
+        executer.beforeExecute {
+            if (!GradleContextualExecuter.embedded) {
+                executer.withArgument("-D$REUSE_USER_HOME_SERVICES=true")
+            }
+        }
+        executer.withTasks('help').start().waitForFinish()
+
+        then:
+        resource.assertDoesNotExist()
+        files[0].assertDoesNotExist()
+        files[1].assertDoesNotExist()
+
+        and: // deletes empty parent directories
+        findFiles(cacheDir, 'resources-*/*').isEmpty()
+        findFiles(cacheDir, 'files-*/*').isEmpty()
+    }
+
     def "does not clean up resources and files when cache cleanup is disabled via #method"() {
         given:
         buildscriptWithDependency(snapshotModule)
@@ -210,7 +258,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         method << CleanupMethod.values()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
     def "downloads deleted files again when they are referenced"() {
         given:
         buildscriptWithDependency(snapshotModule)
@@ -231,7 +279,6 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         jarFile.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
     def "marks artifacts as recently used when accessed"() {
         given:
         buildscriptWithDependency(snapshotModule)
@@ -250,7 +297,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         journal.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
     def "redownloads deleted HTTP script plugin resources"() {
         given:
         def uuid = UUID.randomUUID()
@@ -281,7 +328,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         resource.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
     def "redownloads deleted uri backed text resources"() {
         given:
         def uuid = UUID.randomUUID()
@@ -313,7 +360,7 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
         resource.assertExists()
     }
 
-    @ToBeFixedForConfigurationCache
+    @ToBeFixedForConfigurationCache(because = "does not re-download missing artifacts")
     def "redownloads deleted artifacts for artifact query"() {
         given:
         def module = mavenHttpRepo.module('org.example', 'example', '1.0')
@@ -408,8 +455,9 @@ class DefaultArtifactCacheLockingManagerIntegrationTest extends AbstractHttpDepe
                 custom group: '${module.groupId}', name: '${module.artifactId}', version: '${module.version}'
             }
             task resolve {
+                def files = configurations.custom
                 doLast {
-                    configurations.custom.incoming.files.each { println it }
+                    files*.name
                 }
             }
         """

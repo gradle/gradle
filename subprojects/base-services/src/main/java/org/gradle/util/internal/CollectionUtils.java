@@ -22,11 +22,11 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
+import org.gradle.internal.InternalTransformer;
+import org.gradle.internal.InternalTransformers;
 import org.gradle.internal.Pair;
-import org.gradle.internal.Transformers;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Array;
@@ -177,12 +177,12 @@ public abstract class CollectionUtils {
         return destination;
     }
 
-    public static <R, I> R[] collectArray(I[] list, Class<R> newType, Transformer<? extends R, ? super I> transformer) {
+    public static <R, I> R[] collectArray(I[] list, Class<R> newType, InternalTransformer<? extends R, ? super I> transformer) {
         @SuppressWarnings("unchecked") R[] destination = (R[]) Array.newInstance(newType, list.length);
         return collectArray(list, destination, transformer);
     }
 
-    public static <R, I> R[] collectArray(I[] list, R[] destination, Transformer<? extends R, ? super I> transformer) {
+    public static <R, I> R[] collectArray(I[] list, R[] destination, InternalTransformer<? extends R, ? super I> transformer) {
         assert list.length <= destination.length;
         for (int i = 0; i < list.length; ++i) {
             destination[i] = transformer.transform(list[i]);
@@ -190,15 +190,15 @@ public abstract class CollectionUtils {
         return destination;
     }
 
-    public static <R, I> List<R> collect(I[] list, Transformer<? extends R, ? super I> transformer) {
+    public static <R, I> List<R> collect(I[] list, InternalTransformer<? extends R, ? super I> transformer) {
         return collect(Arrays.asList(list), transformer);
     }
 
-    public static <R, I> Set<R> collect(Set<? extends I> set, Transformer<? extends R, ? super I> transformer) {
+    public static <R, I> Set<R> collect(Set<? extends I> set, InternalTransformer<? extends R, ? super I> transformer) {
         return collect(set, new HashSet<R>(set.size()), transformer);
     }
 
-    public static <R, I> List<R> collect(Iterable<? extends I> source, Transformer<? extends R, ? super I> transformer) {
+    public static <R, I> List<R> collect(Iterable<? extends I> source, InternalTransformer<? extends R, ? super I> transformer) {
         if (source instanceof Collection<?>) {
             Collection<? extends I> collection = uncheckedNonnullCast(source);
             return collect(source, new ArrayList<R>(collection.size()), transformer);
@@ -207,7 +207,7 @@ public abstract class CollectionUtils {
         }
     }
 
-    public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, Transformer<? extends R, ? super I> transformer) {
+    public static <R, I, C extends Collection<R>> C collect(Iterable<? extends I> source, C destination, InternalTransformer<? extends R, ? super I> transformer) {
         for (I item : source) {
             destination.add(transformer.transform(item));
         }
@@ -215,7 +215,7 @@ public abstract class CollectionUtils {
     }
 
     public static List<String> toStringList(Iterable<?> iterable) {
-        return collect(iterable, new LinkedList<String>(), Transformers.asString());
+        return collect(iterable, new LinkedList<String>(), InternalTransformers.asString());
     }
 
     /**
@@ -377,14 +377,14 @@ public abstract class CollectionUtils {
     }
 
     public static <C extends Collection<String>> C stringize(Iterable<?> source, C destination) {
-        return collect(source, destination, Transformers.asString());
+        return collect(source, destination, InternalTransformers.asString());
     }
 
     public static List<String> stringize(Collection<?> source) {
         return stringize(source, new ArrayList<String>(source.size()));
     }
 
-    public static <E> boolean replace(List<E> list, Spec<? super E> filter, Transformer<? extends E, ? super E> transformer) {
+    public static <E> boolean replace(List<E> list, Spec<? super E> filter, InternalTransformer<? extends E, ? super E> transformer) {
         boolean replaced = false;
         int i = 0;
         for (E it : list) {
@@ -397,7 +397,7 @@ public abstract class CollectionUtils {
         return replaced;
     }
 
-    public static <K, V> void collectMap(Map<K, V> destination, Iterable<? extends V> items, Transformer<? extends K, ? super V> keyGenerator) {
+    public static <K, V> void collectMap(Map<K, V> destination, Iterable<? extends V> items, InternalTransformer<? extends K, ? super V> keyGenerator) {
         for (V item : items) {
             destination.put(keyGenerator.transform(item), item);
         }
@@ -406,13 +406,13 @@ public abstract class CollectionUtils {
     /**
      * Given a set of values, derive a set of keys and return a map
      */
-    public static <K, V> Map<K, V> collectMap(Iterable<? extends V> items, Transformer<? extends K, ? super V> keyGenerator) {
+    public static <K, V> Map<K, V> collectMap(Iterable<? extends V> items, InternalTransformer<? extends K, ? super V> keyGenerator) {
         Map<K, V> map = new LinkedHashMap<K, V>();
         collectMap(map, items, keyGenerator);
         return map;
     }
 
-    public static <K, V> void collectMapValues(Map<K, V> destination, Iterable<? extends K> keys, Transformer<? extends V, ? super K> keyGenerator) {
+    public static <K, V> void collectMapValues(Map<K, V> destination, Iterable<? extends K> keys, InternalTransformer<? extends V, ? super K> keyGenerator) {
         for (K item : keys) {
             destination.put(item, keyGenerator.transform(item));
         }
@@ -421,7 +421,7 @@ public abstract class CollectionUtils {
     /**
      * Given a set of keys, derive a set of values and return a map
      */
-    public static <K, V> Map<K, V> collectMapValues(Iterable<? extends K> keys, Transformer<? extends V, ? super K> keyGenerator) {
+    public static <K, V> Map<K, V> collectMapValues(Iterable<? extends K> keys, InternalTransformer<? extends V, ? super K> keyGenerator) {
         Map<K, V> map = new LinkedHashMap<K, V>();
         collectMapValues(map, keys, keyGenerator);
         return map;
@@ -469,7 +469,7 @@ public abstract class CollectionUtils {
      * The result of diffing two sets.
      *
      * @param <T> The type of element the sets contain
-     * @see CollectionUtils#diffSetsBy(java.util.Set, java.util.Set, org.gradle.api.Transformer)
+     * @see CollectionUtils#diffSetsBy(java.util.Set, java.util.Set, InternalTransformer)
      */
     public static class SetDiff<T> {
         public Set<T> leftOnly = new HashSet<T>();
@@ -490,7 +490,7 @@ public abstract class CollectionUtils {
      * @param <T> The type of the entry objects
      * @return A representation of the difference
      */
-    public static <T> SetDiff<T> diffSetsBy(Set<? extends T> left, Set<? extends T> right, Transformer<?, T> compareBy) {
+    public static <T> SetDiff<T> diffSetsBy(Set<? extends T> left, Set<? extends T> right, InternalTransformer<?, T> compareBy) {
         if (left == null) {
             throw new NullPointerException("'left' set is null");
         }
@@ -635,7 +635,7 @@ public abstract class CollectionUtils {
         return target;
     }
 
-    public static <K, V> Map<K, Collection<V>> groupBy(Iterable<? extends V> iterable, Transformer<? extends K, V> grouper) {
+    public static <K, V> Map<K, Collection<V>> groupBy(Iterable<? extends V> iterable, InternalTransformer<? extends K, V> grouper) {
         ImmutableListMultimap.Builder<K, V> builder = ImmutableListMultimap.builder();
 
         for (V element : iterable) {
@@ -679,6 +679,6 @@ public abstract class CollectionUtils {
     }
 
     public static String asCommandLine(Iterable<String> arguments) {
-        return Joiner.on(" ").join(collect(arguments, Transformers.asSafeCommandLineArgument()));
+        return Joiner.on(" ").join(collect(arguments, InternalTransformers.asSafeCommandLineArgument()));
     }
 }
