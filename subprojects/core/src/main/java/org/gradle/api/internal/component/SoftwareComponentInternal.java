@@ -35,4 +35,6 @@ public interface SoftwareComponentInternal extends SoftwareComponent {
      * This method and {@link UsageContext} should both be deprecated in favor of a new public API.
      */
     Set<? extends UsageContext> getUsages();
+
+    default void finalizeValue() {}
 }
