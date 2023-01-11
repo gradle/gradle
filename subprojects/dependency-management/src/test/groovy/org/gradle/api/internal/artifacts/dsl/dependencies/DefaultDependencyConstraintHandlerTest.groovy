@@ -144,7 +144,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         def result = dependencyConstraintHandler.someConf("someNotation", "someOther")
 
         then:
-        result == null
+        result == [constraint1, constraint2]
 
         and:
         1 * dependencyFactory.createDependencyConstraint("someNotation") >> constraint1
@@ -161,7 +161,7 @@ class DefaultDependencyConstraintHandlerTest extends Specification {
         def result = dependencyConstraintHandler.someConf([["someNotation"], ["someOther"]])
 
         then:
-        result == null
+        result == [constraint1, constraint2]
 
         and:
         1 * dependencyFactory.createDependencyConstraint("someNotation") >> constraint1

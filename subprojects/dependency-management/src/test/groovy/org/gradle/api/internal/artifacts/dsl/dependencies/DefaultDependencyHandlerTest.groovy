@@ -170,7 +170,7 @@ class DefaultDependencyHandlerTest extends Specification {
         def result = dependencyHandler.someConf("someNotation", "someOther")
 
         then:
-        result == null
+        result == [dependency1, dependency2]
 
         and:
         1 * dependencyFactory.createDependency("someNotation") >> dependency1
@@ -187,7 +187,7 @@ class DefaultDependencyHandlerTest extends Specification {
         def result = dependencyHandler.someConf([["someNotation"], ["someOther"]])
 
         then:
-        result == null
+        result == [dependency1, dependency2]
 
         and:
         1 * dependencyFactory.createDependency("someNotation") >> dependency1
