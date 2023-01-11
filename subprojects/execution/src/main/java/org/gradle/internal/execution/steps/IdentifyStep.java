@@ -88,11 +88,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
         return new IdentityContext(context, identityInputProperties, identityInputFileProperties, identity);
     }
 
-    public interface Operation extends BuildOperationType<Operation.Details, Operation.Result> {
-        interface Details {
-            Class<?> getWorkType();
-        }
-
+    public interface Operation extends BuildOperationType<UnitOfWork.IdentifyBuildOperationDetails, Operation.Result> {
         interface Result {
             Identity getIdentity();
         }
