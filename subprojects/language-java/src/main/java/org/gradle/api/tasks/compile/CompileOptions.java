@@ -309,9 +309,10 @@ public abstract class CompileOptions extends AbstractOptions {
      * Returns any additional arguments to be passed to the compiler.
      * Defaults to the empty list.
      *
-     * Compiler arguments not supported by the DSL can be added here. For example, it is possible
-     * to pass the {@code --release} option of JDK 9:
-     * <pre><code>compilerArgs.addAll(['--release', '7'])</code></pre>
+     * Compiler arguments not supported by the DSL can be added here.
+     *
+     * For example, it is possible to pass the {@code --enable-preview} option that was added in newer Java versions:
+     * <pre><code>compilerArgs.add("--enable-preview")</code></pre>
      *
      * Note that if {@code --release} is added then {@code -target} and {@code -source}
      * are ignored.
