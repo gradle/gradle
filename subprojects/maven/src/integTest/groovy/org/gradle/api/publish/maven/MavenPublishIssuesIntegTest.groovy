@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTes
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.util.GradleVersion
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
