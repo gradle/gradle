@@ -311,7 +311,11 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             """
         )
 
-        buildAndFail("classes")
+        buildAndFail("classes").apply {
+            assertHasCause("Compilation error. See log for more details")
+            assertHasErrorOutput("code.kt:13:21 Val cannot be reassigned")
+            assertHasErrorOutput("code.kt:13:39 Type mismatch: inferred type is String but Property<String> was expected")
+        }
     }
 
     @Test

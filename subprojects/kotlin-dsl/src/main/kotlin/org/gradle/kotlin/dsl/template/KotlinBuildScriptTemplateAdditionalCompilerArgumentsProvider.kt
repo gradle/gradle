@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+/**
+ * We implemented deprecated ScriptTemplateAdditionalCompilerArgumentsProvider since there is no good replacement yet.
+ */
 @file:Suppress("DEPRECATION")
 
 package org.gradle.kotlin.dsl.template
@@ -50,7 +53,7 @@ class KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider(additionalArg
                 load(it)
             }
             // This class is loaded from the IDE, so we have to hardcode system property
-            properties.getProperty("systemProp.org.gradle.experimental.kotlin.assignment")?.trim() == "true"
+            properties.getProperty("systemProp.org.gradle.unsafe.kotlin.assignment")?.trim() == "true"
         }
     }
 }

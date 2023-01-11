@@ -350,16 +350,25 @@ class CompileKotlinScript(
     private val inputFingerprinter: InputFingerprinter
 ) : UnitOfWork {
 
+    companion object {
+        const val ASSIGNMENT_OVERLOAD_ENABLED = "assignmentOverloadEnabled"
+        const val JVM_TARGET = "jvmTarget"
+        const val TEMPLATE_ID = "templateId"
+        const val SOURCE_HASH = "sourceHash"
+        const val COMPILATION_CLASS_PATH = "compilationClassPath"
+        const val ACCESSORS_CLASS_PATH = "accessorsClassPath"
+    }
+
     override fun visitIdentityInputs(
         visitor: InputVisitor
     ) {
         val assignmentOverloadEnabled = KotlinDslAssignment.isAssignmentOverloadEnabled()
-        visitor.visitInputProperty("assignmentOverloadEnabled") { assignmentOverloadEnabled }
-        visitor.visitInputProperty("jvmTarget") { jvmTarget.majorVersion }
-        visitor.visitInputProperty("templateId") { templateId }
-        visitor.visitInputProperty("sourceHash") { sourceHash }
-        visitor.visitClassPathProperty("compilationClassPath", compilationClassPath)
-        visitor.visitClassPathProperty("accessorsClassPath", accessorsClassPath)
+        visitor.visitInputProperty(ASSIGNMENT_OVERLOAD_ENABLED) { assignmentOverloadEnabled }
+        visitor.visitInputProperty(JVM_TARGET) { jvmTarget.majorVersion }
+        visitor.visitInputProperty(TEMPLATE_ID) { templateId }
+        visitor.visitInputProperty(SOURCE_HASH) { sourceHash }
+        visitor.visitClassPathProperty(COMPILATION_CLASS_PATH, compilationClassPath)
+        visitor.visitClassPathProperty(ACCESSORS_CLASS_PATH, accessorsClassPath)
     }
 
     override fun visitOutputs(
@@ -379,7 +388,7 @@ class CompileKotlinScript(
         identityFileInputs: MutableMap<String, CurrentFileCollectionFingerprint>
     ): UnitOfWork.Identity {
         val identityHash = newHasher().let { hasher ->
-            listOf("assignmentOverloadEnabled", "templateId", "sourceHash", "compilationClassPath", "accessorsClassPath").forEach {
+            listOf(ASSIGNMENT_OVERLOAD_ENABLED, JVM_TARGET, TEMPLATE_ID, SOURCE_HASH, COMPILATION_CLASS_PATH, ACCESSORS_CLASS_PATH).forEach {
                 requireNotNull(identityInputs[it]).appendToHasher(hasher)
             }
             hasher.hash().toString()

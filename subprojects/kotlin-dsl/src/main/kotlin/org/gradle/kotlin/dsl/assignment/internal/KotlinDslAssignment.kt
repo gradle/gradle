@@ -19,7 +19,7 @@ package org.gradle.kotlin.dsl.assignment.internal
 
 object KotlinDslAssignment {
 
-    const val ASSIGNMENT_SYSTEM_PROPERTY = "org.gradle.experimental.kotlin.assignment"
+    const val ASSIGNMENT_SYSTEM_PROPERTY = "org.gradle.unsafe.kotlin.assignment"
 
     fun isAssignmentOverloadEnabled() =
         System.getProperty(ASSIGNMENT_SYSTEM_PROPERTY, "false").trim() == "true"
