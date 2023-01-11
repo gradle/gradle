@@ -226,7 +226,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
                     repository.getUrl(),
                     repository.isAllowInsecureProtocol(),
                     credentialsSpec(),
-                    repository.getLayout()
+                    repository.getRepositoryLayout()
                 );
             }
 
@@ -259,7 +259,7 @@ public abstract class PublishToIvyRepository extends DefaultTask {
                 repository.setName(name);
                 repository.setUrl(repositoryUrl);
                 repository.setAllowInsecureProtocol(allowInsecureProtocol);
-                repository.setLayout(layout);
+                repository.setRepositoryLayout(layout);
                 if (credentials != null) {
                     Provider<? extends Credentials> provider = services.get(ProviderFactory.class).credentials(credentials.getType(), name);
                     repository.setConfiguredCredentials(provider.get());

@@ -37,9 +37,8 @@ publishing {
 
 publishing {
     repositories {
-        def buildDir = layout.buildDirectory
         ivy {
-            url = buildDir.dir('repo')
+            url = layout.buildDirectory.dir('repo')
         }
     }
 }

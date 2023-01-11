@@ -46,14 +46,6 @@ public interface DeprecatableConfiguration extends Configuration {
     List<String> getResolutionAlternatives();
 
     /**
-     * Allows plugins to deprecate a configuration that will be removed in the next major Gradle version.
-     *
-     * @param alternativesForDeclaring alternative configurations that can be used to declare dependencies
-     * @return this configuration
-     */
-    DeprecatableConfiguration deprecateForDeclaration(String... alternativesForDeclaring);
-
-    /**
      * Allows plugins to deprecate the consumability property (canBeConsumed() == true) of a configuration that will be changed in the next major Gradle version.
      *
      * @param deprecation deprecation message builder to use for nagging upon consumption of this configuration
@@ -62,12 +54,36 @@ public interface DeprecatableConfiguration extends Configuration {
     DeprecatableConfiguration deprecateForConsumption(Function<DeprecationMessageBuilder.DeprecateConfiguration, DeprecationMessageBuilder.WithDocumentation> deprecation);
 
     /**
+     * Convinience method for {@link #deprecateForConsumption(Function)} which uses the default messaging behavior.
+     *
+     * @return this configuration
+    */
+    default DeprecatableConfiguration deprecateForConsumption() {
+        return deprecateForConsumption(depSpec -> DeprecationLogger.deprecateConfiguration(getName())
+                .forConsumption()
+                .willBecomeAnErrorInGradle9()
+                .withUserManual("dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations"));
+    }
+
+    /**
      * Allows plugins to deprecate the resolvability property (canBeResolved() == true) of a configuration that will be changed in the next major Gradle version.
      *
      * @param alternativesForResolving alternative configurations that can be used for dependency resolution
      * @return this configuration
      */
     DeprecatableConfiguration deprecateForResolution(String... alternativesForResolving);
+
+    /**
+     * Allows plugins to deprecate a configuration that will be removed in the next major Gradle version.
+     *
+     * @param alternativesForDeclaring alternative configurations that can be used to declare dependencies
+     * @return this configuration
+     */
+    DeprecatableConfiguration deprecateForDeclarationAgainst(String... alternativesForDeclaring);
+
+    boolean isDeprecatedForConsumption();
+    boolean isDeprecatedForResolution();
+    boolean isDeprecatedForDeclarationAgainst();
 
     default boolean canSafelyBeResolved() {
         if (!isCanBeResolved()) {

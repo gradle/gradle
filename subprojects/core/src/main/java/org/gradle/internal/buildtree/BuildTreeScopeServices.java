@@ -45,6 +45,8 @@ import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
+import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.service.scopes.Scopes;
@@ -78,7 +80,9 @@ public class BuildTreeScopeServices {
         registration.add(DeprecationsReporter.class);
         registration.add(TaskPathProjectEvaluator.class);
         registration.add(DefaultFeatureFlags.class);
+        registration.add(DefaultProblemLocationAnalyzer.class);
         registration.add(DefaultExceptionAnalyser.class);
+        registration.add(ScriptUsageLocationReporter.class);
         modelServices.applyServicesTo(registration);
     }
 

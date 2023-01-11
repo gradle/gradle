@@ -32,10 +32,9 @@ publishing {
     }
 // end::custom-artifact[]
     repositories {
-        def buildDir = layout.buildDirectory
         // change URLs to point to your repo, e.g. http://my.org/repo
         ivy {
-            url = buildDir.dir("repo")
+            url = layout.buildDirectory.dir("repo")
         }
     }
 // tag::custom-artifact[]

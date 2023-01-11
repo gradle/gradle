@@ -23,13 +23,15 @@ import org.gradle.configuration.internal.DefaultUserCodeApplicationContext
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resource.StringTextResource
+import org.gradle.groovy.scripts.internal.ScriptSourceListener
 import spock.lang.Specification
 
 class ScriptPluginFactorySelectorTest extends Specification {
 
     def providerInstantiator = Mock(ScriptPluginFactorySelector.ProviderInstantiator)
     def defaultScriptPluginFactory = Mock(ScriptPluginFactory)
-    def selector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, providerInstantiator, new TestBuildOperationExecutor(), new DefaultUserCodeApplicationContext())
+    def remoteScriptListener = Mock(ScriptSourceListener)
+    def selector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, providerInstantiator, new TestBuildOperationExecutor(), new DefaultUserCodeApplicationContext(), remoteScriptListener)
 
     def scriptHandler = Mock(ScriptHandler)
     def targetScope = Mock(ClassLoaderScope)

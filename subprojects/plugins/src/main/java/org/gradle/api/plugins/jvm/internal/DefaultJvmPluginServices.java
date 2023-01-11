@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
@@ -36,7 +35,9 @@ import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
+import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
@@ -240,16 +241,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
     }
 
     @Override
-    public Configuration createResolvableConfiguration(String name, Action<? super ResolvableConfigurationBuilder> action) {
-        DefaultResolvableConfigurationBuilder builder = instanceGenerator.newInstance(DefaultResolvableConfigurationBuilder.class,
-            name,
-            this,
-            configurations);
-        action.execute(builder);
-        return builder.build();
-    }
-
-    @Override
     public void createJvmVariant(String name, Action<? super JvmVariantBuilder> configuration) {
         DefaultJvmVariantBuilder builder = instanceGenerator.newInstance(DefaultJvmVariantBuilder.class,
             name,
@@ -283,8 +274,8 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         private boolean published;
 
         @Inject
-        public DefaultElementsConfigurationBuilder(String name, JvmPluginServices jvmEcosystemUtilities, ConfigurationContainer configurations, SoftwareComponentContainer components, TaskContainer tasks) {
-            super(name, jvmEcosystemUtilities, configurations);
+        public DefaultElementsConfigurationBuilder(String name, JvmPluginServices jvmEcosystemUtilities, ConfigurationContainerInternal configurations, SoftwareComponentContainer components, TaskContainer tasks) {
+            super(name, jvmEcosystemUtilities, (RoleBasedConfigurationContainerInternal) configurations);
             this.components = components;
             this.tasks = tasks;
         }
@@ -298,7 +289,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             cnf.setVisible(false);
             cnf.setCanBeConsumed(true);
             cnf.setCanBeResolved(false);
-            ((ConfigurationInternal) cnf).setCanBeDeclaredAgainst(false);
             Configuration[] extendsFrom = buildExtendsFrom();
             if (extendsFrom != null) {
                 cnf.extendsFrom(extendsFrom);
@@ -423,105 +413,6 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
                 return (AdhocComponentWithVariants) component;
             }
             return null;
-        }
-    }
-
-    public static class DefaultResolvableConfigurationBuilder extends AbstractConfigurationBuilder<DefaultResolvableConfigurationBuilder> implements ResolvableConfigurationBuilder {
-        private Boolean libraryApi;
-        private Boolean libraryRuntime;
-        private Map<String, String> buckets;
-
-        @Inject
-        public DefaultResolvableConfigurationBuilder(String name,
-                                                     JvmPluginServices jvmEcosystemUtilities,
-                                                     ConfigurationContainer configurations) {
-            super(name, jvmEcosystemUtilities, configurations);
-        }
-
-        @Override
-        public ResolvableConfigurationBuilder usingDependencyBucket(String name) {
-            return usingDependencyBucket(name, null);
-        }
-
-        @Override
-        public ResolvableConfigurationBuilder usingDependencyBucket(String name, String description) {
-            if (buckets == null) {
-                buckets = Maps.newLinkedHashMap();
-            }
-            buckets.put(name, description);
-            return this;
-        }
-
-        @Override
-        Configuration build() {
-            if (buckets != null) {
-                for (Map.Entry<String, String> entry : buckets.entrySet()) {
-                    String bucketName = entry.getKey();
-                    String description = entry.getValue();
-                    Configuration bucket = configurations.maybeCreate(bucketName);
-                    if (description != null) {
-                        bucket.setDescription(description);
-                    } else if (this.description != null) {
-                        bucket.setDescription("Dependencies for " + this.description);
-                    }
-                    bucket.setVisible(false);
-                    bucket.setCanBeConsumed(false);
-                    bucket.setCanBeResolved(false);
-                    extendsFrom(bucket);
-                }
-            }
-            Configuration resolvable = configurations.maybeCreate(name);
-            if (description != null) {
-                resolvable.setDescription(description);
-            }
-            resolvable.setVisible(false);
-            resolvable.setCanBeConsumed(false);
-            resolvable.setCanBeResolved(true);
-
-            Configuration[] extendsFrom = buildExtendsFrom();
-            if (extendsFrom != null) {
-                resolvable.extendsFrom(extendsFrom);
-            }
-            jvmEcosystemUtilities.configureAttributes(resolvable, details -> {
-                    if (libraryApi != null && libraryApi) {
-                        details.library()
-                            .asJar()
-                            .withExternalDependencies()
-                            .apiUsage();
-                    } else if (libraryRuntime != null && libraryRuntime) {
-                        details.library()
-                            .asJar()
-                            .withExternalDependencies()
-                            .runtimeUsage();
-                    }
-                    if (libraryRuntime == null && libraryApi == null && attributesRefiner == null) {
-                        throw new IllegalStateException("You didn't tell what kind of component to look for. You need to configure at least one attribute");
-                    }
-                    if (attributesRefiner != null) {
-                        attributesRefiner.execute(details);
-                    }
-                }
-            );
-            return resolvable;
-        }
-
-        @Override
-        public ResolvableConfigurationBuilder requiresJavaLibrariesRuntime() {
-            this.libraryApi = null;
-            this.libraryRuntime = true;
-            return this;
-        }
-
-        @Override
-        public ResolvableConfigurationBuilder requiresJavaLibrariesAPI() {
-            this.libraryRuntime = null;
-            this.libraryApi = true;
-            return this;
-        }
-
-        @Override
-        public ResolvableConfigurationBuilder requiresAttributes(Action<? super JvmEcosystemAttributesDetails> refiner) {
-            return attributes(refiner);
         }
     }
 }

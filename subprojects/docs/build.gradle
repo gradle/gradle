@@ -589,6 +589,8 @@ tasks.named("docsTest") { task ->
     testClassesDirs = sourceSets.docsTest.output.classesDirs
     // 'integTest.samplesdir' is set to an absolute path by the 'org.gradle.samples' plugin
     systemProperties.clear()
+    // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 
     filter {
         // workaround for https://github.com/gradle/dotcom/issues/5958
@@ -650,6 +652,16 @@ tasks.named("docsTest") { task ->
             // We don't have Android SDK installed on mac M1 now
             excludeTestsMatching "org.gradle.docs.samples.*.building-android-*.sample"
             excludeTestsMatching "org.gradle.docs.samples.*.structuring-software-projects*android-app.sample"
+        }
+
+        // filter tests which won't run on Groovy 4 without updating the Spock version
+        if (System.getProperty('bundleGroovy4', 'false') == 'true') {
+            excludeTestsMatching 'org.gradle.docs.samples.*.convention-plugins*check.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.*.convention-plugins*sanityCheck.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.*.incubating-publishing-convention-plugins*publish.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.*.publishing-convention-plugins*publish.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-configuration-cache-test-kit*configurationCacheTestKit.sample'
+            excludeTestsMatching 'org.gradle.docs.samples.*.snippet-developing-plugins-testing-plugins*testPlugin.sample'
         }
     }
 

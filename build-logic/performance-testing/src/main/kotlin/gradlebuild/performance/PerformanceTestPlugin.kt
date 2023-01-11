@@ -17,6 +17,7 @@
 package gradlebuild.performance
 
 import com.google.common.annotations.VisibleForTesting
+import com.gradle.enterprise.gradleplugin.testretry.retry
 import gradlebuild.basics.BuildEnvironment.isIntel
 import gradlebuild.basics.BuildEnvironment.isLinux
 import gradlebuild.basics.BuildEnvironment.isMacOsX

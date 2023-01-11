@@ -154,7 +154,7 @@ class JsonModelWriter(val writer: Writer) {
             is PropertyTrace.BuildLogic -> {
                 property("kind", "BuildLogic")
                 comma()
-                property("location", trace.displayName.displayName)
+                property("location", trace.source.displayName)
             }
             is PropertyTrace.BuildLogicClass -> {
                 property("kind", "BuildLogicClass")

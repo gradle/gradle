@@ -15,6 +15,7 @@
  */
 
 import com.gradle.enterprise.gradleplugin.testdistribution.internal.TestDistributionExtensionInternal
+import com.gradle.enterprise.gradleplugin.testretry.retry
 import com.gradle.enterprise.gradleplugin.testselection.internal.PredictiveTestSelectionExtensionInternal
 import gradlebuild.basics.BuildEnvironment
 import gradlebuild.basics.FlakyTestStrategy
@@ -41,7 +42,6 @@ plugins {
     idea // Need to apply the idea plugin, so the extended configuration is taken into account on sync
     id("gradlebuild.module-identity")
     id("gradlebuild.dependency-modules")
-    id("org.gradle.test-retry")
 }
 
 extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", project, tasks)
@@ -261,8 +261,6 @@ fun configureTests() {
 
         configureJvmForTest()
         addOsAsInputs()
-
-        val testName = name
 
         if (BuildEnvironment.isCiServer) {
             configureRerun()

@@ -17,13 +17,23 @@
 package org.gradle.api.internal.component;
 
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.component.SoftwareComponentContainer;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.reflect.Instantiator;
 
-public class DefaultSoftwareComponentContainer extends DefaultNamedDomainObjectSet<SoftwareComponent> implements SoftwareComponentContainer {
-    public DefaultSoftwareComponentContainer(Instantiator instantiator, CollectionCallbackActionDecorator decorator) {
+public class DefaultSoftwareComponentContainer extends DefaultNamedDomainObjectSet<SoftwareComponent> implements SoftwareComponentContainerInternal {
+
+    private final Property<SoftwareComponent> mainComponent;
+
+    public DefaultSoftwareComponentContainer(Instantiator instantiator, CollectionCallbackActionDecorator decorator, ObjectFactory objectFactory) {
         super(SoftwareComponentInternal.class, instantiator, decorator);
+        mainComponent = objectFactory.property(SoftwareComponent.class);
+    }
+
+    @Override
+    public Property<SoftwareComponent> getMainComponent() {
+        return mainComponent;
     }
 }

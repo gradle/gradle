@@ -191,8 +191,8 @@ To demonstrate the two techniques, consider a project that has the following lib
 [listing]
 libs
 ├── our-custom.jar
-├── log4j-1.2.8.jar
-└── commons-io-2.1.jar
+├── awesome-framework-2.0.jar
+└── utility-library-1.0.jar
 
 The file `our-custom.jar` lacks a version number, so it has to be added as a file dependency.
 But the other two JARs match the required naming convention and so can be declared as normal <<declaring_dependencies#sub:module_dependencies,module dependencies>> that are retrieved from a flat-directory repository.
@@ -208,7 +208,7 @@ include::sample[dir="snippets/antMigration/fileDeps/groovy",files="build.gradle[
 <2> Declares a _file dependency_ for the unversioned JAR
 <3> Declares dependencies using standard dependency coordinates — note that no group is specified, but each identifier has a leading `:`, implying an empty group
 
-The above sample will add `our-custom.jar`, `log4j-1.2.8.jar` and `commons-io-2.1.jar` to the `implementation` configuration, which is used to compile the project's code.
+The above sample will add `our-custom.jar`, `awesome-framework-2.0.jar` and `utility-library-1.0.jar` to the `implementation` configuration, which is used to compile the project's code.
 
 [NOTE]
 ====

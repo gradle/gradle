@@ -44,6 +44,8 @@ import java.util.Set;
 
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.AMD64_ON_AMD64;
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.AMD64_ON_X86;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.ARM64_ON_AMD64;
+import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.ARM64_ON_X86;
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.ARM_ON_AMD64;
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.ARM_ON_X86;
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.LEGACY_AMD64_ON_AMD64;
@@ -207,6 +209,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         architectureDescriptorBuilders.add(X86_ON_X86);
         architectureDescriptorBuilders.add(AMD64_ON_X86);
         architectureDescriptorBuilders.add(ARM_ON_X86);
+        architectureDescriptorBuilders.add(ARM64_ON_X86);
 
         boolean isNativeAmd64 = systemInfo.getArchitecture() == SystemInfo.Architecture.amd64;
         if (isNativeAmd64) {
@@ -214,6 +217,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
             architectureDescriptorBuilders.add(AMD64_ON_AMD64);
             architectureDescriptorBuilders.add(X86_ON_AMD64);
             architectureDescriptorBuilders.add(ARM_ON_AMD64);
+            architectureDescriptorBuilders.add(ARM64_ON_AMD64);
         }
 
         // populates descriptors, last descriptor in wins for a given architecture

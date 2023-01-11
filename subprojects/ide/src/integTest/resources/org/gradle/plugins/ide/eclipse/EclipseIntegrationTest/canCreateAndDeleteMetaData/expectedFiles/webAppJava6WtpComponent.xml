@@ -4,10 +4,10 @@
 		<property name="context-root" value="webAppJava6"/>
 		<wb-resource deploy-path="/WEB-INF/classes" source-path="src/main/java"/>
 		<wb-resource deploy-path="/" source-path="src/main/webapp"/>
-		<dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/common/common">
+		<dependent-module archiveName="common.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/common/common">
 			<dependency-type>uses</dependency-type>
 		</dependent-module>
-		<dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/api/api">
+		<dependent-module archiveName="api.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/api/api">
 			<dependency-type>uses</dependency-type>
 		</dependent-module>
 	</wb-module>

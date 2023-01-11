@@ -6,7 +6,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "4.0.0-rc-3"
+version = "4.0.2"
 
 base.archivesName.set("plugins")
 
@@ -96,4 +96,9 @@ pluginPublish {
         pluginId = "org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins",
         pluginClass = "org.gradle.kotlin.dsl.plugins.precompiled.PrecompiledScriptPlugins"
     )
+}
+
+// Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
+tasks.configCacheIntegTest {
+    systemProperties["org.gradle.configuration-cache.internal.test-disable-load-after-store"] = "true"
 }

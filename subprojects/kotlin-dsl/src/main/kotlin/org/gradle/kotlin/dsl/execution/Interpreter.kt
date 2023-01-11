@@ -372,7 +372,7 @@ class Interpreter(val host: Host) {
         return host.loadClassInChildScopeOf(
             baseScope,
             childScopeId = classLoaderScopeIdFor(scriptPath, scriptTemplateId),
-            origin = ClassLoaderScopeOrigin.Script(scriptSource.fileName, scriptSource.displayName),
+            origin = ClassLoaderScopeOrigin.Script(scriptSource.fileName, scriptSource.longDisplayName, scriptSource.shortDisplayName),
             accessorsClassPath = accessorsClassPath,
             location = classesDir,
             className = "Program"

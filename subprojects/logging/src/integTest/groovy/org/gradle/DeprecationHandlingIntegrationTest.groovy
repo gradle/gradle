@@ -18,9 +18,9 @@ package org.gradle
 
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.util.internal.DefaultGradleVersion
-import org.gradle.util.internal.ToBeImplemented
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
     public static final String PLUGIN_DEPRECATION_MESSAGE = 'The DeprecatedPlugin plugin has been deprecated'
@@ -160,7 +160,6 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription('Deprecated Gradle features were used in this build')
     }
 
-    @ToBeImplemented("Should only generate one deprecation warning but generates two")
     def 'DeprecatedPlugin from init script - without full stacktrace.'() {
         given:
         def initScript = file("init.gradle") << """
@@ -170,18 +169,18 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        // TODO - should be 1, but deprecations are generated for both the main build and buildSrc
-        executer.expectDeprecationWarnings(2)
+        executer.expectDeprecationWarnings(1)
         executer.usingInitScript(initScript)
         run '-s'
 
         then:
+        output.contains("Initialization script '${initScript}': line 3")
         output.contains('init.gradle:3)')
 
-        output.count(PLUGIN_DEPRECATION_MESSAGE) == 2
+        output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
-        output.count('\tat') == 2
-        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 2
+        output.count('\tat') == 1
+        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 1
     }
 
     def 'DeprecatedPlugin from applied script - #scenario'() {
@@ -251,6 +250,51 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         'with full stacktrace'    | true
     }
 
+    def "reports line numbers for deprecations in builds scripts for buildSrc and included builds"() {
+        settingsFile << """
+            includeBuild("included")
+        """
+        buildFile << """
+            task broken {
+                doLast {
+                    ${deprecatedMethodUsage()}
+                }
+            }
+        """
+        file("buildSrc/build.gradle") << """
+            task broken {
+                doLast {
+                    ${deprecatedMethodUsage()}
+                }
+            }
+        """
+        file("included/build.gradle") << """
+            task broken {
+                doLast {
+                    ${deprecatedMethodUsage()}
+                }
+            }
+        """
+
+        expect:
+        2.times {
+            executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
+            executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
+            executer.expectDeprecationWarning("The Task.someFeature() method has been deprecated. This is scheduled to be removed in Gradle 9.0.")
+            run("broken", "buildSrc:broken", "included:broken")
+
+            outputContains("Build file '${file("included/build.gradle")}': line 5")
+            outputContains("Build file '${file("buildSrc/build.gradle")}': line 5")
+            outputContains("Build file '${buildFile}': line 5")
+        }
+    }
+
+    String deprecatedMethodUsage() {
+        return """
+            ${DeprecationLogger.name}.deprecateMethod(Task.class, "someFeature()").willBeRemovedInGradle9().undocumented().nagUser();
+        """
+    }
+
     void assertFullStacktraceResult(boolean fullStacktraceEnabled, int warningsCount) {
         if (warningsCount == 0) {
             assert output.count('\tat') == 0 && output.count(RUN_WITH_STACKTRACE) == 0
@@ -260,5 +304,4 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             assert output.count('\tat') == 4 && output.count(RUN_WITH_STACKTRACE) == 4
         }
     }
-
 }

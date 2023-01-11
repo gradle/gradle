@@ -515,13 +515,6 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
             // Wait for any dependencies of this node that have not started yet
             for (Node successor : node.getDependencySuccessors()) {
                 if (successor.isRequired()) {
-                    // There may be a dependency of this node which does not have
-                    //   - any dependencies of its own,
-                    //   - and is not part of the initially scheduled nodes.
-                    // We need to check if this node is ready to start, if not it will never start.
-                    // An example of this is a producer node of an ordinal group, when there aren't any producers in the ordinal group.
-                    successor.updateAllDependenciesComplete();
-                    maybeNodeReady(successor);
                     waitingForNode(successor, "other node completed", node);
                 }
             }
