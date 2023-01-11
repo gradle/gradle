@@ -17,12 +17,12 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import org.gradle.cache.FileLockManager;
+import org.gradle.cache.IndexedCache;
+import org.gradle.cache.ObjectHolder;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
-import org.gradle.cache.PersistentStateCache;
+import org.gradle.cache.IndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.scopes.BuildScopedCache;
+import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -33,19 +33,19 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 @ServiceScope(Scopes.Gradle.class)
 public class DefaultCompilationStateCacheFactory implements CompilationStateCacheFactory, Closeable {
 
-    private final PersistentIndexedCache<String, CompilationState> compilationStateIndexedCache;
+    private final IndexedCache<String, CompilationState> compilationStateIndexedCache;
     private final PersistentCache cache;
 
-    public DefaultCompilationStateCacheFactory(BuildScopedCache cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        cache = cacheRepository
-                .cache("nativeCompile")
+    public DefaultCompilationStateCacheFactory(BuildScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        cache = cacheBuilderFactory
+                .createCacheBuilder("nativeCompile")
                 .withDisplayName("native compile cache")
                 .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
                 .open();
-        PersistentIndexedCacheParameters<String, CompilationState> parameters = PersistentIndexedCacheParameters.of("nativeCompile", String.class, new CompilationStateSerializer())
+        IndexedCacheParameters<String, CompilationState> parameters = IndexedCacheParameters.of("nativeCompile", String.class, new CompilationStateSerializer())
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));
 
-        compilationStateIndexedCache = cache.createCache(parameters);
+        compilationStateIndexedCache = cache.createIndexedCache(parameters);
     }
 
     @Override
@@ -54,15 +54,15 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
     }
 
     @Override
-    public PersistentStateCache<CompilationState> create(String taskPath) {
-        return new PersistentCompilationStateCache(taskPath, compilationStateIndexedCache);
+    public ObjectHolder<CompilationState> create(String taskPath) {
+        return new SimplePersistentObjectHolder(taskPath, compilationStateIndexedCache);
     }
 
-    private static class PersistentCompilationStateCache implements PersistentStateCache<CompilationState> {
+    private static class SimplePersistentObjectHolder implements ObjectHolder<CompilationState> {
         private final String taskPath;
-        private final PersistentIndexedCache<String, CompilationState> compilationStateIndexedCache;
+        private final IndexedCache<String, CompilationState> compilationStateIndexedCache;
 
-        PersistentCompilationStateCache(String taskPath, PersistentIndexedCache<String, CompilationState> compilationStateIndexedCache) {
+        SimplePersistentObjectHolder(String taskPath, IndexedCache<String, CompilationState> compilationStateIndexedCache) {
             this.taskPath = taskPath;
             this.compilationStateIndexedCache = compilationStateIndexedCache;
         }
