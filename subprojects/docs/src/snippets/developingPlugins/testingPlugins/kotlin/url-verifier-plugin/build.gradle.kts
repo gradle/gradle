@@ -58,7 +58,7 @@ dependencies {
     "functionalTestImplementation"("org.spockframework:spock-core")
 }
 
-tasks.withType(Test).configureEach {
+tasks.withType<Test>().configureEach {
     // Using JUnitPlatform for running tests
     useJUnitPlatform()
 }
