@@ -55,7 +55,7 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
             minHeapSize = testRunnerMemory
             maxHeapSize = testRunnerMemory
             maxParallelForks = ${config.maxParallelForks}
-            forkEvery = testForkEvery.toLong()
+            setForkEvery(testForkEvery.toLong())
 
             if (!JavaVersion.current().isJava8Compatible) {
                 jvmArgs("-XX:MaxPermSize=512m")
