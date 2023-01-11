@@ -23,6 +23,7 @@ import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.util.internal.CollectionUtils;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,7 +57,7 @@ class DynamicAddDependencyMethods implements MethodAccess {
         } else if (normalizedArgs.size() == 1) {
             return DynamicInvokeResult.found(dependencyAdder.add(configuration, normalizedArgs.get(0), null));
         } else {
-			return DynamicInvokeResult.found(normalizedArgs.stream().map(arg -> dependencyAdder.add(configuration, arg, null)).collect(Collectors.toList()));
+			return DynamicInvokeResult.found(normalizedArgs.stream().map(arg -> dependencyAdder.add(configuration, arg, null)).collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList)));
         }
     }
 
