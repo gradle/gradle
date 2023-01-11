@@ -168,6 +168,10 @@ class KotlinInitScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         withFile("plugin/src/main/kotlin/gradle-plugin.init.gradle.kts", """
             extensions.create<MyExtension>("my")
         """)
+        // https://github.com/gradle/gradle/issues/22091
+        withFile("plugin/gradle.properties", """
+            kotlin.options.suppressFreeCompilerArgsModificationWarning=true
+        """)
         build(rootDir = existing("plugin"), "jar")
 
         val pluginJar = existing("plugin/build/libs/plugin.jar")
