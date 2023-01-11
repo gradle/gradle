@@ -3,9 +3,7 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.withFolders
-import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.internal.TextUtil.normaliseFileSeparators
-import org.hamcrest.CoreMatchers
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
