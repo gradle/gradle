@@ -16,11 +16,13 @@
 
 package org.gradle.api.plugins.quality.checkstyle
 
+import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.inspection.JvmInstallationMetadata
 import org.gradle.quality.integtest.fixtures.CheckstyleCoverage
 import org.hamcrest.Matcher
 import spock.lang.Issue
@@ -180,7 +182,12 @@ class CheckstylePluginToolchainsIntegrationTest extends MultiVersionIntegrationS
     }
 
     Jvm setupExecutorForToolchains() {
-        Jvm jdk = AvailableJavaHomes.getDifferentVersion()
+        Jvm jdk = AvailableJavaHomes.getDifferentVersion(new Spec<JvmInstallationMetadata>() {
+            @Override
+            boolean isSatisfiedBy(JvmInstallationMetadata metadata) {
+                metadata.getLanguageVersion() >= CheckstyleCoverage.getMinimumSupportedJdkVersion(versionNumber)
+            }
+        })
         withInstallations(jdk)
         return jdk
     }

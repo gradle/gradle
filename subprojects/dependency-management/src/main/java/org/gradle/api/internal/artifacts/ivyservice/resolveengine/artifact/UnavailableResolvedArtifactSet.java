@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.component;
 
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.FileCollection;
-
-import java.util.Collection;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 /**
- * Meta-info about a Java component.
- *
- * TODO - this is some legacy stuff, to be merged into other component interfaces
+ * Represents artifacts that are successfully resolved, but unavailable for some reason when the artifact was requested.
  */
-public interface BuildableJavaComponent {
-    Collection<String> getBuildTasks();
-
-    FileCollection getRuntimeClasspath();
-
-    Configuration getCompileDependencies();
+public class UnavailableResolvedArtifactSet extends AbstractFailedResolvedArtifactSet {
+    public UnavailableResolvedArtifactSet(Throwable failure) {
+        super(failure);
+    }
 }
