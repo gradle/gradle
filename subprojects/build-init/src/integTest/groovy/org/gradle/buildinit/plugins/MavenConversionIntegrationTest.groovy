@@ -58,6 +58,41 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
         using m2
     }
 
+    def "multiModule init with incubating"() {
+        def dsl = dslFixtureFor(scriptDsl)
+        def conventionPluginScript = targetDir.file("build-logic/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("com.example.webinar.java-conventions")}")
+        def conventionPluginBuildFile = targetDir.file("build-logic/" + dsl.buildFileName)
+        def warSubprojectBuildFile = targetDir.file("webinar-war/" + dsl.buildFileName)
+        def implSubprojectBuildFile = targetDir.file("webinar-impl/" + dsl.buildFileName)
+        def apiSubprojectBuildFile = targetDir.file("webinar-api/" + dsl.buildFileName)
+
+        given:
+        resources.maybeCopy('MavenConversionIntegrationTest/multiModule')
+        def workingDir = temporaryFolder.createDir("workingDir")
+
+        when:
+        executer.beforeExecute {
+            executer.inDirectory(workingDir).usingProjectDirectory(targetDir)
+        }
+        run 'init', '--dsl', scriptDsl.id as String, '--incubating'
+
+        then:
+        targetDir.file(dsl.settingsFileName).exists()
+        conventionPluginScript.exists()
+        conventionPluginBuildFile.exists()
+        warSubprojectBuildFile.exists()
+        implSubprojectBuildFile.exists()
+        apiSubprojectBuildFile.exists()
+
+        when:
+        run 'clean', 'build'
+
+        then: //smoke test the build artifacts
+        targetDir.file("webinar-api/build/libs/webinar-api-1.0-SNAPSHOT.jar").exists()
+        targetDir.file("webinar-impl/build/libs/webinar-impl-1.0-SNAPSHOT.jar").exists()
+        targetDir.file("webinar-war/build/libs/webinar-war-1.0-SNAPSHOT.war").exists()
+    }
+
     def "multiModule"() {
         def dsl = dslFixtureFor(scriptDsl)
         def warSubprojectBuildFile = targetDir.file("webinar-war/" + dsl.buildFileName)
