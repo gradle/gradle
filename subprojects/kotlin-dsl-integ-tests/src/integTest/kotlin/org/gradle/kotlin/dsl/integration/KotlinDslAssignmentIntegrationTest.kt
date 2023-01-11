@@ -30,18 +30,18 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `can use assignment for properties in init scripts when assignment overload is enabled`() {
-        withAssignmentOverloadEnabled()
+        withAssignmentOverload()
         val initScript = withInitScriptWithAssignment()
 
         // Expect
-        build("-I", initScript.canonicalPath).apply {
+        build("-I", initScript.absolutePath).apply {
             assertOutputContains("Init property value: Hello world")
         }
     }
 
     @Test
     fun `can use assignment for properties in settings scripts when assignment overload is enabled`() {
-        withAssignmentOverloadEnabled()
+        withAssignmentOverload()
         withSettingsWithAssignment()
 
         // Expect
@@ -53,7 +53,7 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `can use assignment for properties in build scripts when assignment overload is enabled`() {
         // Given
-        withAssignmentOverloadEnabled()
+        withAssignmentOverload()
         val outputFile = withBuildScriptWithAssignment()
 
         // When
@@ -73,7 +73,7 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         val initScript = withInitScriptWithAssignment()
 
         // When
-        val failure = buildAndFail("-I", initScript.canonicalPath)
+        val failure = buildAndFail("-I", initScript.absolutePath)
 
         // Then
         failure.assertThatDescription(containsString("Val cannot be reassigned"))
@@ -109,23 +109,23 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         val initScript = withInitScriptWithAssignment()
 
         // When
-        withAssignmentOverloadEnabled()
+        withAssignmentOverload()
 
         // Then
-        build("-I", initScript.canonicalPath)
+        build("-I", initScript.absolutePath)
 
         // When
-        withAssignmentOverloadEnabled(enabled = false)
-        val failure = buildAndFail("-I", initScript.canonicalPath)
+        withAssignmentOverload(enabled = false)
+        val failure = buildAndFail("-I", initScript.absolutePath)
 
         // Then
         failure.assertThatDescription(containsString("Val cannot be reassigned"))
 
         // When
-        withAssignmentOverloadEnabled()
+        withAssignmentOverload()
 
         // Then
-        build("-I", initScript.canonicalPath)
+        build("-I", initScript.absolutePath)
     }
 
     @Test
@@ -134,20 +134,20 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         withSettingsWithAssignment()
 
         // When
-        withAssignmentOverloadEnabled()
+        withAssignmentOverload()
 
         // Then
         build()
 
         // When
-        withAssignmentOverloadEnabled(enabled = false)
+        withAssignmentOverload(enabled = false)
         val failure = buildAndFail()
 
         // Then
         failure.assertThatDescription(containsString("Val cannot be reassigned"))
 
         // When
-        withAssignmentOverloadEnabled()
+        withAssignmentOverload()
 
         // Then
         build()
@@ -159,20 +159,20 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
         withBuildScriptWithAssignment()
 
         // When
-        withAssignmentOverloadEnabled()
+        withAssignmentOverload()
 
         // Then
         build("myTask")
 
         // When
-        withAssignmentOverloadEnabled(enabled = false)
+        withAssignmentOverload(enabled = false)
         val failure = buildAndFail("myTask")
 
         // Then
         failure.assertThatDescription(containsString("Val cannot be reassigned"))
 
         // When
-        withAssignmentOverloadEnabled()
+        withAssignmentOverload()
 
         // Then
         build("myTask")
@@ -234,7 +234,7 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     private
-    fun withAssignmentOverloadEnabled(enabled: Boolean = true) {
+    fun withAssignmentOverload(enabled: Boolean = true) {
         withFile("gradle.properties", "systemProp.$ASSIGNMENT_SYSTEM_PROPERTY=$enabled")
     }
 }
