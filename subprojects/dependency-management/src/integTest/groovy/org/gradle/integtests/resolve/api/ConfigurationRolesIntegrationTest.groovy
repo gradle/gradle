@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 import spock.lang.Unroll
 
 @FluidDependenciesResolveTest
-class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
+class ConfigurationRolesIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll("cannot resolve a configuration with role #role at execution time")
     def "cannot resolve a configuration which is for publishing only at execution time"() {

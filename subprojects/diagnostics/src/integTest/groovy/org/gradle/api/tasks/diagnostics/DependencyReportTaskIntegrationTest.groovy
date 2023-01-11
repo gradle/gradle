@@ -1036,7 +1036,7 @@ compileClasspath - Compile classpath for source set 'main'.
         buildFile << """
             subprojects {
                 configurations {
-                    compile.deprecateForDeclaration('implementation')
+                    compile.deprecateForDeclarationAgainst('implementation')
                     'default' { extendsFrom compile }
                 }
                 group = "group"
