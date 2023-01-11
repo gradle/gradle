@@ -190,7 +190,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateStored(false)
         outputContains("Configuration cache entry discarded")
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Configuration cache problems found in this build")
+        failure.assertHasDescriptionStartingWith("Configuration cache problems found in this build")
         failure.assertHasCause("Credential values found in configuration for: repository testMavenRepo")
     }
 
@@ -212,7 +212,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         configurationCache.assertStateStored(false)
         outputContains("Configuration cache entry discarded")
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Configuration cache problems found in this build")
+        failure.assertHasDescriptionStartingWith("Configuration cache problems found in this build")
         failure.assertHasCause("Credential values found in configuration for: repository repo-with-invalid-identity-name")
     }
 

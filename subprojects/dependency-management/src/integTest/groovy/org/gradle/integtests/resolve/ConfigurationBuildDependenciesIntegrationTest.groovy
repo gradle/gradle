@@ -171,11 +171,11 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         expect:
         executer.withArgument("--dry-run")
         fails("useCompileConfiguration")
-        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause('broken')
 
         fails("useCompileConfiguration")
-        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause('broken')
 
         where:
@@ -198,11 +198,11 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         expect:
         executer.withArgument("--dry-run")
         fails("useCompileConfiguration")
-        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause('broken')
 
         fails("useCompileConfiguration")
-        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause('broken')
 
         where:
@@ -223,12 +223,12 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         expect:
         executer.withArgument("--dry-run")
         fails("useCompileConfiguration")
-        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
         failure.assertHasCause("Selected configuration 'default' on 'project :child' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
 
         fails("useCompileConfiguration")
-        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
         failure.assertHasCause("Selected configuration 'default' on 'project :child' but it can't be used as a project dependency because it isn't intended for consumption by other components.")
 
@@ -253,12 +253,12 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         expect:
         executer.withArgument("--dry-run")
         fails("useCompileConfiguration")
-        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
         failure.assertHasCause("More than one variant of project :child matches the consumer attributes:")
 
         fails("useCompileConfiguration")
-        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
         failure.assertHasCause("More than one variant of project :child matches the consumer attributes:")
 
@@ -291,14 +291,14 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
 
         executer.withArgument("--dry-run")
         fails("useCompileConfiguration")
-        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:test:1.0.")
         failure.assertHasCause("Could not get resource '${module.pom.uri}'")
 
         module.pom.expectGetBroken()
         fails("useCompileConfiguration")
-        failure.assertHasDescription("Could not determine the dependencies of task ':useCompileConfiguration'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':useCompileConfiguration'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
         failure.assertHasCause("Could not resolve test:test:1.0.")
         failure.assertHasCause("Could not get resource '${module.pom.uri}'")

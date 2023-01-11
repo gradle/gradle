@@ -230,7 +230,7 @@ abstract class AbstractSourceDependencyMultiprojectIntegrationTest extends Abstr
         repo.expectListVersions()
         repo.expectCloneSomething()
         fails("resolve")
-        failure.assertHasDescription("Could not determine the dependencies of task ':resolve'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':resolve'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':conf'.")
         failure.assertHasCause("Git repository at ${repo.url} did not contain a project publishing the specified dependency.")
     }

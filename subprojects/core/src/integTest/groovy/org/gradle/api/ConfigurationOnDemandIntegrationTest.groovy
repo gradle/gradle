@@ -449,7 +449,7 @@ project(':b') {
         runAndFail(":a:one", "-x", "two")
 
         then:
-        failure.assertHasDescription("Task 'two' not found in project ':c' and its subprojects.")
+        failure.assertHasDescriptionStartingWith("Task 'two' not found in project ':c' and its subprojects.")
         fixture.assertProjectsConfigured(":", ":a", ":c", ':c:child')
     }
 
@@ -475,7 +475,7 @@ allprojects {
         runAndFail(":a:one", "-x", "two")
 
         then:
-        failure.assertHasDescription("Task 'two' not found in project ':c' and its subprojects.")
+        failure.assertHasDescriptionStartingWith("Task 'two' not found in project ':c' and its subprojects.")
         fixture.assertProjectsConfigured(":", ":a", ":c", ':c:child')
     }
 

@@ -247,7 +247,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         fails "tasks"
 
         and:
-        failure.assertHasDescription("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
+        failure.assertHasDescriptionStartingWith("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
         failure.assertHasCause("Could not create plugin of type 'OtherPlugin'.")
         failure.assertHasLineNumber(2)
     }
@@ -268,7 +268,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         fails "tasks"
 
         and:
-        failure.assertHasDescription("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
+        failure.assertHasDescriptionStartingWith("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
         failure.assertHasCause("Could not create plugin of type 'OtherPlugin'.")
         failure.assertHasCause("broken plugin")
         failure.assertHasLineNumber(2)
@@ -287,7 +287,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         fails "tasks"
 
         and:
-        failure.assertHasDescription("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
+        failure.assertHasDescriptionStartingWith("An exception occurred applying plugin request [id: 'org.myplugin', version: '1.0']")
         failure.assertHasCause("throwing plugin")
         failure.assertHasLineNumber(2)
     }

@@ -459,7 +459,7 @@ class DestroyerTaskCommandLineOrderIntegrationTest extends AbstractCommandLineOr
         when:
         fails(clean.path, classes.path, '--continue')
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileJava'.")
         failure.assertHasFailures(1)
         outputDoesNotContain('Unable to make progress running work.')
     }

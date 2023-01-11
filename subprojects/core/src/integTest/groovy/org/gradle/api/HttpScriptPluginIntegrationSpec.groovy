@@ -452,7 +452,7 @@ task check {
         fails()
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating root project 'project'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'project'.")
             .assertHasCause("Could not read '${scriptUrl}' as it does not exist.")
             .assertHasFileName("Build file '${buildFile}'")
             .assertHasLineNumber(2)

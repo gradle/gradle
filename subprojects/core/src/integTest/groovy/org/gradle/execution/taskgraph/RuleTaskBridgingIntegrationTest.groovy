@@ -474,7 +474,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         fails('customTask')
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':customTask'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':customTask'.")
         failure.assertHasCause('Exception thrown while executing model rule: Rules#addTasks(ModelMap<Task>) > create(climbTask)')
         failure.assertHasCause('Bang')
     }
@@ -490,7 +490,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         fails('customTask')
 
         then:
-        failure.assertHasDescription(TextUtil.normaliseLineSeparators("""Circular dependency between the following tasks:
+        failure.assertHasDescriptionStartingWith(TextUtil.normaliseLineSeparators("""Circular dependency between the following tasks:
 :customTask
 \\--- :customTask (*)"""))
     }

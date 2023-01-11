@@ -236,7 +236,7 @@ model {
 
         expect:
         fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.");
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':linkMainExecutable'.");
         failure.assertHasCause("A build operation failed.")
         def exeName = executable("build/binaries/mainExecutable/main").file.name
         failure.assertThatCause(containsText("Linker failed while linking ${exeName}"))
@@ -270,7 +270,7 @@ model {
         fails "mainSharedLibrary"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainSharedLibrary'.");
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':linkMainSharedLibrary'.");
         failure.assertHasCause("A build operation failed.")
         def libName = sharedLibrary("build/binaries/mainSharedLibrary/main").file.name
         failure.assertThatCause(containsText("Linker failed while linking ${libName}"))
@@ -304,7 +304,7 @@ model {
         fails "mainStaticLibrary"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':createMainStaticLibrary'.");
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':createMainStaticLibrary'.");
         failure.assertHasCause("A build operation failed.")
         def libName = staticLibrary("build/binaries/mainSharedLibrary/main").file.name
         failure.assertThatCause(containsText("Static library archiver failed while archiving ${libName}"))

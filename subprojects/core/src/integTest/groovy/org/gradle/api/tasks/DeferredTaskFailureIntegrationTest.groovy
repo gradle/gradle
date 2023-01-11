@@ -32,7 +32,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
 
         expect:
         fails("broken")
-        failure.assertHasDescription("A problem occurred configuring project ':child'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred configuring project ':child'.")
         failure.assertHasCause("Could not create task ':child:broken'.")
         failure.assertHasCause("Could not create task of type 'Broken'.")
         failure.assertHasCause("broken task")
@@ -50,7 +50,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
 
         expect:
         fails("broken")
-        failure.assertHasDescription("A problem occurred configuring project ':child'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred configuring project ':child'.")
         failure.assertHasCause("Could not create task ':child:broken'.")
         failure.assertHasCause("broken task")
     }
@@ -68,7 +68,7 @@ class DeferredTaskFailureIntegrationTest extends AbstractDeferredTaskDefinitionI
 
         expect:
         fails("broken")
-        failure.assertHasDescription("A problem occurred configuring project ':child'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred configuring project ':child'.")
         failure.assertHasCause("Could not create task ':child:broken'.")
         failure.assertHasCause("broken task")
     }

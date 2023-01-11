@@ -64,7 +64,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "broken"
-            failure.assertHasDescription("Execution failed for task ':broken'.")
+            failure.assertHasDescriptionStartingWith("Execution failed for task ':broken'.")
             failure.assertHasCause("Timeout of task ':broken' must be positive, but was -0.001S")
             result.assertNotOutput("Hello")
         }
@@ -84,7 +84,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "block"
-            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasDescriptionStartingWith("Execution failed for task ':block'.")
             failure.assertHasCause("Timeout has been exceeded")
         }
     }
@@ -107,7 +107,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         2.times {
             fails "block", "foo", "--continue"
             result.assertTaskExecuted(":foo")
-            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasDescriptionStartingWith("Execution failed for task ':block'.")
             failure.assertHasCause("Timeout has been exceeded")
         }
     }
@@ -136,7 +136,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "block"
-            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasDescriptionStartingWith("Execution failed for task ':block'.")
             failure.assertHasCause("Timeout has been exceeded")
         }
     }
@@ -171,7 +171,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "test"
-            failure.assertHasDescription("Execution failed for task ':test'.")
+            failure.assertHasDescriptionStartingWith("Execution failed for task ':test'.")
             failure.assertHasCause("Timeout has been exceeded")
         }
     }
@@ -217,7 +217,7 @@ class TaskTimeoutIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails "block"
-            failure.assertHasDescription("Execution failed for task ':block'.")
+            failure.assertHasDescriptionStartingWith("Execution failed for task ':block'.")
             failure.assertHasCause("Timeout has been exceeded")
             if (isolationMode == 'process' && failure.output.contains("Caused by:")) {
                 assert failure.output.contains("Error occurred during initialization of VM")

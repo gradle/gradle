@@ -174,7 +174,7 @@ class GitVcsIntegrationTest extends AbstractIntegrationSpec implements SourceDep
         fails('assemble')
         failure.assertHasFileName("Settings file '$settingsFile'")
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("A problem occurred evaluating settings 'test'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating settings 'test'.")
         failure.assertHasCause("""Cannot convert the provided notation to a module identifier: :not:a:module:.
 The following types/formats are supported:
   - String describing the module in 'group:name' format, for example 'org.gradle:gradle-core'.""")

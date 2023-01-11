@@ -155,7 +155,7 @@ $t.buildResult.output"""
 
         def failure = OutputScrapingExecutionFailure.from(t.buildResult.output, "")
         failure.assertTasksExecuted(':helloWorld')
-        failure.assertHasDescription("Execution failed for task ':helloWorld'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':helloWorld'.")
         failure.assertHasCause('Unexpected exception')
 
         normaliseLineSeparators(t.message).startsWith(normaliseLineSeparators(expectedMessage))

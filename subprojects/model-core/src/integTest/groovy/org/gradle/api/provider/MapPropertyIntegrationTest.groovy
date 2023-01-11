@@ -194,7 +194,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         fails('thing')
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':thing'.")
         failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
@@ -217,7 +217,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         fails('thing')
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':thing'.")
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
@@ -445,55 +445,55 @@ task thing {
         when:
         fails('wrongValueTypeDsl')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongValueTypeDsl'.")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map using an instance of type java.lang.Integer.')
 
         when:
         fails('wrongRuntimeKeyType')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyType'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongRuntimeKeyType'.")
         failure.assertHasCause('Cannot get the value of a property of type java.util.Map with key type java.lang.String as the source contains a key of type java.lang.Integer.')
 
         when:
         fails('wrongRuntimeValueType')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueType'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongRuntimeValueType'.")
         failure.assertHasCause('Cannot get the value of a property of type java.util.Map with value type java.lang.String as the source contains a value of type java.lang.Integer.')
 
         when:
         fails('wrongPropertyTypeDsl')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongPropertyTypeDsl'.")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map using a provider of type java.lang.Integer.')
 
         when:
         fails('wrongPropertyTypeApi')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongPropertyTypeApi'.")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map using a provider of type java.lang.Integer.')
 
         when:
         fails('wrongRuntimeKeyTypeDsl')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyTypeDsl'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongRuntimeKeyTypeDsl'.")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map with key type java.lang.String and value type java.lang.String using a provider with key type java.lang.Integer and value type java.lang.String.')
 
         when:
         fails('wrongRuntimeValueTypeDsl')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueTypeDsl'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongRuntimeValueTypeDsl'.")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map with key type java.lang.String and value type java.lang.String using a provider with key type java.lang.String and value type java.lang.Integer.')
 
         when:
         fails('wrongRuntimeKeyTypeApi')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeKeyTypeApi'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongRuntimeKeyTypeApi'.")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map with key type java.lang.String and value type java.lang.String using a provider with key type java.lang.Integer and value type java.lang.String.')
 
         when:
         fails('wrongRuntimeValueTypeApi')
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeValueTypeApi'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongRuntimeValueTypeApi'.")
         failure.assertHasCause('Cannot set the value of a property of type java.util.Map with key type java.lang.String and value type java.lang.String using a provider with key type java.lang.String and value type java.lang.Integer.')
     }
 
@@ -651,7 +651,7 @@ task thing {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':thing'.")
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 

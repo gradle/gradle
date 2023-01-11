@@ -95,7 +95,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         notExecuted(':firstTask', ':taskWithCredentials')
-        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasDescriptionStartingWith("Credentials required for this build could not be resolved.")
         failure.assertHasCause("The following Gradle properties are missing for 'testCredentials' credentials:")
         failure.assertHasErrorOutput("- testCredentialsUsername")
         failure.assertHasErrorOutput("- testCredentialsPassword")
@@ -122,7 +122,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         notExecuted(':firstTask', ':taskWithCredentials', ':finalTask')
-        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasDescriptionStartingWith("Credentials required for this build could not be resolved.")
         failure.assertHasCause("The following Gradle properties are missing for 'testCredentials' credentials:")
         failure.assertHasErrorOutput("- testCredentialsUsername")
         failure.assertHasErrorOutput("- testCredentialsPassword")
@@ -171,7 +171,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         notExecuted(':firstTask', ':taskWithCredentials', ':finalTask')
-        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasDescriptionStartingWith("Credentials required for this build could not be resolved.")
         failure.assertHasCause("The following Gradle properties are missing for 'someCredentials' credentials:")
         failure.assertHasErrorOutput("- someCredentialsUsername")
         failure.assertHasErrorOutput("- someCredentialsPassword")
@@ -197,7 +197,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         notExecuted(':firstTask', ':taskWithCredentials')
-        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasDescriptionStartingWith("Credentials required for this build could not be resolved.")
         failure.assertHasCause("The following Gradle properties are missing for 'testCredentials' credentials:")
         failure.assertHasErrorOutput("- testCredentialsUsername")
         failure.assertHasErrorOutput("- testCredentialsPassword")
@@ -265,7 +265,7 @@ class CredentialsProviderIntegrationTest extends AbstractIntegrationSpec {
         then:
         args '--configuration-cache'
         fails 'finalTask'
-        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasDescriptionStartingWith("Credentials required for this build could not be resolved.")
     }
 
     @NotYetImplemented

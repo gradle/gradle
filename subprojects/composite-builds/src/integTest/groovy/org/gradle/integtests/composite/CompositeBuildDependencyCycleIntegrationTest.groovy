@@ -86,7 +86,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         resolveFails(":resolveArtifacts")
 
         then:
-        failure.assertHasDescription("""Circular dependency between the following tasks:
+        failure.assertHasDescriptionStartingWith("""Circular dependency between the following tasks:
 :buildB:compileJava
 \\--- :buildC:compileJava
      \\--- :buildB:compileJava (*)""")
@@ -136,7 +136,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         resolveFails(":resolveArtifacts")
 
         then:
-        failure.assertHasDescription("""Circular dependency between the following tasks:
+        failure.assertHasDescriptionStartingWith("""Circular dependency between the following tasks:
 :buildB:compileJava
 \\--- :buildC:compileJava
      \\--- :buildD:compileJava
@@ -211,7 +211,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         resolveFails(":resolveArtifacts")
 
         then:
-        failure.assertHasDescription("""Circular dependency between the following tasks:
+        failure.assertHasDescriptionStartingWith("""Circular dependency between the following tasks:
 :buildB:compileJava
 \\--- :buildC:compileJava
      \\--- :buildB:compileJava (*)""")
@@ -262,7 +262,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         resolveFails(":resolveArtifacts")
 
         then:
-        failure.assertHasDescription("""Circular dependency between the following tasks:
+        failure.assertHasDescriptionStartingWith("""Circular dependency between the following tasks:
 :buildB:b1:compileJava
 \\--- :buildB:b2:compileJava
      \\--- :buildB:b1:compileJava (*)""")
@@ -370,7 +370,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         resolveFails(":a")
 
         then:
-        failure.assertHasDescription("""Circular dependency between the following tasks:
+        failure.assertHasDescriptionStartingWith("""Circular dependency between the following tasks:
 :buildB:b
 \\--- :buildC:c
      \\--- :buildB:b (*)""")

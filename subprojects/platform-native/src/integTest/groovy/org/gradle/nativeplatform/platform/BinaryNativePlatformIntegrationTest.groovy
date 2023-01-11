@@ -338,7 +338,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainCpp'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileMainExecutableMainCpp'.")
         failure.assertHasCause("""No tool chain is available to build for platform 'unavailable':
   - ${toolChain.instanceDisplayName}:
       - Don't know how to build for platform 'unavailable'.""")
@@ -400,7 +400,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':linkMainExecutable'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':linkMainExecutable'.")
         failure.assertHasCause("No shared library binary available for library 'hello' with [flavor: 'default', platform: 'one', buildType: 'debug']")
     }
 

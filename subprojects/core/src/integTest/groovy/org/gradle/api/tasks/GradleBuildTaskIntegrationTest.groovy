@@ -83,7 +83,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         fails 'b1', 'b2'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':b2'")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':b2'")
         failure.assertHasCause("Included build $testDirectory has build path :bp which is the same as included build $testDirectory")
     }
 

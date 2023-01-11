@@ -124,7 +124,7 @@ Required by:
         fails(buildA, ":assemble")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':buildB:buildSrc:classes'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':buildB:buildSrc:classes'.")
         failure.assertHasCause("broken")
 
         where:

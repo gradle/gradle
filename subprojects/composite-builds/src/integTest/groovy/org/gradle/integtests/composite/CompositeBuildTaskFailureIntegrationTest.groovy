@@ -62,7 +62,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         result.assertTaskNotExecuted(":other")
         result.assertTaskNotExecuted(":assemble")
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Execution failed for task ':buildB:compileJava'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':buildB:compileJava'.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5714")
@@ -82,7 +82,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         then:
         result.assertTaskExecuted(":buildB:broken")
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':buildB:broken'.")
     }
 
     def "does not compile build script when build script classpath cannot be built"() {
@@ -102,7 +102,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Execution failed for task ':buildB:compileJava'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':buildB:compileJava'.")
         failure.assertHasCause("Compilation failed; see the compiler error output for details.")
     }
 
@@ -141,8 +141,8 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         result.assertTaskExecuted(":broken")
         result.assertTaskExecuted(":buildB:broken")
         failure.assertHasFailures(2)
-        failure.assertHasDescription("Execution failed for task ':broken'.")
-        failure.assertHasDescription("Execution failed for task ':buildB:broken'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':broken'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':buildB:broken'.")
     }
 
     def "build fails when task in root build fails"() {
@@ -162,6 +162,6 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         then:
         result.assertTaskExecuted(":broken")
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':broken'.")
     }
 }

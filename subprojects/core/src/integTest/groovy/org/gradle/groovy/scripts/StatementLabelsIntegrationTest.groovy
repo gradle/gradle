@@ -29,14 +29,14 @@ version: '1.0'
         fails("tasks")
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(2)
-        failure.assertHasDescription("Could not compile build file '${buildFile}'.")
+        failure.assertHasDescriptionStartingWith("Could not compile build file '${buildFile}'.")
         failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
 
         // try again to make sure that warning sticks if build script is cached
         fails("tasks")
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(2)
-        failure.assertHasDescription("Could not compile build file '${buildFile}'.")
+        failure.assertHasDescriptionStartingWith("Could not compile build file '${buildFile}'.")
         failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
     }
 
@@ -51,7 +51,7 @@ description: "bar"
         fails("tasks")
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(2)
-        failure.assertHasDescription("Could not compile build file '${buildFile}'.")
+        failure.assertHasDescriptionStartingWith("Could not compile build file '${buildFile}'.")
         failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
         failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 4: Statement labels may not be used in build scripts."))
     }
@@ -71,7 +71,7 @@ def foo() {
         fails("tasks")
         failure.assertHasFileName("Build file '${buildFile}'")
         failure.assertHasLineNumber(5)
-        failure.assertHasDescription("Could not compile build file '${buildFile}'.")
+        failure.assertHasDescriptionStartingWith("Could not compile build file '${buildFile}'.")
         failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 5: Statement labels may not be used in build scripts."))
     }
 

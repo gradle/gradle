@@ -40,7 +40,7 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         def result = fails("projects")
-        result.assertHasDescription("A problem occurred evaluating settings 'root'.")
+        result.assertHasDescriptionStartingWith("A problem occurred evaluating settings 'root'.")
         failureCauseContains("org.codehaus.groovy.runtime.ArrayUtil.createArray")
 
         where:
@@ -58,7 +58,7 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         def result = fails("projects")
-        result.assertHasDescription("A problem occurred evaluating settings 'root'.")
+        result.assertHasDescriptionStartingWith("A problem occurred evaluating settings 'root'.")
         // In Java 8 "call site" is used, in Java 11 "bootstrap method"
         failureHasCause(~/(call site|bootstrap method) initialization exception/)
 
@@ -97,7 +97,7 @@ class SettingsIncludeManyIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         def result = fails("projects")
-        result.assertHasDescription("A problem occurred evaluating settings 'root'.")
+        result.assertHasDescriptionStartingWith("A problem occurred evaluating settings 'root'.")
         // Java 8 does not print the exception name
         failureHasCause(~/(java.lang.IllegalArgumentException: )?bad parameter count 302/)
 

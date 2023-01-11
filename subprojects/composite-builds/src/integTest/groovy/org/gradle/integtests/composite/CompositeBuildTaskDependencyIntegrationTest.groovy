@@ -209,7 +209,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         fails(buildA, ":delegate")
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project 'buildA'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'buildA'.")
         failure.assertHasCause("Included build 'does-not-exist' not found in build 'buildA'.")
     }
 
@@ -225,7 +225,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         fails(buildA, ":delegate")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':delegate'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':delegate'.")
         failure.assertHasCause("Task with path ':does-not-exist' not found in project ':buildB'.")
     }
 
@@ -241,7 +241,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         fails(buildA, "delegate")
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project 'buildA'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'buildA'.")
         failure.assertHasCause("Task path 'logProject' is not a qualified task path (e.g. ':task' or ':project:task')")
     }
 
@@ -260,14 +260,14 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         fails(buildA, ":delegate")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':delegate'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':delegate'.")
         failure.assertHasCause("Task with path ':logP' not found in project ':buildB'.")
 
         when:
         fails(buildA, ":subDelegate")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':subDelegate'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':subDelegate'.")
         failure.assertHasCause("Task with path ':b1:logP' not found in project ':buildB'.")
     }
 
@@ -283,7 +283,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         fails(buildB, ":delegate")
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project 'buildB'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'buildB'.")
         failure.assertHasCause("Included build 'does-not-exist' not found in build 'buildB'.")
     }
 
@@ -309,7 +309,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         fails(buildA, ":delegate")
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating project ':buildC'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating project ':buildC'.")
         failure.assertHasCause("Included build '${buildName}' not found in build 'buildC'.")
 
         where:

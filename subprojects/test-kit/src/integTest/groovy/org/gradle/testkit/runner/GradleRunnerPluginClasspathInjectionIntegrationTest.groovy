@@ -48,7 +48,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
             .buildAndFail()
 
         then:
-        execFailure(result).assertHasDescription("""
+        execFailure(result).assertHasDescriptionStartingWith("""
             |Plugin [id: '$plugin.id'] was not found in any of the following sources:
             |
             |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
@@ -65,7 +65,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
             .buildAndFail()
 
         then:
-        execFailure(result).assertHasDescription("""
+        execFailure(result).assertHasDescriptionStartingWith("""
             |Plugin [id: '$plugin.id'] was not found in any of the following sources:
             |
             |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
@@ -257,7 +257,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
             .buildAndFail()
 
         then:
-        execFailure(result).assertHasDescription("Plugin [id: '$otherPlugin.id'] was not found in any of the following sources:")
+        execFailure(result).assertHasDescriptionStartingWith("Plugin [id: '$otherPlugin.id'] was not found in any of the following sources:")
 
         when:
         buildFile.text = otherPlugin.useDeclaration + (" " * counter++)
@@ -275,7 +275,7 @@ class GradleRunnerPluginClasspathInjectionIntegrationTest extends BaseGradleRunn
             .buildAndFail()
 
         then:
-        execFailure(result).assertHasDescription("Plugin [id: '$plugin.id'] was not found in any of the following sources:")
+        execFailure(result).assertHasDescriptionStartingWith("Plugin [id: '$plugin.id'] was not found in any of the following sources:")
     }
 
     @IgnoreIf({ GradleContextualExecuter.embedded }) // classloader isolation does not work here in embedded mode

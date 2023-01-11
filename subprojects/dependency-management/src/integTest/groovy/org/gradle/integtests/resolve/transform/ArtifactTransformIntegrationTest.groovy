@@ -1666,7 +1666,7 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("broken")
@@ -1717,7 +1717,7 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Could not download test-impl-1.3.jar (test:test:1.3)")
 
@@ -1756,7 +1756,7 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("broken")
 
@@ -1794,7 +1794,7 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Execution failed for ToNullTransform: ${file("a.jar").absolutePath}.")
@@ -1826,7 +1826,7 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Transform output this_file_does_not.exist must exist.")
@@ -1889,7 +1889,7 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertThatCause(matchesRegexp("Transform ${failureMessage}."))
@@ -2016,7 +2016,7 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
@@ -2056,7 +2056,7 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
@@ -2087,7 +2087,7 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform a.jar to match attributes {artifactType=size}")
         failure.assertHasCause("Could not create an instance of type BrokenTransform.")
@@ -2147,7 +2147,7 @@ Found the following transforms:
         fails "resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         failure.assertHasCause("Failed to transform broken.jar to match attributes {artifactType=size}")
         failure.assertHasCause("broken: broken.jar")
@@ -2183,7 +2183,7 @@ Found the following transforms:
         fails "help"
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'root'.")
         failure.assertHasCause("Bad registration")
     }
 
@@ -2248,7 +2248,7 @@ Found the following transforms:
         fails "resolve"
         then:
         Matcher<String> matchesCannotIsolate = matchesRegexp("Could not isolate parameters Custom\\\$Parameters_Decorated@.* of artifact transform Custom")
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':resolve'.")
         failure.assertThatCause(matchesCannotIsolate)
         failure.assertHasCause("Could not serialize value of type CustomType")
 

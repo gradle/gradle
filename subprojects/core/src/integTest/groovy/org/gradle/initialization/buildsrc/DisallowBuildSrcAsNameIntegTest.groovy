@@ -32,7 +32,7 @@ class DisallowBuildSrcAsNameIntegTest extends AbstractIntegrationSpec {
         fails "t"
 
         then:
-        failure.assertHasDescription("'buildSrc' cannot be used as a project name as it is a reserved name")
+        failure.assertHasDescriptionStartingWith("'buildSrc' cannot be used as a project name as it is a reserved name")
     }
 
     def "fails when trying to use buildSrc as a project name"() {
@@ -48,7 +48,7 @@ class DisallowBuildSrcAsNameIntegTest extends AbstractIntegrationSpec {
         fails "t"
 
         then:
-        failure.assertHasDescription("'buildSrc' cannot be used as a project name as it is a reserved name")
+        failure.assertHasDescriptionStartingWith("'buildSrc' cannot be used as a project name as it is a reserved name")
     }
 
     def "fails when trying to include buildSrc as project in an included build"() {
@@ -66,7 +66,7 @@ class DisallowBuildSrcAsNameIntegTest extends AbstractIntegrationSpec {
         fails "t"
 
         then:
-        failure.assertHasDescription("'buildSrc' cannot be used as a project name as it is a reserved name (in build :i)")
+        failure.assertHasDescriptionStartingWith("'buildSrc' cannot be used as a project name as it is a reserved name (in build :i)")
     }
 
     def "fails when trying to include a build with name buildSrc"() {
@@ -83,7 +83,7 @@ class DisallowBuildSrcAsNameIntegTest extends AbstractIntegrationSpec {
         fails "t"
 
         then:
-        failure.assertHasDescription("Included build $b has build name 'buildSrc' which cannot be used as it is a reserved name.")
+        failure.assertHasDescriptionStartingWith("Included build $b has build name 'buildSrc' which cannot be used as it is a reserved name.")
     }
 
     def "fails when trying to create a buildSrc build with GradleBuild task"() {
@@ -100,7 +100,7 @@ class DisallowBuildSrcAsNameIntegTest extends AbstractIntegrationSpec {
         fails "t"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':t'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':t'.")
         failure.assertHasCause("Included build $b has build name 'buildSrc' which cannot be used as it is a reserved name.")
     }
 

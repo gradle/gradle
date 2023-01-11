@@ -307,7 +307,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         expect:
         2.times {
             fails 'b'
-            failure.assertHasDescription """|Circular dependency between the following tasks:
+            failure.assertHasDescriptionStartingWith """|Circular dependency between the following tasks:
                 |:a
                 |\\--- :b
                 |     \\--- :a (*)
@@ -430,7 +430,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         expect:
         2.times {
             fails 'b'
-            failure.assertHasDescription """|Circular dependency between the following tasks:
+            failure.assertHasDescriptionStartingWith """|Circular dependency between the following tasks:
                 |:a
                 |\\--- :b
                 |     \\--- :a (*)
@@ -678,7 +678,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         expect:
         2.times {
             fails 'a'
-            failure.assertHasDescription('Task :a has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.')
+            failure.assertHasDescriptionStartingWith('Task :a has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.')
         }
     }
 
@@ -695,7 +695,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         expect:
         2.times {
             fails 'a'
-            failure.assertHasDescription('Task :a has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.')
+            failure.assertHasDescriptionStartingWith('Task :a has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.')
         }
     }
 
@@ -712,7 +712,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         expect:
         2.times {
             fails 'a'
-            failure.assertHasDescription('Task :a has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.')
+            failure.assertHasDescriptionStartingWith('Task :a has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.')
         }
     }
 
@@ -799,7 +799,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         expect:
         2.times {
             fails("myTask")
-            failure.assertHasDescription """|Circular dependency between the following tasks:
+            failure.assertHasDescriptionStartingWith """|Circular dependency between the following tasks:
                 |:finalizer
                 |\\--- :finalizer (*)
                 |
@@ -820,7 +820,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         expect:
         2.times {
             fails("a")
-            failure.assertHasDescription """|Circular dependency between the following tasks:
+            failure.assertHasDescriptionStartingWith """|Circular dependency between the following tasks:
                 |:b
                 |\\--- :b (*)
                 |

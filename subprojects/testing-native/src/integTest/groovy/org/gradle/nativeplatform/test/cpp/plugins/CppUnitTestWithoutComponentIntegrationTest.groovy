@@ -74,7 +74,7 @@ int main() {
 
         then:
         result.assertTasksExecuted(tasksToBuildAndRunUnitTest)
-        failure.assertHasDescription("Execution failed for task ':runTest'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':runTest'.")
         failure.assertHasCause("There were failing tests. See the results at:")
     }
 

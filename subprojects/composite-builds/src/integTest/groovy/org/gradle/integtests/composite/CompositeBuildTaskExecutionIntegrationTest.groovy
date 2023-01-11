@@ -93,7 +93,7 @@ class CompositeBuildTaskExecutionIntegrationTest extends AbstractCompositeBuildT
 
         expect:
         fails(requested)
-        failure.assertHasDescription(message)
+        failure.assertHasDescriptionStartingWith(message)
 
         where:
         requested            | message

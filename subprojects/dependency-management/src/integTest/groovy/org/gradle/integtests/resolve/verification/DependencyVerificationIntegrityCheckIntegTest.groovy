@@ -589,7 +589,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         fails "compileJava"
 
         then:
-        failure.assertHasDescription terse ? """Dependency verification failed for configuration ':buildSrc:buildScriptClasspath'
+        failure.assertHasDescriptionStartingWith terse ? """Dependency verification failed for configuration ':buildSrc:buildScriptClasspath'
 2 artifacts failed verification:
   - bar-1.0.jar (org:bar:1.0) from repository maven
   - bar-1.0.pom (org:bar:1.0) from repository maven""" : """Dependency verification failed for configuration ':buildSrc:buildScriptClasspath':
@@ -1099,7 +1099,7 @@ This can indicate that a dependency has been compromised. Please carefully verif
         fails 'noop'
 
         then:
-        failure.assertHasDescription """Dependency verification failed for configuration 'classpath'
+        failure.assertHasDescriptionStartingWith """Dependency verification failed for configuration 'classpath'
 2 artifacts failed verification:
   - foo-1.0.jar (org:foo:1.0) from repository maven
   - foo-1.0.pom (org:foo:1.0) from repository maven"""

@@ -97,7 +97,7 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
         fails("build")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileJava'.")
         failure.assertHasCause("Compilation failed with exit code")
 
         when:

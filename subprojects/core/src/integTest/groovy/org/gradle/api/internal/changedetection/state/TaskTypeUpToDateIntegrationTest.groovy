@@ -222,7 +222,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails 'noOutput'
         then:
-        failure.assertHasDescription("Execution failed for task ':noOutput'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':noOutput'.")
         failure.assertHasCause("You must declare outputs or use `TaskOutputs.upToDateWhen()` when using the incremental task API")
     }
 

@@ -55,7 +55,7 @@ pushl
 
         expect:
         fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':assembleMainExecutableMainAsm'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':assembleMainExecutableMainAsm'.")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("Assembler failed while compiling broken.s"))
     }

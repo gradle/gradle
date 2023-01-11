@@ -58,7 +58,7 @@ class ArtifactTransformInputArtifactIntegrationTest extends AbstractDependencyRe
         then:
         transformed("c.jar")
         failure.assertHasFailures(1)
-        failure.assertHasDescription("Execution failed for task ':b:producer'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':b:producer'.")
         failure.assertHasCause("broken")
     }
 

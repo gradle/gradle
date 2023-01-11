@@ -1149,7 +1149,7 @@ The following variants were also considered but didn't match the requested attri
         fails("a:check")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
@@ -1209,7 +1209,7 @@ The following variants were also considered but didn't match the requested attri
         fails("a:check")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not determine whether value paid is compatible with value free using FlavorCompatibilityRule.")
@@ -1281,7 +1281,7 @@ The following variants were also considered but didn't match the requested attri
         fails("a:check")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not select value from candidates [free, paid] using FlavorSelectionRule.")
@@ -1353,7 +1353,7 @@ The following variants were also considered but didn't match the requested attri
         fails("a:check")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':a:check'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':a:check'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("Could not select value from candidates [free, paid] using FlavorSelectionRule.")

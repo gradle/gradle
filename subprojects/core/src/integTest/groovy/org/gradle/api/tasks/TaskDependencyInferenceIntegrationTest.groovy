@@ -326,7 +326,7 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         fails("b")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':b'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':b'.")
         failure.assertHasCause("""Cannot convert ${displayName} to a task.
 The following types/formats are supported:
   - A String or CharSequence task name or path
@@ -359,7 +359,7 @@ The following types/formats are supported:
         false
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':b'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':b'.")
         failure.assertHasCause("""Cannot convert ${file(path)} to a task.
 The following types/formats are supported:
   - A String or CharSequence task name or path
@@ -399,7 +399,7 @@ The following types/formats are supported:
         fails("b")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':b'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':b'.")
         failure.assertHasCause("""Cannot convert ${displayName} to a task.
 The following types/formats are supported:
   - A String or CharSequence task name or path
@@ -433,7 +433,7 @@ The following types/formats are supported:
         fails("b")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':b'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':b'.")
         failure.assertHasCause("""Cannot convert ${file(path)} to a task.
 The following types/formats are supported:
   - A String or CharSequence task name or path
@@ -486,7 +486,7 @@ The following types/formats are supported:
         fails "a"
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':a'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':a'.")
             .assertHasCause('broken')
             .assertHasFileName("Build file '$buildFile'")
             .assertHasLineNumber(4)
@@ -504,7 +504,7 @@ The following types/formats are supported:
         fails("a")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':a'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':a'.")
         failure.assertHasCause("Cannot query the value of this property because it has no value available.")
     }
 

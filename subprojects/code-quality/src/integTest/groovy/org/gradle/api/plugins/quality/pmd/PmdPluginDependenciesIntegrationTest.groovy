@@ -55,7 +55,7 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':pmdTest'.")
         and:
         succeeds("dependencies", "--configuration", "pmd")
         output.contains "$testDependency"

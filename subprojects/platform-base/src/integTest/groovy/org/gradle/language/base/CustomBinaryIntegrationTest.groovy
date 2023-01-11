@@ -272,7 +272,7 @@ model {
         fails "tasks"
 
         then:
-        failure.assertHasDescription "A problem occurred evaluating root project 'custom-binary'."
+        failure.assertHasDescriptionStartingWith "A problem occurred evaluating root project 'custom-binary'."
         failure.assertHasCause "Failed to apply plugin class 'MySamplePlugin'"
         failure.assertHasCause '''Type MySamplePlugin.Rules is not a valid rule source:
 - Method register(org.gradle.platform.base.TypeBuilder<SampleBinary>, java.lang.String) is not a valid rule method: A method annotated with @ComponentType must have a single parameter of type org.gradle.platform.base.TypeBuilder.'''
@@ -304,7 +304,7 @@ model {
         fails "tasks"
 
         then:
-        failure.assertHasDescription "A problem occurred configuring root project 'custom-binary'."
+        failure.assertHasDescriptionStartingWith "A problem occurred configuring root project 'custom-binary'."
         failure.assertHasCause "Exception thrown while executing model rule: Rules2#register"
         failure.assertHasCause "Cannot register implementation for type 'SomeBinary' because an implementation for this type was already registered by Rules1#register"
     }

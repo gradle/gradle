@@ -79,7 +79,7 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "test", "-PinputFile=different-file.txt"
-        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
     }
 }

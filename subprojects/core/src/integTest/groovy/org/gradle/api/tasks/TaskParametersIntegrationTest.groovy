@@ -53,7 +53,7 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements V
         when:
         fails "foo"
         then:
-        failure.assertHasDescription("Execution failed for task ':foo'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':foo'.")
         failure.assertHasCause("Cannot fingerprint input property 'b': value 'xxx' cannot be serialized.")
     }
 
@@ -571,7 +571,7 @@ task someTask(type: SomeTask) {
         """
         expect:
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
+        failure.assertHasDescriptionStartingWith("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failureDescriptionContains(missingValueMessage { property('input') })
     }
 
@@ -599,7 +599,7 @@ task someTask(type: SomeTask) {
         """
         expect:
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
+        failure.assertHasDescriptionStartingWith("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failureDescriptionContains(missingValueMessage { property('input') })
 
         where:
@@ -633,7 +633,7 @@ task someTask(type: SomeTask) {
         """
         expect:
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
+        failure.assertHasDescriptionStartingWith("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failureDescriptionContains(missingValueMessage { property('output') })
 
         where:
@@ -669,7 +669,7 @@ task someTask(type: SomeTask) {
         expect:
         def missingFile = file('missing')
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
+        failure.assertHasDescriptionStartingWith("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failureDescriptionContains(inputDoesNotExist {
             property('input')
                 .kind(fileType)
@@ -700,7 +700,7 @@ task someTask(type: SomeTask) {
         expect:
         def unexpected = file(path)
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
+        failure.assertHasDescriptionStartingWith("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failureDescriptionContains(unexpectedInputType {
             property('input')
                 .kind(fileType)

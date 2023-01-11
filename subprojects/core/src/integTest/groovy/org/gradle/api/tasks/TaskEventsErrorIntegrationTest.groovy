@@ -32,7 +32,7 @@ class TaskEventsErrorIntegrationTest extends AbstractIntegrationSpec {
 """
         then:
         fails('test')
-        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':test'.")
                 .assertHasCause("beforeTask failure")
                 .assertHasFileName("Build file '${buildFile}'")
                 .assertHasLineNumber(3)
@@ -48,7 +48,7 @@ class TaskEventsErrorIntegrationTest extends AbstractIntegrationSpec {
 """
         then:
         fails('test')
-        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':test'.")
                 .assertHasCause("afterTask failure")
                 .assertHasFileName("Build file '${buildFile}'")
                 .assertHasLineNumber(3)
@@ -91,7 +91,7 @@ afterTask action"""
 """
         then:
         fails('test')
-        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':test'.")
                 .assertHasCause("afterTask failure")
                 .assertHasCause("task action failure")
                 .assertHasFileName("Build file '${buildFile}'")

@@ -144,7 +144,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':thing'.")
         failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
@@ -168,7 +168,7 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':thing'.")
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 

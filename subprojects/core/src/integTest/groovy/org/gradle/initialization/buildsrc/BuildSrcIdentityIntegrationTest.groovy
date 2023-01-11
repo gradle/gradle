@@ -91,7 +91,7 @@ runtimeClasspath - Runtime classpath of source set 'main'.
         fails()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':buildSrc:compileJava'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':buildSrc:compileJava'.")
         failure.assertHasCause("Could not resolve all files for configuration ':buildSrc:compileClasspath'.")
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
@@ -107,7 +107,7 @@ Required by:
         fails()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':buildSrc:compileJava'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':buildSrc:compileJava'.")
         failure.assertHasCause("Could not resolve all files for configuration ':buildSrc:compileClasspath'.")
         failure.assertHasCause("Could not find test-1.2.jar (org.test:test:1.2).")
 
@@ -130,7 +130,7 @@ Required by:
         fails()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':buildSrc:classes'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':buildSrc:classes'.")
         failure.assertHasCause("broken")
 
         where:

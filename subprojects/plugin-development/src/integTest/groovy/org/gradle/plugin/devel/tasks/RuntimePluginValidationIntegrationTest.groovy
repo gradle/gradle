@@ -70,10 +70,10 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
             case 0:
                 break
             case 1:
-                failure.assertHasDescription("A problem was found with the configuration of task ':run' (type 'MyTask').")
+                failure.assertHasDescriptionStartingWith("A problem was found with the configuration of task ':run' (type 'MyTask').")
                 break
             default:
-                failure.assertHasDescription("Some problems were found with the configuration of task ':run' (type 'MyTask').")
+                failure.assertHasDescriptionStartingWith("Some problems were found with the configuration of task ':run' (type 'MyTask').")
                 break
         }
         expectedFailures.forEach { error ->

@@ -72,7 +72,7 @@ The following types/formats are supported:
         '''
 
         ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
-        failure.assertHasDescription("Execution failed for task ':copy'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':copy'.")
         failure.assertHasCause("Couldn't follow symbolic link '${link}'.")
     }
 
@@ -97,7 +97,7 @@ The following types/formats are supported:
     '''
 
             ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
-            failure.assertHasDescription("Execution failed for task ':copy'.")
+            failure.assertHasDescriptionStartingWith("Execution failed for task ':copy'.")
             failure.assertHasDocumentedCause("Cannot access input property 'rootSpec\$1' of task ':copy'. " +
                 "Accessing unreadable inputs or outputs is not supported. " +
                 "Declare the task as untracked by using Task.doNotTrackState(). " +

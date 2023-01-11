@@ -78,7 +78,7 @@ project(":other") {
         fails ":exe:mainExecutable"
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':exe:linkMainExecutable'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':exe:linkMainExecutable'.")
         failure.assertHasCause(description)
 
         where:

@@ -111,7 +111,7 @@ task verify {
         fails "compileGroovy"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileGroovy'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileGroovy'.")
         failure.assertHasCause "Cannot infer Groovy class path because no Groovy Jar was found on class path: "
     }
 

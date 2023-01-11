@@ -24,7 +24,7 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can inject custom toolchain registry via settings plugin"() {
         settingsKotlinFile << """
-            ${applyToolchainRegistryPlugin("CustomToolchainResolver", customToolchainRegistryCode())}               
+            ${applyToolchainRegistryPlugin("CustomToolchainResolver", customToolchainRegistryCode())}
             toolchainManagement {
                 jvm {
                     javaRepositories {
@@ -59,7 +59,7 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
                 .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
                 .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from 'https://exoticJavaToolchain.com/java-99'.")
                 .assertHasCause("Could not HEAD 'https://exoticJavaToolchain.com/java-99'.")
@@ -71,18 +71,18 @@ class JavaToolchainDownloadSpiKotlinIntegrationTest extends AbstractIntegrationS
             import java.util.Optional
 
             abstract class ${className}Plugin: Plugin<Settings> {
-   
+
                 @get:Inject
                 protected abstract val toolchainResolverRegistry: JavaToolchainResolverRegistry
-            
+
                 override fun apply(settings: Settings) {
                     settings.plugins.apply("jvm-toolchain-management")
                     val registry: JavaToolchainResolverRegistry = toolchainResolverRegistry
                     registry.register(${className}::class.java)
                 }
-                
+
             }
-            
+
             ${code}
 
             apply<${className}Plugin>()

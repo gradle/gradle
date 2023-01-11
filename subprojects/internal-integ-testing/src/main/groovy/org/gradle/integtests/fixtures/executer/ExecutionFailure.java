@@ -69,6 +69,13 @@ public interface ExecutionFailure extends ExecutionResult {
     ExecutionFailure assertThatCause(Matcher<? super String> matcher);
 
     /**
+     * Asserts that there is a failure starting with the given description (ie the bit after '* What went wrong').
+     *
+     * <p>Error messages are normalized to use new-line char as line separator.
+     */
+    ExecutionFailure assertHasDescriptionStartingWith(String description);
+
+    /**
      * Asserts that there is a failure present with the given description (ie the bit after '* What went wrong').
      *
      * <p>Error messages are normalized to use new-line char as line separator.

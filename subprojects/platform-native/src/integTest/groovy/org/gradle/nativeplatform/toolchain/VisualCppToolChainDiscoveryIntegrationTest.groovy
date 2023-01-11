@@ -58,7 +58,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileMainExecutableMainC'.")
         failure.assertHasCause("""No tool chain is available to build for platform '${NativePlatformsTestFixture.defaultPlatformName}':
   - ${toolChain.instanceDisplayName}:
       - The specified installation directory '${file('does-not-exist')}' does not appear to contain a Visual Studio installation.""")
@@ -78,7 +78,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileMainExecutableMainC'.")
         failure.assertHasCause("""No tool chain is available to build for platform '${NativePlatformsTestFixture.defaultPlatformName}':
   - ${toolChain.instanceDisplayName}:
       - The specified installation directory '${file('does-not-exist')}' does not appear to contain a Windows SDK installation.""")

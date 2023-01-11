@@ -87,7 +87,7 @@ latch.await()
         }
 
         def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
-        failure.assertHasDescription('Build cancelled.')
+        failure.assertHasDescriptionStartingWith('Build cancelled.')
         assertHasBuildFailedLogging()
     }
 
@@ -109,7 +109,7 @@ latch.await()
         // Some versions do not log anything on build cancellation
         if (targetDist.toolingApiLogsFailureOnCancel) {
             def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
-            failure.assertHasDescription('Build cancelled.')
+            failure.assertHasDescriptionStartingWith('Build cancelled.')
             assertHasConfigureFailedLogging()
         }
     }
@@ -134,12 +134,12 @@ latch.await()
 
             // Verify that there is some logging output that explains that the build was cancelled
             def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
-            failure.assertHasDescription("Execution failed for task '${taskPath}'.")
+            failure.assertHasDescriptionStartingWith("Execution failed for task '${taskPath}'.")
             failure.assertThatCause(cancelledMessageMatcher(taskPath))
         } else {
             // Verify that there is some logging output that explains that the build was cancelled, for versions that do not include any context in the message
             def failure = OutputScrapingExecutionFailure.from(stdout.toString(), stderr.toString())
-            failure.assertHasDescription("Build cancelled")
+            failure.assertHasDescriptionStartingWith("Build cancelled")
         }
         assertHasBuildFailedLogging()
     }

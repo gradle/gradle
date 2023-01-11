@@ -59,7 +59,7 @@ class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec impleme
         fails("assemble")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileDebugCpp'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileDebugCpp'.")
         if (OperatingSystem.current().windows) {
             failure.assertHasCause("""No tool chain is available to build C++ for host operating system '${osName}' architecture '${archName}':
   - Tool chain 'visualCpp' (Visual Studio):

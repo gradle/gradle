@@ -32,7 +32,7 @@ throw new RuntimeException('<failure message>')
         fails()
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating settings 'ProjectError'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating settings 'ProjectError'.")
                 .assertHasCause("<failure message>")
                 .assertHasFileName("Settings file '$settingsFile'")
                 .assertHasLineNumber(3)

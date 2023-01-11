@@ -38,7 +38,7 @@ doStuff()
         fails()
 
         then:
-        failure.assertHasDescription('A problem occurred evaluating script.')
+        failure.assertHasDescriptionStartingWith('A problem occurred evaluating script.')
                 .assertHasCause('Could not find method doStuff() for arguments [] on root project')
                 .assertHasFileName("Script '${externalScript}'")
                 .assertHasLineNumber(3)
@@ -51,7 +51,7 @@ doStuff()
         fails()
 
         then:
-        failure.assertHasDescription("Could not compile script '$externalScript'.")
+        failure.assertHasDescriptionStartingWith("Could not compile script '$externalScript'.")
                 .assertThatCause(containsString("script '${externalScript}': 1: Unexpected input: '(' @ line 1, column 18."))
                 .assertHasFileName("Script '$externalScript'")
                 .assertHasLineNumber(1)
@@ -62,7 +62,7 @@ doStuff()
         fails()
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project 'project'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'project'.")
                 .assertHasCause("Could not read script '${externalScript}' as it does not exist.")
                 .assertHasFileName("Build file '${buildFile}'")
                 .assertHasLineNumber(2)
@@ -80,7 +80,7 @@ task doStuff {
         fails 'doStuff'
 
         then:
-        failure.assertHasDescription('Execution failed for task \':doStuff\'.')
+        failure.assertHasDescriptionStartingWith('Execution failed for task \':doStuff\'.')
                 .assertHasCause('fail')
                 .assertHasFileName("Script '${externalScript}'")
                 .assertHasLineNumber(4)

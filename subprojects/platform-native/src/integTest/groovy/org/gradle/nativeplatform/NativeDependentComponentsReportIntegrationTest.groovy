@@ -365,7 +365,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         fails 'dependentComponents'
 
         then:
-        failure.assertHasDescription "Execution failed for task ':dependentComponents'."
+        failure.assertHasDescriptionStartingWith "Execution failed for task ':dependentComponents'."
         failure.assertHasCause '''
             Circular dependency between the following binaries:
             lib:sharedLibrary
@@ -400,7 +400,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         fails 'dependentComponents'
 
         then:
-        failure.assertHasDescription "Execution failed for task ':dependentComponents'."
+        failure.assertHasDescriptionStartingWith "Execution failed for task ':dependentComponents'."
         failure.assertHasCause '''
             Circular dependency between the following binaries:
             another:sharedLibrary
@@ -435,7 +435,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         fails 'api:dependentComponents'
 
         then:
-        failure.assertHasDescription "Execution failed for task ':api:dependentComponents'."
+        failure.assertHasDescriptionStartingWith "Execution failed for task ':api:dependentComponents'."
         failure.assertHasCause '''
             Circular dependency between the following binaries:
             :api:api:sharedLibrary

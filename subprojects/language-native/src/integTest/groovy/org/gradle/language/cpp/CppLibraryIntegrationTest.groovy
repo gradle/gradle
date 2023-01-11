@@ -87,7 +87,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
 
         expect:
         fails "assemble"
-        failure.assertHasDescription("Execution failed for task ':compileDebugCpp'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileDebugCpp'.")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
@@ -477,7 +477,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         fails(":consumer:compileDebugCpp")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':consumer:compileDebugCpp'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':consumer:compileDebugCpp'.")
         failure.assertThatCause(CoreMatchers.containsString("C++ compiler failed while compiling main.cpp."))
 
         when:
@@ -519,7 +519,7 @@ project(':greeter') {
         fails(":consumer:compileDebugCpp")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':consumer:compileDebugCpp'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':consumer:compileDebugCpp'.")
         failure.assertThatCause(CoreMatchers.containsString("C++ compiler failed while compiling main.cpp."))
 
         when:

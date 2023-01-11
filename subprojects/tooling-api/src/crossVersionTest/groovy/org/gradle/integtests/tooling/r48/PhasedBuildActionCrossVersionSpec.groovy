@@ -157,7 +157,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
         and:
         if (targetDist.toolingApiHasCauseOnPhasedActionFail) {
-            failure.assertHasDescription('actionFailure')
+            failure.assertHasDescriptionStartingWith('actionFailure')
         } else {
             failure.assertHasCause('actionFailure')
         }
@@ -192,7 +192,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         buildFinishedHandler.getResult() == null
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project")
         assertHasConfigureFailedLogging()
     }
 
@@ -224,7 +224,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         buildFinishedHandler.getResult() == null
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project")
         assertHasConfigureFailedLogging()
     }
 
@@ -256,7 +256,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         buildFinishedHandler.getResult() == null
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project")
         assertHasConfigureFailedLogging()
     }
 
@@ -289,7 +289,7 @@ class PhasedBuildActionCrossVersionSpec extends ToolingApiSpecification {
         buildFinishedHandler.getResult() == null
 
         and:
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':broken'.")
         assertHasBuildFailedLogging()
     }
 

@@ -52,7 +52,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         fails()
 
         and:
-        failure.assertHasDescription("Value '${dummyJdk.absolutePath}' given for org.gradle.java.home Gradle property is invalid (Java home supplied seems to be invalid)")
+        failure.assertHasDescriptionStartingWith("Value '${dummyJdk.absolutePath}' given for org.gradle.java.home Gradle property is invalid (Java home supplied seems to be invalid)")
     }
 
     @Requires(TestPrecondition.SYMLINKS)

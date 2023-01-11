@@ -260,7 +260,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // TODO - add some context to the failure
-        failure.assertHasDescription("broken")
+        failure.assertHasDescriptionStartingWith("broken")
 
         output.count("BROKEN:") == 1
 
@@ -273,7 +273,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // TODO - add some context to the failure
-        failure.assertHasDescription("broken")
+        failure.assertHasDescriptionStartingWith("broken")
 
         output.count("BROKEN:") == 1
 
@@ -301,7 +301,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // TODO - add some context to the failure
-        failure.assertHasDescription("Failed to create service 'broken'.")
+        failure.assertHasDescriptionStartingWith("Failed to create service 'broken'.")
         failure.assertHasCause("broken")
 
         output.count("BROKEN:") == 1
@@ -315,7 +315,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         // TODO - add some context to the failure
-        failure.assertHasDescription("Failed to create service 'broken'.")
+        failure.assertHasDescriptionStartingWith("Failed to create service 'broken'.")
         failure.assertHasCause("broken")
 
         output.count("BROKEN:") == 1

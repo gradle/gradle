@@ -48,7 +48,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
             .assertHasCause("No compatible toolchains found for request specification: {languageVersion=14, vendor=any, implementation=J9} (auto-detect true, auto-download true).")
     }
@@ -80,7 +80,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
             .assertHasCause("No compatible toolchains found for request specification: {languageVersion=14, vendor=any, implementation=vendor-specific} (auto-detect false, auto-download false)")
     }
@@ -110,7 +110,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
             .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=any, implementation=vendor-specific}) from 'http://exoticJavaToolchain.com/java-99'.")
             .assertHasCause("Attempting to download a file from an insecure URI http://exoticJavaToolchain.com/java-99. This is not supported, use a secure URI instead.")
@@ -129,16 +129,16 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             public abstract class CustomToolchainResolverPlugin implements Plugin<Settings> {
                 @Inject
                 protected abstract JavaToolchainResolverRegistry getToolchainResolverRegistry();
-            
+
                 void apply(Settings settings) {
                     settings.getPlugins().apply("jvm-toolchain-management");
-                
+
                     JavaToolchainResolverRegistry registry = getToolchainResolverRegistry();
                     registry.register(CustomToolchainResolver.class);
                 }
             }
-            
-            
+
+
             import java.util.Optional;
             import org.gradle.platform.BuildPlatform;
 
@@ -149,10 +149,10 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
                     return Optional.of(JavaToolchainDownload.fromUri(uri));
                 }
             }
-            
+
 
             apply plugin: CustomToolchainResolverPlugin
-                       
+
             toolchainManagement {
                 jvm {
                     javaRepositories {

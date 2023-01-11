@@ -46,7 +46,7 @@ class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec imple
         fails("show")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':show'.")
         failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
 
         where:
@@ -81,7 +81,7 @@ class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec imple
         fails("show")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':show'.")
         failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
 
         where:
@@ -112,7 +112,7 @@ task thing {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':thing'.")
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
 
         where:
@@ -143,7 +143,7 @@ task thing {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':thing'.")
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
 
         where:

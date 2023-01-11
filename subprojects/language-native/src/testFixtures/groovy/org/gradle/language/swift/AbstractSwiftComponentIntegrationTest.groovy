@@ -83,7 +83,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
 
         expect:
         fails "verifyBinariesSwiftVersion"
-        failure.assertHasDescription("A problem occurred configuring root project 'swift-project'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred configuring root project 'swift-project'.")
         failure.assertThatCause(CoreMatchers.containsString("property 'sourceCompatibility' is final and cannot be changed any further."))
     }
 
@@ -181,7 +181,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         fails taskNameToAssembleDevelopmentBinary
 
         then:
-        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task '$developmentBinaryCompileTask'.")
         failure.assertHasCause("Swift compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT4.version}'")
     }
 
@@ -210,7 +210,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         fails taskNameToAssembleDevelopmentBinary
 
         then:
-        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task '$developmentBinaryCompileTask'.")
         failure.assertHasCause("Swift compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT5.version}'")
     }
 
@@ -239,7 +239,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         fails taskNameToAssembleDevelopmentBinary
 
         then:
-        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task '$developmentBinaryCompileTask'.")
         failure.assertHasCause("Swift compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT5.version}'")
     }
 
@@ -268,7 +268,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
         fails taskNameToAssembleDevelopmentBinary
 
         then:
-        failure.assertHasDescription("Execution failed for task '$developmentBinaryCompileTask'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task '$developmentBinaryCompileTask'.")
         failure.assertHasCause("Swift compiler version '${toolChain.version}' doesn't support Swift language version '${SwiftVersion.SWIFT3.version}'")
     }
 
@@ -409,7 +409,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
 
         expect:
         fails taskNameToAssembleDevelopmentBinary
-        failure.assertHasDescription("A problem occurred configuring root project '${testDirectory.name}'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred configuring root project '${testDirectory.name}'.")
         failure.assertHasCause("A target machine needs to be specified")
     }
 

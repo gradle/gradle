@@ -105,7 +105,7 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "t"
-        failure.assertHasDescription("Execution failed for task ':buildSrc:compileGroovy'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':buildSrc:compileGroovy'.")
     }
 
     def "use of buildSrc does not expose Gradle runtime dependencies to build script"() {
@@ -123,7 +123,7 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         fails "t"
-        failure.assertHasDescription("Could not compile build file '$buildFile.canonicalPath'.")
+        failure.assertHasDescriptionStartingWith("Could not compile build file '$buildFile.canonicalPath'.")
     }
 
     def "build uses jar from buildSrc"() {

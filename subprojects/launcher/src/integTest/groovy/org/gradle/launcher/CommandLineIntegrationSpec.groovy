@@ -59,7 +59,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         fails "help"
 
         and:
-        failure.assertHasDescription "Value '$value' given for org.gradle.workers.max Gradle property is invalid (must be a positive, non-zero, integer)"
+        failure.assertHasDescriptionStartingWith "Value '$value' given for org.gradle.workers.max Gradle property is invalid (must be a positive, non-zero, integer)"
 
         where:
         value << ["-1", "0", "foo", " 1"]
@@ -186,7 +186,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         fails "help"
 
         and:
-        failure.assertHasDescription "Value '$value' given for org.gradle.debug.port Gradle property is invalid (must be a number between 1 and 65535)"
+        failure.assertHasDescriptionStartingWith "Value '$value' given for org.gradle.debug.port Gradle property is invalid (must be a number between 1 and 65535)"
 
         where:
         value << ["-1", "0", "1.1", "foo", " 1", "65536"]

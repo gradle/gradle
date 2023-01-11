@@ -1493,7 +1493,7 @@ ${verifFile.getText('us-ascii')}""", 'us-ascii')
         fails ":help"
 
         then:
-        failure.assertHasDescription terse ? """Dependency verification failed for configuration ':compileClasspath'
+        failure.assertHasDescriptionStartingWith terse ? """Dependency verification failed for configuration ':compileClasspath'
 One artifact failed verification: foo-1.0.jar (org:foo:1.0) from repository maven""" : """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0) in repository 'maven': Artifact was signed with key 'd7bf96a169f77b28c934ab1614f53f0824875d73' (Gradle Test (This is used for testing the gradle-signing-plugin) <test@gradle.org>) and passed verification but the key isn't in your trusted keys list.
 """

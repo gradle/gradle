@@ -762,7 +762,7 @@ task show {
 
         expect:
         fails "resolveView"
-        failure.assertHasDescription("Could not determine the dependencies of task ':app:resolveView'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':app:resolveView'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':app:compile'.")
         failure.assertHasCause("""The consumer was configured to find attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api'. However we cannot choose between the following variants of project :lib:
   - Configuration ':lib:compile' declares attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api':
@@ -872,7 +872,7 @@ task show {
         expect:
         fails "resolveView"
 
-        failure.assertHasDescription("Execution failed for task ':app:resolveView'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':app:resolveView'.")
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
 
         failure.assertHasCause("""No variants of project :lib match the consumer attributes:
@@ -969,7 +969,7 @@ task show {
 
         expect:
         fails(":app:resolve")
-        failure.assertHasDescription("Execution failed for task ':app:resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':app:resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
         failure.assertHasCause("Could not select a variant of project :lib that matches the consumer attributes.")
         failure.assertHasCause("Unexpected type for attribute 'attr' provided. Expected a value of type java.lang.String but found a value of type java.lang.Boolean.")

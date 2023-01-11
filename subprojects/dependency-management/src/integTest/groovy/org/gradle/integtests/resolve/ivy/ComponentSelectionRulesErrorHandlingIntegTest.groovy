@@ -50,7 +50,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
 
         then:
         fails ':checkDeps'
-        GradleContextualExecuter.configCache || failure.assertHasDescription("Execution failed for task ':checkDeps'.")
+        GradleContextualExecuter.configCache || failure.assertHasDescriptionStartingWith("Execution failed for task ':checkDeps'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(lines + 10)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
@@ -84,7 +84,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
 
         then:
         fails ':checkDeps'
-        GradleContextualExecuter.configCache || failure.assertHasDescription("Execution failed for task ':checkDeps'.")
+        GradleContextualExecuter.configCache || failure.assertHasDescriptionStartingWith("Execution failed for task ':checkDeps'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(40)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
@@ -153,7 +153,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
 
         then:
         fails ':checkDeps'
-        GradleContextualExecuter.configCache || failure.assertHasDescription("Execution failed for task ':checkDeps'.")
+        GradleContextualExecuter.configCache || failure.assertHasDescriptionStartingWith("Execution failed for task ':checkDeps'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(lines + 9)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")
@@ -256,7 +256,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
 
         then:
         fails ':checkDeps'
-        GradleContextualExecuter.configCache || failure.assertHasDescription("Execution failed for task ':checkDeps'.")
+        GradleContextualExecuter.configCache || failure.assertHasDescriptionStartingWith("Execution failed for task ':checkDeps'.")
         failure.assertHasFileName("Build file '$buildFile.path'")
         failure.assertHasLineNumber(lines + 21)
         failure.assertHasCause("There was an error while evaluating a component selection rule for org.utils:api:1.2.")

@@ -114,7 +114,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':codenarcTest'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':codenarcTest'.")
         failure.assertThatCause(startsWith("CodeNarc rule violations were found. See the report at:"))
         !report("main").text.contains("Class2")
         report("test").text.contains("testclass2")

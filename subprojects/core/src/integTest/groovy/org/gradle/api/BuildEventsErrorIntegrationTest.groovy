@@ -33,7 +33,7 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
         fails()
 
         then:
-        failure.assertHasDescription("broken")
+        failure.assertHasDescriptionStartingWith("broken")
                 .assertHasNoCause()
                 .assertHasFileName("Build file '$buildFile'")
                 .assertHasLineNumber(3)
@@ -52,7 +52,7 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
         fails()
 
         then:
-        failure.assertHasDescription("broken")
+        failure.assertHasDescriptionStartingWith("broken")
                 .assertHasNoCause()
                 .assertHasFileName("Build file '$buildFile'")
                 .assertHasLineNumber(3)
@@ -71,7 +71,7 @@ class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
         fails()
 
         then:
-        failure.assertHasDescription("broken")
+        failure.assertHasDescriptionStartingWith("broken")
                 .assertHasNoCause()
                 .assertHasFileName("Build file '$buildFile'")
                 .assertHasLineNumber(3)
@@ -88,7 +88,7 @@ allprojects {
         fails "a"
 
         then:
-        failure.assertHasDescription("broken")
+        failure.assertHasDescriptionStartingWith("broken")
                 .assertHasNoCause()
                 .assertHasFileName("Initialization script '$initScript'")
                 .assertHasLineNumber(3)
@@ -106,7 +106,7 @@ gradle.rootProject { task a }
         fails "a"
 
         then:
-        failure.assertHasDescription("broken")
+        failure.assertHasDescriptionStartingWith("broken")
                 .assertHasNoCause()
                 .assertHasFileName("Settings file '$settingsFile'")
                 .assertHasLineNumber(3)
@@ -132,7 +132,7 @@ gradle.rootProject { task a }
         fails "a"
 
         then:
-        failure.assertHasDescription("broken")
+        failure.assertHasDescriptionStartingWith("broken")
                 .assertHasNoCause()
                 .assertHasFileName("Settings file '$settingsFile'")
                 .assertHasLineNumber(3)
@@ -162,7 +162,7 @@ gradle.rootProject { task a }
         fails "a"
 
         then:
-        failure.assertHasDescription("broken")
+        failure.assertHasDescriptionStartingWith("broken")
                 .assertHasNoCause()
                 .assertHasFileName("Settings file '$settingsFile'")
                 .assertHasLineNumber(5)
@@ -191,11 +191,11 @@ gradle.rootProject { task a }
 
         then:
         failure.assertHasFailures(2)
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':broken'.")
                 .assertHasCause("broken task")
                 .assertHasFileName("Build file '$buildFile'")
                 .assertHasLineNumber(6)
-        failure.assertHasDescription("broken closure")
+        failure.assertHasDescriptionStartingWith("broken closure")
                 .assertHasFileName("Build file '$buildFile'")
                 .assertHasLineNumber(3)
     }

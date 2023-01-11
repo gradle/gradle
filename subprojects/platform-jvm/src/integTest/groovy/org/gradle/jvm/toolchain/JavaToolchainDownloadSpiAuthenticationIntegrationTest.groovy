@@ -42,7 +42,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
     def "can download without authentication"() {
         settingsFile << """
-            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode(archiveUri))}               
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode(archiveUri))}
             toolchainManagement {
                 jvm {
                     javaRepositories {
@@ -78,7 +78,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
                 .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileJava'.")
                 .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
                 .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '" + archiveUri + "'.")
@@ -105,7 +105,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
                         }
                     }
                 }
-            } 
+            }
         """
 
         buildFile << """
@@ -132,7 +132,7 @@ class JavaToolchainDownloadSpiAuthenticationIntegrationTest extends AbstractJava
                 .runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileJava'.")
                 .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
                 .assertHasCause("Unable to download toolchain matching the requirements ({languageVersion=99, vendor=matching('exotic'), implementation=vendor-specific}) from '" + archiveUri + "'.")

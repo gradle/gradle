@@ -34,7 +34,7 @@ class DaemonAuthenticationIntegrationSpec extends DaemonIntegrationSpec {
         fails()
 
         then:
-        failure.assertHasDescription("Unexpected authentication token in command")
+        failure.assertHasDescriptionStartingWith("Unexpected authentication token in command")
         daemon.log.contains("Unexpected authentication token in command")
 
         and:

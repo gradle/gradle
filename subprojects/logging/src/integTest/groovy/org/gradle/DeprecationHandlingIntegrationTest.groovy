@@ -122,7 +122,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         if (warnings == WarningMode.Fail) {
-            failure.assertHasDescription("Deprecated Gradle features were used in this build, making it incompatible with ${DefaultGradleVersion.current().nextMajorVersion}")
+            failure.assertHasDescriptionStartingWith("Deprecated Gradle features were used in this build, making it incompatible with ${DefaultGradleVersion.current().nextMajorVersion}")
         }
 
         where:
@@ -157,7 +157,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         fails('broken')
         output.contains('build.gradle:2)')
         failure.assertHasCause("Can't do that")
-        failure.assertHasDescription('Deprecated Gradle features were used in this build')
+        failure.assertHasDescriptionStartingWith('Deprecated Gradle features were used in this build')
     }
 
     def 'DeprecatedPlugin from init script - without full stacktrace.'() {

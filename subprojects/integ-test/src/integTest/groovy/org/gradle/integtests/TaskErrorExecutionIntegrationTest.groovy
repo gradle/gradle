@@ -40,7 +40,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
         failure.assertHasLineNumber(3)
-        failure.assertHasDescription("Execution failed for task ':do-stuff'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':do-stuff'.")
         failure.assertHasCause("broken")
     }
 
@@ -57,7 +57,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("Execution failed for task ':brokenClosure'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':brokenClosure'.")
         failure.assertHasCause("broken closure")
     }
 
@@ -86,7 +86,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         expect:
         fails "brokenJavaTask"
 
-        failure.assertHasDescription("Execution failed for task ':brokenJavaTask'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':brokenJavaTask'.")
         failure.assertHasCause("broken action")
     }
 
@@ -107,7 +107,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
         failure.assertHasLineNumber(5)
-        failure.assertHasDescription("Execution failed for task ':a:a'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':a:a'.")
         failure.assertHasCause("broken")
     }
 
@@ -149,7 +149,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         fails "someTest"
 
         then:
-        failure.assertHasDescription("Task 'someTest' not found in root project 'test' and its subprojects. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'.")
+        failure.assertHasDescriptionStartingWith("Task 'someTest' not found in root project 'test' and its subprojects. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'.")
         failure.assertHasResolutions(
             "Run gradle tasks to get a list of available tasks.",
             "Run with --info or --debug option to get more log output.",
@@ -159,7 +159,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         when:
         fails ":someTest"
         then:
-        failure.assertHasDescription("Cannot locate tasks that match ':someTest' as task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'.")
+        failure.assertHasDescriptionStartingWith("Cannot locate tasks that match ':someTest' as task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'.")
         failure.assertHasResolutions(
             "Run gradle tasks to get a list of available tasks.",
             "Run with --info or --debug option to get more log output.",
@@ -169,7 +169,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         when:
         fails "a:someTest"
         then:
-        failure.assertHasDescription("Cannot locate tasks that match 'a:someTest' as task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'.")
+        failure.assertHasDescriptionStartingWith("Cannot locate tasks that match 'a:someTest' as task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'.")
         failure.assertHasResolutions(
             "Run gradle tasks to get a list of available tasks.",
             "Run with --info or --debug option to get more log output.",
@@ -191,7 +191,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         when:
         fails "soTa"
         then:
-        failure.assertHasDescription("Task 'soTa' is ambiguous in root project 'test' and its subprojects. Candidates are: 'someTaskA', 'someTaskAll', 'someTaskB'.")
+        failure.assertHasDescriptionStartingWith("Task 'soTa' is ambiguous in root project 'test' and its subprojects. Candidates are: 'someTaskA', 'someTaskAll', 'someTaskB'.")
         failure.assertHasResolutions(
             "Run gradle tasks to get a list of available tasks.",
             "Run with --info or --debug option to get more log output.",
@@ -201,7 +201,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         when:
         fails "a:soTa"
         then:
-        failure.assertHasDescription("Cannot locate tasks that match 'a:soTa' as task 'soTa' is ambiguous in project ':a'. Candidates are: 'someTaskA', 'someTaskAll'.")
+        failure.assertHasDescriptionStartingWith("Cannot locate tasks that match 'a:soTa' as task 'soTa' is ambiguous in project ':a'. Candidates are: 'someTaskA', 'someTaskAll'.")
         failure.assertHasResolutions(
             "Run gradle tasks to get a list of available tasks.",
             "Run with --info or --debug option to get more log output.",
@@ -222,7 +222,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         fails "prog:someTask"
 
         then:
-        failure.assertHasDescription("Cannot locate tasks that match 'prog:someTask' as project 'prog' not found in root project 'test'. Some candidates are: 'projA', 'projB'.")
+        failure.assertHasDescriptionStartingWith("Cannot locate tasks that match 'prog:someTask' as project 'prog' not found in root project 'test'. Some candidates are: 'projA', 'projB'.")
         failure.assertHasResolutions(
             "Run gradle projects to get a list of available projects.",
             "Run with --info or --debug option to get more log output.",
@@ -243,7 +243,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         fails "proj:someTask"
 
         then:
-        failure.assertHasDescription("Cannot locate tasks that match 'proj:someTask' as project 'proj' is ambiguous in root project 'test'. Candidates are: 'projA', 'projB'.")
+        failure.assertHasDescriptionStartingWith("Cannot locate tasks that match 'proj:someTask' as project 'proj' is ambiguous in root project 'test'. Candidates are: 'projA', 'projB'.")
         failure.assertHasResolutions(
             "Run gradle projects to get a list of available projects.",
             "Run with --info or --debug option to get more log output.",

@@ -116,7 +116,7 @@ class ProjectVariantResolutionIntegrationTest extends AbstractIntegrationSpec im
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':a:resolve'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':a:resolve'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':a:resolver'.")
         failure.assertHasCause("Could not create task ':b:producer'.")
         failure.assertHasCause("broken")

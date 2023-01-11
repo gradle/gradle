@@ -179,7 +179,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         fails("pluginTask")
 
         then:
-        failure.assertHasDescription("""
+        failure.assertHasDescriptionStartingWith("""
             Plugin [id: 'org.example.foo', version: '1.1'] was not found in any of the following sources:
 
             - Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
@@ -287,7 +287,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
 
         expect:
         fails("helloWorld")
-        failure.assertHasDescription("Plugin [id: 'org.gradle.hello-world', version: '0.2'] was not found in any of the following sources:")
+        failure.assertHasDescriptionStartingWith("Plugin [id: 'org.gradle.hello-world', version: '0.2'] was not found in any of the following sources:")
     }
 
     def "verify plugin portal is not used when defining pluginManagement repos in settings plugin"() {

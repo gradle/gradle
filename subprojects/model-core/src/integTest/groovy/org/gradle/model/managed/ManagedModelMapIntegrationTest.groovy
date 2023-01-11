@@ -235,7 +235,7 @@ A managed collection can not contain 'java.io.InputStream's""")
         fails "tasks"
 
         and:
-        failure.assertHasDescription('A problem occurred configuring root project')
+        failure.assertHasDescriptionStartingWith('A problem occurred configuring root project')
         failure.assertHasCause('Exception thrown while executing model rule: Rules#people(ModelMap<Person>) > create(foo)')
         failure.assertHasCause('broken')
     }

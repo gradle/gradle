@@ -112,7 +112,7 @@ BUILD SUCCESSFUL in [ \\dms]+
 
         and:
         // Ensure the failure is a location that the fixtures can see
-        failure.assertHasDescription("Execution failed for task ':broken'")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':broken'")
         failure.assertHasCause("broken")
 
         // Check that the failure text appears either stdout or stderr

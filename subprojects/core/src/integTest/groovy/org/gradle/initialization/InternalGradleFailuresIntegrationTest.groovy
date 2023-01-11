@@ -92,7 +92,7 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
     private static void assertHasStartupFailure(ExecutionFailure failure, String cause, int failures = 1) {
         failure.assertHasFailures(failures)
-        failure.assertHasDescription("Gradle could not start your build.")
+        failure.assertHasDescriptionStartingWith("Gradle could not start your build.")
         failure.assertHasCause(cause)
     }
 }

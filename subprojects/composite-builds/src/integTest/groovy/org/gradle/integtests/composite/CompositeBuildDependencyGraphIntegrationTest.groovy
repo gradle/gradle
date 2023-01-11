@@ -62,7 +62,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkDependenciesFails()
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating project ':buildC'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating project ':buildC'.")
             .assertHasCause("exception thrown on configure")
     }
 
@@ -734,7 +734,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkDependenciesFails()
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':buildC:buildOutputs'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':buildC:buildOutputs'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':buildC:buildInputs'.")
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
@@ -750,7 +750,7 @@ Required by:
         checkDependenciesFails()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':buildC:buildOutputs'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':buildC:buildOutputs'.")
         failure.assertHasCause("Could not resolve all files for configuration ':buildC:buildInputs'.")
         failure.assertHasCause("Could not find test-1.2.jar (org.test:test:1.2).")
     }

@@ -166,7 +166,7 @@ thing.dependsOn before
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':thing'.")
         failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
@@ -190,7 +190,7 @@ task thing {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':thing'.")
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
@@ -348,42 +348,42 @@ task wrongPropertyElementTypeApi {
         fails("wrongValueTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongValueTypeDsl'.")
         failure.assertHasCause("Cannot set the value of a property of type java.util.List using an instance of type java.lang.Integer.")
 
         when:
         fails("wrongRuntimeElementType")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeElementType'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongRuntimeElementType'.")
         failure.assertHasCause("Cannot get the value of a property of type java.util.List with element type java.lang.String as the source value contains an element of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongPropertyTypeDsl'.")
         failure.assertHasCause("Cannot set the value of a property of type java.util.List using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyTypeApi")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongPropertyTypeApi'.")
         failure.assertHasCause("Cannot set the value of a property of type java.util.List using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyElementTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyElementTypeDsl'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongPropertyElementTypeDsl'.")
         failure.assertHasCause("Cannot set the value of a property of type java.util.List with element type java.lang.String using a provider with element type java.lang.Integer.")
 
         when:
         fails("wrongPropertyElementTypeApi")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyElementTypeApi'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongPropertyElementTypeApi'.")
         failure.assertHasCause("Cannot set the value of a property of type java.util.List with element type java.lang.String using a provider with element type java.lang.Integer.")
     }
 
@@ -469,7 +469,7 @@ task wrongPropertyElementTypeApi {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':thing'.")
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 

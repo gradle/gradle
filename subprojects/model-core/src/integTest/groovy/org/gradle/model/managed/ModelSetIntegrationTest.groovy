@@ -499,7 +499,7 @@ configure p3
         fails "printPeople"
 
         and:
-        failure.assertHasDescription('A problem occurred configuring root project')
+        failure.assertHasDescriptionStartingWith('A problem occurred configuring root project')
         failure.assertHasCause('Exception thrown while executing model rule: Rules#people')
         failure.assertHasCause('broken')
     }

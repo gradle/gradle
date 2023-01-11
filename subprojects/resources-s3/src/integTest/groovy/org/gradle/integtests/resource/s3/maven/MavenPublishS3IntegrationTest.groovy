@@ -103,7 +103,7 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
 
         then:
         notExecuted('jar', 'generatePomFileForMavenPublication')
-        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasDescriptionStartingWith("Credentials required for this build could not be resolved.")
         failure.assertHasCause("The following Gradle properties are missing for 'maven' credentials:")
         failure.assertHasErrorOutput("- mavenAccessKey")
         failure.assertHasErrorOutput("- mavenSecretKey")

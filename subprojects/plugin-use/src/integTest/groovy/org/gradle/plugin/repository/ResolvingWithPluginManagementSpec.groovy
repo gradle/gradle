@@ -111,7 +111,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         fails("pluginTask")
 
         then:
-        failure.assertHasDescription("Plugin [id: 'org.example.plugin'] was not found")
+        failure.assertHasDescriptionStartingWith("Plugin [id: 'org.example.plugin'] was not found")
     }
 
     def 'when invalid version is specified, resolution fails'() {
@@ -139,7 +139,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         fails("pluginTask")
 
         then:
-        failure.assertHasDescription("Plugin [id: 'org.example.plugin', version: 'x'] was not found")
+        failure.assertHasDescriptionStartingWith("Plugin [id: 'org.example.plugin', version: 'x'] was not found")
     }
 
     def 'when version range is specified, resolution succeeds'() {
@@ -195,7 +195,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         fails("pluginTask")
 
         then:
-        failure.assertHasDescription("Plugin [id: 'org.example.plugin', version: '1.2', artifact: 'org.example.plugin:plugin:x'] was not found")
+        failure.assertHasDescriptionStartingWith("Plugin [id: 'org.example.plugin', version: '1.2', artifact: 'org.example.plugin:plugin:x'] was not found")
     }
 
     def 'when artifact version range is specified, resolution succeeds'() {

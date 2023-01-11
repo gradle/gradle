@@ -65,7 +65,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
@@ -111,7 +111,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
@@ -193,7 +193,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("pmdMain")
-        failure.assertHasDescription("Execution failed for task ':pmdMain'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':pmdMain'.")
         failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
@@ -214,7 +214,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("pmdMain")
-        failure.assertHasDescription("Execution failed for task ':pmdMain'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':pmdMain'.")
         failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
@@ -231,7 +231,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("pmdMain")
-        failure.assertHasDescription("Execution failed for task ':pmdMain'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':pmdMain'.")
         failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
@@ -248,7 +248,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
         output.contains "\tUsing multiple unary operators may be a bug"
@@ -279,7 +279,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
         expect:
         fails("check")
-        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':pmdTest'.")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))

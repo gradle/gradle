@@ -139,7 +139,7 @@ task work {
 
         expect:
         fails("work")
-        failure.assertHasDescription("A problem was found with the configuration of task ':work' (type 'DefaultTask').")
+        failure.assertHasDescriptionStartingWith("A problem was found with the configuration of task ':work' (type 'DefaultTask').")
         failureDescriptionContains(inputDoesNotExist {
             property('$1')
                 .file(link)

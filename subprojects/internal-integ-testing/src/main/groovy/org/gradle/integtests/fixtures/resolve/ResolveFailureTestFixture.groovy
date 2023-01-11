@@ -53,9 +53,9 @@ class ResolveFailureTestFixture {
 
     void assertFailurePresent(ExecutionFailure failure) {
         if (GradleContextualExecuter.configCache) {
-            failure.assertHasDescription("Configuration cache state could not be cached")
+            failure.assertHasDescriptionStartingWith("Configuration cache state could not be cached")
         } else {
-            failure.assertHasDescription("Execution failed for task")
+            failure.assertHasDescriptionStartingWith("Execution failed for task")
         }
     }
 }

@@ -119,7 +119,7 @@ model {
         fails "compileMainExecutableMainC"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileMainExecutableMainC'.")
         failure.assertHasCause("""No tool chain is available to build for platform '${NativePlatformsTestFixture.defaultPlatformName}':
   - ${toolChain.instanceDisplayName}:
       - Could not find C compiler 'does-not-exist'""")
@@ -143,7 +143,7 @@ model {
         fails "compileMainExecutableMainC"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainC'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileMainExecutableMainC'.")
         failure.assertThatCause(CoreMatchers.startsWith("Could not find C compiler 'does-not-exist'"))
     }
 
@@ -164,7 +164,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':linkMainExecutable'.")
         failure.assertThatCause(CoreMatchers.startsWith("Could not find Linker 'does-not-exist'"))
     }
 }

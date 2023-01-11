@@ -449,7 +449,7 @@ model {
 
         then:
         executedAndNotSkipped compileTask
-        failure.assertHasDescription("Execution failed for task '${compileTask}'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task '${compileTask}'.")
     }
 
     @ToBeFixedForConfigurationCache

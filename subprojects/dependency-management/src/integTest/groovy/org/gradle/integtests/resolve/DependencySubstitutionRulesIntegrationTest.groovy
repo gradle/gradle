@@ -693,7 +693,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         fails ":impl:checkDeps"
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project 'depsub'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'depsub'.")
         failure.assertHasCause("Project with path ':doesnotexist' not found in build ':'.")
     }
 
@@ -1142,7 +1142,7 @@ Required by:
         fails "checkDeps"
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'root'.")
         failure.assertHasCause("Must specify version for target of dependency substitution")
     }
 

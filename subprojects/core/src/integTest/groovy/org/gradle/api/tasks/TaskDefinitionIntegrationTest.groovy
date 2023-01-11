@@ -236,7 +236,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails()
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating project ':child'.")
         failure.assertHasCause("Could not create task ':child:broken'.")
         failure.assertHasCause("Could not create task of type 'Broken'.")
         failure.assertHasCause("broken task")
@@ -255,7 +255,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails()
         failure.assertHasLineNumber(3)
-        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating project ':child'.")
         failure.assertHasCause("Could not create task ':child:broken'.")
         failure.assertHasCause("broken task")
     }
@@ -274,7 +274,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails()
         failure.assertHasLineNumber(3)
-        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating project ':child'.")
         failure.assertHasCause("Could not create task ':child:broken'.")
         failure.assertHasCause("broken task")
     }
@@ -296,7 +296,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         fails()
         failure.assertHasLineNumber(4)
-        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating project ':child'.")
         failure.assertHasCause("Could not create task ':child:broken'.")
         failure.assertHasCause("Could not create task of type 'Broken'.")
         failure.assertHasCause("broken task")
@@ -586,7 +586,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             def schema = tasks.collectionSchema.elements.collectEntries { e ->
                 [ e.name, e.publicType.simpleName ]
             }
-            
+
             // check some built-in tasks
             assert schema["help"] == "Help"
             assert schema["projects"] == "ProjectReportTask"

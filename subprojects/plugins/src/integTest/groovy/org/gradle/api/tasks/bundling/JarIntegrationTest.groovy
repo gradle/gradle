@@ -634,7 +634,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
         fails 'jar'
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'root'.")
         failure.assertHasCause(cause)
 
         where:

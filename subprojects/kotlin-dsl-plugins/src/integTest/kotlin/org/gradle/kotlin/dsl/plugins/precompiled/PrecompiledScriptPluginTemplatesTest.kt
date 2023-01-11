@@ -461,7 +461,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
         )
 
         buildAndFail("classes").run {
-            assertHasDescription(
+            assertHasDescriptionStartingWith(
                 "Execution failed for task ':compileKotlin'."
             )
             assertHasErrorOutput(

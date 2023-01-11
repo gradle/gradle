@@ -53,7 +53,7 @@ task block {
 
         then:
         stopsSingleDaemon()
-        failure.assertHasDescription(DaemonStoppedException.MESSAGE)
+        failure.assertHasDescriptionStartingWith(DaemonStoppedException.MESSAGE)
 
         build.waitForFailure()
     }

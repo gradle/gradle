@@ -36,7 +36,7 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
 """
         then:
         fails('test')
-        failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred configuring root project 'projectConfigure'.")
                 .assertHasCause("beforeProject failure")
                 .assertHasFileName("Settings file '${settingsFile.path}'")
                 .assertHasLineNumber(3)
@@ -55,7 +55,7 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
 """
         then:
         fails('test')
-        failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred configuring root project 'projectConfigure'.")
                 .assertHasCause("beforeProject failure")
                 .assertHasFileName("Settings file '${settingsFile.path}'")
                 .assertHasLineNumber(3)
@@ -73,7 +73,7 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
 """
         then:
         fails('test')
-        failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred configuring root project 'projectConfigure'.")
                 .assertHasCause("afterProject failure")
                 .assertHasFileName("Settings file '${settingsFile.path}'")
                 .assertHasLineNumber(3)
@@ -92,7 +92,7 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
 """
         then:
         fails('test')
-        failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred configuring root project 'projectConfigure'.")
                 .assertHasCause("afterProject failure")
                 .assertHasFileName("Settings file '${settingsFile.path}'")
                 .assertHasLineNumber(3)
@@ -114,7 +114,7 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
 """
         then:
         fails('test')
-        failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred configuring root project 'projectConfigure'.")
                 .assertHasCause("afterProject failure")
                 .assertHasFileName("Settings file '${settingsFile.path}'")
                 .assertHasLineNumber(4)
@@ -136,7 +136,7 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
 """
         then:
         fails('test')
-        failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred configuring root project 'projectConfigure'.")
                 .assertHasCause("afterProject failure")
                 .assertHasFileName("Settings file '${settingsFile.path}'")
                 .assertHasLineNumber(5)
@@ -152,7 +152,7 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
 """
         then:
         fails('test')
-        failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred configuring root project 'projectConfigure'.")
                 .assertHasCause("afterEvaluate failure")
                 .assertHasFileName("Build file '${buildFile.path}'")
                 .assertHasLineNumber(3)
@@ -169,7 +169,7 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
 """
         then:
         fails('test')
-        failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred configuring root project 'projectConfigure'.")
                 .assertHasCause("afterEvaluate failure")
                 .assertHasFileName("Build file '${buildFile.path}'")
                 .assertHasLineNumber(3)
@@ -187,11 +187,11 @@ class ProjectConfigureEventsErrorIntegrationTest extends AbstractIntegrationSpec
         then:
         fails('test')
         failure.assertHasFailures(2)
-        failure.assertHasDescription("A problem occurred evaluating root project 'projectConfigure'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'projectConfigure'.")
                 .assertHasCause("configure")
                 .assertHasFileName("Build file '${buildFile}'")
                 .assertHasLineNumber(6)
-        failure.assertHasDescription("A problem occurred configuring root project 'projectConfigure'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred configuring root project 'projectConfigure'.")
                 .assertHasCause("afterEvaluate failure")
                 .assertHasFileName("Build file '${buildFile}'")
                 .assertHasLineNumber(4)

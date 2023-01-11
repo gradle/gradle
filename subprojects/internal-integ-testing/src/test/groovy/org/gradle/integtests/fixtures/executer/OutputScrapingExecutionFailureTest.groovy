@@ -98,7 +98,7 @@ broken!
         e.message.trim().startsWith('Expected: <12>')
 
         when:
-        failure.assertHasDescription("broken!")
+        failure.assertHasDescriptionStartingWith("broken!")
 
         then:
         def e2 = thrown(AssertionError)
@@ -192,11 +192,11 @@ Reinstalling your operating system
         def failure = OutputScrapingExecutionFailure.from(output, "")
 
         then:
-        failure.assertHasDescription("something bad")
-        failure.assertHasDescription("something else bad")
+        failure.assertHasDescriptionStartingWith("something bad")
+        failure.assertHasDescriptionStartingWith("something else bad")
 
         when:
-        failure.assertHasDescription("other")
+        failure.assertHasDescriptionStartingWith("other")
 
         then:
         def e = thrown(AssertionError)
@@ -205,7 +205,7 @@ Expected: A failure description which is a string starting with "other"
      but: failure descriptions were [something bad, something else bad]''')
 
         when:
-        failure.assertHasDescription("cause")
+        failure.assertHasDescriptionStartingWith("cause")
 
         then:
         def e2 = thrown(AssertionError)
@@ -353,7 +353,7 @@ Some.Failure
         failure.assertHasLineNumber(4)
 
         and:
-        failure.assertHasDescription("Execution failed for task ':broken'")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':broken'")
         failure.assertHasCause("broken")
 
         and:

@@ -290,7 +290,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         withBuildCache().fails 'adHocTask'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':adHocTask'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':adHocTask'.")
         failure.assertHasCause("Could not evaluate spec for 'on CI'.")
     }
 

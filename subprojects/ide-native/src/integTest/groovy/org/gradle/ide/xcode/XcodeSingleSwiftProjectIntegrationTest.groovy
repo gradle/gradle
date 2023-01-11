@@ -547,7 +547,7 @@ class XcodeSingleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationSpe
             .withScheme('App')
             .fails()
         then:
-        result.assertHasDescription("Unknown Xcode target 'App', do you need to re-generate Xcode configuration?")
+        result.assertHasDescriptionStartingWith("Unknown Xcode target 'App', do you need to re-generate Xcode configuration?")
     }
 
     @Requires(TestPrecondition.XCODE)

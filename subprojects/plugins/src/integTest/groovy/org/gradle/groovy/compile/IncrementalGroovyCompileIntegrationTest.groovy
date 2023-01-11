@@ -46,7 +46,7 @@ class IncrementalGroovyCompileIntegrationTest extends AbstractIntegrationTest {
         file('src/main/groovy/IPerson.groovy').assertIsFile().copyFrom(file('NewIPerson.groovy'))
 
         ExecutionFailure failure = executer.withTasks("classes").runWithFailure();
-        failure.assertHasDescription("Execution failed for task ':compileGroovy'.");
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileGroovy'.");
     }
 
     @Test

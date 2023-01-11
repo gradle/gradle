@@ -53,7 +53,7 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
         }
 
         then:
-        execFailure(result).assertHasDescription("""
+        execFailure(result).assertHasDescriptionStartingWith("""
             |Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
             |
             |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
@@ -75,7 +75,7 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
         }
 
         then:
-        execFailure(result).assertHasDescription("""
+        execFailure(result).assertHasDescriptionStartingWith("""
             |Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
             |
             |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)

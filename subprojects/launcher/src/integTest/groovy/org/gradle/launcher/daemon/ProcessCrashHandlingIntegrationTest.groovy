@@ -174,7 +174,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
 
         then:
         failure.assertHasErrorOutput("----- Last  20 lines from daemon log file")
-        failure.assertHasDescription(DaemonDisappearedException.MESSAGE)
+        failure.assertHasDescriptionStartingWith(DaemonDisappearedException.MESSAGE)
     }
 
     def "client logs location of crash log on daemon crash"() {
@@ -199,7 +199,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         def failure = build.waitForFailure()
 
         then:
-        failure.assertHasDescription(DaemonDisappearedException.MESSAGE)
+        failure.assertHasDescriptionStartingWith(DaemonDisappearedException.MESSAGE)
         failure.assertHasErrorOutput("JVM crash log found: file://")
     }
 
@@ -214,7 +214,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         then:
         failure.assertHasErrorOutput("----- Last  20 lines from daemon log file")
         failure.assertHasErrorOutput(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)
-        failure.assertHasDescription(DaemonDisappearedException.MESSAGE)
+        failure.assertHasDescriptionStartingWith(DaemonDisappearedException.MESSAGE)
 
         and:
         daemons.daemon.stops()

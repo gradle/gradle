@@ -64,6 +64,12 @@ public class ErrorsOnStdoutScrapingExecutionFailure extends ErrorsOnStdoutScrapi
     }
 
     @Override
+    public ExecutionFailure assertHasDescriptionStartingWith(String context) {
+        delegate.assertHasDescriptionStartingWith(context);
+        return this;
+    }
+
+    @Override
     public ExecutionFailure assertHasDescription(String context) {
         delegate.assertHasDescription(context);
         return this;

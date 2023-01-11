@@ -334,7 +334,7 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
 
         then:
         configurationCache.assertStateStoreFailed()
-        failure.assertHasDescription("Configuration cache state could not be cached: field `value` of task `:broken` of type `SomeTask`: error writing value of type 'org.gradle.api.internal.provider.DefaultProvider'")
+        failure.assertHasDescriptionStartingWith("Configuration cache state could not be cached: field `value` of task `:broken` of type `SomeTask`: error writing value of type 'org.gradle.api.internal.provider.DefaultProvider'")
         failure.assertHasCause("broken!")
 
         where:

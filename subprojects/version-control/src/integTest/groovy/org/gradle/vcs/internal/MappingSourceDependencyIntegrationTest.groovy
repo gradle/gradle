@@ -48,7 +48,7 @@ class MappingSourceDependencyIntegrationTest extends AbstractSourceDependencyInt
         """
         expect:
         fails('assemble')
-        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':compileJava'.")
         failure.assertHasFileName("Settings file '$settingsFile.path'")
         failure.assertHasLineNumber(5)
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compileClasspath'.")
@@ -72,7 +72,7 @@ class MappingSourceDependencyIntegrationTest extends AbstractSourceDependencyInt
         fails('assemble')
         failure.assertHasFileName("Settings file '$settingsFile'")
         failure.assertHasLineNumber(5)
-        failure.assertHasDescription("A problem occurred evaluating settings 'test'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating settings 'test'.")
         failure.assertHasCause("""Cannot convert the provided notation to a module identifier: broken.
 The following types/formats are supported:
   - String describing the module in 'group:name' format, for example 'org.gradle:gradle-core'.""")

@@ -156,7 +156,7 @@ task thing(type: SomeTask) {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':thing'.")
         failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
     }
 
@@ -191,7 +191,7 @@ task thing(type: SomeTask) {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':thing'.")
         failure.assertHasCause("""Cannot query the value of task ':thing' property 'prop' because it has no value available.
 The value of this property is derived from:
   - extension 'custom2' property 'source'
@@ -235,7 +235,7 @@ task thing(type: SomeTask) {
         fails("thing")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':thing'.")
         failure.assertHasCause("Failed to calculate the value of task ':thing' property 'prop'.")
         failure.assertHasCause("broken")
     }
@@ -443,56 +443,56 @@ task wrongConventionRuntimeValueType {
         fails("wrongValueTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongValueTypeDsl'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongValueTypeDsl'.")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
 
         when:
         fails("wrongValueTypeApi")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongValueTypeApi'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongValueTypeApi'.")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyTypeDsl")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeDsl'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongPropertyTypeDsl'.")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongPropertyTypeApi")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongPropertyTypeApi'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongPropertyTypeApi'.")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongRuntimeType")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongRuntimeType'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongRuntimeType'.")
         failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
 
         when:
         fails("wrongConventionValueType")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongConventionValueType'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongConventionValueType'.")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using an instance of type java.lang.Integer.")
 
         when:
         fails("wrongConventionPropertyType")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongConventionPropertyType'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongConventionPropertyType'.")
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type java.lang.String using a provider of type java.lang.Integer.")
 
         when:
         fails("wrongConventionRuntimeValueType")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':wrongConventionRuntimeValueType'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':wrongConventionRuntimeValueType'.")
         failure.assertHasCause("Cannot get the value of extension 'custom' property 'prop' of type java.lang.String as the provider associated with this property returned a value of type java.lang.Integer.")
     }
 

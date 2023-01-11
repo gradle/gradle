@@ -34,7 +34,7 @@ class BuildScriptErrorIntegrationTest extends AbstractIntegrationSpec {
         fails()
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project 'ProjectError'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'ProjectError'.")
                 .assertHasCause("Could not find method createTakk() for arguments [do-stuff] on root project 'ProjectError")
                 .assertHasFileName("Build file '$buildFile'")
                 .assertHasLineNumber(2)
@@ -51,7 +51,7 @@ class BuildScriptErrorIntegrationTest extends AbstractIntegrationSpec {
         fails()
 
         then:
-        failure.assertHasDescription("Could not compile build file '${buildFile}'.")
+        failure.assertHasDescriptionStartingWith("Could not compile build file '${buildFile}'.")
                 .assertThatCause(containsString("build file '$buildFile': 3: unable to resolve class org.gradle.unknown.Unknown"))
                 .assertHasFileName("Build file '$buildFile'")
                 .assertHasLineNumber(3)
@@ -65,7 +65,7 @@ class BuildScriptErrorIntegrationTest extends AbstractIntegrationSpec {
 """
         then:
         fails('test')
-        failure.assertHasDescription("A problem occurred evaluating root project 'ProjectError'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'ProjectError'.")
                 .assertHasCause("script failure")
                 .assertHasFileName("Build file '${buildFile.path}'")
                 .assertHasLineNumber(2)
@@ -91,7 +91,7 @@ include 'child'
         fails()
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating project ':child'.")
                 .assertHasCause("failure")
                 .assertHasFileName("Build file '$childBuildFile'")
                 .assertHasLineNumber(3)
@@ -120,7 +120,7 @@ def doSomething() {
         fails()
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating project ':child'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating project ':child'.")
                 .assertHasCause("failure")
                 .assertHasFileName("Build file '$buildFile'")
                 .assertHasLineNumber(4)

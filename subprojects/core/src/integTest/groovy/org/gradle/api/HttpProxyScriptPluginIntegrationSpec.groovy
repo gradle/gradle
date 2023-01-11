@@ -108,7 +108,7 @@ class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         fails()
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating root project 'project'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'project'.")
                 .assertHasCause("Could not get resource '${server.uri}/external.gradle'.")
                 .assertHasCause("Connect to localhost:${testProxyServer.port}")
     }
@@ -129,7 +129,7 @@ class HttpProxyScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         fails()
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating root project 'project'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'project'.")
                 .assertHasCause("Could not get resource '${server.uri}/external.gradle'.")
                 .assertThatCause(CoreMatchers.containsString("Proxy Authentication Required"))
     }

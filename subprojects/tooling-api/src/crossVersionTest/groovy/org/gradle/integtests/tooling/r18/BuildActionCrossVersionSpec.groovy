@@ -79,7 +79,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.cause instanceof BrokenAction.CustomException
 
         and:
-        failure.assertHasDescription('this is a custom exception')
+        failure.assertHasDescriptionStartingWith('this is a custom exception')
         assertHasConfigureFailedLogging()
     }
 
@@ -112,7 +112,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.cause instanceof UnknownModelException
 
         and:
-        failure.assertHasDescription("No model of type 'CustomModel' is available in this build.")
+        failure.assertHasDescriptionStartingWith("No model of type 'CustomModel' is available in this build.")
         assertHasConfigureFailedLogging()
     }
 
@@ -148,7 +148,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.cause.message.contains('A problem occurred evaluating root project')
 
         and:
-        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasDescriptionStartingWith('A problem occurred evaluating root project')
         assertHasConfigureFailedLogging()
     }
 
@@ -172,7 +172,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.cause.message.contains('A problem occurred evaluating initialization script.')
 
         and:
-        failure.assertHasDescription('A problem occurred evaluating initialization script.')
+        failure.assertHasDescriptionStartingWith('A problem occurred evaluating initialization script.')
         assertHasConfigureFailedLogging()
     }
 
@@ -197,7 +197,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.cause.message.contains("A problem occurred evaluating settings 'root'.")
 
         and:
-        failure.assertHasDescription("A problem occurred evaluating settings 'root'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating settings 'root'.")
         assertHasConfigureFailedLogging()
     }
 
@@ -219,7 +219,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         e.cause.message.contains('A problem occurred configuring root project')
 
         and:
-        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasDescriptionStartingWith('A problem occurred evaluating root project')
         assertHasConfigureFailedLogging()
     }
 }

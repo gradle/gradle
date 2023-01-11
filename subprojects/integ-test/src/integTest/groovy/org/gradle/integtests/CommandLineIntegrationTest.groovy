@@ -49,7 +49,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Test
     void hasNonZeroExitCodeOnBuildFailure() {
         ExecutionFailure failure = executer.withTasks('unknown').runWithFailure()
-        failure.assertHasDescription("Task 'unknown' not found in root project 'commandLine'.")
+        failure.assertHasDescriptionStartingWith("Task 'unknown' not found in root project 'commandLine'.")
     }
 
     @Test

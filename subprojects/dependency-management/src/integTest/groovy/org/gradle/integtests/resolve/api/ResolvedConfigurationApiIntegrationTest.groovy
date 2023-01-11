@@ -107,7 +107,7 @@ task show {
         fails("show")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':show'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Could not find test:test1:1.2.")
         failure.assertHasCause("Could not resolve test:test2:1.2.")
@@ -141,7 +141,7 @@ task show {
         fails("show")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':show'.")
         failure.assertHasCause("Could not find test1-1.2.jar (test:test1:1.2).")
     }
 }

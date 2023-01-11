@@ -101,7 +101,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         fails(buildA, "taskFromPluginBuild")
 
         then:
-        failure.assertHasDescription("Could not compile build file '$buildA.buildFile.canonicalPath'.")
+        failure.assertHasDescriptionStartingWith("Could not compile build file '$buildA.buildFile.canonicalPath'.")
     }
 
     def "can co-develop plugin and consumer with both plugin and consumer as included builds"() {
@@ -556,7 +556,7 @@ Circular dependency between the following tasks:
         fails(buildA, "help")
 
         then:
-        failure.assertHasDescription("Plugin [id: 'a-plugin'] was not found in any of the following sources:")
+        failure.assertHasDescriptionStartingWith("Plugin [id: 'a-plugin'] was not found in any of the following sources:")
     }
 
     def "does not substitute plugin from root build into included build"() {
@@ -589,7 +589,7 @@ Circular dependency between the following tasks:
         fails(buildA, "help")
 
         then:
-        failure.assertHasDescription("Plugin [id: 'a-plugin'] was not found in any of the following sources:")
+        failure.assertHasDescriptionStartingWith("Plugin [id: 'a-plugin'] was not found in any of the following sources:")
     }
 
     def "does not substitute plugin from same build into included build"() {
@@ -607,7 +607,7 @@ Circular dependency between the following tasks:
         fails(buildA, "help")
 
         then:
-        failure.assertHasDescription("Plugin [id: 'org.test.plugin.pluginBuild'] was not found in any of the following sources:")
+        failure.assertHasDescriptionStartingWith("Plugin [id: 'org.test.plugin.pluginBuild'] was not found in any of the following sources:")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/14552")

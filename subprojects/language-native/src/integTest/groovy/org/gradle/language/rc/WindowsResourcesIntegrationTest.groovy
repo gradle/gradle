@@ -86,7 +86,7 @@ model {
 
         expect:
         fails "mainExecutable"
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileMainExecutableMainRc'.")
         failure.assertHasCause("A build operation failed.")
         failure.assertThatCause(containsText("Windows resource compiler failed while compiling broken.rc"))
     }

@@ -159,7 +159,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
         failure.assertHasCause("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
 
@@ -177,7 +177,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':publishMavenPublicationToMavenRepository'.")
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
         failure.assertHasCause("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
 
@@ -335,7 +335,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToIncompatible_repo_nameRepository'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':publishMavenPublicationToIncompatible_repo_nameRepository'.")
         failure.assertHasCause("Identity may contain only letters and digits, received: incompatible_repo_name")
     }
 
@@ -397,7 +397,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         notExecuted(':jar', ':publishMavenPublicationToMavenRepository')
-        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasDescriptionStartingWith("Credentials required for this build could not be resolved.")
         failure.assertHasCause("The following Gradle properties are missing for 'maven' credentials:")
         failure.assertHasErrorOutput("- mavenUsername")
         failure.assertHasErrorOutput("- mavenPassword")

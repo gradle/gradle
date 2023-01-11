@@ -197,7 +197,7 @@ credentials {
         fails 'publish'
 
         then:
-        failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
+        failure.assertHasDescriptionStartingWith('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
         failure.assertThatCause(CoreMatchers.containsString('Received status code 401 from server: Unauthorized'))
 
@@ -223,7 +223,7 @@ credentials {
         fails 'publish'
 
         then:
-        failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
+        failure.assertHasDescriptionStartingWith('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
         failure.assertThatCause(CoreMatchers.containsString('Received status code 500 from server: broken'))
 
@@ -234,7 +234,7 @@ credentials {
         fails 'publish'
 
         and:
-        failure.assertHasDescription('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
+        failure.assertHasDescriptionStartingWith('Execution failed for task \':publishIvyPublicationToIvyRepository\'.')
         failure.assertHasCause('Failed to publish publication \'ivy\' to repository \'ivy\'')
         failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
     }
@@ -531,7 +531,7 @@ credentials {
 
         then:
         notExecuted(':jar', ':publishIvyPublicationToIvyRepository')
-        failure.assertHasDescription("Credentials required for this build could not be resolved.")
+        failure.assertHasDescriptionStartingWith("Credentials required for this build could not be resolved.")
         failure.assertHasCause("The following Gradle properties are missing for 'ivy' credentials:")
         failure.assertHasErrorOutput("- ivyUsername")
         failure.assertHasErrorOutput("- ivyPassword")

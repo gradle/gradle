@@ -160,7 +160,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription "Execution failed for task ':publishIvyPublicationToIvyRepository'."
+        failure.assertHasDescriptionStartingWith "Execution failed for task ':publishIvyPublicationToIvyRepository'."
         failure.assertHasCause "Failed to publish publication 'ivy' to repository 'ivy'"
         failure.assertHasCause "Invalid publication 'ivy': organisation cannot be empty."
     }
@@ -189,7 +189,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':publishIvyPublicationToIvyRepository'.")
         failure.assertHasCause("Failed to publish publication 'ivy' to repository 'ivy'")
         failure.assertHasCause(message)
 
@@ -226,7 +226,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
         fails 'publish'
 
         then:
-        failure.assertHasDescription "A problem occurred configuring root project 'invalid'"
+        failure.assertHasDescriptionStartingWith "A problem occurred configuring root project 'invalid'"
         failure.assertHasCause "${invalidComponent} name 'bad:name' is not valid for publication. Must match regex [A-Za-z0-9_\\-.]+"
 
         where:

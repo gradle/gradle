@@ -520,7 +520,7 @@ BUILD SUCCESSFUL"""
         fails "help", "--tasssk", "help"
 
         then:
-        failure.assertHasDescription("Problem configuring task :help from command line.")
+        failure.assertHasDescriptionStartingWith("Problem configuring task :help from command line.")
         failure.assertHasCause("Unknown command-line option '--tasssk'.")
         failure.assertHasResolutions(
             "Run gradle help --task :help to get task usage details.",

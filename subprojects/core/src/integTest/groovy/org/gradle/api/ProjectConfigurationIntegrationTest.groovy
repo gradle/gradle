@@ -61,7 +61,7 @@ class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         def result = fails()
-        result.assertHasDescription("A problem occurred evaluating root project 'root'.")
+        result.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'root'.")
         failure.assertHasCause("Cannot run Project.afterEvaluate(Closure) when the project is already evaluated.")
     }
 
@@ -97,7 +97,7 @@ class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         def result = fails()
-        result.assertHasDescription("A problem occurred evaluating root project 'root'.")
+        result.assertHasDescriptionStartingWith("A problem occurred evaluating root project 'root'.")
         failure.assertHasCause("Cannot run Project.afterEvaluate(Action) when the project is already evaluated.")
     }
 }

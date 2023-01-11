@@ -67,14 +67,14 @@ class GradleEnterprisePluginEndOfBuildCallbackIntegrationTest extends AbstractIn
 
         then:
         plugin.assertEndOfBuildWithFailure(output, null)
-        failure.assertHasDescription("broken")
+        failure.assertHasDescriptionStartingWith("broken")
 
         when:
         fails "t", "-Dbuild-listener-failure"
 
         then:
         plugin.assertEndOfBuildWithFailure(output, null)
-        failure.assertHasDescription("broken")
+        failure.assertHasDescriptionStartingWith("broken")
     }
 
 }

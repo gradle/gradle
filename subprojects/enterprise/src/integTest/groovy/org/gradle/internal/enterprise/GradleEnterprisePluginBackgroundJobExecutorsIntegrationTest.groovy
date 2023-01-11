@@ -107,7 +107,7 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
         fails("check")
 
         then:
-        failure.assertHasDescription("Background job failed!")
+        failure.assertHasDescriptionStartingWith("Background job failed!")
     }
 
     def "background job failure at execution time fails build"() {
@@ -128,13 +128,13 @@ class GradleEnterprisePluginBackgroundJobExecutorsIntegrationTest extends Abstra
         fails("check")
 
         then:
-        failure.assertHasDescription("Background job failed!")
+        failure.assertHasDescriptionStartingWith("Background job failed!")
 
         when:
         fails("check")
 
         then:
-        failure.assertHasDescription("Background job failed!")
+        failure.assertHasDescriptionStartingWith("Background job failed!")
     }
 
     def "background jobs can run in parallel with tasks on #numWorkers workers"(int numWorkers) {

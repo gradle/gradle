@@ -117,7 +117,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
 
         expect:
         fails('assemble')
-        failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':compileJava'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compileClasspath'.")
         failure.assertHasCause("Could not locate default branch for Git repository at https://bad.invalid.")
     }
@@ -200,7 +200,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         expect:
         fails('assemble')
         assertRepoCheckedOut()
-        failure.assertHasDescription("Plugin [id: 'com.example.DoesNotExist'] was not found in any of the following sources:")
+        failure.assertHasDescriptionStartingWith("Plugin [id: 'com.example.DoesNotExist'] was not found in any of the following sources:")
     }
 
     @ToBeFixedForConfigurationCache

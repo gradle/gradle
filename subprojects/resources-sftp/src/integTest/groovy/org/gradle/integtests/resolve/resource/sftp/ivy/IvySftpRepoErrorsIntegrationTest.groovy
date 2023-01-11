@@ -49,7 +49,7 @@ class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionT
 
         then:
         fails 'retrieve'
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
             .assertHasCause("""Could not find org.group.name:projectA:1.2.
 Searched in the following locations:
@@ -85,7 +85,7 @@ Required by:
 
         then:
         fails 'retrieve'
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
             .assertHasCause("""Could not find any matches for org.group.name:projectA:1.+ as no versions of org.group.name:projectA are available.
 Searched in the following locations:
@@ -119,7 +119,7 @@ Required by:
         fails 'retrieve'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
             .assertHasCause('Could not resolve org.group.name:projectA:1.2')
             .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
@@ -152,7 +152,7 @@ Required by:
         fails 'retrieve'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
             .assertHasCause('Could not resolve org.group.name:projectA:1.2')
             .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
@@ -186,7 +186,7 @@ Required by:
         fails 'retrieve'
 
         and:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
             .assertHasCause('Could not resolve org.group.name:projectA:1.2')
             .assertHasCause("Could not connect to SFTP server at ${ivySftpRepo.serverUri}")
@@ -222,7 +222,7 @@ Required by:
         failure = executer.withTasks('retrieve').runWithFailure()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
             .assertHasCause('Could not resolve org.group.name:projectA:1.2')
             .assertHasCause("Could not get resource '${projectA.ivy.uri}'")
@@ -256,7 +256,7 @@ task retrieve(type: Sync) {
         expect:
         fails 'retrieve'
         and:
-        failure.assertHasDescription("Execution failed for task ':retrieve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':retrieve'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 'sftp'")
     }

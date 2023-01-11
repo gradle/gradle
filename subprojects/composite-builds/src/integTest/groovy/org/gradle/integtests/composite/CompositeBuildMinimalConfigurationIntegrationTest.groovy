@@ -166,7 +166,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
 
         and:
         failure.assertHasFileName("Build file '${buildB.buildFile}'")
-        failure.assertHasDescription("A problem occurred evaluating project ':buildB'.")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating project ':buildB'.")
         failure.assertHasCause("Configuration failed for buildB")
 
         where:

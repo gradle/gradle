@@ -334,7 +334,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':a:resolve'.")
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertHasCause("No service of type interface ${serviceType} available.")
 
@@ -431,7 +431,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':a:resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
@@ -523,7 +523,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':a:resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
@@ -575,7 +575,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':a:resolve'.")
         failure.assertHasCause("Could not resolve all files for configuration ':a:resolver'.")
         failure.assertHasCause("Failed to transform b.jar (project :b) to match attributes {artifactType=jar, color=green}.")
         failure.assertThatCause(matchesRegexp('Could not isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
@@ -622,7 +622,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasDescriptionStartingWith('A problem occurred evaluating root project')
         failure.assertHasCause('Could not create an instance of type MakeGreen$Parameters.')
         failure.assertHasCause('Could not generate a decorated class for type MakeGreen.Parameters.')
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method Parameters.getBad().")
@@ -689,7 +689,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasDescriptionStartingWith('A problem occurred evaluating root project')
         failure.assertHasCause('Some problems were found with the configuration of MakeGreen.')
         String conflictingAnnotationsMessage = conflictingAnnotationsMessage {
             inConflict('InputFile', 'InputArtifact', 'InputArtifactDependencies')
@@ -734,7 +734,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasDescriptionStartingWith('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
         failure.assertHasCause(invalidUseOfCacheableAnnotation {
             type('MakeGreen').invalidAnnotation(ann.simpleName).onlyMakesSenseOn('Task').includeLink()
@@ -784,7 +784,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasDescriptionStartingWith('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
         assertPropertyValidationErrors(bad: annotationInvalidInContext { annotation(ann.simpleName).forTransformAction() })
 
@@ -904,7 +904,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project")
         failure.assertHasCause("Could not register artifact transform MakeGreen (from {color=blue} to {color=green})")
         failure.assertHasCause("Cannot use @InputArtifact annotation on property MakeGreen.getInput() of type ${typeName}. Allowed property types: org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
 
@@ -944,7 +944,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         fails(":a:resolve")
 
         then:
-        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project")
         failure.assertHasCause("Could not register artifact transform MakeGreen (from {color=blue} to {color=green})")
         failure.assertHasCause("Cannot use @InputArtifactDependencies annotation on property MakeGreen.getDependencies() of type ${propertyType.name}. Allowed property types: org.gradle.api.file.FileCollection.")
 
@@ -982,7 +982,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         then:
         // Documents existing behaviour. Should fail eagerly and with a better error message
-        failure.assertHasDescription("Execution failed for task ':a:resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':a:resolve'.")
         failure.assertHasCause("Execution failed for MakeGreen: ${file('b/build/b.jar')}.")
         failure.assertHasCause("No service of type class ${File.name} available.")
     }
@@ -1003,7 +1003,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         expect:
         fails('broken')
-        failure.assertHasDescription("A problem was found with the configuration of task ':broken' (type 'MyTask').")
+        failure.assertHasDescriptionStartingWith("A problem was found with the configuration of task ':broken' (type 'MyTask').")
         failure.assertThatDescription(containsString(invalidUseOfCacheableAnnotation {
             type('MyTask').invalidAnnotation('CacheableTransform').onlyMakesSenseOn('TransformAction').includeLink()
         }))
@@ -1033,7 +1033,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         expect:
         // Probably should be eager
         fails('broken')
-        failure.assertHasDescription("Some problems were found with the configuration of task ':broken' (type 'MyTask').")
+        failure.assertHasDescriptionStartingWith("Some problems were found with the configuration of task ':broken' (type 'MyTask').")
         failure.assertThatDescription(containsString(invalidUseOfCacheableAnnotation {
             type('Options').invalidAnnotation('CacheableTask').onlyMakesSenseOn('Task').includeLink()
         }))
@@ -1054,7 +1054,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         expect:
         fails('broken')
-        failure.assertHasDescription("A problem occurred evaluating root project")
+        failure.assertHasDescriptionStartingWith("A problem occurred evaluating root project")
         failure.assertHasCause("Could not create task of type 'MyTask'.")
         failure.assertHasCause("Could not generate a decorated class for type MyTask.")
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MyTask.getThing().")

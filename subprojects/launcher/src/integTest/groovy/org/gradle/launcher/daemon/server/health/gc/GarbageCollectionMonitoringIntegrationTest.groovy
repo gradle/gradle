@@ -78,7 +78,7 @@ To disable this warning, set 'org.gradle.daemon.performance.disable-logging=true
         fails "injectEvents"
 
         then:
-        failure.assertHasDescription("Gradle build daemon has been stopped: since the JVM garbage collector is thrashing")
+        failure.assertHasDescriptionStartingWith("Gradle build daemon has been stopped: since the JVM garbage collector is thrashing")
 
         and:
         daemons.daemon.stops()

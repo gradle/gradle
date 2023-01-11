@@ -85,7 +85,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
 
         then:
         def failure = fails 'classes'
-        failure.assertHasDescription "Execution failed for task ':${language.compileTaskName}'."
+        failure.assertHasDescriptionStartingWith "Execution failed for task ':${language.compileTaskName}'."
     }
 
     def "recompiles dependent classes across project boundaries"() {
@@ -114,7 +114,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
 
         then:
         def failure = fails 'app:classes'
-        failure.assertHasDescription "Execution failed for task ':app:${language.compileTaskName}'."
+        failure.assertHasDescriptionStartingWith "Execution failed for task ':app:${language.compileTaskName}'."
     }
 
     def "task outcome is UP-TO-DATE when no recompilation necessary"() {

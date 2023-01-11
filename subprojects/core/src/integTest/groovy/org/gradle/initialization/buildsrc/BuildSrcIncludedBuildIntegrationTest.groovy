@@ -156,7 +156,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails("help")
         then:
-        failure.assertHasDescription("Plugin [id: 'test-plugin'] was not found in any of the following sources")
+        failure.assertHasDescriptionStartingWith("Plugin [id: 'test-plugin'] was not found in any of the following sources")
     }
 
     def "buildSrc can apply plugins contributed by a build included from CLI"() {
@@ -317,7 +317,7 @@ class BuildSrcIncludedBuildIntegrationTest extends AbstractIntegrationSpec {
         when:
         fails("help")
         then:
-        failure.assertHasDescription("Execution failed for task ':included:compileJava'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':included:compileJava'.")
         failure.assertHasCause("Compilation failed; see the compiler error output for details.")
     }
 

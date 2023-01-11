@@ -139,7 +139,7 @@ dependencies {
         fails 'resolve'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':resolve'.")
         failure.assertHasLineNumber(lines + 6)
         failure.assertHasCause("Could not resolve all files for configuration ':conf'.")
         failure.assertHasCause("Could not resolve org.test:projectA:1.0.")

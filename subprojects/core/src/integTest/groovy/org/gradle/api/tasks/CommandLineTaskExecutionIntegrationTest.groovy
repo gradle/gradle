@@ -31,7 +31,7 @@ class CommandLineTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails(taskName)
 
         then:
-        failure.assertHasDescription(message)
+        failure.assertHasDescriptionStartingWith(message)
 
         where:
         taskName | message

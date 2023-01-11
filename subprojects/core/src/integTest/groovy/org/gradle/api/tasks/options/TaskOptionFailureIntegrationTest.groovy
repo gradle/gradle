@@ -54,7 +54,7 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
         runAndFail 'someTask', '--first'
 
         then:
-        failure.assertHasDescription("Problem configuring task :other:someTask from command line.")
+        failure.assertHasDescriptionStartingWith("Problem configuring task :other:someTask from command line.")
         failure.assertHasCause("Unknown command-line option '--first'.")
     }
 
@@ -72,7 +72,7 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
         runAndFail 'someTask', '--second', 'foo', 'someTask2', '--secon', 'bar'
 
         then:
-        failure.assertHasDescription("Problem configuring task :someTask2 from command line.")
+        failure.assertHasDescriptionStartingWith("Problem configuring task :someTask2 from command line.")
         failure.assertHasCause("Unknown command-line option '--secon'.")
 
         //TODO it's not fixable easily we would need to change some stuff in options parsing. See also ignored test method below.
@@ -86,14 +86,14 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
         runAndFail 'someTask', '--second'
 
         then:
-        failure.assertHasDescription("Problem configuring task :someTask from command line.")
+        failure.assertHasDescriptionStartingWith("Problem configuring task :someTask from command line.")
         failure.assertHasCause("No argument was provided for command-line option '--second' with description: 'configures 'second' field'")
 
         when:
         runAndFail 'someTask', '--second', 'hey', '--second', 'buddy'
 
         then:
-        failure.assertHasDescription("Problem configuring task :someTask from command line.")
+        failure.assertHasDescriptionStartingWith("Problem configuring task :someTask from command line.")
         failure.assertHasCause("Multiple arguments were provided for command-line option '--second'.")
     }
 
@@ -102,7 +102,7 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
         runAndFail 'help', '-isk'
 
         then:
-        failure.assertHasDescription("Problem configuring task :help from command line.")
+        failure.assertHasDescriptionStartingWith("Problem configuring task :help from command line.")
         failure.assertHasCause("Unknown command-line option '-k'.")
     }
 
@@ -120,7 +120,7 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
         runAndFail 'someTask', '--first', '-second', 'foo'
 
         then:
-        failure.assertHasDescription("Incorrect command line arguments: [-l, -l]. Task options require double dash, for example: 'gradle tasks --all'.")
+        failure.assertHasDescriptionStartingWith("Incorrect command line arguments: [-l, -l]. Task options require double dash, for example: 'gradle tasks --all'.")
     }
 
     def "decent error for invalid enum value"() {
@@ -135,7 +135,7 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
         runAndFail 'someTask', '--myProp', 'unsupportedValue'
 
         then:
-        failure.assertHasDescription("Problem configuring option 'myProp' on task ':someTask' from command line.")
+        failure.assertHasDescriptionStartingWith("Problem configuring option 'myProp' on task ':someTask' from command line.")
         failure.assertHasCause("Cannot convert string value 'unsupportedValue' to an enum value of type 'SampleTask\$TestEnum' (valid case insensitive values: OPT_1, OPT_2, OPT_3)")
     }
 
@@ -151,14 +151,14 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
         runAndFail 'someTask', '--myProp', 'unsupportedValue'
 
         then:
-        failure.assertHasDescription("Problem configuring option 'myProp' on task ':someTask' from command line.")
+        failure.assertHasDescriptionStartingWith("Problem configuring option 'myProp' on task ':someTask' from command line.")
         failure.assertHasCause("Cannot convert string value 'unsupportedValue' to an enum value of type 'SampleTask\$TestEnum' (valid case insensitive values: OPT_1, OPT_2, OPT_3)")
 
         when:
         runAndFail 'someTask', '--myProp', 'OPT_1,OPT_2'
 
         then:
-        failure.assertHasDescription("Problem configuring option 'myProp' on task ':someTask' from command line.")
+        failure.assertHasDescriptionStartingWith("Problem configuring option 'myProp' on task ':someTask' from command line.")
         failure.assertHasCause("Cannot convert string value 'OPT_1,OPT_2' to an enum value of type 'SampleTask\$TestEnum' (valid case insensitive values: OPT_1, OPT_2, OPT_3)")
     }
 
@@ -189,7 +189,7 @@ class TaskOptionFailureIntegrationTest extends AbstractOptionIntegrationSpec {
         runAndFail 'check', '--tests', 'abc'
 
         then:
-        failure.assertHasDescription('Problem configuring task :check from command line.')
+        failure.assertHasDescriptionStartingWith('Problem configuring task :check from command line.')
         failure.assertHasCause("Unknown command-line option '--tests'")
     }
 

@@ -120,12 +120,12 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile file = testFile("unknown");
 
         ExecutionFailure result = usingBuildFile(file).runWithFailure();
-        result.assertHasDescription("The specified build file '" + file + "' does not exist.");
+        result.assertHasDescriptionStartingWith("The specified build file '" + file + "' does not exist.");
 
         file.createDir();
 
         result = usingBuildFile(file).runWithFailure();
-        result.assertHasDescription("The specified build file '" + file + "' is not a file.");
+        result.assertHasDescriptionStartingWith("The specified build file '" + file + "' is not a file.");
     }
 
     @Test
@@ -133,12 +133,12 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile file = testFile("unknown");
 
         ExecutionFailure result = usingProjectDir(file).runWithFailure();
-        result.assertHasDescription("The specified project directory '" + file + "' does not exist.");
+        result.assertHasDescriptionStartingWith("The specified project directory '" + file + "' does not exist.");
 
         file.createFile();
 
         result = usingProjectDir(file).runWithFailure();
-        result.assertHasDescription("The specified project directory '" + file + "' is not a directory.");
+        result.assertHasDescriptionStartingWith("The specified project directory '" + file + "' is not a directory.");
     }
 
     @Test
@@ -146,12 +146,12 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile file = testFile("unknown");
 
         ExecutionFailure result = inTestDirectory().usingSettingsFile(file).runWithFailure();
-        result.assertHasDescription("The specified settings file '" + file + "' does not exist.");
+        result.assertHasDescriptionStartingWith("The specified settings file '" + file + "' does not exist.");
 
         file.createDir();
 
         result = inTestDirectory().usingSettingsFile(file).runWithFailure();
-        result.assertHasDescription("The specified settings file '" + file + "' is not a file.");
+        result.assertHasDescriptionStartingWith("The specified settings file '" + file + "' is not a file.");
     }
 
     @Issue("gradle/gradle#4672")
@@ -160,12 +160,12 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile file = testFile("unknown");
 
         ExecutionFailure result = inTestDirectory().usingInitScript(file).runWithFailure();
-        result.assertHasDescription("The specified initialization script '" + file + "' does not exist.");
+        result.assertHasDescriptionStartingWith("The specified initialization script '" + file + "' does not exist.");
 
         file.createDir();
 
         result = inTestDirectory().usingInitScript(file).runWithFailure();
-        result.assertHasDescription("The specified initialization script '" + file + "' is not a file.");
+        result.assertHasDescriptionStartingWith("The specified initialization script '" + file + "' is not a file.");
     }
 
     @Issue("gradle/gradle#4672")
@@ -175,7 +175,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile initFile2 = testFile("init2");
 
         ExecutionFailure result = inTestDirectory().usingInitScript(initFile1).usingInitScript(initFile2).runWithFailure();
-        result.assertHasDescription("The specified initialization script '" + initFile2 + "' does not exist.");
+        result.assertHasDescriptionStartingWith("The specified initialization script '" + initFile2 + "' does not exist.");
     }
 
     @Test
@@ -187,11 +187,11 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         TestFile buildFile = projectDir.file("build.gradle").createFile();
 
         ExecutionFailure result = usingProjectDir(projectDir).withTasks("tasks").runWithFailure();
-        result.assertHasDescription(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", projectDir, settingsFile));
+        result.assertHasDescriptionStartingWith(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", projectDir, settingsFile));
 
         executer.expectDeprecationWarnings(2);
         result = usingBuildFile(buildFile).usingSettingsFile(settingsFile).withTasks("tasks").runWithFailure();
-        result.assertHasDescription(String.format("Build file '%s' is not part of the build defined by settings file '%s'.", buildFile, settingsFile));
+        result.assertHasDescriptionStartingWith(String.format("Build file '%s' is not part of the build defined by settings file '%s'.", buildFile, settingsFile));
     }
 
     @Test
@@ -242,14 +242,14 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         subDirectory.file("build.gradle").write("");
 
         ExecutionFailure result = inDirectory(subDirectory).withTasks("tasks").runWithFailure();
-        result.assertHasDescription(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", subDirectory, settingsFile));
+        result.assertHasDescriptionStartingWith(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", subDirectory, settingsFile));
 
         executer.expectDeprecationWarnings(1);
         result = usingBuildFile(subBuildFile).inDirectory(subDirectory).withTasks("tasks").runWithFailure();
-        result.assertHasDescription(String.format("Build file '%s' is not part of the build defined by settings file '%s'.", subBuildFile, settingsFile));
+        result.assertHasDescriptionStartingWith(String.format("Build file '%s' is not part of the build defined by settings file '%s'.", subBuildFile, settingsFile));
 
         result = usingProjectDir(subDirectory).withTasks("tasks").runWithFailure();
-        result.assertHasDescription(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", subDirectory, settingsFile));
+        result.assertHasDescriptionStartingWith(String.format("Project directory '%s' is not part of the build defined by settings file '%s'.", subDirectory, settingsFile));
     }
 
     @Test
@@ -384,6 +384,6 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         getTestDirectory().createDir("root").file("build.gradle").writelns("task thing");
 
         inTestDirectory().withArguments("-p", settingsDir.getAbsolutePath()).withTasks("thing").runWithFailure()
-            .assertHasDescription("Task 'thing' not found in root project 'gradle'.");
+            .assertHasDescriptionStartingWith("Task 'thing' not found in root project 'gradle'.");
     }
 }

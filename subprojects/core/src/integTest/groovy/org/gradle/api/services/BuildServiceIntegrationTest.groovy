@@ -550,7 +550,7 @@ service: closed with value 12
         fails 'missingService'
 
         then:
-        failure.assertHasDescription("Execution failed for task ':missingService'")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':missingService'")
         failure.assertHasCause("Cannot query the value of task ':missingService' property 'counter' because it has no value available.")
     }
 
@@ -1248,7 +1248,7 @@ Hello, subproject1
         fails("check")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':check'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':check'.")
         failure.assertHasCause("Services of type ${serviceType.simpleName} are not available for injection into instances of type BuildService.")
 
         where:
@@ -1380,11 +1380,11 @@ Hello, subproject1
 
         then:
         failure.assertHasFailures(2)
-        failure.assertHasDescription("Execution failed for task ':first'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':first'.")
         failure.assertHasCause("Failed to create service 'counter1'.")
         failure.assertHasCause("Could not create an instance of type CountingService.")
         failure.assertHasCause("broken")
-        failure.assertHasDescription("Execution failed for task ':second'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':second'.")
         failure.assertHasCause("Failed to create service 'counter2'.")
         failure.assertHasCause("Could not create an instance of type CountingService.")
         failure.assertHasCause("broken")
@@ -1394,11 +1394,11 @@ Hello, subproject1
 
         then:
         failure.assertHasFailures(2)
-        failure.assertHasDescription("Execution failed for task ':first'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':first'.")
         failure.assertHasCause("Failed to create service 'counter1'.")
         failure.assertHasCause("Could not create an instance of type CountingService.")
         failure.assertHasCause("broken")
-        failure.assertHasDescription("Execution failed for task ':second'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':second'.")
         failure.assertHasCause("Failed to create service 'counter2'.")
         failure.assertHasCause("Could not create an instance of type CountingService.")
         failure.assertHasCause("broken")

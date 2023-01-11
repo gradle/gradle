@@ -519,7 +519,7 @@ class JacocoAggregationIntegrationTest extends AbstractIntegrationSpec {
         fails(":application:testCodeCoverageReport")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':direct:test'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':direct:test'.")
             .assertThatCause(startsWith("There were failing tests"))
         result.assertTaskNotExecuted(':application:testCodeCoverageReport"')
 

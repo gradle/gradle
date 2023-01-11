@@ -267,6 +267,6 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':linkMainExecutable'.")
     }
 }

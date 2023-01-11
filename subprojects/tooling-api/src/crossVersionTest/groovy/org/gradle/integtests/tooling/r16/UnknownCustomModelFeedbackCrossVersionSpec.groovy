@@ -37,7 +37,7 @@ class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification
         e.message == "No model of type 'CustomModel' is available in this build."
 
         and:
-        failure.assertHasDescription("No builders are available to build a model of type 'org.gradle.integtests.tooling.r16.CustomModel'.")
+        failure.assertHasDescriptionStartingWith("No builders are available to build a model of type 'org.gradle.integtests.tooling.r16.CustomModel'.")
         assertHasConfigureFailedLogging()
     }
 

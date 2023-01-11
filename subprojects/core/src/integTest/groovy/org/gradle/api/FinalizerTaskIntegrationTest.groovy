@@ -706,7 +706,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails 'a'
-            failure.assertHasDescription """|Circular dependency between the following tasks:
+            failure.assertHasDescriptionStartingWith """|Circular dependency between the following tasks:
                                             |:a
                                             |\\--- :c
                                             |     \\--- :b
@@ -733,7 +733,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails 'a'
-            failure.assertHasDescription """|Circular dependency between the following tasks:
+            failure.assertHasDescriptionStartingWith """|Circular dependency between the following tasks:
                                             |:c
                                             |\\--- :c (*)
                                             |
@@ -762,7 +762,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         expect:
         2.times {
             fails 'a'
-            failure.assertHasDescription """|Circular dependency between the following tasks:
+            failure.assertHasDescriptionStartingWith """|Circular dependency between the following tasks:
                                             |:d
                                             |\\--- :f
                                             |     \\--- :e

@@ -527,7 +527,7 @@ Variant 'bar' capability test:b:unspecified declares attribute 'flavor' with val
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':a:checkDebug'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:_compileFreeDebug'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("""No matching variant of project :b was found. The consumer was configured to find attribute 'flavor' with value 'free', attribute 'buildType' with value 'debug' but:
@@ -572,7 +572,7 @@ Variant 'bar' capability test:b:unspecified declares attribute 'flavor' with val
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':a:checkDebug'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:compile'.")
         failure.assertHasCause("Could not resolve project :b.")
         failure.assertHasCause("""Cannot choose between the following variants of project :b:

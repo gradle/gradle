@@ -306,7 +306,7 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         fails("runInWorker")
 
         and:
-        failure.assertHasDescription("Execution failed for task ':runInWorker'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':runInWorker'.")
         failure.assertHasCause("Could not create an instance of type TestWorkAction.")
         failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of type $forbiddenType.simpleName, or no service of type $forbiddenType.simpleName")
 

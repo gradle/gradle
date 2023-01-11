@@ -457,7 +457,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
         expect:
         fails "myTask"
-        failure.assertHasDescription("Execution failed for task ':myTask'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':myTask'.")
         failure.assertHasCause("BOOM")
 
         where:
@@ -496,7 +496,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
         expect:
         fails "myTask"
-        failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'TaskWithAbsentNestedInput').")
+        failure.assertHasDescriptionStartingWith("A problem was found with the configuration of task ':myTask' (type 'TaskWithAbsentNestedInput').")
         failureDescriptionContains(missingValueMessage { type('TaskWithAbsentNestedInput').property('nested') })
 
         where:
@@ -690,7 +690,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
         expect:
         fails "myTask"
-        failure.assertHasDescription("Could not determine the dependencies of task ':myTask'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':myTask'.")
         failure.assertHasCause("Cycles between nested beans are not allowed. Cycle detected between: 'nested' and 'nested.nested'.")
     }
 

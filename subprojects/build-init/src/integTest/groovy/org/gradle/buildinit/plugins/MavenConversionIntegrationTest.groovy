@@ -185,7 +185,7 @@ Root project 'webinar-parent'
 
         then:
         // when tests fail, jar may not exist
-        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
     }
 
@@ -205,7 +205,7 @@ Root project 'webinar-parent'
 
         then:
         targetDir.file("build/libs/util-2.5.jar").exists()
-        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
     }
 
@@ -283,7 +283,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
         then:
         // when tests fail, jar may not exist
-        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
     }
 
@@ -308,7 +308,7 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
 
         then:
         targetDir.file("build/libs/util-2.5.jar").exists()
-        failure.assertHasDescription("Execution failed for task ':test'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':test'.")
         failure.assertHasCause("There were failing tests.")
     }
 

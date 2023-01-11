@@ -359,7 +359,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         fails "init"
-        failure.assertHasDescription("Task 'init' not found in project ':some-thing'.")
+        failure.assertHasDescriptionStartingWith("Task 'init' not found in project ':some-thing'.")
         targetDir.assertHasDescendants("build.gradle")
     }
 
@@ -372,7 +372,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         fails "init"
-        failure.assertHasDescription("Task 'init' not found in project ':some-thing'.")
+        failure.assertHasDescriptionStartingWith("Task 'init' not found in project ':some-thing'.")
         targetDir.listFiles().size() == 0 // Is still empty
     }
 

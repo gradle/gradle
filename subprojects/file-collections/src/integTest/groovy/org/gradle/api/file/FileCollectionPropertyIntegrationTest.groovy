@@ -45,7 +45,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         fails("show")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':show'.")
         failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
 
         where:
@@ -79,7 +79,7 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         fails("show")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':show'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':show'.")
         failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
     }
 

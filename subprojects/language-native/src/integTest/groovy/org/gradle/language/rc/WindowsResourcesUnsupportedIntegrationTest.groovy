@@ -89,7 +89,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':compileMainExecutableMainRc'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':compileMainExecutableMainRc'.")
         failure.assertHasCause("Windows resource compiler is not available")
     }
 }

@@ -82,7 +82,7 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         def result = pluginTaskExecutedWith(version(getPrevious())).runWithFailure()
 
         then:
-        result.assertHasDescription("An exception occurred applying plugin request [id: '$PLUGIN_ID', version: '1.0']")
+        result.assertHasDescriptionStartingWith("An exception occurred applying plugin request [id: '$PLUGIN_ID', version: '1.0']")
         result.assertHasCause("Failed to apply plugin [id '$PLUGIN_ID']")
         result.assertHasCause('Precompiled Groovy script plugins require Gradle 5.0 or higher')
         result.assertNotOutput("$PLUGIN_ID applied")

@@ -44,7 +44,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         and:
-        failure.assertHasDescription("Included build '${buildDir.absolutePath}' does not exist.")
+        failure.assertHasDescriptionStartingWith("Included build '${buildDir.absolutePath}' does not exist.")
     }
 
     def "reports failure when included build directory is not a directory"() {
@@ -56,7 +56,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         and:
-        failure.assertHasDescription("Included build '${buildDir.absolutePath}' is not a directory.")
+        failure.assertHasDescriptionStartingWith("Included build '${buildDir.absolutePath}' is not a directory.")
     }
 
     @Ignore
@@ -68,7 +68,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         and:
-        failure.assertHasDescription("Included build 'b1' must have a settings file.")
+        failure.assertHasDescriptionStartingWith("Included build 'b1' must have a settings file.")
     }
 
     def "reports failure for duplicate included build name"() {
@@ -81,7 +81,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         then:
-        failure.assertHasDescription("Included build $buildC has build path :buildB which is the same as included build $buildB")
+        failure.assertHasDescriptionStartingWith("Included build $buildC has build path :buildB which is the same as included build $buildB")
     }
 
     def "reports failure for included build name that conflicts with subproject name"() {
@@ -95,7 +95,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         then:
-        failure.assertHasDescription("Included build in ${buildB} has name 'buildB' which is the same as a project of the main build.")
+        failure.assertHasDescriptionStartingWith("Included build in ${buildB} has name 'buildB' which is the same as a project of the main build.")
     }
 
     def "included build name can be the same as root project name"() {

@@ -260,7 +260,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         e.cause.message == "Requested test task with path ':secondTest' cannot be found."
 
         and:
-        failure.assertHasDescription("Requested test task with path ':secondTest' cannot be found.")
+        failure.assertHasDescriptionStartingWith("Requested test task with path ':secondTest' cannot be found.")
         assertHasBuildFailedLogging()
     }
 
@@ -288,7 +288,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         e.cause.message.contains('A problem occurred evaluating root project')
 
         and:
-        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasDescriptionStartingWith('A problem occurred evaluating root project')
         assertHasBuildFailedLogging()
     }
 

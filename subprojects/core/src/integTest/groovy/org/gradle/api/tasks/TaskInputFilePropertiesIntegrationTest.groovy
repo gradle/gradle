@@ -83,7 +83,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
 
         expect:
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
+        failure.assertHasDescriptionStartingWith("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failureDescriptionContains(unsupportedNotation {
             property('input')
                 .value("task ':dependencyTask'")
@@ -133,7 +133,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
 
         expect:
         fails "customTask"
-        failure.assertHasDescription("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
+        failure.assertHasDescriptionStartingWith("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
         failureDescriptionContains(unsupportedNotation {
             type('CustomTask').property('input')
                 .value("task ':dependencyTask'")

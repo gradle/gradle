@@ -54,7 +54,7 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         configurationCacheFails("thing", "--no-configuration-cache")
 
         then:
-        failure.assertHasDescription("The configuration cache cannot be disabled when isolated projects is enabled.")
+        failure.assertHasDescriptionStartingWith("The configuration cache cannot be disabled when isolated projects is enabled.")
     }
 
     def "projects are configured on demand"() {

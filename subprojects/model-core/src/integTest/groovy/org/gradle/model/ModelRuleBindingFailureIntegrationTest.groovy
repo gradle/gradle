@@ -226,7 +226,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
         fails "tasks"
 
         then:
-        failure.assertHasDescription("A problem occurred configuring root project")
+        failure.assertHasDescriptionStartingWith("A problem occurred configuring root project")
         failure.assertHasCause("There is a problem with model rule Plugin3.Rules#m(String).")
         failure.assertHasCause("""Type-only model reference of type java.lang.String (parameter 1) is ambiguous as multiple model elements are available for this type:
   - s1 (created by: Plugin1.Rules#s1())

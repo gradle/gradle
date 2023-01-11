@@ -52,7 +52,7 @@ System.err.println 'this is stderr'
         e.cause.message.contains('A problem occurred evaluating root project')
 
         and:
-        failure.assertHasDescription('A problem occurred evaluating root project')
+        failure.assertHasDescriptionStartingWith('A problem occurred evaluating root project')
         assertHasConfigureFailedLogging()
     }
 }

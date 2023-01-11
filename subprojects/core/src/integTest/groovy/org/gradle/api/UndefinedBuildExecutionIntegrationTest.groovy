@@ -31,7 +31,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails(*tasks)
 
         then:
-        failure.assertHasDescription("Directory '$testDirectory' does not contain a Gradle build.")
+        failure.assertHasDescriptionStartingWith("Directory '$testDirectory' does not contain a Gradle build.")
         failure.assertHasResolutions(
             "Run gradle init to create a new Gradle build in this directory.",
             "Run with --stacktrace option to get the stack trace.",
@@ -89,7 +89,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         assertNoProjectCaches(dir)
-        failure.assertHasDescription("Execution failed for task ':build'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':build'.")
         failure.assertHasCause("Directory '$dir' does not contain a Gradle build.")
     }
 
@@ -132,7 +132,7 @@ class UndefinedBuildExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails("tasks")
 
         then:
-        failure.assertHasDescription("Directory '$testDirectory' does not contain a Gradle build.")
+        failure.assertHasDescriptionStartingWith("Directory '$testDirectory' does not contain a Gradle build.")
 
         def createdDirectories = testDirectory.list() as List
         createdDirectories.empty || createdDirectories == [".gradle"]

@@ -368,7 +368,7 @@ class TestReportAggregationPluginIntegrationTest extends AbstractIntegrationSpec
         fails(":application:testAggregateTestReport")
 
         then:
-        failure.assertHasDescription("Execution failed for task ':direct:test'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':direct:test'.")
                .assertThatCause(startsWith("There were failing tests"))
         result.assertTaskNotExecuted(':application:testAggregateTestReport')
 

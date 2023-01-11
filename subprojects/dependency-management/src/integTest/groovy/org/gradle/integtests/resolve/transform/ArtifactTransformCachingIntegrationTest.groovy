@@ -207,7 +207,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         then:
         ['lib', 'app', 'util'].each {
             def reserved = file("${it}/build/${forbiddenPath}")
-            failure.assertHasDescription("A problem was found with the configuration of task ':${it}:badTask' (type 'DefaultTask').")
+            failure.assertHasDescriptionStartingWith("A problem was found with the configuration of task ':${it}:badTask' (type 'DefaultTask').")
             failure.assertThatDescription(containsString(cannotWriteToReservedLocation {
                 property('output')
                     .forbiddenAt(reserved)
@@ -1145,7 +1145,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         fails ":app:resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':app:resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':app:resolve'.")
         failure.assertResolutionFailure(":app:compile")
 
         where:
@@ -1222,7 +1222,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         fails ":app:resolve"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':app:resolve'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':app:resolve'.")
         failure.assertResolutionFailure(":app:compile")
         failure.hasErrorOutput("Received status code 500 from server: broken")
 

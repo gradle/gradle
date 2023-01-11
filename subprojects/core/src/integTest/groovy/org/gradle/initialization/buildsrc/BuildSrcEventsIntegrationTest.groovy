@@ -72,7 +72,7 @@ class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("root build finished")
-        failure.assertHasDescription("broken")
+        failure.assertHasDescriptionStartingWith("broken")
     }
 
     @UnsupportedWithConfigurationCache(because = "uses buildFinished")
@@ -96,7 +96,7 @@ class BuildSrcEventsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("root build finished")
-        failure.assertHasDescription("buildSrc")
-        failure.assertHasDescription("root build")
+        failure.assertHasDescriptionStartingWith("buildSrc")
+        failure.assertHasDescriptionStartingWith("root build")
     }
 }

@@ -263,7 +263,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':linkMainExecutable'.")
         failure.assertHasCause("Static library file not set for prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic'.")
     }
 
@@ -298,7 +298,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Execution failed for task ':linkMainExecutable'.")
+        failure.assertHasDescriptionStartingWith("Execution failed for task ':linkMainExecutable'.")
         failure.assertHasCause("Static library file ${file("does_not_exist").absolutePath} does not exist for prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic'.")
     }
 
@@ -329,7 +329,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':linkMainExecutable'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':linkMainExecutable'.")
         failure.assertHasCause("Could not locate library 'other' required by 'main' in project ':'.")
     }
 
@@ -374,7 +374,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':projectA:linkMainExecutable'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':projectA:linkMainExecutable'.")
         failure.assertHasCause("Could not locate library 'hello' in project ':projectB' required by 'main' in project ':projectA'.")
     }
 }

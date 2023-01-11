@@ -80,7 +80,7 @@ class StacktraceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private void assertCauseWithoutStacktrace(String cause, String description = "A problem occurred evaluating root project 'stacktrace-integration-test-sample'") {
-        failure.assertHasDescription(description)
+        failure.assertHasDescriptionStartingWith(description)
         failure.assertHasCause(cause)
         failure.assertNotOutput('Exception is:')
     }
@@ -89,7 +89,7 @@ class StacktraceIntegrationTest extends AbstractIntegrationSpec {
         if (cause != null) {
             failure.assertHasCause(cause)
         }
-        failure.assertHasDescription(description)
+        failure.assertHasDescriptionStartingWith(description)
         failure.assertHasErrorOutput('Exception is:')
         failure.assertHasErrorOutput(stackFrame)
     }

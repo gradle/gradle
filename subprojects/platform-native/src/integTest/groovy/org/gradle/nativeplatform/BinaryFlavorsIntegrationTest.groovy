@@ -158,7 +158,7 @@ model {
 
         then:
         fails "mainGermanExecutable"
-        failure.assertHasDescription("Could not determine the dependencies of task ':linkMainGermanExecutable'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':linkMainGermanExecutable'.")
         failure.assertHasCause("No shared library binary available for library 'hello' with [flavor: 'german', platform: '${NativePlatformsTestFixture.defaultPlatformName}', buildType: 'debug']")
     }
 

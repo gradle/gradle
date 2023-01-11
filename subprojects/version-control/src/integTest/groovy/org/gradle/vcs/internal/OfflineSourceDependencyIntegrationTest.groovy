@@ -85,7 +85,7 @@ class OfflineSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         fails('resolve')
 
         then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':resolve'.")
+        failure.assertHasDescriptionStartingWith("Could not determine the dependencies of task ':resolve'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':compile'.")
         failure.assertHasCause("""Cannot resolve test:test:1.2 from Git repository at ${repo.url} in offline mode.
 Required by:

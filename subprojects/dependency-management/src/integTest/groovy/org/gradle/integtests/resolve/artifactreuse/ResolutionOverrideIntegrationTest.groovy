@@ -220,7 +220,7 @@ task listJars {
         fails 'listJars'
 
         and:
-        failure.assertHasDescription('Execution failed for task \':listJars\'.')
+        failure.assertHasDescriptionStartingWith('Execution failed for task \':listJars\'.')
         failure.assertResolutionFailure(":compile")
             .assertHasCause('No cached version of org.name:projectA:1.2 available for offline mode')
     }

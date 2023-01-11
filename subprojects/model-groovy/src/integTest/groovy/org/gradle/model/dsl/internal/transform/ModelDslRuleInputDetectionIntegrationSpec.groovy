@@ -186,7 +186,7 @@ tasks configured
         fails "tasks"
         failure.assertHasLineNumber 4
         failure.assertHasFileName("Build file '${buildFile}'")
-        failure.assertHasDescription("Could not compile build file '${buildFile}'")
+        failure.assertHasDescriptionStartingWith("Could not compile build file '${buildFile}'")
         failure.assertThatCause(containsString('Invalid variable name. Must include a letter but only found: $'))
 
         where:

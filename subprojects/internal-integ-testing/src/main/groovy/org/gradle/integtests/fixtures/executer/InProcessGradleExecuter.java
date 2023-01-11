@@ -783,8 +783,14 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
-        public ExecutionFailure assertHasDescription(String context) {
+        public ExecutionFailure assertHasDescriptionStartingWith(String context) {
             assertThatDescription(startsWith(context));
+            return this;
+        }
+
+        @Override
+        public ExecutionFailure assertHasDescription(String context) {
+            assertThatDescription(containsString(context));
             return this;
         }
 
