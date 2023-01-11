@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.component.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -39,7 +40,6 @@ import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.internal.DefaultAdhocSoftwareComponent;
-import org.gradle.api.plugins.internal.DiagnosableSoftwareComponent;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
@@ -53,35 +53,51 @@ import org.gradle.api.publish.maven.internal.publication.MavenPublicationInterna
 import org.gradle.api.publish.plugins.PublishingPlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
 
+import static org.gradle.api.attributes.DocsType.JAVADOC;
+import static org.gradle.api.attributes.DocsType.SOURCES;
+import static org.gradle.api.plugins.JavaPlugin.JAVADOC_ELEMENTS_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.SOURCES_ELEMENTS_CONFIGURATION_NAME;
+
 /**
  * The software component created by the Java plugin. This component owns the consumable configurations which contribute to
- * this component's variants. Additionally, this component also owns the {@link SourceSet.MAIN_SOURCE_SET_NAME main} {@link SourceSet}
+ * this component's variants. Additionally, this component also owns the {@link SourceSet#MAIN_SOURCE_SET_NAME main} {@link SourceSet}
  * and transitively any domain objects which are created by the {@link BasePlugin} on the main source set's behalf. This includes the
  * source set's resolvable configurations and buckets, as well as any associated tasks.
  * <p>
  * This component was written assuming it will only be instantiated once, and therefore it hard-codes the names of the
  * domain objects it creates. However, future iterations of this component should allow it to be more generic.
  */
-public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent implements DiagnosableSoftwareComponent {
+public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent implements JvmSoftwareComponentInternal {
 
     private static final String SOURCE_ELEMENTS_VARIANT_NAME = "mainSourceElements";
 
+    private final Project project;
+
     private final JvmPluginServices jvmPluginServices;
-    private final ObjectFactory objectFactory;
-    private final ProviderFactory providerFactory;
+
+    private final SourceSet sourceSet;
+    private final Configuration implementation;
+    private final Configuration runtimeOnly;
+    private final Configuration compileOnly;
 
     private final Configuration runtimeClasspath;
     private final Configuration compileClasspath;
+
     private final Configuration runtimeElements;
-    private final SourceSet sourceSet;
+    private final Configuration apiElements;
+
+    private final TaskProvider<JavaCompile> compileJava;
+    private final TaskProvider<Jar> jar;
 
     @Inject
     public DefaultJvmSoftwareComponent(
@@ -94,10 +110,9 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         Instantiator instantiator
     ) {
         super(componentName, instantiator);
+        this.project = project;
 
         this.jvmPluginServices = jvmPluginServices;
-        this.objectFactory = objectFactory;
-        this.providerFactory = providerFactory;
 
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
@@ -107,16 +122,24 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         assert project.getPlugins().hasPlugin(JavaBasePlugin.class);
 
         this.sourceSet = createMainSourceSet(javaExtension.getSourceSets());
+
+        this.compileJava = tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class);
+        this.jar = registerJarTask(tasks, sourceSet);
+
+        this.implementation = configurations.getByName(sourceSet.getImplementationConfigurationName());
+        this.compileOnly = configurations.getByName(sourceSet.getCompileOnlyConfigurationName());
+        this.runtimeOnly = configurations.getByName(sourceSet.getRuntimeOnlyConfigurationName());
+
         this.runtimeClasspath = configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
         this.compileClasspath = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
 
-        PublishArtifact jarArtifact = configureArchives(project, tasks, extensions, sourceSet);
+        PublishArtifact jarArtifact = configureArchives(project, jar, tasks, extensions);
+        this.runtimeElements = createRuntimeElements(configurations, sourceSet, jarArtifact);
+        this.apiElements = createApiElements(sourceSet, jarArtifact);
+        createSourceElements(configurations, providerFactory, objectFactory, sourceSet);
+
         JvmPluginsHelper.configureJavaDocTask(null, sourceSet, tasks, javaExtension);
         configurePublishing(plugins, extensions, sourceSet);
-
-        this.runtimeElements = createRuntimeElements(configurations, sourceSet, jarArtifact);
-        final Configuration apiElements = createApiElements(sourceSet, jarArtifact);
-        final Configuration sourceElements = createSourceElements(configurations, sourceSet);
 
         // Register the consumable configurations as providing variants for consumption.
         addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", false));
@@ -131,13 +154,15 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         return sourceSets.create(SourceSet.MAIN_SOURCE_SET_NAME);
     }
 
-    private static PublishArtifact configureArchives(Project project, TaskContainer tasks, ExtensionContainer extensions, SourceSet sourceSet) {
-        TaskProvider<Jar> jarTaskProvider = tasks.register(JvmConstants.JAR_TASK_NAME, Jar.class, jar -> {
+    private static TaskProvider<Jar> registerJarTask(TaskContainer tasks, SourceSet sourceSet) {
+        return tasks.register(JvmConstants.JAR_TASK_NAME, Jar.class, jar -> {
             jar.setDescription("Assembles a jar archive containing the main classes.");
             jar.setGroup(BasePlugin.BUILD_GROUP);
             jar.from(sourceSet.getOutput());
         });
+    }
 
+    private static PublishArtifact configureArchives(Project project, TaskProvider<Jar> jarTaskProvider, TaskContainer tasks, ExtensionContainer extensions) {
         /*
          * Unless there are other concerns, we'd prefer to run jar tasks prior to test tasks, as this might offer a small performance improvement
          * for common usage.  In practice, running test tasks tends to take longer than building a jar; especially as a project matures. If tasks
@@ -196,7 +221,7 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         return apiElementsConfiguration;
     }
 
-    private Configuration createSourceElements(ConfigurationContainer configurations, SourceSet sourceSet) {
+    private Configuration createSourceElements(ConfigurationContainer configurations, ProviderFactory providerFactory, ObjectFactory objectFactory, SourceSet sourceSet) {
         final Configuration variant = configurations.create(SOURCE_ELEMENTS_VARIANT_NAME);
         variant.setDescription("List of source directories contained in the Main SourceSet.");
         variant.setVisible(false);
@@ -236,24 +261,86 @@ public class DefaultJvmSoftwareComponent extends DefaultAdhocSoftwareComponent i
         });
     }
 
+    @Override
+    public void withJavadocJar() {
+        Configuration javadocVariant = JvmPluginsHelper.createDocumentationVariantWithArtifact(
+            JAVADOC_ELEMENTS_CONFIGURATION_NAME,
+            null,
+            JAVADOC,
+            ImmutableList.of(),
+            sourceSet.getJavadocJarTaskName(),
+            project.getTasks().named(sourceSet.getJavadocTaskName()),
+            (ProjectInternal) project
+        );
+        addVariantsFromConfiguration(javadocVariant, new JavaConfigurationVariantMapping("runtime", true));
+    }
+
+    @Override
+    public void withSourcesJar() {
+        Configuration sourcesVariant = JvmPluginsHelper.createDocumentationVariantWithArtifact(
+            SOURCES_ELEMENTS_CONFIGURATION_NAME,
+            null,
+            SOURCES,
+            ImmutableList.of(),
+            sourceSet.getSourcesJarTaskName(),
+            sourceSet.getAllSource(),
+            (ProjectInternal) project
+        );
+        addVariantsFromConfiguration(sourcesVariant, new JavaConfigurationVariantMapping("runtime", true));
+    }
+
+    @Override
+    public TaskProvider<Jar> getJar() {
+        return jar;
+    }
+
+    @Override
+    public TaskProvider<JavaCompile> getCompileJava() {
+        return compileJava;
+    }
+
+    @Override
+    public SourceSetOutput getOutput() {
+        return sourceSet.getOutput();
+    }
+
+    @Override
+    public SourceSet getSources() {
+        return sourceSet;
+    }
+
+    @Override
+    public Configuration getImplementation() {
+        return implementation;
+    }
+
+    @Override
+    public Configuration getRuntimeOnly() {
+        return runtimeOnly;
+    }
+
+    @Override
+    public Configuration getCompileOnly() {
+        return compileOnly;
+    }
+
+    @Override
     public Configuration getRuntimeClasspath() {
         return runtimeClasspath;
     }
 
+    @Override
     public Configuration getCompileClasspath() {
         return compileClasspath;
     }
 
+    @Override
     public Configuration getRuntimeElements() {
         return runtimeElements;
     }
 
-    /**
-     * This is only exposed so that we can link the default test suite to this component. Future updates
-     * to the instantiation of the default test suite should make exposing the source set of this component
-     * unnecessary.
-     */
-    public SourceSet getSources() {
-        return sourceSet;
+    @Override
+    public Configuration getApiElements() {
+        return apiElements;
     }
 }

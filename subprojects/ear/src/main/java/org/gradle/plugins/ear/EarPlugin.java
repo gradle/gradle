@@ -30,11 +30,11 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginContainer;
+import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
-import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.jvm.component.internal.JvmSoftwareComponentInternal;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 import javax.inject.Inject;
@@ -92,20 +92,16 @@ public abstract class EarPlugin implements Plugin<Project> {
 
     private void wireEarTaskConventionsWithJavaPluginApplied(final Project project, PluginContainer plugins) {
         plugins.withType(JavaPlugin.class, javaPlugin -> {
-            final JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
+            final JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
             project.getTasks().withType(Ear.class).configureEach(task -> {
                 task.dependsOn((Callable<FileCollection>) () ->
-                    mainSourceSetOf(javaPluginExtension).getRuntimeClasspath()
+                    component.getSources().getRuntimeClasspath()
                 );
                 task.from((Callable<FileCollection>) () ->
-                    mainSourceSetOf(javaPluginExtension).getOutput()
+                    component.getOutput()
                 );
             });
         });
-    }
-
-    private SourceSet mainSourceSetOf(JavaPluginExtension javaPluginExtension) {
-        return javaPluginExtension.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
     }
 
     private void setupEarTask(final Project project, EarPluginConvention convention, PluginContainer plugins) {
@@ -115,9 +111,8 @@ public abstract class EarPlugin implements Plugin<Project> {
             task.getGenerateDeploymentDescriptor().convention(convention.getGenerateDeploymentDescriptor());
 
             plugins.withType(JavaPlugin.class, javaPlugin -> {
-                final JavaPluginExtension javaPluginExtension = project.getExtensions().findByType(JavaPluginExtension.class);
-                SourceSet sourceSet = mainSourceSetOf(javaPluginExtension);
-                sourceSet.getResources().srcDir(task.getAppDirectory());
+                final JvmSoftwareComponentInternal component = JvmPluginsHelper.getJavaComponent(project);
+                component.getSources().getResources().srcDir(task.getAppDirectory());
             });
         });
 
