@@ -43,4 +43,9 @@ public class VariantWithOverloadAttributes implements VariantResolveMetadata.Ide
         VariantWithOverloadAttributes other = (VariantWithOverloadAttributes) obj;
         return variantIdentifier.equals(other.variantIdentifier) && targetVariant.equals(other.targetVariant);
     }
+
+    @Override
+    public boolean isEligibleForCaching() {
+        return variantIdentifier.isEligibleForCaching();
+    }
 }
