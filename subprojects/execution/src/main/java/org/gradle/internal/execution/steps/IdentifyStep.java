@@ -20,9 +20,9 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.cache.Cache;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
+import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.UnitOfWork.Identity;
-import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -54,7 +54,6 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
 
     @Nonnull
     private IdentityContext createIdentityContext(UnitOfWork work, C context) {
-        Class<? extends UnitOfWork> workType = work.getClass();
         return operation(operationContext -> {
                 IdentityContext identityContext = createIdentityContextInternal(work, context);
                 Identity identity = identityContext.getIdentity();
@@ -68,12 +67,7 @@ public class IdentifyStep<C extends ExecutionRequestContext, R extends Result> e
             },
             BuildOperationDescriptor
                 .displayName("Identifying work")
-                .details(new Operation.Details() {
-                    @Override
-                    public Class<?> getWorkType() {
-                        return workType;
-                    }
-                })
+                .details(work.identifyOperationDetails())
         );
     }
 
