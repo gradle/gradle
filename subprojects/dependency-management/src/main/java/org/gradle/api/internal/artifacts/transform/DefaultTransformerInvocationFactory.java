@@ -410,9 +410,23 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
+        public IdentifyBuildOperationDetails identifyOperationDetails() {
+            return new TransformIdentifyBuildOperationDetails() {
+
+                @Override
+                public Class<?> getWorkType() {
+                    return transformer.getImplementationClass();
+                }
+            };
+        }
+
+        @Override
         public String getDisplayName() {
             return transformer.getDisplayName() + ": " + inputArtifact;
         }
+    }
+
+    public interface TransformIdentifyBuildOperationDetails extends UnitOfWork.IdentifyBuildOperationDetails {
     }
 
     private static class ImmutableTransformationWorkspaceIdentity implements UnitOfWork.Identity {

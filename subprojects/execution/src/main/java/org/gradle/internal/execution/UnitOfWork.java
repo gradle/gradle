@@ -57,6 +57,14 @@ public interface UnitOfWork extends Describable {
         String getUniqueId();
     }
 
+    default IdentifyBuildOperationDetails identifyOperationDetails() {
+        return this::getClass;
+    }
+
+    interface IdentifyBuildOperationDetails {
+        Class<?> getWorkType();
+    }
+
     /**
      * Executes the work synchronously.
      */
