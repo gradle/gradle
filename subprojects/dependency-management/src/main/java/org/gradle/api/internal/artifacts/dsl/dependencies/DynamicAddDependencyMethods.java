@@ -57,7 +57,7 @@ class DynamicAddDependencyMethods implements MethodAccess {
         } else if (normalizedArgs.size() == 1) {
             return DynamicInvokeResult.found(dependencyAdder.add(configuration, normalizedArgs.get(0), null));
         } else {
-			return DynamicInvokeResult.found(normalizedArgs.stream().map(arg -> dependencyAdder.add(configuration, arg, null)).collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList)));
+            return DynamicInvokeResult.found(normalizedArgs.stream().map(arg -> dependencyAdder.add(configuration, arg, null)).collect(Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList)));
         }
     }
 
