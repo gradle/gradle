@@ -66,7 +66,6 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                 build().output,
                 containsString("*42*")
             )
-
         } finally {
             pluginPortal.stop()
         }
