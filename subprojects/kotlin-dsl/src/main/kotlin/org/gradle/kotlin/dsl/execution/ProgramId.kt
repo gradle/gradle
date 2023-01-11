@@ -22,12 +22,12 @@ import java.lang.ref.WeakReference
 
 
 class ProgramId(
-    private val templateId: String,
-    private val sourceHash: HashCode,
+    val templateId: String,
+    val sourceHash: HashCode,
     parentClassLoader: ClassLoader,
     private val accessorsClassPathHash: HashCode? = null,
     private val classPathHash: HashCode? = null,
-    private val assignmentOverloadEnabled: Boolean = false
+    val assignmentOverloadEnabled: Boolean = false
 ) {
 
     private

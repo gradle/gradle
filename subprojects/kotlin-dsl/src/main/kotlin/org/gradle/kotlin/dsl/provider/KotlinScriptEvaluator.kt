@@ -52,7 +52,6 @@ import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.kotlin.dsl.accessors.PluginAccessorClassPathGenerator
-import org.gradle.kotlin.dsl.assignment.internal.KotlinDslAssignment
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.execution.CompiledScript
 import org.gradle.kotlin.dsl.execution.EvalOption
@@ -239,8 +238,7 @@ class StandardKotlinScriptEvaluator(
 
         override fun cachedDirFor(
             scriptHost: KotlinScriptHost<*>,
-            templateId: String,
-            sourceHash: HashCode,
+            programId: ProgramId,
             compilationClassPath: ClassPath,
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
@@ -248,8 +246,7 @@ class StandardKotlinScriptEvaluator(
             executionEngineFor(scriptHost).createRequest(
                 CompileKotlinScript(
                     jvmTarget,
-                    templateId,
-                    sourceHash,
+                    programId,
                     compilationClassPath,
                     accessorsClassPath,
                     initializer,
@@ -339,8 +336,7 @@ class StandardKotlinScriptEvaluator(
 internal
 class CompileKotlinScript(
     private val jvmTarget: JavaVersion,
-    private val templateId: String,
-    private val sourceHash: HashCode,
+    private val programId: ProgramId,
     private val compilationClassPath: ClassPath,
     private val accessorsClassPath: ClassPath,
     private val compileTo: (File) -> Unit,
@@ -362,11 +358,10 @@ class CompileKotlinScript(
     override fun visitIdentityInputs(
         visitor: InputVisitor
     ) {
-        val assignmentOverloadEnabled = KotlinDslAssignment.isAssignmentOverloadEnabled()
-        visitor.visitInputProperty(ASSIGNMENT_OVERLOAD_ENABLED) { assignmentOverloadEnabled }
+        visitor.visitInputProperty(ASSIGNMENT_OVERLOAD_ENABLED) { programId.assignmentOverloadEnabled }
         visitor.visitInputProperty(JVM_TARGET) { jvmTarget.majorVersion }
-        visitor.visitInputProperty(TEMPLATE_ID) { templateId }
-        visitor.visitInputProperty(SOURCE_HASH) { sourceHash }
+        visitor.visitInputProperty(TEMPLATE_ID) { programId.templateId }
+        visitor.visitInputProperty(SOURCE_HASH) { programId.sourceHash }
         visitor.visitClassPathProperty(COMPILATION_CLASS_PATH, compilationClassPath)
         visitor.visitClassPathProperty(ACCESSORS_CLASS_PATH, accessorsClassPath)
     }
@@ -410,7 +405,7 @@ class CompileKotlinScript(
         }
 
     override fun getDisplayName(): String =
-        "Kotlin DSL script compilation ($templateId)"
+        "Kotlin DSL script compilation (${programId.templateId})"
 
     override fun loadAlreadyProducedOutput(workspace: File): Any =
         classesDir(workspace)
