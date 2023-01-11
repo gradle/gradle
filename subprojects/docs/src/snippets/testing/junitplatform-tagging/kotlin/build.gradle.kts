@@ -11,7 +11,7 @@ dependencies {
 }
 
 // tag::test-tags[]
-tasks.withType<Test> {
+tasks.withType<Test>().configureEach {
     useJUnitPlatform {
         includeTags("fast")
         excludeTags("slow")
