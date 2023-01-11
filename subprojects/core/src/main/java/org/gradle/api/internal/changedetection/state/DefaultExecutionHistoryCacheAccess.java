@@ -27,8 +27,8 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 public class DefaultExecutionHistoryCacheAccess implements ExecutionHistoryCacheAccess, Closeable {
     private final PersistentCache cache;
 
-    public DefaultExecutionHistoryCacheAccess(ScopedCacheBuilderFactory cacheBuilderFactor) {
-        this.cache = cacheBuilderFactor
+    public DefaultExecutionHistoryCacheAccess(ScopedCacheBuilderFactory cacheBuilderFactory) {
+        this.cache = cacheBuilderFactory
             .createCacheBuilder("executionHistory")
             .withDisplayName("execution history cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
