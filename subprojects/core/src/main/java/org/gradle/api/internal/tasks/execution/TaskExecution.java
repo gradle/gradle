@@ -157,7 +157,12 @@ public class TaskExecution implements UnitOfWork {
 
     @Override
     public IdentifyBuildOperationDetails identifyOperationDetails() {
-        return task::getClass;
+        return new IdentifyBuildOperationDetails() {
+            @Override
+            public Class<?> getWorkType() {
+                return task.getClass();
+            }
+        };
     }
 
     @Override
