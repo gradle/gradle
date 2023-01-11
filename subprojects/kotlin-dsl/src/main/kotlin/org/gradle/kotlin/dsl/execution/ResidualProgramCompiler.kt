@@ -498,10 +498,9 @@ class ResidualProgramCompiler(
             ALOAD(0)
             ALOAD(Vars.ScriptHost)
             ALOAD(3)
-            ALOAD(4)
             GETSTATIC(programKind)
             GETSTATIC(programTarget)
-            ALOAD(5)
+            ALOAD(4)
             invokeHost(
                 ExecutableProgram.Host::compileSecondStageOf.name,
                 compileSecondStageOfDescriptor
@@ -543,8 +542,7 @@ class ResidualProgramCompiler(
         Type.getType(CompiledScript::class.java),
         Type.getType(ExecutableProgram.Host::class.java),
         Type.getType(KotlinScriptHost::class.java),
-        Type.getType(String::class.java),
-        Type.getType(HashCode::class.java),
+        Type.getType(ProgramId::class.java),
         Type.getType(ClassPath::class.java)
     )
 
@@ -553,8 +551,7 @@ class ResidualProgramCompiler(
         Type.getType(CompiledScript::class.java),
         stagedProgram,
         Type.getType(KotlinScriptHost::class.java),
-        Type.getType(String::class.java),
-        Type.getType(HashCode::class.java),
+        Type.getType(ProgramId::class.java),
         Type.getType(ProgramKind::class.java),
         Type.getType(ProgramTarget::class.java),
         Type.getType(ClassPath::class.java)

@@ -73,8 +73,7 @@ abstract class ExecutableProgram {
         fun compileSecondStageOf(
             program: StagedProgram,
             scriptHost: KotlinScriptHost<*>,
-            scriptTemplateId: String,
-            sourceHash: HashCode,
+            programId: ProgramId,
             programKind: ProgramKind,
             programTarget: ProgramTarget,
             accessorsClassPath: ClassPath
@@ -94,8 +93,7 @@ abstract class ExecutableProgram {
         abstract fun loadSecondStageFor(
             programHost: Host,
             scriptHost: KotlinScriptHost<*>,
-            scriptTemplateId: String,
-            sourceHash: HashCode,
+            programId: ProgramId,
             accessorsClassPath: ClassPath?
         ): CompiledScript
 
