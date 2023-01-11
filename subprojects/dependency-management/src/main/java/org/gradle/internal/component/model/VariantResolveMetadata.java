@@ -46,5 +46,11 @@ public interface VariantResolveMetadata extends VariantGraphResolveMetadata.Subv
     boolean isExternalVariant();
 
     interface Identifier {
+        /**
+         * Is the variant identified by this identifier eligible for caching?
+         *
+         * Only variants from a project component are eligible for caching.
+         */
+        boolean isEligibleForCaching();
     }
 }

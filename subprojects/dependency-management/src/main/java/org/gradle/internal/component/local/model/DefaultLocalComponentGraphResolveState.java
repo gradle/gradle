@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
+import com.google.common.base.Optional;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -31,7 +32,6 @@ import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactSelector;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -90,21 +90,22 @@ public class DefaultLocalComponentGraphResolveState extends AbstractComponentGra
 
         @Override
         public ArtifactSet resolveArtifacts(ArtifactSelector artifactSelector, ExcludeSpec exclusions, ImmutableAttributes overriddenAttributes) {
-            // We do not currently cache ResolvedVariants beyond this invocation yet
             LocalConfigurationMetadata configuration = graphSelectedVariant.prepareToResolveArtifacts();
-            return artifactSelector.resolveArtifacts(component, new HashMap<>(), () -> buildAllVariants(configuration), configuration.getVariants(), exclusions, overriddenAttributes);
+            Set<? extends VariantResolveMetadata> fallbackVariants = configuration.getVariants();
+            Optional<List<? extends VariantGraphResolveMetadata>> variantsForGraphTraversal = component.getVariantsForGraphTraversal();
+            return artifactSelector.resolveArtifacts(component, () -> buildAllVariants(fallbackVariants, variantsForGraphTraversal), fallbackVariants, exclusions, overriddenAttributes);
         }
 
-        private Set<? extends VariantResolveMetadata> buildAllVariants(LocalConfigurationMetadata configuration) {
+        private static Set<? extends VariantResolveMetadata> buildAllVariants(Set<? extends VariantResolveMetadata> fallbackVariants, Optional<List<? extends VariantGraphResolveMetadata>> variantsForGraphTraversal) {
             final Set<? extends VariantResolveMetadata> allVariants;
-            if (component.getVariantsForGraphTraversal().isPresent()) {
-                allVariants = component.getVariantsForGraphTraversal().get().stream().
+            if (variantsForGraphTraversal.isPresent()) {
+                allVariants = variantsForGraphTraversal.get().stream().
                     map(LocalConfigurationGraphResolveMetadata.class::cast).
                     map(LocalConfigurationGraphResolveMetadata::prepareToResolveArtifacts).
                     flatMap(variant -> variant.getVariants().stream()).
                     collect(Collectors.toSet());
             } else {
-                allVariants = configuration.getVariants();
+                allVariants = fallbackVariants;
             }
             return allVariants;
         }

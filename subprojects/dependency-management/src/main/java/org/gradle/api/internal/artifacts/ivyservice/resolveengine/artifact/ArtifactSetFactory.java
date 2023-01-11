@@ -115,6 +115,11 @@ public class ArtifactSetFactory {
             SingleArtifactVariantIdentifier other = (SingleArtifactVariantIdentifier) obj;
             return artifactIdentifier.equals(other.artifactIdentifier);
         }
+
+        @Override
+        public boolean isEligibleForCaching() {
+            return false;
+        }
     }
 
 }
