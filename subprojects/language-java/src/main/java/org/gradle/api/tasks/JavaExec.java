@@ -58,35 +58,36 @@ import static com.google.common.base.Preconditions.checkState;
  * <p>
  * Similar to {@link Exec}, but starts a JVM with the given classpath and application class.
  * </p>
- * <pre class='autoTested'>
+ * <p>Using the Kotlin DSL:</p>
+ * <pre class='autoTestedKotlin'>
  * plugins {
- *     id 'java'
+ *     id("java")
  * }
  *
- * task runApp(type: JavaExec) {
- *   classpath = sourceSets.main.runtimeClasspath
+ * tasks.register<JavaExec>("runApp") {
+ *   classpath = sourceSets.main.get().runtimeClasspath
  *
- *   mainClass = 'package.Main'
+ *   mainClass.set("package.Main")
  *
  *   // arguments to pass to the application
- *   args 'appArg1'
+ *   args("appArg1")
  * }
  *
  * // Using and creating an Executable Jar
- * jar {
+ * tasks.jar {
  *   manifest {
- *     attributes('Main-Class': 'package.Main')
+ *     attributes("Main-Class" to "package.Main")
  *   }
  * }
  *
- * task runExecutableJar(type: JavaExec) {
+ * tasks.register<JavaExec>("runExecutableJar") {
  *   // Executable jars can have only _one_ jar on the classpath.
  *   classpath = files(tasks.jar)
  *
  *   // 'main' does not need to be specified
  *
  *   // arguments to pass to the application
- *   args 'appArg1'
+ *   args("appArg1")
  * }
  *
  * </pre>
@@ -97,9 +98,9 @@ import static com.google.common.base.Preconditions.checkState;
  * </pre>
  * <p>
  * Also, debug configuration can be explicitly set in {@link #debugOptions(Action)}:
- * <pre>
+ * <pre class='autoTested'>
  * task runApp(type: JavaExec) {
- *    ...
+ *    // ...
  *
  *    debugOptions {
  *        enabled = true

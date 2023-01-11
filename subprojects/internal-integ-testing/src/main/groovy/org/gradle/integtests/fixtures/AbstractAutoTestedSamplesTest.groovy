@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.file.TestFile
 
 class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
 
@@ -29,8 +30,9 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
                 println 'Skipping sample tagged WithoutCC'
                 return
             }
-            def buildFile = testFile('build.gradle')
-            def settingsFile = testFile('settings.gradle')
+            def fileExt = tagSuffix.contains("Kotlin") ? ".gradle.kts" : ".gradle"
+            def buildFile = testFile("build$fileExt")
+            def settingsFile = testFile("settings$fileExt")
             def fileToTest = tagSuffix.contains('Settings') ? settingsFile : buildFile
             if (tagSuffix.contains('WithDeprecations')) {
                 executer.noDeprecationChecks()
