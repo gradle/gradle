@@ -18,17 +18,17 @@ package org.gradle.plugin.devel.tasks;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -36,6 +36,8 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.jvm.toolchain.JavaLauncher;
+import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.plugin.devel.tasks.internal.ValidateAction;
 import org.gradle.workers.WorkerExecutor;
 
@@ -71,7 +73,7 @@ public abstract class ValidatePlugins extends DefaultTask {
     public void validateTaskClasses() throws IOException {
         getWorkerExecutor()
             .processIsolation(spec -> {
-                spec.getForkOptions().setExecutable(getLauncher().get().getExecutablePath());
+                spec.getForkOptions().setExecutable(toolchainLauncher().get().getExecutablePath());
                 spec.getClasspath().setFrom(getClasses(), getClasspath());
             })
             .submit(ValidateAction.class, params -> {
@@ -132,6 +134,12 @@ public abstract class ValidatePlugins extends DefaultTask {
         return builder;
     }
 
+    private Provider<JavaLauncher> toolchainLauncher() {
+        JavaToolchainSpec toolchain = getProject().getExtensions().getByType(JavaPluginExtension.class).getToolchain();
+        JavaToolchainService service = getProject().getExtensions().getByType(JavaToolchainService.class);
+        return service.launcherFor(toolchain);
+    }
+
     /**
      * The classes to validate.
      */
@@ -146,15 +154,6 @@ public abstract class ValidatePlugins extends DefaultTask {
      */
     @Classpath
     public abstract ConfigurableFileCollection getClasspath();
-
-    /**
-     * The toolchain launcher used to execute workers when forking.
-     *
-     * @since 8.1.
-     */
-    @Nested
-    @Incubating
-    public abstract Property<JavaLauncher> getLauncher();
 
     /**
      * Specifies whether the build should break when plugin verifications fails.
