@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -44,25 +43,16 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         @JvmStatic
         fun testedKotlinVersions() = listOf(
             embeddedKotlinVersion,
-            "1.6.10",
-            "1.6.21"
+            "1.7.0", "1.7.10", "1.7.22",
+            "1.6.21", "1.6.10",
         )
     }
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-    @UnsupportedWithConfigurationCache(
-        because = "Old Kotlin versions",
-        iterationMatchers = [".*1\\.3.*", ".*1\\.4.*"]
-    )
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
 
         assumeNonEmbeddedGradleExecuter() // newer Kotlin version always leaks on the classpath when running embedded
-
-        executer.noDeprecationChecks()
-        // Ignore stacktraces when the Kotlin daemon fails
-        // See https://github.com/gradle/gradle-private/issues/2936
-        executer.withStackTraceChecksDisabled()
 
         withDefaultSettingsIn("buildSrc")
         withBuildScriptIn(
@@ -106,6 +96,10 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
             """
         )
         withFile("src/main/kotlin/SomeSource.kt", "fun main(args: Array<String>) {}")
+
+        if (kotlinVersion.startsWith("1.6")) {
+            executer.expectDocumentedDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Please use the destinationDirectory property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
+        }
 
         build("classes").apply {
             assertThat(
