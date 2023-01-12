@@ -221,7 +221,7 @@ plugins {
 For more information, see [Toolchain Download Repositories](userguide/toolchains.html#sec:provisioning).
 
 <a name="general-improvements"></a>
-### General Improvements
+### General improvements
 
 #### Improved Gradle user home cache cleanup
 
