@@ -22,7 +22,7 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.cache.scopes.BuildScopedCache;
+import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -80,8 +80,8 @@ import java.util.function.Supplier;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class ExecutionGradleServices {
-    ExecutionHistoryCacheAccess createCacheAccess(BuildScopedCache cacheRepository) {
-        return new DefaultExecutionHistoryCacheAccess(cacheRepository);
+    ExecutionHistoryCacheAccess createCacheAccess(BuildScopedCacheBuilderFactory cacheBuilderFactory) {
+        return new DefaultExecutionHistoryCacheAccess(cacheBuilderFactory);
     }
 
     ExecutionHistoryStore createExecutionHistoryStore(
@@ -98,9 +98,9 @@ public class ExecutionGradleServices {
         );
     }
 
-    OutputFilesRepository createOutputFilesRepository(BuildScopedCache cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        PersistentCache cacheAccess = cacheRepository
-            .crossVersionCache("buildOutputCleanup")
+    OutputFilesRepository createOutputFilesRepository(BuildScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        PersistentCache cacheAccess = cacheBuilderFactory
+            .createCrossVersionCacheBuilder("buildOutputCleanup")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName("Build Output Cleanup Cache")
             .withLockOptions(mode(FileLockManager.LockMode.OnDemand))

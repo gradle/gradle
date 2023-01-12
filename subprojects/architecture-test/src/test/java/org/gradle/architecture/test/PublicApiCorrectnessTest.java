@@ -24,6 +24,9 @@ import com.tngtech.archunit.lang.ArchRule;
 import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.xml.MarkupBuilder;
+import kotlin.jvm.functions.Function1;
+import kotlin.reflect.KClass;
+import kotlin.reflect.KProperty;
 import org.gradle.api.Plugin;
 import org.gradle.api.Task;
 import org.w3c.dom.Element;
@@ -71,6 +74,11 @@ public class PublicApiCorrectnessTest {
                 .or(type(MarkupBuilder.class))
                 .or(type(Closure.class))
                 .as("Groovy classes")
+            )
+            .or(type(Function1.class)
+                .or(type(KClass.class))
+                .or(type(KProperty.class))
+                .as("Kotlin classes")
             );
     private static final DescribedPredicate<JavaClass> public_api_tasks_or_plugins =
             gradlePublicApi().and(assignableTo(Task.class).or(assignableTo(Plugin.class)));

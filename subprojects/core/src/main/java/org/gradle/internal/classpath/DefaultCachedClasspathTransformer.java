@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.scopes.GlobalScopedCache;
+import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.internal.Either;
 import org.gradle.internal.agents.AgentControl;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -62,7 +62,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final ManagedExecutor executor;
 
     public DefaultCachedClasspathTransformer(
-        GlobalScopedCache globalScopedCache,
+        GlobalScopedCacheBuilderFactory cacheBuilderFactory,
         ClasspathTransformerCacheFactory classpathTransformerCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         ClasspathWalker classpathWalker,
@@ -77,7 +77,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         this.fileSystemAccess = fileSystemAccess;
         this.globalCacheLocations = globalCacheLocations;
         this.fileLockManager = fileLockManager;
-        this.cache = classpathTransformerCacheFactory.createCache(globalScopedCache, fileAccessTimeJournal);
+        this.cache = classpathTransformerCacheFactory.createCache(cacheBuilderFactory, fileAccessTimeJournal);
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(cache, fileAccessTimeJournal);
         this.executor = executorFactory.create("jar transforms", Runtime.getRuntime().availableProcessors());
     }

@@ -47,7 +47,7 @@ class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {
         async {
             200.times { index ->
                 start {
-                    store.createCache(index.toString(), String, new NullSafeStringSerializer())
+                    store.createIndexedCache(index.toString(), String, new NullSafeStringSerializer())
                     store.useCache {}
                 }
             }
