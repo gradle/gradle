@@ -57,6 +57,7 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSch
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.resolverEnvironmentStringFor
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.strictModeSystemPropertyName
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
@@ -343,7 +344,15 @@ fun Task.configureKotlinCompilerArgumentsLazily(resolverEnvironment: Provider<St
 
 private
 fun configureKotlinCompilerArgumentsEagerly(objects: ObjectFactory, resolverEnvironment: Provider<String>) {
-    // TODO @Deprecated + nag
+    DeprecationLogger.deprecateBehaviour("Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0.")
+        .withAdvice(
+            "Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. " +
+                "Or use version $expectedKotlinDslPluginsVersion which is the expected version for this Gradle release. " +
+                "If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0."
+        )
+        .willBecomeAnErrorInGradle9()
+        .withUpgradeGuideSection(8, "kotlin_dsl_with_kgp_lt_1_8_0")
+        .nagUser()
     objects.withInstance<TaskContainerScope> {
         taskContainer.compileKotlin {
             withGroovyBuilder {
