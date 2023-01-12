@@ -25,6 +25,7 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.FileSystemLocationProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.util.internal.IncubationLogger
 import java.io.File
 
 
@@ -34,7 +35,10 @@ import java.io.File
  * @since 8.1
  */
 @Incubating
-fun <T> Property<T>.assign(value: T) = this.set(value)
+fun <T> Property<T>.assign(value: T) {
+    emitIncubatingLogMessage()
+    this.set(value)
+}
 
 
 /**
@@ -43,7 +47,10 @@ fun <T> Property<T>.assign(value: T) = this.set(value)
  * @since 8.1
  */
 @Incubating
-fun <T> Property<T>.assign(value: Provider<T>) = this.set(value)
+fun <T> Property<T>.assign(value: Provider<T>) {
+    emitIncubatingLogMessage()
+    this.set(value)
+}
 
 
 /**
@@ -52,4 +59,10 @@ fun <T> Property<T>.assign(value: Provider<T>) = this.set(value)
  * @since 8.1
  */
 @Incubating
-fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(file: File) = this.set(file)
+fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(file: File) {
+    emitIncubatingLogMessage()
+    this.set(file)
+}
+
+
+private fun emitIncubatingLogMessage() = IncubationLogger.incubatingFeatureUsed("Kotlin DSL property assignment")
