@@ -134,7 +134,6 @@ class JavaModuleCompileIntegrationTest extends AbstractJavaModuleCompileIntegrat
     def "works with split module path and classpath"() {
         publishJavaLibrary('moda')
 
-
         // Local auto module
         settingsFile << 'include("auto-module")'
         file("auto-module/build.gradle") << """
@@ -192,7 +191,7 @@ class JavaModuleCompileIntegrationTest extends AbstractJavaModuleCompileIntegrat
     }
 
     private static String unnamedModuleReadError(String packageName, String producer, String consumer) {
-        if (TestPrecondition.doSatisfies {UnitTestPreconditions.Jdk13OrEarlier}) {
+        if (TestPrecondition.doSatisfies(UnitTestPreconditions.Jdk13OrEarlier)) {
             // bug in JDK < 14 that prints the producer (instead of the consumer) name in the error message
             "(package $packageName is declared in the unnamed module, but module $producer does not read it)"
         } else {
