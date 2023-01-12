@@ -305,4 +305,42 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             )
         )
     }
+
+    @Test
+    fun `can access project extensions`() {
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/MyExtension.kt", """
+            interface MyExtension {
+                fun some(message: String) { println(message) }
+            }
+        """)
+        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
+            extensions.create<MyExtension>("my")
+            tasks.register("noop")
+        """)
+        withBuildScript("""
+            plugins { id("my-plugin") }
+
+            extensions.getByType(MyExtension::class).some("api.get")
+            extensions.configure<MyExtension> { some("api.configure") }
+            the<MyExtension>().some("kotlin.get")
+            configure<MyExtension> { some("kotlin.configure") }
+            my.some("accessor.get")
+            my { some("accessor.configure") }
+        """)
+
+        assertThat(
+            build("noop", "-q").output.trim(),
+            equalTo(
+                """
+                api.get
+                api.configure
+                kotlin.get
+                kotlin.configure
+                accessor.get
+                accessor.configure
+                """.trimIndent()
+            )
+        )
+    }
 }
