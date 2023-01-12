@@ -71,8 +71,8 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
                     it.setWarningRewriter(ExperimentalCompilerWarningSilencer(listOf(
                         "-XXLanguage:+DisableCompatibilityModeForNewInference",
                         "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
-                        // Kotlin 1.8.0 has wrong warning message for assign plugin,
-                        // replace with 'Assign Kotlin compiler plugin is an experimental feature' once we update to 1.8.20.
+                        "Assign Kotlin compiler plugin is an experimental feature",
+                        // Kotlin 1.8.0 has wrong warning message for assign plugin, remove once we update Kotlin to 1.8.20.
                         // https://github.com/JetBrains/kotlin/commit/0eb34983cb38064684cfc76dacb8d4460fcc6573
                         "Lombok Kotlin compiler plugin is an experimental feature",
                     )))
