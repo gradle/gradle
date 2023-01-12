@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-/**
- * We implemented deprecated ScriptTemplateAdditionalCompilerArgumentsProvider since there is no good replacement yet.
- */
+// We implemented deprecated ScriptTemplateAdditionalCompilerArgumentsProvider since there is no good replacement yet.
 @file:Suppress("DEPRECATION")
 
 package org.gradle.kotlin.dsl.template
