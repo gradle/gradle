@@ -349,7 +349,7 @@ public class BuildScriptBuilder {
     }
 
     public BuildScriptBuilder javaToolchainFor(JavaLanguageVersion languageVersion) {
-        return block(null, "java", t -> {
+        return block("Apply a specific Java toolchain to ease working on different environments.", "java", t -> {
             t.block(null, "toolchain", t1 -> {
                 t1.propertyAssignment(null, "languageVersion",
                     new MethodInvocationExpression(null, "JavaLanguageVersion.of", singletonList(new LiteralValue(languageVersion.asInt()))),

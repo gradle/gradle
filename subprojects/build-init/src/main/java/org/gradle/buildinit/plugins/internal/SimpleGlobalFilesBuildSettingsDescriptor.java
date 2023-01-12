@@ -52,7 +52,7 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
 
         if(settings.getJavaLanguageVersion().isPresent()){
             builder.plugin(
-                "Apply the foojay plugin to allow automatic download of matching JDKs on other systems",
+                "Apply the foojay-resolver plugin to allow automatic download of JDKs",
                 "org.gradle.toolchains.foojay-resolver",
                 "0.4.0");
         }
