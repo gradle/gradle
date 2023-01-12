@@ -108,8 +108,8 @@ publishing {
 }
 
 gradlePlugin {
-    website.set("https://github.com/gradle/gradle/tree/master/subprojects/kotlin-dsl-plugins")
-    vcsUrl.set("https://github.com/gradle/gradle/tree/master/subprojects/kotlin-dsl-plugins")
+    website.set("https://github.com/gradle/gradle/tree/HEAD/subprojects/kotlin-dsl-plugins")
+    vcsUrl.set("https://github.com/gradle/gradle/tree/HEAD/subprojects/kotlin-dsl-plugins")
 
     plugins.all {
 
