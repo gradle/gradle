@@ -122,7 +122,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
             version = "1.0"
             java {
                 toolchain {
-                    languageVersion.set(JavaLanguageVersion.of(11))
+                    languageVersion.set(JavaLanguageVersion.of(${newerJvm.javaVersion?.majorVersion}))
                 }
             }
             dependencies {
@@ -165,7 +165,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractPluginIntegrationTest() {
             .withJavaHome(newerJvm.javaHome)
             .run()
 
-        assertThat(helpResult.output, containsString(outputFor(JavaVersion.VERSION_11)))
+        assertThat(helpResult.output, containsString(outputFor(newerJvm.javaVersion!!)))
     }
 
     private
