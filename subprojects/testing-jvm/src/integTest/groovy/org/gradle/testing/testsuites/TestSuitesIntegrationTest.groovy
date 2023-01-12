@@ -784,4 +784,94 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         fails("integrationTest")
         failure.assertHasErrorOutput("Configuring tests failed")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/19065")
+    def "test suites can add platforms in convention plugins using #format"() {
+        given: "a project defining a platform"
+        file('platform/build.gradle') << """
+            plugins {
+                id 'java-platform'
+            }
+
+            group = "org.example.gradle"
+
+            dependencies {
+                constraints {
+                    api 'org.assertj:assertj-core:3.22.0'
+                }
+            }
+        """
+
+        and: "a project defining a convention plugin adding the platform to the default test suite"
+        file('plugins/build.gradle') << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+        file('plugins/src/main/groovy/org.example.tests.gradle') << """
+            plugins {
+                 id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+
+                        dependencies {
+                            implementation($expression)
+                            implementation 'org.assertj:assertj-core'
+                        }
+                    }
+                }
+            }
+        """
+
+        and: "an application project using the convention plugin"
+        file('app/build.gradle') << """
+              plugins {
+                  id 'org.example.tests'
+              }
+
+        """
+        file('app/src/test/java/org/example/app/ExampleTest.java') << """
+            package org.example;
+
+            import org.junit.jupiter.api.Test;
+            import static org.assertj.core.api.Assertions.assertThat;
+
+            public class ExampleTest {
+                @Test public void testOK() {
+                    assertThat(1 + 1).isEqualTo(2);
+                }
+            }
+        """
+
+        settingsFile << """
+            pluginManagement {
+                includeBuild("plugins")
+            }
+
+            dependencyResolutionManagement {
+                includeBuild("platform")
+            }
+
+            rootProject.name = 'example-of-platform-in-convention-plugins'
+
+            include("app")
+        """
+
+        expect: "should be able to reference the platform without failing"
+        succeeds ':app:test'
+        def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'app/build/test-results/test')
+        unitTestResults.assertTestClassesExecuted('org.example.ExampleTest')
+
+        where:
+        format                              | expression
+        'single GAV string'                 | "platform('org.example.gradle:platform')"
+        'module method'                     | "platform(module('org.example.gradle', 'platform', null))"
+        'using project.dependencies'        | "project.dependencies.platform('org.example.gradle:platform')"
+    }
 }
