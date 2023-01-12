@@ -151,18 +151,29 @@ public class JvmOptions {
         }
 
         if (debugOptions.getEnabled().get()) {
-            boolean server = debugOptions.getServer().get();
-            boolean suspend = debugOptions.getSuspend().get();
-            int port = debugOptions.getPort().get();
-            String host = debugOptions.getHost().getOrNull();
-            String address = (host != null ? host + ":" : "") + port;
-            args.add("-agentlib:jdwp=transport=dt_socket," +
-                "server=" + (server ? 'y' : 'n') +
-                ",suspend=" + (suspend ? 'y' : 'n') +
-                ",address=" + address
-            );
+            args.add(getDebugArgument());
         }
         return args;
+    }
+
+    private String getDebugArgument() {
+        return getDebugArgument(debugOptions);
+    }
+
+    public static String getDebugArgument(JavaDebugOptions options) {
+        boolean server = options.getServer().get();
+        boolean suspend = options.getSuspend().get();
+        int port = options.getPort().get();
+        String host = options.getHost().map(h -> h + ":").getOrElse("");
+        String address = host + port;
+        return getDebugArgument(server, suspend, address);
+    }
+
+    public static String getDebugArgument(boolean server, boolean suspend, String address) {
+        return "-agentlib:jdwp=transport=dt_socket," +
+            "server=" + (server ? 'y' : 'n') +
+            ",suspend=" + (suspend ? 'y' : 'n') +
+            ",address=" + address;
     }
 
     public void setAllJvmArgs(Iterable<?> arguments) {
