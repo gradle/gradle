@@ -65,4 +65,5 @@ fun <T : FileSystemLocation> FileSystemLocationProperty<T>.assign(file: File) {
 }
 
 
-private fun emitIncubatingLogMessage() = IncubationLogger.incubatingFeatureUsed("Kotlin DSL property assignment")
+private
+fun emitIncubatingLogMessage() = IncubationLogger.incubatingFeatureUsed("Kotlin DSL property assignment")
