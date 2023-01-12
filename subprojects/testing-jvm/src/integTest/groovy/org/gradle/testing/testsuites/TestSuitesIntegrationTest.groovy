@@ -837,7 +837,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
 
         """
         file('app/src/test/java/org/example/app/ExampleTest.java') << """
-            package org.example;
+            package org.example.app;
 
             import org.junit.jupiter.api.Test;
             import static org.assertj.core.api.Assertions.assertThat;
@@ -866,7 +866,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         expect: "should be able to reference the platform without failing"
         succeeds ':app:test'
         def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'app/build/test-results/test')
-        unitTestResults.assertTestClassesExecuted('org.example.ExampleTest')
+        unitTestResults.assertTestClassesExecuted('org.example.app.ExampleTest')
 
         where:
         format                              | expression
