@@ -766,7 +766,7 @@ class DefaultConfigurationSpec extends Specification {
 
         when:
         configuration.deprecateForConsumption(x -> x.willBecomeAnErrorInGradle9().undocumented())
-        configuration.deprecateForDeclaration("declaration")
+        configuration.deprecateForDeclarationAgainst("declaration")
         configuration.deprecateForResolution("resolution")
         configuration.canBeConsumed = enabled
         configuration.canBeResolved = enabled
@@ -782,6 +782,9 @@ class DefaultConfigurationSpec extends Specification {
         copy.consumptionDeprecation != null
         copy.declarationAlternatives == ["declaration"]
         copy.resolutionAlternatives == ["resolution"]
+        copy.roleAtCreation.consumptionDeprecated
+        copy.roleAtCreation.resolutionDeprecated
+        copy.roleAtCreation.declarationAgainstDeprecated
 
         where:
         state | enabled
@@ -810,6 +813,9 @@ class DefaultConfigurationSpec extends Specification {
         copy.consumptionDeprecation != null
         copy.declarationAlternatives == []
         copy.resolutionAlternatives == []
+        copy.roleAtCreation.consumptionDeprecated
+        copy.roleAtCreation.resolutionDeprecated
+        copy.roleAtCreation.declarationAgainstDeprecated
     }
 
     def "can copy with spec"() {
@@ -1758,6 +1764,44 @@ All Artifacts:
         stacktrace.contains("The settings are not yet available for build")
     }
 
+    def "locking usage changes prevents #usageName usage changes"() {
+        given:
+        def conf = conf()
+        conf.preventUsageMutation()
+
+        when:
+        changeUsage(conf)
+
+        then:
+        GradleException t = thrown()
+        t.message == "Cannot change the allowed usage of configuration ':conf', as it has been locked."
+
+        where:
+        usageName               | changeUsage
+        'consumable'            | { it.setCanBeConsumed(!it.isCanBeConsumed()) }
+        'resolvable'            | { it.setCanBeResolved(!it.isCanBeResolved()) }
+        'declarable against'    | { it.setCanBeDeclaredAgainst(!it.isCanBeDeclaredAgainst()) }
+    }
+
+    def "locking all changes prevents #usageName usage changes"() {
+        given:
+        def conf = conf()
+        conf.preventFromFurtherMutation()
+
+        when:
+        changeUsage(conf)
+
+        then:
+        GradleException t = thrown()
+        t.message == "Cannot change the allowed usage of configuration ':conf', as it has been locked."
+
+        where:
+        usageName               | changeUsage
+        'consumable'            | { it.setCanBeConsumed(!it.isCanBeConsumed()) }
+        'resolvable'            | { it.setCanBeResolved(!it.isCanBeResolved()) }
+        'declarable against'    | { it.setCanBeDeclaredAgainst(!it.isCanBeDeclaredAgainst()) }
+    }
+
     private DefaultConfiguration configurationWithExcludeRules(ExcludeRule... rules) {
         def config = conf()
         config.setExcludeRules(rules as LinkedHashSet)
@@ -1818,7 +1862,7 @@ All Artifacts:
             calculatedValueContainerFactory,
             TestFiles.taskDependencyFactory()
         )
-        defaultConfigurationFactory.create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder)
+        defaultConfigurationFactory.create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, ConfigurationRoles.LEGACY, false)
     }
 
     private DefaultPublishArtifact artifact(String name) {

@@ -29,7 +29,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
-import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileFactory;
@@ -208,9 +207,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         ).create();
     }
 
-    protected SoftwareComponentContainer createSoftwareComponentContainer(CollectionCallbackActionDecorator decorator) {
+    protected SoftwareComponentContainer createSoftwareComponentContainer(CollectionCallbackActionDecorator decorator, ObjectFactory objectFactory) {
         Instantiator instantiator = get(Instantiator.class);
-        return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator, decorator);
+        return instantiator.newInstance(DefaultSoftwareComponentContainer.class, instantiator, decorator, objectFactory);
     }
 
     protected ProjectFinder createProjectFinder() {
@@ -292,10 +291,6 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {
         return new ProjectBackedModuleMetaDataProvider();
-    }
-
-    protected ComponentRegistry createComponentRegistry() {
-        return new ComponentRegistry();
     }
 
     protected TypeConverter createTypeConverter(PathToFileResolver fileResolver) {

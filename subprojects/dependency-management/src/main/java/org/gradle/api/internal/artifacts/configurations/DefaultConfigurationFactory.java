@@ -112,35 +112,39 @@ public class DefaultConfigurationFactory {
         String name,
         ConfigurationsProvider configurationsProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        RootComponentMetadataBuilder rootComponentMetadataBuilder
+        RootComponentMetadataBuilder rootComponentMetadataBuilder,
+        ConfigurationRole role,
+        boolean lockUsage
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
-            listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
+                listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
         return instantiator.newInstance(
-            DefaultConfiguration.class,
-            domainObjectContext,
-            name,
-            configurationsProvider,
-            resolver,
-            dependencyResolutionListeners,
-            listenerManager.getBroadcaster(ProjectDependencyObservedListener.class),
-            metaDataProvider,
-            resolutionStrategyFactory,
-            fileCollectionFactory,
-            buildOperationExecutor,
-            instantiator,
-            artifactNotationParser,
-            capabilityNotationParser,
-            attributesFactory,
-            rootComponentMetadataBuilder,
-            documentationRegistry,
-            userCodeApplicationContext,
-            projectStateRegistry,
-            workerThreadRegistry,
-            domainObjectCollectionFactory,
-            calculatedValueContainerFactory,
-            this,
-            taskDependencyFactory
+                DefaultConfiguration.class,
+                domainObjectContext,
+                name,
+                configurationsProvider,
+                resolver,
+                dependencyResolutionListeners,
+                listenerManager.getBroadcaster(ProjectDependencyObservedListener.class),
+                metaDataProvider,
+                resolutionStrategyFactory,
+                fileCollectionFactory,
+                buildOperationExecutor,
+                instantiator,
+                artifactNotationParser,
+                capabilityNotationParser,
+                attributesFactory,
+                rootComponentMetadataBuilder,
+                documentationRegistry,
+                userCodeApplicationContext,
+                projectStateRegistry,
+                workerThreadRegistry,
+                domainObjectCollectionFactory,
+                calculatedValueContainerFactory,
+                this,
+                taskDependencyFactory,
+                role,
+                lockUsage
         );
     }
 }

@@ -18,7 +18,7 @@
 plugins {
     `java-library`
     checkstyle
-    alias(libs.plugins.jmh)
+    alias(libs.plugins.versions)
 }
 // end::use_plugin[]
 
@@ -66,4 +66,3 @@ dependencies {
     }
 }
 // end::type_unsafe_access[]
-

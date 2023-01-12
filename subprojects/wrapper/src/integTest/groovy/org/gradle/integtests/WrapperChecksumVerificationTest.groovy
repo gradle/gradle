@@ -90,7 +90,6 @@ Expected checksum: 'bad'
 
         when:
         def success = wrapperExecuter.run()
-
         then:
         success.output.contains('BUILD SUCCESSFUL')
     }

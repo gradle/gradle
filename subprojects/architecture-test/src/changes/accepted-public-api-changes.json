@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.setForkEvery(long)",
+            "acceptation": "Test.forkEvery setter with same nullability as the getter",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.KotlinAssignmentExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.KotlinAssignmentExtensionsKt.assign(org.gradle.api.provider.Property,java.lang.Object)",
             "acceptation": "Compatibility check has an issue with generic extension function",

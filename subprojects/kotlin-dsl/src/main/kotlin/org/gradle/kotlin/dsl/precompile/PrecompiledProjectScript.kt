@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.precompile
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -33,6 +34,14 @@ import org.gradle.plugin.use.PluginDependencySpec
 open class PrecompiledProjectScript(
     override val delegate: Project
 ) : ProjectDelegate() {
+
+    init {
+        DeprecationLogger.deprecateBehaviour("Applying a Kotlin DSL precompiled script plugin published with Gradle versions < 6.0.")
+            .withAdvice("Use a version of the plugin published with Gradle >= 6.0.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "kotlin_dsl_precompiled_gradle_lt_6")
+            .nagUser()
+    }
 
     /**
      * Configures the build script classpath for this project.
