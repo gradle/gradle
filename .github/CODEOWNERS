@@ -17,10 +17,10 @@ subprojects/snapshots/                      @gradle/bt-execution
 subprojects/instrumentation-agent           @gradle/bt-configuration-cache
 
 # Gradle Enterprise
-subprojects/enterprise/                     @ldaley @gradle/ge-testing @gradle/ge-build-insights
-subprojects/enterprise-logging/             @gradle/ge-build-insights @gradle/ge-testing
-subprojects/enterprise-operations/          @gradle/ge-build-insights
-subprojects/enterprise-workers/             @gradle/ge-build-insights
+subprojects/enterprise/                     @ldaley @gradle/ge-testing @gradle/ge-build-insights @gradle/bt-build-scan
+subprojects/enterprise-logging/             @gradle/ge-build-insights @gradle/bt-build-scan @gradle/ge-testing
+subprojects/enterprise-operations/          @gradle/ge-build-insights @gradle/bt-build-scan
+subprojects/enterprise-workers/             @gradle/ge-build-insights @gradle/bt-build-scan
 
 # JVM platform
 subprojects/code-quality/                   @gradle/bt-jvm
