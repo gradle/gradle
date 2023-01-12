@@ -1,5 +1,6 @@
 import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.PublicApi
+import gradlebuild.basics.PublicKotlinDslApi
 import gradlebuild.basics.flakyTestStrategy
 
 plugins {
@@ -17,6 +18,7 @@ dependencies {
     testImplementation(project(":model-core"))
     testImplementation(project(":file-temp"))
     testImplementation(project(":core"))
+    testImplementation(libs.futureKotlin("stdlib"))
     testImplementation(libs.inject)
 
     testImplementation(libs.archunitJunit5)
@@ -48,8 +50,8 @@ tasks.test {
     // Only use one fork, so freezing doesn't have concurrency issues
     maxParallelForks = 1
 
-    systemProperty("org.gradle.public.api.includes", PublicApi.includes.joinToString(":"))
-    systemProperty("org.gradle.public.api.excludes", PublicApi.excludes.joinToString(":"))
+    systemProperty("org.gradle.public.api.includes", (PublicApi.includes + PublicKotlinDslApi.includes).joinToString(":"))
+    systemProperty("org.gradle.public.api.excludes", (PublicApi.excludes + PublicKotlinDslApi.excludes).joinToString(":"))
     jvmArgumentProviders.add(ArchUnitFreezeConfiguration(
         project.file("src/changes/archunit_store"),
         providers.gradleProperty("archunitRefreeze").map { true })

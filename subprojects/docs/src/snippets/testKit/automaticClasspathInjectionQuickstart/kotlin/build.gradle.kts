@@ -11,7 +11,7 @@ dependencies {
 }
 // end::automatic-classpath[]
 
-tasks.withType<Test>().configureEach {
+tasks.named<Test>("test") {
     useJUnitPlatform()
 }
 

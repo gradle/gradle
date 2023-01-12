@@ -104,7 +104,7 @@ class DefaultRootComponentMetadataBuilderTest extends Specification {
         mutationType                                | cached
         MutationValidator.MutationType.DEPENDENCIES | false
         MutationValidator.MutationType.ARTIFACTS    | false
-        MutationValidator.MutationType.ROLE         | true
+        MutationValidator.MutationType.USAGE        | true
         MutationValidator.MutationType.STRATEGY     | true
     }
 

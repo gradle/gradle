@@ -69,17 +69,25 @@ import static com.tngtech.archunit.core.domain.JavaMember.Predicates.declaredIn;
 import static com.tngtech.archunit.core.domain.JavaModifier.PUBLIC;
 import static com.tngtech.archunit.core.domain.properties.HasModifiers.Predicates.modifier;
 import static com.tngtech.archunit.core.domain.properties.HasName.Functions.GET_NAME;
+import static com.tngtech.archunit.core.domain.properties.HasName.Predicates.nameMatching;
 import static com.tngtech.archunit.core.domain.properties.HasType.Functions.GET_RAW_TYPE;
 import static java.util.stream.Collectors.toSet;
 
 public interface ArchUnitFixture {
-    DescribedPredicate<JavaMember> public_api_methods = declaredIn(gradlePublicApi())
-        .and(modifier(PUBLIC))
-        .as("public API methods");
-
     DescribedPredicate<JavaMember> not_written_in_kotlin = declaredIn(
             resideOutsideOfPackages("org.gradle.configurationcache..", "org.gradle.kotlin.."))
             .as("API written in Java");
+
+    DescribedPredicate<JavaMember> kotlin_internal_methods = declaredIn(gradlePublicApi())
+        .and(not(not_written_in_kotlin))
+        .and(modifier(PUBLIC))
+        .and(nameMatching(".+\\$[a-z_]+")) // Kotlin internal methods have `$kotlin_module_name` appended to their name
+        .as("Kotlin internal methods");
+
+    DescribedPredicate<JavaMember> public_api_methods = declaredIn(gradlePublicApi())
+        .and(modifier(PUBLIC))
+        .and(not(kotlin_internal_methods))
+        .as("public API methods");
 
     static ArchRule freeze(ArchRule rule) {
         return new FreezeInstructionsPrintingArchRule(FreezingArchRule.freeze(rule));

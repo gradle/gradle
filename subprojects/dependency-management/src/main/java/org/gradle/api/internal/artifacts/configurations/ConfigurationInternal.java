@@ -140,7 +140,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
     /**
      * Configures if a configuration can have dependencies declared upon it.
      *
-     * @since 8.0
      */
     void setCanBeDeclaredAgainst(boolean allowed);
 
@@ -148,9 +147,20 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
      * Returns true if it is allowed to declare dependencies upon this configuration.
      * Defaults to true.
      * @return true if this configuration can have dependencies declared
-     * @since 8.0
      */
     boolean isCanBeDeclaredAgainst();
+
+    /**
+     * Prevents any calls to methods that change this configuration's allowed usage (e.g. {@link #setCanBeConsumed(boolean)},
+     * {@link #setCanBeResolved(boolean)}, {@link #deprecateForResolution(String...)}) from succeeding; and causes them
+     * to throw an exception.
+     */
+    void preventUsageMutation();
+
+    /**
+     * Returns the role used to create this configuration and set its initial allowed usage.
+     */
+    ConfigurationRole getRoleAtCreation();
 
     /**
      * Test if the given configuration can either be declared against or extends another

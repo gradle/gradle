@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.configuration;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
@@ -30,35 +31,28 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.process.internal.JvmOptions;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
 public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
 
-    private static List<BuildOption<DaemonParameters>> options;
-
-    static {
-        List<BuildOption<DaemonParameters>> options = new ArrayList<BuildOption<DaemonParameters>>();
-        options.add(new IdleTimeoutOption());
-        options.add(new HealthCheckOption());
-        options.add(new BaseDirOption());
-        options.add(new JvmArgsOption());
-        options.add(new JavaHomeOption());
-        options.add(new DebugOption());
-        options.add(new DebugHostOption());
-        options.add(new DebugPortOption());
-        options.add(new DebugServerOption());
-        options.add(new DebugSuspendOption());
-        options.add(new ApplyInstrumentationAgentOption());
-        options.add(new DaemonOption());
-        options.add(new ForegroundOption());
-        options.add(new StopOption());
-        options.add(new StatusOption());
-        options.add(new PriorityOption());
-        DaemonBuildOptions.options = Collections.unmodifiableList(options);
-    }
+    private static List<BuildOption<DaemonParameters>> options = ImmutableList.of(
+        new IdleTimeoutOption(),
+        new HealthCheckOption(),
+        new BaseDirOption(),
+        new JvmArgsOption(),
+        new JavaHomeOption(),
+        new DebugOption(),
+        new DebugHostOption(),
+        new DebugPortOption(),
+        new DebugServerOption(),
+        new DebugSuspendOption(),
+        new ApplyInstrumentationAgentOption(),
+        new DaemonOption(),
+        new ForegroundOption(),
+        new StopOption(),
+        new StatusOption(),
+        new PriorityOption());
 
     public static List<BuildOption<DaemonParameters>> get() {
         return options;

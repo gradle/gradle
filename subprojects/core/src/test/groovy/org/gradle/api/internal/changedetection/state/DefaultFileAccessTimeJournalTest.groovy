@@ -17,10 +17,10 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.cache.CacheDecorator
-import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
+import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory
 import org.gradle.cache.internal.scopes.DefaultCacheScopeMapping
-import org.gradle.cache.internal.scopes.DefaultGlobalScopedCache
+import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory
 import org.gradle.internal.file.FileAccessTimeJournal
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -41,8 +41,8 @@ class DefaultFileAccessTimeJournalTest extends Specification {
 
     def cachesDir = tmpDir.createDir("caches")
     def cacheScopeMapping = new DefaultCacheScopeMapping(cachesDir, GradleVersion.current())
-    def cacheRepository = new DefaultCacheRepository(cacheScopeMapping, new TestInMemoryCacheFactory())
-    def globalScopedCache = new DefaultGlobalScopedCache(cachesDir, cacheRepository)
+    def cacheRepository = new DefaultUnscopedCacheBuilderFactory(cacheScopeMapping, new TestInMemoryCacheFactory())
+    def globalScopedCache = new DefaultGlobalScopedCacheBuilderFactory(cachesDir, cacheRepository)
     def cacheDecoratorFactory = Stub(DefaultInMemoryCacheDecoratorFactory) {
         decorator(_, _) >> Stub(CacheDecorator) {
             decorate(_, _, _, _, _) >> { cacheId, cacheName, persistentCache, crossProcessCacheAccess, asyncCacheAccess ->
