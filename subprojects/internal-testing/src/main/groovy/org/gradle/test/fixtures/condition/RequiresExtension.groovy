@@ -26,12 +26,12 @@ class RequiresExtension implements IAnnotationDrivenExtension<Requires> {
     @Override
     void visitSpecAnnotation(Requires annotation, SpecInfo spec) {
         // If all preconditions are met, we DON'T skip the tests
-        spec.skipped = !TestPrecondition.doSatisfiesAll(annotation.value())
+        spec.skipped |= !TestPrecondition.doSatisfiesAll(annotation.value())
     }
 
     @Override
     void visitFeatureAnnotation(Requires annotation, FeatureInfo feature) {
         // If all preconditions are met, we DON'T skip the tests
-        feature.skipped = !TestPrecondition.doSatisfiesAll(annotation.value())
+        feature.skipped |= !TestPrecondition.doSatisfiesAll(annotation.value())
     }
 }
