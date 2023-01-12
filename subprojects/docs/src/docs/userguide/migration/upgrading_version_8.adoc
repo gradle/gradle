@@ -15,7 +15,8 @@
 [[upgrading_version_8]]
 = Upgrading your build from Gradle 8.x to the latest
 
-This chapter provides the information you need to migrate your Gradle 8.x builds to the latest Gradle release. For migrating from Gradle 4.x, 5.x, 6.x, or 7.x, see the <<upgrading_version_7.adoc#upgrading_version_7, older migration guide>> first.
+This chapter provides the information you need to migrate your Gradle 8.x builds to the latest Gradle release.
+For migrating from Gradle 4.x, 5.x, 6.x, or 7.x, see the <<upgrading_version_7.adoc#upgrading_version_7, older migration guide>> first.
 
 We recommend the following steps for all users:
 
@@ -28,13 +29,14 @@ This is so you can see any deprecation warnings that apply to your build.
 Alternatively, you could run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
 . Update your plugins.
 +
-Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed. The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
+Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed.
+The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
 +
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
-[[changes_9.0]]
-== Upgrading from 8.x and earlier
+[[changes_8.1]]
+== Upgrading from 8.0 and earlier
 
 === Warnings that are now errors
 
@@ -45,40 +47,46 @@ Some plugins will break with this new version of Gradle, for example because the
 === Deprecations
 
 [[custom_configuration_roles]]
-Custom roles have been deprecated. Use a pre-defined role instead.
+==== Custom configuration roles
 
-[[upgrading_version_8:changes_8.0]]
+Custom roles have been deprecated.
+Use a pre-defined role instead.
 
 [[configurations_allowed_usage]]
-The usage of configurations should be fixed at creation.  Mutating the allowed usage on a configuration is deprecated.
+==== Allowed configurations usage
+
+The usage of configurations should be fixed at creation.
+Mutating the allowed usage on a configuration is deprecated.
 This includes calling any of the following `Configuration` methods:
 
 - `setCanBeConsumed(boolean)`
 - `setCanBeResolved(boolean)`
 
-The ability to change the allowed usage of a configuration after
-creation will be removed in Gradle 9.0.
+The ability to change the allowed usage of a configuration after creation will be removed in Gradle 9.0.
 
 [[gmm_modification_after_publication_populated]]
 ==== Modifying Gradle Module Metadata after a publication has been populated
 
-Altering the link:publishing_gradle_module_metadata.html[GMM] (e.g., changing a component configuration variants) *after* a Maven or Ivy publication has been populated from their components is now deprecated. This feature will be removed in Gradle 9.0.
+Altering the link:publishing_gradle_module_metadata.html[GMM] (e.g., changing a component configuration variants) *after* a Maven or Ivy publication has been populated from their components is now deprecated.
+This feature will be removed in Gradle 9.0.
 
 Eager population of the publication can happen if the following methods are called:
 
-====== Maven
+* Maven
+** link:{javadocPath}/org/gradle/api/publish/maven/MavenPublication.html#getArtifacts--[MavenPublication.getArtifacts()]
+* Ivy
+** link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getArtifacts--[IvyPublication.getArtifacts()]
+** link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getConfigurations--[IvyPublication.getConfigurations()]
+** link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#configurations(Action)--[IvyPublication.configurations(Action)]
 
-* link:{javadocPath}/org/gradle/api/publish/maven/MavenPublication.html#getArtifacts--[MavenPublication.getArtifacts()]
+Previously, the following code did not generate warnings, but it created inconsistencies between published artifacts:
 
-====== Ivy
-
-* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getArtifacts--[IvyPublication.getArtifacts()]
-* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getConfigurations--[IvyPublication.getConfigurations()]
-* link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#configurations(Action)--[IvyPublication.configurations(Action)]
-
-Previously, this code block did not generate warnings, but it created inconsistencies between published artifacts:
-
-```kotlin
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
 publishing {
     publications {
         create<MavenPublication>("maven") {
@@ -91,13 +99,46 @@ publishing {
 }
 
 // These calls eagerly populate the Maven and Ivy publications
+
 (publishing.publications["maven"] as MavenPublication).artifacts
 (publishing.publications["ivy"] as IvyPublication).artifacts
 
-(components["java"] as AdhocComponentWithVariants).apply {
-  withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
-  withVariantsFromConfiguration(configurations["runtimeElements"]) { skip() }
+val javaComponent = components["java"] as AdhocComponentWithVariants
+javaComponent.withVariantsFromConfiguration(configurations["apiElements"]) { skip() }
+javaComponent.withVariantsFromConfiguration(configurations["runtimeElements"]) { skip() }
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+        ivy(IvyPublication) {
+            from components.java
+        }
+    }
 }
-```
+
+// These calls eagerly populate the Maven and Ivy publications
+
+publishing.publications.maven.artifacts
+publishing.publications.ivy.artifacts
+
+components.java.withVariantsFromConfiguration(configurations.apiElements) { skip() }
+components.java.withVariantsFromConfiguration(configurations.runtimeElements) { skip() }
+----
+=====
+====
 
 In this example, the Maven and Ivy publications will contain the main JAR artifacts for the project, whereas the GMM link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[module file] will omit them.
+
+[[kotlin_dsl_precompiled_gradle_lt_6]]
+==== Applying Kotlin DSL precompiled scripts published with Gradle < 6.0
+
+Applying Kotlin DSL precompiled scripts published with Gradle < 6.0 is deprecated.
+Please use a version of the plugin published with Gradle >= 6.0.
