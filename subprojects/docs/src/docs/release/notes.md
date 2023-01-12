@@ -208,7 +208,7 @@ The current status of the configuration cache support for all core Gradle plugin
 <a name="java-toolchains"></a>
 ### Java Toolchains improvements
 
-##### Updated toolchain download repositories
+#### Updated toolchain download repositories
 
 Gradle 7.6 introduced [toolchain repositories](userguide/toolchains.html#sub:download_repositories) for increased flexibility. In Gradle 8.0, there is no longer a default toolchain provisioner. You have to declare at least one Java Toolchain repository explicitly. This can be done via toolchain repository plugins, like the [Foojay Toolchains Plugin](https://plugins.gradle.org/plugin/org.gradle.toolchains.foojay-resolver-convention):
 
