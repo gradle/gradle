@@ -17,6 +17,7 @@
 package org.gradle.process.internal.worker.messaging;
 
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
@@ -76,6 +77,8 @@ public class WorkerConfigSerializer implements Serializer<WorkerConfig> {
             return workerAction;
         } catch (ClassNotFoundException e) {
             throw new RuntimeException("Cannot load worker action's class", e);
+        } catch (UnsupportedClassVersionError e) {
+            throw new RuntimeException("Unsupported worker JDK version: " + JavaVersion.current().getMajorVersion(), e);
         } finally {
             if (in != null) {
                 try {
