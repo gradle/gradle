@@ -782,4 +782,80 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("Compilation failed; see the compiler error output for details.")
         failure.assertHasErrorOutput("error: package org.junit does not exist")
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/19065")
+    def "test suites can add platforms using a #platformType with #format"() {
+        given: "a project defining a platform"
+        file('platform/build.gradle') << """
+            plugins {
+                id 'java-platform'
+            }
+
+            group = "org.example.gradle"
+
+            dependencies {
+                constraints {
+                    api 'org.assertj:assertj-core:3.22.0'
+                }
+            }
+        """
+
+        and: "an application project with a test suite using the platform"
+        file('app/build.gradle') << """
+            plugins {
+                 id 'java'
+            }
+
+            ${mavenCentralRepository()}
+
+            testing {
+                suites {
+                    test {
+                        useJUnitJupiter()
+
+                        dependencies {
+                            implementation($expression)
+                            implementation 'org.assertj:assertj-core'
+                        }
+                    }
+                }
+            }
+        """
+        file('app/src/test/java/org/example/app/ExampleTest.java') << """
+            package org.example.app;
+
+            import org.junit.jupiter.api.Test;
+            import static org.assertj.core.api.Assertions.assertThat;
+
+            public class ExampleTest {
+                @Test public void testOK() {
+                    assertThat(1 + 1).isEqualTo(2);
+                }
+            }
+        """
+
+        settingsFile << """
+            dependencyResolutionManagement {
+                includeBuild("platform")
+            }
+
+            rootProject.name = 'example-of-platform-in-test-suites'
+
+            include("app")
+        """
+
+        expect: "should be able to reference the platform without failing"
+        succeeds ':app:test'
+        def unitTestResults = new JUnitXmlTestExecutionResult(testDirectory, 'app/build/test-results/test')
+        unitTestResults.assertTestClassesExecuted('org.example.app.ExampleTest')
+
+        where:
+        format                              | platformType  | expression
+        'single GAV string'                 | 'platform'            | "platform('org.example.gradle:platform')"
+        'module method'                     | 'platform'            | "platform(module('org.example.gradle', 'platform', null))"
+        'referencing project.dependencies'  | 'platform'            | "project.dependencies.platform('org.example.gradle:platform')"
+        'single GAV string'                 | 'enforcedPlatform'    | "enforcedPlatform('org.example.gradle:platform')"
+        'module method'                     | 'enforcedPlatform'    | "enforcedPlatform(module('org.example.gradle', 'platform', null))"
+        'referencing project.dependencies'  | 'enforcedPlatform'    | "project.dependencies.enforcedPlatform('org.example.gradle:platform')"
+    }
 }

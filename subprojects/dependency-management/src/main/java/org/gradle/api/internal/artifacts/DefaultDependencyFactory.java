@@ -130,7 +130,9 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
 
     @Override
     public ExternalModuleDependency create(CharSequence dependencyNotation) {
-        return dependencyNotationParser.getStringNotationParser().parseNotation(dependencyNotation.toString());
+        ExternalModuleDependency dependency = dependencyNotationParser.getStringNotationParser().parseNotation(dependencyNotation.toString());
+        injectServices(dependency);
+        return dependency;
     }
 
     @Override
@@ -142,6 +144,7 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
     public ExternalModuleDependency create(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension) {
         DefaultExternalModuleDependency dependency = instantiator.newInstance(DefaultExternalModuleDependency.class, group, name, version);
         ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, extension, classifier);
+        injectServices(dependency);
         return dependency;
     }
 
