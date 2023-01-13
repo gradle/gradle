@@ -163,6 +163,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         if (moduleDependencyCapabilities != null) {
             target.moduleDependencyCapabilities = moduleDependencyCapabilities.copy();
         }
+        target.endorsing = endorsing;
     }
 
     protected boolean isKeyEquals(ModuleDependency dependencyRhs) {
