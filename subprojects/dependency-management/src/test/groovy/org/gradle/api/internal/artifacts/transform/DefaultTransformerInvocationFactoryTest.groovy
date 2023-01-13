@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.attributes.ImmutableAttributes
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
@@ -116,6 +117,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def dependencies = Stub(ArtifactTransformDependencies) {
         getFiles() >> Optional.empty()
     }
+    def attributesFactory = Stub(ImmutableAttributesFactory)
 
     def buildOperationExecutor = new TestBuildOperationExecutor()
 
@@ -160,7 +162,8 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
         transformationWorkspaceServices,
         fileCollectionFactory,
         projectStateRegistry,
-        buildOperationExecutor
+        buildOperationExecutor,
+        attributesFactory
     )
 
     private static class TestTransformer implements Transformer {

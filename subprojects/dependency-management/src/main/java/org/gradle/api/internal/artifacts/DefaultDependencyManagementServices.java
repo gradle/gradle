@@ -221,7 +221,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 ArtifactTransformListener artifactTransformListener,
                 FileCollectionFactory fileCollectionFactory,
                 ProjectStateRegistry projectStateRegistry,
-                BuildOperationExecutor buildOperationExecutor
+                BuildOperationExecutor buildOperationExecutor,
+                ImmutableAttributesFactory attributesFactory
         ) {
             return new DefaultTransformerInvocationFactory(
                 executionEngine,
@@ -230,7 +231,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 transformationWorkspaceServices,
                 fileCollectionFactory,
                 projectStateRegistry,
-                buildOperationExecutor
+                buildOperationExecutor,
+                attributesFactory
             );
         }
 
