@@ -29,6 +29,7 @@ import org.gradle.api.internal.plugins.DefaultPluginManager
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.ClasspathNormalizer
 import org.gradle.api.tasks.PathSensitivity
@@ -56,6 +57,7 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSch
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.resolverEnvironmentStringFor
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.strictModeSystemPropertyName
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin
@@ -248,11 +250,12 @@ fun Project.enableScriptCompilationOf(
                 .withPropertyName("accessorsMetadata")
             inputs.property("kotlinDslScriptTemplates", scriptTemplates)
 
-            configureScriptResolverEnvironmentOnDoFirst(
+            configureScriptResolverEnvironment(
                 objects,
                 serviceOf(),
+                serviceOf(),
                 compileClasspath,
-                accessorsMetadata
+                generatePrecompiledScriptPluginAccessors.flatMap { it.metadataOutputDir }
             )
         }
 
@@ -263,9 +266,7 @@ fun Project.enableScriptCompilationOf(
                 metadataDir.set(accessorsMetadata)
                 classPathFiles.from(compileClasspath)
                 onConfigure { resolverEnvironment ->
-                    objects.withInstance<TaskContainerScope> {
-                        configureScriptResolverEnvironment(resolverEnvironment)
-                    }
+                    configureKotlinCompilerArguments(objects, resolverEnvironment)
                 }
             }
 
@@ -289,49 +290,97 @@ val strictModeSystemPropertyNameMapper: Transformer<Boolean, String> = Transform
 
 
 private
-fun Task.configureScriptResolverEnvironmentOnDoFirst(
+fun Task.configureScriptResolverEnvironment(
     objects: ObjectFactory,
     implicitImports: ImplicitImports,
+    classpathFingerprinter: ClasspathFingerprinter,
     compileClasspath: FileCollection,
     accessorsMetadata: Provider<Directory>
 ) {
-    doFirst {
-        objects.withInstance<ResolverEnvironmentScope> {
-            configureScriptResolverEnvironment(
-                resolverEnvironmentStringFor(
-                    implicitImports,
-                    classpathFingerprinter,
-                    compileClasspath,
-                    accessorsMetadata.get().asFile
-                )
-            )
+    configureKotlinCompilerArguments(
+        objects,
+        resolverEnvironmentStringFor(
+            implicitImports,
+            classpathFingerprinter,
+            compileClasspath,
+            accessorsMetadata
+        )
+    )
+}
+
+
+private
+fun Task.configureKotlinCompilerArguments(
+    objects: ObjectFactory,
+    resolverEnvironment: Provider<String>
+) {
+    if (hasLazyKotlinCompilerOptions) {
+        configureKotlinCompilerArgumentsLazily(resolverEnvironment)
+    } else {
+        doFirst {
+            configureKotlinCompilerArgumentsEagerly(objects, resolverEnvironment)
         }
     }
 }
+
+
+private
+val Task.hasLazyKotlinCompilerOptions: Boolean
+    get() = withGroovyBuilder { hasProperty("compilerOptions") }
+
+
+private
+fun Task.configureKotlinCompilerArgumentsLazily(resolverEnvironment: Provider<String>) {
+    withGroovyBuilder {
+        getProperty("compilerOptions").withGroovyBuilder {
+            @Suppress("unchecked_cast")
+            val freeCompilerArgs = getProperty("freeCompilerArgs") as ListProperty<String>
+            freeCompilerArgs.addAll(scriptTemplatesArgs)
+            freeCompilerArgs.add(resolverEnvironment.mappedToScriptResolverEnvironmentArg)
+        }
+    }
+}
+
+
+private
+fun configureKotlinCompilerArgumentsEagerly(objects: ObjectFactory, resolverEnvironment: Provider<String>) {
+    DeprecationLogger.deprecateBehaviour("Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0.")
+        .withAdvice(
+            "Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. " +
+                "Or use version $expectedKotlinDslPluginsVersion which is the expected version for this Gradle release. " +
+                "If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0."
+        )
+        .willBecomeAnErrorInGradle9()
+        .withUpgradeGuideSection(8, "kotlin_dsl_with_kgp_lt_1_8_0")
+        .nagUser()
+    objects.withInstance<TaskContainerScope> {
+        taskContainer.compileKotlin {
+            withGroovyBuilder {
+                getProperty("kotlinOptions").withGroovyBuilder {
+                    @Suppress("unchecked_cast")
+                    val freeCompilerArgs: List<String> = getProperty("freeCompilerArgs") as List<String>
+                    setProperty("freeCompilerArgs", freeCompilerArgs + scriptTemplatesArgs + resolverEnvironment.mappedToScriptResolverEnvironmentArg.get())
+                }
+            }
+        }
+    }
+}
+
+
+private
+val scriptTemplatesArgs
+    get() = listOf("-script-templates", scriptTemplates)
+
+
+private
+val Provider<String>.mappedToScriptResolverEnvironmentArg
+    // Propagate implicit imports and other settings
+    get() = map { "-Xscript-resolver-environment=$it" }
 
 
 private
 inline fun <reified T> ObjectFactory.withInstance(block: T.() -> Unit) {
     with(newInstance(), block)
-}
-
-
-private
-fun TaskContainerScope.configureScriptResolverEnvironment(resolverEnvironment: String) {
-    taskContainer.compileKotlin {
-        val scriptCompilerArgs = listOf(
-            "-script-templates", scriptTemplates,
-            // Propagate implicit imports and other settings
-            "-Xscript-resolver-environment=$resolverEnvironment"
-        )
-        withGroovyBuilder {
-            getProperty("kotlinOptions").withGroovyBuilder {
-                @Suppress("unchecked_cast")
-                val freeCompilerArgs: List<String> = getProperty("freeCompilerArgs") as List<String>
-                setProperty("freeCompilerArgs", freeCompilerArgs + scriptCompilerArgs)
-            }
-        }
-    }
 }
 
 
@@ -343,17 +392,13 @@ fun TaskContainer.compileKotlin(action: Task.() -> Unit) {
 }
 
 
+/**
+ * For access to the task container at execution time, for configuration cache support.
+ */
 private
 interface TaskContainerScope {
     @get:Inject
     val taskContainer: TaskContainer
-}
-
-
-private
-interface ResolverEnvironmentScope : TaskContainerScope {
-    @get:Inject
-    val classpathFingerprinter: ClasspathFingerprinter
 }
 
 
