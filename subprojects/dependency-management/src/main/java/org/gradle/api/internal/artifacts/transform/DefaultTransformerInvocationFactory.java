@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.transform;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.DefaultFileSystemLocation;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -410,9 +411,60 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
+        public IdentifyBuildOperationDetails identifyOperationDetails() {
+            return new DefaultTransformIdentifyBuildOperationDetails(transformer, subject);
+        }
+
+        @Override
         public String getDisplayName() {
             return transformer.getDisplayName() + ": " + inputArtifact;
         }
+
+        private static class DefaultTransformIdentifyBuildOperationDetails implements TransformIdentifyBuildOperationDetails {
+
+            private final Transformer transformer;
+            private final TransformationSubject subject;
+
+            private DefaultTransformIdentifyBuildOperationDetails(Transformer transformer, TransformationSubject subject) {
+                this.transformer = transformer;
+                this.subject = subject;
+            }
+
+            @Override
+            public Class<?> getWorkType() {
+                return transformer.getImplementationClass();
+            }
+
+            @Override
+            public AttributeContainer getFromAttributes() {
+                return transformer.getFromAttributes();
+            }
+
+            @Override
+            public AttributeContainer getToAttributes() {
+                return transformer.getToAttributes();
+            }
+
+            @Override
+            public byte[] getSecondaryInputHash() {
+                return transformer.getSecondaryInputHash().toByteArray();
+            }
+
+            @Override
+            public ComponentIdentifier getComponentId() {
+                return subject.getInitialComponentIdentifier();
+            }
+        }
+    }
+
+    public interface TransformIdentifyBuildOperationDetails extends UnitOfWork.IdentifyBuildOperationDetails {
+        AttributeContainer getFromAttributes();
+
+        AttributeContainer getToAttributes();
+
+        byte[] getSecondaryInputHash();
+
+        ComponentIdentifier getComponentId();
     }
 
     private static class ImmutableTransformationWorkspaceIdentity implements UnitOfWork.Identity {

@@ -156,6 +156,16 @@ public class TaskExecution implements UnitOfWork {
     }
 
     @Override
+    public IdentifyBuildOperationDetails identifyOperationDetails() {
+        return new IdentifyBuildOperationDetails() {
+            @Override
+            public Class<?> getWorkType() {
+                return task.getClass();
+            }
+        };
+    }
+
+    @Override
     public WorkOutput execute(ExecutionRequest executionRequest) {
         FileCollection previousFiles = executionRequest.getPreviouslyProducedOutputs()
             .<FileCollection>map(previousOutputs -> new PreviousOutputFileCollection(task, taskDependencyFactory, fileCollectionFactory, previousOutputs))

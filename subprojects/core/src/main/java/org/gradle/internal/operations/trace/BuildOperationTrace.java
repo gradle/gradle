@@ -18,12 +18,17 @@ package org.gradle.internal.operations.trace;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.StandardSystemProperty;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.io.LineProcessor;
 import groovy.json.JsonGenerator;
 import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
 import org.gradle.StartParameter;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -424,6 +429,22 @@ public class BuildOperationTrace implements Stoppable {
                 public Object convert(Object value, String key) {
                     Class<?> clazz = (Class<?>) value;
                     return clazz.getName();
+                }
+            })
+            .addConverter(new JsonGenerator.Converter() {
+                @Override
+                public boolean handles(Class<?> type) {
+                    return ImmutableAttributes.class.isAssignableFrom(type);
+                }
+
+                @Override
+                public Object convert(Object value, String key) {
+                    AttributeContainer attributes = (AttributeContainer) value;
+                    ImmutableList.Builder<Map<String, String>> attributesBuilder = new ImmutableList.Builder<>();
+                    for (Attribute<?> att : attributes.keySet()) {
+                        attributesBuilder.add(ImmutableMap.of("name", att.getName(), "value", attributes.getAttribute(att).toString()));
+                    }
+                    return attributesBuilder.build();
                 }
             })
             .build();
