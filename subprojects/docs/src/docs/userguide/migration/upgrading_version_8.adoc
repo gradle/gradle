@@ -137,6 +137,12 @@ components.java.withVariantsFromConfiguration(configurations.runtimeElements) { 
 
 In this example, the Maven and Ivy publications will contain the main JAR artifacts for the project, whereas the GMM link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[module file] will omit them.
 
+[[minimum_test_jvm_version]]
+==== Running tests on JVM versions 6 and 7
+
+Running JVM tests on JVM versions older than 8 is deprecated.
+Testing on these versions will become an error in Gradle 9.0
+
 [[kotlin_dsl_precompiled_gradle_lt_6]]
 ==== Applying Kotlin DSL precompiled scripts published with Gradle < 6.0
 
