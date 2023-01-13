@@ -23,14 +23,12 @@ import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
 
 import javax.inject.Inject;
@@ -54,8 +52,6 @@ public class JavaToolchainQueryService {
     private final JavaInstallationRegistry registry;
     private final JavaToolchainFactory toolchainFactory;
     private final JavaToolchainProvisioningService installService;
-    private final Provider<Boolean> detectEnabled;
-    private final Provider<Boolean> downloadEnabled;
     // Map values are either `JavaToolchain` or `Exception`
     private final ConcurrentMap<JavaToolchainSpecInternal.Key, Object> matchingToolchains;
     private final CurrentJvmToolchainSpec fallbackToolchainSpec;
@@ -65,14 +61,11 @@ public class JavaToolchainQueryService {
         JavaInstallationRegistry registry,
         JavaToolchainFactory toolchainFactory,
         JavaToolchainProvisioningService provisioningService,
-        ProviderFactory factory,
         ObjectFactory objectFactory
     ) {
         this.registry = registry;
         this.toolchainFactory = toolchainFactory;
         this.installService = provisioningService;
-        this.detectEnabled = factory.gradleProperty(AutoDetectingInstallationSupplier.AUTO_DETECT).map(Boolean::parseBoolean);
-        this.downloadEnabled = factory.gradleProperty(DefaultJavaToolchainProvisioningService.AUTO_DOWNLOAD).map(Boolean::parseBoolean);
         this.matchingToolchains = new ConcurrentHashMap<>();
         this.fallbackToolchainSpec = objectFactory.newInstance(CurrentJvmToolchainSpec.class);
     }
@@ -143,6 +136,9 @@ public class JavaToolchainQueryService {
                 .min(new JavaToolchainComparator());
 
         if (detectedToolchain.isPresent()) {
+            //notify toolchain install service that even thought it didn't now, it might get requests at a later point in time
+            installService.notifyAboutActivity();
+
             return detectedToolchain.get();
         }
 
