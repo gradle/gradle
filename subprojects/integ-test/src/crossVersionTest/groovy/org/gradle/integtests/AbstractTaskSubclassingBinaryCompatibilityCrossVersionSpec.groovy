@@ -31,7 +31,6 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.plugins.ear.Ear
 import org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath
 import org.gradle.plugins.ide.eclipse.GenerateEclipseJdt
@@ -45,14 +44,11 @@ import org.gradle.plugins.signing.Sign
 import org.gradle.util.GradleVersion
 
 /**
- * Tests that task classes compiled against earlier versions of Gradle are still compatible.
+ * Tests that task classes compiled against one version of Gradle are compatible with another version.
  */
-@TargetVersions("3.0+")
-class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
+abstract class AbstractTaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
 
-    @SuppressWarnings("UnnecessaryQualifiedReference")
-    def "can use task subclass compiled using previous Gradle version"() {
-        given:
+    protected void prepareSubclassingTest(GradleVersion targetVersion) {
         def taskClasses = [
             DefaultTask,
             SourceTask,
@@ -94,21 +90,21 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
 
         // Some breakages that were not detected prior to release. Please do not add any more exceptions
 
-        if (previous.version < GradleVersion.version("1.1")) {
+        if (targetVersion < GradleVersion.version("1.1")) {
             // Breaking changes were made to Test between 1.0 and 1.1
             taskClasses.remove(Test)
         }
-        if (previous.version < GradleVersion.version("2.0")) {
+        if (targetVersion < GradleVersion.version("2.0")) {
             // Breaking changes were made to JavaCompile prior to 2.0
             taskClasses.remove(JavaCompile)
         }
 
         def apiDepConf = "implementation"
-        if (previous.version < GradleVersion.version("7.0-rc-1")) {
+        if (targetVersion < GradleVersion.version("7.0-rc-1")) {
             apiDepConf = "compile"
         }
         def groovyDepConf
-        if (previous.version < GradleVersion.version("1.4-rc-1")) {
+        if (targetVersion < GradleVersion.version("1.4-rc-1")) {
             groovyDepConf = "groovy"
         } else {
             groovyDepConf = apiDepConf
@@ -156,25 +152,20 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
 
             apply plugin: SomePlugin
         """
-
-        expect:
-        version previous withTasks 'assemble' inDirectory(file("producer")) run()
-        version current withTasks 'tasks' requireDaemon() requireIsolatedDaemons() run()
     }
 
-    def "task can use all methods declared by Task interface that AbstractTask specialises"() {
+    protected void prepareMethodUseTest(GradleVersion targetVersion) {
         file("someFile").touch()
         file("anotherFile").touch()
         file("yetAnotherFile").touch()
         file("someDir").createDir()
 
-        when:
         def apiDepConf = "implementation"
-        if (previous.version < GradleVersion.version("7.0-rc-1")) {
+        if (targetVersion < GradleVersion.version("7.0-rc-1")) {
             apiDepConf = "compile"
         }
         def groovyDepConf
-        if (previous.version < GradleVersion.version("1.4-rc-1")) {
+        if (targetVersion < GradleVersion.version("1.4-rc-1")) {
             groovyDepConf = "groovy"
         } else {
             groovyDepConf = apiDepConf
@@ -187,8 +178,8 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             }
         """
 
-        boolean previousVersionLeaksInternal = (previous.version == GradleVersion.version("3.2") ||
-            previous.version == GradleVersion.version("3.2.1"))
+        boolean previousVersionLeaksInternal = (targetVersion == GradleVersion.version("3.2") ||
+            targetVersion == GradleVersion.version("3.2.1"))
 
         file("producer/src/main/java/SubclassTask.java") << """
             import org.gradle.api.DefaultTask;
@@ -196,12 +187,12 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             import org.gradle.api.logging.LogLevel;
             import java.util.*;
 
-            public class SubclassTask extends DefaultTask {
+            public ${declareTaskClass(targetVersion)} class SubclassTask extends DefaultTask {
                 public SubclassTask() {
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.file("someFile");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.files("anotherFile", "yetAnotherFile");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.dir("someDir");
-                    ${previous.version >= GradleVersion.version("4.3") ? 'getInputs().property("input", "value");' : ""}
+                    ${targetVersion >= GradleVersion.version("4.3") ? 'getInputs().property("input", "value");' : ""}
                     Map<String, Object> mapValues = new HashMap<String, Object>();
                     mapValues.put("mapInput", "mapValue");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.properties(mapValues);
@@ -228,9 +219,13 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
 
             task t(type: SubclassTask)
         """
+    }
 
-        then:
-        version previous withTasks 'assemble' inDirectory(file("producer")) run()
-        version current requireDaemon() requireIsolatedDaemons() withTasks 't' run()
+    protected static String declareTaskClass(GradleVersion targetVersion) {
+        if (targetVersion >= GradleVersion.version("7.0")) {
+            return "abstract"
+        } else {
+            return ""
+        }
     }
 }
