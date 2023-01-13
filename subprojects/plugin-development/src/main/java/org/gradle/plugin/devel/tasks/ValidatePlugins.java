@@ -139,9 +139,11 @@ public abstract class ValidatePlugins extends DefaultTask {
 
     private Provider<JavaLauncher> toolchainLauncher() {
         JavaPluginExtension extension = getProject().getExtensions().findByType(JavaPluginExtension.class);
-        JavaToolchainService service = getProject().getExtensions().findByType(JavaToolchainService.class);
-        if (extension != null && service != null) {
-            return service.launcherFor(extension.getToolchain());
+        if (extension != null) {
+            JavaToolchainService service = getProject().getExtensions().findByType(JavaToolchainService.class);
+            if (service != null) {
+                return service.launcherFor(extension.getToolchain());
+            }
         }
         return Providers.notDefined();
     }
