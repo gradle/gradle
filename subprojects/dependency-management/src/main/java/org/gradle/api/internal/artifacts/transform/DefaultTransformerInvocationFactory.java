@@ -21,6 +21,9 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.artifacts.configurations.LazyDesugaringAttributeContainer;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.file.DefaultFileSystemLocation;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -79,6 +82,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private final FileCollectionFactory fileCollectionFactory;
     private final ProjectStateRegistry projectStateRegistry;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ImmutableAttributesFactory attributesFactory;
 
     public DefaultTransformerInvocationFactory(
         ExecutionEngine executionEngine,
@@ -87,7 +91,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         TransformationWorkspaceServices immutableWorkspaceProvider,
         FileCollectionFactory fileCollectionFactory,
         ProjectStateRegistry projectStateRegistry,
-        BuildOperationExecutor buildOperationExecutor
+        BuildOperationExecutor buildOperationExecutor,
+        ImmutableAttributesFactory attributesFactory
     ) {
         this.executionEngine = executionEngine;
         this.fileSystemAccess = fileSystemAccess;
@@ -96,6 +101,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         this.fileCollectionFactory = fileCollectionFactory;
         this.projectStateRegistry = projectStateRegistry;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -122,7 +128,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 fileCollectionFactory,
                 inputFingerprinter,
                 fileSystemAccess,
-                workspaceServices
+                workspaceServices,
+                attributesFactory
             );
         } else {
             execution = new MutableTransformerExecution(
@@ -135,7 +142,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 buildOperationExecutor,
                 fileCollectionFactory,
                 inputFingerprinter,
-                workspaceServices
+                workspaceServices,
+                attributesFactory
             );
         }
 
@@ -177,11 +185,12 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
             FileSystemAccess fileSystemAccess,
-            TransformationWorkspaceServices workspaceServices
+            TransformationWorkspaceServices workspaceServices,
+            ImmutableAttributesFactory attributesFactory
         ) {
             super(
                 transformer, inputArtifact, dependencies, subject,
-                artifactTransformListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices
+                artifactTransformListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices, attributesFactory
             );
             this.fileSystemAccess = fileSystemAccess;
         }
@@ -217,11 +226,12 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
-            TransformationWorkspaceServices workspaceServices
+            TransformationWorkspaceServices workspaceServices,
+            ImmutableAttributesFactory attributesFactory
         ) {
             super(
                 transformer, inputArtifact, dependencies, subject,
-                artifactTransformListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices
+                artifactTransformListener, buildOperationExecutor, fileCollectionFactory, inputFingerprinter, workspaceServices, attributesFactory
             );
         }
 
@@ -248,6 +258,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         private final Provider<FileSystemLocation> inputArtifactProvider;
         protected final InputFingerprinter inputFingerprinter;
         private final TransformationWorkspaceServices workspaceServices;
+        private final ImmutableAttributesFactory attributesFactory;
 
         public AbstractTransformerExecution(
             Transformer transformer,
@@ -259,7 +270,8 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             BuildOperationExecutor buildOperationExecutor,
             FileCollectionFactory fileCollectionFactory,
             InputFingerprinter inputFingerprinter,
-            TransformationWorkspaceServices workspaceServices
+            TransformationWorkspaceServices workspaceServices,
+            ImmutableAttributesFactory attributesFactory
         ) {
             this.transformer = transformer;
             this.inputArtifact = inputArtifact;
@@ -272,6 +284,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             this.fileCollectionFactory = fileCollectionFactory;
             this.inputFingerprinter = inputFingerprinter;
             this.workspaceServices = workspaceServices;
+            this.attributesFactory = attributesFactory;
         }
 
         @Override
@@ -412,7 +425,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public IdentifyBuildOperationDetails identifyOperationDetails() {
-            return new DefaultTransformIdentifyBuildOperationDetails(transformer, subject);
+            return new DefaultTransformIdentifyBuildOperationDetails(transformer, subject, attributesFactory);
         }
 
         @Override
@@ -424,9 +437,13 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
             private final Transformer transformer;
             private final TransformationSubject subject;
+            private final ImmutableAttributes fromAttributes;
+            private final ImmutableAttributes toAttributes;
 
-            private DefaultTransformIdentifyBuildOperationDetails(Transformer transformer, TransformationSubject subject) {
+            private DefaultTransformIdentifyBuildOperationDetails(Transformer transformer, TransformationSubject subject, ImmutableAttributesFactory attributesFactory) {
                 this.transformer = transformer;
+                this.fromAttributes = new LazyDesugaringAttributeContainer(transformer.getFromAttributes(), attributesFactory);
+                this.toAttributes = new LazyDesugaringAttributeContainer(transformer.getToAttributes(), attributesFactory);
                 this.subject = subject;
             }
 
@@ -437,12 +454,12 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
             @Override
             public AttributeContainer getFromAttributes() {
-                return transformer.getFromAttributes();
+                return fromAttributes;
             }
 
             @Override
             public AttributeContainer getToAttributes() {
-                return transformer.getToAttributes();
+                return toAttributes;
             }
 
             @Override
