@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -37,7 +38,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.plugin.devel.tasks.internal.ValidateAction;
 import org.gradle.workers.WorkerExecutor;
 
@@ -73,7 +73,10 @@ public abstract class ValidatePlugins extends DefaultTask {
     public void validateTaskClasses() throws IOException {
         getWorkerExecutor()
             .processIsolation(spec -> {
-                spec.getForkOptions().setExecutable(toolchainLauncher().get().getExecutablePath());
+                Provider<JavaLauncher> javaLauncher = toolchainLauncher();
+                if (javaLauncher.isPresent()) {
+                    spec.getForkOptions().setExecutable(javaLauncher.get().getExecutablePath());
+                }
                 spec.getClasspath().setFrom(getClasses(), getClasspath());
             })
             .submit(ValidateAction.class, params -> {
@@ -135,9 +138,12 @@ public abstract class ValidatePlugins extends DefaultTask {
     }
 
     private Provider<JavaLauncher> toolchainLauncher() {
-        JavaToolchainSpec toolchain = getProject().getExtensions().getByType(JavaPluginExtension.class).getToolchain();
-        JavaToolchainService service = getProject().getExtensions().getByType(JavaToolchainService.class);
-        return service.launcherFor(toolchain);
+        JavaPluginExtension extension = getProject().getExtensions().findByType(JavaPluginExtension.class);
+        JavaToolchainService service = getProject().getExtensions().findByType(JavaToolchainService.class);
+        if (extension != null && service != null) {
+            return service.launcherFor(extension.getToolchain());
+        }
+        return Providers.notDefined();
     }
 
     /**
