@@ -58,7 +58,12 @@ public interface UnitOfWork extends Describable {
     }
 
     default IdentifyBuildOperationDetails identifyOperationDetails() {
-        return this::getClass;
+        return new IdentifyBuildOperationDetails() {
+            @Override
+            public Class<?> getWorkType() {
+                return getClass();
+            }
+        };
     }
 
     interface IdentifyBuildOperationDetails {
