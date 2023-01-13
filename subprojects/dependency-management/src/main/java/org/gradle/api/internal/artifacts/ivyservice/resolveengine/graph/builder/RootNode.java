@@ -29,13 +29,13 @@ import java.util.Set;
 
 class RootNode extends NodeState implements RootGraphNode {
     private final ResolveOptimizations resolveOptimizations;
-    private final List<? extends DependencyMetadata> generatedRootDependencies;
+    private final List<? extends DependencyMetadata> syntheticDependencies;
 
-    RootNode(Long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState, List<? extends DependencyMetadata> generatedRootDependencies, VariantGraphResolveMetadata configuration) {
+    RootNode(Long resultId, ComponentState moduleRevision, ResolvedConfigurationIdentifier id, ResolveState resolveState, List<? extends DependencyMetadata> syntheticDependencies, VariantGraphResolveMetadata configuration) {
         super(resultId, id, moduleRevision, resolveState, configuration, false);
         moduleRevision.setRoot();
         this.resolveOptimizations = resolveState.getResolveOptimizations();
-        this.generatedRootDependencies = generatedRootDependencies;
+        this.syntheticDependencies = syntheticDependencies;
     }
 
     @Override
@@ -70,13 +70,13 @@ class RootNode extends NodeState implements RootGraphNode {
     @Override
     protected List<? extends DependencyMetadata> getAllDependencies() {
         List<? extends DependencyMetadata> superDependencies = super.getAllDependencies();
-        if (generatedRootDependencies.isEmpty()) {
+        if (syntheticDependencies.isEmpty()) {
             return superDependencies;
         }
-        int expectedSize = superDependencies.size() + generatedRootDependencies.size();
+        int expectedSize = superDependencies.size() + syntheticDependencies.size();
         ImmutableList.Builder<DependencyMetadata> allDependencies = ImmutableList.builderWithExpectedSize(expectedSize);
         allDependencies.addAll(superDependencies);
-        allDependencies.addAll(generatedRootDependencies);
+        allDependencies.addAll(syntheticDependencies);
         return allDependencies.build();
     }
 }

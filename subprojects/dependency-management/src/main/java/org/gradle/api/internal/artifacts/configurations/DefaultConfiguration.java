@@ -256,7 +256,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
-    private final Lazy<List<? extends DependencyMetadata>> lockDependencyConstraints = Lazy.unsafe().of(this::generateLockDependencyConstraints);
+    private final Lazy<List<? extends DependencyMetadata>> syntheticDependencies = Lazy.unsafe().of(this::generateSyntheticDependencies);
 
     private final AtomicInteger copyCount = new AtomicInteger();
 
@@ -1391,11 +1391,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public List<? extends DependencyMetadata> getLockDependencyConstraints() {
-        return lockDependencyConstraints.get();
+    public List<? extends DependencyMetadata> getSyntheticDependencies() {
+        return syntheticDependencies.get();
     }
 
-    private List<? extends DependencyMetadata> generateLockDependencyConstraints() {
+    private List<? extends DependencyMetadata> generateSyntheticDependencies() {
         ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(getModule());
 
         Stream<LocalComponentDependencyMetadata> dependencyLockingConstraintMetadata = Stream.empty();

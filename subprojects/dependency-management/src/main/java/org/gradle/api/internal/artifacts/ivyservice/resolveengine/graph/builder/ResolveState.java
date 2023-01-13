@@ -108,7 +108,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         ModuleConflictResolver<ComponentState> conflictResolver,
         int graphSize,
         ConflictResolution conflictResolution,
-        List<? extends DependencyMetadata> generatedRootDependencies,
+        List<? extends DependencyMetadata> syntheticDependencies,
         ResolutionConflictTracker conflictTracker
     ) {
         this.idGenerator = idGenerator;
@@ -147,7 +147,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         // Create root node
         ResolvedConfigurationIdentifier rootNodeId = new ResolvedConfigurationIdentifier(moduleVersionId, rootConfigurationName);
         VariantGraphResolveMetadata rootVariant = rootComponentMetadata.getConfiguration(rootConfigurationName);
-        root = new RootNode(idGenerator.generateId(), rootComponent, rootNodeId, this, generatedRootDependencies, rootVariant);
+        root = new RootNode(idGenerator.generateId(), rootComponent, rootNodeId, this, syntheticDependencies, rootVariant);
         nodes.put(rootNodeId, root);
     }
 
