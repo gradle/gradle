@@ -152,12 +152,11 @@ class SimplifiedKotlinScriptEvaluator(
 
         override fun cachedDirFor(
             scriptHost: KotlinScriptHost<*>,
-            templateId: String,
-            sourceHash: HashCode,
+            programId: ProgramId,
             compilationClassPath: ClassPath,
             accessorsClassPath: ClassPath,
             initializer: (File) -> Unit
-        ): File = baseCacheDir.resolve(sourceHash.toString()).resolve(templateId).also { cacheDir ->
+        ): File = baseCacheDir.resolve(programId.sourceHash.toString()).resolve(programId.templateId).also { cacheDir ->
             cacheDir.mkdirs()
             initializer(cacheDir)
         }

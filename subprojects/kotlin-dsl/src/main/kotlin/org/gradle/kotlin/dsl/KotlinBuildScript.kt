@@ -24,6 +24,7 @@ import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.invalidPluginsCall
+import org.gradle.kotlin.dsl.template.KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider
 
 import org.gradle.plugin.use.PluginDependenciesSpec
 
@@ -47,7 +48,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
         "-Xjsr305=strict",
         "-XXLanguage:+DisableCompatibilityModeForNewInference",
         "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
-    ]
+    ],
+    provider = KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider::class
 )
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
