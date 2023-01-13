@@ -786,7 +786,7 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19065")
-    def "test suites can add platforms in convention plugins using #format"() {
+    def "test suites can add platforms using a #platformType with #format"() {
         given: "a project defining a platform"
         file('platform/build.gradle') << """
             plugins {
@@ -802,13 +802,8 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        and: "a project defining a convention plugin adding the platform to the default test suite"
-        file('plugins/build.gradle') << """
-            plugins {
-                id 'groovy-gradle-plugin'
-            }
-        """
-        file('plugins/src/main/groovy/org.example.tests.gradle') << """
+        and: "an application project with a test suite using the platform"
+        file('app/build.gradle') << """
             plugins {
                  id 'java'
             }
@@ -828,14 +823,6 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-
-        and: "an application project using the convention plugin"
-        file('app/build.gradle') << """
-              plugins {
-                  id 'org.example.tests'
-              }
-
-        """
         file('app/src/test/java/org/example/app/ExampleTest.java') << """
             package org.example.app;
 
@@ -850,10 +837,6 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         settingsFile << """
-            pluginManagement {
-                includeBuild("plugins")
-            }
-
             dependencyResolutionManagement {
                 includeBuild("platform")
             }
@@ -869,9 +852,12 @@ class TestSuitesIntegrationTest extends AbstractIntegrationSpec {
         unitTestResults.assertTestClassesExecuted('org.example.app.ExampleTest')
 
         where:
-        format                              | expression
-        'single GAV string'                 | "platform('org.example.gradle:platform')"
-        'module method'                     | "platform(module('org.example.gradle', 'platform', null))"
-        'using project.dependencies'        | "project.dependencies.platform('org.example.gradle:platform')"
+        format                              | platformType  | expression
+        'single GAV string'                 | 'platform'            | "platform('org.example.gradle:platform')"
+        'module method'                     | 'platform'            | "platform(module('org.example.gradle', 'platform', null))"
+        'referencing project.dependencies'  | 'platform'            | "project.dependencies.platform('org.example.gradle:platform')"
+        'single GAV string'                 | 'enforcedPlatform'    | "enforcedPlatform('org.example.gradle:platform')"
+        'module method'                     | 'enforcedPlatform'    | "enforcedPlatform(module('org.example.gradle', 'platform', null))"
+        'referencing project.dependencies'  | 'enforcedPlatform'    | "project.dependencies.enforcedPlatform('org.example.gradle:platform')"
     }
 }
