@@ -17,12 +17,12 @@
 package org.gradle.jvm.toolchain.internal.install;
 
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
 
 import java.io.File;
-import java.util.Optional;
 
 public interface JavaToolchainProvisioningService {
 
-    Optional<File> tryInstall(JavaToolchainSpec spec);
+    File tryInstall(JavaToolchainSpec spec) throws ToolchainDownloadFailedException;
 
 }

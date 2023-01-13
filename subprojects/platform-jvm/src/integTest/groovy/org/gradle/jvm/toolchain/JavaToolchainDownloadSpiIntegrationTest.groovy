@@ -394,6 +394,38 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
         failure.assertHasCause("Mutation of toolchain repositories declared in settings is only allowed during settings evaluation")
     }
 
+    @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
+    def "throws informative error on repositories not being configured"() {
+        settingsFile << """
+            ${applyToolchainResolverPlugin("CustomToolchainResolver", customToolchainResolverCode())} 
+        """
+
+        buildFile << """
+            apply plugin: "java"
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(99)
+                }
+            }
+        """
+
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        when:
+        failure = executer
+                .withTasks("compileJava")
+                .requireOwnGradleUserHomeDir()
+                .withToolchainDownloadEnabled()
+                .runWithFailure()
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
+                .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
+                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
+                .assertHasCause("No locally installed toolchains match and toolchain download repositories have not been configured.")
+    }
+
     private static String customToolchainResolverCode() {
         """
             import java.util.Optional;
