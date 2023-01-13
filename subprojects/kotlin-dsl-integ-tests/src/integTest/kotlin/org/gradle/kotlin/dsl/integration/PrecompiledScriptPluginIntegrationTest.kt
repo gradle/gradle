@@ -815,4 +815,20 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
         compileKotlin()
     }
+
+    @Test
+    fun `does not add extra task actions to kotlin compilation task`() {
+        assumeNonEmbeddedGradleExecuter()
+        withKotlinDslPlugin().appendText("""
+            gradle.taskGraph.whenReady {
+                val compileKotlinActions = allTasks.single { it.path == ":compileKotlin" }.actions.size
+                require(compileKotlinActions == 1) {
+                    ":compileKotlin has ${'$'}compileKotlinActions actions, expected 1"
+                }
+            }
+        """)
+        withPrecompiledKotlinScript("my-plugin.gradle.kts", "")
+
+        compileKotlin()
+    }
 }

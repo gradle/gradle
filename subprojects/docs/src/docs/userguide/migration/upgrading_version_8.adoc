@@ -142,3 +142,11 @@ In this example, the Maven and Ivy publications will contain the main JAR artifa
 
 Applying Kotlin DSL precompiled scripts published with Gradle < 6.0 is deprecated.
 Please use a version of the plugin published with Gradle >= 6.0.
+
+[[kotlin_dsl_with_kgp_lt_1_8_0]]
+==== Applying the `kotlin-dsl` together with Kotlin Gradle Plugin < 1.8.0
+
+Applying the `kotlin-dsl` together with Kotlin Gradle Plugin < 1.8.0 is deprecated.
+Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic.
+This will let the `kotlin-dsl` plugin decide which version of the Kotlin Gradle Plugin to use.
+If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0.
