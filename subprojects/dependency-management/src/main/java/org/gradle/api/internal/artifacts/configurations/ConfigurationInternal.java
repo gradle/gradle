@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.configurations;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.ResolveException;
@@ -36,7 +35,6 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public interface ConfigurationInternal extends ResolveContext, Configuration, DeprecatableConfiguration, DependencyMetaDataProvider, FinalizableValue {
     enum InternalState {
@@ -116,8 +114,6 @@ public interface ConfigurationInternal extends ResolveContext, Configuration, De
 
     @Nullable
     ConfigurationInternal getConsistentResolutionSource();
-
-    Supplier<List<DependencyConstraint>> getConsistentResolutionConstraints();
 
     /**
      * Decorates a resolve exception with more context. This can be used
