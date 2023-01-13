@@ -61,7 +61,7 @@ public interface UnitOfWork extends Describable {
         return new IdentifyBuildOperationDetails() {
             @Override
             public Class<?> getWorkType() {
-                return getClass();
+                return UnitOfWork.this.getClass();
             }
         };
     }
