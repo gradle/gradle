@@ -199,7 +199,8 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(NoToolchainAvailableException)
-        e.message == "No matching toolchains found for request specification: {languageVersion=12, vendor=any, implementation=vendor-specific} (auto-detect true, auto-download true)."
+        e.message == "No matching toolchains found for requested specification: {languageVersion=12, vendor=any, implementation=vendor-specific}."
+        e.cause.message == "Configured toolchain download repositories can't match requested specification"
     }
 
     def "returns current JVM toolchain if requested"() {
@@ -337,9 +338,9 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchainFactory = newToolchainFactory()
         def installed = false
         def provisionService = new JavaToolchainProvisioningService() {
-            Optional<File> tryInstall(JavaToolchainSpec spec) {
+            File tryInstall(JavaToolchainSpec spec) {
                 installed = true
-                Optional.of(new File("/path/12"))
+                new File("/path/12")
             }
         }
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, provisionService, createProviderFactory(), TestUtil.objectFactory())
@@ -360,9 +361,9 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchainFactory = newToolchainFactory()
         def installed = false
         def provisionService = new JavaToolchainProvisioningService() {
-            Optional<File> tryInstall(JavaToolchainSpec spec) {
+            File tryInstall(JavaToolchainSpec spec) {
                 installed = true
-                Optional.of(new File("/path/12.broken"))
+                new File("/path/12.broken")
             }
         }
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, provisionService, createProviderFactory(), TestUtil.objectFactory())
@@ -384,9 +385,9 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchainFactory = newToolchainFactory()
         int installed = 0
         def provisionService = new JavaToolchainProvisioningService() {
-            Optional<File> tryInstall(JavaToolchainSpec spec) {
+            File tryInstall(JavaToolchainSpec spec) {
                 installed++
-                Optional.of(new File("/path/12"))
+                new File("/path/12")
             }
         }
         def queryService = new JavaToolchainQueryService(registry, toolchainFactory, provisionService, createProviderFactory(), TestUtil.objectFactory())
@@ -422,7 +423,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
     private JavaToolchainProvisioningService createProvisioningService() {
         def provisioningService = Mock(JavaToolchainProvisioningService)
-        provisioningService.tryInstall(_ as JavaToolchainSpec) >> Optional.empty()
+        provisioningService.tryInstall(_ as JavaToolchainSpec) >> { throw new ToolchainDownloadFailedException("Configured toolchain download repositories can't match requested specification") }
         provisioningService
     }
 

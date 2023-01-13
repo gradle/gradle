@@ -49,8 +49,10 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
+            .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("No matching toolchains found for request specification: {languageVersion=14, vendor=any, implementation=J9} (auto-detect true, auto-download true).")
+            .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=any, implementation=J9}.")
+            .assertHasCause("No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either.")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -81,8 +83,10 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
+            .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("No matching toolchains found for request specification: {languageVersion=14, vendor=any, implementation=vendor-specific} (auto-detect false, auto-download false)")
+            .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=any, implementation=vendor-specific}.")
+            .assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")

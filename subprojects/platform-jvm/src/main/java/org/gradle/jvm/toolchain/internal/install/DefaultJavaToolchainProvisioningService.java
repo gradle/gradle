@@ -22,6 +22,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.FileLock;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
+import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -85,21 +86,25 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         this.buildPlatform = buildPlatform;
     }
 
-    public Optional<File> tryInstall(JavaToolchainSpec spec) {
+    public File tryInstall(JavaToolchainSpec spec) {
         if (!isAutoDownloadEnabled()) {
-            return Optional.empty();
+            throw new ToolchainDownloadFailedException("No locally installed toolchains match and toolchain auto-provisioning is not enabled.");
         }
 
         List<? extends RealizedJavaToolchainRepository> repositories = toolchainResolverRegistry.requestedRepositories();
+        if (repositories.isEmpty()) {
+            throw new ToolchainDownloadFailedException("No locally installed toolchains match and toolchain download repositories have not been configured.");
+        }
+
         for (RealizedJavaToolchainRepository request : repositories) {
             Optional<JavaToolchainDownload> download = request.getResolver().resolve(new DefaultJavaToolchainRequest(spec, buildPlatform));
             if (download.isPresent()) {
                 Collection<Authentication> authentications = request.getAuthentications(download.get().getUri());
-                return Optional.of(provisionInstallation(spec, download.get().getUri(), authentications));
+                return provisionInstallation(spec, download.get().getUri(), authentications);
             }
         }
 
-        return Optional.empty();
+        throw new ToolchainDownloadFailedException("No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either.");
     }
 
     private File provisionInstallation(JavaToolchainSpec spec, URI uri, Collection<Authentication> authentications) {

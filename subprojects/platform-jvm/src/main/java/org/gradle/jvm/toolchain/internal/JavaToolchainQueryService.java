@@ -153,12 +153,12 @@ public class JavaToolchainQueryService {
     }
 
     private InstallationLocation downloadToolchain(JavaToolchainSpec spec) {
-        final Optional<File> installation = installService.tryInstall(spec);
-        if (!installation.isPresent()) {
-            throw new NoToolchainAvailableException(spec, detectEnabled.getOrElse(true), downloadEnabled.getOrElse(true));
+        try {
+            File installation = installService.tryInstall(spec);
+            return new InstallationLocation(installation, "provisioned toolchain");
+        } catch (ToolchainDownloadFailedException e) {
+            throw new NoToolchainAvailableException(spec, e);
         }
-
-        return new InstallationLocation(installation.get(), "provisioned toolchain");
     }
 
     private Optional<JavaToolchain> asToolchain(InstallationLocation javaHome, JavaToolchainSpec spec) {
