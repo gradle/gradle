@@ -25,6 +25,7 @@ import groovy.lang.GroovyShell;
 import groovy.lang.GroovySystem;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.InnerClassNode;
+import org.codehaus.groovy.ast.tools.GenericsUtils;
 import org.codehaus.groovy.classgen.GeneratorContext;
 import org.codehaus.groovy.control.CompilationUnit;
 import org.codehaus.groovy.control.CompilePhase;
@@ -282,6 +283,8 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
             //Discard the compile loader
             compileClasspathLoader.shutdown();
             CompositeStoppable.stoppable(classPathLoader, astTransformClassLoader).stop();
+            // Clear caches that shouldn't be kept
+            GenericsUtils.clearParameterizedTypeCache();
         }
     }
 
