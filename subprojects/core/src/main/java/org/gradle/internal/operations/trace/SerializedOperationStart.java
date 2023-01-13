@@ -35,13 +35,18 @@ class SerializedOperationStart implements SerializedOperation {
     final Object details;
     final String detailsClassName;
 
-    SerializedOperationStart(BuildOperationDescriptor descriptor, OperationStartEvent startEvent) {
+    final Integer workerLeaseNumber;
+    final String threadDescription;
+
+    SerializedOperationStart(BuildOperationDescriptor descriptor, OperationStartEvent startEvent, Integer workerLeaseNumber, String threadDescription) {
         this.id = descriptor.getId().getId();
         this.parentId = descriptor.getParentId() == null ? null : descriptor.getParentId().getId();
         this.displayName = descriptor.getDisplayName();
         this.startTime = startEvent.getStartTime();
         this.details = toSerializableModel(descriptor.getDetails());
         this.detailsClassName = details == null ? null : descriptor.getDetails().getClass().getName();
+        this.workerLeaseNumber = workerLeaseNumber;
+        this.threadDescription = threadDescription;
     }
 
     SerializedOperationStart(Map<String, ?> map) {
@@ -52,6 +57,8 @@ class SerializedOperationStart implements SerializedOperation {
         this.startTime = (Long) map.get("startTime");
         this.details = map.get("details");
         this.detailsClassName = (String) map.get("detailsClassName");
+        this.workerLeaseNumber = (Integer) map.get("workerLeaseNumber");
+        this.threadDescription = (String) map.get("threadDescription");
     }
 
     @Override
@@ -72,6 +79,12 @@ class SerializedOperationStart implements SerializedOperation {
             map.put("parentId", parentId);
         }
         map.put("startTime", startTime);
+        if (workerLeaseNumber != null) {
+            map.put("workerLeaseNumber", workerLeaseNumber);
+        }
+        if (threadDescription != null) {
+            map.put("threadDescription", threadDescription);
+        }
 
         return map.build();
     }

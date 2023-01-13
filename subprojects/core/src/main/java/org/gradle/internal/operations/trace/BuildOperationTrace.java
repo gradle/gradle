@@ -33,6 +33,8 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
+import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.util.internal.GFileUtils;
 
 import javax.annotation.Nonnull;
@@ -92,11 +94,13 @@ public class BuildOperationTrace implements Stoppable {
     private final JsonGenerator jsonGenerator = createJsonGenerator();
 
     private final BuildOperationListenerManager buildOperationListenerManager;
+    private final WorkerLeaseRegistry workerLeaseRegistry;
+    private final WorkerThreadRegistry workerThreadRegistry;
 
     private final BuildOperationListener listener = new BuildOperationListener() {
         @Override
         public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-            write(new SerializedOperationStart(buildOperation, startEvent));
+            write(new SerializedOperationStart(buildOperation, startEvent, getWorkerLeaseNumber(), getThreadDescription()));
         }
 
         @Override
@@ -106,12 +110,23 @@ public class BuildOperationTrace implements Stoppable {
 
         @Override
         public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-            write(new SerializedOperationFinish(buildOperation, finishEvent));
+            write(new SerializedOperationFinish(buildOperation, finishEvent, getWorkerLeaseNumber(), getThreadDescription()));
         }
     };
 
-    public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager) {
+    private static String getThreadDescription() {
+        Thread thread = Thread.currentThread();
+        return thread.getThreadGroup().getName() + " @@ " + thread.getName() + " @@ " + thread.getId();
+    }
+
+    private Integer getWorkerLeaseNumber() {
+        return workerThreadRegistry.isWorkerThread() ? workerLeaseRegistry.getCurrentWorkerLease().getWorkerLeaseNumber() : null;
+    }
+
+    public BuildOperationTrace(StartParameter startParameter, BuildOperationListenerManager buildOperationListenerManager, WorkerLeaseRegistry workerLeaseRegistry, WorkerThreadRegistry workerThreadRegistry) {
         this.buildOperationListenerManager = buildOperationListenerManager;
+        this.workerLeaseRegistry = workerLeaseRegistry;
+        this.workerThreadRegistry = workerThreadRegistry;
 
         Map<String, String> sysProps = startParameter.getSystemPropertiesArgs();
         String basePath = sysProps.get(SYSPROP);
@@ -331,6 +346,8 @@ public class BuildOperationTrace implements Stoppable {
                             start.displayName,
                             start.startTime,
                             finish.endTime,
+                            start.workerLeaseNumber,
+                            start.threadDescription,
                             detailsMap == null ? null : Collections.unmodifiableMap(detailsMap),
                             start.detailsClassName,
                             resultMap == null ? null : Collections.unmodifiableMap(resultMap),
