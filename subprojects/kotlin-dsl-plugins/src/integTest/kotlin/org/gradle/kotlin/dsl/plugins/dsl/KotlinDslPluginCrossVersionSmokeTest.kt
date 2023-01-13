@@ -49,7 +49,7 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         withDefaultSettings()
         withBuildScript("""plugins { id("some") }""")
 
-        executer.expectDocumentedDeprecationWarning("Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. Or use version 4.0.2 which is the expected version for this Gradle release. If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#kotlin_dsl_with_kgp_lt_1_8_0")
+        executer.expectDocumentedDeprecationWarning("Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0. This behavior has been deprecated. This will fail with an error in Gradle 9.0. Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. Or use version ${blessedVersion} which is the expected version for this Gradle release. If you explicitly declare which version of the Kotlin Gradle Plugin to use for your build logic, update it to >= 1.8.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#kotlin_dsl_with_kgp_lt_1_8_0")
 
         build("help").apply {
 
