@@ -67,8 +67,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
-import org.gradle.internal.resolve.resolver.ResolveContextToComponentResolver;
-import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,7 +130,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         validateResolutionStrategy(resolveContext.getResolutionStrategy());
 
         ComponentResolversChain resolvers = createResolvers(resolveContext, repositories, metadataHandler, projectDependencyResolver, artifactTypeRegistry, consumerSchema);
-        DependencyGraphBuilder builder = createDependencyGraphBuilder(resolvers, resolveContext.getResolutionStrategy(), metadataHandler, edgeFilter, consumerSchema, moduleExclusions, projectDependencyResolver, buildOperationExecutor);
+        DependencyGraphBuilder builder = createDependencyGraphBuilder(resolvers, resolveContext.getResolutionStrategy(), metadataHandler, edgeFilter, consumerSchema, moduleExclusions, buildOperationExecutor);
 
         DependencyGraphVisitor artifactsGraphVisitor = new ResolvedArtifactsGraphVisitor(artifactsVisitor, resolvers.getArtifactSelector());
 
@@ -161,19 +159,17 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         Spec<? super DependencyMetadata> edgeFilter,
         AttributesSchemaInternal attributesSchema,
         ModuleExclusions moduleExclusions,
-        ProjectDependencyResolver projectDependencyResolver,
         BuildOperationExecutor buildOperationExecutor
     ) {
 
         DependencyToComponentIdResolver componentIdResolver = componentSource.getComponentIdResolver();
         ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(componentSource.getComponentResolver(), dependencyDescriptorFactory);
 
-        ResolveContextToComponentResolver requestResolver = new DefaultResolveContextToComponentResolver(projectDependencyResolver);
         ModuleConflictHandler conflictHandler = createModuleConflictHandler(resolutionStrategy, globalRules);
         DefaultCapabilitiesConflictHandler capabilitiesConflictHandler = createCapabilitiesConflictHandler(resolutionStrategy.getCapabilitiesResolutionRules());
 
         DependencySubstitutionApplicator applicator = createDependencySubstitutionApplicator(resolutionStrategy);
-        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, requestResolver, conflictHandler, capabilitiesConflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, applicator, componentSelectorConverter, attributesFactory, versionSelectorScheme, versionComparator.asVersionComparator(), versionParser);
+        return new DependencyGraphBuilder(componentIdResolver, componentMetaDataResolver, conflictHandler, capabilitiesConflictHandler, edgeFilter, attributesSchema, moduleExclusions, buildOperationExecutor, applicator, componentSelectorConverter, attributesFactory, versionSelectorScheme, versionComparator.asVersionComparator(), versionParser);
     }
 
     private DependencySubstitutionApplicator createDependencySubstitutionApplicator(ResolutionStrategyInternal resolutionStrategy) {
@@ -212,19 +208,6 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
         handler.registerResolver(new LastCandidateCapabilityResolver());
         handler.registerResolver(new RejectRemainingCandidates());
         return handler;
-    }
-
-    private static class DefaultResolveContextToComponentResolver implements ResolveContextToComponentResolver {
-        private final ProjectDependencyResolver projectDependencyResolver;
-
-        public DefaultResolveContextToComponentResolver(ProjectDependencyResolver projectDependencyResolver) {
-            this.projectDependencyResolver = projectDependencyResolver;
-        }
-
-        @Override
-        public void resolve(ResolveContext resolveContext, BuildableComponentResolveResult result) {
-            result.resolved(projectDependencyResolver.resolveStateFor(resolveContext.toRootComponentMetaData()));
-        }
     }
 
 }
