@@ -135,7 +135,7 @@ If your team is using e.g., Java 11 to run Gradle, this allows you to use Java 1
 
 Previously, the compilation of `.gradle.kts` scripts always used Java 8 as the Kotlin JVM target. Starting with Gradle 8.0, it now uses the version of the JVM running the build.
 
-Note that this doesn't apply to precompiled script plugins (below).
+Note that this doesn't apply to precompiled script plugins, see below.
 
 ##### Precompiled script plugins now use the configured Java Toolchain
 
@@ -173,7 +173,7 @@ You can run the tests for `buildSrc` in the same way as other projects, as descr
 
 Init scripts specified on the command-line using `--init-script` are now applied to `buildSrc`, in addition to the main build and all included builds.
 
-For more details, see the [user manual](userguide/composite_builds.html#composite_build_executing_tasks)
+For more details, see the [user manual](userguide/init_scripts.html)
 
 <a name="configuration-cache"></a>
 ### Configuration cache
@@ -183,11 +183,15 @@ The [configuration cache](userguide/configuration_cache.html) improves build tim
 #### Improved configuration cache for parallelism on the first run
 
 Configuration cache now enables more fine-grained parallelism than using the `--parallel` flag.
-Starting in Gradle 8.0, tasks run in parallel from the first build when using the configuration cache. These tasks are isolated and can run in parallel. 
+Starting in Gradle 8.0, tasks run in parallel from the first build when using the configuration cache.
+These tasks are isolated and can run in parallel. 
 
-When the [configuration cache](userguide/configuration_cache.html) is enabled and Gradle can locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the cache entry and runs them in isolation. Isolated tasks can run in parallel by default, subject to dependency constraints.
+When the [configuration cache](userguide/configuration_cache.html) is enabled and Gradle can locate a compatible configuration cache entry for the requested tasks, it loads the tasks to run from the cache entry and runs them in isolation.
+Isolated tasks can run in parallel by default, subject to dependency constraints.
 
-When Gradle cannot locate a configuration cache entry to use, it runs the configuration phase to calculate the set of tasks to run and then stores these tasks in a new cache entry. There are some additional advantages to this new behavior:
+When Gradle cannot locate a configuration cache entry to use, it runs the configuration phase to calculate the set of tasks to run and then stores these tasks in a new cache entry.
+Gradle then loads immediately the saved state and runs the build based on the loaded state.
+There are some additional advantages to this new behavior:
 
 - Any problems that happen during deserialization will be reported in the cache miss build, making it easier to spot such problems.
 - Tasks have access to the same state in cache miss and cache hit builds.
@@ -219,7 +223,7 @@ plugins {
 }
 ```
 
-For more information, see [Toolchain Download Repositories](userguide/toolchains.html#sec:provisioning).
+For more details, see the [user manual](userguide/toolchains.html#sec:provisioning).
 
 <a name="general-improvements"></a>
 ### General improvements
@@ -238,7 +242,7 @@ beforeSettings { settings ->
 
 Furthermore, it was previously only possible to partially disable cache cleanup via the `org.gradle.cache.cleanup` Gradle property in Gradle user home. Disabling cache cleanup now affects more caches under Gradle user home and can also be configured via the [settings](dsl/org.gradle.api.initialization.Settings.html) object in an init script in Gradle user home.
 
-See [Configuring cleanup of caches and distributions](userguide/directory_layout.html#dir:gradle_user_home:configure_cache_cleanup) for more information.
+For more details, see the [user manual](userguide/directory_layout.html#dir:gradle_user_home:configure_cache_cleanup).
 
 #### Enhanced warning modes `all` and `fail` are now more verbose
 
@@ -246,7 +250,7 @@ Before Gradle 8.0, warning modes that were supposed to print all warnings were p
 
 Now one gets printed for each combination of message and stack trace. This result is more verbose, but also more complete.
 
-For more information about warning modes, see [showing or hiding warnings](userguide/command_line_interface.html#sec:command_line_warnings).
+For more details, see the [user manual](userguide/command_line_interface.html#sec:command_line_warnings).
 
 #### Improved dependency verification metadata
 
@@ -273,14 +277,14 @@ You can now use the `export-keys` flag to export all already trusted keys:
 
 There is no longer a need to write verification metadata when exporting trusted keys.
 
-For more information, see [exporting keys](userguide/dependency_verification.html#sec:local-keyring).
+For more details, see the [user manual](userguide/dependency_verification.html#sec:local-keyring).
 
 <a name="code-quality"></a>
 ### Code quality plugin improvements
 
 #### CodeNarc plugin detects the Groovy runtime version
 
-The [CodeNarc](https://codenarc.org/) performs static analysis for Groovy projects. It now publishes separate versions for use with Groovy 4. Gradle still currently ships with Groovy 3.
+[CodeNarc](https://codenarc.org/) performs static analysis for Groovy projects. It now publishes separate versions for use with Groovy 4. Gradle still currently ships with Groovy 3.
 
 To ensure future compatibility, the [CodeNarc Plugin](userguide/codenarc_plugin.html) now automatically detects the appropriate version of CodeNarc for the current Groovy runtime.
 
@@ -339,7 +343,6 @@ The following type and method are now considered stable:
 ### Promoted features in the `Settings` API
 
 - The methods `Settings.dependencyResolutionManagement(Action)` and `Settings.getDependencyResolutionManagement()` are now considered stable.
-
 - All the methods in `DependencyResolutionManagement` are now stable, except the ones for central repository declaration.
 
 ## Fixed issues
