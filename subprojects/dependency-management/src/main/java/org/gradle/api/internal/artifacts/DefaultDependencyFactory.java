@@ -155,7 +155,9 @@ public class DefaultDependencyFactory implements DependencyFactoryInternal {
 
     @Override
     public ProjectDependency create(Project project) {
-        return dependencyNotationParser.getProjectNotationParser().parseNotation(project);
+        ProjectDependency dependency = dependencyNotationParser.getProjectNotationParser().parseNotation(project);
+        injectServices(dependency);
+        return dependency;
     }
 
     // endregion
