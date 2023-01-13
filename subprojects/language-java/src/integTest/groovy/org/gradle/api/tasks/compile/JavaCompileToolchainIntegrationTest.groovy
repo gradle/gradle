@@ -293,7 +293,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
             .runWithFailure()
 
         then:
-        failureHasCause('No compatible toolchains found for request specification: {languageVersion=99, vendor=any, implementation=vendor-specific} (auto-detect true, auto-download false)')
+        failureHasCause('No matching toolchains found for request specification: {languageVersion=99, vendor=any, implementation=vendor-specific} (auto-detect true, auto-download false)')
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7) != null })
@@ -357,7 +357,7 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         fails("compileJava")
 
         then:
-        failureHasCause("No compatible toolchains found for request specification: {languageVersion=${version}, vendor=AMAZON, implementation=vendor-specific} (auto-detect false, auto-download false)")
+        failureHasCause("No matching toolchains found for request specification: {languageVersion=${version}, vendor=AMAZON, implementation=vendor-specific} (auto-detect false, auto-download false)")
     }
 
     def "can use compile daemon with tools jar"() {

@@ -199,7 +199,7 @@ class JavaToolchainQueryServiceTest extends Specification {
 
         then:
         def e = thrown(NoToolchainAvailableException)
-        e.message == "No compatible toolchains found for request specification: {languageVersion=12, vendor=any, implementation=vendor-specific} (auto-detect true, auto-download true)."
+        e.message == "No matching toolchains found for request specification: {languageVersion=12, vendor=any, implementation=vendor-specific} (auto-detect true, auto-download true)."
     }
 
     def "returns current JVM toolchain if requested"() {
