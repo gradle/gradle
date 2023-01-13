@@ -26,6 +26,7 @@ import groovy.json.JsonGenerator;
 import groovy.json.JsonOutput;
 import groovy.json.JsonSlurper;
 import org.gradle.StartParameter;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -428,6 +429,17 @@ public class BuildOperationTrace implements Stoppable {
                         attributesBuilder.add(ImmutableMap.of("name", att.getName(), "value", attributes.getAttribute(att).toString()));
                     }
                     return attributesBuilder.build();
+                }
+            })
+            .addConverter(new JsonGenerator.Converter() {
+                @Override
+                public boolean handles(Class<?> type) {
+                    return ComponentIdentifier.class.isAssignableFrom(type);
+                }
+
+                @Override
+                public Object convert(Object value, String key) {
+                    return value.toString();
                 }
             })
             .build();
