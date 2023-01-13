@@ -121,7 +121,7 @@ public class BuildOperationTrace implements Stoppable {
 
     private static String getThreadDescription() {
         Thread thread = Thread.currentThread();
-        return thread.getThreadGroup().getName() + " @@ " + thread.getName() + " @@ " + thread.getId();
+        return thread.getName() + " @@ " + thread.getId();
     }
 
     private Integer getWorkerLeaseNumber() {
