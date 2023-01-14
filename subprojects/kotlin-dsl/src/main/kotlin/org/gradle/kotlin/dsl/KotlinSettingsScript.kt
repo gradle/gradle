@@ -15,7 +15,6 @@
  */
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Action
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
@@ -23,7 +22,6 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.initialization.Settings
-import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.file.DefaultFileOperations
@@ -34,12 +32,14 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
-import org.gradle.api.plugins.ObjectConfigurationAction
+import org.gradle.api.plugins.PluginAware
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
+import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForSettings
 import org.gradle.kotlin.dsl.support.delegates.SettingsDelegate
 import org.gradle.kotlin.dsl.support.get
 import org.gradle.kotlin.dsl.support.internalError
@@ -48,20 +48,35 @@ import org.gradle.kotlin.dsl.support.unsafeLazy
 import org.gradle.kotlin.dsl.template.KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider
 import org.gradle.plugin.management.PluginManagementSpec
 import org.gradle.plugin.use.PluginDependenciesSpec
-
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
 import java.io.File
 import java.net.URI
+import kotlin.script.experimental.annotations.KotlinScript
+import kotlin.script.experimental.api.ScriptCompilationConfiguration
+import kotlin.script.experimental.api.baseClass
+import kotlin.script.experimental.api.implicitReceivers
+import kotlin.script.experimental.api.isStandalone
 import kotlin.script.extensions.SamWithReceiverAnnotations
 import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
+private
+class KotlinSettingsScriptCompilationConfiguration : ScriptCompilationConfiguration({
+    isStandalone(true)
+    baseClass(KotlinSettingsScript::class)
+    implicitReceivers(Settings::class)
+})
+
+
 /**
  * Base class for Kotlin settings scripts.
  */
+@KotlinScript(
+    compilationConfiguration = KotlinSettingsScriptCompilationConfiguration::class
+)
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = "(?:.+\\.)?settings\\.gradle\\.kts"
@@ -82,23 +97,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
 )
 @GradleDsl
 abstract class KotlinSettingsScript(
-    private val host: KotlinScriptHost<Settings>
-) : @Suppress("deprecation") SettingsScriptApi(host.target) /* TODO:kotlin-dsl configure implicit receiver */ {
-
-    /**
-     * The [ScriptHandler] for this script.
-     */
-    override fun getBuildscript(): ScriptHandler =
-        host.scriptHandler
-
-    override val fileOperations
-        get() = host.fileOperations
-
-    override val processOperations
-        get() = host.processOperations
-
-    override fun apply(action: Action<in ObjectConfigurationAction>) =
-        host.applyObjectConfigurationAction(action)
+    host: KotlinScriptHost<Settings>
+) : DefaultKotlinScript(defaultKotlinScriptHostForSettings(host.target)), PluginAware by host.target {
 
     /**
      * Configures the plugin dependencies for the project's settings.

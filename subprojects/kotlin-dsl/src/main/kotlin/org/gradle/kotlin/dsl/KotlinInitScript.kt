@@ -16,46 +16,59 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Action
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
-import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
-import org.gradle.api.plugins.ObjectConfigurationAction
+import org.gradle.api.plugins.PluginAware
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
+import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForGradle
 import org.gradle.kotlin.dsl.support.delegates.GradleDelegate
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
 import org.gradle.kotlin.dsl.template.KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider
-
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
-
 import java.io.File
 import java.net.URI
-
+import kotlin.script.experimental.annotations.KotlinScript
+import kotlin.script.experimental.api.ScriptCompilationConfiguration
+import kotlin.script.experimental.api.baseClass
+import kotlin.script.experimental.api.implicitReceivers
+import kotlin.script.experimental.api.isStandalone
 import kotlin.script.extensions.SamWithReceiverAnnotations
 import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
+private
+class KotlinInitScriptCompilationConfiguration : ScriptCompilationConfiguration({
+    isStandalone(true)
+    baseClass(KotlinInitScript::class)
+    implicitReceivers(Gradle::class)
+})
+
+
 /**
  * Script template for Kotlin init scripts.
  */
+@KotlinScript(
+    compilationConfiguration = KotlinInitScriptCompilationConfiguration::class
+)
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = "(?:.+\\.)?init\\.gradle\\.kts"
@@ -75,32 +88,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
     annotations = ["org.gradle.api.HasImplicitReceiver"]
 )
 abstract class KotlinInitScript(
-    private val host: KotlinScriptHost<Gradle>
-) : @Suppress("deprecation") InitScriptApi(host.target) /* TODO:kotlin-dsl configure implicit receiver */ {
-
-    /**
-     * The [ScriptHandler] for this script.
-     */
-    val initscript
-        get() = host.scriptHandler
-
-    /**
-     * Applies zero or more plugins or scripts.
-     * <p>
-     * The given action is used to configure an [ObjectConfigurationAction], which “builds” the plugin application.
-     * <p>
-     * @param action the action to configure an [ObjectConfigurationAction] with before “executing” it
-     * @see [PluginAware.apply]
-     */
-    override fun apply(action: Action<in ObjectConfigurationAction>) =
-        host.applyObjectConfigurationAction(action)
-
-    override val fileOperations
-        get() = host.fileOperations
-
-    override val processOperations
-        get() = host.processOperations
-}
+    host: KotlinScriptHost<Gradle>
+) : DefaultKotlinScript(defaultKotlinScriptHostForGradle(host.target)), PluginAware by host.target
 
 
 /**
