@@ -44,10 +44,6 @@ class ScriptApiTest {
         assertScriptApiOf<KotlinSettingsScript>()
 
     @Test
-    fun `IDE settings script template implements Settings#enableFeaturePreview`() =
-        assert(KotlinSettingsScript::class.implements(Settings::enableFeaturePreview))
-
-    @Test
     fun `IDE init script template implements script api`() =
         assertScriptApiOf<KotlinInitScript>()
 
