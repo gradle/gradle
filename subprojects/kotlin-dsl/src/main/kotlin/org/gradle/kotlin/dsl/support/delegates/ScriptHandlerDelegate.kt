@@ -31,8 +31,6 @@ import java.net.URI
 
 /**
  * Facilitates the implementation of the [ScriptHandler] interface by delegation via subclassing.
- *
- * See [GradleDelegate] for why this is currently necessary.
  */
 abstract class ScriptHandlerDelegate : ScriptHandler {
 
