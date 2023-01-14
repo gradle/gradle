@@ -54,14 +54,14 @@ class KotlinScriptHost<out T : Any>(
 
     internal
     val processOperations: ProcessOperations by unsafeLazy {
-        serviceRegistry.get<ProcessOperations>()
+        serviceRegistry.get()
     }
 
     internal
     val temporaryFileProvider: TemporaryFileProvider by unsafeLazy {
         // GradleUserHomeTemporaryFileProvider must be used instead of the TemporaryFileProvider.
         // In this scope the TemporaryFileProvider would be provided by the ProjectScopeServices.
-        // That would generate this temporary directory inside of the project build directory.
+        // That would generate this temporary directory inside the project build directory.
         serviceRegistry.get<GradleUserHomeTemporaryFileProvider>()
     }
 
