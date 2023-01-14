@@ -67,7 +67,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = "(?:.+\\.)?settings\\.gradle\\.kts"
 )
 @ScriptTemplateAdditionalCompilerArguments(
-    [
+    arguments = [
         "-language-version", "1.8",
         "-api-version", "1.8",
         "-Xjvm-default=all",
@@ -77,7 +77,9 @@ import kotlin.script.templates.ScriptTemplateDefinition
     ],
     provider = KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider::class
 )
-@SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
+@SamWithReceiverAnnotations(
+    annotations = ["org.gradle.api.HasImplicitReceiver"]
+)
 @GradleDsl
 abstract class KotlinSettingsScript(
     private val host: KotlinScriptHost<Settings>
