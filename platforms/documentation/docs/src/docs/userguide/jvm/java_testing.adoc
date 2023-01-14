@@ -277,7 +277,8 @@ include::sample[dir="snippets/testing/junit-xml-results/groovy",files="build.gra
 
 ===== omitSystemOutLog & omitSystemErrLog
 
-Allows configuring XML exporter to omit the system error and system out logs in the result file.
+When enabled, the `omitSystemErrLog` option allows configuring XML exporter to omit the system error in the result file. 
+While the `omitSystemErrLog` option allows configuring XML exporter to omit the system out logs in the result file.
 
 ===== outputPerTestCase
 
