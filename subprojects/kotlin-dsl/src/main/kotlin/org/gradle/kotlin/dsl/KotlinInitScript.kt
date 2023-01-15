@@ -31,6 +31,7 @@ import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.PluginAware
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
@@ -102,6 +103,16 @@ abstract class KotlinInitScript(
 abstract class InitScriptApi(
     override val delegate: Gradle
 ) : @Suppress("DEPRECATION") org.gradle.kotlin.dsl.support.delegates.GradleDelegate() {
+
+    init {
+        @Suppress("DEPRECATION")
+        if (this::class != org.gradle.kotlin.dsl.precompile.PrecompiledInitScript::class) {
+            DeprecationLogger.deprecateType(InitScriptApi::class.java)
+                .willBeRemovedInGradle9()
+                .undocumented()
+                .nagUser()
+        }
+    }
 
     protected
     abstract val fileOperations: FileOperations
