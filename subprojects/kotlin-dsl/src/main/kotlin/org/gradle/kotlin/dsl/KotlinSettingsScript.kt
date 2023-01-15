@@ -35,6 +35,7 @@ import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.PluginAware
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
@@ -125,6 +126,16 @@ abstract class KotlinSettingsScript(
 abstract class SettingsScriptApi(
     override val delegate: Settings
 ) : @Suppress("DEPRECATION") org.gradle.kotlin.dsl.support.delegates.SettingsDelegate() {
+
+    init {
+        @Suppress("DEPRECATION")
+        if (this::class != org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript::class) {
+            DeprecationLogger.deprecateType(SettingsScriptApi::class.java)
+                .willBeRemovedInGradle9()
+                .undocumented()
+                .nagUser()
+        }
+    }
 
     protected
     abstract val fileOperations: FileOperations
