@@ -143,6 +143,14 @@
             "changes": [
                 "Superclass has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScriptKt",
+            "member": "Class org.gradle.kotlin.dsl.KotlinSettingsScriptKt",
+            "acceptation": "Kotlin DSL standalone scripts now use implicit receivers and are source compatible",
+            "changes": [
+                "Class has been removed"
+            ]
         }
     ]
 }

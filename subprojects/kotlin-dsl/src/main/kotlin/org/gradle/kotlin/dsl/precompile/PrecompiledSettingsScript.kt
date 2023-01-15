@@ -20,6 +20,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.support.fileOperationsFor
 import org.gradle.kotlin.dsl.support.serviceOf
 
 
