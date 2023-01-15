@@ -113,7 +113,9 @@ class WorkerExecutorJdkVersionsIntegrationTest extends AbstractWorkerExecutorInt
         errorOutput.contains("Unsupported worker JDK version. Required: 8. Current: ${version.majorVersion}")
 
         where:
-        version << [JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_7]
+        // We can't test against Java 6 since the gradleApi dependencies are compiled to java 8.
+        // However, the java 7 compiler is permissive enough to compile against the java 8 API classes.
+        version << [JavaVersion.VERSION_1_7]
     }
 
     def "succeeds when running with compatible java version"() {
