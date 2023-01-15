@@ -22,13 +22,8 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
-import org.gradle.api.internal.file.DefaultFileOperations
-import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
@@ -36,12 +31,10 @@ import org.gradle.api.plugins.PluginAware
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.deprecation.DeprecationLogger
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForSettings
-import org.gradle.kotlin.dsl.support.get
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
@@ -462,27 +455,4 @@ abstract class SettingsScriptApi(
     @Suppress("unused")
     open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit): Unit =
         internalError()
-}
-
-
-internal
-fun fileOperationsFor(settings: Settings): FileOperations =
-    fileOperationsFor(settings.gradle, settings.rootDir)
-
-
-internal
-fun fileOperationsFor(gradle: Gradle, baseDir: File?): FileOperations =
-    fileOperationsFor((gradle as GradleInternal).services, baseDir)
-
-
-internal
-fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): FileOperations {
-    val fileLookup = services.get<FileLookup>()
-    val fileResolver = baseDir?.let { fileLookup.getFileResolver(it) } ?: fileLookup.fileResolver
-    val fileCollectionFactory = services.get<FileCollectionFactory>().withResolver(fileResolver)
-    return DefaultFileOperations.createSimple(
-        fileResolver,
-        fileCollectionFactory,
-        services
-    )
 }
