@@ -40,7 +40,6 @@ import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForSettings
-import org.gradle.kotlin.dsl.support.delegates.SettingsDelegate
 import org.gradle.kotlin.dsl.support.get
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -125,7 +124,7 @@ abstract class KotlinSettingsScript(
 )
 abstract class SettingsScriptApi(
     override val delegate: Settings
-) : SettingsDelegate() {
+) : @Suppress("DEPRECATION") org.gradle.kotlin.dsl.support.delegates.SettingsDelegate() {
 
     protected
     abstract val fileOperations: FileOperations
