@@ -15,6 +15,7 @@
  */
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
@@ -44,23 +45,38 @@ import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
+import org.jetbrains.kotlin.scripting.definitions.annotationsForSamWithReceivers
 import java.io.File
 import java.net.URI
 import kotlin.script.experimental.annotations.KotlinScript
+import kotlin.script.experimental.api.KotlinType
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.baseClass
+import kotlin.script.experimental.api.compilerOptions
+import kotlin.script.experimental.api.filePathPattern
 import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.experimental.api.isStandalone
-import kotlin.script.extensions.SamWithReceiverAnnotations
 import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
 private
 class KotlinSettingsScriptCompilationConfiguration : ScriptCompilationConfiguration({
+    filePathPattern.put("(?:.+\\.)?settings\\.gradle\\.kts")
     isStandalone(true)
+    compilerOptions.put(listOf(
+        "-language-version", "1.8",
+        "-api-version", "1.8",
+        "-Xjvm-default=all",
+        "-Xjsr305=strict",
+        "-XXLanguage:+DisableCompatibilityModeForNewInference",
+        "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
+    ))
     baseClass(KotlinSettingsScript::class)
     implicitReceivers(Settings::class)
+    annotationsForSamWithReceivers.put(listOf(
+        KotlinType(HasImplicitReceiver::class),
+    ))
 })
 
 
@@ -72,21 +88,9 @@ class KotlinSettingsScriptCompilationConfiguration : ScriptCompilationConfigurat
 )
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
-    scriptFilePattern = "(?:.+\\.)?settings\\.gradle\\.kts"
 )
 @ScriptTemplateAdditionalCompilerArguments(
-    arguments = [
-        "-language-version", "1.8",
-        "-api-version", "1.8",
-        "-Xjvm-default=all",
-        "-Xjsr305=strict",
-        "-XXLanguage:+DisableCompatibilityModeForNewInference",
-        "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
-    ],
     provider = KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider::class
-)
-@SamWithReceiverAnnotations(
-    annotations = ["org.gradle.api.HasImplicitReceiver"]
 )
 @GradleDsl
 abstract class KotlinSettingsScript(
