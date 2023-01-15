@@ -110,7 +110,7 @@ class WorkerExecutorJdkVersionsIntegrationTest extends AbstractWorkerExecutorInt
         fails("runInDaemon")
 
         then:
-        errorOutput.contains("Unsupported worker JDK version: ${version.majorVersion}")
+        errorOutput.contains("Unsupported worker JDK version. Required: 8. Current: ${version.majorVersion}")
 
         where:
         version << [JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_7]

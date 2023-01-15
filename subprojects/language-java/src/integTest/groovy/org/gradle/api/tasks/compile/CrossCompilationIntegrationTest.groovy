@@ -21,9 +21,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.test.fixtures.file.ClassFile
 import org.gradle.util.GradleVersion
 import org.junit.Assume
+
+import static org.gradle.internal.classanalysis.JavaClassUtil.getClassMajorVersion
 
 class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
     def "can configure the Java plugin to compile and run tests against Java #version JDK"() {
@@ -93,8 +94,8 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         new JarTestFixture(file("build/libs/oldjava.jar")).javaVersion == version
-        new ClassFile(file("build/classes/java/main/Thing.class")).javaVersion == version
-        new ClassFile(file("build/classes/java/test/ThingTest.class")).javaVersion == version
+        getClassMajorVersion(file("build/classes/java/main/Thing.class")) == getClassMajorVersion(version)
+        getClassMajorVersion(file("build/classes/java/test/ThingTest.class")) == getClassMajorVersion(version)
         new DefaultTestExecutionResult(testDirectory).assertTestClassesExecuted("ThingTest")
 
         where:
