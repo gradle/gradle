@@ -34,6 +34,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInter
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.PluginDescriptor;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.JavaBasePlugin;
@@ -51,8 +52,8 @@ import org.gradle.initialization.buildsrc.GradlePluginApiVersionAttributeConfigu
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
+import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
@@ -267,15 +268,24 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
             task.getClasses().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getOutput().getClassesDirs());
             task.getClasspath().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getCompileClasspath());
 
-            final JavaToolchainSpec toolchain = project.getExtensions().getByType(JavaPluginExtension.class).getToolchain();
-            final JavaToolchainService service = project.getExtensions().getByType(JavaToolchainService.class);
-            task.getLauncher().convention(service.launcherFor(toolchain));
+            task.getLauncher().convention(toolchainLauncher(project));
         });
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, check -> check.dependsOn(validatorTask));
     }
 
     private void configureDependencyGradlePluginsResolution(Project project) {
         new GradlePluginApiVersionAttributeConfigurationAction().execute((ProjectInternal) project);
+    }
+
+    private Provider<JavaLauncher> toolchainLauncher(Project project) {
+        JavaPluginExtension extension = project.getExtensions().findByType(JavaPluginExtension.class);
+        if (extension != null) {
+            JavaToolchainService service = project.getExtensions().findByType(JavaToolchainService.class);
+            if (service != null) {
+                return service.launcherFor(extension.getToolchain());
+            }
+        }
+        return Providers.notDefined();
     }
 
     /**
