@@ -134,7 +134,7 @@ import javax.inject.Inject
 class DefaultPrecompiledScriptPluginsSupport : PrecompiledScriptPluginsSupport {
 
     companion object {
-        val PRECOMPILED_SCRIPT_MANUAL = Documentation.userManual("custom_plugins", "sec:precompiled_plugins")
+        val PRECOMPILED_SCRIPT_MANUAL: Documentation = Documentation.userManual("custom_plugins", "sec:precompiled_plugins")
     }
 
     override fun enableOn(target: PrecompiledScriptPluginsSupport.Target): Boolean = target.project.run {
@@ -249,15 +249,15 @@ fun Project.enableScriptCompilationOf(
                 .ignoreEmptyDirectories()
                 .withPropertyName("accessorsMetadata")
             inputs.property("kotlinDslScriptTemplates", scriptTemplates)
-
-            configureScriptResolverEnvironment(
-                objects,
-                serviceOf(),
-                serviceOf(),
-                compileClasspath,
-                generatePrecompiledScriptPluginAccessors.flatMap { it.metadataOutputDir }
-            )
         }
+
+        configureKotlinCompilerArguments(
+            objects,
+            serviceOf(),
+            serviceOf(),
+            compileClasspath,
+            generatePrecompiledScriptPluginAccessors.flatMap { it.metadataOutputDir }
+        )
 
         if (inClassPathMode()) {
 
@@ -290,7 +290,7 @@ val strictModeSystemPropertyNameMapper: Transformer<Boolean, String> = Transform
 
 
 private
-fun Task.configureScriptResolverEnvironment(
+fun configureKotlinCompilerArguments(
     objects: ObjectFactory,
     implicitImports: ImplicitImports,
     classpathFingerprinter: ClasspathFingerprinter,
@@ -310,15 +310,19 @@ fun Task.configureScriptResolverEnvironment(
 
 
 private
-fun Task.configureKotlinCompilerArguments(
+fun configureKotlinCompilerArguments(
     objects: ObjectFactory,
     resolverEnvironment: Provider<String>
 ) {
-    if (hasLazyKotlinCompilerOptions) {
-        configureKotlinCompilerArgumentsLazily(resolverEnvironment)
-    } else {
-        doFirst {
-            configureKotlinCompilerArgumentsEagerly(objects, resolverEnvironment)
+    objects.withInstance<TaskContainerScope> {
+        taskContainer.compileKotlin {
+            if (hasLazyKotlinCompilerOptions) {
+                configureKotlinCompilerArgumentsLazily(resolverEnvironment)
+            } else {
+                doFirst {
+                    configureKotlinCompilerArgumentsEagerly(resolverEnvironment)
+                }
+            }
         }
     }
 }
@@ -343,7 +347,7 @@ fun Task.configureKotlinCompilerArgumentsLazily(resolverEnvironment: Provider<St
 
 
 private
-fun configureKotlinCompilerArgumentsEagerly(objects: ObjectFactory, resolverEnvironment: Provider<String>) {
+fun Task.configureKotlinCompilerArgumentsEagerly(resolverEnvironment: Provider<String>) {
     DeprecationLogger.deprecateBehaviour("Using the `kotlin-dsl` plugin together with Kotlin Gradle Plugin < 1.8.0.")
         .withAdvice(
             "Please let Gradle control the version of `kotlin-dsl` by removing any explicit `kotlin-dsl` version constraints from your build logic. " +
@@ -353,15 +357,11 @@ fun configureKotlinCompilerArgumentsEagerly(objects: ObjectFactory, resolverEnvi
         .willBecomeAnErrorInGradle9()
         .withUpgradeGuideSection(8, "kotlin_dsl_with_kgp_lt_1_8_0")
         .nagUser()
-    objects.withInstance<TaskContainerScope> {
-        taskContainer.compileKotlin {
-            withGroovyBuilder {
-                getProperty("kotlinOptions").withGroovyBuilder {
-                    @Suppress("unchecked_cast")
-                    val freeCompilerArgs: List<String> = getProperty("freeCompilerArgs") as List<String>
-                    setProperty("freeCompilerArgs", freeCompilerArgs + scriptTemplatesArgs + resolverEnvironment.mappedToScriptResolverEnvironmentArg.get())
-                }
-            }
+    withGroovyBuilder {
+        getProperty("kotlinOptions").withGroovyBuilder {
+            @Suppress("unchecked_cast")
+            val freeCompilerArgs: List<String> = getProperty("freeCompilerArgs") as List<String>
+            setProperty("freeCompilerArgs", freeCompilerArgs + scriptTemplatesArgs + resolverEnvironment.mappedToScriptResolverEnvironmentArg.get())
         }
     }
 }
