@@ -35,7 +35,6 @@ import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForGradle
-import org.gradle.kotlin.dsl.support.delegates.GradleDelegate
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
@@ -102,7 +101,7 @@ abstract class KotlinInitScript(
 )
 abstract class InitScriptApi(
     override val delegate: Gradle
-) : GradleDelegate() {
+) : @Suppress("DEPRECATION") org.gradle.kotlin.dsl.support.delegates.GradleDelegate() {
 
     protected
     abstract val fileOperations: FileOperations
