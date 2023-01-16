@@ -26,7 +26,7 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
     def setup() {
         settingsFile << """
             plugins {
-                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.3.0'
+                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.4.0'
             }
         """
 
@@ -102,6 +102,28 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then: "the JDK is auto-provisioned again and its files, even though they are already there don't trigger an error, they just get overwritten"
         markerFile.exists()
+    }
+
+    def "issue warning on using auto-provisioned toolchain with no configured repositories"() {
+        when: "build runs and doesn't have a local JDK to use for compilation"
+        result = executer
+                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+                .run()
+
+        then: "suitable JDK gets auto-provisioned"
+        javaClassFile("Foo.class").assertExists()
+        assertJdkWasDownloaded("eclipse_foundation")
+
+        when: "build has no toolchain repositories configured"
+        settingsFile.text = ''
+
+        then: "build runs again, uses previously auto-provisioned toolchain and warns about toolchain repositories not being configured"
+        executer
+                .expectDocumentedDeprecationWarning("Using a toolchain installed via auto-provisioning, but having no toolchain repositories configured. " +
+                        "This behavior is deprecated. Consider defining toolchain download repositories, otherwise the build might fail in clean environments; " +
+                        "see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories")
+                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
+                .run()
     }
 
     private void assertJdkWasDownloaded(String implementation) {

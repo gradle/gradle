@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-dependencyResolutionManagement {
-    repositories {
-        gradlePluginPortal()
+package org.gradle.jvm.toolchain.internal;
+
+import org.gradle.api.GradleException;
+
+public class ToolchainDownloadFailedException extends GradleException {
+
+    public ToolchainDownloadFailedException(String message) {
+        super(message);
     }
 }
-
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
-}
-
-include("commons")
-include("code-quality-rules")
-include("gradle-plugin")
-
-rootProject.name = "build-logic-commons"
