@@ -20,6 +20,7 @@ import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.DocumentationUtils
 
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
@@ -102,6 +103,31 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         then: "the JDK is auto-provisioned again and its files, even though they are already there don't trigger an error, they just get overwritten"
         markerFile.exists()
+    }
+
+    def "issue warning on using auto-provisioned toolchain with no configured repositories"() {
+        when: "build runs and doesn't have a local JDK to use for compilation"
+        result = executer
+                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false")
+                .run()
+
+        then: "suitable JDK gets auto-provisioned"
+        javaClassFile("Foo.class").assertExists()
+        assertJdkWasDownloaded("eclipse_foundation")
+
+        when: "build has no toolchain repositories configured"
+        settingsFile.text = ''
+
+        and: "build runs again and uses previously auto-provisioned toolchain"
+        result = executer
+                .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
+                .run()
+
+        then: "the JDK is auto-provisioned again and its files, even though they are already there don't trigger an error, they just get overwritten"
+        result.getOutput().contains(DocumentationUtils.normalizeDocumentationLink(
+                "Build is using a toolchain installed via auto-provisioning (see https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning), " +
+                "but has no toolchain repositories configured (see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories). " +
+                "This might lead to failures in a clean environment."))
     }
 
     private void assertJdkWasDownloaded(String implementation) {

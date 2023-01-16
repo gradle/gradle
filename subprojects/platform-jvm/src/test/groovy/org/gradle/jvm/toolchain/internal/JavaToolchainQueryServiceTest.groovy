@@ -149,7 +149,7 @@ class JavaToolchainQueryServiceTest extends Specification {
                 String locationName = javaHome.location.name
                 def vendor = locationName.substring(5)
                 def metadata = newMetadata(new InstallationLocation(new File("/path/" + locationName), javaHome.source), "8", vendor)
-                return new JavaToolchainFactory.DefaultJavaToolchainInstantiationResult(metadata,
+                return new JavaToolchainInstantiationResult(javaHome, metadata,
                     new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input, isFallbackToolchain, eventEmitter))
             }
         }
@@ -312,7 +312,7 @@ class JavaToolchainQueryServiceTest extends Specification {
             JavaToolchainInstantiationResult newInstance(InstallationLocation javaHome, JavaToolchainInput input, boolean isFallbackToolchain) {
                 def vendor = javaHome.location.name.substring(2)
                 def metadata = newMetadata(new InstallationLocation(new File("/path/8"), javaHome.source), "8", vendor)
-                return new JavaToolchainFactory.DefaultJavaToolchainInstantiationResult(metadata,
+                return new JavaToolchainInstantiationResult(javaHome, metadata,
                         new JavaToolchain(metadata, compilerFactory, toolFactory, TestFiles.fileFactory(), input, isFallbackToolchain, eventEmitter))
             }
         }
@@ -336,6 +336,16 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchainFactory = newToolchainFactory()
         def installed = false
         def provisionService = new JavaToolchainProvisioningService() {
+            @Override
+            boolean isAutoDownloadEnabled() {
+                return true
+            }
+
+            @Override
+            boolean hasConfiguredToolchainRepositories() {
+                return true
+            }
+
             File tryInstall(JavaToolchainSpec spec) {
                 installed = true
                 new File("/path/12")
@@ -359,6 +369,16 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchainFactory = newToolchainFactory()
         def installed = false
         def provisionService = new JavaToolchainProvisioningService() {
+            @Override
+            boolean isAutoDownloadEnabled() {
+                return true
+            }
+
+            @Override
+            boolean hasConfiguredToolchainRepositories() {
+                return true
+            }
+
             File tryInstall(JavaToolchainSpec spec) {
                 installed = true
                 new File("/path/12.broken")
@@ -383,6 +403,16 @@ class JavaToolchainQueryServiceTest extends Specification {
         def toolchainFactory = newToolchainFactory()
         int installed = 0
         def provisionService = new JavaToolchainProvisioningService() {
+            @Override
+            boolean isAutoDownloadEnabled() {
+                return true
+            }
+
+            @Override
+            boolean hasConfiguredToolchainRepositories() {
+                return true
+            }
+
             File tryInstall(JavaToolchainSpec spec) {
                 installed++
                 new File("/path/12")
@@ -447,9 +477,9 @@ class JavaToolchainQueryServiceTest extends Specification {
                             return isCurrentJvm.test(javaHome.location)
                         }
                     }
-                    return new JavaToolchainFactory.DefaultJavaToolchainInstantiationResult(metadata, toolchain)
+                    return new JavaToolchainInstantiationResult(javaHome, metadata, toolchain)
                 }
-                return new JavaToolchainFactory.DefaultJavaToolchainInstantiationResult(metadata)
+                return new JavaToolchainInstantiationResult(javaHome, metadata)
             }
         }
         toolchainFactory

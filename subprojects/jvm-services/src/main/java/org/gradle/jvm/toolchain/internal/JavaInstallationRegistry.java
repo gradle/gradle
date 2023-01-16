@@ -104,7 +104,7 @@ public class JavaInstallationRegistry {
         try {
             final File canonicalFile = file.getCanonicalFile();
             final File javaHome = findJavaHome(canonicalFile);
-            return new InstallationLocation(javaHome, location.getSource());
+            return new InstallationLocation(javaHome, location.getSource(), location.isAutoProvisioned());
         } catch (IOException e) {
             throw new GradleException(String.format("Could not canonicalize path to java installation: %s.", file), e);
         }

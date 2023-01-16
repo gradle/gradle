@@ -21,9 +21,7 @@ import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.util.Optional;
 
 public class JavaToolchainFactory {
 
@@ -52,35 +50,9 @@ public class JavaToolchainFactory {
         final JvmInstallationMetadata metadata = detector.getMetadata(javaHome);
         if (metadata.isValidInstallation()) {
             final JavaToolchain toolchain = new JavaToolchain(metadata, compilerFactory, toolFactory, fileFactory, input, isFallbackToolchain, eventEmitter);
-            return new DefaultJavaToolchainInstantiationResult(metadata, toolchain);
+            return new JavaToolchainInstantiationResult(javaHome, metadata, toolchain);
         }
-        return new DefaultJavaToolchainInstantiationResult(metadata);
-    }
-
-    protected static final class DefaultJavaToolchainInstantiationResult implements JavaToolchainInstantiationResult {
-
-        private final JvmInstallationMetadata metadata;
-
-        private final Optional<JavaToolchain> toolchain;
-
-        public DefaultJavaToolchainInstantiationResult(JvmInstallationMetadata metadata) {
-            this(metadata, null);
-        }
-
-        public DefaultJavaToolchainInstantiationResult(JvmInstallationMetadata metadata, @Nullable  JavaToolchain toolchain) {
-            this.metadata = metadata;
-            this.toolchain = Optional.ofNullable(toolchain);
-        }
-
-        @Override
-        public JvmInstallationMetadata metadata() {
-            return metadata;
-        }
-
-        @Override
-        public Optional<JavaToolchain> toolchain() {
-            return toolchain;
-        }
+        return new JavaToolchainInstantiationResult(javaHome, metadata);
     }
 
 }
