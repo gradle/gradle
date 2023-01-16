@@ -215,7 +215,7 @@ Gradle 7.6 introduced [toolchain repositories](userguide/toolchains.html#sub:dow
 
 ```
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.3.0")
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
 }
 ```
 

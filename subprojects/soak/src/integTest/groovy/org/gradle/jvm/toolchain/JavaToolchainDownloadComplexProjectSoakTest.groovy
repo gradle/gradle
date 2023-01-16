@@ -63,7 +63,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
     private String settingsForBuildWithSubprojects() {
         return """
             plugins {
-                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.3.0'
+                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.4.0'
             }
 
             rootProject.name = 'main'
@@ -114,7 +114,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
             }
             
             plugins {
-                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.3.0'
+                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.4.0'
             }
             
             rootProject.name = 'main'
@@ -179,7 +179,7 @@ class JavaToolchainDownloadComplexProjectSoakTest extends AbstractIntegrationSpe
         """*/ //TODO: atm the included build will use the definition from its own settings file, so if this is the settings we use it won't be able to download toolchains; need to clarify if this ok in the long term
         file("plugin1/settings.gradle") << """
             plugins {
-                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.3.0'
+                id 'org.gradle.toolchains.foojay-resolver-convention' version '0.4.0'
             }
             
             rootProject.name = 'plugin1'
