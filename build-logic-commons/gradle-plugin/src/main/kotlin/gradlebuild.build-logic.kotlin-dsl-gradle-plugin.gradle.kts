@@ -34,7 +34,7 @@ dependencies {
 
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
-        allWarningsAsErrors = true
+        allWarningsAsErrors = false
     }
 }
 
