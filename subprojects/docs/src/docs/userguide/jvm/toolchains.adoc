@@ -227,16 +227,21 @@ None of the auto-provisioned JDKs will ever be revisited and automatically updat
 === Toolchain Download Repositories
 
 Toolchain download repository definitions are added to a build by applying specific settings plugins.
-For details on writing such plugins, consult the <<toolchain_plugins.adoc#toolchain_plugins,Toolchain Resolver Plugins>> page.
+(For details on writing such plugins, consult the <<toolchain_plugins.adoc#toolchain_plugins,Toolchain Resolver Plugins>> page.)
 
-One example of a toolchain resolver plugin is the https://github.com/gradle/disco-toolchains[Disco Toolchains Plugin], based on the https://github.com/foojayio/discoapi[foojay Disco API].
+One example of a toolchain resolver plugin is the https://github.com/gradle/disco-toolchains[Disco Toolchains Plugin], based on the https://github.com/foojayio/discoapi[foojay Disco API]. It even has a convention variant, which (if all you need is one repository to download toolchains from) automatically takes care of all the needed configuration (see below), just by being applied:
 
-Beyond applying toolchain resolver plugins, the toolchain download resolvers provided by them also need to be configured.
+====
+include::sample[dir="snippets/java/toolchain-foojay/kotlin/",files="settings.gradle.kts[tags=plugin-application]"]
+include::sample[dir="snippets/java/toolchain-foojay/groovy/",files="settings.gradle[tags=plugin-application]"]
+====
+
+In general, when applying toolchain resolver plugins, the toolchain download resolvers provided by them also need to be configured.
 Let's illustrate with an example.
 Consider two toolchain resolver plugins applied by the build:
 
-* One is the Disco plugin mentioned above, which downloads toolchains via the `DiscoToolchainResolver` it provides.
-* The other contains a resolver named `AdoptiumResolver`, which duplicates the legacy toolchain resolver from past Gradle versions.
+* One is the Foojay plugin mentioned above, which downloads toolchains via the `FoojayToolchainResolver` it provides.
+* The other contains a **FICTITIOUS** resolver named `MadeUpResolver`.
 
 The following example uses these toolchain resolvers in a build via the `toolchainManagement` block in the settings file:
 
