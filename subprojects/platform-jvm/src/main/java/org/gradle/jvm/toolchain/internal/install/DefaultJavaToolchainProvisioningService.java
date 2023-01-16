@@ -88,11 +88,13 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     }
 
     @Override
-    public void notifyAboutActivity() {
-        /*if (isAutoDownloadEnabled() && toolchainResolverRegistry.requestedRepositories().isEmpty()) {
-            //todo: warn user about
-            //todo: write test for this functionality
-        }*/
+    public boolean isAutoDownloadEnabled() {
+        return downloadEnabled.getOrElse(true);
+    }
+
+    @Override
+    public boolean hasConfiguredToolchainRepositories() {
+        return !toolchainResolverRegistry.requestedRepositories().isEmpty();
     }
 
     public File tryInstall(JavaToolchainSpec spec) {
@@ -159,10 +161,6 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             throw new GradleException("Can't determine filename for resource located at: " + uri);
         }
         return fileName;
-    }
-
-    private boolean isAutoDownloadEnabled() {
-        return downloadEnabled.getOrElse(true);
     }
 
     private <T> T wrapInOperation(String displayName, Callable<T> provisioningStep) {

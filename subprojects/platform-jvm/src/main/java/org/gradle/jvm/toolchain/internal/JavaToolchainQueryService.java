@@ -23,6 +23,7 @@ import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
@@ -30,6 +31,8 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -40,6 +43,8 @@ import java.util.concurrent.ConcurrentMap;
 
 @ServiceScope(Scopes.Project.class) //TODO: should be much higher scoped, as many other toolchain related services, but is bogged down by the scope of services it depends on
 public class JavaToolchainQueryService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(JavaToolchainQueryService.class);
 
     // A key that matches only the fallback toolchain
     private static final JavaToolchainSpecInternal.Key FALLBACK_TOOLCHAIN_KEY = new JavaToolchainSpecInternal.Key() {
@@ -120,7 +125,7 @@ public class JavaToolchainQueryService {
     private JavaToolchain query(JavaToolchainSpec spec, boolean isFallback) {
         if (spec instanceof CurrentJvmToolchainSpec) {
             // TODO (#22023) Look into checking if this optional is present and throwing an exception
-            return asToolchain(new InstallationLocation(Jvm.current().getJavaHome(), "current JVM"), spec, isFallback).toolchain().get();
+            return asToolchain(new InstallationLocation(Jvm.current().getJavaHome(), "current JVM"), spec, isFallback).getToolchain().get();
         }
 
         if (spec instanceof SpecificInstallationToolchainSpec) {
@@ -128,18 +133,14 @@ public class JavaToolchainQueryService {
             return asToolchainOrThrow(installation, spec);
         }
 
-        Optional<JavaToolchain> detectedToolchain = registry.listInstallations().stream()
-                .map(javaHome -> asToolchain(javaHome, spec))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .filter(new JavaToolchainMatcher(spec))
-                .min(new JavaToolchainComparator());
+        Optional<JavaToolchainInstantiationResult> detectedToolchain = registry.listInstallations().stream()
+                .map(javaHome -> asToolchain(javaHome, spec, false))
+                .filter(JavaToolchainMatcher.forInstantiationResult(spec))
+                .min(JavaToolchainComparator.forInstantiationResult());
 
         if (detectedToolchain.isPresent()) {
-            //notify toolchain install service that even thought it didn't now, it might get requests at a later point in time
-            installService.notifyAboutActivity();
-
-            return detectedToolchain.get();
+            warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(detectedToolchain.get());
+            return detectedToolchain.get().getToolchain().get();
         }
 
         InstallationLocation downloadedInstallation = downloadToolchain(spec);
@@ -148,24 +149,31 @@ public class JavaToolchainQueryService {
         return downloadedToolchain;
     }
 
+    private void warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(JavaToolchainInstantiationResult detectedToolchain) {
+        boolean autoDetectedToolchain = detectedToolchain.getJavaHome().isAutoProvisioned();
+        if (autoDetectedToolchain && installService.isAutoDownloadEnabled() && !installService.hasConfiguredToolchainRepositories()) {
+            LOGGER.warn("Build is using a toolchain installed via auto-provisioning (see " +
+                    Documentation.userManual("toolchains", "sec:provisioning").documentationUrl() +
+                    "), but has no toolchain repositories configured (see " +
+                    Documentation.userManual("toolchains", "sub:download_repositories").documentationUrl() +
+                    "). This might lead to failures in a clean environment.");
+        }
+    }
+
     private InstallationLocation downloadToolchain(JavaToolchainSpec spec) {
         try {
             File installation = installService.tryInstall(spec);
-            return new InstallationLocation(installation, "provisioned toolchain");
+            return new InstallationLocation(installation, "provisioned toolchain", true);
         } catch (ToolchainDownloadFailedException e) {
             throw new NoToolchainAvailableException(spec, e);
         }
     }
 
-    private Optional<JavaToolchain> asToolchain(InstallationLocation javaHome, JavaToolchainSpec spec) {
-        return asToolchain(javaHome, spec, false).toolchain();
-    }
-
     private JavaToolchain asToolchainOrThrow(InstallationLocation javaHome, JavaToolchainSpec spec) {
         JavaToolchainInstantiationResult result = asToolchain(javaHome, spec, false);
-        Optional<JavaToolchain> toolchain = result.toolchain();
+        Optional<JavaToolchain> toolchain = result.getToolchain();
         if (!toolchain.isPresent()) {
-            JvmInstallationMetadata metadata = result.metadata();
+            JvmInstallationMetadata metadata = result.getMetadata();
             throw new GradleException("Toolchain installation '" + javaHome.getLocation() + "' could not be probed: " + metadata.getErrorMessage(), metadata.getErrorCause());
         }
         return toolchain.get();

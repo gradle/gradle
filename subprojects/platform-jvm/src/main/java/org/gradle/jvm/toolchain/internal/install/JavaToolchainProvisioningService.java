@@ -25,5 +25,7 @@ public interface JavaToolchainProvisioningService {
 
     File tryInstall(JavaToolchainSpec spec) throws ToolchainDownloadFailedException;
 
-    default void notifyAboutActivity() {}
+    boolean isAutoDownloadEnabled();
+
+    boolean hasConfiguredToolchainRepositories();
 }
