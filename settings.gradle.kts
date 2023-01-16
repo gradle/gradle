@@ -27,7 +27,7 @@ plugins {
     id("com.gradle.enterprise").version("3.12.2") // Sync with `build-logic/build-platform/build.gradle.kts`
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.7.6")
     id("gradlebuild.internal.cc-experiment")
-    id("org.gradle.toolchains.foojay-resolver-convention") version("0.3.0")
+    id("org.gradle.toolchains.foojay-resolver-convention") version("0.4.0")
 }
 
 includeBuild("build-logic-commons")
