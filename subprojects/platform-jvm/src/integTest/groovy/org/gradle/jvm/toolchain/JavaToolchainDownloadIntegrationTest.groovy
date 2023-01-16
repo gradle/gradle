@@ -52,7 +52,8 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
             .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=any, implementation=J9}.")
-            .assertHasCause("No locally installed toolchains match and the configured toolchain download repositories aren't able to provide a match either.")
+            .assertHasDocumentedCause("No locally installed toolchains match (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection) " +
+                    "and the configured toolchain download repositories aren't able to provide a match either (see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories).")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")
@@ -86,7 +87,8 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
             .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
             .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=any, implementation=vendor-specific}.")
-            .assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
+            .assertHasDocumentedCause("No locally installed toolchains match (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection) " +
+                    "and toolchain auto-provisioning is not enabled (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection).")
     }
 
     @ToBeFixedForConfigurationCache(because = "Fails the build with an additional error")

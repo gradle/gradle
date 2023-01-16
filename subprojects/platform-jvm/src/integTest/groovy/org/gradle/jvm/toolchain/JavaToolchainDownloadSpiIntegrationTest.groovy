@@ -423,7 +423,8 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
                 .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
                 .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-                .assertHasCause("No locally installed toolchains match and toolchain download repositories have not been configured.")
+                .assertHasDocumentedCause("No locally installed toolchains match (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection) " +
+                        "and toolchain download repositories have not been configured (see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories).")
     }
 
     private static String customToolchainResolverCode() {
