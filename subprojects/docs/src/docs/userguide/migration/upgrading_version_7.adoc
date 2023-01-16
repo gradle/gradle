@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[upgrading_version_7]]
-= Upgrading your build from Gradle 7.x to 8.x
+= Upgrading your build from Gradle 7.x to 8.0
 
 This chapter provides the information you need to migrate your Gradle 7.x builds to the latest Gradle release.
 For migrating from Gradle 4.x, 5.x, or 6.x, see the <<upgrading_version_6.adoc#upgrading_version_6, older migration guide>> first.
