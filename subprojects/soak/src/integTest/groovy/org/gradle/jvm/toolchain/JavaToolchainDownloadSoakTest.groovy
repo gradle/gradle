@@ -118,16 +118,13 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
         when: "build has no toolchain repositories configured"
         settingsFile.text = ''
 
-        and: "build runs again and uses previously auto-provisioned toolchain"
-        result = executer
+        then: "build runs again, uses previously auto-provisioned toolchain and warns about toolchain repositories not being configured"
+        executer
+                .expectDocumentedDeprecationWarning("Using a toolchain installed via auto-provisioning, but having no toolchain repositories configured. " +
+                        "This behavior is deprecated. Consider defining toolchain download repositories, otherwise the build might fail in clean environments; " +
+                        "see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories")
                 .withTasks("compileJava", "-Porg.gradle.java.installations.auto-detect=false", "-Porg.gradle.java.installations.auto-download=true")
                 .run()
-
-        then: "the JDK is auto-provisioned again and its files, even though they are already there don't trigger an error, they just get overwritten"
-        result.getOutput().contains(DocumentationUtils.normalizeDocumentationLink(
-                "Build is using a toolchain installed via auto-provisioning (see https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning), " +
-                "but has no toolchain repositories configured (see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories). " +
-                "This might lead to failures in a clean environment."))
     }
 
     private void assertJdkWasDownloaded(String implementation) {

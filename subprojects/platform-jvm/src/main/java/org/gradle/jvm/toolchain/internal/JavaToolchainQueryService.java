@@ -23,6 +23,7 @@ import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.deprecation.DocumentedFailure;
 import org.gradle.internal.jvm.Jvm;
@@ -31,8 +32,6 @@ import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -43,8 +42,6 @@ import java.util.concurrent.ConcurrentMap;
 
 @ServiceScope(Scopes.Project.class) //TODO: should be much higher scoped, as many other toolchain related services, but is bogged down by the scope of services it depends on
 public class JavaToolchainQueryService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(JavaToolchainQueryService.class);
 
     // A key that matches only the fallback toolchain
     private static final JavaToolchainSpecInternal.Key FALLBACK_TOOLCHAIN_KEY = new JavaToolchainSpecInternal.Key() {
@@ -152,11 +149,13 @@ public class JavaToolchainQueryService {
     private void warnIfAutoProvisionedToolchainUsedWithoutRepositoryDefinitions(JavaToolchainInstantiationResult detectedToolchain) {
         boolean autoDetectedToolchain = detectedToolchain.getJavaHome().isAutoProvisioned();
         if (autoDetectedToolchain && installService.isAutoDownloadEnabled() && !installService.hasConfiguredToolchainRepositories()) {
-            LOGGER.warn("Build is using a toolchain installed via auto-provisioning (see " +
-                    Documentation.userManual("toolchains", "sec:provisioning").documentationUrl() +
-                    "), but has no toolchain repositories configured (see " +
-                    Documentation.userManual("toolchains", "sub:download_repositories").documentationUrl() +
-                    "). This might lead to failures in a clean environment.");
+            DeprecationLogger.warnOfChangedBehaviour(
+                "Using a toolchain installed via auto-provisioning, but having no toolchain repositories configured",
+                "Consider defining toolchain download repositories, otherwise the build might fail in clean environments; " +
+                "see " + Documentation.userManual("toolchains", "sub:download_repositories").documentationUrl()
+            )
+            .withUserManual("toolchains", "sub:download_repositories") //has no effect due to bug in DeprecationLogger.warnOfChangedBehaviour
+            .nagUser();
         }
     }
 
