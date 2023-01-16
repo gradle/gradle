@@ -26,12 +26,14 @@ public abstract class DefaultJUnitXmlReport extends TaskGeneratedSingleDirectory
 
     private boolean outputPerTestCase;
     private final Property<Boolean> mergeReruns;
-    private boolean omitSystemOutLog;
-    private boolean omitSystemErrLog;
+    private final Property<Boolean> includeSystemOutLog;
+    private final Property<Boolean> includeSystemErrLog;
 
     public DefaultJUnitXmlReport(String name, Task task, ObjectFactory objectFactory) {
         super(name, task, null);
         this.mergeReruns = objectFactory.property(Boolean.class).convention(false);
+        this.includeSystemOutLog = objectFactory.property(Boolean.class).convention(true);
+        this.includeSystemErrLog = objectFactory.property(Boolean.class).convention(true);
     }
 
     @Override
@@ -50,22 +52,12 @@ public abstract class DefaultJUnitXmlReport extends TaskGeneratedSingleDirectory
     }
 
     @Override
-    public void setOmitSystemOutLog(boolean omitSystemOutLog) {
-        this.omitSystemOutLog = omitSystemOutLog;
+    public Property<Boolean> getIncludeSystemOutLog() {
+        return includeSystemOutLog;
     }
 
     @Override
-    public boolean isOmitSystemOutLog() {
-        return this.omitSystemOutLog;
-    }
-
-    @Override
-    public void setOmitSystemErrLog(boolean omitSystemErrLog) {
-        this.omitSystemErrLog = omitSystemErrLog;
-    }
-
-    @Override
-    public boolean isOmitSystemErrLog() {
-        return this.omitSystemErrLog;
+    public Property<Boolean> getIncludeSystemErrLog() {
+        return includeSystemErrLog;
     }
 }

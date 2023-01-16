@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.Input;
@@ -58,24 +59,20 @@ public interface JUnitXmlReport extends DirectoryReport {
     Property<Boolean> getMergeReruns();
 
     /**
-      * Should omit system out log
-     */
-    void setOmitSystemOutLog(boolean omitSystemOutLog);
-
-    /**
-     * Should omit system out log
+     * Decide to include or omit the system out log in the XML report. The default behavior is to have it.
+     *
+     * @since 8.1
      */
     @Input
-    boolean isOmitSystemOutLog();
+    @Incubating
+    Property<Boolean> getIncludeSystemOutLog();
 
     /**
-     * Should omit system err log
-     */
-    void setOmitSystemErrLog(boolean omitSystemErrLog);
-
-    /**
-     * Should omit system err log
+     * Decide to include or omit the system err log in the XML report. The default behavior is to have it.
+     *
+     * @since 8.1
      */
     @Input
-    boolean isOmitSystemErrLog();
+    @Incubating
+    Property<Boolean> getIncludeSystemErrLog();
 }

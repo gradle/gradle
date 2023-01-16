@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result
 
+import groovy.xml.XmlParser
 import org.gradle.api.internal.tasks.testing.BuildableTestResultsProvider
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult
 import org.gradle.integtests.fixtures.JUnitTestClassExecutionResult
@@ -35,7 +36,7 @@ import static org.hamcrest.CoreMatchers.equalTo
 class JUnitXmlResultWriterSpec extends Specification {
 
     private provider = Mock(TestResultsProvider)
-    private options = new JUnitXmlResultOptions(false, false, false, false)
+    private options = new JUnitXmlResultOptions(false, false, true, true)
 
     protected JUnitXmlResultWriter getGenerator() {
         new JUnitXmlResultWriter("localhost", provider, options)
@@ -141,7 +142,7 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     def "can generate with output per test"() {
         given:
-        options = new JUnitXmlResultOptions(true, false, false, false)
+        options = new JUnitXmlResultOptions(true, false, true, true)
         provider = new BuildableTestResultsProvider()
 
         when:
@@ -252,29 +253,6 @@ class JUnitXmlResultWriterSpec extends Specification {
     @Issue("https://github.com/gradle/gradle/issues/23229")
     def "omit system-out section"() {
         given:
-        options = new JUnitXmlResultOptions(true, false, true, false)
-
-
-        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
-        _ * provider.writeAllOutput(_, _, _)
-
-        when:
-        def xml = getXml(result)
-
-        then:
-        xml == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.3">
-  <properties/>
-  <testcase name="some test" classname="com.foo.FooTest" time="0.2"/>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>
-"""
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/23229")
-    def "omit system-err section"() {
-        given:
         options = new JUnitXmlResultOptions(true, false, false, true)
 
 
@@ -283,15 +261,47 @@ class JUnitXmlResultWriterSpec extends Specification {
         _ * provider.writeAllOutput(_, _, _)
 
         when:
-        def xml = getXml(result)
+        def doc = new XmlParser().parseText(getXml(result))
 
         then:
-        xml == """<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.foo.FooTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2012-11-19T17:09:28" hostname="localhost" time="0.3">
-  <properties/>
-  <testcase name="some test" classname="com.foo.FooTest" time="0.2"/>
-  <system-out><![CDATA[]]></system-out>
-</testsuite>
-"""
+        doc.'system-out'.isEmpty() == true
+        doc.'system-err'.isEmpty() == false
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/23229")
+    def "omit system-err section"() {
+        given:
+        options = new JUnitXmlResultOptions(true, false, true, false)
+
+
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
+        result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
+        _ * provider.writeAllOutput(_, _, _)
+
+        when:
+        def doc = new XmlParser().parseText(getXml(result))
+
+        then:
+        doc.'system-out'.isEmpty() == false
+        doc.'system-err'.isEmpty() == true
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23229")
+    def "show system-err and system-out sections"() {
+        given:
+        options = new JUnitXmlResultOptions(true, false, true, true)
+
+
+        TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
+        result.add(new TestMethodResult(1, "some test").completed(new DefaultTestResult(SUCCESS, startTime + 100, startTime + 300, 1, 1, 0, emptyList())))
+        _ * provider.writeAllOutput(_, _, _)
+
+        when:
+        def doc = new XmlParser().parseText(getXml(result))
+
+        then:
+        doc.'system-out'.isEmpty() == false
+        doc.'system-err'.isEmpty() == false
+    }
+
 }

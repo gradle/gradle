@@ -75,13 +75,13 @@ public class JUnitXmlResultWriter {
                 writeTestCasesWithDiscreteRerunHandling(writer, methodResults, className, classId);
             }
 
-            if (!options.omitSystemOutLog) {
+            if (options.includeSystemOutLog) {
                 writer.startElement("system-out");
                 writeOutputs(writer, classId, !options.outputPerTestCase, TestOutputEvent.Destination.StdOut);
                 writer.endElement();
             }
 
-            if (!options.omitSystemErrLog) {
+            if (options.includeSystemErrLog) {
                 writer.startElement("system-err");
                 writeOutputs(writer, classId, !options.outputPerTestCase, TestOutputEvent.Destination.StdErr);
                 writer.endElement();
