@@ -463,11 +463,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             }
 
             @Override
-            public byte[] getSecondaryInputHash() {
-                return transformer.getSecondaryInputHash().toByteArray();
-            }
-
-            @Override
             public ComponentIdentifier getComponentId() {
                 return subject.getInitialComponentIdentifier();
             }
@@ -478,8 +473,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         AttributeContainer getFromAttributes();
 
         AttributeContainer getToAttributes();
-
-        byte[] getSecondaryInputHash();
 
         ComponentIdentifier getComponentId();
     }
