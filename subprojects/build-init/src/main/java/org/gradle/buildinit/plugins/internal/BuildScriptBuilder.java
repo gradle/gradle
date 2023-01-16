@@ -30,6 +30,7 @@ import org.gradle.api.plugins.JvmTestSuitePlugin;
 import org.gradle.api.plugins.jvm.JvmTestSuite;
 import org.gradle.buildinit.InsecureProtocolOption;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.groovy.scripts.internal.InitialPassStatementTransformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
@@ -56,6 +57,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
+import static org.gradle.buildinit.plugins.internal.SimpleGlobalFilesBuildSettingsDescriptor.PLUGINS_BUILD_LOCATION;
 
 /**
  * Assembles the parts of a build script.
@@ -508,6 +510,10 @@ public class BuildScriptBuilder {
             default:
                 throw new IllegalStateException();
         }
+    }
+
+    public void includePluginsBuild() {
+        block.includePluginsBuild();
     }
 
     public interface Expression {
@@ -1511,7 +1517,8 @@ public class BuildScriptBuilder {
     }
 
     private static class TopLevelBlock extends ScriptBlockImpl {
-        final BlockStatement plugins = new BlockStatement("plugins");
+        final BlockStatement pluginsManagement = new BlockStatement(InitialPassStatementTransformer.PLUGIN_MANAGEMENT);
+        final BlockStatement plugins = new BlockStatement(InitialPassStatementTransformer.PLUGINS);
         final RepositoriesBlock repositories;
         final DependenciesBlock dependencies = new DependenciesBlock();
         final TestingBlock testing;
@@ -1528,6 +1535,7 @@ public class BuildScriptBuilder {
 
         @Override
         public void writeBodyTo(PrettyPrinter printer) {
+            printer.printStatement(pluginsManagement);
             printer.printStatement(plugins);
             printer.printStatement(repositories);
             printer.printStatement(dependencies);
@@ -1576,6 +1584,11 @@ public class BuildScriptBuilder {
                     comments.add(statement.getComment());
                 }
             }
+        }
+
+        public void includePluginsBuild() {
+            pluginsManagement.add(new MethodInvocation("Include 'plugins build' to define convention plugins.",
+                new MethodInvocationExpression(null, "includeBuild", expressionValues(PLUGINS_BUILD_LOCATION))));
         }
     }
 

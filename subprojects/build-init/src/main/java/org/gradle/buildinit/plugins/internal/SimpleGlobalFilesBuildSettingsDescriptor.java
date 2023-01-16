@@ -46,8 +46,7 @@ public class SimpleGlobalFilesBuildSettingsDescriptor implements BuildContentGen
                     + "Detailed information about configuring a multi-project build in Gradle can be found\n"
                     + "in the user manual at " + documentationRegistry.getDocumentationFor("multi_project_builds"));
         if (settings.getModularizationOption() == ModularizationOption.WITH_LIBRARY_PROJECTS && settings.isUseIncubatingAPIs()) {
-            builder.block(null, "pluginManagement").methodInvocation(
-                "Include 'plugins build' to define convention plugins.", "includeBuild", PLUGINS_BUILD_LOCATION);
+            builder.includePluginsBuild();
         }
 
         if(settings.getJavaLanguageVersion().isPresent()){
