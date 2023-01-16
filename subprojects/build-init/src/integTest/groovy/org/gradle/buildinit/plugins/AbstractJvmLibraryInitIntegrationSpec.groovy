@@ -16,16 +16,14 @@
 
 package org.gradle.buildinit.plugins
 
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-
 abstract class AbstractJvmLibraryInitIntegrationSpec extends AbstractInitIntegrationSpec{
 
     @Override
     String subprojectName() { 'lib' }
 
-    @Override
-    protected ExecutionResult run(String... tasks) {
-        result = executer.withTasks(*tasks).withToolchainDetectionEnabled().run()
-        return result
+    def setup() {
+        executer.beforeExecute { e ->
+            e.withToolchainDetectionEnabled()
+        }
     }
 }
