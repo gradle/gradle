@@ -20,7 +20,6 @@ import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.DocumentationUtils
 
 class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
