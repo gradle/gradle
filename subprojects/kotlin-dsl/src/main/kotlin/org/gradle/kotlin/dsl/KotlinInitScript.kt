@@ -23,41 +23,24 @@ import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForGradle
 import org.gradle.kotlin.dsl.template.KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider
-import org.jetbrains.kotlin.scripting.definitions.annotationsForSamWithReceivers
 import kotlin.script.experimental.annotations.KotlinScript
-import kotlin.script.experimental.api.KotlinType
-import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.baseClass
-import kotlin.script.experimental.api.compilerOptions
 import kotlin.script.experimental.api.filePathPattern
 import kotlin.script.experimental.api.implicitReceivers
-import kotlin.script.experimental.api.isStandalone
 import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
 private
-class KotlinInitScriptCompilationConfiguration : ScriptCompilationConfiguration({
+class KotlinInitScriptCompilationConfiguration : KotlinDslStandaloneScriptCompilationConfiguration({
     filePathPattern.put("(?:.+\\.)?init\\.gradle\\.kts")
-    isStandalone(true)
-    compilerOptions.put(listOf(
-        "-language-version", "1.8",
-        "-api-version", "1.8",
-        "-Xjvm-default=all",
-        "-Xjsr305=strict",
-        "-XXLanguage:+DisableCompatibilityModeForNewInference",
-        "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
-    ))
     baseClass(KotlinInitScript::class)
     implicitReceivers(Gradle::class)
-    annotationsForSamWithReceivers.put(listOf(
-        KotlinType(org.gradle.api.HasImplicitReceiver::class),
-    ))
 })
 
 
 /**
- * Script template for Kotlin init scripts.
+ * Base class for Gradle Kotlin DSL standalone [Gradle] scripts, aka. init scripts.
  */
 @KotlinScript(
     compilationConfiguration = KotlinInitScriptCompilationConfiguration::class
