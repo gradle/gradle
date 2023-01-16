@@ -70,6 +70,11 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     }
 
     @Override
+    public boolean isJvmLanguage() {
+        return true;
+    }
+
+    @Override
     public boolean supportsPackage() {
         return true;
     }

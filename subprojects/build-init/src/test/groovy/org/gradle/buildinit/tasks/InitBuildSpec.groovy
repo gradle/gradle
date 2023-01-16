@@ -226,22 +226,24 @@ class InitBuildSpec extends Specification {
     def "get tool chain for #language"() {
         given:
         def inputHandler = Mock(UserInputHandler)
-        inputHandler.selectOption(_ as String, _ as List<InitBuild.JavaVersionSelection>, _ as InitBuild.JavaVersionSelection) >> new InitBuild.JavaVersionSelection(JavaLanguageVersion.of(11))
+        inputHandler.askQuestion(_ as String, _ as String) >> "11"
+        def buildInitializer = Mock(BuildInitializer)
+        buildInitializer.isJvmLanguage() >> isJvmLanguage
 
         when:
-        def languageVersion = init.getJavaLanguageVersion(true, inputHandler, language)
+        def languageVersion = init.getJavaLanguageVersion(inputHandler, buildInitializer)
 
         then:
         languageVersion == result
 
         where:
-        language        | result
-        Language.JAVA   | of(JavaLanguageVersion.of(11))
-        Language.SCALA  | of(JavaLanguageVersion.of(11))
-        Language.KOTLIN | of(JavaLanguageVersion.of(11))
-        Language.GROOVY | of(JavaLanguageVersion.of(11))
-        Language.CPP    | empty()
-        Language.SWIFT  | empty()
+        language        | result                         | isJvmLanguage
+        Language.JAVA   | of(JavaLanguageVersion.of(11)) | true
+        Language.SCALA  | of(JavaLanguageVersion.of(11)) | true
+        Language.KOTLIN | of(JavaLanguageVersion.of(11)) | true
+        Language.GROOVY | of(JavaLanguageVersion.of(11)) | true
+        Language.CPP    | empty()                        | false
+        Language.SWIFT  | empty()                        | false
     }
 
 
