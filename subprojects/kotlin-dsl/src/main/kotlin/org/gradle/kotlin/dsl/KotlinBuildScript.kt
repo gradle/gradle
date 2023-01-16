@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Project
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
@@ -26,41 +25,24 @@ import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.invalidPluginsCall
 import org.gradle.kotlin.dsl.template.KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider
-import org.jetbrains.kotlin.scripting.definitions.annotationsForSamWithReceivers
 import kotlin.script.experimental.annotations.KotlinScript
-import kotlin.script.experimental.api.KotlinType
-import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.baseClass
-import kotlin.script.experimental.api.compilerOptions
 import kotlin.script.experimental.api.filePathPattern
 import kotlin.script.experimental.api.implicitReceivers
-import kotlin.script.experimental.api.isStandalone
 import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
 private
-class KotlinBuildScriptCompilationConfiguration : ScriptCompilationConfiguration({
+class KotlinBuildScriptCompilationConfiguration : KotlinDslStandaloneScriptCompilationConfiguration({
     filePathPattern.put(".+(?<!(^|\\.)(init|settings))\\.gradle\\.kts")
-    isStandalone(true)
-    compilerOptions.put(listOf(
-        "-language-version", "1.8",
-        "-api-version", "1.8",
-        "-Xjvm-default=all", // TODO remove
-        "-Xjsr305=strict",
-        "-XXLanguage:+DisableCompatibilityModeForNewInference",
-        "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
-    ))
     baseClass(KotlinBuildScript::class)
     implicitReceivers(Project::class)
-    annotationsForSamWithReceivers.put(listOf(
-        KotlinType(HasImplicitReceiver::class),
-    ))
 })
 
 
 /**
- * Base class for Kotlin build scripts.
+ * Base class for Gradle Kotlin DSL standalone [Project] scripts, aka. build scripts.
  */
 @KotlinScript(
     compilationConfiguration = KotlinBuildScriptCompilationConfiguration::class
@@ -82,7 +64,7 @@ abstract class KotlinBuildScript(
      * @see [Project.buildscript]
      */
     @Suppress("unused")
-    open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit): Unit =
+    open fun buildscript(block: ScriptHandlerScope.() -> Unit): Unit =
         internalError()
 
     /**

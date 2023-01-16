@@ -15,7 +15,6 @@
  */
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.initialization.Settings
 import org.gradle.api.plugins.PluginAware
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
@@ -24,41 +23,24 @@ import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForSettings
 import org.gradle.kotlin.dsl.template.KotlinBuildScriptTemplateAdditionalCompilerArgumentsProvider
 import org.gradle.plugin.use.PluginDependenciesSpec
-import org.jetbrains.kotlin.scripting.definitions.annotationsForSamWithReceivers
 import kotlin.script.experimental.annotations.KotlinScript
-import kotlin.script.experimental.api.KotlinType
-import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.baseClass
-import kotlin.script.experimental.api.compilerOptions
 import kotlin.script.experimental.api.filePathPattern
 import kotlin.script.experimental.api.implicitReceivers
-import kotlin.script.experimental.api.isStandalone
 import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
 import kotlin.script.templates.ScriptTemplateDefinition
 
 
 private
-class KotlinSettingsScriptCompilationConfiguration : ScriptCompilationConfiguration({
+class KotlinSettingsScriptCompilationConfiguration : KotlinDslStandaloneScriptCompilationConfiguration({
     filePathPattern.put("(?:.+\\.)?settings\\.gradle\\.kts")
-    isStandalone(true)
-    compilerOptions.put(listOf(
-        "-language-version", "1.8",
-        "-api-version", "1.8",
-        "-Xjvm-default=all",
-        "-Xjsr305=strict",
-        "-XXLanguage:+DisableCompatibilityModeForNewInference",
-        "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
-    ))
     baseClass(KotlinSettingsScript::class)
     implicitReceivers(Settings::class)
-    annotationsForSamWithReceivers.put(listOf(
-        KotlinType(HasImplicitReceiver::class),
-    ))
 })
 
 
 /**
- * Base class for Kotlin settings scripts.
+ * Base class for Gradle Kotlin DSL standalone [Settings] scripts.
  */
 @KotlinScript(
     compilationConfiguration = KotlinSettingsScriptCompilationConfiguration::class
