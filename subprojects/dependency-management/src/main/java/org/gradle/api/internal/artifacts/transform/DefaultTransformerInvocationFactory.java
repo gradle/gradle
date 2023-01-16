@@ -425,7 +425,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
         @Override
         public IdentifyBuildOperationDetails identifyOperationDetails() {
-            return new DefaultTransformIdentifyBuildOperationDetails(transformer, subject, attributesFactory);
+            return new DefaultIdentifyTransformBuildOperationDetails(transformer, subject, attributesFactory);
         }
 
         @Override
@@ -433,14 +433,14 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             return transformer.getDisplayName() + ": " + inputArtifact;
         }
 
-        private static class DefaultTransformIdentifyBuildOperationDetails implements TransformIdentifyBuildOperationDetails {
+        private static class DefaultIdentifyTransformBuildOperationDetails implements IdentifyTransformBuildOperationType.Details {
 
             private final Transformer transformer;
             private final TransformationSubject subject;
             private final ImmutableAttributes fromAttributes;
             private final ImmutableAttributes toAttributes;
 
-            private DefaultTransformIdentifyBuildOperationDetails(Transformer transformer, TransformationSubject subject, ImmutableAttributesFactory attributesFactory) {
+            private DefaultIdentifyTransformBuildOperationDetails(Transformer transformer, TransformationSubject subject, ImmutableAttributesFactory attributesFactory) {
                 this.transformer = transformer;
                 this.fromAttributes = new LazyDesugaringAttributeContainer(transformer.getFromAttributes(), attributesFactory);
                 this.toAttributes = new LazyDesugaringAttributeContainer(transformer.getToAttributes(), attributesFactory);
@@ -467,14 +467,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
                 return subject.getInitialComponentIdentifier();
             }
         }
-    }
-
-    public interface TransformIdentifyBuildOperationDetails extends UnitOfWork.IdentifyBuildOperationDetails {
-        AttributeContainer getFromAttributes();
-
-        AttributeContainer getToAttributes();
-
-        ComponentIdentifier getComponentId();
     }
 
     private static class ImmutableTransformationWorkspaceIdentity implements UnitOfWork.Identity {
