@@ -88,10 +88,10 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
     @Override
     public void notifyAboutActivity() {
-        if (isAutoDownloadEnabled() && toolchainResolverRegistry.requestedRepositories().isEmpty()) {
+        /*if (isAutoDownloadEnabled() && toolchainResolverRegistry.requestedRepositories().isEmpty()) {
             //todo: warn user about
             //todo: write test for this functionality
-        }
+        }*/
     }
 
     public File tryInstall(JavaToolchainSpec spec) {
