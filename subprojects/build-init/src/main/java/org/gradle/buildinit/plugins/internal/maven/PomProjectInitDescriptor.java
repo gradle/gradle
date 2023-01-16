@@ -77,6 +77,11 @@ public class PomProjectInitDescriptor implements BuildConverter {
     }
 
     @Override
+    public boolean isJvmLanguage() {
+        return false;
+    }
+
+    @Override
     public Set<ModularizationOption> getModularizationOptions() {
         return Collections.singleton(ModularizationOption.SINGLE_PROJECT);
     }

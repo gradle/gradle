@@ -54,6 +54,11 @@ public class CompositeProjectInitDescriptor implements BuildInitializer {
     }
 
     @Override
+    public boolean isJvmLanguage() {
+        return descriptor.isJvmLanguage();
+    }
+
+    @Override
     public Set<ModularizationOption> getModularizationOptions() {
         return descriptor.getModularizationOptions();
     }

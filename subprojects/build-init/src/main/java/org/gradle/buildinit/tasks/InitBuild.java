@@ -40,19 +40,16 @@ import org.gradle.buildinit.plugins.internal.modifiers.ModularizationOption;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
-import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.lang.model.SourceVersion;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static java.util.stream.Collectors.toList;
 import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackageName;
 
 /**
@@ -60,6 +57,7 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class InitBuild extends DefaultTask {
+    private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 6;
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
     private String type;
     private final Property<Boolean> splitProject = getProject().getObjects().property(Boolean.class);
@@ -206,7 +204,7 @@ public abstract class InitBuild extends DefaultTask {
 
         validatePackageName(packageName);
 
-        java.util.Optional<JavaLanguageVersion> toolChainVersion = getJavaLanguageVersion(useIncubatingAPIs, inputHandler, initDescriptor.getLanguage());
+        java.util.Optional<JavaLanguageVersion> toolChainVersion = getJavaLanguageVersion(inputHandler, initDescriptor);
 
         validatePackageName(packageName);
 
@@ -233,40 +231,18 @@ public abstract class InitBuild extends DefaultTask {
         }
     }
 
-    static class JavaVersionSelection {
-        private final JavaLanguageVersion languageVersion;
-
-        JavaVersionSelection(JavaLanguageVersion ver) {
-            languageVersion = ver;
+    java.util.Optional<JavaLanguageVersion> getJavaLanguageVersion(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
+        if (!initDescriptor.isJvmLanguage()) {
+            return empty();
         }
 
-        @Override
-        public String toString() {
-            return "Java " + languageVersion;
+        JavaLanguageVersion current = JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion());
+        String version = inputHandler.askQuestion("Which version of Java is this Project targeting (min. " + MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API + ")", current.toString());
+        int parsedVersion = Integer.parseInt(version);
+        if(parsedVersion <= MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API) {
+            throw new GradleException("Java version not supported: " + version);
         }
-
-        public JavaLanguageVersion getLanguageVersion() {
-            return languageVersion;
-        }
-    }
-
-    java.util.Optional<JavaLanguageVersion> getJavaLanguageVersion(boolean useIncubatingAPIs, UserInputHandler inputHandler, Language language) {
-        if (isJvmLanguage(language) && useIncubatingAPIs) {
-            JavaLanguageVersion current = JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion());
-            List<JavaVersionSelection> knownVersionSelections = DefaultJavaLanguageVersion.getKnownVersions().map(version -> new JavaVersionSelection(version)).collect(toList());
-            return of(inputHandler.selectOption(
-                "Which version of Java is this Project targeting",
-                knownVersionSelections,
-                new JavaVersionSelection(current)))
-                .map(JavaVersionSelection::getLanguageVersion);
-        }
-        return empty();
-    }
-
-    private static final List<Language> JVM_LANGUAGES = Arrays.asList(Language.SCALA, Language.GROOVY, Language.GROOVY, Language.JAVA, Language.KOTLIN);
-
-    private static boolean isJvmLanguage(Language language) {
-        return JVM_LANGUAGES.contains(language);
+        return of(JavaLanguageVersion.of(parsedVersion));
     }
 
     private BuildInitDsl getBuildInitDsl(UserInputHandler inputHandler, BuildInitializer initDescriptor) {
