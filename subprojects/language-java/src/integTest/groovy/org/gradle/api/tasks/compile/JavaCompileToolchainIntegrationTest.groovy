@@ -293,7 +293,8 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
             .runWithFailure()
 
         then:
-        failureHasCause('No locally installed toolchains match and toolchain auto-provisioning is not enabled.')
+        failure.assertHasDocumentedCause("No locally installed toolchains match (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection) " +
+                "and toolchain auto-provisioning is not enabled (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection).")
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_7) != null })
@@ -357,7 +358,8 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         fails("compileJava")
 
         then:
-        failureHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
+        failure.assertHasDocumentedCause("No locally installed toolchains match (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection) " +
+                "and toolchain auto-provisioning is not enabled (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection).")
     }
 
     def "can use compile daemon with tools jar"() {
