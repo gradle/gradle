@@ -11,14 +11,14 @@ gradlebuildJava.usedInWorkers()
  * Use Java 8 compatibility for Unit tests, so we can test Java 8 features as well
  */
 tasks.named<JavaCompile>("compileTestJava") {
-    options.release.set(8)
+    options.release = 8
 }
 
 /**
  * Use Java 8 compatibility for JMH benchmarks
  */
 tasks.named<JavaCompile>("jmhCompileGeneratedClasses") {
-    options.release.set(8)
+    options.release = 8
 }
 
 moduleIdentity.createBuildReceipt()
@@ -54,4 +54,5 @@ packageCycles {
     excludePatterns.add("org/gradle/util/GradleVersion**")
 }
 
+// TODO: Anze: ListProperty.assign
 jmh.includes.set(listOf("HashingAlgorithmsBenchmark"))
