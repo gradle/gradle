@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationType
+import org.gradle.api.internal.artifacts.transform.IdentifyTransformBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -2702,6 +2703,42 @@ Found the following transforms:
             displayName == "Transform lib.jar (project :lib) with BrokenTransform"
             details.transformerName == "BrokenTransform"
             details.subjectName == "lib.jar (project :lib)"
+        }
+    }
+
+    def "adds information about the transform to the identify build operation details"() {
+        def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
+
+        given:
+        buildFile << """
+            project(":lib") {
+                task jar(type: Jar) {
+                    archiveFileName = 'lib.jar'
+                    destinationDirectory = buildDir
+                }
+                artifacts {
+                    compile jar
+                }
+            }
+
+            project(":app") {
+                dependencies {
+                    compile project(":lib")
+                }
+                ${configurationAndTransform('FileSizer')}
+            }
+        """
+
+        when:
+        run "app:resolve"
+
+        then:
+        with(buildOperations.only(IdentifyTransformBuildOperationType)) {
+            displayName == 'Identifying work'
+            details.componentId == 'project :lib'
+            details.fromAttributes == [[name: 'artifactType', value: 'jar']]
+            details.toAttributes == [[name: 'artifactType', value: 'size']]
+            details.workType == 'FileSizer'
         }
     }
 
