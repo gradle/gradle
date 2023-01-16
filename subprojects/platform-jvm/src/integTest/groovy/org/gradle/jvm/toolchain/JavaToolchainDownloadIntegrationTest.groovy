@@ -33,6 +33,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
                 toolchain {
                     languageVersion = JavaLanguageVersion.of(14)
                     implementation = JvmImplementation.J9
+                    vendor = JvmVendorSpec.ADOPTIUM
                 }
             }
         """
@@ -51,7 +52,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Execution failed for task ':compileJava'.")
             .assertHasCause("Error while evaluating property 'javaCompiler' of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'")
-            .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=any, implementation=J9}.")
+            .assertHasCause("No matching toolchains found for requested specification: {languageVersion=14, vendor=ADOPTIUM, implementation=J9}.")
             .assertHasDocumentedCause("No locally installed toolchains match (see https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection) " +
                     "and the configured toolchain download repositories aren't able to provide a match either (see https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories).")
     }
