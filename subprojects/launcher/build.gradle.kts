@@ -84,7 +84,8 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-testFilesCleanup.reportOnly.set(true)
+// TODO: Anze: Check why IntelliJ shows an error
+testFilesCleanup.reportOnly = true
 
 // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
 tasks.configCacheIntegTest {

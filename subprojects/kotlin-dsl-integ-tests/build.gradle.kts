@@ -28,7 +28,7 @@ dependencies {
     crossVersionTestLocalRepository(project(":kotlin-dsl-plugins"))
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true
 
 // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
 tasks.configCacheIntegTest {

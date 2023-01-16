@@ -71,7 +71,8 @@ packageCycles {
     excludePatterns.add("org/gradle/language/nativeplatform/internal/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+// TODO: Anze: Check why IntelliJ shows an error
+integTest.usesJavadocCodeSnippets = true
 
 // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
 tasks.configCacheIntegTest {

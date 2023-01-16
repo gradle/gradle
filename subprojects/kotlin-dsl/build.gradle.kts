@@ -123,7 +123,7 @@ packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/**")
 }
 
-testFilesCleanup.reportOnly.set(true)
+testFilesCleanup.reportOnly = true
 
 strictCompile {
     ignoreDeprecations()

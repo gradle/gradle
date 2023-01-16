@@ -75,6 +75,7 @@ tasks.withType<Test>().configureEach {
 }
 
 tasks.withType<JavaCompile>().configureEach {
+    // TODO: Anze: Property<T>.assign should accept nullable value
     options.release.set(null as? Int)
     sourceCompatibility = "8"
     targetCompatibility = "8"
@@ -90,7 +91,7 @@ packageCycles {
     excludePatterns.add("org/gradle/external/javadoc/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true
 
 // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
 tasks.configCacheIntegTest {

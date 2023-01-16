@@ -53,12 +53,13 @@ strictCompile {
 }
 
 tasks.withType<JavaCompile>().configureEach {
+    // TODO: Anze: Property<T>.assign should accept nullable value
     options.release.set(null as? Int)
     sourceCompatibility = "8"
     targetCompatibility = "8"
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true
 
 packageCycles {
     excludePatterns.add("org/gradle/model/internal/core/**")

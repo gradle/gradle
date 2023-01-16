@@ -59,7 +59,7 @@ packageCycles {
     excludePatterns.add("org/gradle/jvm/toolchain/internal/**")
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true
 
 description = """Extends platform-base with base types and interfaces specific to the Java Virtual Machine, including tasks for obtaining a JDK via toolchains, and for compiling and launching Java applications."""
 

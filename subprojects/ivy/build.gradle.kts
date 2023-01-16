@@ -61,7 +61,7 @@ dependencies {
     crossVersionTestDistributionRuntimeOnly(project(":distributions-core"))
 }
 
-integTest.usesJavadocCodeSnippets.set(true)
+integTest.usesJavadocCodeSnippets = true
 
 // Remove as part of fixing https://github.com/gradle/configuration-cache/issues/585
 tasks.configCacheIntegTest {
