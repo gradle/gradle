@@ -39,9 +39,11 @@ import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -100,7 +102,7 @@ public abstract class D3GraphWriterTask extends DefaultTask {
                 dependencyClasses.addAll(classAnalysis.getAccessibleClassDependencies());
 
                 String className = classAnalysis.getClassName();
-                ClassData classData = new ClassData();
+                ClassData classData = new ClassData(className);
                 classData.dependencyClasses = dependencyClasses;
                 classData.artifact = file;
 
@@ -119,12 +121,53 @@ public abstract class D3GraphWriterTask extends DefaultTask {
             });
         });
 
+        plotGraph3(artifactMap, dependencyMap, dependentMap);
+    }
+
+    private void plotGraph1(Map<String, File> artifactMap, Map<String, ClassData> dependencyMap, Map<String, Set<String>> dependentMap) {
         List<String> IGNORED_CLASSES = List.of(
             "javax.annotation.Nullable", "org.gradle.api.Action", "org.gradle.api.Transformer",
             "org.gradle.api.specs.Spec", "org.gradle.internal.Cast", "org.slf4j.Logger",
             "org.gradle.api.Incubating", "org.gradle.api.GradleException", "org.gradle.api.provider.Provider",
             "org.gradle.internal.service.scopes.Scope", "org.slf4j.LoggerFactory",
             "org.gradle.internal.deprecation.DeprecationLogger");
+
+        // Graph to plot.
+        HashMap<String, Graphable> nodeMap = new HashMap<>(dependencyMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, x -> new ClassNode(x.getValue()))));
+
+        // We only care to plot nodes that the production code depends on directly.
+        nodeMap.entrySet().removeIf(entry -> {
+            Set<String> dependents = dependentMap.get(entry.getKey());
+            if (dependents == null) {
+                return true; // Nobody depends on this. Don't print it.
+            }
+            return dependents.stream().noneMatch(dependent -> isGradleArtifact(artifactMap.get(dependent)));
+        });
+
+
+        renderNodes(IGNORED_CLASSES, nodeMap);
+    }
+
+    private void plotGraph3(Map<String, File> artifactMap, Map<String, ClassData> dependencyMap, Map<String, Set<String>> dependentMap) {
+
+        // Graph all core classes
+        HashMap<String, Graphable> nodeMap = new HashMap<>(dependencyMap.entrySet().stream()
+            .filter(x -> artifactMap.get(x.getKey()).getName().startsWith("gradle-core"))
+            .collect(Collectors.toMap(Map.Entry::getKey, x -> new ClassNode(x.getValue()))));
+
+        artifactMap.forEach((clazz, artifact) -> {
+            if (isGradleArtifact(artifact) && !artifact.getName().startsWith("gradle-core")) {
+                Module module = getModule(artifact);
+                dependencyMap.get(clazz).dependencyClasses.forEach(module.dependencies::add);
+                getModule(artifact).incoming = 1000;
+            }
+        });
+        nodeMap.putAll(modules);
+
+        renderNodes(Collections.emptyList(), nodeMap);
+    }
+
+    private void plotGraph2(Map<String, File> artifactMap, Map<String, ClassData> dependencyMap, Map<String, Set<String>> dependentMap) {
 
         // Graph to plot.
         HashMap<String, ClassData> nodeMap = new HashMap<>(dependencyMap);
@@ -135,23 +178,66 @@ public abstract class D3GraphWriterTask extends DefaultTask {
             if (dependents == null) {
                 return true; // Nobody depends on this. Don't print it.
             }
-            return dependents.stream().noneMatch(dependent -> isPrimaryArtifact(artifactMap.get(dependent)));
+
+            // Ensure this class is depended upon by gradle.
+            return dependents.stream().noneMatch(dependent -> isGradleArtifact(artifactMap.get(dependent)));
         });
 
+        HashMap<String, Module> modules = new HashMap<>();
+        artifactMap.forEach((key, artifact) -> {
+            Set<String> dependencyModules = dependencyMap.getOrDefault(key, EMPTY_CLASS)
+                .dependencyClasses.stream()
+                .map(x -> {
+                    File artifact2 = artifactMap.get(x);
+                    if (artifact2 == null) {
+                        // From the jvm?
+                        return null;
+                    }
+                    return getModule(artifact2).getName();
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+            // Only show gradle modules
+            if (isGradleArtifact(artifact)) {
+                getModule(artifact).dependencies.addAll(dependencyModules);
+            }
+        });
+
+        modules.forEach((name, module) -> {
+            module.dependencies.forEach(dep -> {
+                Module moduleDep = modules.get(dep);
+                if (moduleDep != null) {
+                    moduleDep.incoming++;
+                }
+            });
+        });
+
+        renderNodes(Collections.emptyList(), modules);
+    }
 
 
+
+    Map<String, Module> modules = new HashMap<>();
+    private Module getModule(File artifact) {
+        return modules.computeIfAbsent(artifact.getName(), x -> new Module(artifact));
+    }
+
+    private static final ClassData EMPTY_CLASS = new ClassData(null, "empty", Collections.emptySet());
+
+    private <T extends Graphable>  void renderNodes(List<String> IGNORED_CLASSES, Map<String, T> nodeMap) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n");
         sb.append("\"nodes\": [\n");
 
-        Iterator<Map.Entry<String, ClassData>> it = nodeMap.entrySet().iterator();
+        Iterator<Map.Entry<String, T>> it = nodeMap.entrySet().iterator();
         while(it.hasNext()) {
-            Map.Entry<String, ClassData> entry = it.next();
-            String group = entry.getValue().artifact == null ? "unknown" : entry.getValue().artifact.getName();
+            Map.Entry<String, T> entry = it.next();
+            String group = entry.getValue().getGroup();
 
-            int num = group.hashCode();
-            String color = String.format("hsl(%d, 100%%, 50%%)", Math.abs(num) % 360);
-            String node = String.format("{'id': '%s', 'group':'%s', 'color2':'%s', 'val': '%d'}", entry.getKey(), group, color, (int)Math.sqrt(entry.getValue().dependencyClasses.size()));
+
+            String color = entry.getValue().getColor();
+            String node = String.format("{'id': '%s', 'group':'%s', 'color':'%s', 'val': '%d', 'name': '%s'}", entry.getKey(), group, color, entry.getValue().getSize(), entry.getValue().getName());
 
             sb.append(node.replace('\'', '"'));
             if (it.hasNext()) {
@@ -161,7 +247,7 @@ public abstract class D3GraphWriterTask extends DefaultTask {
 
         sb.append("], \"links\": [\n");
 
-        String links = nodeMap.entrySet().stream().flatMap(entry -> entry.getValue().dependencyClasses.stream()
+        String links = nodeMap.entrySet().stream().flatMap(entry -> entry.getValue().getDependencies().stream()
             .filter(x -> !IGNORED_CLASSES.contains(x))
             .filter(nodeMap::containsKey)
             .map(target -> {
@@ -182,13 +268,12 @@ public abstract class D3GraphWriterTask extends DefaultTask {
         }
     }
 
-    private boolean isPrimaryArtifact(File f) {
+    private boolean isGradleArtifact(File f) {
         if (f == null) {
             // It was a missing dependency. Maybe we care about it?
             // Really, this should not happen. At least how we're using this method now.
             return true;
         }
-
 
         String fileName = f.getName();
         return fileName.startsWith("gradle-");
@@ -257,15 +342,149 @@ public abstract class D3GraphWriterTask extends DefaultTask {
         return seen;
     }
 
-    private static class ClassData {
+    interface Graphable {
+
+        String getName();
+        String getId();
+
+        String getGroup();
+        Set<String> getDependencies();
+
+        default String getColor() {
+            int num = getGroup().hashCode();
+            return String.format("hsl(%d, 100%%, 50%%)", Math.abs(num) % 360);
+        }
+
+        default int getSize() {
+            return 1;
+        }
+    }
+
+    private static class ClassData{
+        String name;
         File artifact;
         Set<String> dependencyClasses;
-        public ClassData() {
-
+        public ClassData(String name) {
+            this.name = name;
         }
-        public ClassData(File artifact, Set<String> dependencyClasses) {
+        public ClassData(File artifact, String name, Set<String> dependencyClasses) {
             this.artifact = artifact;
+            this.name = name;
             this.dependencyClasses = dependencyClasses;
+        }
+
+//        @Override
+//        public String getId() {
+//            return name;
+//        }
+//
+//        @Override
+//        public String getName() {
+//            return name;
+//        }
+//
+//        @Override
+//        public String getGroup() {
+//            return artifact == null ? "unknown" : artifact.getName();
+//        }
+//
+//        @Override
+//        public Set<Graphable> getDependencies() {
+//            return dependencyClasses;
+//        }
+//
+//
+//        @Override
+//        public int getSize() {
+//            return (int)Math.sqrt(dependencyClasses.size());
+//        }
+    }
+
+    private static class ClassNode implements Graphable {
+        String name;
+        File artifact;
+        Set<String> dependencies;
+
+        public ClassNode(ClassData data) {
+            this.name = data.name;
+            this.artifact = data.artifact;
+            this.dependencies = data.dependencyClasses;
+        }
+
+        @Override
+        public String getId() {
+            return name;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String getGroup() {
+//            return artifact == null ? "unknown" : artifact.getName();
+            return name.substring(0, name.lastIndexOf("."));
+        }
+
+        @Override
+        public Set<String> getDependencies() {
+            return dependencies;
+        }
+
+
+        @Override
+        public int getSize() {
+            return (int)Math.sqrt(dependencies.size());
+        }
+    }
+
+    static class Module implements Graphable{
+
+        int incoming = 0;
+
+        File artifact;
+        public Module(File artifact) {
+            this.artifact = artifact;
+        }
+        Set<String> dependencies = new HashSet<>();
+
+        @Override
+        public String getId() {
+            return artifact.getName();
+        }
+
+        @Override
+        public String getName() {
+            return artifact.getName().startsWith("gradle-") ? artifact.getName().substring("gradle-".length()) : artifact.getName();
+        }
+
+        @Override
+        public String getGroup() {
+            // TODO: Group by distribution.
+            return artifact.getName().startsWith("gradle-") ? "Gradle" : "External";
+
+//                return (incoming - dependencies.size()) + "";
+        }
+
+        @Override
+        public int getSize() {
+            int size = incoming;
+//                size = incoming + dependencies.size();
+            return (int) Math.ceil(Math.sqrt(size));
+        }
+
+        @Override
+        public String getColor() {
+            int num = incoming - dependencies.size();
+            int num2 = (int) (dependencies.size() == 0 ? 0 : (float) incoming / dependencies.size() * 10);
+//                num = (num + "").hashCode();
+            return String.format("hsl(%d, 100%%, 50%%)", (num2 + 360) % 360);
+        }
+
+        @Override
+        public Set<String> getDependencies() {
+            return dependencies;
         }
     }
 }

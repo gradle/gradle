@@ -171,6 +171,8 @@ include("smoke-test")
 include("performance")
 include("build-scan-performance")
 
+include("scanner-plugin-resolver")
+
 rootProject.name = "gradle"
 
 for (project in rootProject.children) {

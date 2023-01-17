@@ -1,6 +1,3 @@
-plugins {
-    id("gradlebuild.cache-miss-monitor")
-}
 
 description = "Provides plugins that are used by Gradle subprojects"
 

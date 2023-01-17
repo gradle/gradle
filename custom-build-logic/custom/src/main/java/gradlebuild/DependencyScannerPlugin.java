@@ -23,9 +23,9 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.plugins.JvmEcosystemPlugin;
 import org.gradle.api.plugins.jvm.internal.JvmPluginServices;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Exec;
@@ -44,6 +44,8 @@ public abstract class DependencyScannerPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
 
+        project.getPlugins().apply(JvmEcosystemPlugin.class);
+
         // Configure artifact transform
         project.getDependencies().getAttributesSchema().attribute(analyzed);
         project.getDependencies().registerTransform(AnalyzingArtifactTransform.class, spec -> {
@@ -52,20 +54,20 @@ public abstract class DependencyScannerPlugin implements Plugin<Project> {
         });
 
         // Configuration to declare analysis dependencies on.
-        Configuration dependencyAnalysis = project.getConfigurations().create("dependencyAnalysis");
-        dependencyAnalysis.setCanBeConsumed(false);
-        dependencyAnalysis.setCanBeResolved(false);
-        dependencyAnalysis.setVisible(true);
+        Configuration dependencyScanner = project.getConfigurations().create("dependencyScanner");
+        dependencyScanner.setCanBeConsumed(false);
+        dependencyScanner.setCanBeResolved(false);
+        dependencyScanner.setVisible(true);
 
-        // By default, we analyze the current project. Users can add additional dependencies themselves.
-        dependencyAnalysis.getDependencies().add(project.getDependencies().create(project));
+//        // By default, we analyze the current project. Users can add additional dependencies themselves.
+//        dependencyScanner.getDependencies().add(project.getDependencies().create(project));
 
         // Per-project config:
-//        dependencyAnalysis.getDependencies().add(
+//        dependencyScanner.getDependencies().add(
 //            project.getDependencies().project(Collections.singletonMap("path", ":testing-jvm-infrastructure")));
 
         // For some reason the platform dependency isn't inherited from the project dependency.
-        dependencyAnalysis.getDependencies().add(project.getDependencies().platform(
+        dependencyScanner.getDependencies().add(project.getDependencies().platform(
             project.getDependencies().project(Collections.singletonMap("path", ":distributions-dependencies"))
         ));
 
@@ -74,7 +76,7 @@ public abstract class DependencyScannerPlugin implements Plugin<Project> {
         dependencyAnalysisClasspath.setCanBeResolved(true);
         dependencyAnalysisClasspath.setCanBeConsumed(false);
         dependencyAnalysisClasspath.setVisible(false);
-        dependencyAnalysisClasspath.extendsFrom(dependencyAnalysis);
+        dependencyAnalysisClasspath.extendsFrom(dependencyScanner);
 
         // When we resolve this configuration, fetch the analysis for each dependency instead of the
         // dependency themselves.
