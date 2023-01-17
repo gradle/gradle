@@ -129,12 +129,14 @@ public class JavaToolchainQueryService {
             return asToolchain(new InstallationLocation(((SpecificInstallationToolchainSpec) spec).getJavaHome(), "specific installation"), spec).get();
         }
 
+        warnIfAutoProvisioningOnWithoutRepositoryDefinitions();
+
         Optional<JavaToolchain> detectedToolchain = registry.listInstallations().stream()
-                .map(javaHome -> asToolchain(javaHome, spec))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .filter(new JavaToolchainMatcher(spec))
-                .min(new JavaToolchainComparator());
+            .map(javaHome -> asToolchain(javaHome, spec))
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .filter(new JavaToolchainMatcher(spec))
+            .min(new JavaToolchainComparator());
 
         if (detectedToolchain.isPresent()) {
             return detectedToolchain.get();
@@ -144,6 +146,16 @@ public class JavaToolchainQueryService {
         JavaToolchain downloadedToolchain = asToolchainOrThrow(downloadedInstallation, spec);
         registry.addInstallation(downloadedInstallation);
         return downloadedToolchain;
+    }
+
+    private void warnIfAutoProvisioningOnWithoutRepositoryDefinitions() {
+        if (installService.isAutoDownloadEnabled() && !installService.hasConfiguredToolchainRepositories()) {
+            DeprecationLogger.deprecateBehaviour("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. Will rely on the built-in repository.")
+                .withAdvice("In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block.")
+                .willBeRemovedInGradle8()
+                .withUserManual("toolchains", "sec:provisioning")
+                .nagUser();
+        }
     }
 
     private InstallationLocation downloadToolchain(JavaToolchainSpec spec) {

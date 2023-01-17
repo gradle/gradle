@@ -23,7 +23,6 @@ import org.gradle.authentication.Authentication;
 import org.gradle.cache.FileLock;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
 import org.gradle.platform.BuildPlatform;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -90,6 +89,16 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         this.buildPlatform = buildPlatform;
     }
 
+    @Override
+    public boolean isAutoDownloadEnabled() {
+        return downloadEnabled.getOrElse(true);
+    }
+
+    @Override
+    public boolean hasConfiguredToolchainRepositories() {
+        return !toolchainResolverRegistry.requestedRepositories().isEmpty();
+    }
+
     public Optional<File> tryInstall(JavaToolchainSpec spec) {
         if (!isAutoDownloadEnabled()) {
             return Optional.empty();
@@ -99,11 +108,6 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
 
         DefaultJavaToolchainRequest toolchainRequest = new DefaultJavaToolchainRequest(spec, buildPlatform);
         if (repositories.isEmpty()) {
-            DeprecationLogger.deprecateBehaviour("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository.")
-                    .withAdvice("In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block.")
-                    .willBeRemovedInGradle8()
-                    .withUserManual("toolchains", "sec:provisioning")
-                    .nagUser();
             Optional<JavaToolchainDownload> download = openJdkBinary.resolve(toolchainRequest);
             if (download.isPresent()) {
                 return Optional.of(provisionInstallation(spec, download.get().getUri(), Collections.emptyList()));
@@ -155,10 +159,6 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             throw new GradleException("Can't determine filename for resource located at: " + uri);
         }
         return fileName;
-    }
-
-    private boolean isAutoDownloadEnabled() {
-        return downloadEnabled.getOrElse(true);
     }
 
     private <T> T wrapInOperation(String displayName, Callable<T> provisioningStep) {

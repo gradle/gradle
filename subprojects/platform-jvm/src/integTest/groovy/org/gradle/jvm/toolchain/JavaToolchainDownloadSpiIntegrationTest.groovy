@@ -172,7 +172,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractJavaToolchainDownl
                 .withTasks("compileJava")
                 .requireOwnGradleUserHomeDir()
                 .withToolchainDownloadEnabled()
-                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning needed, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
+                .expectDocumentedDeprecationWarning("Java toolchain auto-provisioning enabled, but no java toolchain repositories declared by the build. Will rely on the built-in repository. " +
                         "This behaviour has been deprecated and is scheduled to be removed in Gradle 8.0. " +
                         "In order to declare a repository for java toolchains, you must edit your settings script and add one via the toolchainManagement block. " +
                         "See https://docs.gradle.org/current/userguide/toolchains.html#sec:provisioning for more details.")
