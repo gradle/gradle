@@ -30,9 +30,4 @@ public class DefaultFileDownloadSuccessResult extends DefaultSuccessResult imple
     public long getBytesDownloaded() {
         return bytesDownloaded;
     }
-
-//    @Override
-//    public FileDownloadResult toFileDownloadResult(){
-//        return new org.gradle.tooling.events.download.internal.DefaultFileDownloadSuccessResult(getStartTime(), getEndTime(), getBytesDownloaded());
-//    }
 }

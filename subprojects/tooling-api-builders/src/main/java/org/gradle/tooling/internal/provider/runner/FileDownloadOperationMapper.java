@@ -27,7 +27,7 @@ import org.gradle.internal.build.event.types.DefaultFileDownloadSuccessResult;
 import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
 import org.gradle.internal.build.event.types.DefaultStatusEvent;
-import org.gradle.internal.build.event.types.NotFoundDownloadSuccessResult;
+import org.gradle.internal.build.event.types.NotFoundFileDownloadSuccessResult;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -97,7 +97,7 @@ public class FileDownloadOperationMapper implements BuildOperationMapper<Externa
             return new DefaultFileDownloadSuccessResult(startTime, endTime, operationResult.getBytesRead());
         }
         if (failure instanceof MissingResourceException) {
-            return new NotFoundDownloadSuccessResult(startTime, endTime);
+            return new NotFoundFileDownloadSuccessResult(startTime, endTime);
         }
         return new DefaultFileDownloadFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), operationResult.getBytesRead());
     }

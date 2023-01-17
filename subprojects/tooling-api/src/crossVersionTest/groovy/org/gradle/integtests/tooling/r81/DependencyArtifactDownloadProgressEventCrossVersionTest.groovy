@@ -71,10 +71,3 @@ class DependencyArtifactDownloadProgressEventCrossVersionTest extends AbstractHt
         events.operations.pop().result instanceof NotFoundFileDownloadSuccessResult
     }
 }
-
-//Download http://127.0.0.1:50028/repo/group/projectF/2.0/projectF-2.0.pom started,
-// Download http://127.0.0.1:50028/repo/group/projectF/2.0/projectF-2.0.pom not found,
-// Download http://127.0.0.1:50028/repo2/group/projectF/2.0/projectF-2.0.pom started,
-// Download http://127.0.0.1:50028/repo2/group/projectF/2.0/projectF-2.0.pom succeeded,
-// Download http://127.0.0.1:50028/repo2/group/projectF/2.0/projectF-2.0.jar started,
-// Download http://127.0.0.1:50028/repo2/group/projectF/2.0/projectF-2.0.jar succeeded
