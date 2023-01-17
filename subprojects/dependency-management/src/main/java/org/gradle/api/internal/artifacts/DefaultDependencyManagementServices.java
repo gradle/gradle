@@ -337,6 +337,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ConfigurationResolver resolver,
             ListenerManager listenerManager,
             DependencyMetaDataProvider metaDataProvider,
+            ComponentIdentifierFactory componentIdentifierFactory,
+            DependencyLockingProvider dependencyLockingProvider,
             DomainObjectContext domainObjectContext,
             FileCollectionFactory fileCollectionFactory,
             BuildOperationExecutor buildOperationExecutor,
@@ -350,7 +352,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             CalculatedValueContainerFactory calculatedValueContainerFactory,
             TaskDependencyFactory taskDependencyFactory
         ) {
-            return new DefaultConfigurationFactory(instantiator, resolver, listenerManager, metaDataProvider, domainObjectContext, fileCollectionFactory,
+            return new DefaultConfigurationFactory(instantiator, resolver, listenerManager, metaDataProvider, componentIdentifierFactory, dependencyLockingProvider, domainObjectContext, fileCollectionFactory,
                 buildOperationExecutor, artifactNotationParserFactory, attributesFactory, documentationRegistry, userCodeApplicationContext, projectStateRegistry, workerThreadRegistry,
                 domainObjectCollectionFactory, calculatedValueContainerFactory, taskDependencyFactory
             );

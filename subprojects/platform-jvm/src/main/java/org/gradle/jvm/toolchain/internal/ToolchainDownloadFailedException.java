@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.local.model;
+package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
+import org.gradle.api.GradleException;
 
-public interface RootConfigurationMetadata extends LocalConfigurationGraphResolveMetadata {
+public class ToolchainDownloadFailedException extends GradleException {
 
-    DependencyLockingState getDependencyLockingState();
+    public ToolchainDownloadFailedException(String message) {
+        super(message);
+    }
 }
